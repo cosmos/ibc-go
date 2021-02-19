@@ -333,6 +333,189 @@
             </ul>
           </li>
         
+          
+          <li>
+            <a href="#ibcgo%2fcore%2fcommitment%2fv1%2fcommitment.proto">ibcgo/core/commitment/v1/commitment.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#ibcgo.core.commitment.v1.MerklePath"><span class="badge">M</span>MerklePath</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.commitment.v1.MerklePrefix"><span class="badge">M</span>MerklePrefix</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.commitment.v1.MerkleProof"><span class="badge">M</span>MerkleProof</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.commitment.v1.MerkleRoot"><span class="badge">M</span>MerkleRoot</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#ibcgo%2fcore%2fconnection%2fv1%2fconnection.proto">ibcgo/core/connection/v1/connection.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.ClientPaths"><span class="badge">M</span>ClientPaths</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.ConnectionEnd"><span class="badge">M</span>ConnectionEnd</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.ConnectionPaths"><span class="badge">M</span>ConnectionPaths</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.Counterparty"><span class="badge">M</span>Counterparty</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.IdentifiedConnection"><span class="badge">M</span>IdentifiedConnection</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.Version"><span class="badge">M</span>Version</a>
+                </li>
+              
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.State"><span class="badge">E</span>State</a>
+                </li>
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#ibcgo%2fcore%2fconnection%2fv1%2fgenesis.proto">ibcgo/core/connection/v1/genesis.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.GenesisState"><span class="badge">M</span>GenesisState</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#ibcgo%2fcore%2fconnection%2fv1%2fquery.proto">ibcgo/core/connection/v1/query.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryClientConnectionsRequest"><span class="badge">M</span>QueryClientConnectionsRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryClientConnectionsResponse"><span class="badge">M</span>QueryClientConnectionsResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionClientStateRequest"><span class="badge">M</span>QueryConnectionClientStateRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionClientStateResponse"><span class="badge">M</span>QueryConnectionClientStateResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionConsensusStateRequest"><span class="badge">M</span>QueryConnectionConsensusStateRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionConsensusStateResponse"><span class="badge">M</span>QueryConnectionConsensusStateResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionRequest"><span class="badge">M</span>QueryConnectionRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionResponse"><span class="badge">M</span>QueryConnectionResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionsRequest"><span class="badge">M</span>QueryConnectionsRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.QueryConnectionsResponse"><span class="badge">M</span>QueryConnectionsResponse</a>
+                </li>
+              
+              
+              
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.Query"><span class="badge">S</span>Query</a>
+                </li>
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#ibcgo%2fcore%2fconnection%2fv1%2ftx.proto">ibcgo/core/connection/v1/tx.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenAck"><span class="badge">M</span>MsgConnectionOpenAck</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenAckResponse"><span class="badge">M</span>MsgConnectionOpenAckResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenConfirm"><span class="badge">M</span>MsgConnectionOpenConfirm</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenConfirmResponse"><span class="badge">M</span>MsgConnectionOpenConfirmResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenInit"><span class="badge">M</span>MsgConnectionOpenInit</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenInitResponse"><span class="badge">M</span>MsgConnectionOpenInitResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenTry"><span class="badge">M</span>MsgConnectionOpenTry</a>
+                </li>
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.MsgConnectionOpenTryResponse"><span class="badge">M</span>MsgConnectionOpenTryResponse</a>
+                </li>
+              
+              
+              
+              
+                <li>
+                  <a href="#ibcgo.core.connection.v1.Msg"><span class="badge">S</span>Msg</a>
+                </li>
+              
+            </ul>
+          </li>
+        
         <li><a href="#scalar-value-types">Scalar Value Types</a></li>
       </ul>
     </div>
@@ -1364,6 +1547,1291 @@ basis of trust in update logic </p></td>
                 <td><a href="#ibcgo.core.client.v1.MsgSubmitMisbehaviour">MsgSubmitMisbehaviour</a></td>
                 <td><a href="#ibcgo.core.client.v1.MsgSubmitMisbehaviourResponse">MsgSubmitMisbehaviourResponse</a></td>
                 <td><p>SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+
+        
+    
+      
+      <div class="file-heading">
+        <h2 id="ibcgo/core/commitment/v1/commitment.proto">ibcgo/core/commitment/v1/commitment.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="ibcgo.core.commitment.v1.MerklePath">MerklePath</h3>
+        <p>MerklePath is the path used to verify commitment proofs, which can be an</p><p>arbitrary structured object (defined by a commitment type).</p><p>MerklePath is represented from root-to-leaf</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>key_path</td>
+                  <td><a href="#string">string</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.commitment.v1.MerklePrefix">MerklePrefix</h3>
+        <p>MerklePrefix is merkle path prefixed to the key.</p><p>The constructed key from the Path and the key will be append(Path.KeyPath,</p><p>append(Path.KeyPrefix, key...))</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>key_prefix</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.commitment.v1.MerkleProof">MerkleProof</h3>
+        <p>MerkleProof is a wrapper type over a chain of CommitmentProofs.</p><p>It demonstrates membership or non-membership for an element or set of</p><p>elements, verifiable in conjunction with a known commitment root. Proofs</p><p>should be succinct.</p><p>MerkleProofs are ordered from leaf-to-root</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>proofs</td>
+                  <td><a href="#ics23.CommitmentProof">ics23.CommitmentProof</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.commitment.v1.MerkleRoot">MerkleRoot</h3>
+        <p>MerkleRoot defines a merkle root hash.</p><p>In the Cosmos SDK, the AppHash of a block header becomes the root.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>hash</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="ibcgo/core/connection/v1/connection.proto">ibcgo/core/connection/v1/connection.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="ibcgo.core.connection.v1.ClientPaths">ClientPaths</h3>
+        <p>ClientPaths define all the connection paths for a client state.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>paths</td>
+                  <td><a href="#string">string</a></td>
+                  <td>repeated</td>
+                  <td><p>list of connection paths </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.ConnectionEnd">ConnectionEnd</h3>
+        <p>ConnectionEnd defines a stateful object on a chain connected to another</p><p>separate one.</p><p>NOTE: there must only be 2 defined ConnectionEnds to establish</p><p>a connection between two chains.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>client associated with this connection. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>versions</td>
+                  <td><a href="#ibcgo.core.connection.v1.Version">Version</a></td>
+                  <td>repeated</td>
+                  <td><p>IBC version which can be utilised to determine encodings or protocols for
+channels or packets utilising this connection. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>state</td>
+                  <td><a href="#ibcgo.core.connection.v1.State">State</a></td>
+                  <td></td>
+                  <td><p>current state of the connection end. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>counterparty</td>
+                  <td><a href="#ibcgo.core.connection.v1.Counterparty">Counterparty</a></td>
+                  <td></td>
+                  <td><p>counterparty chain associated with this connection. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>delay_period</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>delay period that must pass before a consensus state can be used for packet-verification
+NOTE: delay period logic is only implemented by some clients. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.ConnectionPaths">ConnectionPaths</h3>
+        <p>ConnectionPaths define all the connection paths for a given client state.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>client state unique identifier </p></td>
+                </tr>
+              
+                <tr>
+                  <td>paths</td>
+                  <td><a href="#string">string</a></td>
+                  <td>repeated</td>
+                  <td><p>list of connection paths </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.Counterparty">Counterparty</h3>
+        <p>Counterparty defines the counterparty chain associated with a connection end.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>identifies the client on the counterparty chain associated with a given
+connection. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>identifies the connection end on the counterparty chain associated with a
+given connection. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>prefix</td>
+                  <td><a href="#ibcgo.core.commitment.v1.MerklePrefix">ibcgo.core.commitment.v1.MerklePrefix</a></td>
+                  <td></td>
+                  <td><p>commitment merkle prefix of the counterparty chain. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.IdentifiedConnection">IdentifiedConnection</h3>
+        <p>IdentifiedConnection defines a connection with additional connection</p><p>identifier field.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>connection identifier. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>client associated with this connection. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>versions</td>
+                  <td><a href="#ibcgo.core.connection.v1.Version">Version</a></td>
+                  <td>repeated</td>
+                  <td><p>IBC version which can be utilised to determine encodings or protocols for
+channels or packets utilising this connection </p></td>
+                </tr>
+              
+                <tr>
+                  <td>state</td>
+                  <td><a href="#ibcgo.core.connection.v1.State">State</a></td>
+                  <td></td>
+                  <td><p>current state of the connection end. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>counterparty</td>
+                  <td><a href="#ibcgo.core.connection.v1.Counterparty">Counterparty</a></td>
+                  <td></td>
+                  <td><p>counterparty chain associated with this connection. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>delay_period</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>delay period associated with this connection. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.Version">Version</h3>
+        <p>Version defines the versioning scheme used to negotiate the IBC verison in</p><p>the connection handshake.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>identifier</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>unique version identifier </p></td>
+                </tr>
+              
+                <tr>
+                  <td>features</td>
+                  <td><a href="#string">string</a></td>
+                  <td>repeated</td>
+                  <td><p>list of features compatible with the specified identifier </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+        <h3 id="ibcgo.core.connection.v1.State">State</h3>
+        <p>State defines if a connection is in one of the following states:</p><p>INIT, TRYOPEN, OPEN or UNINITIALIZED.</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>STATE_UNINITIALIZED_UNSPECIFIED</td>
+                <td>0</td>
+                <td><p>Default State</p></td>
+              </tr>
+            
+              <tr>
+                <td>STATE_INIT</td>
+                <td>1</td>
+                <td><p>A connection end has just started the opening handshake.</p></td>
+              </tr>
+            
+              <tr>
+                <td>STATE_TRYOPEN</td>
+                <td>2</td>
+                <td><p>A connection end has acknowledged the handshake step on the counterparty
+chain.</p></td>
+              </tr>
+            
+              <tr>
+                <td>STATE_OPEN</td>
+                <td>3</td>
+                <td><p>A connection end has completed the handshake.</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="ibcgo/core/connection/v1/genesis.proto">ibcgo/core/connection/v1/genesis.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="ibcgo.core.connection.v1.GenesisState">GenesisState</h3>
+        <p>GenesisState defines the ibc connection submodule's genesis state.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connections</td>
+                  <td><a href="#ibcgo.core.connection.v1.IdentifiedConnection">IdentifiedConnection</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>client_connection_paths</td>
+                  <td><a href="#ibcgo.core.connection.v1.ConnectionPaths">ConnectionPaths</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>next_connection_sequence</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>the sequence for the next generated connection identifier </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="ibcgo/core/connection/v1/query.proto">ibcgo/core/connection/v1/query.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="ibcgo.core.connection.v1.QueryClientConnectionsRequest">QueryClientConnectionsRequest</h3>
+        <p>QueryClientConnectionsRequest is the request type for the</p><p>Query/ClientConnections RPC method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>client identifier associated with a connection </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryClientConnectionsResponse">QueryClientConnectionsResponse</h3>
+        <p>QueryClientConnectionsResponse is the response type for the</p><p>Query/ClientConnections RPC method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connection_paths</td>
+                  <td><a href="#string">string</a></td>
+                  <td>repeated</td>
+                  <td><p>slice of all the connection paths associated with a client. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>merkle proof of existence </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p>height at which the proof was generated </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionClientStateRequest">QueryConnectionClientStateRequest</h3>
+        <p>QueryConnectionClientStateRequest is the request type for the</p><p>Query/ConnectionClientState RPC method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>connection identifier </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionClientStateResponse">QueryConnectionClientStateResponse</h3>
+        <p>QueryConnectionClientStateResponse is the response type for the</p><p>Query/ConnectionClientState RPC method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>identified_client_state</td>
+                  <td><a href="#ibcgo.core.client.v1.IdentifiedClientState">ibcgo.core.client.v1.IdentifiedClientState</a></td>
+                  <td></td>
+                  <td><p>client state associated with the channel </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>merkle proof of existence </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p>height at which the proof was retrieved </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionConsensusStateRequest">QueryConnectionConsensusStateRequest</h3>
+        <p>QueryConnectionConsensusStateRequest is the request type for the</p><p>Query/ConnectionConsensusState RPC method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>connection identifier </p></td>
+                </tr>
+              
+                <tr>
+                  <td>revision_number</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>revision_height</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionConsensusStateResponse">QueryConnectionConsensusStateResponse</h3>
+        <p>QueryConnectionConsensusStateResponse is the response type for the</p><p>Query/ConnectionConsensusState RPC method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>consensus_state</td>
+                  <td><a href="#google.protobuf.Any">google.protobuf.Any</a></td>
+                  <td></td>
+                  <td><p>consensus state associated with the channel </p></td>
+                </tr>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>client ID associated with the consensus state </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>merkle proof of existence </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p>height at which the proof was retrieved </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionRequest">QueryConnectionRequest</h3>
+        <p>QueryConnectionRequest is the request type for the Query/Connection RPC</p><p>method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>connection unique identifier </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionResponse">QueryConnectionResponse</h3>
+        <p>QueryConnectionResponse is the response type for the Query/Connection RPC</p><p>method. Besides the connection end, it includes a proof and the height from</p><p>which the proof was retrieved.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connection</td>
+                  <td><a href="#ibcgo.core.connection.v1.ConnectionEnd">ConnectionEnd</a></td>
+                  <td></td>
+                  <td><p>connection associated with the request identifier </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>merkle proof of existence </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p>height at which the proof was retrieved </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionsRequest">QueryConnectionsRequest</h3>
+        <p>QueryConnectionsRequest is the request type for the Query/Connections RPC</p><p>method</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>pagination</td>
+                  <td><a href="#cosmos.base.query.v1beta1.PageRequest">cosmos.base.query.v1beta1.PageRequest</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.QueryConnectionsResponse">QueryConnectionsResponse</h3>
+        <p>QueryConnectionsResponse is the response type for the Query/Connections RPC</p><p>method.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connections</td>
+                  <td><a href="#ibcgo.core.connection.v1.IdentifiedConnection">IdentifiedConnection</a></td>
+                  <td>repeated</td>
+                  <td><p>list of stored connections of the chain. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>pagination</td>
+                  <td><a href="#cosmos.base.query.v1beta1.PageResponse">cosmos.base.query.v1beta1.PageResponse</a></td>
+                  <td></td>
+                  <td><p>pagination response </p></td>
+                </tr>
+              
+                <tr>
+                  <td>height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p>query block height </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+        <h3 id="ibcgo.core.connection.v1.Query">Query</h3>
+        <p>Query provides defines the gRPC querier service</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>Connection</td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionRequest">QueryConnectionRequest</a></td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionResponse">QueryConnectionResponse</a></td>
+                <td><p>Connection queries an IBC connection end.</p></td>
+              </tr>
+            
+              <tr>
+                <td>Connections</td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionsRequest">QueryConnectionsRequest</a></td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionsResponse">QueryConnectionsResponse</a></td>
+                <td><p>Connections queries all the IBC connections of a chain.</p></td>
+              </tr>
+            
+              <tr>
+                <td>ClientConnections</td>
+                <td><a href="#ibcgo.core.connection.v1.QueryClientConnectionsRequest">QueryClientConnectionsRequest</a></td>
+                <td><a href="#ibcgo.core.connection.v1.QueryClientConnectionsResponse">QueryClientConnectionsResponse</a></td>
+                <td><p>ClientConnections queries the connection paths associated with a client
+state.</p></td>
+              </tr>
+            
+              <tr>
+                <td>ConnectionClientState</td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionClientStateRequest">QueryConnectionClientStateRequest</a></td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionClientStateResponse">QueryConnectionClientStateResponse</a></td>
+                <td><p>ConnectionClientState queries the client state associated with the
+connection.</p></td>
+              </tr>
+            
+              <tr>
+                <td>ConnectionConsensusState</td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionConsensusStateRequest">QueryConnectionConsensusStateRequest</a></td>
+                <td><a href="#ibcgo.core.connection.v1.QueryConnectionConsensusStateResponse">QueryConnectionConsensusStateResponse</a></td>
+                <td><p>ConnectionConsensusState queries the consensus state associated with the
+connection.</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+
+        
+          
+          
+          <h4>Methods with HTTP bindings</h4>
+          <table>
+            <thead>
+              <tr>
+                <td>Method Name</td>
+                <td>Method</td>
+                <td>Pattern</td>
+                <td>Body</td>
+              </tr>
+            </thead>
+            <tbody>
+            
+              
+              
+              <tr>
+                <td>Connection</td>
+                <td>GET</td>
+                <td>/ibc/core/connection/v1/connections/{connection_id}</td>
+                <td></td>
+              </tr>
+              
+            
+              
+              
+              <tr>
+                <td>Connections</td>
+                <td>GET</td>
+                <td>/ibc/core/connection/v1/connections</td>
+                <td></td>
+              </tr>
+              
+            
+              
+              
+              <tr>
+                <td>ClientConnections</td>
+                <td>GET</td>
+                <td>/ibc/core/connection/v1/client_connections/{client_id}</td>
+                <td></td>
+              </tr>
+              
+            
+              
+              
+              <tr>
+                <td>ConnectionClientState</td>
+                <td>GET</td>
+                <td>/ibc/core/connection/v1/connections/{connection_id}/client_state</td>
+                <td></td>
+              </tr>
+              
+            
+              
+              
+              <tr>
+                <td>ConnectionConsensusState</td>
+                <td>GET</td>
+                <td>/ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}</td>
+                <td></td>
+              </tr>
+              
+            
+            </tbody>
+          </table>
+          
+        
+    
+      
+      <div class="file-heading">
+        <h2 id="ibcgo/core/connection/v1/tx.proto">ibcgo/core/connection/v1/tx.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenAck">MsgConnectionOpenAck</h3>
+        <p>MsgConnectionOpenAck defines a msg sent by a Relayer to Chain A to</p><p>acknowledge the change of connection state to TRYOPEN on Chain B.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>counterparty_connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#ibcgo.core.connection.v1.Version">Version</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>client_state</td>
+                  <td><a href="#google.protobuf.Any">google.protobuf.Any</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_try</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>proof of the initialization the connection on Chain B: `UNITIALIZED -&gt;
+TRYOPEN` </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_client</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>proof of client state included in message </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_consensus</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>proof of client consensus state </p></td>
+                </tr>
+              
+                <tr>
+                  <td>consensus_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>signer</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenAckResponse">MsgConnectionOpenAckResponse</h3>
+        <p>MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.</p>
+
+        
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenConfirm">MsgConnectionOpenConfirm</h3>
+        <p>MsgConnectionOpenConfirm defines a msg sent by a Relayer to Chain B to</p><p>acknowledge the change of connection state to OPEN on Chain A.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_ack</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>proof for the change of the connection state on Chain A: `INIT -&gt; OPEN` </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>signer</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenConfirmResponse">MsgConnectionOpenConfirmResponse</h3>
+        <p>MsgConnectionOpenConfirmResponse defines the Msg/ConnectionOpenConfirm response type.</p>
+
+        
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenInit">MsgConnectionOpenInit</h3>
+        <p>MsgConnectionOpenInit defines the msg sent by an account on Chain A to</p><p>initialize a connection with Chain B.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>counterparty</td>
+                  <td><a href="#ibcgo.core.connection.v1.Counterparty">Counterparty</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#ibcgo.core.connection.v1.Version">Version</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>delay_period</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>signer</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenInitResponse">MsgConnectionOpenInitResponse</h3>
+        <p>MsgConnectionOpenInitResponse defines the Msg/ConnectionOpenInit response type.</p>
+
+        
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenTry">MsgConnectionOpenTry</h3>
+        <p>MsgConnectionOpenTry defines a msg sent by a Relayer to try to open a</p><p>connection on Chain B.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>client_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>previous_connection_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>in the case of crossing hello&#39;s, when both chains call OpenInit, we need the connection identifier
+of the previous connection in state INIT </p></td>
+                </tr>
+              
+                <tr>
+                  <td>client_state</td>
+                  <td><a href="#google.protobuf.Any">google.protobuf.Any</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>counterparty</td>
+                  <td><a href="#ibcgo.core.connection.v1.Counterparty">Counterparty</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>delay_period</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>counterparty_versions</td>
+                  <td><a href="#ibcgo.core.connection.v1.Version">Version</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_init</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>proof of the initialization the connection on Chain A: `UNITIALIZED -&gt;
+INIT` </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_client</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>proof of client state included in message </p></td>
+                </tr>
+              
+                <tr>
+                  <td>proof_consensus</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>proof of client consensus state </p></td>
+                </tr>
+              
+                <tr>
+                  <td>consensus_height</td>
+                  <td><a href="#ibcgo.core.client.v1.Height">ibcgo.core.client.v1.Height</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>signer</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenTryResponse">MsgConnectionOpenTryResponse</h3>
+        <p>MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.</p>
+
+        
+
+        
+      
+
+      
+
+      
+
+      
+        <h3 id="ibcgo.core.connection.v1.Msg">Msg</h3>
+        <p>Msg defines the ibc/connection Msg service.</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>ConnectionOpenInit</td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenInit">MsgConnectionOpenInit</a></td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenInitResponse">MsgConnectionOpenInitResponse</a></td>
+                <td><p>ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.</p></td>
+              </tr>
+            
+              <tr>
+                <td>ConnectionOpenTry</td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenTry">MsgConnectionOpenTry</a></td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenTryResponse">MsgConnectionOpenTryResponse</a></td>
+                <td><p>ConnectionOpenTry defines a rpc handler method for MsgConnectionOpenTry.</p></td>
+              </tr>
+            
+              <tr>
+                <td>ConnectionOpenAck</td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenAck">MsgConnectionOpenAck</a></td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenAckResponse">MsgConnectionOpenAckResponse</a></td>
+                <td><p>ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck.</p></td>
+              </tr>
+            
+              <tr>
+                <td>ConnectionOpenConfirm</td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenConfirm">MsgConnectionOpenConfirm</a></td>
+                <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenConfirmResponse">MsgConnectionOpenConfirmResponse</a></td>
+                <td><p>ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm.</p></td>
               </tr>
             
           </tbody>
