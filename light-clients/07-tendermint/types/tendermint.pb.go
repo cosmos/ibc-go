@@ -52,10 +52,12 @@ type ClientState struct {
 	// Proof specifications used in verifying counterparty state
 	ProofSpecs []*_go.ProofSpec `protobuf:"bytes,8,rep,name=proof_specs,json=proofSpecs,proto3" json:"proof_specs,omitempty" yaml:"proof_specs"`
 	// Path at which next upgraded client will be committed.
-	// Each element corresponds to the key for a single CommitmentProof in the chained proof.
-	// NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState`
-	// ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState`
-	// For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}`
+	// Each element corresponds to the key for a single CommitmentProof in the
+	// chained proof. NOTE: ClientState must stored under
+	// `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored
+	// under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using
+	// the default upgrade module, upgrade_path should be []string{"upgrade",
+	// "upgradedIBCState"}`
 	UpgradePath []string `protobuf:"bytes,9,rep,name=upgrade_path,json=upgradePath,proto3" json:"upgrade_path,omitempty" yaml:"upgrade_path"`
 	// This flag, when set to true, will allow governance to recover a client
 	// which has expired
@@ -255,7 +257,8 @@ func (m *Header) GetTrustedValidators() *types2.ValidatorSet {
 	return nil
 }
 
-// Fraction defines the protobuf message type for tmmath.Fraction that only supports positive values.
+// Fraction defines the protobuf message type for tmmath.Fraction that only
+// supports positive values.
 type Fraction struct {
 	Numerator   uint64 `protobuf:"varint,1,opt,name=numerator,proto3" json:"numerator,omitempty"`
 	Denominator uint64 `protobuf:"varint,2,opt,name=denominator,proto3" json:"denominator,omitempty"`

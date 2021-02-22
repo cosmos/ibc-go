@@ -26,8 +26,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// DataType defines the type of solo machine proof being created. This is done to preserve uniqueness of different
-// data sign byte encodings.
+// DataType defines the type of solo machine proof being created. This is done
+// to preserve uniqueness of different data sign byte encodings.
 type DataType int32
 
 const (
@@ -133,13 +133,15 @@ func (m *ClientState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ClientState proto.InternalMessageInfo
 
-// ConsensusState defines a solo machine consensus state. The sequence of a consensus state
-// is contained in the "height" key used in storing the consensus state.
+// ConsensusState defines a solo machine consensus state. The sequence of a
+// consensus state is contained in the "height" key used in storing the
+// consensus state.
 type ConsensusState struct {
 	// public key of the solo machine
 	PublicKey *types.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty" yaml:"public_key"`
-	// diversifier allows the same public key to be re-used across different solo machine clients
-	// (potentially on different chains) without being considered misbehaviour.
+	// diversifier allows the same public key to be re-used across different solo
+	// machine clients (potentially on different chains) without being considered
+	// misbehaviour.
 	Diversifier string `protobuf:"bytes,2,opt,name=diversifier,proto3" json:"diversifier,omitempty"`
 	Timestamp   uint64 `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }

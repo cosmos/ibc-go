@@ -3058,7 +3058,7 @@ packets.</p></td>
         
       
         <h3 id="ibcgo.core.channel.v1.QueryPacketReceiptResponse">QueryPacketReceiptResponse</h3>
-        <p>QueryPacketReceiptResponse defines the client query response for a packet receipt</p><p>which also includes a proof, and the height from which the proof was</p><p>retrieved</p>
+        <p>QueryPacketReceiptResponse defines the client query response for a packet</p><p>receipt which also includes a proof, and the height from which the proof was</p><p>retrieved</p>
 
         
           <table class="field-table">
@@ -3304,7 +3304,8 @@ with a channel.</p></td>
                 <td>PacketReceipt</td>
                 <td><a href="#ibcgo.core.channel.v1.QueryPacketReceiptRequest">QueryPacketReceiptRequest</a></td>
                 <td><a href="#ibcgo.core.channel.v1.QueryPacketReceiptResponse">QueryPacketReceiptResponse</a></td>
-                <td><p>PacketReceipt queries if a given packet sequence has been received on the queried chain</p></td>
+                <td><p>PacketReceipt queries if a given packet sequence has been received on the
+queried chain</p></td>
               </tr>
             
               <tr>
@@ -3334,8 +3335,8 @@ channel and sequences.</p></td>
                 <td>UnreceivedAcks</td>
                 <td><a href="#ibcgo.core.channel.v1.QueryUnreceivedAcksRequest">QueryUnreceivedAcksRequest</a></td>
                 <td><a href="#ibcgo.core.channel.v1.QueryUnreceivedAcksResponse">QueryUnreceivedAcksResponse</a></td>
-                <td><p>UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
-channel and sequences.</p></td>
+                <td><p>UnreceivedAcks returns all the unreceived IBC acknowledgements associated
+with a channel and sequences.</p></td>
               </tr>
             
               <tr>
@@ -3617,7 +3618,7 @@ channel and sequences.</p></td>
         
       
         <h3 id="ibcgo.core.channel.v1.MsgChannelCloseConfirmResponse">MsgChannelCloseConfirmResponse</h3>
-        <p>MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response type.</p>
+        <p>MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response</p><p>type.</p>
 
         
 
@@ -3794,7 +3795,7 @@ channel and sequences.</p></td>
         
       
         <h3 id="ibcgo.core.channel.v1.MsgChannelOpenConfirmResponse">MsgChannelOpenConfirmResponse</h3>
-        <p>MsgChannelOpenConfirmResponse defines the Msg/ChannelOpenConfirm response type.</p>
+        <p>MsgChannelOpenConfirmResponse defines the Msg/ChannelOpenConfirm response</p><p>type.</p>
 
         
 
@@ -3866,8 +3867,8 @@ channel and sequences.</p></td>
                   <td>previous_channel_id</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>in the case of crossing hello&#39;s, when both chains call OpenInit, we need the channel identifier
-of the previous channel in state INIT </p></td>
+                  <td><p>in the case of crossing hello&#39;s, when both chains call OpenInit, we need
+the channel identifier of the previous channel in state INIT </p></td>
                 </tr>
               
                 <tr>
@@ -4149,7 +4150,8 @@ of the previous channel in state INIT </p></td>
                 <td>ChannelCloseConfirm</td>
                 <td><a href="#ibcgo.core.channel.v1.MsgChannelCloseConfirm">MsgChannelCloseConfirm</a></td>
                 <td><a href="#ibcgo.core.channel.v1.MsgChannelCloseConfirmResponse">MsgChannelCloseConfirmResponse</a></td>
-                <td><p>ChannelCloseConfirm defines a rpc handler method for MsgChannelCloseConfirm.</p></td>
+                <td><p>ChannelCloseConfirm defines a rpc handler method for
+MsgChannelCloseConfirm.</p></td>
               </tr>
             
               <tr>
@@ -5186,8 +5188,9 @@ channels or packets utilising this connection. </p></td>
                   <td>delay_period</td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
-                  <td><p>delay period that must pass before a consensus state can be used for packet-verification
-NOTE: delay period logic is only implemented by some clients. </p></td>
+                  <td><p>delay period that must pass before a consensus state can be used for
+packet-verification NOTE: delay period logic is only implemented by some
+clients. </p></td>
                 </tr>
               
             </tbody>
@@ -6065,7 +6068,7 @@ TRYOPEN` </p></td>
         
       
         <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenConfirmResponse">MsgConnectionOpenConfirmResponse</h3>
-        <p>MsgConnectionOpenConfirmResponse defines the Msg/ConnectionOpenConfirm response type.</p>
+        <p>MsgConnectionOpenConfirmResponse defines the Msg/ConnectionOpenConfirm</p><p>response type.</p>
 
         
 
@@ -6124,7 +6127,7 @@ TRYOPEN` </p></td>
         
       
         <h3 id="ibcgo.core.connection.v1.MsgConnectionOpenInitResponse">MsgConnectionOpenInitResponse</h3>
-        <p>MsgConnectionOpenInitResponse defines the Msg/ConnectionOpenInit response type.</p>
+        <p>MsgConnectionOpenInitResponse defines the Msg/ConnectionOpenInit response</p><p>type.</p>
 
         
 
@@ -6151,8 +6154,8 @@ TRYOPEN` </p></td>
                   <td>previous_connection_id</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>in the case of crossing hello&#39;s, when both chains call OpenInit, we need the connection identifier
-of the previous connection in state INIT </p></td>
+                  <td><p>in the case of crossing hello&#39;s, when both chains call OpenInit, we need
+the connection identifier of the previous connection in state INIT </p></td>
                 </tr>
               
                 <tr>
@@ -6279,7 +6282,8 @@ INIT` </p></td>
                 <td>ConnectionOpenConfirm</td>
                 <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenConfirm">MsgConnectionOpenConfirm</a></td>
                 <td><a href="#ibcgo.core.connection.v1.MsgConnectionOpenConfirmResponse">MsgConnectionOpenConfirmResponse</a></td>
-                <td><p>ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm.</p></td>
+                <td><p>ConnectionOpenConfirm defines a rpc handler method for
+MsgConnectionOpenConfirm.</p></td>
               </tr>
             
           </tbody>
@@ -6531,7 +6535,7 @@ The client will be unfrozen if it is frozen. </p></td>
         
       
         <h3 id="ibcgo.lightclients.solomachine.v1.ConsensusState">ConsensusState</h3>
-        <p>ConsensusState defines a solo machine consensus state. The sequence of a consensus state</p><p>is contained in the "height" key used in storing the consensus state.</p>
+        <p>ConsensusState defines a solo machine consensus state. The sequence of a</p><p>consensus state is contained in the "height" key used in storing the</p><p>consensus state.</p>
 
         
           <table class="field-table">
@@ -6551,8 +6555,9 @@ The client will be unfrozen if it is frozen. </p></td>
                   <td>diversifier</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>diversifier allows the same public key to be re-used across different solo machine clients
-(potentially on different chains) without being considered misbehaviour. </p></td>
+                  <td><p>diversifier allows the same public key to be re-used across different solo
+machine clients (potentially on different chains) without being considered
+misbehaviour. </p></td>
                 </tr>
               
                 <tr>
@@ -6976,7 +6981,7 @@ The client will be unfrozen if it is frozen. </p></td>
 
       
         <h3 id="ibcgo.lightclients.solomachine.v1.DataType">DataType</h3>
-        <p>DataType defines the type of solo machine proof being created. This is done to preserve uniqueness of different</p><p>data sign byte encodings.</p>
+        <p>DataType defines the type of solo machine proof being created. This is done</p><p>to preserve uniqueness of different data sign byte encodings.</p>
         <table class="enum-table">
           <thead>
             <tr><td>Name</td><td>Number</td><td>Description</td></tr>
@@ -7130,10 +7135,12 @@ submitted headers are valid for upgrade </p></td>
                   <td><a href="#string">string</a></td>
                   <td>repeated</td>
                   <td><p>Path at which next upgraded client will be committed.
-Each element corresponds to the key for a single CommitmentProof in the chained proof.
-NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState`
-ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState`
-For SDK chains using the default upgrade module, upgrade_path should be []string{&#34;upgrade&#34;, &#34;upgradedIBCState&#34;}` </p></td>
+Each element corresponds to the key for a single CommitmentProof in the
+chained proof. NOTE: ClientState must stored under
+`{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored
+under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using
+the default upgrade module, upgrade_path should be []string{&#34;upgrade&#34;,
+&#34;upgradedIBCState&#34;}` </p></td>
                 </tr>
               
                 <tr>
@@ -7199,7 +7206,7 @@ was stored. </p></td>
         
       
         <h3 id="ibcgo.lightclients.tendermint.v1.Fraction">Fraction</h3>
-        <p>Fraction defines the protobuf message type for tmmath.Fraction that only supports positive values.</p>
+        <p>Fraction defines the protobuf message type for tmmath.Fraction that only</p><p>supports positive values.</p>
 
         
           <table class="field-table">

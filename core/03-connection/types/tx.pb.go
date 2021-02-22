@@ -73,7 +73,8 @@ func (m *MsgConnectionOpenInit) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConnectionOpenInit proto.InternalMessageInfo
 
-// MsgConnectionOpenInitResponse defines the Msg/ConnectionOpenInit response type.
+// MsgConnectionOpenInitResponse defines the Msg/ConnectionOpenInit response
+// type.
 type MsgConnectionOpenInitResponse struct {
 }
 
@@ -114,8 +115,8 @@ var xxx_messageInfo_MsgConnectionOpenInitResponse proto.InternalMessageInfo
 // connection on Chain B.
 type MsgConnectionOpenTry struct {
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty" yaml:"client_id"`
-	// in the case of crossing hello's, when both chains call OpenInit, we need the connection identifier
-	// of the previous connection in state INIT
+	// in the case of crossing hello's, when both chains call OpenInit, we need
+	// the connection identifier of the previous connection in state INIT
 	PreviousConnectionId string        `protobuf:"bytes,2,opt,name=previous_connection_id,json=previousConnectionId,proto3" json:"previous_connection_id,omitempty" yaml:"previous_connection_id"`
 	ClientState          *types.Any    `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty" yaml:"client_state"`
 	Counterparty         Counterparty  `protobuf:"bytes,4,opt,name=counterparty,proto3" json:"counterparty"`
@@ -335,7 +336,8 @@ func (m *MsgConnectionOpenConfirm) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConnectionOpenConfirm proto.InternalMessageInfo
 
-// MsgConnectionOpenConfirmResponse defines the Msg/ConnectionOpenConfirm response type.
+// MsgConnectionOpenConfirmResponse defines the Msg/ConnectionOpenConfirm
+// response type.
 type MsgConnectionOpenConfirmResponse struct {
 }
 
@@ -465,7 +467,8 @@ type MsgClient interface {
 	ConnectionOpenTry(ctx context.Context, in *MsgConnectionOpenTry, opts ...grpc.CallOption) (*MsgConnectionOpenTryResponse, error)
 	// ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck.
 	ConnectionOpenAck(ctx context.Context, in *MsgConnectionOpenAck, opts ...grpc.CallOption) (*MsgConnectionOpenAckResponse, error)
-	// ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm.
+	// ConnectionOpenConfirm defines a rpc handler method for
+	// MsgConnectionOpenConfirm.
 	ConnectionOpenConfirm(ctx context.Context, in *MsgConnectionOpenConfirm, opts ...grpc.CallOption) (*MsgConnectionOpenConfirmResponse, error)
 }
 
@@ -521,7 +524,8 @@ type MsgServer interface {
 	ConnectionOpenTry(context.Context, *MsgConnectionOpenTry) (*MsgConnectionOpenTryResponse, error)
 	// ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck.
 	ConnectionOpenAck(context.Context, *MsgConnectionOpenAck) (*MsgConnectionOpenAckResponse, error)
-	// ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm.
+	// ConnectionOpenConfirm defines a rpc handler method for
+	// MsgConnectionOpenConfirm.
 	ConnectionOpenConfirm(context.Context, *MsgConnectionOpenConfirm) (*MsgConnectionOpenConfirmResponse, error)
 }
 

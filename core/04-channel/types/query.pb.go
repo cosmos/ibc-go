@@ -978,8 +978,8 @@ func (m *QueryPacketReceiptRequest) GetSequence() uint64 {
 	return 0
 }
 
-// QueryPacketReceiptResponse defines the client query response for a packet receipt
-// which also includes a proof, and the height from which the proof was
+// QueryPacketReceiptResponse defines the client query response for a packet
+// receipt which also includes a proof, and the height from which the proof was
 // retrieved
 type QueryPacketReceiptResponse struct {
 	// success flag for if receipt exists
@@ -1825,7 +1825,8 @@ type QueryClient interface {
 	// PacketCommitments returns all the packet commitments hashes associated
 	// with a channel.
 	PacketCommitments(ctx context.Context, in *QueryPacketCommitmentsRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentsResponse, error)
-	// PacketReceipt queries if a given packet sequence has been received on the queried chain
+	// PacketReceipt queries if a given packet sequence has been received on the
+	// queried chain
 	PacketReceipt(ctx context.Context, in *QueryPacketReceiptRequest, opts ...grpc.CallOption) (*QueryPacketReceiptResponse, error)
 	// PacketAcknowledgement queries a stored packet acknowledgement hash.
 	PacketAcknowledgement(ctx context.Context, in *QueryPacketAcknowledgementRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementResponse, error)
@@ -1835,8 +1836,8 @@ type QueryClient interface {
 	// UnreceivedPackets returns all the unreceived IBC packets associated with a
 	// channel and sequences.
 	UnreceivedPackets(ctx context.Context, in *QueryUnreceivedPacketsRequest, opts ...grpc.CallOption) (*QueryUnreceivedPacketsResponse, error)
-	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
-	// channel and sequences.
+	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated
+	// with a channel and sequences.
 	UnreceivedAcks(ctx context.Context, in *QueryUnreceivedAcksRequest, opts ...grpc.CallOption) (*QueryUnreceivedAcksResponse, error)
 	// NextSequenceReceive returns the next receive sequence for a given channel.
 	NextSequenceReceive(ctx context.Context, in *QueryNextSequenceReceiveRequest, opts ...grpc.CallOption) (*QueryNextSequenceReceiveResponse, error)
@@ -1987,7 +1988,8 @@ type QueryServer interface {
 	// PacketCommitments returns all the packet commitments hashes associated
 	// with a channel.
 	PacketCommitments(context.Context, *QueryPacketCommitmentsRequest) (*QueryPacketCommitmentsResponse, error)
-	// PacketReceipt queries if a given packet sequence has been received on the queried chain
+	// PacketReceipt queries if a given packet sequence has been received on the
+	// queried chain
 	PacketReceipt(context.Context, *QueryPacketReceiptRequest) (*QueryPacketReceiptResponse, error)
 	// PacketAcknowledgement queries a stored packet acknowledgement hash.
 	PacketAcknowledgement(context.Context, *QueryPacketAcknowledgementRequest) (*QueryPacketAcknowledgementResponse, error)
@@ -1997,8 +1999,8 @@ type QueryServer interface {
 	// UnreceivedPackets returns all the unreceived IBC packets associated with a
 	// channel and sequences.
 	UnreceivedPackets(context.Context, *QueryUnreceivedPacketsRequest) (*QueryUnreceivedPacketsResponse, error)
-	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
-	// channel and sequences.
+	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated
+	// with a channel and sequences.
 	UnreceivedAcks(context.Context, *QueryUnreceivedAcksRequest) (*QueryUnreceivedAcksResponse, error)
 	// NextSequenceReceive returns the next receive sequence for a given channel.
 	NextSequenceReceive(context.Context, *QueryNextSequenceReceiveRequest) (*QueryNextSequenceReceiveResponse, error)

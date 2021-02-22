@@ -111,8 +111,8 @@ var xxx_messageInfo_MsgChannelOpenInitResponse proto.InternalMessageInfo
 // on Chain B.
 type MsgChannelOpenTry struct {
 	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
-	// in the case of crossing hello's, when both chains call OpenInit, we need the channel identifier
-	// of the previous channel in state INIT
+	// in the case of crossing hello's, when both chains call OpenInit, we need
+	// the channel identifier of the previous channel in state INIT
 	PreviousChannelId   string       `protobuf:"bytes,2,opt,name=previous_channel_id,json=previousChannelId,proto3" json:"previous_channel_id,omitempty" yaml:"previous_channel_id"`
 	Channel             Channel      `protobuf:"bytes,3,opt,name=channel,proto3" json:"channel"`
 	CounterpartyVersion string       `protobuf:"bytes,4,opt,name=counterparty_version,json=counterpartyVersion,proto3" json:"counterparty_version,omitempty" yaml:"counterparty_version"`
@@ -316,7 +316,8 @@ func (m *MsgChannelOpenConfirm) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgChannelOpenConfirm proto.InternalMessageInfo
 
-// MsgChannelOpenConfirmResponse defines the Msg/ChannelOpenConfirm response type.
+// MsgChannelOpenConfirmResponse defines the Msg/ChannelOpenConfirm response
+// type.
 type MsgChannelOpenConfirmResponse struct {
 }
 
@@ -474,7 +475,8 @@ func (m *MsgChannelCloseConfirm) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgChannelCloseConfirm proto.InternalMessageInfo
 
-// MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response type.
+// MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
+// type.
 type MsgChannelCloseConfirmResponse struct {
 }
 
@@ -949,7 +951,8 @@ type MsgClient interface {
 	ChannelOpenConfirm(ctx context.Context, in *MsgChannelOpenConfirm, opts ...grpc.CallOption) (*MsgChannelOpenConfirmResponse, error)
 	// ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit.
 	ChannelCloseInit(ctx context.Context, in *MsgChannelCloseInit, opts ...grpc.CallOption) (*MsgChannelCloseInitResponse, error)
-	// ChannelCloseConfirm defines a rpc handler method for MsgChannelCloseConfirm.
+	// ChannelCloseConfirm defines a rpc handler method for
+	// MsgChannelCloseConfirm.
 	ChannelCloseConfirm(ctx context.Context, in *MsgChannelCloseConfirm, opts ...grpc.CallOption) (*MsgChannelCloseConfirmResponse, error)
 	// RecvPacket defines a rpc handler method for MsgRecvPacket.
 	RecvPacket(ctx context.Context, in *MsgRecvPacket, opts ...grpc.CallOption) (*MsgRecvPacketResponse, error)
@@ -1071,7 +1074,8 @@ type MsgServer interface {
 	ChannelOpenConfirm(context.Context, *MsgChannelOpenConfirm) (*MsgChannelOpenConfirmResponse, error)
 	// ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit.
 	ChannelCloseInit(context.Context, *MsgChannelCloseInit) (*MsgChannelCloseInitResponse, error)
-	// ChannelCloseConfirm defines a rpc handler method for MsgChannelCloseConfirm.
+	// ChannelCloseConfirm defines a rpc handler method for
+	// MsgChannelCloseConfirm.
 	ChannelCloseConfirm(context.Context, *MsgChannelCloseConfirm) (*MsgChannelCloseConfirmResponse, error)
 	// RecvPacket defines a rpc handler method for MsgRecvPacket.
 	RecvPacket(context.Context, *MsgRecvPacket) (*MsgRecvPacketResponse, error)
