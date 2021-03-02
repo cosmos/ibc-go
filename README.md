@@ -1,4 +1,33 @@
 # ibc-go
+<div align="center">
+  <a href="https://github.com/cosmos/ibc-go/releases/latest">
+    <img alt="Version" src="https://img.shields.io/github/tag/cosmos/ibc-go.svg" />
+  </a>
+  <a href="https://github.com/cosmos/ibc-go/blob/main/LICENSE">
+    <img alt="License: Apache-2.0" src="https://img.shields.io/github/license/cosmos/ibc-go.svg" />
+  </a>
+  <a href="https://pkg.go.dev/github.com/cosmos/ibc-go?tab=doc">
+    <img alt="GoDoc" src="https://godoc.org/github.com/cosmos/ibc-go?status.svg" />
+  </a>
+  <a href="https://goreportcard.com/report/github.com/cosmos/ibc-go">
+    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/cosmos/ibc-go" />
+  </a>
+  <a href="https://codecov.io/gh/cosmos/ibc-go">
+    <img alt="Code Coverage" src="https://codecov.io/gh/cosmos/ibc-go/branch/main/graph/badge.svg" />
+  </a>
+</div>
+<div align="center">
+  <a href="https://github.com/cosmos/ibc-go">
+    <img alt="Lines Of Code" src="https://tokei.rs/b1/github/cosmos/ibc-go" />
+  </a>
+  <a href="https://discord.gg/AzefAFd">
+    <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
+  </a>
+  <a href="https://sourcegraph.com/github.com/cosmos/ibc-go?badge">
+    <img alt="Imported by" src="https://sourcegraph.com/github.com/cosmos/ibc-go/-/badge.svg" />
+  </a>
+    <img alt="Lint Status" src="https://github.com/cosmos/cosmos-sdk/workflows/Lint/badge.svg" />
+</div>
 
 Interblockchain communication protocol (IBC) implementation in Golang built as a SDK module. 
 
@@ -24,4 +53,7 @@ The localhost client is currently non-functional.
 
 Please see our [documentation](docs/README.md) for more information.
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 338db0c23bbd9c9232f3abc4e105dcba6e94efd2
