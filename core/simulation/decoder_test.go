@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/ibc-go/testing/simapp"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	clienttypes "github.com/cosmos/ibc-go/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/core/03-connection/types"
