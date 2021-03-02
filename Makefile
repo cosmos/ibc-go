@@ -400,7 +400,7 @@ TM_P2P              = third_party/proto/tendermint/p2p
 
 SDK_QUERY 			= third_party/proto/cosmos/base/query/v1beta1
 SDK_BASE 			= third_party/proto/cosmos/base/v1beta1
-SDK_UPGRADE 	    = third_party/proto/cosmos/upgrade
+SDK_UPGRADE			= third_party/proto/cosmos/upgrade
 
 GOGO_PROTO_TYPES    = third_party/proto/gogoproto
 CONFIO_TYPES        = third_party/proto/confio
