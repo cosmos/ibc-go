@@ -53,7 +53,4 @@ The localhost client is currently non-functional.
 
 Please see our [documentation](docs/README.md) for more information.
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 338db0c23bbd9c9232f3abc4e105dcba6e94efd2
