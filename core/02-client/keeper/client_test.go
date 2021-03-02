@@ -6,6 +6,7 @@ import (
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/ibc-go/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/core/23-commitment/types"
@@ -14,7 +15,6 @@ import (
 	localhosttypes "github.com/cosmos/ibc-go/light-clients/09-localhost/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {

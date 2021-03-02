@@ -25,13 +25,13 @@ import (
 	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	transfer "github.com/cosmos/ibc-go/apps/transfer"
-	ibc "github.com/cosmos/ibc-go/core"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	transfer "github.com/cosmos/ibc-go/apps/transfer"
+	ibc "github.com/cosmos/ibc-go/core"
 )
 
 func TestSimAppExportAndBlockedAddrs(t *testing.T) {
