@@ -204,11 +204,13 @@ func (q Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+	if req.PlanHeight < 1 {
+		return nil, status.Error(codes.InvalidArgument, "non positive plan height")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	ctx = ctx.WithBlockHeight(req.PlanHeight)
+
 	plan, found := q.GetUpgradePlan(ctx)
 	if !found {
 		return nil, status.Error(
@@ -218,10 +220,7 @@ func (q Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 
 	bz, found := q.GetUpgradedClient(ctx, plan.Height)
 	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
-		)
+		return nil, status.Error(codes.NotFound, types.ErrClientNotFound.Error())
 	}
 
 	clientState, err := types.UnmarshalClientState(q.cdc, bz)
@@ -238,5 +237,47 @@ func (q Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 
 	return &types.QueryUpgradedClientStateResponse{
 		UpgradedClientState: any,
+	}, nil
+}
+
+// UpgradedConsensusState implements the Query/UpgradedConsensusState gRPC method
+func (q Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if req.PlanHeight < 1 {
+		return nil, status.Error(codes.InvalidArgument, "non positive plan height")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	ctx = ctx.WithBlockHeight(req.PlanHeight)
+
+	plan, found := q.GetUpgradePlan(ctx)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound, "upgrade plan not found",
+		)
+	}
+
+	bz, found := q.upgradeKeeper.GetUpgradedConsensusState(ctx, plan.Height)
+	if !found {
+		return nil, status.Error(codes.NotFound, types.ErrConsensusStateNotFound.Error())
+	}
+
+	consensusState, err := types.UnmarshalConsensusState(q.cdc, bz)
+	if err != nil {
+		return nil, status.Error(
+			codes.Internal, err.Error(),
+		)
+	}
+
+	any, err := types.PackConsensusState(consensusState)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryUpgradedConsensusStateResponse{
+		UpgradedConsensusState: any,
 	}, nil
 }
