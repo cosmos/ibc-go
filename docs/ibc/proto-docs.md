@@ -4697,24 +4697,6 @@ ConsensusState </p></td>
         <p>QueryUpgradedClientStateRequest is the request type for the</p><p>Query/UpgradedClientState RPC method</p>
 
         
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>plan_height</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p>plan height of the current chain must be sent in request
-as this is the height under which upgraded client state is stored </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
 
         
       
@@ -4746,24 +4728,6 @@ as this is the height under which upgraded client state is stored </p></td>
         <p>QueryUpgradedConsensusStateRequest is the request type for the</p><p>Query/UpgradedConsensusState RPC method</p>
 
         
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>plan_height</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p>plan height of the current chain must be sent in request
-as this is the height under which upgraded Consensus state is stored </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
 
         
       
@@ -4929,7 +4893,7 @@ client.</p></td>
               <tr>
                 <td>UpgradedClientState</td>
                 <td>GET</td>
-                <td>/ibc/core/client/v1/upgraded_client_states/{plan_height}</td>
+                <td>/ibc/core/client/v1/upgraded_client_states</td>
                 <td></td>
               </tr>
               
@@ -4939,7 +4903,7 @@ client.</p></td>
               <tr>
                 <td>UpgradedConsensusState</td>
                 <td>GET</td>
-                <td>/ibc/core/client/v1/upgraded_consensus_states/{plan_height}</td>
+                <td>/ibc/core/client/v1/upgraded_consensus_states</td>
                 <td></td>
               </tr>
               

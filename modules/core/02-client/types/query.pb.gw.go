@@ -331,24 +331,6 @@ func request_Query_UpgradedClientState_0(ctx context.Context, marshaler runtime.
 	var protoReq QueryUpgradedClientStateRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["plan_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "plan_height")
-	}
-
-	protoReq.PlanHeight, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "plan_height", err)
-	}
-
 	msg, err := client.UpgradedClientState(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -357,24 +339,6 @@ func request_Query_UpgradedClientState_0(ctx context.Context, marshaler runtime.
 func local_request_Query_UpgradedClientState_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryUpgradedClientStateRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["plan_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "plan_height")
-	}
-
-	protoReq.PlanHeight, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "plan_height", err)
-	}
 
 	msg, err := server.UpgradedClientState(ctx, &protoReq)
 	return msg, metadata, err
@@ -385,24 +349,6 @@ func request_Query_UpgradedConsensusState_0(ctx context.Context, marshaler runti
 	var protoReq QueryUpgradedConsensusStateRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["plan_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "plan_height")
-	}
-
-	protoReq.PlanHeight, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "plan_height", err)
-	}
-
 	msg, err := client.UpgradedConsensusState(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -411,24 +357,6 @@ func request_Query_UpgradedConsensusState_0(ctx context.Context, marshaler runti
 func local_request_Query_UpgradedConsensusState_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryUpgradedConsensusStateRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["plan_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "plan_height")
-	}
-
-	protoReq.PlanHeight, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "plan_height", err)
-	}
 
 	msg, err := server.UpgradedConsensusState(ctx, &protoReq)
 	return msg, metadata, err
@@ -776,9 +704,9 @@ var (
 
 	pattern_Query_ClientParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"ibc", "client", "v1", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_UpgradedClientState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"ibc", "core", "client", "v1", "upgraded_client_states", "plan_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UpgradedClientState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "upgraded_client_states"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_UpgradedConsensusState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"ibc", "core", "client", "v1", "upgraded_consensus_states", "plan_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UpgradedConsensusState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "upgraded_consensus_states"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

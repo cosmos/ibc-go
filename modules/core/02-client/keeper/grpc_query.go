@@ -204,12 +204,7 @@ func (q Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if req.PlanHeight < 1 {
-		return nil, status.Error(codes.InvalidArgument, "non positive plan height")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
-	ctx = ctx.WithBlockHeight(req.PlanHeight)
 
 	plan, found := q.GetUpgradePlan(ctx)
 	if !found {
@@ -246,12 +241,7 @@ func (q Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if req.PlanHeight < 1 {
-		return nil, status.Error(codes.InvalidArgument, "non positive plan height")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
-	ctx = ctx.WithBlockHeight(req.PlanHeight)
 
 	plan, found := q.GetUpgradePlan(ctx)
 	if !found {
