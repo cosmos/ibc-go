@@ -2,16 +2,15 @@ package types_test
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func (suite *TypesTestSuite) TestValidateBasic() {
@@ -123,22 +122,8 @@ func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 			}, false,
 		},
 		{
-			"fails plan validate basic, height and time is 0", func() {
-				invalidPlan := upgradetypes.Plan{Name: "ibc upgrade"}
-				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, invalidPlan, cs)
-				suite.Require().NoError(err)
-			}, false,
-		},
-		{
 			"plan height is zero", func() {
 				invalidPlan := upgradetypes.Plan{Name: "ibc upgrade", Height: 0}
-				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, invalidPlan, cs)
-				suite.Require().NoError(err)
-			}, false,
-		},
-		{
-			"plan time is not set to 0", func() {
-				invalidPlan := upgradetypes.Plan{Name: "ibc upgrade", Time: time.Now()}
 				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, invalidPlan, cs)
 				suite.Require().NoError(err)
 			}, false,
