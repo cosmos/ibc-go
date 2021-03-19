@@ -40,9 +40,10 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 	altSigners := []tmtypes.PrivValidator{altPrivVal}
 
 	testCases := []struct {
-		name    string
-		setup   func(*TendermintTestSuite)
-		expPass bool
+		name      string
+		setup     func(*TendermintTestSuite)
+		expPass   bool
+		expFrozen bool
 	}{
 		{
 			name: "successful update with next height and same validator set",
@@ -53,7 +54,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
 			},
-			expPass: true,
+			expPass:   true,
+			expFrozen: false,
 		},
 		{
 			name: "successful update with future height and different validator set",
@@ -64,7 +66,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, bothValSet, suite.valSet, bothSigners)
 				currentTime = suite.now
 			},
-			expPass: true,
+			expPass:   true,
+			expFrozen: false,
 		},
 		{
 			name: "successful update with next height and different validator set",
@@ -75,7 +78,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, bothValSet, bothValSet, bothSigners)
 				currentTime = suite.now
 			},
-			expPass: true,
+			expPass:   true,
+			expFrozen: false,
 		},
 		{
 			name: "successful update for a previous height",
@@ -87,7 +91,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightMinus1.RevisionHeight), heightMinus3, suite.headerTime, bothValSet, suite.valSet, bothSigners)
 				currentTime = suite.now
 			},
-			expPass: true,
+			expPass:   true,
+			expFrozen: false,
 		},
 		{
 			name: "successful update for a previous revision",
@@ -99,7 +104,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision0, int64(height.RevisionHeight), heightMinus3, suite.headerTime, bothValSet, suite.valSet, bothSigners)
 				currentTime = suite.now
 			},
-			expPass: true,
+			expPass:   true,
+			expFrozen: false,
 		},
 		{
 			name: "successful update with identical header to a previous update",
@@ -113,7 +119,25 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				// Store the header's consensus state in client store before UpdateClient call
 				suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(ctx, clientID, heightPlus1, newHeader.ConsensusState())
 			},
-			expPass: true,
+			expPass:   true,
+			expFrozen: false,
+		},
+		{
+			name: "misbehaviour detection: header conflicts with existing consensus state",
+			setup: func(suite *TendermintTestSuite) {
+				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				signers := getSuiteSigners(suite)
+				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
+				currentTime = suite.now
+				ctx := suite.chainA.GetContext().WithBlockTime(currentTime)
+				// Change the consensus state of header and store in client store to create a conflict
+				conflictConsState := newHeader.ConsensusState()
+				conflictConsState.Root = commitmenttypes.NewMerkleRoot([]byte("conflicting apphash"))
+				suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(ctx, clientID, heightPlus1, conflictConsState)
+			},
+			expPass:   true,
+			expFrozen: true,
 		},
 		{
 			name: "unsuccessful update with incorrect header chain-id",
@@ -124,7 +148,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader("ethermint", int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update to a future revision",
@@ -135,7 +160,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 1, height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update: header height revision and trusted height revision mismatch",
@@ -146,7 +172,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 3, height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update with next height: update header mismatches nextValSetHash",
@@ -157,7 +184,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, bothValSet, suite.valSet, bothSigners)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update with next height: update header mismatches different nextValSetHash",
@@ -169,7 +197,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, bothValSet, signers)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update with future height: too much change in validator set",
@@ -179,7 +208,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, altValSet, suite.valSet, altSigners)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful updates, passed in incorrect trusted validators for given consensus state",
@@ -190,7 +220,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, bothValSet, bothValSet, bothSigners)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update: trusting period has passed since last client timestamp",
@@ -202,7 +233,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				// make current time pass trusting period from last timestamp on clientstate
 				currentTime = suite.now.Add(trustingPeriod)
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update: header timestamp is past current timestamp",
@@ -213,7 +245,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.now.Add(time.Minute), suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "unsuccessful update: header timestamp is not past last client timestamp",
@@ -224,7 +257,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.clientTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "header basic validation failed",
@@ -237,7 +271,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader.SignedHeader.Commit.Height = revisionHeight - 1
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 		{
 			name: "header height < consensus height",
@@ -249,7 +284,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightMinus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
 			},
-			expPass: false,
+			expPass:   false,
+			expFrozen: false,
 		},
 	}
 
@@ -285,6 +321,11 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+
+				if tc.expFrozen {
+					suite.Require().True(newClientState.IsFrozen(), "client did not freeze after conflicting header was submitted to UpdateClient")
+					suite.Require().Equal(newClientState.(*types.ClientState).FrozenHeight, newHeader.GetHeight(), "client frozen at wrong height")
+				}
 
 				// Determine if clientState should be updated or not
 				// TODO: check the entire Height struct once GetLatestHeight returns clienttypes.Height

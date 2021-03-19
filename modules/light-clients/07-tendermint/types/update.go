@@ -82,7 +82,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// Header is different from existing consensus state and also valid, so we return a frozen client.
 	if alreadyExists {
 		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
-		return &cs, prevConsState, nil
+		return &cs, tmHeader.ConsensusState(), nil
 	}
 
 	newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
