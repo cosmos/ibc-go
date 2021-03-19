@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"reflect"
 	"time"
 
 	"github.com/tendermint/tendermint/light"
@@ -48,6 +49,24 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		)
 	}
 
+	// Check if the Client store already has a consensus state for the header's height
+	// If the consnensus state exists, and it matches the header then we return early
+	// since header has already been submitted in a previous UpdateClient.
+	// If the consensus state and header mismatch, then we validate new header and freeze
+	// the client if it is valid since this is proof of a fork on the counterparty chain.
+	var alreadyExists bool
+	prevConsState, err := GetConsensusState(clientStore, cdc, header.GetHeight())
+	if err != nil {
+		// This header has already been submitted and the necessary state is already stored
+		// in client store, thus we can return early without further validation.
+		if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
+			return &cs, prevConsState, nil
+		}
+		// A consensus state already exists for this height, but it does not match the provided header.
+		// Thus, we must check that this header is valid, and if so we will freeze the client.
+		alreadyExists = true
+	}
+
 	// get consensus state from clientStore
 	tmConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
 	if err != nil {
@@ -58,6 +77,12 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 
 	if err := checkValidity(&cs, tmConsState, tmHeader, ctx.BlockTime()); err != nil {
 		return nil, nil, err
+	}
+
+	// Header is different from existing consensus state and also valid, so we return a frozen client.
+	if alreadyExists {
+		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
+		return &cs, prevConsState, nil
 	}
 
 	newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
