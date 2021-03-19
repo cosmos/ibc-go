@@ -55,8 +55,8 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// If the consensus state and header mismatch, then we validate new header and freeze
 	// the client if it is valid since this is proof of a fork on the counterparty chain.
 	var alreadyExists bool
-	prevConsState, err := GetConsensusState(clientStore, cdc, header.GetHeight())
-	if err != nil {
+	prevConsState, _ := GetConsensusState(clientStore, cdc, header.GetHeight())
+	if prevConsState != nil {
 		// This header has already been submitted and the necessary state is already stored
 		// in client store, thus we can return early without further validation.
 		if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
