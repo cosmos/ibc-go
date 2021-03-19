@@ -324,7 +324,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 
 				if tc.expFrozen {
 					suite.Require().True(newClientState.IsFrozen(), "client did not freeze after conflicting header was submitted to UpdateClient")
-					suite.Require().Equal(newClientState.(*types.ClientState).FrozenHeight, newHeader.GetHeight(), "client frozen at wrong height")
+					suite.Require().Equal(newClientState.GetFrozenHeight(), newHeader.GetHeight(), "client frozen at wrong height")
 				}
 
 				// Determine if clientState should be updated or not

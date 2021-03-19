@@ -7,6 +7,7 @@ import (
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
@@ -15,7 +16,6 @@ import (
 	localhosttypes "github.com/cosmos/ibc-go/modules/light-clients/09-localhost/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {
@@ -68,6 +68,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		name     string
 		malleate func() error
 		expPass  bool
+		freeze   bool // only true if update freezes the client to a new frozen height. false if client is already frozen and header is valid past update
 	}{
 		{"valid update", func() error {
 			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
@@ -86,7 +87,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 			updateHeader = createFutureUpdateFn(suite)
 			return err
-		}, true},
+		}, true, false},
 		{"valid past update", func() error {
 			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 			clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
@@ -114,26 +115,69 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(suite)
 			return nil
-		}, true},
-		{"client state not found", func() error {
-			updateHeader = createFutureUpdateFn(suite)
-
-			return nil
-		}, false},
-		{"consensus state not found", func() error {
+		}, true, false},
+		{"valid duplicate update", func() error {
 			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
-			suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-			updateHeader = createFutureUpdateFn(suite)
+			clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
+			suite.Require().NoError(err)
 
-			return nil
-		}, false},
-		{"frozen client before update", func() error {
-			clientState = &ibctmtypes.ClientState{FrozenHeight: types.NewHeight(0, 1), LatestHeight: testClientHeight}
-			suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-			updateHeader = createFutureUpdateFn(suite)
+			height1 := types.NewHeight(0, 1)
 
+			// store previous consensus state
+			prevConsState := &ibctmtypes.ConsensusState{
+				Timestamp:          suite.past,
+				NextValidatorsHash: suite.valSetHash,
+			}
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height1, prevConsState)
+
+			height2 := types.NewHeight(0, 2)
+
+			// store intermediate consensus state to check that trustedHeight does not need to be hightest consensus state before header height
+			intermediateConsState := &ibctmtypes.ConsensusState{
+				Timestamp:          suite.past.Add(time.Minute),
+				NextValidatorsHash: suite.valSetHash,
+			}
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height2, intermediateConsState)
+
+			// updateHeader will fill in consensus state between prevConsState and suite.consState
+			// clientState should not be updated
+			updateHeader = createPastUpdateFn(suite)
+			// set updateHeader's consensus state in store to create duplicate UpdateClient scenario
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight(), updateHeader.ConsensusState())
 			return nil
-		}, false},
+		}, true, false},
+		{"misbehaviour detection: conflicting header", func() error {
+			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+			clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
+			suite.Require().NoError(err)
+
+			height1 := types.NewHeight(0, 1)
+
+			// store previous consensus state
+			prevConsState := &ibctmtypes.ConsensusState{
+				Timestamp:          suite.past,
+				NextValidatorsHash: suite.valSetHash,
+			}
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height1, prevConsState)
+
+			height2 := types.NewHeight(0, 2)
+
+			// store intermediate consensus state to check that trustedHeight does not need to be hightest consensus state before header height
+			intermediateConsState := &ibctmtypes.ConsensusState{
+				Timestamp:          suite.past.Add(time.Minute),
+				NextValidatorsHash: suite.valSetHash,
+			}
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height2, intermediateConsState)
+
+			// updateHeader will fill in consensus state between prevConsState and suite.consState
+			// clientState should not be updated
+			updateHeader = createPastUpdateFn(suite)
+			// set conflicting consensus state in store to create misbehaviour scenario
+			conflictConsState := updateHeader.ConsensusState()
+			conflictConsState.Root = commitmenttypes.NewMerkleRoot([]byte("conflicting apphash"))
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight(), conflictConsState)
+			return nil
+		}, true, true},
 		{"valid past update before client was frozen", func() error {
 			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 			clientState.FrozenHeight = types.NewHeight(0, testClientHeight.RevisionHeight-1)
@@ -153,7 +197,50 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(suite)
 			return nil
-		}, true},
+		}, true, false},
+		{"misbehaviour detection: conflicting header before client was frozen", func() error {
+			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+			clientState.FrozenHeight = types.NewHeight(0, testClientHeight.RevisionHeight-1)
+			clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
+			suite.Require().NoError(err)
+
+			height1 := types.NewHeight(0, 1)
+
+			// store previous consensus state
+			prevConsState := &ibctmtypes.ConsensusState{
+				Timestamp:          suite.past,
+				NextValidatorsHash: suite.valSetHash,
+			}
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height1, prevConsState)
+
+			// updateHeader will fill in consensus state between prevConsState and suite.consState
+			// clientState should not be updated
+			updateHeader = createPastUpdateFn(suite)
+			// set conflicting consensus state in store to create misbehaviour scenario
+			conflictConsState := updateHeader.ConsensusState()
+			conflictConsState.Root = commitmenttypes.NewMerkleRoot([]byte("conflicting apphash"))
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight(), conflictConsState)
+			return nil
+		}, true, true},
+		{"client state not found", func() error {
+			updateHeader = createFutureUpdateFn(suite)
+
+			return nil
+		}, false, false},
+		{"consensus state not found", func() error {
+			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+			suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
+			updateHeader = createFutureUpdateFn(suite)
+
+			return nil
+		}, false, false},
+		{"frozen client before update", func() error {
+			clientState = &ibctmtypes.ClientState{FrozenHeight: types.NewHeight(0, 1), LatestHeight: testClientHeight}
+			suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
+			updateHeader = createFutureUpdateFn(suite)
+
+			return nil
+		}, false, false},
 		{"invalid header", func() error {
 			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 			_, err := suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
@@ -161,7 +248,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			updateHeader = createPastUpdateFn(suite)
 
 			return nil
-		}, false},
+		}, false, false},
 	}
 
 	for i, tc := range cases {
@@ -202,8 +289,15 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 					suite.Require().Equal(clientState.GetLatestHeight(), newClientState.GetLatestHeight(), "client state height updated for past header")
 				}
 
-				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
-				suite.Require().Equal(expConsensusState, consensusState, "consensus state should have been updated on case %s", tc.name)
+				// If the update freezes the client, check that client was frozen to update header's height.
+				// Otherwise check that consensus state is stored as expected.
+				if tc.freeze {
+					suite.Require().True(newClientState.IsFrozen(), "client did not freeze after conflicting header was submitted to UpdateClient")
+					suite.Require().Equal(newClientState.GetFrozenHeight(), updateHeader.GetHeight(), "client frozen at wrong height")
+				} else {
+					suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+					suite.Require().Equal(expConsensusState, consensusState, "consensus state should have been updated on case %s", tc.name)
+				}
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 			}

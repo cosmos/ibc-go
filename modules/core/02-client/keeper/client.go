@@ -80,12 +80,11 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		// This prevents the event value from containing invalid UTF-8 characters
 		// which may cause data to be lost when JSON encoding/decoding.
 		headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
-
 	}
 
 	// CheckHeaderAndUpdateState may detect misbehaviour and freeze the client. Thus, we check here if new client state
-	// is frozen. If so, emit the appropriate events and return.
-	if clientState.IsFrozen() {
+	// was frozen by this update. If so, emit the appropriate events and return.
+	if clientState.IsFrozen() && clientState.GetFrozenHeight().EQ(header.GetHeight()) {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeSubmitMisbehaviour,
@@ -97,6 +96,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		)
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID, "height", header.GetHeight().String())
 
+		return nil
 	}
 
 	var consensusHeight exported.Height
@@ -122,6 +122,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 			},
 		)
 	}()
+
 	// emitting events in the keeper emits for both begin block and handler client updates
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
