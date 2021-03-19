@@ -73,6 +73,32 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 
 	k.SetClientState(ctx, clientID, clientState)
 
+	// emit the full header in events
+	var headerStr string
+	if header != nil {
+		// Marshal the Header as an Any and encode the resulting bytes to hex.
+		// This prevents the event value from containing invalid UTF-8 characters
+		// which may cause data to be lost when JSON encoding/decoding.
+		headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
+
+	}
+
+	// CheckHeaderAndUpdateState may detect misbehaviour and freeze the client. Thus, we check here if new client state
+	// is frozen. If so, emit the appropriate events and return.
+	if clientState.IsFrozen() {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeSubmitMisbehaviour,
+				sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+				sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+				sdk.NewAttribute(types.AttributeKeyConsensusHeight, header.GetHeight().String()),
+				sdk.NewAttribute(types.AttributeKeyMisbehaviourHeader1, headerStr),
+			),
+		)
+		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID, "height", header.GetHeight().String())
+
+	}
+
 	var consensusHeight exported.Height
 
 	// we don't set consensus state for localhost client
@@ -96,17 +122,6 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 			},
 		)
 	}()
-
-	// emit the full header in events
-	var headerStr string
-	if header != nil {
-		// Marshal the Header as an Any and encode the resulting bytes to hex.
-		// This prevents the event value from containing invalid UTF-8 characters
-		// which may cause data to be lost when JSON encoding/decoding.
-		headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
-
-	}
-
 	// emitting events in the keeper emits for both begin block and handler client updates
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
