@@ -243,16 +243,9 @@ func (q Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	plan, found := q.GetUpgradePlan(ctx)
+	bz, found := q.GetUpgradedConsensusState(ctx, ctx.BlockHeight())
 	if !found {
-		return nil, status.Error(
-			codes.NotFound, "upgrade plan not found",
-		)
-	}
-
-	bz, found := q.upgradeKeeper.GetUpgradedConsensusState(ctx, plan.Height)
-	if !found {
-		return nil, status.Error(codes.NotFound, types.ErrConsensusStateNotFound.Error())
+		return nil, status.Errorf(codes.NotFound, "%s, height %d", types.ErrConsensusStateNotFound.Error(), ctx.BlockHeight())
 	}
 
 	consensusState, err := types.UnmarshalConsensusState(q.cdc, bz)

@@ -158,11 +158,7 @@ message QueryClientParamsResponse {
 
 // QueryUpgradedClientStateRequest is the request type for the
 // Query/UpgradedClientState RPC method
-message QueryUpgradedClientStateRequest {
-  // client id and plan height field have been deprecated. Use gRPC header for setting the height instead.
-  reserved 1, 2;
-  reserved "client_id", "plan_height";
-}
+message QueryUpgradedClientStateRequest { }
 
 // QueryUpgradedClientStateResponse is the response type for the
 // Query/UpgradedClientState RPC method.
