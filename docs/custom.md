@@ -455,7 +455,7 @@ which implements everything discussed above.
 Here are the useful parts of the module to look at:
 
 [Binding to transfer
-port](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/genesis.go)
+port](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/genesis.go)
 
 [Sending transfer
 packets](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper/relay.go)
@@ -465,4 +465,4 @@ callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/modu
 
 ## Next {hide}
 
-Learn about [building modules](../building-modules/intro.md) {hide}
+Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/intro.md) {hide}
