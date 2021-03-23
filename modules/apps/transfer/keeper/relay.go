@@ -237,7 +237,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// counterparty module. The bug may occur in bank or any part of the code that allows
 			// the escrow address to be drained. A malicious counterparty module could drain the
 			// escrow address by allowing more tokens to be sent back then were escrowed.
-			return false, sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
+			// Revert callback state changes if SendCoins returns an error.
+			return true, sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
 		defer func() {
