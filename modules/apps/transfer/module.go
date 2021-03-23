@@ -322,15 +322,15 @@ func (am AppModule) OnChanCloseConfirm(
 func (am AppModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-) (*sdk.Result, []byte, error) {
+) (*sdk.Result, []byte, bool, error) {
 	var data types.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+		return nil, nil, false, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
 	acknowledgement := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	err := am.keeper.OnRecvPacket(ctx, packet, data)
+	revert, err := am.keeper.OnRecvPacket(ctx, packet, data)
 	if err != nil {
 		acknowledgement = channeltypes.NewErrorAcknowledgement(err.Error())
 	}
@@ -349,7 +349,7 @@ func (am AppModule) OnRecvPacket(
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return &sdk.Result{
 		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, acknowledgement.GetBytes(), nil
+	}, acknowledgement.GetBytes(), revert, nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

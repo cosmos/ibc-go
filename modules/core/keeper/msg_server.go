@@ -443,9 +443,15 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	}
 
 	// Perform application logic callback
-	_, ack, err := cbs.OnRecvPacket(ctx, msg.Packet)
+	// Cache context so that we may discard state changes from callback if revert is true.
+	cacheCtx, writeFn := ctx.CacheContext()
+	_, ack, revert, err := cbs.OnRecvPacket(cacheCtx, msg.Packet)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "receive packet callback failed")
+	}
+	// If revert is false, persist callback state changes by writing to underlying parent store.
+	if !revert {
+		writeFn()
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
