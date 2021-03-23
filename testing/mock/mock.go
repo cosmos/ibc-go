@@ -28,10 +28,11 @@ const (
 )
 
 var (
-	MockAcknowledgement     = []byte("mock acknowledgement")
-	MockFailAcknowledgement = []byte("mock failed acknowledgement")
-	MockPacketData          = []byte("mock packet data")
-	MockFailPacketData      = []byte("mock failed packet data")
+	MockAcknowledgement      = []byte("mock acknowledgement")
+	MockFailAcknowledgement  = []byte("mock failed acknowledgement")
+	MockPacketData           = []byte("mock packet data")
+	MockFailPacketData       = []byte("mock failed packet data")
+	MockCanaryCapabilityName = "mock canary capability name"
 )
 
 // AppModuleBasic is the mock AppModuleBasic.
@@ -176,7 +177,7 @@ func (am AppModule) OnChanCloseConfirm(sdk.Context, string, string) error {
 // OnRecvPacket implements the IBCModule interface.
 func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, bool, error) {
 	// set state by claiming capability to check if revert happens return
-	am.scopedKeeper.NewCapability(ctx, "test")
+	am.scopedKeeper.NewCapability(ctx, MockCanaryCapabilityName)
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return nil, MockAcknowledgement, false, nil
 	}

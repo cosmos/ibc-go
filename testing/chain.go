@@ -71,8 +71,10 @@ var (
 
 	ConnectionVersion = connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions())[0]
 
-	MockAcknowledgement = mock.MockAcknowledgement
-	MockPacketData      = mock.MockPacketData
+	MockAcknowledgement      = mock.MockAcknowledgement
+	MockPacketData           = mock.MockPacketData
+	MockFailPacketData       = mock.MockFailPacketData
+	MockCanaryCapabilityName = mock.MockCanaryCapabilityName
 )
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI

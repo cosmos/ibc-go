@@ -60,9 +60,10 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name      string
+		malleate  func()
+		expPass   bool
+		expRevert bool
 	}{
 		{"success: ORDERED", func() {
 			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
@@ -70,14 +71,14 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
-		}, true},
+		}, true, false},
 		{"success: UNORDERED", func() {
 			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
 
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
-		}, true},
+		}, true, false},
 		{"success: UNORDERED out of order packet", func() {
 			// setup uses an UNORDERED channel
 			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
@@ -89,7 +90,14 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 				suite.Require().NoError(err)
 			}
-		}, true},
+		}, true, false},
+		{"success: OnRecvPacket callback returns revert=true", func() {
+			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			packet = channeltypes.NewPacket(ibctesting.MockFailPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+
+			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			suite.Require().NoError(err)
+		}, true, true},
 		{"failure: ORDERED out of order packet", func() {
 			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
 
@@ -100,15 +108,15 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 				suite.Require().NoError(err)
 			}
-		}, false},
+		}, false, false},
 		{"channel does not exist", func() {
 			// any non-nil value of packet is valid
 			suite.Require().NotNil(packet)
-		}, false},
+		}, false, false},
 		{"packet not sent", func() {
 			_, _, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
-		}, false},
+		}, false, false},
 		{"ORDERED: packet already received (replay)", func() {
 			clientA, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
@@ -118,7 +126,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
 			suite.Require().NoError(err)
-		}, false},
+		}, false, false},
 		{"UNORDERED: packet already received (replay)", func() {
 			clientA, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
 
@@ -129,7 +137,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
 			suite.Require().NoError(err)
-		}, false},
+		}, false, false},
 	}
 
 	for _, tc := range testCases {
@@ -155,6 +163,14 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				// replay should fail since state changes occur
 				_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.IBCKeeper, sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
 				suite.Require().Error(err)
+
+				// check that callback state was handled correctly
+				_, exists := suite.chainB.App.ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibctesting.MockCanaryCapabilityName)
+				if tc.expRevert {
+					suite.Require().False(exists, "capability exists in store even after callback reverted")
+				} else {
+					suite.Require().True(exists, "callback state not persisted when revert is false")
+				}
 
 				// verify ack was written
 				ack, found := suite.chainB.App.IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
