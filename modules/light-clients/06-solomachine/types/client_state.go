@@ -52,6 +52,12 @@ func (cs ClientState) GetFrozenHeight() exported.Height {
 	return clienttypes.NewHeight(0, cs.FrozenSequence)
 }
 
+// Freeze takes a misbehaving header and freezes the client at the header height
+// NOTE: Header must be verified as misbehaviour before calling this function.
+func (cs *ClientState) Freeze(header exported.Header) {
+	cs.FrozenSequence = header.GetHeight().GetRevisionHeight()
+}
+
 // GetProofSpecs returns nil proof specs since client state verification uses signatures.
 func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 	return nil

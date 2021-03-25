@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
+	"reflect"
 
 	"github.com/armon/go-metrics"
 
@@ -66,12 +67,18 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		return sdkerrors.Wrapf(types.ErrClientFrozen, "cannot update client with ID %s", clientID)
 	}
 
+	var (
+		existingConsState exported.ConsensusState
+		exists            bool
+	)
+	if header != nil {
+		existingConsState, exists = k.GetClientConsensusState(ctx, clientID, header.GetHeight())
+	}
+
 	clientState, consensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, clientID), header)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "cannot update client with ID %s", clientID)
 	}
-
-	k.SetClientState(ctx, clientID, clientState)
 
 	// emit the full header in events
 	var headerStr string
@@ -82,9 +89,13 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
 	}
 
-	// CheckHeaderAndUpdateState may detect misbehaviour and freeze the client. Thus, we check here if new client state
-	// was frozen by this update. If so, emit the appropriate events and return.
-	if clientState.IsFrozen() && clientState.GetFrozenHeight().EQ(header.GetHeight()) {
+	// if there already exists a consensus state in client store for the header height
+	// and it does not match the updated consensus state, this is evidence of misbehaviour
+	// and we must freeze the client and emit appropriate events.
+	if exists && !reflect.DeepEqual(existingConsState, consensusState) {
+		clientState.Freeze(header)
+		k.SetClientState(ctx, clientID, clientState)
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeSubmitMisbehaviour,
@@ -95,21 +106,30 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 			),
 		)
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID, "height", header.GetHeight().String())
+	} else if !exists {
+		// if update is not misbehaviour then update the consensus state
+		// we don't set consensus state for localhost client
+		var consensusHeight exported.Height
+		if header != nil && clientID != exported.Localhost {
+			k.SetClientConsensusState(ctx, clientID, header.GetHeight(), consensusState)
+			consensusHeight = header.GetHeight()
+		} else {
+			consensusHeight = types.GetSelfHeight(ctx)
+		}
+		k.SetClientState(ctx, clientID, clientState)
 
-		return nil
+		// emitting events in the keeper emits for both begin block and handler client updates
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeUpdateClient,
+				sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+				sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+				sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
+				sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
+			),
+		)
+		k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
 	}
-
-	var consensusHeight exported.Height
-
-	// we don't set consensus state for localhost client
-	if header != nil && clientID != exported.Localhost {
-		k.SetClientConsensusState(ctx, clientID, header.GetHeight(), consensusState)
-		consensusHeight = header.GetHeight()
-	} else {
-		consensusHeight = types.GetSelfHeight(ctx)
-	}
-
-	k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
@@ -122,17 +142,6 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 			},
 		)
 	}()
-
-	// emitting events in the keeper emits for both begin block and handler client updates
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeUpdateClient,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
-		),
-	)
 
 	return nil
 }
