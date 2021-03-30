@@ -50,7 +50,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	}
 
 	// Check if the Client store already has a consensus state for the header's height
-	// If the consnensus state exists, and it matches the header then we return early
+	// If the consensus state exists, and it matches the header then we return early
 	// since header has already been submitted in a previous UpdateClient.
 	// If the consensus state and header mismatch, then we validate new header and freeze
 	// the client if it is valid since this is proof of a fork on the counterparty chain.
