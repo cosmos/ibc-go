@@ -35,8 +35,6 @@ func (misbehaviour Misbehaviour) GetClientID() string {
 }
 
 // GetHeight returns the height at which misbehaviour occurred
-//
-// NOTE: assumes that misbehaviour headers have the same height
 func (misbehaviour Misbehaviour) GetHeight() exported.Height {
 	return misbehaviour.Header1.GetHeight()
 }
@@ -92,6 +90,10 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 			clienttypes.ErrInvalidMisbehaviour,
 			sdkerrors.Wrap(err, "header 2 failed validation").Error(),
 		)
+	}
+	// Ensure that Height1 is greater than or equal to Height2
+	if misbehaviour.Header1.GetHeight().LT(misbehaviour.Header2.GetHeight()) {
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour, "Header1 height is less than Header2 height (%d < %d)", misbehaviour.Header1.GetHeight(), misbehaviour.Header2.GetHeight())
 	}
 
 	blockID1, err := tmtypes.BlockIDFromProto(&misbehaviour.Header1.SignedHeader.Commit.BlockID)

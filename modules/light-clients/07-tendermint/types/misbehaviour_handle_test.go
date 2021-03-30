@@ -50,7 +50,7 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 		expPass         bool
 	}{
 		{
-			"valid misbehavior misbehaviour",
+			"valid fork misbehaviour",
 			types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
 			height,
@@ -59,6 +59,21 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			&types.Misbehaviour{
 				Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), height, suite.now, bothValSet, bothValSet, bothSigners),
 				Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				ClientId: chainID,
+			},
+			suite.now,
+			true,
+		},
+		{
+			"valid time misbehaviour",
+			types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			&types.Misbehaviour{
+				Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), height, suite.now, bothValSet, bothValSet, bothSigners),
 				ClientId: chainID,
 			},
 			suite.now,
@@ -153,6 +168,36 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			},
 			suite.now,
 			true,
+		},
+		{
+			"invalid fork misbehaviour: identical headers",
+			types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			&types.Misbehaviour{
+				Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), height, suite.now, bothValSet, bothValSet, bothSigners),
+				ClientId: chainID,
+			},
+			suite.now,
+			false,
+		},
+		{
+			"invalid time misbehaviour: monotonically increasing time",
+			types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			&types.Misbehaviour{
+				Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothSigners),
+				Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), height, suite.now, bothValSet, bothValSet, bothSigners),
+				ClientId: chainID,
+			},
+			suite.now,
+			false,
 		},
 		{
 			"invalid misbehavior misbehaviour from different chain",

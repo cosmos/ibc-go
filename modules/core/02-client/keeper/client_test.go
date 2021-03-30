@@ -483,6 +483,23 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			true,
 		},
 		{
+			"time misbehavior should pass",
+			&ibctmtypes.Misbehaviour{
+				Header1:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight+5), testClientHeight, suite.ctx.BlockTime(), bothValSet, bothValSet, bothSigners),
+				Header2:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeight, altTime, bothValSet, bothValSet, bothSigners),
+				ClientId: clientID,
+			},
+			func() error {
+				suite.consensusState.NextValidatorsHash = bothValsHash
+				clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
+
+				return err
+			},
+			true,
+		},
+
+		{
 			"misbehavior at later height should pass",
 			&ibctmtypes.Misbehaviour{
 				Header1:  suite.chainA.CreateTMClientHeader(testChainID, int64(heightPlus5.RevisionHeight), testClientHeight, altTime, bothValSet, valSet, bothSigners),
