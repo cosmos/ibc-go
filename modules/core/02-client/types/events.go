@@ -8,13 +8,11 @@ import (
 
 // IBC client events
 const (
-	AttributeKeyClientID            = "client_id"
-	AttributeKeySubjectClientID     = "subject_client_id"
-	AttributeKeyClientType          = "client_type"
-	AttributeKeyConsensusHeight     = "consensus_height"
-	AttributeKeyHeader              = "header"
-	AttributeKeyMisbehaviourHeader1 = "misbehaviour_header1"
-	AttributeKeyMisbehaviourHeader2 = "misbehaviour_header2"
+	AttributeKeyClientID        = "client_id"
+	AttributeKeySubjectClientID = "subject_client_id"
+	AttributeKeyClientType      = "client_type"
+	AttributeKeyConsensusHeight = "consensus_height"
+	AttributeKeyHeader          = "header"
 )
 
 // IBC client events vars

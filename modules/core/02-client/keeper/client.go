@@ -71,8 +71,8 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		existingConsState exported.ConsensusState
 		exists            bool
 		consensusHeight   exported.Height
-		eventType         string
 	)
+	eventType := types.EventTypeUpdateClient
 	if header != nil {
 		existingConsState, exists = k.GetClientConsensusState(ctx, clientID, header.GetHeight())
 	}
@@ -95,18 +95,12 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 
 	}
 
-	// if there already exists a consensus state in client store for the header height
+	// If an existing consensus state doesn't exist, then write the update state changes,
+	// and set new consensus state.
+	// Else if there already exists a consensus state in client store for the header height
 	// and it does not match the updated consensus state, this is evidence of misbehaviour
 	// and we must freeze the client and emit appropriate events.
-	if exists && !reflect.DeepEqual(existingConsState, newConsensusState) {
-		clientState.Freeze(header)
-		k.SetClientState(ctx, clientID, clientState)
-
-		// set consensus height and set eventType to SubmitMisbehaviour
-		eventType = types.EventTypeSubmitMisbehaviour
-
-		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID, "height", header.GetHeight().String())
-	} else if !exists {
+	if !exists {
 		// write any cached state changes from CheckHeaderAndUpdateState
 		// to store metadata in client store for new consensus state.
 		writeFn()
@@ -120,10 +114,15 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		}
 		k.SetClientState(ctx, clientID, newClientState)
 
-		// set eventType to UpdateClient
-		eventType = types.EventTypeUpdateClient
-
 		k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
+	} else if exists && !reflect.DeepEqual(existingConsState, newConsensusState) {
+		clientState.Freeze(header)
+		k.SetClientState(ctx, clientID, clientState)
+
+		// set consensus height and set eventType to SubmitMisbehaviour
+		eventType = types.EventTypeSubmitMisbehaviour
+
+		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID, "height", header.GetHeight().String())
 	}
 
 	// emitting events in the keeper emits for both begin block and handler client updates
