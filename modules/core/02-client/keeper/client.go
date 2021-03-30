@@ -62,8 +62,8 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
 	}
 
-	// prevent update if the client is frozen before or at header height
-	if clientState.IsFrozen() && clientState.GetFrozenHeight().LTE(header.GetHeight()) {
+	// prevent update if the client is frozen
+	if clientState.IsFrozen() {
 		return sdkerrors.Wrapf(types.ErrClientFrozen, "cannot update client with ID %s", clientID)
 	}
 
@@ -119,7 +119,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		clientState.Freeze(header)
 		k.SetClientState(ctx, clientID, clientState)
 
-		// set consensus height and set eventType to SubmitMisbehaviour
+		// set eventType to SubmitMisbehaviour
 		eventType = types.EventTypeSubmitMisbehaviour
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID, "height", header.GetHeight().String())

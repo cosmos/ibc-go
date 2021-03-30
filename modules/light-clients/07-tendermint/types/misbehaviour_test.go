@@ -152,16 +152,6 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 			false,
 		},
 		{
-			"mismatched heights",
-			&types.Misbehaviour{
-				Header1:  suite.header,
-				Header2:  suite.chainA.CreateTMClientHeader(chainID, 6, clienttypes.NewHeight(0, 4), suite.now, suite.valSet, suite.valSet, signers),
-				ClientId: clientID,
-			},
-			func(misbehaviour *types.Misbehaviour) error { return nil },
-			false,
-		},
-		{
 			"same block id",
 			&types.Misbehaviour{
 				Header1:  suite.header,

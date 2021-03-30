@@ -174,7 +174,7 @@ func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 		},
 		{
 			name:        "client is frozen",
-			clientState: &types.ClientState{LatestHeight: height, FrozenHeight: clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)},
+			clientState: &types.ClientState{LatestHeight: height, FrozenHeight: clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+100)},
 			consensusState: &types.ConsensusState{
 				Root: commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()),
 			},
@@ -239,7 +239,7 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 		},
 		{
 			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1000)
 			}, false,
 		},
 		{
@@ -317,7 +317,7 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 		},
 		{
 			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1000)
 			}, false,
 		},
 		{
@@ -411,7 +411,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 		},
 		{
 			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1000)
 			}, false,
 		},
 		{
@@ -510,7 +510,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 		},
 		{
 			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1000)
 			}, false,
 		},
 		{
@@ -614,7 +614,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 		},
 		{
 			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1000)
 			}, false,
 		},
 		{
@@ -717,7 +717,7 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 		},
 		{
 			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1000)
 			}, false,
 		},
 		{

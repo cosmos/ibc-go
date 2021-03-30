@@ -178,50 +178,6 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.keeper.SetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight(), conflictConsState)
 			return nil
 		}, true, true},
-		{"valid past update before client was frozen", func() error {
-			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
-			clientState.FrozenHeight = types.NewHeight(0, testClientHeight.RevisionHeight-1)
-			clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
-			suite.Require().NoError(err)
-
-			height1 := types.NewHeight(0, 1)
-
-			// store previous consensus state
-			prevConsState := &ibctmtypes.ConsensusState{
-				Timestamp:          suite.past,
-				NextValidatorsHash: suite.valSetHash,
-			}
-			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height1, prevConsState)
-
-			// updateHeader will fill in consensus state between prevConsState and suite.consState
-			// clientState should not be updated
-			updateHeader = createPastUpdateFn(suite)
-			return nil
-		}, true, false},
-		{"misbehaviour detection: conflicting header before client was frozen", func() error {
-			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
-			clientState.FrozenHeight = types.NewHeight(0, testClientHeight.RevisionHeight-1)
-			clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
-			suite.Require().NoError(err)
-
-			height1 := types.NewHeight(0, 1)
-
-			// store previous consensus state
-			prevConsState := &ibctmtypes.ConsensusState{
-				Timestamp:          suite.past,
-				NextValidatorsHash: suite.valSetHash,
-			}
-			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height1, prevConsState)
-
-			// updateHeader will fill in consensus state between prevConsState and suite.consState
-			// clientState should not be updated
-			updateHeader = createPastUpdateFn(suite)
-			// set conflicting consensus state in store to create misbehaviour scenario
-			conflictConsState := updateHeader.ConsensusState()
-			conflictConsState.Root = commitmenttypes.NewMerkleRoot([]byte("conflicting apphash"))
-			suite.keeper.SetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight(), conflictConsState)
-			return nil
-		}, true, true},
 		{"client state not found", func() error {
 			updateHeader = createFutureUpdateFn(suite)
 

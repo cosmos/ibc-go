@@ -93,10 +93,6 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 			sdkerrors.Wrap(err, "header 2 failed validation").Error(),
 		)
 	}
-	// Ensure that Heights are the same
-	if misbehaviour.Header1.GetHeight() != misbehaviour.Header2.GetHeight() {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour, "headers in misbehaviour are on different heights (%d ≠ %d)", misbehaviour.Header1.GetHeight(), misbehaviour.Header2.GetHeight())
-	}
 
 	blockID1, err := tmtypes.BlockIDFromProto(&misbehaviour.Header1.SignedHeader.Commit.BlockID)
 	if err != nil {

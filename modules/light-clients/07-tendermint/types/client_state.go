@@ -508,7 +508,7 @@ func produceVerificationArgs(
 		)
 	}
 
-	if cs.IsFrozen() && !cs.FrozenHeight.GT(height) {
+	if cs.IsFrozen() {
 		return commitmenttypes.MerkleProof{}, nil, clienttypes.ErrClientFrozen
 	}
 
