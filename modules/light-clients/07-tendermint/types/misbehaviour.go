@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"time"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -105,10 +104,6 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
 	}
 
-	// Ensure that Commit Hashes are different
-	if bytes.Equal(blockID1.Hash, blockID2.Hash) {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
-	}
 	if err := validCommit(misbehaviour.Header1.Header.ChainID, *blockID1,
 		misbehaviour.Header1.Commit, misbehaviour.Header1.ValidatorSet); err != nil {
 		return err

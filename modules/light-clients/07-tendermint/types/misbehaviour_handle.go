@@ -37,7 +37,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	}
 
 	// if heights are equal check that this is valid misbehaviour of a fork
-	// if heights are unequal check that this is valid misbehavior of BFT time violation
+	// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
 	if tmMisbehaviour.Header1.GetHeight().EQ(tmMisbehaviour.Header2.GetHeight()) {
 		blockID1, err := tmtypes.BlockIDFromProto(&tmMisbehaviour.Header1.SignedHeader.Commit.BlockID)
 		if err != nil {

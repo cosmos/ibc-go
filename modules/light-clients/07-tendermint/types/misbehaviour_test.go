@@ -60,7 +60,7 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 		expPass              bool
 	}{
 		{
-			"valid fork misbehaviour",
+			"valid fork misbehaviour, two headers at same height have different time",
 			&types.Misbehaviour{
 				Header1:  suite.header,
 				Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now.Add(time.Minute), suite.valSet, suite.valSet, signers),
@@ -70,7 +70,7 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 			true,
 		},
 		{
-			"valid time misbehaviour",
+			"valid time misbehaviour, both headers at different heights are at same time",
 			&types.Misbehaviour{
 				Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+5), heightMinus1, suite.now, suite.valSet, suite.valSet, signers),
 				Header2:  suite.header,
@@ -166,16 +166,6 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 			&types.Misbehaviour{
 				Header1:  suite.header,
 				Header2:  suite.chainA.CreateTMClientHeader(chainID, 6, clienttypes.NewHeight(0, 4), suite.now, suite.valSet, suite.valSet, signers),
-				ClientId: clientID,
-			},
-			func(misbehaviour *types.Misbehaviour) error { return nil },
-			false,
-		},
-		{
-			"same block id",
-			&types.Misbehaviour{
-				Header1:  suite.header,
-				Header2:  suite.header,
 				ClientId: clientID,
 			},
 			func(misbehaviour *types.Misbehaviour) error { return nil },
