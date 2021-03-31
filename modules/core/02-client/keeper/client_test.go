@@ -498,7 +498,6 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			},
 			true,
 		},
-
 		{
 			"misbehavior at later height should pass",
 			&ibctmtypes.Misbehaviour{
@@ -550,6 +549,22 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 				return err
 			},
 			true,
+		},
+		{
+			"misbehavior ValidateBasic fails: misbehaviour height is at same height as trusted height",
+			&ibctmtypes.Misbehaviour{
+				Header1:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeight, altTime, bothValSet, bothValSet, bothSigners),
+				Header2:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeight, suite.ctx.BlockTime(), bothValSet, bothValSet, bothSigners),
+				ClientId: clientID,
+			},
+			func() error {
+				suite.consensusState.NextValidatorsHash = bothValsHash
+				clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
+
+				return err
+			},
+			false,
 		},
 		{
 			"trusted ConsensusState1 not found",

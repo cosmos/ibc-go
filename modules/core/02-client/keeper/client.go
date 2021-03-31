@@ -209,7 +209,11 @@ func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour ex
 	}
 
 	if clientState.IsFrozen() {
-		return sdkerrors.Wrapf(types.ErrInvalidMisbehaviour, "client is already frozen at height %s", clientState.GetFrozenHeight())
+		return sdkerrors.Wrap(types.ErrInvalidMisbehaviour, "client is already frozen")
+	}
+
+	if err := misbehaviour.ValidateBasic(); err != nil {
+		return err
 	}
 
 	clientState, err := clientState.CheckMisbehaviourAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, misbehaviour.GetClientID()), misbehaviour)

@@ -165,7 +165,7 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 			"header2 height is greater",
 			&types.Misbehaviour{
 				Header1:  suite.header,
-				Header2:  suite.chainA.CreateTMClientHeader(chainID, 6, clienttypes.NewHeight(0, 4), suite.now, suite.valSet, suite.valSet, signers),
+				Header2:  suite.chainA.CreateTMClientHeader(chainID, 6, clienttypes.NewHeight(0, height.RevisionHeight+1), suite.now, suite.valSet, suite.valSet, signers),
 				ClientId: clientID,
 			},
 			func(misbehaviour *types.Misbehaviour) error { return nil },
