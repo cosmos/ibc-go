@@ -59,11 +59,11 @@ type IBCModule interface {
 		channelID string,
 	) error
 
-	// OnRecvPacket must return the acknowledgement bytes
+	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.
 	// In the case of an asynchronous acknowledgement, nil should be returned.
-	// OnRecvPacket must also return a revert boolean. If true, the state changes on callback
-	// are reverted, the rest of the transaction is still processed. Thus, the packet is successfully
-	// received and any returned acknowledgement is written.
+	// If the acknowledgement returned is successful, the state changes on callback are written,
+	// otherwise the application state changes are discarded. In either case the packet is received
+	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket(
 		ctx sdk.Context,
 		packet channeltypes.Packet,

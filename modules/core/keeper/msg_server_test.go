@@ -57,6 +57,7 @@ func TestIBCTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	var (
 		packet channeltypes.Packet
+		async  bool // indicate no ack written
 	)
 
 	testCases := []struct {
@@ -98,6 +99,22 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
 		}, true, true},
+		{"success: ORDERED - async acknowledgement", func() {
+			async = true
+			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
+			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+
+			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			suite.Require().NoError(err)
+		}, true, false},
+		{"success: UNORDERED - async acknowledgement", func() {
+			async = true
+			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+
+			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			suite.Require().NoError(err)
+		}, true, false},
 		{"failure: ORDERED out of order packet", func() {
 			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
 
@@ -145,6 +162,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			async = false     // reset
 
 			tc.malleate()
 
@@ -171,10 +189,17 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 					suite.Require().True(exists, "callback state not persisted when revert is false")
 				}
 
-				// verify ack was written
+				// verify if ack was written
 				ack, found := suite.chainB.App.IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-				suite.Require().NotNil(ack)
-				suite.Require().True(found)
+
+				if async {
+					suite.Require().Nil(ack)
+					suite.Require().False(found)
+
+				} else {
+					suite.Require().NotNil(ack)
+					suite.Require().True(found)
+				}
 			} else {
 				suite.Require().Error(err)
 			}

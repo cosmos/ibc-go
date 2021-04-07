@@ -289,8 +289,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.MintCoins(
 		ctx, types.ModuleName, sdk.NewCoins(voucher),
 	); err != nil {
-		// error returned by bank keeper, revert all state changes by callback
-		// and continue tx processing
 		return err
 	}
 
@@ -298,8 +296,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 	); err != nil {
-		// error returned by bank keeper, revert all state changes by callback
-		// and continue tx processing
 		return err
 	}
 

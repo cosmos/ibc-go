@@ -30,6 +30,7 @@ var (
 	MockFailAcknowledgement  = channeltypes.NewErrorAcknowledgement("mock failed acknowledgement")
 	MockPacketData           = []byte("mock packet data")
 	MockFailPacketData       = []byte("mock failed packet data")
+	MockAsyncPacketData      = []byte("mock async packet data")
 	MockCanaryCapabilityName = "mock canary capability name"
 )
 
@@ -178,7 +179,10 @@ func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ex
 	am.scopedKeeper.NewCapability(ctx, MockCanaryCapabilityName)
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
+	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
+		return nil
 	}
+
 	return MockFailAcknowledgement
 }
 
