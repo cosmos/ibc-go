@@ -562,7 +562,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyPacketAcknowledgement(
 				store, suite.chainA.Codec, proofHeight, currentTime, delayPeriod, &prefix, proof,
-				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ibcmock.MockAcknowledgement,
+				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ibcmock.MockAcknowledgement.Acknowledgement(),
 			)
 
 			if tc.expPass {

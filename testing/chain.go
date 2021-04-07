@@ -71,7 +71,7 @@ var (
 
 	ConnectionVersion = connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions())[0]
 
-	MockAcknowledgement      = mock.MockAcknowledgement
+	MockAcknowledgement      = mock.MockAcknowledgement.Acknowledgement()
 	MockPacketData           = mock.MockPacketData
 	MockFailPacketData       = mock.MockFailPacketData
 	MockCanaryCapabilityName = mock.MockCanaryCapabilityName

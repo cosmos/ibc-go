@@ -4,23 +4,21 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/cosmos/cosmos-sdk/types/module"
-
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
 const (
@@ -28,8 +26,8 @@ const (
 )
 
 var (
-	MockAcknowledgement      = []byte("mock acknowledgement")
-	MockFailAcknowledgement  = []byte("mock failed acknowledgement")
+	MockAcknowledgement      = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
+	MockFailAcknowledgement  = channeltypes.NewErrorAcknowledgement("mock failed acknowledgement")
 	MockPacketData           = []byte("mock packet data")
 	MockFailPacketData       = []byte("mock failed packet data")
 	MockCanaryCapabilityName = "mock canary capability name"
@@ -175,13 +173,13 @@ func (am AppModule) OnChanCloseConfirm(sdk.Context, string, string) error {
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, bool, error) {
+func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) exported.Acknowledgement {
 	// set state by claiming capability to check if revert happens return
 	am.scopedKeeper.NewCapability(ctx, MockCanaryCapabilityName)
 	if bytes.Equal(MockPacketData, packet.GetData()) {
-		return nil, MockAcknowledgement, false, nil
+		return MockAcknowledgement
 	}
-	return nil, MockFailAcknowledgement, true, nil
+	return MockFailAcknowledgement
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.

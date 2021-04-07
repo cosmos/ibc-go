@@ -151,28 +151,27 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		malleate     func()
 		recvIsSource bool // the receiving chain is the source of the coin originally
 		expPass      bool
-		expRevert    bool
 	}{
-		{"success receive on source chain", func() {}, true, true, false},
-		{"success receive with coin from another chain as source", func() {}, false, true, false},
+		{"success receive on source chain", func() {}, true, true},
+		{"success receive with coin from another chain as source", func() {}, false, true},
 		{"empty coin", func() {
 			trace = types.DenomTrace{}
 			amount = sdk.ZeroInt()
-		}, true, false, false},
+		}, true, false},
 		{"invalid receiver address", func() {
 			receiver = "gaia1scqhwpgsmr6vmztaa7suurfl52my6nd2kmrudl"
-		}, true, false, false},
+		}, true, false},
 
 		// onRecvPacket
 		// - coin from chain chainA
 		{"failure: mint zero coin", func() {
 			amount = sdk.ZeroInt()
-		}, false, false, false},
+		}, false, false},
 
 		// - coin being sent back to original chain (chainB)
 		{"tries to unescrow more tokens than allowed", func() {
 			amount = sdk.NewInt(1000000)
-		}, true, false, true},
+		}, true, false},
 	}
 
 	for _, tc := range testCases {
@@ -199,7 +198,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				fungibleTokenPacket := types.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.Uint64(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelB.PortID, channelB.ID, channelA.PortID, channelA.ID, clienttypes.NewHeight(0, 110), 0)
 				ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-				err = suite.coordinator.RelayPacket(suite.chainB, suite.chainA, clientB, clientA, packet, ack.GetBytes())
+				err = suite.coordinator.RelayPacket(suite.chainB, suite.chainA, clientB, clientA, packet, ack.Acknowledgement())
 				suite.Require().NoError(err) // relay committed
 
 				seq++
@@ -220,14 +219,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.Uint64(), suite.chainA.SenderAccount.GetAddress().String(), receiver)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, clienttypes.NewHeight(0, 100), 0)
 
-			revert, err := suite.chainB.App.TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			err = suite.chainB.App.TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().False(revert)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(tc.expRevert, revert)
 			}
 		})
 	}

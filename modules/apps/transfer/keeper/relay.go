@@ -183,20 +183,20 @@ func (k Keeper) SendTransfer(
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) (revert bool, err error) {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
-		return false, err
+		return err
 	}
 
 	if !k.GetReceiveEnabled(ctx) {
-		return false, types.ErrReceiveDisabled
+		return types.ErrReceiveDisabled
 	}
 
 	// decode the receiver address
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	labels := []metrics.Label{
@@ -237,8 +237,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// counterparty module. The bug may occur in bank or any part of the code that allows
 			// the escrow address to be drained. A malicious counterparty module could drain the
 			// escrow address by allowing more tokens to be sent back then were escrowed.
-			// Revert callback state changes if SendCoins returns an error.
-			return true, sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
+			return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
 
 		defer func() {
@@ -257,7 +256,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			)
 		}()
 
-		return false, nil
+		return nil
 	}
 
 	// sender chain is the source, mint vouchers
@@ -292,7 +291,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	); err != nil {
 		// error returned by bank keeper, revert all state changes by callback
 		// and continue tx processing
-		return true, err
+		return err
 	}
 
 	// send to receiver
@@ -301,7 +300,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	); err != nil {
 		// error returned by bank keeper, revert all state changes by callback
 		// and continue tx processing
-		return true, err
+		return err
 	}
 
 	defer func() {
@@ -320,7 +319,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		)
 	}()
 
-	return false, nil
+	return nil
 }
 
 // OnAcknowledgementPacket responds to the the success or failure of a packet

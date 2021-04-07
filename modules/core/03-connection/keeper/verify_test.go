@@ -360,12 +360,12 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 
 			ack := ibcmock.MockAcknowledgement
 			if tc.changeAcknowledgement {
-				ack = []byte(ibctesting.InvalidID)
+				ack = ibcmock.MockFailAcknowledgement
 			}
 
 			err = suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyPacketAcknowledgement(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
-				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack,
+				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement(),
 			)
 
 			if tc.expPass {

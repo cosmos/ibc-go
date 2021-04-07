@@ -443,14 +443,11 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	}
 
 	// Perform application logic callback
-	// Cache context so that we may discard state changes from callback if revert is true.
+	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn := ctx.CacheContext()
-	_, ack, revert, err := cbs.OnRecvPacket(cacheCtx, msg.Packet)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "receive packet callback failed")
-	}
-	// If revert is false, persist callback state changes by writing to underlying parent store.
-	if !revert {
+	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet)
+	if ack.Success() {
+		// write application state changes
 		writeFn()
 	}
 
@@ -458,7 +455,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 	if ack != nil {
-		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, cap, msg.Packet, ack); err != nil {
+		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, cap, msg.Packet, ack.Acknowledgement()); err != nil {
 			return nil, err
 		}
 	}
