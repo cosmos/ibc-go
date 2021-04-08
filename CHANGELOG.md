@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
-* (modules/core/03-connection) [\#109](https://github.com/cosmos/ibc-go/pull/109) Remove connection handshake CLI commands.
+* (modules/core) [\#109](https://github.com/cosmos/ibc-go/pull/109) Remove connection and channel handshake CLI commands.
 
 ### State Machine Breaking
 
