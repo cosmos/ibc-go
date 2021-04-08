@@ -76,10 +76,11 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 	}
 }
 
-func (suite *TendermintTestSuite) TestGetProcessedTime() {
+func (suite *TendermintTestSuite) TestGetProcessedMetadata() {
 	// Verify ProcessedTime on CreateClient
-	// coordinator increments time before creating client
+	// coordinator increments time and height before creating client
 	expectedTime := suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	expectedHeight := clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height+1))
 
 	clientA, err := suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
 	suite.Require().NoError(err)
@@ -91,10 +92,14 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	actualTime, ok := types.GetProcessedTime(store, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
+	processedHeight, ok := types.GetProcessedHeight(store, height)
+	suite.Require().True(ok, "could not retrieve processed height for stored consensus state")
+	suite.Require().Equal(expectedHeight, processedHeight, "retrieved processed height is not expected value")
 
 	// Verify ProcessedTime on UpdateClient
-	// coordinator increments time before updating client
+	// coordinator increments time and height before updating client
 	expectedTime = suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	expectedHeight = clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height+1))
 
 	err = suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
 	suite.Require().NoError(err)
@@ -106,8 +111,13 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	actualTime, ok = types.GetProcessedTime(store, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
+	processedHeight, ok = types.GetProcessedHeight(store, height)
+	suite.Require().True(ok, "could not retrieve processed height for stored consensus state")
+	suite.Require().Equal(expectedHeight, processedHeight, "retrieved processed height is not expected value")
 
-	// try to get processed time for height that doesn't exist in store
+	// try to get processed time and processed height for consensus height that doesn't exist in store
 	_, ok = types.GetProcessedTime(store, clienttypes.NewHeight(1, 1))
 	suite.Require().False(ok, "retrieved processed time for a non-existent consensus state")
+	_, ok = types.GetProcessedHeight(store, clienttypes.NewHeight(1, 1))
+	suite.Require().False(ok, "retrieved processed height for a non-existent consensus state")
 }

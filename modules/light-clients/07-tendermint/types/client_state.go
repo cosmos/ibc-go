@@ -152,8 +152,9 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clien
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, consState)
 	}
-	// set processed time with initial consensus state height equal to initial client state's latest height
+	// set processed time and height with initial consensus state height equal to initial client state's latest height
 	SetProcessedTime(clientStore, cs.GetLatestHeight(), uint64(ctx.BlockTime().UnixNano()))
+	SetProcessedHeight(clientStore, cs.GetLatestHeight(), clienttypes.GetSelfHeight(ctx))
 	return nil
 }
 
