@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### API Breaking
+
+* (modules/core/03-connection) [\#109](https://github.com/cosmos/ibc-go/pull/109) Remove connection handshake CLI commands.
+
 ### State Machine Breaking
 
 * (modules/light-clients/07-tendermint) [\#99](https://github.com/cosmos/ibc-go/pull/99) Enforce maximum chain-id length for tendermint client. 
