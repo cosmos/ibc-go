@@ -113,8 +113,6 @@ func (coord *Coordinator) CreateClient(
 		return "", err
 	}
 
-	coord.IncrementTime()
-
 	return clientID, nil
 }
 
@@ -137,8 +135,6 @@ func (coord *Coordinator) UpdateClient(
 	if err != nil {
 		return err
 	}
-
-	coord.IncrementTime()
 
 	return nil
 }
@@ -225,7 +221,6 @@ func (coord *Coordinator) SendPacket(
 	if err := source.SendPacket(packet); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -246,7 +241,6 @@ func (coord *Coordinator) RecvPacket(
 	proof, proofHeight := source.QueryProof(packetKey)
 
 	// Increment time and commit block so that 5 second delay period passes between send and receive
-	coord.IncrementTime()
 	coord.CommitBlock(source, counterparty)
 
 	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, counterparty.SenderAccount.GetAddress())
@@ -265,7 +259,6 @@ func (coord *Coordinator) WriteAcknowledgement(
 	if err := source.WriteAcknowledgement(packet); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -289,7 +282,6 @@ func (coord *Coordinator) AcknowledgePacket(
 	proof, proofHeight := counterparty.QueryProof(packetKey)
 
 	// Increment time and commit block so that 5 second delay period passes between send and receive
-	coord.IncrementTime()
 	coord.CommitBlock(source, counterparty)
 
 	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, source.SenderAccount.GetAddress())
@@ -304,7 +296,6 @@ func (coord *Coordinator) RelayPacket(
 	packet channeltypes.Packet, ack []byte,
 ) error {
 	// Increment time and commit block so that 5 second delay period passes between send and receive
-	coord.IncrementTime()
 	coord.CommitBlock(counterparty)
 
 	if err := coord.RecvPacket(source, counterparty, sourceClient, packet); err != nil {
@@ -312,7 +303,6 @@ func (coord *Coordinator) RelayPacket(
 	}
 
 	// Increment time and commit block so that 5 second delay period passes between send and receive
-	coord.IncrementTime()
 	coord.CommitBlock(source)
 
 	return coord.AcknowledgePacket(source, counterparty, counterpartyClient, packet, ack)
@@ -329,9 +319,9 @@ func (coord *Coordinator) IncrementTime() {
 // IncrementTimeBy iterates through all the TestChain's and increments their current header time
 // by specified time.
 func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
-	coord.CurrentTime = coord.CurrentTime.Add(increment)
+	coord.CurrentTime = coord.CurrentTime.Add(increment).UTC()
 	for _, chain := range coord.Chains {
-		chain.CurrentHeader.Time = coord.CurrentTime
+		chain.CurrentHeader.Time = coord.CurrentTime.UTC()
 		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 	}
 
@@ -349,8 +339,6 @@ func (coord *Coordinator) SendMsgs(source, counterparty *TestChain, counterparty
 	if err := source.sendMsgs(msgs...); err != nil {
 		return err
 	}
-
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -409,7 +397,6 @@ func (coord *Coordinator) ConnOpenInit(
 	if err := source.ConnectionOpenInit(counterparty, sourceConnection, counterpartyConnection); err != nil {
 		return sourceConnection, counterpartyConnection, err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	if err := coord.UpdateClient(
@@ -435,13 +422,11 @@ func (coord *Coordinator) ConnOpenInitOnBothChains(
 	if err := source.ConnectionOpenInit(counterparty, sourceConnection, counterpartyConnection); err != nil {
 		return sourceConnection, counterpartyConnection, err
 	}
-	coord.IncrementTime()
 
 	// initialize connection on counterparty
 	if err := counterparty.ConnectionOpenInit(source, counterpartyConnection, sourceConnection); err != nil {
 		return sourceConnection, counterpartyConnection, err
 	}
-	coord.IncrementTime()
 
 	// update counterparty client on source connection
 	if err := coord.UpdateClient(
@@ -472,7 +457,6 @@ func (coord *Coordinator) ConnOpenTry(
 	if err := source.ConnectionOpenTry(counterparty, sourceConnection, counterpartyConnection); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -491,7 +475,6 @@ func (coord *Coordinator) ConnOpenAck(
 	if err := source.ConnectionOpenAck(counterparty, sourceConnection, counterpartyConnection); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -509,7 +492,6 @@ func (coord *Coordinator) ConnOpenConfirm(
 	if err := source.ConnectionOpenConfirm(counterparty, sourceConnection, counterpartyConnection); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -535,13 +517,11 @@ func (coord *Coordinator) ChanOpenInit(
 	// NOTE: only creation of a capability for a transfer or mock port is supported
 	// Other applications must bind to the port in InitGenesis or modify this code.
 	source.CreatePortCapability(sourceChannel.PortID)
-	coord.IncrementTime()
 
 	// initialize channel on source
 	if err := source.ChanOpenInit(sourceChannel, counterpartyChannel, order, connection.ID); err != nil {
 		return sourceChannel, counterpartyChannel, err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	if err := coord.UpdateClient(
@@ -569,19 +549,16 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(
 	// Other applications must bind to the port in InitGenesis or modify this code.
 	source.CreatePortCapability(sourceChannel.PortID)
 	counterparty.CreatePortCapability(counterpartyChannel.PortID)
-	coord.IncrementTime()
 
 	// initialize channel on source
 	if err := source.ChanOpenInit(sourceChannel, counterpartyChannel, order, connection.ID); err != nil {
 		return sourceChannel, counterpartyChannel, err
 	}
-	coord.IncrementTime()
 
 	// initialize channel on counterparty
 	if err := counterparty.ChanOpenInit(counterpartyChannel, sourceChannel, order, counterpartyConnection.ID); err != nil {
 		return sourceChannel, counterpartyChannel, err
 	}
-	coord.IncrementTime()
 
 	// update counterparty client on source connection
 	if err := coord.UpdateClient(
@@ -615,7 +592,6 @@ func (coord *Coordinator) ChanOpenTry(
 	if err := source.ChanOpenTry(counterparty, sourceChannel, counterpartyChannel, order, connection.ID); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -634,7 +610,6 @@ func (coord *Coordinator) ChanOpenAck(
 	if err := source.ChanOpenAck(counterparty, sourceChannel, counterpartyChannel); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -653,7 +628,6 @@ func (coord *Coordinator) ChanOpenConfirm(
 	if err := source.ChanOpenConfirm(counterparty, sourceChannel, counterpartyChannel); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(
@@ -674,7 +648,6 @@ func (coord *Coordinator) ChanCloseInit(
 	if err := source.ChanCloseInit(counterparty, channel); err != nil {
 		return err
 	}
-	coord.IncrementTime()
 
 	// update source client on counterparty connection
 	return coord.UpdateClient(

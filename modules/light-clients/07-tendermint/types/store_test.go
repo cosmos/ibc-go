@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	solomachinetypes "github.com/cosmos/ibc-go/modules/light-clients/06-solomachine/types"
 	"github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *TendermintTestSuite) TestGetConsensusState() {
@@ -78,11 +77,10 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 
 func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	// Verify ProcessedTime on CreateClient
-	// coordinator increments time before creating client
-	expectedTime := suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
-
 	clientA, err := suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
 	suite.Require().NoError(err)
+
+	expectedTime := suite.chainA.CurrentHeader.Time
 
 	clientState := suite.chainA.GetClientState(clientA)
 	height := clientState.GetLatestHeight()
@@ -93,11 +91,10 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
 
 	// Verify ProcessedTime on UpdateClient
-	// coordinator increments time before updating client
-	expectedTime = suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
-
 	err = suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
 	suite.Require().NoError(err)
+
+	expectedTime = suite.chainA.CurrentHeader.Time
 
 	clientState = suite.chainA.GetClientState(clientA)
 	height = clientState.GetLatestHeight()

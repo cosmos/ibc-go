@@ -137,7 +137,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	header := tmproto.Header{
 		ChainID: chainID,
 		Height:  1,
-		Time:    coord.CurrentTime,
+		Time:    coord.CurrentTime.UTC(),
 	}
 
 	txConfig := simapp.MakeTestEncodingConfig().TxConfig
@@ -165,7 +165,6 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	require.NoError(t, err)
 
 	chain.NextBlock()
-	coord.IncrementTime()
 
 	return chain
 }
@@ -270,7 +269,6 @@ func (chain *TestChain) NextBlock() {
 	}
 
 	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
-
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.
@@ -283,6 +281,9 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 // number and updates the TestChain's headers. It returns the result and error if one
 // occurred.
 func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
+
+	chain.Coordinator.IncrementTime()
+
 	_, r, err := simapp.SignCheckDeliver(
 		chain.t,
 		chain.TxConfig,
@@ -537,7 +538,6 @@ func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, c
 // expire any clients with a trusting period less than or equal to this amount of time.
 func (chain *TestChain) ExpireClient(amount time.Duration) {
 	chain.Coordinator.IncrementTimeBy(amount)
-	chain.CurrentHeader.Time = chain.Coordinator.CurrentTime
 }
 
 // CurrentTMClientHeader creates a TM header using the current header parameters
