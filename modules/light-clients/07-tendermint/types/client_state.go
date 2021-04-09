@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -18,6 +19,8 @@ import (
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 )
+
+const Expired = "Expired"
 
 var _ exported.ClientState = (*ClientState)(nil)
 
@@ -58,9 +61,34 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
 }
 
-// IsFrozen returns true if the frozen height has been set.
-func (cs ClientState) IsFrozen() bool {
-	return !cs.FrozenHeight.IsZero()
+// Status returns the status of the tendermint client.
+// The client may be:
+// - Active
+// - Frozen
+// - Expired
+//
+// A frozen client will become expired, so the Frozen status
+// has higher precedence.
+func (cs ClientState) Status(
+	ctx sdk.Context,
+	clientStore sdk.KVStore,
+	cdc codec.BinaryMarshaler,
+) string {
+	if !cs.FrozenHeight.IsZero() {
+		return exported.Frozen
+	}
+
+	// get latest consensus state from clientStore to check for expiry
+	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
+	if err != nil {
+		panic(fmt.Sprintf("could not get latest consensus state from clientStore using height %s: %s", cs.GetLatestHeight(), err))
+	}
+
+	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+		return Expired
+	}
+
+	return exported.Active
 }
 
 // GetFrozenHeight returns the height at which client is frozen
@@ -168,7 +196,7 @@ func (cs ClientState) VerifyClientState(
 	proof []byte,
 	clientState exported.ClientState,
 ) error {
-	merkleProof, provingConsensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
+	merkleProof, provingConsensusState, err := produceVerificationArgs(ctx, store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -493,6 +521,7 @@ func verifyDelayPeriodPassed(store sdk.KVStore, proofHeight exported.Height, cur
 // shared between the verification functions and returns the unmarshalled
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	cs ClientState,
@@ -507,8 +536,8 @@ func produceVerificationArgs(
 		)
 	}
 
-	if cs.IsFrozen() && !cs.FrozenHeight.GT(height) {
-		return commitmenttypes.MerkleProof{}, nil, clienttypes.ErrClientFrozen
+	if status := cs.Status(ctx, store, cdc); status != exported.Active {
+		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrapf(clienttypes.ErrNotActive, "client status is %s", status)
 	}
 
 	if prefix == nil {

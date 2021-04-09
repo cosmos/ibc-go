@@ -21,6 +21,12 @@ const (
 	// Localhost is the client type for a localhost client. It is also used as the clientID
 	// for the localhost client.
 	Localhost string = "09-localhost"
+
+	// Active is a status type of a client. An active client is allowed to be used.
+	Active string = "Active"
+
+	// Frozen is a status type of a client. A frozen client is not allowed to be used.
+	Frozen string = "Frozen"
 )
 
 // ClientState defines the required common functions for light clients.
@@ -29,7 +35,6 @@ type ClientState interface {
 
 	ClientType() string
 	GetLatestHeight() Height
-	IsFrozen() bool
 	GetFrozenHeight() Height
 	Validate() error
 	GetProofSpecs() []*ics23.ProofSpec
@@ -38,6 +43,10 @@ type ClientState interface {
 	// Clients must validate the initial consensus state, and may store any client-specific metadata
 	// necessary for correct light client operation
 	Initialize(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, ConsensusState) error
+
+	// Status function
+	// Clients must return their status. Only Active clients are allowed to process packets.
+	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) string
 
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
