@@ -84,6 +84,7 @@ var (
 type TestChain struct {
 	t *testing.T
 
+	Coordinator   *Coordinator
 	App           *simapp.SimApp
 	ChainID       string
 	LastHeader    *ibctmtypes.Header // header for last block height committed
@@ -111,7 +112,7 @@ type TestChain struct {
 //
 // Time management is handled by the Coordinator in order to ensure synchrony between chains.
 // Each update of any chain increments the block header time for all chains by 5 seconds.
-func NewTestChain(t *testing.T, chainID string) *TestChain {
+func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// generate validator private/public key
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
@@ -136,7 +137,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	header := tmproto.Header{
 		ChainID: chainID,
 		Height:  1,
-		Time:    globalStartTime,
+		Time:    coord.CurrentTime,
 	}
 
 	txConfig := simapp.MakeTestEncodingConfig().TxConfig
@@ -144,6 +145,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	// create an account to send transactions from
 	chain := &TestChain{
 		t:             t,
+		Coordinator:   coord,
 		ChainID:       chainID,
 		App:           app,
 		CurrentHeader: header,
@@ -163,6 +165,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	require.NoError(t, err)
 
 	chain.NextBlock()
+	coord.IncrementTime()
 
 	return chain
 }
@@ -533,7 +536,8 @@ func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, c
 // ExpireClient fast forwards the chain's block time by the provided amount of time which will
 // expire any clients with a trusting period less than or equal to this amount of time.
 func (chain *TestChain) ExpireClient(amount time.Duration) {
-	chain.CurrentHeader.Time = chain.CurrentHeader.Time.Add(amount)
+	chain.Coordinator.IncrementTimeBy(amount)
+	chain.CurrentHeader.Time = chain.Coordinator.CurrentTime
 }
 
 // CurrentTMClientHeader creates a TM header using the current header parameters

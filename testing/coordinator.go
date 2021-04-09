@@ -26,21 +26,25 @@ var (
 type Coordinator struct {
 	t *testing.T
 
-	Chains map[string]*TestChain
+	CurrentTime time.Time
+	Chains      map[string]*TestChain
 }
 
 // NewCoordinator initializes Coordinator with N TestChain's
 func NewCoordinator(t *testing.T, n int) *Coordinator {
 	chains := make(map[string]*TestChain)
+	coord := &Coordinator{
+		t:           t,
+		CurrentTime: time.Now(),
+	}
 
 	for i := 0; i < n; i++ {
 		chainID := GetChainID(i)
-		chains[chainID] = NewTestChain(t, chainID)
+		chains[chainID] = NewTestChain(t, coord, chainID)
 	}
-	return &Coordinator{
-		t:      t,
-		Chains: chains,
-	}
+	coord.Chains = chains
+
+	return coord
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
@@ -319,19 +323,18 @@ func (coord *Coordinator) RelayPacket(
 //
 // CONTRACT: this function must be called after every commit on any TestChain.
 func (coord *Coordinator) IncrementTime() {
-	for _, chain := range coord.Chains {
-		chain.CurrentHeader.Time = chain.CurrentHeader.Time.Add(TimeIncrement)
-		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
-	}
+	coord.IncrementTimeBy(TimeIncrement)
 }
 
 // IncrementTimeBy iterates through all the TestChain's and increments their current header time
 // by specified time.
 func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
+	coord.CurrentTime = coord.CurrentTime.Add(increment)
 	for _, chain := range coord.Chains {
-		chain.CurrentHeader.Time = chain.CurrentHeader.Time.Add(increment)
+		chain.CurrentHeader.Time = coord.CurrentTime
 		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 	}
+
 }
 
 // SendMsg delivers a single provided message to the chain. The counterparty
