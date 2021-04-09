@@ -35,7 +35,7 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
 		t:           t,
-		CurrentTime: time.Now(),
+		CurrentTime: globalStartTime,
 	}
 
 	for i := 0; i < n; i++ {
