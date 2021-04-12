@@ -47,9 +47,89 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 	return coord
 }
 
+// IncrementTime iterates through all the TestChain's and increments their current header time
+// by 5 seconds.
+//
+// CONTRACT: this function must be called after every commit on any TestChain.
+func (coord *Coordinator) IncrementTime() {
+	coord.IncrementTimeBy(TimeIncrement)
+}
+
+// IncrementTimeBy iterates through all the TestChain's and increments their current header time
+// by specified time.
+func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
+	coord.CurrentTime = coord.CurrentTime.Add(increment).UTC()
+	for _, chain := range coord.Chains {
+		chain.CurrentHeader.Time = coord.CurrentTime.UTC()
+		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+	}
+
+}
+
+// SetupNew constructs a TM client, connection, and channel on both chains provided. It will
+// fail if any error occurs. The clientID's, TestConnections, and TestChannels are returned
+// for both chains. The channels created are connected to the ibc-transfer application.
+func (coord *Coordinator) SetupNew(path *Path) {
+	coord.SetupConnectionsNew(path)
+
+	// channels can also be referenced through the returned connections
+	//	coord.CreateMockChannelsNew(path)
+}
+
+// SetupClientsNew is a helper function to create clients on both chains. It assumes the
+// caller does not anticipate any errors.
+func (coord *Coordinator) SetupClientsNew(path *Path) {
+	err := path.EndpointA.CreateClient()
+	require.NoError(coord.t, err)
+
+	err = path.EndpointB.CreateClient()
+	require.NoError(coord.t, err)
+}
+
+// SetupClientConnections is a helper function to create clients and the appropriate
+// connections on both the source and counterparty chain. It assumes the caller does not
+// anticipate any errors.
+func (coord *Coordinator) SetupConnectionsNew(path *Path) {
+	coord.SetupClientsNew(path)
+
+	coord.CreateConnectionNew(path)
+}
+
+// CreateConnection constructs and executes connection handshake messages in order to create
+// OPEN channels on chainA and chainB. The connection information of for chainA and chainB
+// are returned within a TestConnection struct. The function expects the connections to be
+// successfully opened otherwise testing will fail.
+func (coord *Coordinator) CreateConnectionNew(path *Path) {
+
+	err := path.EndpointA.ConnOpenInit()
+	require.NoError(coord.t, err)
+
+	err = path.EndpointB.ConnOpenTry()
+	require.NoError(coord.t, err)
+
+	err = path.EndpointA.ConnOpenAck()
+	require.NoError(coord.t, err)
+
+	err = path.EndpointB.ConnOpenConfirm()
+	require.NoError(coord.t, err)
+}
+
+// CreateMockChannels constructs and executes channel handshake messages to create OPEN
+// channels that use a mock application module that returns nil on all callbacks. This
+// function is expects the channels to be successfully opened otherwise testing will
+// fail.
+func (coord *Coordinator) CreateMockChannelsNew(
+	chainA, chainB *TestChain,
+	connA, connB *TestConnection,
+	order channeltypes.Order,
+) (TestChannel, TestChannel) {
+	return coord.CreateChannel(chainA, chainB, connA, connB, MockPort, MockPort, order)
+}
+
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
 // fail if any error occurs. The clientID's, TestConnections, and TestChannels are returned
 // for both chains. The channels created are connected to the ibc-transfer application.
+// TODO: remove
 func (coord *Coordinator) Setup(
 	chainA, chainB *TestChain, order channeltypes.Order,
 ) (string, string, *TestConnection, *TestConnection, TestChannel, TestChannel) {
@@ -63,6 +143,7 @@ func (coord *Coordinator) Setup(
 
 // SetupClients is a helper function to create clients on both chains. It assumes the
 // caller does not anticipate any errors.
+// TODO: remove
 func (coord *Coordinator) SetupClients(
 	chainA, chainB *TestChain,
 	clientType string,
@@ -80,6 +161,7 @@ func (coord *Coordinator) SetupClients(
 // SetupClientConnections is a helper function to create clients and the appropriate
 // connections on both the source and counterparty chain. It assumes the caller does not
 // anticipate any errors.
+// TODO: remove
 func (coord *Coordinator) SetupClientConnections(
 	chainA, chainB *TestChain,
 	clientType string,
@@ -93,6 +175,7 @@ func (coord *Coordinator) SetupClientConnections(
 }
 
 // CreateClient creates a counterparty client on the source chain and returns the clientID.
+// TODO: remove
 func (coord *Coordinator) CreateClient(
 	source, counterparty *TestChain,
 	clientType string,
@@ -117,6 +200,7 @@ func (coord *Coordinator) CreateClient(
 }
 
 // UpdateClient updates a counterparty client on the source chain.
+// TODO: remove
 func (coord *Coordinator) UpdateClient(
 	source, counterparty *TestChain,
 	clientID string,
@@ -143,6 +227,7 @@ func (coord *Coordinator) UpdateClient(
 // OPEN channels on chainA and chainB. The connection information of for chainA and chainB
 // are returned within a TestConnection struct. The function expects the connections to be
 // successfully opened otherwise testing will fail.
+// TODO: remove
 func (coord *Coordinator) CreateConnection(
 	chainA, chainB *TestChain,
 	clientA, clientB string,
@@ -167,6 +252,7 @@ func (coord *Coordinator) CreateConnection(
 // channels that use a mock application module that returns nil on all callbacks. This
 // function is expects the channels to be successfully opened otherwise testing will
 // fail.
+// TODO: remove
 func (coord *Coordinator) CreateMockChannels(
 	chainA, chainB *TestChain,
 	connA, connB *TestConnection,
@@ -178,6 +264,7 @@ func (coord *Coordinator) CreateMockChannels(
 // CreateTransferChannels constructs and executes channel handshake messages to create OPEN
 // ibc-transfer channels on chainA and chainB. The function expects the channels to be
 // successfully opened otherwise testing will fail.
+// TODO: remove
 func (coord *Coordinator) CreateTransferChannels(
 	chainA, chainB *TestChain,
 	connA, connB *TestConnection,
@@ -189,6 +276,7 @@ func (coord *Coordinator) CreateTransferChannels(
 // CreateChannel constructs and executes channel handshake messages in order to create
 // OPEN channels on chainA and chainB. The function expects the channels to be successfully
 // opened otherwise testing will fail.
+// TODO: remove
 func (coord *Coordinator) CreateChannel(
 	chainA, chainB *TestChain,
 	connA, connB *TestConnection,
@@ -213,6 +301,7 @@ func (coord *Coordinator) CreateChannel(
 
 // SendPacket sends a packet through the channel keeper on the source chain and updates the
 // counterparty client for the source chain.
+// TODO: remove
 func (coord *Coordinator) SendPacket(
 	source, counterparty *TestChain,
 	packet exported.PacketI,
@@ -231,6 +320,7 @@ func (coord *Coordinator) SendPacket(
 
 // RecvPacket receives a channel packet on the counterparty chain and updates
 // the client on the source chain representing the counterparty.
+// TODO: remove
 func (coord *Coordinator) RecvPacket(
 	source, counterparty *TestChain,
 	sourceClient string,
@@ -251,6 +341,7 @@ func (coord *Coordinator) RecvPacket(
 
 // WriteAcknowledgement writes an acknowledgement to the channel keeper on the source chain and updates the
 // counterparty client for the source chain.
+// TODO: remove
 func (coord *Coordinator) WriteAcknowledgement(
 	source, counterparty *TestChain,
 	packet exported.PacketI,
@@ -272,6 +363,7 @@ func (coord *Coordinator) WriteAcknowledgement(
 // the source chain.
 // TODO: add a query for the acknowledgement by events
 // - https://github.com/cosmos/cosmos-sdk/issues/6509
+// TODO: remove
 func (coord *Coordinator) AcknowledgePacket(
 	source, counterparty *TestChain,
 	counterpartyClient string,
@@ -290,6 +382,7 @@ func (coord *Coordinator) AcknowledgePacket(
 
 // RelayPacket receives a channel packet on counterparty, queries the ack
 // and acknowledges the packet on source. The clients are updated as needed.
+// TODO: remove
 func (coord *Coordinator) RelayPacket(
 	source, counterparty *TestChain,
 	sourceClient, counterpartyClient string,
@@ -306,25 +399,6 @@ func (coord *Coordinator) RelayPacket(
 	coord.CommitBlock(source)
 
 	return coord.AcknowledgePacket(source, counterparty, counterpartyClient, packet, ack)
-}
-
-// IncrementTime iterates through all the TestChain's and increments their current header time
-// by 5 seconds.
-//
-// CONTRACT: this function must be called after every commit on any TestChain.
-func (coord *Coordinator) IncrementTime() {
-	coord.IncrementTimeBy(TimeIncrement)
-}
-
-// IncrementTimeBy iterates through all the TestChain's and increments their current header time
-// by specified time.
-func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
-	coord.CurrentTime = coord.CurrentTime.Add(increment).UTC()
-	for _, chain := range coord.Chains {
-		chain.CurrentHeader.Time = coord.CurrentTime.UTC()
-		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
-	}
-
 }
 
 // SendMsg delivers a single provided message to the chain. The counterparty

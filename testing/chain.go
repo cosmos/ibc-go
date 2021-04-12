@@ -442,6 +442,7 @@ func (chain *TestChain) NextTestChannel(conn *TestConnection, portID string) Tes
 
 // ConstructMsgCreateClient constructs a message to create a new client state (tendermint or solomachine).
 // NOTE: a solo machine client will be created with an empty diversifier.
+// TODO: deprecate
 func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, clientID string, clientType string) *clienttypes.MsgCreateClient {
 	var (
 		clientState    exported.ClientState
@@ -473,6 +474,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, client
 
 // CreateTMClient will construct and execute a 07-tendermint MsgCreateClient. A counterparty
 // client will be created on the (target) chain.
+// TODO: deprecate
 func (chain *TestChain) CreateTMClient(counterparty *TestChain, clientID string) error {
 	// construct MsgCreateClient using counterparty
 	msg := chain.ConstructMsgCreateClient(counterparty, clientID, exported.Tendermint)
@@ -482,6 +484,7 @@ func (chain *TestChain) CreateTMClient(counterparty *TestChain, clientID string)
 // UpdateTMClient will construct and execute a 07-tendermint MsgUpdateClient. The counterparty
 // client will be updated on the (target) chain. UpdateTMClient mocks the relayer flow
 // necessary for updating a Tendermint client.
+// TODO: deprecate
 func (chain *TestChain) UpdateTMClient(counterparty *TestChain, clientID string) error {
 	header, err := chain.ConstructUpdateTMClientHeader(counterparty, clientID)
 	require.NoError(chain.t, err)
@@ -641,6 +644,7 @@ func CreateSortedSignerArray(altPrivVal, suitePrivVal tmtypes.PrivValidator,
 }
 
 // ConnectionOpenInit will construct and execute a MsgConnectionOpenInit.
+// TODO: remove
 func (chain *TestChain) ConnectionOpenInit(
 	counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
@@ -655,6 +659,7 @@ func (chain *TestChain) ConnectionOpenInit(
 }
 
 // ConnectionOpenTry will construct and execute a MsgConnectionOpenTry.
+// TODO: remove
 func (chain *TestChain) ConnectionOpenTry(
 	counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
@@ -678,6 +683,7 @@ func (chain *TestChain) ConnectionOpenTry(
 }
 
 // ConnectionOpenAck will construct and execute a MsgConnectionOpenAck.
+// TODO: remove
 func (chain *TestChain) ConnectionOpenAck(
 	counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
@@ -700,6 +706,7 @@ func (chain *TestChain) ConnectionOpenAck(
 }
 
 // ConnectionOpenConfirm will construct and execute a MsgConnectionOpenConfirm.
+// TODO: remove
 func (chain *TestChain) ConnectionOpenConfirm(
 	counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
