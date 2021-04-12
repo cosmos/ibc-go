@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package ibc.apps.ccv.v1;
+
+option go_package = "github.com/cosmos/ibc-go/modules/apps/ccv/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+// MsgSubmitNewChain defines a msg to submit a new baby chain that can be validated
+// by the parent chain validators.
+message MsgSubmitNewChain {
+  option (gogoproto.goproto_getters) = false;
+  
+  // the proposed chain-id of new chain
+  string chain_id = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  // minimum stake that must commit to validate new chain before it can start
+  cosmos.base.v1beta1.Coin minimum_stake = 2 [(gogoproto.nullable) = false];
+  // optional grace period to allow validators to join initial validator set after minimum stake is reached
+  // grace period is a duration in nanoseconds
+  uint64 grace_period = 3 [(gogoproto.moretags) = "yaml:\"grace_period\""];
+  // hash of the genesis file with no staking genesis. Staking genesis will be filled in using gen-txs of initial validator set
+  bytes genesis_hash = 4 [(gogoproto.moretags) = "yaml:\"genesis_hash\""];
+  // the sender address
+  string sender = 5;
+}
+
+// MsgSubmitNewChainResponse defines the Msg/SubmitNewChain response type.
+message MsgSubmitNewChainResponse {}
+
+// MsgBondStake defines a msg for a parent chain validator to stake on a baby chain.
+message MsgBondStake {
+  option (gogoproto.goproto_getters) = false;
+
+  // the chain-id of baby-chain
+  string chain_id = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  // amount that validator wants to stake on baby chain. This is in addition to current stake on baby chain,
+  // thus the maximum they may stake on baby chain is: `total stake on parent chain - current stake on baby chain`
+  cosmos.base.v1beta1.Coin stake = 2 [(gogoproto.nullable) = false];
+  // the sender address
+  string sender = 3;
+}
+
+message MsgBondStakeResponse {}
+
+// MsgUnbondStake defines a msg for parent chain validator to unbond their stake on baby chain.
+message MsgUnbondStake {
+  option (gogoproto.goproto_getters) = false;
+
+  // the chain-id of baby-chain
+  string chain_id = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  // amount that validator wants to unbond from baby chain. This may be a maximum of the current stake on baby chain
+   cosmos.base.v1beta1.Coin stake = 2 [(gogoproto.nullable) = false];
+  // the sender address
+  string sender = 3;
+}

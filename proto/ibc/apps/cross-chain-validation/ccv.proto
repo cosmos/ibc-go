@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package ibc.apps.ccv.v1;
+
+option go_package = "github.com/cosmos/ibc-go/modules/apps/ccv/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+// This packet is sent from parent chain to baby chain if the validator set for baby chain
+// changes (due to new bonding/unbonding messages or slashing events)
+// The acknowledgement from baby chain will be sent asynchronously once unbonding period is over,
+// and this will function as `UnbondingOver` message for this packet.
+message ValidatorSetChangePacketData {
+  repeated .tendermint.abci.ValidatorUpdate validator_updates = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"validator_updates\""];
+}
+
