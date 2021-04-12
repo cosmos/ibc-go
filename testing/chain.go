@@ -462,7 +462,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, client
 	}
 
 	msg, err := clienttypes.NewMsgCreateClient(
-		clientState, consensusState, chain.SenderAccount.GetAddress(),
+		clientState, consensusState, chain.SenderAccount.GetAddress().String(),
 	)
 	require.NoError(chain.t, err)
 	return msg
@@ -485,7 +485,7 @@ func (chain *TestChain) UpdateTMClient(counterparty *TestChain, clientID string)
 
 	msg, err := clienttypes.NewMsgUpdateClient(
 		clientID, header,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	require.NoError(chain.t, err)
 
@@ -646,7 +646,7 @@ func (chain *TestChain) ConnectionOpenInit(
 		connection.ClientID,
 		connection.CounterpartyClientID,
 		counterparty.GetPrefix(), DefaultOpenInitVersion, DefaultDelayPeriod,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -669,7 +669,7 @@ func (chain *TestChain) ConnectionOpenTry(
 		counterpartyClient, counterparty.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, DefaultDelayPeriod,
 		proofInit, proofClient, proofConsensus,
 		proofHeight, consensusHeight,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -691,7 +691,7 @@ func (chain *TestChain) ConnectionOpenAck(
 		proofTry, proofClient, proofConsensus,
 		proofHeight, consensusHeight,
 		ConnectionVersion,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -707,7 +707,7 @@ func (chain *TestChain) ConnectionOpenConfirm(
 	msg := connectiontypes.NewMsgConnectionOpenConfirm(
 		connection.ID,
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -789,7 +789,7 @@ func (chain *TestChain) ChanOpenInit(
 		ch.PortID,
 		ch.Version, order, []string{connectionID},
 		counterparty.PortID,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -808,7 +808,7 @@ func (chain *TestChain) ChanOpenTry(
 		ch.Version, order, []string{connectionID},
 		counterpartyCh.PortID, counterpartyCh.ID, counterpartyCh.Version,
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -824,7 +824,7 @@ func (chain *TestChain) ChanOpenAck(
 		ch.PortID, ch.ID,
 		counterpartyCh.ID, counterpartyCh.Version, // testing doesn't use flexible selection
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -839,7 +839,7 @@ func (chain *TestChain) ChanOpenConfirm(
 	msg := channeltypes.NewMsgChannelOpenConfirm(
 		ch.PortID, ch.ID,
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -853,7 +853,7 @@ func (chain *TestChain) ChanCloseInit(
 ) error {
 	msg := channeltypes.NewMsgChannelCloseInit(
 		channel.PortID, channel.ID,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
