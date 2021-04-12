@@ -790,6 +790,7 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit.
+// TODO: remove
 func (chain *TestChain) ChanOpenInit(
 	ch, counterparty TestChannel,
 	order channeltypes.Order,
@@ -805,6 +806,7 @@ func (chain *TestChain) ChanOpenInit(
 }
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry.
+// TODO: remove
 func (chain *TestChain) ChanOpenTry(
 	counterparty *TestChain,
 	ch, counterpartyCh TestChannel,
@@ -824,6 +826,7 @@ func (chain *TestChain) ChanOpenTry(
 }
 
 // ChanOpenAck will construct and execute a MsgChannelOpenAck.
+// TODO: remove
 func (chain *TestChain) ChanOpenAck(
 	counterparty *TestChain,
 	ch, counterpartyCh TestChannel,
@@ -840,6 +843,7 @@ func (chain *TestChain) ChanOpenAck(
 }
 
 // ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm.
+// TODO: remove
 func (chain *TestChain) ChanOpenConfirm(
 	counterparty *TestChain,
 	ch, counterpartyCh TestChannel,
@@ -857,6 +861,7 @@ func (chain *TestChain) ChanOpenConfirm(
 // ChanCloseInit will construct and execute a MsgChannelCloseInit.
 //
 // NOTE: does not work with ibc-transfer module
+// TODO: remove
 func (chain *TestChain) ChanCloseInit(
 	counterparty *TestChain,
 	channel TestChannel,

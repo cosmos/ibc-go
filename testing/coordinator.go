@@ -118,12 +118,34 @@ func (coord *Coordinator) CreateConnectionNew(path *Path) {
 // channels that use a mock application module that returns nil on all callbacks. This
 // function is expects the channels to be successfully opened otherwise testing will
 // fail.
-func (coord *Coordinator) CreateMockChannelsNew(
-	chainA, chainB *TestChain,
-	connA, connB *TestConnection,
-	order channeltypes.Order,
-) (TestChannel, TestChannel) {
-	return coord.CreateChannel(chainA, chainB, connA, connB, MockPort, MockPort, order)
+// TODO: remove
+func (coord *Coordinator) CreateMockChannelsNew(path *Path) {
+	coord.CreateChannelNew(path)
+}
+
+// CreateTransferChannels constructs and executes channel handshake messages to create OPEN
+// ibc-transfer channels on chainA and chainB. The function expects the channels to be
+// successfully opened otherwise testing will fail.
+// TODO: remove
+func (coord *Coordinator) CreateTransferChannelsNew(path *Path) {
+	coord.CreateChannelNew(path)
+}
+
+// CreateChannel constructs and executes channel handshake messages in order to create
+// OPEN channels on chainA and chainB. The function expects the channels to be successfully
+// opened otherwise testing will fail.
+func (coord *Coordinator) CreateChannelNew(path *Path) {
+	err := path.EndpointA.ChanOpenInit()
+	require.NoError(coord.t, err)
+
+	err = path.EndpointB.ChanOpenTry()
+	require.NoError(coord.t, err)
+
+	err = path.EndpointA.ChanOpenAck()
+	require.NoError(coord.t, err)
+
+	err = path.EndpointB.ChanOpenConfirm()
+	require.NoError(coord.t, err)
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will

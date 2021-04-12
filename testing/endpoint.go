@@ -8,6 +8,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/exported"
@@ -21,14 +22,21 @@ type Endpoint struct {
 	ClientID     string
 	ConnectionID string
 	ChannelID    string
+	PortID       string
 
-	ClientType string
+	ClientType        string
+	ChannelOrder      channeltypes.Order
+	ConnectionVersion *connectiontypes.Version
+	ChannelVersion    string
 }
 
 func NewEndpoint(chain *TestChain) *Endpoint {
 	return &Endpoint{
-		Chain:      chain,
-		ClientType: exported.Tendermint,
+		Chain:             chain,
+		ClientType:        exported.Tendermint,
+		ChannelOrder:      channeltypes.UNORDERED,
+		ConnectionVersion: ConnectionVersion,
+		ChannelVersion:    DefaultChannelVersion,
 	}
 }
 
@@ -114,7 +122,6 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 }
 
 // ConnOpenInit will construct and execute a MsgConnectionOpenInit on the associated endpoint.
-// TODO parse connection ID
 func (endpoint *Endpoint) ConnOpenInit() error {
 	msg := connectiontypes.NewMsgConnectionOpenInit(
 		endpoint.ClientID,
@@ -122,13 +129,23 @@ func (endpoint *Endpoint) ConnOpenInit() error {
 		endpoint.Counterparty.Chain.GetPrefix(), DefaultOpenInitVersion, DefaultDelayPeriod,
 		endpoint.Chain.SenderAccount.GetAddress(),
 	)
-	return endpoint.Chain.sendMsgs(msg)
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	endpoint.ConnectionID, err = ParseConnectionIDFromEvents(res.GetEvents())
+	require.NoError(endpoint.Chain.t, err)
+
+	return nil
 }
 
 // ConnOpenTry will construct and execute a MsgConnectionOpenTry on the associated endpoint.
-// TODO handle client update
-// TODO parse connection ID
 func (endpoint *Endpoint) ConnOpenTry() error {
+	// TODO verify proof height matches update height
+	// update client in order to process proof
+	endpoint.UpdateClient()
+
 	counterpartyClient, proofClient := endpoint.Counterparty.Chain.QueryClientStateProof(endpoint.Counterparty.ClientID)
 
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
@@ -144,12 +161,25 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 		proofHeight, consensusHeight,
 		endpoint.Chain.SenderAccount.GetAddress(),
 	)
-	return endpoint.Chain.sendMsgs(msg)
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	if endpoint.ConnectionID == "" {
+		endpoint.ConnectionID, err = ParseConnectionIDFromEvents(res.GetEvents())
+		require.NoError(endpoint.Chain.t, err)
+	}
+
+	return nil
 }
 
 // ConnOpenAck will construct and execute a MsgConnectionOpenAck on the associated endpoint.
-// TODO handle client update
 func (endpoint *Endpoint) ConnOpenAck() error {
+	// TODO verify proof height matches update height
+	// update client in order to process proof
+	endpoint.UpdateClient()
+
 	counterpartyClient, proofClient := endpoint.Counterparty.Chain.QueryClientStateProof(endpoint.Counterparty.ClientID)
 
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
@@ -169,12 +199,107 @@ func (endpoint *Endpoint) ConnOpenAck() error {
 
 // ConnOpenConfirm will construct and execute a MsgConnectionOpenConfirm on the associated endpoint.
 func (endpoint *Endpoint) ConnOpenConfirm() error {
+	// TODO verify proof height matches update height
+	// update client in order to process proof
+	endpoint.UpdateClient()
+
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(connectionKey)
 
 	msg := connectiontypes.NewMsgConnectionOpenConfirm(
 		endpoint.ConnectionID,
 		proof, height,
+		endpoint.Chain.SenderAccount.GetAddress(),
+	)
+	return endpoint.Chain.sendMsgs(msg)
+}
+
+// ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
+func (endpoint *Endpoint) ChanOpenInit() error {
+	msg := channeltypes.NewMsgChannelOpenInit(
+		endpoint.PortID,
+		endpoint.ChannelVersion, endpoint.ChannelOrder, []string{endpoint.ConnectionID},
+		endpoint.Counterparty.PortID,
+		endpoint.Chain.SenderAccount.GetAddress(),
+	)
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
+	require.NoError(endpoint.Chain.t, err)
+
+	return nil
+}
+
+// ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated endpoint.
+func (endpoint *Endpoint) ChanOpenTry() error {
+	// TODO verify proof height matches update height
+	// update client in order to process proof
+	endpoint.UpdateClient()
+
+	proof, height := endpoint.Counterparty.Chain.QueryProof(host.ChannelKey(endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID))
+
+	msg := channeltypes.NewMsgChannelOpenTry(
+		endpoint.PortID, "", // does not support handshake continuation
+		endpoint.ChannelVersion, endpoint.ChannelOrder, []string{endpoint.ConnectionID},
+		endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelVersion,
+		proof, height,
+		endpoint.Chain.SenderAccount.GetAddress(),
+	)
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	if endpoint.ChannelID == "" {
+		endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
+		require.NoError(endpoint.Chain.t, err)
+	}
+
+	return nil
+}
+
+// ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated endpoint.
+func (endpoint *Endpoint) ChanOpenAck() error {
+	// TODO verify proof height matches update height
+	// update client in order to process proof
+	endpoint.UpdateClient()
+
+	proof, height := endpoint.Counterparty.Chain.QueryProof(host.ChannelKey(endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID))
+
+	msg := channeltypes.NewMsgChannelOpenAck(
+		endpoint.PortID, endpoint.ChannelID,
+		endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelVersion, // testing doesn't use flexible selection
+		proof, height,
+		endpoint.Chain.SenderAccount.GetAddress(),
+	)
+	return endpoint.Chain.sendMsgs(msg)
+}
+
+// ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated endpoint.
+func (endpoint *Endpoint) ChanOpenConfirm() error {
+	// TODO verify proof height matches update height
+	// update client in order to process proof
+	endpoint.UpdateClient()
+
+	proof, height := endpoint.Counterparty.Chain.QueryProof(host.ChannelKey(endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID))
+
+	msg := channeltypes.NewMsgChannelOpenConfirm(
+		endpoint.PortID, endpoint.ChannelID,
+		proof, height,
+		endpoint.Chain.SenderAccount.GetAddress(),
+	)
+	return endpoint.Chain.sendMsgs(msg)
+}
+
+// ChanCloseInit will construct and execute a MsgChannelCloseInit on the associated endpoint.
+//
+// NOTE: does not work with ibc-transfer module
+func (endpoint *Endpoint) ChanCloseInit() error {
+	msg := channeltypes.NewMsgChannelCloseInit(
+		endpoint.PortID, endpoint.ChannelID,
 		endpoint.Chain.SenderAccount.GetAddress(),
 	)
 	return endpoint.Chain.sendMsgs(msg)

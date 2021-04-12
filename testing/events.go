@@ -26,13 +26,13 @@ func ParseClientIDFromEvents(events sdk.Events) (string, error) {
 
 // ParseConnectionIDFromEvents parses events emitted from a MsgConnectionOpenInit or
 // MsgConnectionOpenTry and returns the connection identifier.
-func ParseConnectionIDFromEvents(events sdk.StringEvents) (string, error) {
+func ParseConnectionIDFromEvents(events sdk.Events) (string, error) {
 	for _, ev := range events {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
 			for _, attr := range ev.Attributes {
-				if attr.Key == connectiontypes.AttributeKeyConnectionID {
-					return attr.Value, nil
+				if string(attr.Key) == connectiontypes.AttributeKeyConnectionID {
+					return string(attr.Value), nil
 				}
 			}
 		}
@@ -42,12 +42,12 @@ func ParseConnectionIDFromEvents(events sdk.StringEvents) (string, error) {
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
 // MsgChannelOpenTry and returns the channel identifier.
-func ParseChannelIDFromEvents(events sdk.StringEvents) (string, error) {
+func ParseChannelIDFromEvents(events sdk.Events) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
 			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyChannelID {
-					return attr.Value, nil
+				if string(attr.Key) == channeltypes.AttributeKeyChannelID {
+					return string(attr.Value), nil
 				}
 			}
 		}

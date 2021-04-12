@@ -1,16 +1,10 @@
 package ibctesting
 
-import (
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-)
-
 // Path
 type Path struct {
-	Name      string
+	Name      string // TODO: remove?
 	EndpointA *Endpoint
 	EndpointB *Endpoint
-
-	ChannelOrder channeltypes.Order
 }
 
 func NewPath(name string, chainA, chainB *TestChain) *Path {
@@ -21,9 +15,8 @@ func NewPath(name string, chainA, chainB *TestChain) *Path {
 	endpointB.Counterparty = endpointA
 
 	return &Path{
-		Name:         name,
-		EndpointA:    endpointA,
-		EndpointB:    endpointB,
-		ChannelOrder: channeltypes.UNORDERED,
+		Name:      name,
+		EndpointA: endpointA,
+		EndpointB: endpointB,
 	}
 }
