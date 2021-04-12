@@ -303,6 +303,10 @@ The state changes that occurred during this callback will only be written if:
 - the acknowledgement was successful as indicated by the `Success()` function of the acknowledgement
 - if the acknowledgement returned is nil indicating that an asynchronous process is occurring
 
+NOTE: Applications which process asynchronous acknowledgements must handle reverting state changes
+when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written 
+for asynchronous acknowledgements. 
+
 ```go
 OnRecvPacket(
     ctx sdk.Context,
