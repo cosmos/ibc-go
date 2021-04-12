@@ -25,8 +25,6 @@ Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
 
 done
 
-echo "HELLO"
-
 # command to generate docs using protoc-gen-doc
 buf protoc \
 -I "proto" \
