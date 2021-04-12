@@ -127,7 +127,7 @@ func (k Keeper) VerifyPacketCommitment(
 	}
 
 	if err := clientState.VerifyPacketCommitment(
-		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height,
+		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height, clienttypes.GetSelfHeight(ctx),
 		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayTimePeriod(), connection.GetDelayHeightPeriod(),
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, commitmentBytes,
@@ -156,7 +156,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	}
 
 	if err := clientState.VerifyPacketAcknowledgement(
-		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height,
+		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height, clienttypes.GetSelfHeight(ctx),
 		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayTimePeriod(), connection.GetDelayHeightPeriod(),
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, acknowledgement,
@@ -185,7 +185,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	}
 
 	if err := clientState.VerifyPacketReceiptAbsence(
-		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height,
+		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height, clienttypes.GetSelfHeight(ctx),
 		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayTimePeriod(), connection.GetDelayHeightPeriod(),
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence,
@@ -213,7 +213,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	}
 
 	if err := clientState.VerifyNextSequenceRecv(
-		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height,
+		k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height, clienttypes.GetSelfHeight(ctx),
 		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayTimePeriod(), connection.GetDelayHeightPeriod(),
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		nextSequenceRecv,
