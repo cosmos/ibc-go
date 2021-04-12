@@ -10,13 +10,14 @@ import (
 var _ exported.ConnectionI = (*ConnectionEnd)(nil)
 
 // NewConnectionEnd creates a new ConnectionEnd instance.
-func NewConnectionEnd(state State, clientID string, counterparty Counterparty, versions []*Version, delayPeriod uint64) ConnectionEnd {
+func NewConnectionEnd(state State, clientID string, counterparty Counterparty, versions []*Version, delayTimePeriod, delayHeightPeriod uint64) ConnectionEnd {
 	return ConnectionEnd{
-		ClientId:     clientID,
-		Versions:     versions,
-		State:        state,
-		Counterparty: counterparty,
-		DelayPeriod:  delayPeriod,
+		ClientId:          clientID,
+		Versions:          versions,
+		State:             state,
+		Counterparty:      counterparty,
+		DelayTimePeriod:   delayTimePeriod,
+		DelayHeightPeriod: delayHeightPeriod,
 	}
 }
 
@@ -40,9 +41,14 @@ func (c ConnectionEnd) GetVersions() []exported.Version {
 	return ProtoVersionsToExported(c.Versions)
 }
 
-// GetDelayPeriod implements the Connection interface
-func (c ConnectionEnd) GetDelayPeriod() uint64 {
-	return c.DelayPeriod
+// GetDelayTimePeriod implements the Connection interface
+func (c ConnectionEnd) GetDelayTimePeriod() uint64 {
+	return c.DelayTimePeriod
+}
+
+// GetDelayHeightPeriod implements the Connection interface
+func (c ConnectionEnd) GetDelayHeightPeriod() uint64 {
+	return c.DelayHeightPeriod
 }
 
 // ValidateBasic implements the Connection interface.
@@ -108,12 +114,13 @@ func (c Counterparty) ValidateBasic() error {
 // NewIdentifiedConnection creates a new IdentifiedConnection instance
 func NewIdentifiedConnection(connectionID string, conn ConnectionEnd) IdentifiedConnection {
 	return IdentifiedConnection{
-		Id:           connectionID,
-		ClientId:     conn.ClientId,
-		Versions:     conn.Versions,
-		State:        conn.State,
-		Counterparty: conn.Counterparty,
-		DelayPeriod:  conn.DelayPeriod,
+		Id:                connectionID,
+		ClientId:          conn.ClientId,
+		Versions:          conn.Versions,
+		State:             conn.State,
+		Counterparty:      conn.Counterparty,
+		DelayTimePeriod:   conn.DelayTimePeriod,
+		DelayHeightPeriod: conn.DelayHeightPeriod,
 	}
 }
 
@@ -122,6 +129,6 @@ func (ic IdentifiedConnection) ValidateBasic() error {
 	if err := host.ConnectionIdentifierValidator(ic.Id); err != nil {
 		return sdkerrors.Wrap(err, "invalid connection ID")
 	}
-	connection := NewConnectionEnd(ic.State, ic.ClientId, ic.Counterparty, ic.Versions, ic.DelayPeriod)
+	connection := NewConnectionEnd(ic.State, ic.ClientId, ic.Counterparty, ic.Versions, ic.DelayTimePeriod, ic.DelayHeightPeriod)
 	return connection.ValidateBasic()
 }

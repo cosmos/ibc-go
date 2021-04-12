@@ -6286,7 +6286,14 @@ TRYOPEN` </p></td>
                 </tr>
               
                 <tr>
-                  <td>delay_period</td>
+                  <td>delay_time_period</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>delay_height_period</td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -6353,7 +6360,14 @@ the connection identifier of the previous connection in state INIT </p></td>
                 </tr>
               
                 <tr>
-                  <td>delay_period</td>
+                  <td>delay_time_period</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>delay_height_period</td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p> </p></td>
