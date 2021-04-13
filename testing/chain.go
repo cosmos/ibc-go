@@ -289,7 +289,8 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 // occurred.
 func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 
-	chain.Coordinator.IncrementTime()
+	// ensure the chain has the latest time
+	chain.Coordinator.UpdateTime()
 
 	_, r, err := simapp.SignAndDeliver(
 		chain.t,
@@ -311,6 +312,8 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 
 	// increment sequence for successful transaction execution
 	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+
+	chain.Coordinator.IncrementTime()
 
 	return r, nil
 }

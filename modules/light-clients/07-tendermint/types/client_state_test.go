@@ -454,7 +454,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
 
-			suite.coordinator.IncrementTime()
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			commitment := channeltypes.CommitPacket(suite.chainA.App.IBCKeeper.Codec(), packet)
 			err = clientState.VerifyPacketCommitment(
@@ -560,7 +559,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
 
-			suite.coordinator.IncrementTime()
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyPacketAcknowledgement(
 				store, suite.chainA.Codec, proofHeight, currentTime, delayPeriod, &prefix, proof,
@@ -664,7 +662,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 
 			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
 
-			suite.coordinator.IncrementTime()
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyPacketReceiptAbsence(
 				store, suite.chainA.Codec, proofHeight, currentTime, delayPeriod, &prefix, proof,
@@ -772,7 +769,6 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 
 			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
 
-			suite.coordinator.IncrementTime()
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyNextSequenceRecv(
 				store, suite.chainA.Codec, proofHeight, currentTime, delayPeriod, &prefix, proof,

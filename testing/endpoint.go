@@ -44,8 +44,8 @@ func NewEndpoint(chain *TestChain) *Endpoint {
 // clientID for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (endpoint *Endpoint) CreateClient() (err error) {
-	// TODO: remove?
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain, endpoint.Counterparty.Chain)
+	// ensure counterparty has committed state
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
 	var (
 		clientState    exported.ClientState
@@ -96,8 +96,9 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 
 // UpdateClient updates the IBC client associated with the endpoint.
 func (endpoint *Endpoint) UpdateClient() (err error) {
-	// TODO: remove?
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain, endpoint.Counterparty.Chain)
+	// ensure counterparty has committed state
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
+
 	var (
 		header exported.Header
 	)

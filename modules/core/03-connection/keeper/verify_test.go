@@ -53,7 +53,6 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
-			suite.coordinator.IncrementTime()
 			err := suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyClientState(
 				suite.chainA.GetContext(), connection,
 				malleateHeight(proofHeight, tc.heightDiff), clientProof, counterpartyClient,
@@ -135,7 +134,6 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			consensusState, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
 			suite.Require().True(found)
 
-			suite.coordinator.IncrementTime()
 			err := suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyClientConsensusState(
 				suite.chainA.GetContext(), connection,
 				malleateHeight(proofHeight, heightDiff), consensusHeight, proof, consensusState,
@@ -187,7 +185,6 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 				expectedConnection.State = types.TRYOPEN
 			}
 
-			suite.coordinator.IncrementTime()
 			err := suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyConnectionState(
 				suite.chainA.GetContext(), connection,
 				malleateHeight(proofHeight, tc.heightDiff), proof, connB.ID, expectedConnection,
@@ -238,7 +235,6 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 				channel.State = channeltypes.TRYOPEN
 			}
 
-			suite.coordinator.IncrementTime()
 			err := suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyChannelState(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
 				channelB.PortID, channelB.ID, channel,
@@ -299,7 +295,6 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			}
 
 			commitment := channeltypes.CommitPacket(suite.chainB.App.IBCKeeper.Codec(), packet)
-			suite.coordinator.IncrementTime()
 			err = suite.chainB.App.IBCKeeper.ConnectionKeeper.VerifyPacketCommitment(
 				suite.chainB.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
 				packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment,
@@ -368,7 +363,6 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 				ack = ibcmock.MockFailAcknowledgement
 			}
 
-			suite.coordinator.IncrementTime()
 			err = suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyPacketAcknowledgement(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement(),
@@ -438,7 +432,6 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			packetReceiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := suite.chainB.QueryProof(packetReceiptKey)
 
-			suite.coordinator.IncrementTime()
 			err = suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyPacketReceiptAbsence(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
@@ -502,7 +495,6 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			nextSeqRecvKey := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 			proof, proofHeight := suite.chainB.QueryProof(nextSeqRecvKey)
 
-			suite.coordinator.IncrementTime()
 			err = suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyNextSequenceRecv(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()+tc.offsetSeq,

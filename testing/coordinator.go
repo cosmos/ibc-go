@@ -50,7 +50,7 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 // IncrementTime iterates through all the TestChain's and increments their current header time
 // by 5 seconds.
 //
-// CONTRACT: this function must be called after every commit on any TestChain.
+// CONTRACT: this function must be called after every Commit on any TestChain.
 func (coord *Coordinator) IncrementTime() {
 	coord.IncrementTimeBy(TimeIncrement)
 }
@@ -59,6 +59,12 @@ func (coord *Coordinator) IncrementTime() {
 // by specified time.
 func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
 	coord.CurrentTime = coord.CurrentTime.Add(increment).UTC()
+	coord.UpdateTime()
+
+}
+
+// UpdateTime updates all clocks for the TestChains to the current global time.
+func (coord *Coordinator) UpdateTime() {
 	for _, chain := range coord.Chains {
 		chain.CurrentHeader.Time = coord.CurrentTime.UTC()
 		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
@@ -206,7 +212,7 @@ func (coord *Coordinator) CreateClient(
 	source, counterparty *TestChain,
 	clientType string,
 ) (clientID string, err error) {
-	coord.CommitBlock(source, counterparty)
+	//	coord.CommitBlock(source, counterparty)
 
 	clientID = source.NewClientID(clientType)
 
