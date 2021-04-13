@@ -212,7 +212,7 @@ func (coord *Coordinator) CreateClient(
 	source, counterparty *TestChain,
 	clientType string,
 ) (clientID string, err error) {
-	//	coord.CommitBlock(source, counterparty)
+	coord.CommitBlock(source, counterparty)
 
 	clientID = source.NewClientID(clientType)
 
