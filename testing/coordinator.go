@@ -73,7 +73,7 @@ func (coord *Coordinator) SetupNew(path *Path) {
 	coord.SetupConnectionsNew(path)
 
 	// channels can also be referenced through the returned connections
-	//	coord.CreateMockChannelsNew(path)
+	coord.CreateMockChannelsNew(path)
 }
 
 // SetupClientsNew is a helper function to create clients on both chains. It assumes the
@@ -118,16 +118,20 @@ func (coord *Coordinator) CreateConnectionNew(path *Path) {
 // channels that use a mock application module that returns nil on all callbacks. This
 // function is expects the channels to be successfully opened otherwise testing will
 // fail.
-// TODO: remove
 func (coord *Coordinator) CreateMockChannelsNew(path *Path) {
+	path.EndpointA.PortID = MockPort
+	path.EndpointB.PortID = MockPort
+
 	coord.CreateChannelNew(path)
 }
 
 // CreateTransferChannels constructs and executes channel handshake messages to create OPEN
 // ibc-transfer channels on chainA and chainB. The function expects the channels to be
 // successfully opened otherwise testing will fail.
-// TODO: remove
 func (coord *Coordinator) CreateTransferChannelsNew(path *Path) {
+	path.EndpointA.PortID = TransferPort
+	path.EndpointB.PortID = TransferPort
+
 	coord.CreateChannelNew(path)
 }
 
