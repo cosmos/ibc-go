@@ -287,7 +287,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
-			packet := channeltypes.NewPacket(ibctesting.TestHash, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
 
@@ -349,7 +349,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			}
 
 			// send and receive packet
-			packet := channeltypes.NewPacket(ibctesting.TestHash, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
 
@@ -365,13 +365,13 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 
 			ack := ibcmock.MockAcknowledgement
 			if tc.changeAcknowledgement {
-				ack = []byte(ibctesting.InvalidID)
+				ack = ibcmock.MockFailAcknowledgement
 			}
 
 			suite.coordinator.IncrementTime()
 			err = suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyPacketAcknowledgement(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
-				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack,
+				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement(),
 			)
 
 			if tc.expPass {
@@ -418,7 +418,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			}
 
 			// send, only receive if specified
-			packet := channeltypes.NewPacket(ibctesting.TestHash, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
 
@@ -488,7 +488,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			}
 
 			// send and receive packet
-			packet := channeltypes.NewPacket(ibctesting.TestHash, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
 
