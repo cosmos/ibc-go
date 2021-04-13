@@ -291,7 +291,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 
 	chain.Coordinator.IncrementTime()
 
-	_, r, err := simapp.SignCheckDeliver(
+	_, r, err := simapp.SignAndDeliver(
 		chain.t,
 		chain.TxConfig,
 		chain.App.BaseApp,
@@ -306,7 +306,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 		return nil, err
 	}
 
-	// SignCheckDeliver calls app.Commit()
+	// SignAndDeliver calls app.Commit()
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution

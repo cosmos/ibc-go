@@ -316,11 +316,9 @@ func CheckBalance(t *testing.T, app *SimApp, addr sdk.AccAddress, balances sdk.C
 	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 
-// SignCheckDeliver checks a generated signed transaction and simulates a
-// block commitment with the given transaction. A test assertion is made using
-// the parameter 'expPass' against the result. A corresponding result is
-// returned.
-func SignCheckDeliver(
+// SignAndDeliver signs and delivers a transaction. No simulation occurs as the
+// ibc testing package causes checkState and deliverState to diverge in block time.
+func SignAndDeliver(
 	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
 	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
@@ -336,19 +334,6 @@ func SignCheckDeliver(
 		priv...,
 	)
 	require.NoError(t, err)
-	//	txBytes, err := txCfg.TxEncoder()(tx)
-	//	require.Nil(t, err)
-
-	// Must simulate now as CheckTx doesn't run Msgs anymore
-	//_, res, err := app.Simulate(txBytes)
-
-	//	if expSimPass {
-	//		require.NoError(t, err)
-	//		require.NotNil(t, res)
-	//	} else {
-	//		require.Error(t, err)
-	//		require.Nil(t, res)
-	//	}
 
 	// Simulate a sending a transaction and committing a block
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
