@@ -25,20 +25,18 @@ type Endpoint struct {
 	ChannelID    string
 	PortID       string
 
-	ClientType        string
-	ChannelOrder      channeltypes.Order
-	ConnectionVersion *connectiontypes.Version
-	ChannelVersion    string
+	ClientConfig     ClientConfig
+	ConnectionConfig *ConnectionConfig
+	ChannelConfig    *ChannelConfig
 }
 
 func NewEndpoint(chain *TestChain) *Endpoint {
 	return &Endpoint{
-		Chain:             chain,
-		PortID:            mock.ModuleName,
-		ClientType:        exported.Tendermint,
-		ChannelOrder:      channeltypes.UNORDERED,
-		ConnectionVersion: ConnectionVersion,
-		ChannelVersion:    DefaultChannelVersion,
+		Chain:            chain,
+		PortID:           mock.ModuleName,
+		ClientConfig:     NewTendermintConfig(),
+		ConnectionConfig: NewConnectionConfig(),
+		ChannelConfig:    NewChannelConfig(),
 	}
 }
 
@@ -54,13 +52,16 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		consensusState exported.ConsensusState
 	)
 
-	switch endpoint.ClientType {
+	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
+		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
+		require.True(endpoint.Chain.t, ok)
+
 		//err = endpoint.Chain.CreateTMClient(counterparty, clientID)
 		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = ibctmtypes.NewClientState(
-			endpoint.Counterparty.Chain.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), UpgradePath, false, false,
+			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+			height, commitmenttypes.GetSDKSpecs(), UpgradePath, tmConfig.AllowUpdateAfterExpiry, tmConfig.AllowUpdateAfterMisbehaviour,
 		)
 		consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()
 	case exported.Solomachine:
@@ -70,7 +71,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		consensusState = solo.ConsensusState()
 
 	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientType)
+		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
 	if err != nil {
@@ -101,12 +102,12 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 		header exported.Header
 	)
 
-	switch endpoint.ClientType {
+	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
 		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 
 	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientType)
+		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
 	if err != nil {
@@ -128,7 +129,7 @@ func (endpoint *Endpoint) ConnOpenInit() error {
 	msg := connectiontypes.NewMsgConnectionOpenInit(
 		endpoint.ClientID,
 		endpoint.Counterparty.ClientID,
-		endpoint.Counterparty.Chain.GetPrefix(), DefaultOpenInitVersion, DefaultDelayPeriod,
+		endpoint.Counterparty.Chain.GetPrefix(), DefaultOpenInitVersion, endpoint.ConnectionConfig.DelayPeriod,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	res, err := endpoint.Chain.SendMsgs(msg)
@@ -151,7 +152,7 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 	msg := connectiontypes.NewMsgConnectionOpenTry(
 		"", endpoint.ClientID, // does not support handshake continuation
 		endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
-		counterpartyClient, endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, DefaultDelayPeriod,
+		counterpartyClient, endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, endpoint.ConnectionConfig.DelayPeriod,
 		proofInit, proofClient, proofConsensus,
 		proofHeight, consensusHeight,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
@@ -204,7 +205,7 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 func (endpoint *Endpoint) ChanOpenInit() error {
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.PortID,
-		endpoint.ChannelVersion, endpoint.ChannelOrder, []string{endpoint.ConnectionID},
+		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
 		endpoint.Counterparty.PortID,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
@@ -228,8 +229,8 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 
 	msg := channeltypes.NewMsgChannelOpenTry(
 		endpoint.PortID, "", // does not support handshake continuation
-		endpoint.ChannelVersion, endpoint.ChannelOrder, []string{endpoint.ConnectionID},
-		endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelVersion,
+		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
+		endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
 		proof, height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
@@ -255,7 +256,7 @@ func (endpoint *Endpoint) ChanOpenAck() error {
 
 	msg := channeltypes.NewMsgChannelOpenAck(
 		endpoint.PortID, endpoint.ChannelID,
-		endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelVersion, // testing doesn't use flexible selection
+		endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version, // testing doesn't use flexible selection
 		proof, height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
