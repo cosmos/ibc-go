@@ -898,6 +898,7 @@ func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {
 
 // SendPacket simulates sending a packet through the channel keeper. No message needs to be
 // passed since this call is made from a module.
+// TODO: remove
 func (chain *TestChain) SendPacket(
 	packet exported.PacketI,
 ) error {

@@ -492,6 +492,7 @@ func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 //
 // NOTE: The counterparty testing connection will be created even if it is not created in the
 // application state.
+// TODO: remove
 func (coord *Coordinator) ConnOpenInit(
 	source, counterparty *TestChain,
 	clientID, counterpartyClientID string,
@@ -517,6 +518,7 @@ func (coord *Coordinator) ConnOpenInit(
 
 // ConnOpenInitOnBothChains initializes a connection on the source chain with the state INIT
 // using the OpenInit handshake call.
+// TODO: refactor
 func (coord *Coordinator) ConnOpenInitOnBothChains(
 	source, counterparty *TestChain,
 	clientID, counterpartyClientID string,
@@ -555,6 +557,7 @@ func (coord *Coordinator) ConnOpenInitOnBothChains(
 
 // ConnOpenTry initializes a connection on the source chain with the state TRYOPEN
 // using the OpenTry handshake call.
+// TODO: remove
 func (coord *Coordinator) ConnOpenTry(
 	source, counterparty *TestChain,
 	sourceConnection, counterpartyConnection *TestConnection,
@@ -573,6 +576,7 @@ func (coord *Coordinator) ConnOpenTry(
 
 // ConnOpenAck initializes a connection on the source chain with the state OPEN
 // using the OpenAck handshake call.
+// TODO: remove
 func (coord *Coordinator) ConnOpenAck(
 	source, counterparty *TestChain,
 	sourceConnection, counterpartyConnection *TestConnection,
@@ -591,6 +595,7 @@ func (coord *Coordinator) ConnOpenAck(
 
 // ConnOpenConfirm initializes a connection on the source chain with the state OPEN
 // using the OpenConfirm handshake call.
+// TODO: remove
 func (coord *Coordinator) ConnOpenConfirm(
 	source, counterparty *TestChain,
 	sourceConnection, counterpartyConnection *TestConnection,
@@ -611,6 +616,7 @@ func (coord *Coordinator) ConnOpenConfirm(
 //
 // NOTE: The counterparty testing channel will be created even if it is not created in the
 // application state.
+// TODO: remove
 func (coord *Coordinator) ChanOpenInit(
 	source, counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
@@ -642,6 +648,7 @@ func (coord *Coordinator) ChanOpenInit(
 
 // ChanOpenInitOnBothChains initializes a channel on the source chain and counterparty chain
 // with the state INIT using the OpenInit handshake call.
+// TODO: refactor
 func (coord *Coordinator) ChanOpenInitOnBothChains(
 	source, counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
@@ -687,6 +694,7 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(
 
 // ChanOpenTry initializes a channel on the source chain with the state TRYOPEN
 // using the OpenTry handshake call.
+// TODO: remove
 func (coord *Coordinator) ChanOpenTry(
 	source, counterparty *TestChain,
 	sourceChannel, counterpartyChannel TestChannel,
@@ -708,6 +716,7 @@ func (coord *Coordinator) ChanOpenTry(
 
 // ChanOpenAck initializes a channel on the source chain with the state OPEN
 // using the OpenAck handshake call.
+// TODO: remove
 func (coord *Coordinator) ChanOpenAck(
 	source, counterparty *TestChain,
 	sourceChannel, counterpartyChannel TestChannel,
@@ -726,6 +735,7 @@ func (coord *Coordinator) ChanOpenAck(
 
 // ChanOpenConfirm initializes a channel on the source chain with the state OPEN
 // using the OpenConfirm handshake call.
+// TODO: remove
 func (coord *Coordinator) ChanOpenConfirm(
 	source, counterparty *TestChain,
 	sourceChannel, counterpartyChannel TestChannel,
@@ -746,6 +756,7 @@ func (coord *Coordinator) ChanOpenConfirm(
 // being set to CLOSED.
 //
 // NOTE: does not work with ibc-transfer module
+// TODO: move to endpoint
 func (coord *Coordinator) ChanCloseInit(
 	source, counterparty *TestChain,
 	channel TestChannel,
@@ -763,6 +774,7 @@ func (coord *Coordinator) ChanCloseInit(
 }
 
 // SetChannelClosed sets a channel state to CLOSED.
+// TODO: move to endpoint
 func (coord *Coordinator) SetChannelClosed(
 	source, counterparty *TestChain,
 	testChannel TestChannel,

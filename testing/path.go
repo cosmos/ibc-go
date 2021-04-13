@@ -18,3 +18,7 @@ func NewPath(chainA, chainB *TestChain) *Path {
 		EndpointB: endpointB,
 	}
 }
+
+// TODO create RelayPacket function which relays the packet,
+// it will try both chains for the packet so caller doesn't
+// need to specify which chain the packet was sent on

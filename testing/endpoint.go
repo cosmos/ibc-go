@@ -335,3 +335,60 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 
 	return
 }
+
+// SendPacket sends a packet through the channel keeper using the associated endpoint
+// The counterparty client is updated so proofs can be sent to the counterparty chain.
+func (endpoint *Endpoint) SendPacket(packet exported.PacketI) error {
+	channelCap := endpoint.Chain.GetChannelCapability(packet.GetSourcePort(), packet.GetSourceChannel())
+
+	// no need to send message, acting as a module
+	err := endpoint.Chain.App.IBCKeeper.ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap, packet)
+	if err != nil {
+		return err
+	}
+
+	// commit changes since no message was sent
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	return endpoint.Counterparty.UpdateClient()
+}
+
+// RecvPacket receives a packet on the associated endpoint.
+// The counterparty client is updated.
+func (endpoint *Endpoint) RecvPacket(packet channeltypes.Packet) error {
+	// get proof of packet commitment on source
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
+
+	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	// receive on counterparty and update source client
+	if err := endpoint.Chain.sendMsgs(recvMsg); err != nil {
+		return err
+	}
+
+	return endpoint.Counterparty.UpdateClient()
+}
+
+// WriteAcknowledgement writes an acknowledgement on the channel associated with the endpoint.
+// The counterparty client is updated.
+func (endpoint *Endpoint) WriteAcknowledgement(packet exported.PacketI) error {
+	if err := endpoint.Chain.WriteAcknowledgement(packet); err != nil {
+		return err
+	}
+
+	return endpoint.Counterparty.UpdateClient()
+}
+
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
+// TODO: add a query for the acknowledgement by events
+// - https://github.com/cosmos/cosmos-sdk/issues/6509
+func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []byte) error {
+	// get proof of acknowledgement on counterparty
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	return endpoint.Chain.sendMsgs(ackMsg)
+}
