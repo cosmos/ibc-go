@@ -249,6 +249,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 
 				if tc.expPass {
 					suite.Require().NoError(err)
+					suite.Require().Equal(expSeq, tc.clientState.Sequence)
 					suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", suite.GetSequenceFromStore(), tc.name)
 				} else {
 					suite.Require().Error(err)
@@ -377,6 +378,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 
 				if tc.expPass {
 					suite.Require().NoError(err)
+					suite.Require().Equal(expSeq, tc.clientState.Sequence)
 					suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", suite.GetSequenceFromStore(), tc.name)
 				} else {
 					suite.Require().Error(err)
@@ -467,6 +469,7 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+				suite.Require().Equal(expSeq, tc.clientState.Sequence)
 				suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %d: %s", suite.GetSequenceFromStore(), i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
@@ -556,6 +559,7 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+				suite.Require().Equal(expSeq, tc.clientState.Sequence)
 				suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %d: %s", suite.GetSequenceFromStore(), i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
@@ -905,6 +909,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+				suite.Require().Equal(expSeq, tc.clientState.Sequence)
 				suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %d: %s", suite.GetSequenceFromStore(), i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
