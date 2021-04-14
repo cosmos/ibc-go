@@ -7,8 +7,8 @@ type Path struct {
 }
 
 func NewPath(chainA, chainB *TestChain) *Path {
-	endpointA := NewEndpoint(chainA)
-	endpointB := NewEndpoint(chainB)
+	endpointA := NewDefaultEndpoint(chainA)
+	endpointB := NewDefaultEndpoint(chainB)
 
 	endpointA.Counterparty = endpointB
 	endpointB.Counterparty = endpointA

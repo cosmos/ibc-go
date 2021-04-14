@@ -66,9 +66,15 @@ func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
 // UpdateTime updates all clocks for the TestChains to the current global time.
 func (coord *Coordinator) UpdateTime() {
 	for _, chain := range coord.Chains {
-		chain.CurrentHeader.Time = coord.CurrentTime.UTC()
-		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+		coord.UpdateTimeForChain(chain)
 	}
+
+}
+
+// UpdateTimeForChain updates the clock for a specific chain.
+func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
+	chain.CurrentHeader.Time = coord.CurrentTime.UTC()
+	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 
 }
 
@@ -79,7 +85,7 @@ func (coord *Coordinator) SetupNew(path *Path) {
 	coord.SetupConnectionsNew(path)
 
 	// channels can also be referenced through the returned connections
-	coord.CreateMockChannelsNew(path)
+	coord.CreateChannelNew(path)
 }
 
 // SetupClientsNew is a helper function to create clients on both chains. It assumes the
@@ -125,8 +131,8 @@ func (coord *Coordinator) CreateConnectionNew(path *Path) {
 // function is expects the channels to be successfully opened otherwise testing will
 // fail.
 func (coord *Coordinator) CreateMockChannelsNew(path *Path) {
-	path.EndpointA.PortID = MockPort
-	path.EndpointB.PortID = MockPort
+	path.EndpointA.ChannelConfig.PortID = MockPort
+	path.EndpointB.ChannelConfig.PortID = MockPort
 
 	coord.CreateChannelNew(path)
 }
@@ -135,8 +141,8 @@ func (coord *Coordinator) CreateMockChannelsNew(path *Path) {
 // ibc-transfer channels on chainA and chainB. The function expects the channels to be
 // successfully opened otherwise testing will fail.
 func (coord *Coordinator) CreateTransferChannelsNew(path *Path) {
-	path.EndpointA.PortID = TransferPort
-	path.EndpointB.PortID = TransferPort
+	path.EndpointA.ChannelConfig.PortID = TransferPort
+	path.EndpointB.ChannelConfig.PortID = TransferPort
 
 	coord.CreateChannelNew(path)
 }

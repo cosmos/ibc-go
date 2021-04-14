@@ -13,27 +13,43 @@ import (
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
-	"github.com/cosmos/ibc-go/testing/mock"
 )
 
-// Endpoint
+// Endpoint is a which represents a channel endpoint and its associated
+// client and connections. It contains client, connection, and channel
+// configuration parameters. Endpoint functions will utilize the parameters
+// set in the configuration structs when executing IBC messages.
 type Endpoint struct {
 	Chain        *TestChain
 	Counterparty *Endpoint
 	ClientID     string
 	ConnectionID string
 	ChannelID    string
-	PortID       string
 
 	ClientConfig     ClientConfig
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
 }
 
-func NewEndpoint(chain *TestChain) *Endpoint {
+// NewEndpoint constructs a new endpoint without the counterparty.
+// CONTRACT: the counterparty endpoint must be set by the caller.
+func NewEndpoint(
+	chain *TestChain, clientConfig ClientConfig,
+	connectionConfig *ConnectionConfig, channelConfig *ChannelConfig,
+) *Endpoint {
 	return &Endpoint{
 		Chain:            chain,
-		PortID:           mock.ModuleName,
+		ClientConfig:     clientConfig,
+		ConnectionConfig: connectionConfig,
+		ChannelConfig:    channelConfig,
+	}
+}
+
+// NewDefaultEndpoint constructs a new endpoint using default values.
+// CONTRACT: the counterparty endpoitn must be set by the caller.
+func NewDefaultEndpoint(chain *TestChain) *Endpoint {
+	return &Endpoint{
+		Chain:            chain,
 		ClientConfig:     NewTendermintConfig(),
 		ConnectionConfig: NewConnectionConfig(),
 		ChannelConfig:    NewChannelConfig(),
@@ -205,9 +221,9 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenInit() error {
 	msg := channeltypes.NewMsgChannelOpenInit(
-		endpoint.PortID,
+		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
-		endpoint.Counterparty.PortID,
+		endpoint.Counterparty.ChannelConfig.PortID,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	res, err := endpoint.Chain.SendMsgs(msg)
@@ -225,13 +241,13 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 func (endpoint *Endpoint) ChanOpenTry() error {
 	endpoint.UpdateClient()
 
-	channelKey := host.ChannelKey(endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID)
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
-		endpoint.PortID, "", // does not support handshake continuation
+		endpoint.ChannelConfig.PortID, "", // does not support handshake continuation
 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
-		endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
+		endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
 		proof, height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
@@ -252,11 +268,11 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 func (endpoint *Endpoint) ChanOpenAck() error {
 	endpoint.UpdateClient()
 
-	channelKey := host.ChannelKey(endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID)
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenAck(
-		endpoint.PortID, endpoint.ChannelID,
+		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
 		endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version, // testing doesn't use flexible selection
 		proof, height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
@@ -268,11 +284,11 @@ func (endpoint *Endpoint) ChanOpenAck() error {
 func (endpoint *Endpoint) ChanOpenConfirm() error {
 	endpoint.UpdateClient()
 
-	channelKey := host.ChannelKey(endpoint.Counterparty.PortID, endpoint.Counterparty.ChannelID)
+	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenConfirm(
-		endpoint.PortID, endpoint.ChannelID,
+		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
 		proof, height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
@@ -284,7 +300,7 @@ func (endpoint *Endpoint) ChanOpenConfirm() error {
 // NOTE: does not work with ibc-transfer module
 func (endpoint *Endpoint) ChanCloseInit() error {
 	msg := channeltypes.NewMsgChannelCloseInit(
-		endpoint.PortID, endpoint.ChannelID,
+		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	return endpoint.Chain.sendMsgs(msg)
@@ -372,10 +388,17 @@ func (endpoint *Endpoint) RecvPacket(packet channeltypes.Packet) error {
 
 // WriteAcknowledgement writes an acknowledgement on the channel associated with the endpoint.
 // The counterparty client is updated.
-func (endpoint *Endpoint) WriteAcknowledgement(packet exported.PacketI) error {
-	if err := endpoint.Chain.WriteAcknowledgement(packet); err != nil {
+func (endpoint *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, packet exported.PacketI) error {
+	channelCap := endpoint.Chain.GetChannelCapability(packet.GetDestPort(), packet.GetDestChannel())
+
+	// no need to send message, acting as a handler
+	err := endpoint.Chain.App.IBCKeeper.ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), channelCap, packet, ack.Acknowledgement())
+	if err != nil {
 		return err
 	}
+
+	// commit changes since no message was sent
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 
 	return endpoint.Counterparty.UpdateClient()
 }

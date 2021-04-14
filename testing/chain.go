@@ -290,7 +290,7 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 
 	// ensure the chain has the latest time
-	chain.Coordinator.UpdateTime()
+	chain.Coordinator.UpdateTimeForChain(chain)
 
 	_, r, err := simapp.SignAndDeliver(
 		chain.t,
@@ -918,6 +918,7 @@ func (chain *TestChain) SendPacket(
 }
 
 // WriteAcknowledgement simulates writing an acknowledgement to the chain.
+// TODO remove
 func (chain *TestChain) WriteAcknowledgement(
 	packet exported.PacketI,
 ) error {

@@ -79,6 +79,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 				err = suite.coordinator.UpdateClient(suite.chainA, suite.chainB, substitute, exported.Tendermint)
 				suite.Require().NoError(err)
 
+				// expire client
 				suite.coordinator.IncrementTimeBy(tmClientState.TrustingPeriod)
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
@@ -99,7 +100,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 			subjectClientState.AllowUpdateAfterMisbehaviour = true
 			subjectClientState.AllowUpdateAfterExpiry = true
 
-			// expire subject
+			// expire subject client
 			suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
 			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
@@ -278,6 +279,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				subjectClientState.FrozenHeight = frozenHeight
 			}
 			if tc.ExpireClient {
+				// expire subject client
 				suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 			}

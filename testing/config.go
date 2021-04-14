@@ -7,6 +7,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
+	"github.com/cosmos/ibc-go/testing/mock"
 )
 
 type ClientConfig interface {
@@ -50,12 +51,14 @@ func NewConnectionConfig() *ConnectionConfig {
 }
 
 type ChannelConfig struct {
+	PortID  string
 	Version string
 	Order   channeltypes.Order
 }
 
 func NewChannelConfig() *ChannelConfig {
 	return &ChannelConfig{
+		PortID:  mock.ModuleName,
 		Version: DefaultChannelVersion,
 		Order:   channeltypes.UNORDERED,
 	}
