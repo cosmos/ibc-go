@@ -73,7 +73,6 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
 		require.True(endpoint.Chain.t, ok)
 
-		//err = endpoint.Chain.CreateTMClient(counterparty, clientID)
 		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = ibctmtypes.NewClientState(
 			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
@@ -414,4 +413,22 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	return endpoint.Chain.sendMsgs(ackMsg)
+}
+
+// GetConnection retrieves an IBC Connection for the endpoint. The
+// connection is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetConnection() connectiontypes.ConnectionEnd {
+	connection, found := endpoint.Chain.App.IBCKeeper.ConnectionKeeper.GetConnection(endpoint.Chain.GetContext(), endpoint.ConnectionID)
+	require.True(endpoint.Chain.t, found)
+
+	return connection
+}
+
+// GetChannel retrieves an IBC Channel for the endpoint. The channel
+// is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetChannel() channeltypes.Channel {
+	channel, found := endpoint.Chain.App.IBCKeeper.ChannelKeeper.GetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	require.True(endpoint.Chain.t, found)
+
+	return channel
 }

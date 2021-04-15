@@ -68,14 +68,12 @@ func (coord *Coordinator) UpdateTime() {
 	for _, chain := range coord.Chains {
 		coord.UpdateTimeForChain(chain)
 	}
-
 }
 
 // UpdateTimeForChain updates the clock for a specific chain.
 func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
 	chain.CurrentHeader.Time = coord.CurrentTime.UTC()
 	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
-
 }
 
 // SetupNew constructs a TM client, connection, and channel on both chains provided. It will
@@ -124,6 +122,9 @@ func (coord *Coordinator) CreateConnectionNew(path *Path) {
 
 	err = path.EndpointB.ConnOpenConfirm()
 	require.NoError(coord.t, err)
+
+	// ensure counterparty is up to date
+	path.EndpointA.UpdateClient()
 }
 
 // CreateMockChannels constructs and executes channel handshake messages to create OPEN
@@ -162,6 +163,9 @@ func (coord *Coordinator) CreateChannelNew(path *Path) {
 
 	err = path.EndpointB.ChanOpenConfirm()
 	require.NoError(coord.t, err)
+
+	// ensure counterparty is up to date
+	path.EndpointA.UpdateClient()
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will

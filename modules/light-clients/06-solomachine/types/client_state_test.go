@@ -132,8 +132,9 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 
 func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 	// create client for tendermint so we can use client state for verification
-	clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-	clientState := suite.chainA.GetClientState(clientA)
+	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClientsNew(tmPath)
+	clientState := suite.chainA.GetClientState(tmPath.EndpointA.ClientID)
 	path := suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
 
 	// test singlesig and multisig public keys
