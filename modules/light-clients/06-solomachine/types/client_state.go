@@ -103,13 +103,13 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 func (cs *ClientState) VerifyClientState(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	prefix exported.Prefix,
 	counterpartyClientIdentifier string,
 	proof []byte,
 	clientState exported.ClientState,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -140,14 +140,14 @@ func (cs *ClientState) VerifyClientState(
 func (cs *ClientState) VerifyClientConsensusState(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	counterpartyClientIdentifier string,
 	consensusHeight exported.Height,
 	prefix exported.Prefix,
 	proof []byte,
 	consensusState exported.ConsensusState,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -178,13 +178,13 @@ func (cs *ClientState) VerifyClientConsensusState(
 func (cs *ClientState) VerifyConnectionState(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	prefix exported.Prefix,
 	proof []byte,
 	connectionID string,
 	connectionEnd exported.ConnectionI,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -215,14 +215,14 @@ func (cs *ClientState) VerifyConnectionState(
 func (cs *ClientState) VerifyChannelState(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	prefix exported.Prefix,
 	proof []byte,
 	portID,
 	channelID string,
 	channel exported.ChannelI,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func (cs *ClientState) VerifyChannelState(
 func (cs *ClientState) VerifyPacketCommitment(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
@@ -263,7 +263,7 @@ func (cs *ClientState) VerifyPacketCommitment(
 	packetSequence uint64,
 	commitmentBytes []byte,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -294,7 +294,7 @@ func (cs *ClientState) VerifyPacketCommitment(
 func (cs *ClientState) VerifyPacketAcknowledgement(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
@@ -304,7 +304,7 @@ func (cs *ClientState) VerifyPacketAcknowledgement(
 	packetSequence uint64,
 	acknowledgement []byte,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -336,7 +336,7 @@ func (cs *ClientState) VerifyPacketAcknowledgement(
 func (cs *ClientState) VerifyPacketReceiptAbsence(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
@@ -345,7 +345,7 @@ func (cs *ClientState) VerifyPacketReceiptAbsence(
 	channelID string,
 	packetSequence uint64,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -376,7 +376,7 @@ func (cs *ClientState) VerifyPacketReceiptAbsence(
 func (cs *ClientState) VerifyNextSequenceRecv(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	height exported.Height,
+	_ exported.Height,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
@@ -385,7 +385,7 @@ func (cs *ClientState) VerifyNextSequenceRecv(
 	channelID string,
 	nextSequenceRecv uint64,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -418,15 +418,9 @@ func (cs *ClientState) VerifyNextSequenceRecv(
 func produceVerificationArgs(
 	cdc codec.BinaryMarshaler,
 	cs *ClientState,
-	height exported.Height,
 	prefix exported.Prefix,
 	proof []byte,
 ) (cryptotypes.PubKey, signing.SignatureData, uint64, uint64, error) {
-	if revision := height.GetRevisionNumber(); revision != 0 {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "revision must be 0 for solomachine, got revision-number: %d", revision)
-	}
-	// sequence is encoded in the revision height of height struct
-	sequence := height.GetRevisionHeight()
 	if cs.IsFrozen() {
 		return nil, nil, 0, 0, clienttypes.ErrClientFrozen
 	}
@@ -464,14 +458,6 @@ func produceVerificationArgs(
 		return nil, nil, 0, 0, sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
 	}
 
-	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
-	if latestSequence != sequence {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"client state sequence != proof sequence (%d != %d)", latestSequence, sequence,
-		)
-	}
-
 	if cs.ConsensusState.GetTimestamp() > timestamp {
 		return nil, nil, 0, 0, sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
 	}
@@ -480,6 +466,8 @@ func produceVerificationArgs(
 	if err != nil {
 		return nil, nil, 0, 0, err
 	}
+
+	sequence := cs.GetLatestHeight().GetRevisionHeight()
 
 	return publicKey, sigData, timestamp, sequence, nil
 }
