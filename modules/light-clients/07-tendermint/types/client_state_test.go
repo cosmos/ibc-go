@@ -264,7 +264,7 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupNew(path)
+			suite.coordinator.Setup(path)
 			connection := path.EndpointB.GetConnection()
 
 			var ok bool
@@ -343,7 +343,7 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupNew(path)
+			suite.coordinator.Setup(path)
 			channel := path.EndpointB.GetChannel()
 
 			var ok bool
@@ -438,9 +438,9 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupNew(path)
+			suite.coordinator.Setup(path)
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
-			err := suite.coordinator.SendPacket(suite.chainB, suite.chainA, packet, path.EndpointA.ClientID)
+			err := path.EndpointB.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
@@ -452,7 +452,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			// make packet commitment proof
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-			proof, proofHeight = suite.chainB.QueryProof(packetKey)
+			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
 			tc.malleate() // make changes as necessary
 
@@ -538,15 +538,15 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupNew(path)
+			suite.coordinator.Setup(path)
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, path.EndpointB.ClientID)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// write receipt and ack
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, path.EndpointA.ClientID, packet)
+			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
@@ -643,15 +643,12 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupNew(path)
+			suite.coordinator.Setup(path)
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet, but no recv
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, path.EndpointB.ClientID)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
-
-			// need to update chainA's client representing chainB to prove missing ack
-			suite.coordinator.UpdateClient(suite.chainA, suite.chainB, path.EndpointA.ClientID, exported.Tendermint)
 
 			var ok bool
 			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
@@ -662,7 +659,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 
 			// make packet receipt absence proof
 			receiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			proof, proofHeight = suite.chainB.QueryProof(receiptKey)
+			proof, proofHeight = path.EndpointB.QueryProof(receiptKey)
 
 			tc.malleate() // make changes as necessary
 
@@ -748,7 +745,7 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetChannelOrdered()
-			suite.coordinator.SetupNew(path)
+			suite.coordinator.Setup(path)
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet

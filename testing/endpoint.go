@@ -432,3 +432,15 @@ func (endpoint *Endpoint) GetChannel() channeltypes.Channel {
 
 	return channel
 }
+
+// SetChannelClosed sets a channel state to CLOSED.
+func (endpoint *Endpoint) SetChannelClosed() error {
+	channel := endpoint.GetChannel()
+
+	channel.State = channeltypes.CLOSED
+	endpoint.Chain.App.IBCKeeper.ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	return endpoint.Counterparty.UpdateClient()
+}

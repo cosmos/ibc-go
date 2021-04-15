@@ -7,16 +7,14 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	var (
-		channel     *channeltypes.Channel
-		testChannel ibctesting.TestChannel
-		connA       *ibctesting.TestConnection
-		chanCap     *capabilitytypes.Capability
+		channel *channeltypes.Channel
+		path    *ibctesting.Path
+		chanCap *capabilitytypes.Capability
 	)
 
 	testCases := []struct {
@@ -30,7 +28,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"max channels reached", func() {
-				testChannel.ID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
+				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, false,
 		},
 		{
@@ -40,7 +38,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"invalid port ID", func() {
-				testChannel = suite.chainA.NextTestChannel(connA, ibctesting.MockPort)
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
 			}, false,
 		},
 		{
@@ -50,7 +48,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"capability already claimed", func() {
-				err := suite.chainA.App.ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(testChannel.PortID, testChannel.ID))
+				err := suite.chainA.App.ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 			}, false,
 		},
@@ -61,22 +59,23 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			path = NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+			path.EndpointA.ChannelID = "channel-0"
 
-			_, _, connA, _ = suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
-			testChannel = suite.chainA.NextTestChannel(connA, ibctesting.TransferPort)
-			counterparty := channeltypes.NewCounterparty(testChannel.PortID, testChannel.ID)
+			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.INIT,
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
-				ConnectionHops: []string{connA.ID},
+				ConnectionHops: []string{path.EndpointA.ConnectionID},
 				Version:        types.Version,
 			}
 
 			module, _, err := suite.chainA.App.IBCKeeper.PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
-			chanCap, err = suite.chainA.App.ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, testChannel.ID))
+			chanCap, err = suite.chainA.App.ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.IBCKeeper.Router.GetRoute(module)
@@ -85,7 +84,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				testChannel.PortID, testChannel.ID, chanCap, channel.Counterparty, channel.GetVersion(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
 			)
 
 			if tc.expPass {
@@ -101,9 +100,8 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	var (
 		channel             *channeltypes.Channel
-		testChannel         ibctesting.TestChannel
-		connA               *ibctesting.TestConnection
 		chanCap             *capabilitytypes.Capability
+		path                *ibctesting.Path
 		counterpartyVersion string
 	)
 
@@ -118,12 +116,12 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"max channels reached", func() {
-				testChannel.ID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
+				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, false,
 		},
 		{
 			"capability already claimed in INIT should pass", func() {
-				err := suite.chainA.App.ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(testChannel.PortID, testChannel.ID))
+				err := suite.chainA.App.ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 			}, true,
 		},
@@ -134,7 +132,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"invalid port ID", func() {
-				testChannel = suite.chainA.NextTestChannel(connA, ibctesting.MockPort)
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
 			}, false,
 		},
 		{
@@ -155,14 +153,16 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			_, _, connA, _ = suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
-			testChannel = suite.chainA.NextTestChannel(connA, ibctesting.TransferPort)
-			counterparty := channeltypes.NewCounterparty(testChannel.PortID, testChannel.ID)
+			path = NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+			path.EndpointA.ChannelID = "channel-0"
+
+			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
-				ConnectionHops: []string{connA.ID},
+				ConnectionHops: []string{path.EndpointA.ConnectionID},
 				Version:        types.Version,
 			}
 			counterpartyVersion = types.Version
@@ -170,7 +170,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			module, _, err := suite.chainA.App.IBCKeeper.PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
-			chanCap, err = suite.chainA.App.ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, testChannel.ID))
+			chanCap, err = suite.chainA.App.ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.IBCKeeper.Router.GetRoute(module)
@@ -179,7 +179,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				testChannel.PortID, testChannel.ID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
 			)
 
 			if tc.expPass {
@@ -193,11 +193,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 }
 
 func (suite *TransferTestSuite) TestOnChanOpenAck() {
-	var (
-		testChannel         ibctesting.TestChannel
-		connA               *ibctesting.TestConnection
-		counterpartyVersion string
-	)
+	var counterpartyVersion string
 
 	testCases := []struct {
 		name     string
@@ -221,8 +217,9 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			_, _, connA, _ = suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
-			testChannel = suite.chainA.NextTestChannel(connA, ibctesting.TransferPort)
+			path := NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+			path.EndpointA.ChannelID = "channel-0"
 			counterpartyVersion = types.Version
 
 			module, _, err := suite.chainA.App.IBCKeeper.PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
@@ -233,7 +230,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), testChannel.PortID, testChannel.ID, counterpartyVersion)
+			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
