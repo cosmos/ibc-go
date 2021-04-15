@@ -109,7 +109,8 @@ proof, err := cdc.MarshalBinaryBare(timestampedSignatureData)
 ```
 
 NOTE: At the end of this process, the sequence associated with the key needs to be updated. 
-The sequence must be incremented each time proof is generated. 
+The sequence must be incremented each time proof is generated. The proof height provided 
+to the SDK messages are discarded and not used. 
 
 ## Updates By Header
 
