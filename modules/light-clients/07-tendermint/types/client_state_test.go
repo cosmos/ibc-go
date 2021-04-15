@@ -747,9 +747,7 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-			path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-
+			path.SetChannelOrdered()
 			suite.coordinator.SetupNew(path)
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 

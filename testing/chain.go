@@ -870,21 +870,6 @@ func (chain *TestChain) ChanOpenConfirm(
 	return chain.sendMsgs(msg)
 }
 
-// ChanCloseInit will construct and execute a MsgChannelCloseInit.
-//
-// NOTE: does not work with ibc-transfer module
-// TODO: remove
-func (chain *TestChain) ChanCloseInit(
-	counterparty *TestChain,
-	channel TestChannel,
-) error {
-	msg := channeltypes.NewMsgChannelCloseInit(
-		channel.PortID, channel.ID,
-		chain.SenderAccount.GetAddress().String(),
-	)
-	return chain.sendMsgs(msg)
-}
-
 // GetPacketData returns a ibc-transfer marshalled packet to be used for
 // callback testing.
 func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {

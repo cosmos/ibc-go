@@ -762,27 +762,6 @@ func (coord *Coordinator) ChanOpenConfirm(
 	)
 }
 
-// ChanCloseInit closes a channel on the source chain resulting in the channels state
-// being set to CLOSED.
-//
-// NOTE: does not work with ibc-transfer module
-// TODO: move to endpoint
-func (coord *Coordinator) ChanCloseInit(
-	source, counterparty *TestChain,
-	channel TestChannel,
-) error {
-
-	if err := source.ChanCloseInit(counterparty, channel); err != nil {
-		return err
-	}
-
-	// update source client on counterparty connection
-	return coord.UpdateClient(
-		counterparty, source,
-		channel.CounterpartyClientID, exported.Tendermint,
-	)
-}
-
 // SetChannelClosed sets a channel state to CLOSED.
 // TODO: move to endpoint
 func (coord *Coordinator) SetChannelClosed(

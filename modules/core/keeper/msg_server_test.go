@@ -40,9 +40,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+
+	// TODO: remove
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
+
 }
 
 func TestIBCTestSuite(t *testing.T) {
@@ -57,6 +60,7 @@ func TestIBCTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	var (
 		packet channeltypes.Packet
+		path   *ibctesting.Path
 		async  bool // indicate no ack written
 	)
 
@@ -67,62 +71,65 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		expRevert bool
 	}{
 		{"success: ORDERED", func() {
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			path.SetChannelOrdered()
+			suite.coordinator.SetupNew(path)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 		}, true, false},
 		{"success: UNORDERED", func() {
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			suite.coordinator.SetupNew(path)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 		}, true, false},
 		{"success: UNORDERED out of order packet", func() {
 			// setup uses an UNORDERED channel
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			suite.coordinator.SetupNew(path)
 
 			// attempts to receive packet with sequence 10 without receiving packet with sequence 1
 			for i := uint64(1); i < 10; i++ {
-				packet = channeltypes.NewPacket(ibctesting.MockPacketData, i, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+				packet = channeltypes.NewPacket(ibctesting.MockPacketData, i, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-				err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+				err := path.EndpointA.SendPacket(packet)
 				suite.Require().NoError(err)
 			}
 		}, true, false},
 		{"success: OnRecvPacket callback returns revert=true", func() {
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			packet = channeltypes.NewPacket(ibctesting.MockFailPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			suite.coordinator.SetupNew(path)
+			packet = channeltypes.NewPacket(ibctesting.MockFailPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 		}, true, true},
 		{"success: ORDERED - async acknowledgement", func() {
+			path.SetChannelOrdered()
+			suite.coordinator.SetupNew(path)
 			async = true
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
-			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 		}, true, false},
 		{"success: UNORDERED - async acknowledgement", func() {
+			suite.coordinator.SetupNew(path)
 			async = true
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 		}, true, false},
 		{"failure: ORDERED out of order packet", func() {
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
+			path.SetChannelOrdered()
+			suite.coordinator.SetupNew(path)
 
 			// attempts to receive packet with sequence 10 without receiving packet with sequence 1
 			for i := uint64(1); i < 10; i++ {
-				packet = channeltypes.NewPacket(ibctesting.MockPacketData, i, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+				packet = channeltypes.NewPacket(ibctesting.MockPacketData, i, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-				err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+				err := path.EndpointA.SendPacket(packet)
 				suite.Require().NoError(err)
 			}
 		}, false, false},
@@ -131,28 +138,28 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			suite.Require().NotNil(packet)
 		}, false, false},
 		{"packet not sent", func() {
-			_, _, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			suite.coordinator.SetupNew(path)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 		}, false, false},
 		{"ORDERED: packet already received (replay)", func() {
-			clientA, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			path.SetChannelOrdered()
+			suite.coordinator.SetupNew(path)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, path.EndpointA.ClientID, packet)
 			suite.Require().NoError(err)
 		}, false, false},
 		{"UNORDERED: packet already received (replay)", func() {
-			clientA, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			suite.coordinator.SetupNew(path)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
-
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, path.EndpointA.ClientID, packet)
 			suite.Require().NoError(err)
 		}, false, false},
 	}
@@ -163,6 +170,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			async = false     // reset
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
 

@@ -1,5 +1,9 @@
 package ibctesting
 
+import (
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+)
+
 // Path
 type Path struct {
 	EndpointA *Endpoint
@@ -17,6 +21,12 @@ func NewPath(chainA, chainB *TestChain) *Path {
 		EndpointA: endpointA,
 		EndpointB: endpointB,
 	}
+}
+
+// SetChannelOrdered sets the channel order for both endpoints to ORDERED.
+func (path *Path) SetChannelOrdered() {
+	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
+	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 }
 
 // TODO create RelayPacket function which relays the packet,
