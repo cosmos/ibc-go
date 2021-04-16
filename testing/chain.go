@@ -3,7 +3,6 @@ package ibctesting
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"testing"
 	"time"
 
@@ -29,7 +28,6 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/exported"
@@ -99,10 +97,6 @@ type TestChain struct {
 
 	senderPrivKey cryptotypes.PrivKey
 	SenderAccount authtypes.AccountI
-
-	// IBC specific helpers
-	ClientIDs   []string          // ClientID's used on this chain
-	Connections []*TestConnection // track connectionID's created for this chain
 }
 
 // NewTestChain initializes a new TestChain instance with a single validator set using a
@@ -157,8 +151,6 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		Signers:       signers,
 		senderPrivKey: senderPrivKey,
 		SenderAccount: acc,
-		ClientIDs:     make([]string, 0),
-		Connections:   make([]*TestConnection, 0),
 	}
 
 	cap := chain.App.IBCKeeper.PortKeeper.BindPort(chain.GetContext(), MockPort)
@@ -362,74 +354,6 @@ func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
 // GetPrefix returns the prefix for used by a chain in connection creation
 func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix(chain.App.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix().Bytes())
-}
-
-// NewClientID appends a new clientID string in the format:
-// ClientFor<counterparty-chain-id><index>
-func (chain *TestChain) NewClientID(clientType string) string {
-	clientID := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ClientIDs)))
-	chain.ClientIDs = append(chain.ClientIDs, clientID)
-	return clientID
-}
-
-// AddTestConnection appends a new TestConnection which contains references
-// to the connection id, client id and counterparty client id.
-func (chain *TestChain) AddTestConnection(clientID, counterpartyClientID string) *TestConnection {
-	conn := chain.ConstructNextTestConnection(clientID, counterpartyClientID)
-
-	chain.Connections = append(chain.Connections, conn)
-	return conn
-}
-
-// ConstructNextTestConnection constructs the next test connection to be
-// created given a clientID and counterparty clientID. The connection id
-// format: <chainID>-conn<index>
-func (chain *TestChain) ConstructNextTestConnection(clientID, counterpartyClientID string) *TestConnection {
-	connectionID := connectiontypes.FormatConnectionIdentifier(uint64(len(chain.Connections)))
-	return &TestConnection{
-		ID:                   connectionID,
-		ClientID:             clientID,
-		NextChannelVersion:   DefaultChannelVersion,
-		CounterpartyClientID: counterpartyClientID,
-	}
-}
-
-// GetFirstTestConnection returns the first test connection for a given clientID.
-// The connection may or may not exist in the chain state.
-func (chain *TestChain) GetFirstTestConnection(clientID, counterpartyClientID string) *TestConnection {
-	if len(chain.Connections) > 0 {
-		return chain.Connections[0]
-	}
-
-	return chain.ConstructNextTestConnection(clientID, counterpartyClientID)
-}
-
-// AddTestChannel appends a new TestChannel which contains references to the port and channel ID
-// used for channel creation and interaction. See 'NextTestChannel' for channel ID naming format.
-func (chain *TestChain) AddTestChannel(conn *TestConnection, portID string) TestChannel {
-	channel := chain.NextTestChannel(conn, portID)
-	conn.Channels = append(conn.Channels, channel)
-	return channel
-}
-
-// NextTestChannel returns the next test channel to be created on this connection, but does not
-// add it to the list of created channels. This function is expected to be used when the caller
-// has not created the associated channel in app state, but would still like to refer to the
-// non-existent channel usually to test for its non-existence.
-//
-// channel ID format: <connectionid>-chan<channel-index>
-//
-// The port is passed in by the caller.
-func (chain *TestChain) NextTestChannel(conn *TestConnection, portID string) TestChannel {
-	nextChanSeq := chain.App.IBCKeeper.ChannelKeeper.GetNextChannelSequence(chain.GetContext())
-	channelID := channeltypes.FormatChannelIdentifier(nextChanSeq)
-	return TestChannel{
-		PortID:               portID,
-		ID:                   channelID,
-		ClientID:             conn.ClientID,
-		CounterpartyClientID: conn.CounterpartyClientID,
-		Version:              conn.NextChannelVersion,
-	}
 }
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
