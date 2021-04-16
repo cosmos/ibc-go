@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	math "math"
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
@@ -115,6 +116,20 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	suite.Require().False(ok, "retrieved processed time for a non-existent consensus state")
 }
 
+func (suite *TendermintTestSuite) TestIterationKey() {
+	testHeights := []exported.Height{
+		clienttypes.NewHeight(0, 1),
+		clienttypes.NewHeight(0, 1234),
+		clienttypes.NewHeight(7890, 4321),
+		clienttypes.NewHeight(math.MaxUint64, math.MaxUint64),
+	}
+	for _, h := range testHeights {
+		k := types.IterationKey(h)
+		retrievedHeight := types.GetHeightFromIterationKey(k)
+		suite.Require().Equal(h, retrievedHeight, "retrieving height from iteration key failed")
+	}
+}
+
 func (suite *TendermintTestSuite) TestIterateConsensusStates() {
 	nextValsHash := []byte("nextVals")
 
@@ -131,13 +146,13 @@ func (suite *TendermintTestSuite) TestIterateConsensusStates() {
 	suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), "testClient", clienttypes.NewHeight(40, 1), types.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash40-1")), nextValsHash))
 
 	var testArr []string
-	cb := func(cs types.ConsensusState) bool {
-		testArr = append(testArr, string(cs.Root.GetHash()))
+	cb := func(height exported.Height) bool {
+		testArr = append(testArr, height.String())
 		return false
 	}
 
-	types.IterateConsensusStateAscending(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), suite.chainA.Codec, cb)
-	expectedArr := []string{"hash0-1", "hash0-4", "hash0-10", "hash4-9", "hash40-1"}
+	types.IterateConsensusStateAscending(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), "testClient"), cb)
+	expectedArr := []string{"0-1", "0-4", "0-10", "4-9", "40-1"}
 	suite.Require().Equal(expectedArr, testArr)
 }
 

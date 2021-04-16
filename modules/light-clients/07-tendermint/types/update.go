@@ -60,6 +60,34 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
+	// Check the earliest consensus state to see if it is expired, if so then set the prune height
+	// so that we can delete consensus state and all associated metadata.
+	var (
+		pruneHeight exported.Height
+		pruneError  error
+	)
+	pruneCb := func(height exported.Height) bool {
+		consState, err := GetConsensusState(clientStore, cdc, height)
+		if err != nil {
+			pruneError = err
+			return true
+		}
+		if consState.IsExpired(cs.TrustingPeriod, ctx.BlockTime()) {
+			pruneHeight = height
+		}
+		return true
+	}
+	IterateConsensusStateAscending(clientStore, pruneCb)
+	if pruneError != nil {
+		return nil, nil, pruneError
+	}
+	// if pruneHeight is set, delete consensus state and metadata
+	if pruneHeight != nil {
+		deleteConsensusState(clientStore, pruneHeight)
+		deleteProcessedTime(clientStore, pruneHeight)
+		deleteIterationKey(clientStore, pruneHeight)
+	}
+
 	newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
 	return newClientState, consensusState, nil
 }

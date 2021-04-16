@@ -55,6 +55,12 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryMarshaler, height expo
 	return consensusState, nil
 }
 
+// deleteConsensusState deletes the consensus state at the given height
+func deleteConsensusState(clientStore sdk.KVStore, height exported.Height) {
+	key := host.ConsensusStateKey(height)
+	clientStore.Delete(key)
+}
+
 // IterateProcessedTime iterates through the prefix store and applies the callback.
 // If the cb returns true, then iterator will close and stop.
 func IterateProcessedTime(store sdk.KVStore, cb func(key, val []byte) bool) {
@@ -102,6 +108,12 @@ func GetProcessedTime(clientStore sdk.KVStore, height exported.Height) (uint64, 
 	return sdk.BigEndianToUint64(bz), true
 }
 
+// deleteProcessedTime deletes the processedTime for a given height
+func deleteProcessedTime(clientStore sdk.KVStore, height exported.Height) {
+	key := ProcessedTimeKey(height)
+	clientStore.Delete(key)
+}
+
 // Iteration Code
 
 // IterationKey returns the key under which the consensus state key will be stored.
@@ -118,31 +130,32 @@ func SetIterationKey(clientStore sdk.KVStore, height exported.Height) {
 	clientStore.Set(key, val)
 }
 
-func IterateConsensusStateAscending(clientStore sdk.KVStore, cdc codec.BinaryMarshaler,
-	cb func(cs ConsensusState) (stop bool)) error {
+// deleteIterationKey deletes the iteration key for a given height
+func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
+	key := IterationKey(height)
+	clientStore.Delete(key)
+}
+
+// GetHeightFromIterationKey takes an iteration key and returns the height that it references
+func GetHeightFromIterationKey(iterKey []byte) exported.Height {
+	bigEndianBytes := iterKey[len([]byte(KeyIterateConsensusStatePrefix)):]
+	revisionBytes := bigEndianBytes[0:8]
+	heightBytes := bigEndianBytes[8:]
+	revision := binary.BigEndian.Uint64(revisionBytes)
+	height := binary.BigEndian.Uint64(heightBytes)
+	return clienttypes.NewHeight(revision, height)
+}
+
+func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) error {
 
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		csKey := iterator.Value()
-		bz := clientStore.Get(csKey)
-
-		consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
-		if err != nil {
-			return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
-		}
-
-		consensusState, ok := consensusStateI.(*ConsensusState)
-		if !ok {
-			return sdkerrors.Wrapf(
-				clienttypes.ErrInvalidConsensus,
-				"invalid consensus type %T, expected %T", consensusState, &ConsensusState{},
-			)
-		}
-
-		if cb(*consensusState) {
-			break
+		iterKey := iterator.Key()
+		height := GetHeightFromIterationKey(iterKey)
+		if cb(height) {
+			return nil
 		}
 	}
 	return nil
