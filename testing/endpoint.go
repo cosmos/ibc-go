@@ -309,7 +309,7 @@ func (endpoint *Endpoint) ChanCloseInit() error {
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 	// obtain the counterparty client representing the chain associated with the endpoint
-	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.ClientID)
+	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
 
 	// query proof on the counterparty using the latest height of the IBC client
 	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
