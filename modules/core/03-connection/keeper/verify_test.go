@@ -17,7 +17,7 @@ import (
 var defaultTimeoutHeight = clienttypes.NewHeight(0, 100000)
 
 // TestVerifyClientState verifies a client state of chainA
-// stored on clientB (which is on chainB)
+// stored on path.EndpointB.ClientID (which is on chainB)
 func (suite *KeeperTestSuite) TestVerifyClientState() {
 	cases := []struct {
 		msg                  string
@@ -38,9 +38,10 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			_, clientB, connA, _ := suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
-			counterpartyClient, clientProof := suite.chainB.QueryClientStateProof(clientB)
+			counterpartyClient, clientProof := suite.chainB.QueryClientStateProof(path.EndpointB.ClientID)
 			proofHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()-1))
 
 			if tc.malleateCounterparty {
@@ -48,7 +49,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 				tmClient.ChainId = "wrongChainID"
 			}
 
-			connection := suite.chainA.GetConnection(connA)
+			connection := path.EndpointA.GetConnection()
 			if tc.changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
@@ -68,12 +69,11 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 }
 
 // TestVerifyClientConsensusState verifies that the consensus state of
-// chainA stored on clientB (which is on chainB) matches the consensus
+// chainA stored on path.EndpointB.ClientID (which is on chainB) matches the consensus
 // state for chainA at that height.
 func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 	var (
-		connA          *ibctesting.TestConnection
-		connB          *ibctesting.TestConnection
+		path           *ibctesting.Path
 		changeClientID bool
 		heightDiff     uint64
 	)
@@ -83,32 +83,25 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 		expPass  bool
 	}{
 		{"verification success", func() {
-			_, _, connA, connB = suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
 		}, true},
 		{"client state not found", func() {
-			_, _, connA, connB = suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
-
 			changeClientID = true
 		}, false},
 		{"consensus state not found", func() {
-			_, _, connA, connB = suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
-
 			heightDiff = 5
 		}, false},
 		{"verification failed", func() {
-			_, _, connA, connB = suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
-			clientB := connB.ClientID
-			clientState := suite.chainB.GetClientState(clientB)
+			clientState := suite.chainB.GetClientState(path.EndpointB.ClientID)
 
 			// give chainB wrong consensus state for chainA
-			consState, found := suite.chainB.App.IBCKeeper.ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), clientB)
+			consState, found := suite.chainB.App.IBCKeeper.ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
 			suite.Require().True(found)
 
 			tmConsState, ok := consState.(*ibctmtypes.ConsensusState)
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = time.Now()
-			suite.chainB.App.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), clientB, clientState.GetLatestHeight(), tmConsState)
+			suite.chainB.App.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, clientState.GetLatestHeight(), tmConsState)
 
 			suite.coordinator.CommitBlock(suite.chainB)
 		}, false},
@@ -121,15 +114,17 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			suite.SetupTest()      // reset
 			heightDiff = 0         // must be explicitly changed in malleate
 			changeClientID = false // must be explicitly changed in malleate
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
 			tc.malleate()
 
-			connection := suite.chainA.GetConnection(connA)
+			connection := path.EndpointA.GetConnection()
 			if changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
-			proof, consensusHeight := suite.chainB.QueryConsensusStateProof(connB.ClientID)
+			proof, consensusHeight := suite.chainB.QueryConsensusStateProof(path.EndpointB.ClientID)
 			proofHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()-1))
 			consensusState, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
 			suite.Require().True(found)
@@ -170,15 +165,16 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			_, _, connA, connB := suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
-			connection := suite.chainA.GetConnection(connA)
+			connection := path.EndpointA.GetConnection()
 			if tc.changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
-			expectedConnection := suite.chainB.GetConnection(connB)
+			expectedConnection := path.EndpointB.GetConnection()
 
-			connectionKey := host.ConnectionKey(connB.ID)
+			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
 			proof, proofHeight := suite.chainB.QueryProof(connectionKey)
 
 			if tc.changeConnectionState {
@@ -187,7 +183,7 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 
 			err := suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyConnectionState(
 				suite.chainA.GetContext(), connection,
-				malleateHeight(proofHeight, tc.heightDiff), proof, connB.ID, expectedConnection,
+				malleateHeight(proofHeight, tc.heightDiff), proof, path.EndpointB.ConnectionID, expectedConnection,
 			)
 
 			if tc.expPass {
@@ -221,23 +217,24 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			_, _, connA, _, _, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			connection := suite.chainA.GetConnection(connA)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+			connection := path.EndpointA.GetConnection()
 			if tc.changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
-			channelKey := host.ChannelKey(channelB.PortID, channelB.ID)
+			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proof, proofHeight := suite.chainB.QueryProof(channelKey)
 
-			channel := suite.chainB.GetChannel(channelB)
+			channel := path.EndpointB.GetChannel()
 			if tc.changeChannelState {
 				channel.State = channeltypes.TRYOPEN
 			}
 
 			err := suite.chainA.App.IBCKeeper.ConnectionKeeper.VerifyChannelState(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, tc.heightDiff), proof,
-				channelB.PortID, channelB.ID, channel,
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel,
 			)
 
 			if tc.expPass {
@@ -275,16 +272,17 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			_, clientB, _, connB, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
-			connection := suite.chainB.GetConnection(connB)
+			connection := path.EndpointB.GetConnection()
 			connection.DelayPeriod = tc.delayPeriod
 			if tc.changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			commitmentKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -335,24 +333,25 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			clientA, clientB, connA, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
-			connection := suite.chainA.GetConnection(connA)
+			connection := path.EndpointA.GetConnection()
 			connection.DelayPeriod = tc.delayPeriod
 			if tc.changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
 			// send and receive packet
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
 			suite.coordinator.IncrementTimeBy(time.Hour * 2)
 			suite.coordinator.CommitBlock(suite.chainB)
 
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			packetAckKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -403,17 +402,18 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			clientA, clientB, connA, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
-			connection := suite.chainA.GetConnection(connA)
+			connection := path.EndpointA.GetConnection()
 			connection.DelayPeriod = tc.delayPeriod
 			if tc.changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
 			// send, only receive if specified
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			if tc.recvAck {
@@ -421,12 +421,12 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 				suite.coordinator.IncrementTimeBy(time.Hour * 2)
 				suite.coordinator.CommitBlock(suite.chainB)
 
-				err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+				err = path.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 			} else {
 				// need to update height to prove absence
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
-				suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
+				path.EndpointA.UpdateClient()
 			}
 
 			packetReceiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -472,24 +472,25 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			clientA, clientB, connA, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
-			connection := suite.chainA.GetConnection(connA)
+			connection := path.EndpointA.GetConnection()
 			connection.DelayPeriod = tc.delayPeriod
 			if tc.changeClientID {
 				connection.ClientId = ibctesting.InvalidID
 			}
 
 			// send and receive packet
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, defaultTimeoutHeight, 0)
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
 			suite.coordinator.IncrementTimeBy(time.Hour * 2)
 			suite.coordinator.CommitBlock(suite.chainB)
 
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			nextSeqRecvKey := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
