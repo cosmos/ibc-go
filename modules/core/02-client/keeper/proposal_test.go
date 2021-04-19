@@ -2,11 +2,11 @@ package keeper_test
 
 import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func (suite *KeeperTestSuite) TestClientUpdateProposal() {
@@ -92,14 +92,19 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			subject, _ = suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
+			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(subjectPath)
+			subject = subjectPath.EndpointA.ClientID
 			subjectClientState = suite.chainA.GetClientState(subject)
-			substitute, _ = suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
+
+			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(substitutePath)
+			substitute = substitutePath.EndpointA.ClientID
 			initialHeight = types.NewHeight(subjectClientState.GetLatestHeight().GetRevisionNumber(), subjectClientState.GetLatestHeight().GetRevisionHeight()+1)
 
 			// update substitute twice
-			suite.coordinator.UpdateClient(suite.chainA, suite.chainB, substitute, exported.Tendermint)
-			suite.coordinator.UpdateClient(suite.chainA, suite.chainB, substitute, exported.Tendermint)
+			substitutePath.EndpointA.UpdateClient()
+			substitutePath.EndpointA.UpdateClient()
 			substituteClientState = suite.chainA.GetClientState(substitute)
 
 			tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
@@ -194,8 +199,9 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 			suite.SetupTest()  // reset
 			oldPlan.Height = 0 //reset
 
-			clientID, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-			upgradedClientState = suite.chainA.GetClientState(clientID).ZeroCustomFields().(*ibctmtypes.ClientState)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			upgradedClientState = suite.chainA.GetClientState(path.EndpointA.ClientID).ZeroCustomFields().(*ibctmtypes.ClientState)
 
 			// use height 1000 to distinguish from old plan
 			plan = upgradetypes.Plan{

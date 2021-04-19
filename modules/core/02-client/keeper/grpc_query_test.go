@@ -116,14 +116,17 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		{
 			"success",
 			func() {
-				clientA1, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-				clientA2, _ := suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path1)
 
-				clientStateA1 := suite.chainA.GetClientState(clientA1)
-				clientStateA2 := suite.chainA.GetClientState(clientA2)
+				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path2)
 
-				idcs := types.NewIdentifiedClientState(clientA1, clientStateA1)
-				idcs2 := types.NewIdentifiedClientState(clientA2, clientStateA2)
+				clientStateA1 := suite.chainA.GetClientState(path1.EndpointA.ClientID)
+				clientStateA2 := suite.chainA.GetClientState(path2.EndpointA.ClientID)
+
+				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
+				idcs2 := types.NewIdentifiedClientState(path2.EndpointA.ClientID, clientStateA2)
 
 				// order is sorted by client id, localhost is last
 				expClientStates = types.IdentifiedClientStates{idcs, idcs2}.Sort()
