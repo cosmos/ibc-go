@@ -10,6 +10,11 @@ import (
 	"github.com/cosmos/ibc-go/testing/mock"
 )
 
+const (
+	FirstChannelID    = "channel-0"
+	FirstConnectionID = "connection-0"
+)
+
 type ClientConfig interface {
 	GetClientType() string
 }

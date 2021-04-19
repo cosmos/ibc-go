@@ -415,6 +415,12 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	return endpoint.Chain.sendMsgs(ackMsg)
 }
 
+// GetClientState retrieves the Client State for this endpoint. The
+// client state is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetClientState() exported.ClientState {
+	return endpoint.Chain.GetClientState(endpoint.ClientID)
+}
+
 // GetConnection retrieves an IBC Connection for the endpoint. The
 // connection is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetConnection() connectiontypes.ConnectionEnd {
