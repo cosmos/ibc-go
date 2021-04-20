@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	localHostClient := localhosttypes.NewClientState(
 		suite.chainA.ChainID, types.NewHeight(revision, uint64(suite.chainA.GetContext().BlockHeight())),
 	)
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), exported.Localhost, localHostClient)
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), exported.Localhost, localHostClient)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.IBCKeeper.ClientKeeper)
@@ -222,7 +222,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	}
 
 	for _, tc := range testCases {
-		err := suite.chainA.App.IBCKeeper.ClientKeeper.ValidateSelfClient(suite.chainA.GetContext(), tc.clientState)
+		err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ValidateSelfClient(suite.chainA.GetContext(), tc.clientState)
 		if tc.expPass {
 			suite.Require().NoError(err, "expected valid client for case: %s", tc.name)
 		} else {
@@ -244,16 +244,16 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 	expGenClients := make(types.IdentifiedClientStates, len(expClients))
 
 	for i := range expClients {
-		suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), clientIDs[i], expClients[i])
+		suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientIDs[i], expClients[i])
 		expGenClients[i] = types.NewIdentifiedClientState(clientIDs[i], expClients[i])
 	}
 
 	// add localhost client
-	localHostClient, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.Localhost)
+	localHostClient, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.Localhost)
 	suite.Require().True(found)
 	expGenClients = append(expGenClients, types.NewIdentifiedClientState(exported.Localhost, localHostClient))
 
-	genClients := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
+	genClients := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
 
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
@@ -282,9 +282,9 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 		types.NewIdentifiedClientState("clientC", &ibctmtypes.ClientState{}), types.NewIdentifiedClientState("clientD", &localhosttypes.ClientState{}),
 	}
 
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
 
-	actualGenMetadata, err := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllClientMetadata(suite.chainA.GetContext(), genClients)
+	actualGenMetadata, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAllClientMetadata(suite.chainA.GetContext(), genClients)
 	suite.Require().NoError(err, "get client metadata returned error unexpectedly")
 	suite.Require().Equal(expectedGenMetadata, actualGenMetadata, "retrieved metadata is unexpected")
 }
@@ -386,6 +386,6 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 		}),
 	}.Sort()
 
-	consStates := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
+	consStates := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }

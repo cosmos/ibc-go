@@ -113,7 +113,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		SenderAccount: acc,
 	}
 
-	cap := chain.App.IBCKeeper.PortKeeper.BindPort(chain.GetContext(), MockPort)
+	cap := chain.App.GetIBCKeeper().PortKeeper.BindPort(chain.GetContext(), MockPort)
 	err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
 	require.NoError(t, err)
 
@@ -260,7 +260,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 // GetClientState retrieves the client state for the provided clientID. The client is
 // expected to exist otherwise testing will fail.
 func (chain *TestChain) GetClientState(clientID string) exported.ClientState {
-	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), clientID)
+	clientState, found := chain.App.GetIBCKeeper().ClientKeeper.GetClientState(chain.GetContext(), clientID)
 	require.True(chain.t, found)
 
 	return clientState
@@ -269,7 +269,7 @@ func (chain *TestChain) GetClientState(clientID string) exported.ClientState {
 // GetConsensusState retrieves the consensus state for the provided clientID and height.
 // It will return a success boolean depending on if consensus state exists or not.
 func (chain *TestChain) GetConsensusState(clientID string, height exported.Height) (exported.ConsensusState, bool) {
-	return chain.App.IBCKeeper.ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
+	return chain.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
 }
 
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
@@ -292,7 +292,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
-	ack, found := chain.App.IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	ack, found := chain.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	require.True(chain.t, found)
 
 	return ack
@@ -300,7 +300,7 @@ func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
 
 // GetPrefix returns the prefix for used by a chain in connection creation
 func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
-	return commitmenttypes.NewMerklePrefix(chain.App.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix().Bytes())
+	return commitmenttypes.NewMerklePrefix(chain.App.GetIBCKeeper().ConnectionKeeper.GetCommitmentPrefix().Bytes())
 }
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the

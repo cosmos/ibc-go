@@ -216,10 +216,10 @@ func (suite *KeeperTestSuite) TestUpdateClientLocalhost() {
 	var localhostClient exported.ClientState = localhosttypes.NewClientState(suite.chainA.ChainID, types.NewHeight(revision, uint64(suite.chainA.GetContext().BlockHeight())))
 
 	ctx := suite.chainA.GetContext().WithBlockHeight(suite.chainA.GetContext().BlockHeight() + 1)
-	err := suite.chainA.App.IBCKeeper.ClientKeeper.UpdateClient(ctx, exported.Localhost, nil)
+	err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpdateClient(ctx, exported.Localhost, nil)
 	suite.Require().NoError(err)
 
-	clientState, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(ctx, exported.Localhost)
+	clientState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(ctx, exported.Localhost)
 	suite.Require().True(found)
 	suite.Require().Equal(localhostClient.GetLatestHeight().(types.Height).Increment(), clientState.GetLatestHeight())
 }
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				cs, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
 
 				proofUpgradedClient, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				cs, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
 
 				proofUpgradedClient, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
@@ -306,7 +306,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				cs, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
 
 				proofUpgradedClient, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
@@ -316,7 +316,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				tmClient, ok := cs.(*ibctmtypes.ClientState)
 				suite.Require().True(ok)
 				tmClient.FrozenHeight = types.NewHeight(0, 1)
-				suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 			},
 			expPass: false,
 		},
@@ -337,7 +337,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				cs, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
 
 				proofUpgradedClient, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
@@ -367,7 +367,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 		upgradedClient = upgradedClient.ZeroCustomFields()
 
-		err = suite.chainA.App.IBCKeeper.ClientKeeper.UpgradeClient(suite.chainA.GetContext(), path.EndpointA.ClientID, upgradedClient, upgradedConsState, proofUpgradedClient, proofUpgradedConsState)
+		err = suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradeClient(suite.chainA.GetContext(), path.EndpointA.ClientID, upgradedClient, upgradedConsState, proofUpgradedClient, proofUpgradedConsState)
 
 		if tc.expPass {
 			suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)

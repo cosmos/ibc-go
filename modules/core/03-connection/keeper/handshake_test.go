@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			}
 			counterparty := types.NewCounterparty(path.EndpointB.ClientID, path.EndpointB.ConnectionID, suite.chainB.GetPrefix())
 
-			connectionID, err := suite.chainA.App.IBCKeeper.ConnectionKeeper.ConnOpenInit(suite.chainA.GetContext(), path.EndpointA.ClientID, counterparty, version, delayPeriod)
+			connectionID, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenInit(suite.chainA.GetContext(), path.EndpointA.ClientID, counterparty, version, delayPeriod)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			// set delay period on counterparty to non-zero value
 			conn := path.EndpointA.GetConnection()
 			conn.DelayPeriod = delayPeriod
-			suite.chainA.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, conn)
+			suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, conn)
 
 			// commit in order for proof to return correct value
 			suite.coordinator.CommitBlock(suite.chainA)
@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			suite.Require().True(ok)
 			tmClient.ChainId = "wrongchainid"
 
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 		}, false},
 		{"consensus height >= latest height", func() {
 			err := path.EndpointA.ConnOpenInit()
@@ -201,14 +201,14 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
 
 			// give chainA wrong consensus state for chainB
-			consState, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetLatestClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			consState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().True(found)
 
 			tmConsState, ok := consState.(*ibctmtypes.ConsensusState)
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = time.Now()
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, counterpartyClient.GetLatestHeight(), tmConsState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, counterpartyClient.GetLatestHeight(), tmConsState)
 
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -240,13 +240,13 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			suite.Require().NoError(err)
 
 			// modify connB to be in INIT with incorrect versions
-			connection, found := suite.chainB.App.IBCKeeper.ConnectionKeeper.GetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID)
+			connection, found := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID)
 			suite.Require().True(found)
 
 			connection.State = types.INIT
 			connection.Versions = []*types.Version{{}}
 
-			suite.chainB.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
+			suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
 
 			err = path.EndpointB.UpdateClient()
 			suite.Require().NoError(err)
@@ -291,7 +291,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			clientKey := host.FullClientStateKey(path.EndpointA.ClientID)
 			proofClient, _ := suite.chainA.QueryProof(clientKey)
 
-			connectionID, err := suite.chainB.App.IBCKeeper.ConnectionKeeper.ConnOpenTry(
+			connectionID, err := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenTry(
 				suite.chainB.GetContext(), previousConnectionID, counterparty, delayPeriod, path.EndpointB.ClientID, counterpartyClient,
 				versions, proofInit, proofClient, proofConsensus,
 				proofHeight, consensusHeight,
@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			connection := path.EndpointB.GetConnection()
 			connection.State = types.TRYOPEN
 			connection.Counterparty.ConnectionId = path.EndpointA.ConnectionID
-			suite.chainB.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
+			suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
 			// update path.EndpointB.ClientID so state change is committed
 			path.EndpointB.UpdateClient()
 
@@ -369,7 +369,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().True(ok)
 			tmClient.ChainId = "wrongchainid"
 
-			suite.chainB.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainB.GetContext(), path.EndpointB.ClientID, tmClient)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), path.EndpointB.ClientID, tmClient)
 
 		}, false},
 		{"consensus height >= latest height", func() {
@@ -401,12 +401,12 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().NoError(err)
 
 			// modify connB to set counterparty connection identifier to wrong identifier
-			connection, found := suite.chainA.App.IBCKeeper.ConnectionKeeper.GetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID)
+			connection, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID)
 			suite.Require().True(found)
 
 			connection.Counterparty.ConnectionId = "badconnectionid"
 
-			suite.chainA.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, connection)
+			suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, connection)
 
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -452,7 +452,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			// set chainB to TRYOPEN
 			connection := path.EndpointB.GetConnection()
 			connection.State = types.TRYOPEN
-			suite.chainB.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
+			suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
 
 			// update path.EndpointB.ClientID so state change is committed
 			path.EndpointB.UpdateClient()
@@ -543,14 +543,14 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			counterpartyClient = suite.chainB.GetClientState(path.EndpointB.ClientID)
 
 			// give chainB wrong consensus state for chainA
-			consState, found := suite.chainB.App.IBCKeeper.ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
+			consState, found := suite.chainB.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
 			suite.Require().True(found)
 
 			tmConsState, ok := consState.(*ibctmtypes.ConsensusState)
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = tmConsState.Timestamp.Add(time.Second)
-			suite.chainB.App.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, counterpartyClient.GetLatestHeight(), tmConsState)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, counterpartyClient.GetLatestHeight(), tmConsState)
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)
@@ -588,7 +588,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			clientKey := host.FullClientStateKey(path.EndpointB.ClientID)
 			proofClient, _ := suite.chainB.QueryProof(clientKey)
 
-			err = suite.chainA.App.IBCKeeper.ConnectionKeeper.ConnOpenAck(
+			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenAck(
 				suite.chainA.GetContext(), path.EndpointA.ConnectionID, counterpartyClient, version, path.EndpointB.ConnectionID,
 				proofTry, proofClient, proofConsensus, proofHeight, consensusHeight,
 			)
@@ -655,7 +655,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 			connectionKey := host.ConnectionKey(path.EndpointA.ConnectionID)
 			proofAck, proofHeight := suite.chainA.QueryProof(connectionKey)
 
-			err = suite.chainB.App.IBCKeeper.ConnectionKeeper.ConnOpenConfirm(
+			err = suite.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenConfirm(
 				suite.chainB.GetContext(), path.EndpointB.ConnectionID, proofAck, proofHeight,
 			)
 

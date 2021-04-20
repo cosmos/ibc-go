@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				path.EndpointA.ChannelID = "channel-0"
 				path.EndpointB.ChannelID = "channel-0"
 				// manually create channel so next seq send is never set
-				suite.chainA.App.IBCKeeper.ChannelKeeper.SetChannel(
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 					channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion),

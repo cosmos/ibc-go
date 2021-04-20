@@ -36,7 +36,7 @@ func (suite *ClientTestSuite) SetupTest() {
 	localHostClient := localhosttypes.NewClientState(
 		suite.chainA.GetContext().ChainID(), types.NewHeight(revision, uint64(suite.chainA.GetContext().BlockHeight())),
 	)
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), exported.Localhost, localHostClient)
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), exported.Localhost, localHostClient)
 }
 
 func TestClientTestSuite(t *testing.T) {
@@ -54,7 +54,7 @@ func (suite *ClientTestSuite) TestBeginBlocker() {
 		suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
 		suite.Require().NotPanics(func() {
-			client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.IBCKeeper.ClientKeeper)
+			client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 		}, "BeginBlocker shouldn't panic")
 
 		localHostClient = suite.chainA.GetClientState(exported.Localhost)

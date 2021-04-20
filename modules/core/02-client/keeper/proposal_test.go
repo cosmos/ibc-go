@@ -32,14 +32,14 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			"subject and substitute use different revision numbers", func() {
 				tmClientState, ok := substituteClientState.(*ibctmtypes.ClientState)
 				suite.Require().True(ok)
-				consState, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight)
+				consState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight)
 				suite.Require().True(found)
 				newRevisionNumber := tmClientState.GetLatestHeight().GetRevisionNumber() + 1
 
 				tmClientState.LatestHeight = types.NewHeight(newRevisionNumber, tmClientState.GetLatestHeight().GetRevisionHeight())
 				initialHeight = types.NewHeight(newRevisionNumber, initialHeight.GetRevisionHeight())
-				suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight, consState)
-				suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight, consState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
 
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute, initialHeight)
 			}, true,
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 				tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
 				suite.Require().True(ok)
 				tmClientState.LatestHeight = substituteClientState.GetLatestHeight().(types.Height)
-				suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute, initialHeight)
 			}, false,
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 				tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
 				suite.Require().True(ok)
 				tmClientState.FrozenHeight = types.ZeroHeight()
-				suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute, initialHeight)
 			}, false,
@@ -112,20 +112,20 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			tmClientState.AllowUpdateAfterMisbehaviour = true
 			tmClientState.AllowUpdateAfterExpiry = true
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 
 			tmClientState, ok = substituteClientState.(*ibctmtypes.ClientState)
 			suite.Require().True(ok)
 			tmClientState.AllowUpdateAfterMisbehaviour = true
 			tmClientState.AllowUpdateAfterExpiry = true
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
 
 			tc.malleate()
 
 			updateProp, ok := content.(*types.ClientUpdateProposal)
 			suite.Require().True(ok)
-			err = suite.chainA.App.IBCKeeper.ClientKeeper.ClientUpdateProposal(suite.chainA.GetContext(), updateProp)
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientUpdateProposal(suite.chainA.GetContext(), updateProp)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -225,7 +225,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 			upgradeProp, ok := content.(*types.UpgradeProposal)
 			suite.Require().True(ok)
-			err = suite.chainA.App.IBCKeeper.ClientKeeper.HandleUpgradeProposal(suite.chainA.GetContext(), upgradeProp)
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.HandleUpgradeProposal(suite.chainA.GetContext(), upgradeProp)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

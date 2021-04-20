@@ -5,5 +5,5 @@ import (
 )
 
 type TestingApp interface {
-	IBCKeeper() keeper.Keeper
+	GetIBCKeeper() keeper.Keeper
 }

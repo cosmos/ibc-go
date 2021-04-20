@@ -130,7 +130,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	suite.Require().NoError(err)
 
 	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-	store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 	for _, tc := range testCases {
 		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
@@ -280,7 +280,7 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			err := clientState.VerifyConnectionState(
 				store, suite.chainA.Codec, proofHeight, &prefix, proof, path.EndpointB.ConnectionID, connection,
@@ -359,7 +359,7 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			err := clientState.VerifyChannelState(
 				store, suite.chainA.Codec, proofHeight, &prefix, proof,
@@ -456,10 +456,10 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
-			commitment := channeltypes.CommitPacket(suite.chainA.App.IBCKeeper.Codec(), packet)
+			commitment := channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
 			err = clientState.VerifyPacketCommitment(
 				store, suite.chainA.Codec, proofHeight, currentTime, delayPeriod, &prefix, proof,
 				packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment,
@@ -562,7 +562,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyPacketAcknowledgement(
@@ -663,7 +663,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyPacketReceiptAbsence(
@@ -769,7 +769,7 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyNextSequenceRecv(

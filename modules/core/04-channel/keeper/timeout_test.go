@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		}, false},
 		{"connection not found", func() {
 			// pass channel check
-			suite.chainA.App.IBCKeeper.ChannelKeeper.SetChannel(
+			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{connIDA}, path.EndpointA.ChannelConfig.Version),
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				proof, proofHeight = suite.chainB.QueryProof(unorderedPacketKey)
 			}
 
-			err := suite.chainA.App.IBCKeeper.ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -197,8 +197,8 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 			tc.malleate()
 
-			err := suite.chainA.App.IBCKeeper.ChannelKeeper.TimeoutExecuted(suite.chainA.GetContext(), chanCap, packet)
-			pc := suite.chainA.App.IBCKeeper.ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(suite.chainA.GetContext(), chanCap, packet)
+			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 			if tc.expPass {
 				suite.NoError(err)
@@ -265,7 +265,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 		}, false},
 		{"connection not found", func() {
 			// pass channel check
-			suite.chainA.App.IBCKeeper.ChannelKeeper.SetChannel(
+			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{connIDA}, path.EndpointA.ChannelConfig.Version),
@@ -365,7 +365,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				proof, _ = suite.chainB.QueryProof(unorderedPacketKey)
 			}
 
-			err := suite.chainA.App.IBCKeeper.ChannelKeeper.TimeoutOnClose(suite.chainA.GetContext(), chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(suite.chainA.GetContext(), chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

@@ -119,7 +119,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		for _, tc := range testCases {
 			err := solomachine.ClientState().Initialize(
 				suite.chainA.GetContext(), suite.chainA.Codec,
-				suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine"),
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine"),
 				tc.consState,
 			)
 
