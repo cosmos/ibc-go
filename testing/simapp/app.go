@@ -573,6 +573,21 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
 }
 
+// GetScopedIBCKeeper implements the TestApp interface.
+func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedIBCKeeper
+}
+
+// GetScopedIBCMockKeeper implements the TestApp interface.
+func (app *SimApp) GetScopedIBCMockKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedIBCMockKeeper
+}
+
+// GetScopedTransferKeeper implements the TestApp interface.
+func (app *SimApp) GetScopedTransferKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedTransferKeeper
+}
+
 // SimulationManager implements the SimulationApp interface
 func (app *SimApp) SimulationManager() *module.SimulationManager {
 	return app.sm

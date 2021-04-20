@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 					suite.Require().NotNil(cap)
 					suite.Require().Equal(types.FormatChannelIdentifier(0), channelID)
 
-					chanCap, ok := suite.chainA.App.ScopedIBCKeeper.GetCapability(
+					chanCap, ok := suite.chainA.App.GetScopedIBCKeeper().GetCapability(
 						suite.chainA.GetContext(),
 						host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, channelID),
 					)
@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(cap)
 
-				chanCap, ok := suite.chainB.App.ScopedIBCKeeper.GetCapability(
+				chanCap, ok := suite.chainB.App.GetScopedIBCKeeper().GetCapability(
 					suite.chainB.GetContext(),
 					host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, channelID),
 				)

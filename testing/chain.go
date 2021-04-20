@@ -44,7 +44,7 @@ type TestChain struct {
 	t *testing.T
 
 	Coordinator   *Coordinator
-	App           *simapp.SimApp
+	App           TestingApp
 	ChainID       string
 	LastHeader    *ibctmtypes.Header // header for last block height committed
 	CurrentHeader tmproto.Header     // header for current block height
@@ -114,7 +114,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	}
 
 	cap := chain.App.GetIBCKeeper().PortKeeper.BindPort(chain.GetContext(), MockPort)
-	err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
+	err = chain.App.GetScopedIBCMockKeeper().ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
 	require.NoError(t, err)
 
 	coord.CommitBlock(chain)
@@ -455,20 +455,20 @@ func CreateSortedSignerArray(altPrivVal, suitePrivVal tmtypes.PrivValidator,
 // TODO: turn into a callback
 func (chain *TestChain) CreatePortCapability(portID string) {
 	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.PortPath(portID))
+	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	if !ok {
 		// create capability using the IBC capability keeper
-		cap, err := chain.App.ScopedIBCKeeper.NewCapability(chain.GetContext(), host.PortPath(portID))
+		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), host.PortPath(portID))
 		require.NoError(chain.t, err)
 
 		switch portID {
 		case MockPort:
 			// claim capability using the mock capability keeper
-			err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
+			err = chain.App.GetScopedIBCMockKeeper().ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
 			require.NoError(chain.t, err)
 		case TransferPort:
 			// claim capability using the transfer capability keeper
-			err = chain.App.ScopedTransferKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
+			err = chain.App.GetScopedTransferKeeper().ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
 			require.NoError(chain.t, err)
 		default:
 			panic(fmt.Sprintf("unsupported ibc testing package port ID %s", portID))
@@ -483,7 +483,7 @@ func (chain *TestChain) CreatePortCapability(portID string) {
 // GetPortCapability returns the port capability for the given portID. The capability must
 // exist, otherwise testing will fail.
 func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capability {
-	cap, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.PortPath(portID))
+	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	require.True(chain.t, ok)
 
 	return cap
@@ -494,11 +494,11 @@ func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capabi
 func (chain *TestChain) CreateChannelCapability(portID, channelID string) {
 	capName := host.ChannelCapabilityPath(portID, channelID)
 	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), capName)
+	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), capName)
 	if !ok {
-		cap, err := chain.App.ScopedIBCKeeper.NewCapability(chain.GetContext(), capName)
+		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), capName)
 		require.NoError(chain.t, err)
-		err = chain.App.ScopedTransferKeeper.ClaimCapability(chain.GetContext(), cap, capName)
+		err = chain.App.GetScopedTransferKeeper().ClaimCapability(chain.GetContext(), cap, capName)
 		require.NoError(chain.t, err)
 	}
 
@@ -510,7 +510,7 @@ func (chain *TestChain) CreateChannelCapability(portID, channelID string) {
 // GetChannelCapability returns the channel capability for the given portID and channelID.
 // The capability must exist, otherwise testing will fail.
 func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabilitytypes.Capability {
-	cap, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
+	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
 	require.True(chain.t, ok)
 
 	return cap
