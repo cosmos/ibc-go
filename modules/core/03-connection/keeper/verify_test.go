@@ -17,7 +17,7 @@ import (
 var defaultTimeoutHeight = clienttypes.NewHeight(0, 100000)
 
 // TestVerifyClientState verifies a client state of chainA
-// stored on path.EndpointB.ClientID (which is on chainB)
+// stored on path.EndpointB (which is on chainB)
 func (suite *KeeperTestSuite) TestVerifyClientState() {
 	cases := []struct {
 		msg                  string
