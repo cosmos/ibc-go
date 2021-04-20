@@ -124,7 +124,17 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	return chain.App.BaseApp.NewContext(false, chain.CurrentHeader)
+	return chain.App.GetBaseApp().NewContext(false, chain.CurrentHeader)
+}
+
+// GetSimApp returns the SimApp to allow usage ofnon-interface fields.
+// CONTRACT: This function should not be called by third parties implementing
+// their own SimApp.
+func (chain *TestChain) GetSimApp() *simapp.SimApp {
+	app, ok := chain.App.(*simapp.SimApp)
+	require.True(chain.t, ok)
+
+	return app
 }
 
 // QueryProof performs an abci query with the given key and returns the proto encoded merkle proof
@@ -234,7 +244,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	_, r, err := simapp.SignAndDeliver(
 		chain.t,
 		chain.TxConfig,
-		chain.App.BaseApp,
+		chain.App.GetBaseApp(),
 		chain.GetContext().BlockHeader(),
 		msgs,
 		chain.ChainID,
@@ -275,7 +285,7 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
 // a success boolean depending on if the validator set exists or not at that height.
 func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bool) {
-	histInfo, ok := chain.App.StakingKeeper.GetHistoricalInfo(chain.GetContext(), height)
+	histInfo, ok := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), height)
 	if !ok {
 		return nil, false
 	}

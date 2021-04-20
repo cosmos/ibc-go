@@ -568,22 +568,34 @@ func (app *SimApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	return subspace
 }
 
-// GetIBCKeeper implements the TestApp interface.
+// TestingApp functions
+
+// GetBaseApp implements the TestingApp interface.
+func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
+	return app.BaseApp
+}
+
+// GetStakingKeeper implements the TestingApp interface.
+func (app *SimApp) GetStakingKeeper() stakingkeeper.Keeper {
+	return app.StakingKeeper
+}
+
+// GetIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
 }
 
-// GetScopedIBCKeeper implements the TestApp interface.
+// GetScopedIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 	return app.ScopedIBCKeeper
 }
 
-// GetScopedIBCMockKeeper implements the TestApp interface.
+// GetScopedIBCMockKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedIBCMockKeeper() capabilitykeeper.ScopedKeeper {
 	return app.ScopedIBCMockKeeper
 }
 
-// GetScopedTransferKeeper implements the TestApp interface.
+// GetScopedTransferKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedTransferKeeper() capabilitykeeper.ScopedKeeper {
 	return app.ScopedTransferKeeper
 }

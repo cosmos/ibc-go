@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				// Release channel capability
-				suite.chainA.App.GetScopedTansferKeeper().ReleaseCapability(suite.chainA.GetContext(), cap)
+				suite.chainA.App.GetScopedTransferKeeper().ReleaseCapability(suite.chainA.GetContext(), cap)
 				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 			}, true, false},
 	}
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.Require().NoError(err) // message committed
 			}
 
-			err = suite.chainA.App.TransferKeeper.SendTransfer(
+			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
 				suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
 			)
@@ -214,7 +214,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.Uint64(), suite.chainA.SenderAccount.GetAddress().String(), receiver)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
-			err = suite.chainB.App.TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
-			suite.Require().NoError(simapp.FundAccount(suite.chainA.App, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+			suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 		}, false, true},
 		{"unsuccessful refund from source", failedAck,
 			func() {
@@ -265,7 +265,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.App, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, false, true},
 	}
 
@@ -283,12 +283,12 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.Uint64(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String())
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
-			preCoin := suite.chainA.App.BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 
-			err := suite.chainA.App.TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
+			err := suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
 			if tc.expPass {
 				suite.Require().NoError(err)
-				postCoin := suite.chainA.App.BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+				postCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 				deltaAmount := postCoin.Amount.Sub(preCoin.Amount)
 
 				if tc.success {
@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.App, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, true},
 		{"successful timeout from external chain",
 			func() {
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.App, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, true},
 		{"no balance for coin denom",
 			func() {
@@ -369,11 +369,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.Uint64(), sender, suite.chainB.SenderAccount.GetAddress().String())
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
-			preCoin := suite.chainA.App.BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 
-			err := suite.chainA.App.TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
+			err := suite.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
 
-			postCoin := suite.chainA.App.BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+			postCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 			deltaAmount := postCoin.Amount.Sub(preCoin.Amount)
 
 			if tc.expPass {

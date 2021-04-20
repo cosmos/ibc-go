@@ -48,7 +48,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"capability already claimed", func() {
-				err := suite.chainA.App.GetScopedTansferKeeper().ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				err := suite.chainA.App.GetScopedTransferKeeper().ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 			}, false,
 		},
@@ -121,7 +121,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"capability already claimed in INIT should pass", func() {
-				err := suite.chainA.App.GetScopedTansferKeeper().ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				err := suite.chainA.App.GetScopedTransferKeeper().ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 			}, true,
 		},
