@@ -56,6 +56,23 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 	}
 }
 
+// QueryProof queries proof associated with this endpoint using the lastest client state
+// height on the counterparty chain.
+func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
+	// obtain the counterparty client representing the chain associated with the endpoint
+	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
+
+	// query proof on the counterparty using the latest height of the IBC client
+	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
+}
+
+// QueryProofAtHeight queries proof associated with this endpoint using the proof height
+// providied
+func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte, clienttypes.Height) {
+	// query proof on the counterparty using the latest height of the IBC client
+	return endpoint.Chain.QueryProofAtHeight(key, int64(height))
+}
+
 // CreateClient creates an IBC client on the endpoint. It will update the
 // clientID for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
@@ -217,6 +234,35 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// QueryConnectionHandshakeProof returns all the proofs necessary to execute OpenTry or Open Ack of
+// the connection handshakes. It returns the counterparty client state, proof of the counterparty
+// client state, proof of the counterparty consensus state, the consensus state height, proof of
+// the counterparty connection, and the proof height for all the proofs returned.
+func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
+	clientState exported.ClientState, proofClient,
+	proofConsensus []byte, consensusHeight clienttypes.Height,
+	proofConnection []byte, proofHeight clienttypes.Height,
+) {
+	// obtain the client state on the counterparty chain
+	clientState = endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
+
+	// query proof for the client state on the counterparty
+	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
+	proofClient, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
+
+	consensusHeight = clientState.GetLatestHeight().(clienttypes.Height)
+
+	// query proof for the consensus state on the counterparty
+	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)
+	proofConsensus, _ = endpoint.Counterparty.QueryProofAtHeight(consensusKey, proofHeight.GetRevisionHeight())
+
+	// query proof for the connection on the counterparty
+	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
+	proofConnection, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
+
+	return
+}
+
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenInit() error {
 	msg := channeltypes.NewMsgChannelOpenInit(
@@ -305,52 +351,6 @@ func (endpoint *Endpoint) ChanCloseInit() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
-// QueryProof queries proof associated with this endpoint using the lastest client state
-// height on the counterparty chain.
-func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
-	// obtain the counterparty client representing the chain associated with the endpoint
-	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
-
-	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
-}
-
-// QueryProofAtHeight queries proof associated with this endpoint using the proof height
-// providied
-func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte, clienttypes.Height) {
-	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.Chain.QueryProofAtHeight(key, int64(height))
-}
-
-// QueryConnectionHandshakeProof returns all the proofs necessary to execute OpenTry or Open Ack of
-// the connection handshakes. It returns the counterparty client state, proof of the counterparty
-// client state, proof of the counterparty consensus state, the consensus state height, proof of
-// the counterparty connection, and the proof height for all the proofs returned.
-func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
-	clientState exported.ClientState, proofClient,
-	proofConsensus []byte, consensusHeight clienttypes.Height,
-	proofConnection []byte, proofHeight clienttypes.Height,
-) {
-	// obtain the client state on the counterparty chain
-	clientState = endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
-
-	// query proof for the client state on the counterparty
-	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
-	proofClient, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
-
-	consensusHeight = clientState.GetLatestHeight().(clienttypes.Height)
-
-	// query proof for the consensus state on the counterparty
-	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)
-	proofConsensus, _ = endpoint.Counterparty.QueryProofAtHeight(consensusKey, proofHeight.GetRevisionHeight())
-
-	// query proof for the connection on the counterparty
-	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	proofConnection, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
-
-	return
-}
-
 // SendPacket sends a packet through the channel keeper using the associated endpoint
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 func (endpoint *Endpoint) SendPacket(packet exported.PacketI) error {
@@ -415,6 +415,18 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	return endpoint.Chain.sendMsgs(ackMsg)
 }
 
+// SetChannelClosed sets a channel state to CLOSED.
+func (endpoint *Endpoint) SetChannelClosed() error {
+	channel := endpoint.GetChannel()
+
+	channel.State = channeltypes.CLOSED
+	endpoint.Chain.App.IBCKeeper.ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	return endpoint.Counterparty.UpdateClient()
+}
+
 // GetClientState retrieves the Client State for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {
@@ -439,14 +451,14 @@ func (endpoint *Endpoint) GetChannel() channeltypes.Channel {
 	return channel
 }
 
-// SetChannelClosed sets a channel state to CLOSED.
-func (endpoint *Endpoint) SetChannelClosed() error {
-	channel := endpoint.GetChannel()
+// QueryClientStateProof performs and abci query for a client stat associated
+// with this endpoint and returns the ClientState along with the proof.
+func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte) {
+	// retrieve client state to provide proof for
+	clientState := endpoint.GetClientState()
 
-	channel.State = channeltypes.CLOSED
-	endpoint.Chain.App.IBCKeeper.ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+	clientKey := host.FullClientStateKey(endpoint.ClientID)
+	proofClient, _ := endpoint.QueryProof(clientKey)
 
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-
-	return endpoint.Counterparty.UpdateClient()
+	return clientState, proofClient
 }

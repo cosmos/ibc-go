@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			counterpartyClient, clientProof := suite.chainB.QueryClientStateProof(path.EndpointB.ClientID)
+			counterpartyClient, clientProof := path.EndpointB.QueryClientStateProof()
 			proofHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()-1))
 
 			if tc.malleateCounterparty {

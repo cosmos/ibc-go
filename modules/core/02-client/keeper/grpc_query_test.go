@@ -122,8 +122,8 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path2)
 
-				clientStateA1 := suite.chainA.GetClientState(path1.EndpointA.ClientID)
-				clientStateA2 := suite.chainA.GetClientState(path2.EndpointA.ClientID)
+				clientStateA1 := path1.EndpointA.GetClientState()
+				clientStateA2 := path2.EndpointA.GetClientState()
 
 				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
 				idcs2 := types.NewIdentifiedClientState(path2.EndpointA.ClientID, clientStateA2)

@@ -61,7 +61,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			suite.SetupTest() // reset
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-			path.EndpointA.ChannelID = "channel-0"
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
@@ -155,7 +155,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-			path.EndpointA.ChannelID = "channel-0"
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
@@ -219,7 +219,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 
 			path := NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-			path.EndpointA.ChannelID = "channel-0"
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.Version
 
 			module, _, err := suite.chainA.App.IBCKeeper.PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)

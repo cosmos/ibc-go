@@ -10,8 +10,9 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
+const ChainIDPrefix = "testchain"
+
 var (
-	ChainIDPrefix   = "testchain"
 	globalStartTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	TimeIncrement   = time.Second * 5
 )
@@ -221,12 +222,9 @@ func (coord *Coordinator) ConnOpenInitOnBothChains(path *Path) error {
 
 // ChanOpenInitOnBothChains initializes a channel on the source chain and counterparty chain
 // with the state INIT using the OpenInit handshake call.
-// TODO: refactor
 func (coord *Coordinator) ChanOpenInitOnBothChains(path *Path) error {
 	// NOTE: only creation of a capability for a transfer or mock port is supported
 	// Other applications must bind to the port in InitGenesis or modify this code.
-	//	path.EndpointA.Chain.CreatePortCapability(path.EndpointA.ChannelConfig.PortID)
-	//	path.EndpointB.Chain.CreatePortCapability(path.EndpointA.ChannelConfig.PortID)
 
 	if err := path.EndpointA.ChanOpenInit(); err != nil {
 		return err

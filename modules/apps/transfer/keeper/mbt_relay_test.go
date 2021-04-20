@@ -294,12 +294,10 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := ibctesting.NewPath(suite.chainA, suite.chainB)
-		pathBtoC := ibctesting.NewPath(suite.chainB, suite.chainC)
-		suite.coordinator.SetupConnections(pathAtoB)
-		suite.coordinator.SetupConnections(pathBtoC)
-		suite.coordinator.CreateTransferChannels(pathAtoB)
-		suite.coordinator.CreateTransferChannels(pathBtoC)
+		pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
+		pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
+		suite.coordinator.Setup(pathAtoB)
+		suite.coordinator.Setup(pathBtoC)
 
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)

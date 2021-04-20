@@ -6,14 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/version"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -25,9 +17,15 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
+	tmtypes "github.com/tendermint/tendermint/types"
+	tmversion "github.com/tendermint/tendermint/version"
+
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/exported"
@@ -35,44 +33,6 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 	"github.com/cosmos/ibc-go/testing/mock"
 	"github.com/cosmos/ibc-go/testing/simapp"
-)
-
-const (
-	// Default params constants used to create a TM client
-	TrustingPeriod     time.Duration = time.Hour * 24 * 7 * 2
-	UnbondingPeriod    time.Duration = time.Hour * 24 * 7 * 3
-	MaxClockDrift      time.Duration = time.Second * 10
-	DefaultDelayPeriod uint64        = 0
-
-	DefaultChannelVersion = ibctransfertypes.Version
-	InvalidID             = "IDisInvalid"
-
-	ConnectionIDPrefix = "conn"
-	ChannelIDPrefix    = "chan"
-
-	TransferPort = ibctransfertypes.ModuleName
-	MockPort     = mock.ModuleName
-
-	// used for testing UpdateClientProposal
-	Title       = "title"
-	Description = "description"
-)
-
-var (
-	DefaultOpenInitVersion *connectiontypes.Version
-
-	// Default params variables used to create a TM client
-	DefaultTrustLevel ibctmtypes.Fraction = ibctmtypes.DefaultTrustLevel
-	TestCoin                              = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-
-	UpgradePath = []string{"upgrade", "upgradedIBCState"}
-
-	ConnectionVersion = connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions())[0]
-
-	MockAcknowledgement      = mock.MockAcknowledgement.Acknowledgement()
-	MockPacketData           = mock.MockPacketData
-	MockFailPacketData       = mock.MockFailPacketData
-	MockCanaryCapabilityName = mock.MockCanaryCapabilityName
 )
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
@@ -219,19 +179,6 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 	// was created in the IAVL tree. Tendermint and subsequently the clients that rely on it
 	// have heights 1 above the IAVL tree. Thus we return proof height + 1
 	return proof, clienttypes.NewHeight(revision, uint64(res.Height+1))
-}
-
-// QueryClientStateProof performs and abci query for a client state
-// stored with a given clientID and returns the ClientState along with the proof
-func (chain *TestChain) QueryClientStateProof(clientID string) (exported.ClientState, []byte) {
-	// retrieve client state to provide proof for
-	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), clientID)
-	require.True(chain.t, found)
-
-	clientKey := host.FullClientStateKey(clientID)
-	proofClient, _ := chain.QueryProof(clientKey)
-
-	return clientState, proofClient
 }
 
 // QueryConsensusStateProof performs an abci query for a consensus state

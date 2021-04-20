@@ -43,8 +43,8 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// setup between chainA and chainB
 	path := NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-	suite.coordinator.CreateTransferChannels(path)
+	suite.coordinator.Setup(path)
+
 	//	originalBalance := suite.chainA.App.BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	timeoutHeight := clienttypes.NewHeight(0, 110)
 
@@ -75,8 +75,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// pathBtoC.EndpointA = endpoint on chainB
 	// pathBtoC.EndpointB = endpoint on chainC
 	pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
-	suite.coordinator.SetupConnections(pathBtoC)
-	suite.coordinator.CreateTransferChannels(pathBtoC)
+	suite.coordinator.Setup(pathBtoC)
 
 	// send from chainB to chainC
 	msg = types.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0)
