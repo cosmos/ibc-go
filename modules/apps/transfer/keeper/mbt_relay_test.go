@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -295,10 +294,10 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		_, _, connAB, connBA := suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
-		_, _, connBC, connCB := suite.coordinator.SetupClientConnections(suite.chainB, suite.chainC, exported.Tendermint)
-		suite.coordinator.CreateTransferChannels(suite.chainA, suite.chainB, connAB, connBA, channeltypes.UNORDERED)
-		suite.coordinator.CreateTransferChannels(suite.chainB, suite.chainC, connBC, connCB, channeltypes.UNORDERED)
+		pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
+		pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
+		suite.coordinator.Setup(pathAtoB)
+		suite.coordinator.Setup(pathBtoC)
 
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)

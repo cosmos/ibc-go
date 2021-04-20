@@ -36,6 +36,14 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
+func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+	path := ibctesting.NewPath(chainA, chainB)
+	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+
+	return path
+}
+
 func (suite *KeeperTestSuite) TestGetTransferAccount() {
 	expectedMaccAddr := sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleName)))
 
