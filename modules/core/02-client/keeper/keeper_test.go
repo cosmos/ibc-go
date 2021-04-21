@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	"github.com/cosmos/ibc-go/testing/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/ibc-go/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
@@ -23,7 +23,7 @@ import (
 	localhosttypes "github.com/cosmos/ibc-go/modules/light-clients/09-localhost/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 const (
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		val.Tokens = sdk.NewInt(rand.Int63())
 		validators = append(validators, val)
 
-		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators)
+		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
 		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
 	}
 
