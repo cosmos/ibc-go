@@ -335,11 +335,11 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	consState, err = types.GetConsensusState(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), suite.cdc, nextHeight)
 	suite.Require().Equal(consensusState, consState, "consensus state is unexpectedly pruned")
 	suite.Require().NoError(err)
-	// check processed time metadata is pruned
+	// check processed time metadata is not pruned
 	processTime, ok = types.GetProcessedTime(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), nextHeight)
 	suite.Require().Equal(uint64(ctx.BlockTime().UnixNano()), processTime, "processed time metadata is incorrect")
 	suite.Require().True(ok)
-	// check iteration key metadata is pruned
+	// check iteration key metadata is not pruned
 	consKey = types.GetIterationKey(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), nextHeight)
 	suite.Require().Equal(host.ConsensusStateKey(nextHeight), consKey, "iteration key does not store consensus state key correctly")
 }

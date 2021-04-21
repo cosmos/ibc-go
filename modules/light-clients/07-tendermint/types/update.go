@@ -37,6 +37,11 @@ import (
 // number must be the same. To update to a new revision, use a separate upgrade path
 // Tendermint client validity checking uses the bisection algorithm described
 // in the [Tendermint spec](https://github.com/tendermint/spec/blob/master/spec/consensus/light-client.md).
+//
+// Pruning:
+// UpdateClient will additionally retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
+// that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
+// becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
 func (cs ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryMarshaler, clientStore sdk.KVStore,
 	header exported.Header,

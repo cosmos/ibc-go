@@ -13,6 +13,23 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
+/*
+This file contains the logic for storage and iteration over `IterationKey` metadata that is stored
+for each consensus state. The consensus state key specified in ICS-24 and expected by counterparty chains
+stores the consensus state under the key: `consensusStates/{revision_number}-{revision_height}`, with each number
+represented as a string.
+While this works fine for IBC proof verification, it makes efficient iteration difficult since the lexicographic order
+of the consensus state keys do not match the height order of consensus states. This makes consensus state pruning and
+monotonic time enforcement difficult since it is inefficient to find the earliest consensus state or to find the neigboring
+consensus states given a consensus state height.
+Changing the ICS-24 representation will be a major breaking change that requires counterparty chains to accept a new key format.
+Thus to avoid breaking IBC, we can store a lookup from a more efficiently formatted key: `iterationKey` to the consensus state key which
+stores the underlying consensus state. This efficient iteration key will be formatted like so: `iterateConsensusStates{BigEndianRevisionBytes}{BigEndianHeightBytes}`.
+This ensures that the lexicographic order of iteration keys match the height order of the consensus states. Thus, we can use the SDK store's
+Iterators to iterate over the consensus states in ascending/descending order by providing a mapping from `iterationKey -> consensusStateKey -> ConsensusState`.
+A future version of IBC may choose to replace the ICS24 ConsensusState path with the more efficient format and make this indirection unnecessary.
+*/
+
 const KeyIterateConsensusStatePrefix = "iterateConsensusStates"
 
 var (
@@ -154,7 +171,6 @@ func GetHeightFromIterationKey(iterKey []byte) exported.Height {
 }
 
 func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) error {
-
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	defer iterator.Close()
 
