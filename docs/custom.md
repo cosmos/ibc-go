@@ -31,7 +31,7 @@ module correctly.
 ### Implement `IBCModule` Interface and callbacks
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
-interface](https://github.com/cosmos/cosmos-sdk/tree/master/x/ibc/core/05-port/types/module.go). This
+interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This
 interface contains all of the callbacks IBC expects modules to implement. This section will describe
 the callbacks that are called during channel handshake execution.
 
@@ -209,7 +209,7 @@ channel, as well as how they will encode/decode it. This process is not specifie
 to each application module to determine how to implement this agreement. However, for most
 applications this will happen as a version negotiation during the channel handshake. While more
 complex version negotiation is possible to implement inside the channel opening handshake, a very
-simple version negotation is implemented in the [ibc-transfer module](https://github.com/cosmos/cosmos-sdk/tree/master/x/ibc-transfer/module.go).
+simple version negotation is implemented in the [ibc-transfer module](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer/module.go).
 
 Thus, a module must define its a custom packet data structure, along with a well-defined way to
 encode and decode it to and from `[]byte`.
@@ -295,49 +295,46 @@ invoked by the IBC module after the packet has been proved valid and correctly p
 keepers. Thus, the `OnRecvPacket` callback only needs to worry about making the appropriate state
 changes given the packet data without worrying about whether the packet is valid or not.
 
-Modules may return an acknowledgement as a byte string and return it to the IBC handler.
+Modules may return to the IBC handler an acknowledgement which implements the Acknowledgement interface.
 The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
 acknowledgement back to the sender module.
+
+The state changes that occurred during this callback will only be written if:
+- the acknowledgement was successful as indicated by the `Success()` function of the acknowledgement
+- if the acknowledgement returned is nil indicating that an asynchronous process is occurring
+
+NOTE: Applications which process asynchronous acknowledgements must handle reverting state changes
+when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written 
+for asynchronous acknowledgements. 
 
 ```go
 OnRecvPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
-) (res *sdk.Result, ack []byte, abort error) {
+) ibcexported.Acknowledgement {
     // Decode the packet data
     packetData := DecodePacketData(packet.Data)
 
-    // do application state changes based on packet data
-    // and return result, acknowledgement and abortErr
-    // Note: abortErr is only not nil if we need to abort the entire receive packet, and allow a replay of the receive.
-    // If the application state change failed but we do not want to replay the packet,
-    // simply encode this failure with relevant information in ack and return nil error
-    res, ack, abortErr := processPacket(ctx, packet, packetData)
+    // do application state changes based on packet data and return the acknowledgement
+    // NOTE: The acknowledgement will indicate to the IBC handler if the application 
+    // state changes should be written via the `Success()` function. Application state
+    // changes are only written if the acknowledgement is successful or the acknowledgement
+    // returned is nil indicating that an asynchronous acknowledgement will occur.
+    ack := processPacket(ctx, packet, packetData)
 
-    // if we need to abort the entire receive packet, return error
-    if abortErr != nil {
-        return nil, nil, abortErr
-    }
-
-    // Encode the ack since IBC expects acknowledgement bytes
-    ackBytes := EncodeAcknowledgement(ack)
-
-    return res, ackBytes, nil
+    return ack
 }
 ```
 
-::: warning
-`OnRecvPacket` should **only** return an error if we want the entire receive packet execution
-(including the IBC handling) to be reverted. This will allow the packet to be replayed in the case
-that some mistake in the relaying caused the packet processing to fail.
-
-If some application-level error happened while processing the packet data, in most cases, we will
-not want the packet processing to revert. Instead, we may want to encode this failure into the
-acknowledgement and finish processing the packet. This will ensure the packet cannot be replayed,
-and will also allow the sender module to potentially remediate the situation upon receiving the
-acknowledgement. An example of this technique is in the `ibc-transfer` module's
-[`OnRecvPacket`](https://github.com/cosmos/cosmos-sdk/tree/master/x/ibc-transfer/module.go).
-:::
+The Acknowledgement interface:
+```go
+// Acknowledgement defines the interface used to return
+// acknowledgements in the OnRecvPacket callback.
+type Acknowledgement interface {
+	Success() bool
+	Acknowledgement() []byte
+}
+```
 
 ### Acknowledgements
 
@@ -358,9 +355,9 @@ Thus, modules must agree on how to encode/decode acknowledgements. The process o
 acknowledgement struct along with encoding and decoding it, is very similar to the packet data
 example above. [ICS 04](https://github.com/cosmos/ics/tree/master/spec/ics-004-channel-and-packet-semantics#acknowledgement-envelope)
 specifies a recommended format for acknowledgements. This acknowledgement type can be imported from
-[channel types](https://github.com/cosmos/cosmos-sdk/tree/master/x/ibc/core/04-channel/types).
+[channel types](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel/types).
 
-While modules may choose arbitrary acknowledgement structs, a default acknowledgement types is provided by IBC [here](https://github.com/cosmos/cosmos-sdk/blob/master/proto/ibc/core/channel/v1/channel.proto):
+While modules may choose arbitrary acknowledgement structs, a default acknowledgement types is provided by IBC [here](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/channel/v1/channel.proto):
 
 ```proto
 // Acknowledgement is the recommended acknowledgement format to be used by
@@ -455,14 +452,14 @@ which implements everything discussed above.
 Here are the useful parts of the module to look at:
 
 [Binding to transfer
-port](https://github.com/cosmos/cosmos-sdk/blob/master/x/ibc-transfer/genesis.go)
+port](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/genesis.go)
 
 [Sending transfer
-packets](https://github.com/cosmos/cosmos-sdk/blob/master/x/ibc-transfer/keeper/relay.go)
+packets](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper/relay.go)
 
 [Implementing IBC
-callbacks](https://github.com/cosmos/cosmos-sdk/blob/master/x/ibc-transfer/module.go)
+callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/module.go)
 
 ## Next {hide}
 
-Learn about [building modules](../building-modules/intro.md) {hide}
+Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/intro.md) {hide}
