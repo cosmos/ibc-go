@@ -14,6 +14,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -86,7 +87,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
 	}
 
-	app := simapp.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -104,7 +105,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		ChainID:       chainID,
 		App:           app,
 		CurrentHeader: header,
-		QueryServer:   app.IBCKeeper,
+		QueryServer:   app.GetIBCKeeper(),
 		TxConfig:      txConfig,
 		Codec:         app.AppCodec(),
 		Vals:          valSet,
@@ -114,7 +115,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	}
 
 	cap := chain.App.GetIBCKeeper().PortKeeper.BindPort(chain.GetContext(), MockPort)
-	err = chain.App.GetScopedIBCMockKeeper().ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
+	err = chain.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
 	require.NoError(t, err)
 
 	coord.CommitBlock(chain)
@@ -462,8 +463,7 @@ func CreateSortedSignerArray(altPrivVal, suitePrivVal tmtypes.PrivValidator,
 // already exist. This function will fail testing on any resulting error.
 // NOTE: only creation of a capbility for a transfer or mock port is supported
 // Other applications must bind to the port in InitGenesis or modify this code.
-// TODO: turn into a callback
-func (chain *TestChain) CreatePortCapability(portID string) {
+func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID string) {
 	// check if the portId is already binded, if not bind it
 	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	if !ok {
@@ -471,18 +471,9 @@ func (chain *TestChain) CreatePortCapability(portID string) {
 		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), host.PortPath(portID))
 		require.NoError(chain.t, err)
 
-		switch portID {
-		case MockPort:
-			// claim capability using the mock capability keeper
-			err = chain.App.GetScopedIBCMockKeeper().ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
-			require.NoError(chain.t, err)
-		case TransferPort:
-			// claim capability using the transfer capability keeper
-			err = chain.App.GetScopedTransferKeeper().ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
-			require.NoError(chain.t, err)
-		default:
-			panic(fmt.Sprintf("unsupported ibc testing package port ID %s", portID))
-		}
+		// claim capability using the scopedKeeper
+		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
+		require.NoError(chain.t, err)
 	}
 
 	chain.App.Commit()
@@ -500,15 +491,16 @@ func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capabi
 }
 
 // CreateChannelCapability binds and claims a capability for the given portID and channelID
-// if it does not already exist. This function will fail testing on any resulting error.
-func (chain *TestChain) CreateChannelCapability(portID, channelID string) {
+// if it does not already exist. This function will fail testing on any resulting error. The
+// scoped keeper passed in will claim the new capability.
+func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID, channelID string) {
 	capName := host.ChannelCapabilityPath(portID, channelID)
 	// check if the portId is already binded, if not bind it
 	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), capName)
 	if !ok {
 		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), capName)
 		require.NoError(chain.t, err)
-		err = chain.App.GetScopedTransferKeeper().ClaimCapability(chain.GetContext(), cap, capName)
+		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, capName)
 		require.NoError(chain.t, err)
 	}
 

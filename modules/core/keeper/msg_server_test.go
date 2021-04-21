@@ -190,7 +190,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				suite.Require().Error(err)
 
 				// check that callback state was handled correctly
-				_, exists := suite.chainB.App.GetScopedIBCMockKeeper().GetCapability(suite.chainB.GetContext(), ibctesting.MockCanaryCapabilityName)
+				_, exists := suite.chainB.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibctesting.MockCanaryCapabilityName)
 				if tc.expRevert {
 					suite.Require().False(exists, "capability exists in store even after callback reverted")
 				} else {
