@@ -96,7 +96,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		Time:    coord.CurrentTime.UTC(),
 	}
 
-	txConfig := simapp.MakeTestEncodingConfig().TxConfig
+	txConfig := app.GetTxConfig()
 
 	// create an account to send transactions from
 	chain := &TestChain{
@@ -113,10 +113,6 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		senderPrivKey: senderPrivKey,
 		SenderAccount: acc,
 	}
-
-	cap := chain.App.GetIBCKeeper().PortKeeper.BindPort(chain.GetContext(), MockPort)
-	err = chain.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
-	require.NoError(t, err)
 
 	coord.CommitBlock(chain)
 

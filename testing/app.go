@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -36,6 +37,7 @@ type TestingApp interface {
 	GetStakingKeeper() stakingkeeper.Keeper
 	GetIBCKeeper() *keeper.Keeper
 	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
+	GetTxConfig() client.TxConfig
 
 	// Implemented by SimApp
 	AppCodec() codec.Marshaler

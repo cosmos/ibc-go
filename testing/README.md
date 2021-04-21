@@ -51,6 +51,7 @@ type TestingApp interface {
 	GetStakingKeeper() stakingkeeper.Keeper
 	GetIBCKeeper() *keeper.Keeper
 	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
+	GetTxConfig() client.TxConfig
 
 	// Implemented by SimApp
 	AppCodec() codec.Marshaler
@@ -86,6 +87,12 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 	return app.ScopedIBCKeeper
 }
+
+// GetTxConfig implements the TestingApp interface.
+func (app *SimApp) GetTxConfig() client.TxConfig {
+	return MakeTestEncodingConfig().TxConfig
+}
+
 ```
 
 Your application may need to define `AppCodec()` if it does not already exist:
@@ -233,4 +240,50 @@ Here is a basic example of the testing package being used to simulate IBC functi
 
     // if needed we can update our clients
     path.EndpointB.UpdateClient()    
+```
+
+### Transfer Testing Example
+
+If ICS 20 had its own simapp, its testing setup might include a `testing/app.go` file with the following contents:
+
+```go
+package transfertesting
+
+import (
+	"encoding/json"
+
+	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
+
+	"github.com/cosmos/ibc-go/modules/apps/transfer/simapp"
+	ibctesting "github.com/cosmos/ibc-go/testing"
+)
+
+func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := dbm.NewMemDB()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
+	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+}
+
+func init() {
+	ibctesting.DefaultTestingAppInit = SetupTransferTestingApp
+}
+
+func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+	path := ibctesting.NewPath(chainA, chainB)
+	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+
+	return path
+}
+
+func GetTransferSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
+	app, ok := chain.App.(*simapp.SimApp)
+	if !ok {
+		panic("not transfer app")
+	}
+
+	return app
+}
 ```
