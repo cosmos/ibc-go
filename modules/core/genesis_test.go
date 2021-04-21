@@ -347,23 +347,23 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 
 			var gs *types.GenesisState
 			suite.NotPanics(func() {
-				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.IBCKeeper)
+				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
 			})
 
 			// init genesis based on export
 			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.IBCKeeper, true, gs)
+				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), true, gs)
 			})
 
 			suite.NotPanics(func() {
-				cdc := codec.NewProtoCodec(suite.chainA.App.InterfaceRegistry())
+				cdc := codec.NewProtoCodec(suite.chainA.GetSimApp().InterfaceRegistry())
 				genState := cdc.MustMarshalJSON(gs)
 				cdc.MustUnmarshalJSON(genState, gs)
 			})
 
 			// init genesis based on marshal and unmarshal
 			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.IBCKeeper, true, gs)
+				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), true, gs)
 			})
 		})
 	}

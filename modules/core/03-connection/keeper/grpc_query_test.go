@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 
 				counterparty := types.NewCounterparty(path.EndpointB.ClientID, "", suite.chainB.GetPrefix())
 				expConnection = types.NewConnectionEnd(types.INIT, path.EndpointA.ClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 500)
-				suite.chainA.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, expConnection)
+				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, expConnection)
 
 				req = &types.QueryConnectionRequest{
 					ConnectionId: path.EndpointA.ConnectionID,
@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 				suite.coordinator.CreateConnections(path2)
 
 				expPaths = []string{path1.EndpointA.ConnectionID, path2.EndpointA.ConnectionID}
-				suite.chainA.App.IBCKeeper.ConnectionKeeper.SetClientConnectionPaths(suite.chainA.GetContext(), path1.EndpointA.ClientID, expPaths)
+				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetClientConnectionPaths(suite.chainA.GetContext(), path1.EndpointA.ClientID, expPaths)
 
 				req = &types.QueryClientConnectionsRequest{
 					ClientId: path1.EndpointA.ClientID,
@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 				suite.coordinator.Setup(path)
 
 				// set connection to empty so clientID is empty
-				suite.chainA.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, types.ConnectionEnd{})
+				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, types.ConnectionEnd{})
 
 				req = &types.QueryConnectionClientStateRequest{
 					ConnectionId: path.EndpointA.ConnectionID,

@@ -32,16 +32,16 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		{
 			"not a consensus state interface", func() {
 				// marshal an empty client state and set as consensus state
-				store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				clientStateBz := suite.chainA.App.IBCKeeper.ClientKeeper.MustMarshalClientState(&types.ClientState{})
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				clientStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalClientState(&types.ClientState{})
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
 			}, false,
 		},
 		{
 			"invalid consensus state (solomachine)", func() {
 				// marshal and set solomachine consensus state
-				store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				consensusStateBz := suite.chainA.App.IBCKeeper.ClientKeeper.MustMarshalConsensusState(&solomachinetypes.ConsensusState{})
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				consensusStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalConsensusState(&solomachinetypes.ConsensusState{})
 				store.Set(host.ConsensusStateKey(height), consensusStateBz)
 			}, false,
 		},
@@ -60,7 +60,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 
 			tc.malleate() // change vars as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			consensusState, err := types.GetConsensusState(store, suite.chainA.Codec, height)
 
 			if tc.expPass {
@@ -91,7 +91,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
 	height := clientState.GetLatestHeight()
 
-	store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	actualTime, ok := types.GetProcessedTime(store, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
@@ -107,7 +107,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	clientState = suite.chainA.GetClientState(path.EndpointA.ClientID)
 	height = clientState.GetLatestHeight()
 
-	store = suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	actualTime, ok = types.GetProcessedTime(store, height)
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")

@@ -36,11 +36,11 @@ func (suite *KeeperTestSuite) TestSetAndGetConnection() {
 	firstConnection := "connection-0"
 
 	// check first connection does not exist
-	_, existed := suite.chainA.App.IBCKeeper.ConnectionKeeper.GetConnection(suite.chainA.GetContext(), firstConnection)
+	_, existed := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), firstConnection)
 	suite.Require().False(existed)
 
 	suite.coordinator.CreateConnections(path)
-	_, existed = suite.chainA.App.IBCKeeper.ConnectionKeeper.GetConnection(suite.chainA.GetContext(), firstConnection)
+	_, existed = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), firstConnection)
 	suite.Require().True(existed)
 }
 
@@ -49,12 +49,12 @@ func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
-	_, existed := suite.chainA.App.IBCKeeper.ConnectionKeeper.GetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	_, existed := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	suite.False(existed)
 
 	connections := []string{"connectionA", "connectionB"}
-	suite.chainA.App.IBCKeeper.ConnectionKeeper.SetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID, connections)
-	paths, existed := suite.chainA.App.IBCKeeper.ConnectionKeeper.GetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID, connections)
+	paths, existed := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	suite.True(existed)
 	suite.EqualValues(connections, paths)
 }
@@ -81,7 +81,7 @@ func (suite KeeperTestSuite) TestGetAllConnections() {
 
 	expConnections := []types.IdentifiedConnection{iconn1, iconn2}
 
-	connections := suite.chainA.App.IBCKeeper.ConnectionKeeper.GetAllConnections(suite.chainA.GetContext())
+	connections := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetAllConnections(suite.chainA.GetContext())
 	suite.Require().Len(connections, len(expConnections))
 	suite.Require().Equal(expConnections, connections)
 }
@@ -104,7 +104,7 @@ func (suite KeeperTestSuite) TestGetAllClientConnectionPaths() {
 		types.NewConnectionPaths(path2.EndpointA.ClientID, []string{path2.EndpointA.ConnectionID, path3.EndpointA.ConnectionID}),
 	}
 
-	connPaths := suite.chainA.App.IBCKeeper.ConnectionKeeper.GetAllClientConnectionPaths(suite.chainA.GetContext())
+	connPaths := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetAllClientConnectionPaths(suite.chainA.GetContext())
 	suite.Require().Len(connPaths, 2)
 	suite.Require().Equal(expPaths, connPaths)
 }
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 
 			tc.malleate()
 
-			actualTimestamp, err := suite.chainA.App.IBCKeeper.ConnectionKeeper.GetTimestampAtHeight(
+			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(
 				suite.chainA.GetContext(), connection, suite.chainB.LastHeader.GetHeight(),
 			)
 

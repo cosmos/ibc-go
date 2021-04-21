@@ -14,6 +14,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -44,7 +45,7 @@ type TestChain struct {
 	t *testing.T
 
 	Coordinator   *Coordinator
-	App           *simapp.SimApp
+	App           TestingApp
 	ChainID       string
 	LastHeader    *ibctmtypes.Header // header for last block height committed
 	CurrentHeader tmproto.Header     // header for current block height
@@ -86,7 +87,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
 	}
 
-	app := simapp.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -104,7 +105,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		ChainID:       chainID,
 		App:           app,
 		CurrentHeader: header,
-		QueryServer:   app.IBCKeeper,
+		QueryServer:   app.GetIBCKeeper(),
 		TxConfig:      txConfig,
 		Codec:         app.AppCodec(),
 		Vals:          valSet,
@@ -113,8 +114,8 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		SenderAccount: acc,
 	}
 
-	cap := chain.App.IBCKeeper.PortKeeper.BindPort(chain.GetContext(), MockPort)
-	err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
+	cap := chain.App.GetIBCKeeper().PortKeeper.BindPort(chain.GetContext(), MockPort)
+	err = chain.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
 	require.NoError(t, err)
 
 	coord.CommitBlock(chain)
@@ -124,7 +125,17 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	return chain.App.BaseApp.NewContext(false, chain.CurrentHeader)
+	return chain.App.GetBaseApp().NewContext(false, chain.CurrentHeader)
+}
+
+// GetSimApp returns the SimApp to allow usage ofnon-interface fields.
+// CONTRACT: This function should not be called by third parties implementing
+// their own SimApp.
+func (chain *TestChain) GetSimApp() *simapp.SimApp {
+	app, ok := chain.App.(*simapp.SimApp)
+	require.True(chain.t, ok)
+
+	return app
 }
 
 // QueryProof performs an abci query with the given key and returns the proto encoded merkle proof
@@ -234,7 +245,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	_, r, err := simapp.SignAndDeliver(
 		chain.t,
 		chain.TxConfig,
-		chain.App.BaseApp,
+		chain.App.GetBaseApp(),
 		chain.GetContext().BlockHeader(),
 		msgs,
 		chain.ChainID,
@@ -260,7 +271,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 // GetClientState retrieves the client state for the provided clientID. The client is
 // expected to exist otherwise testing will fail.
 func (chain *TestChain) GetClientState(clientID string) exported.ClientState {
-	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), clientID)
+	clientState, found := chain.App.GetIBCKeeper().ClientKeeper.GetClientState(chain.GetContext(), clientID)
 	require.True(chain.t, found)
 
 	return clientState
@@ -269,13 +280,13 @@ func (chain *TestChain) GetClientState(clientID string) exported.ClientState {
 // GetConsensusState retrieves the consensus state for the provided clientID and height.
 // It will return a success boolean depending on if consensus state exists or not.
 func (chain *TestChain) GetConsensusState(clientID string, height exported.Height) (exported.ConsensusState, bool) {
-	return chain.App.IBCKeeper.ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
+	return chain.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
 }
 
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
 // a success boolean depending on if the validator set exists or not at that height.
 func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bool) {
-	histInfo, ok := chain.App.StakingKeeper.GetHistoricalInfo(chain.GetContext(), height)
+	histInfo, ok := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), height)
 	if !ok {
 		return nil, false
 	}
@@ -292,7 +303,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
-	ack, found := chain.App.IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	ack, found := chain.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	require.True(chain.t, found)
 
 	return ack
@@ -300,7 +311,7 @@ func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
 
 // GetPrefix returns the prefix for used by a chain in connection creation
 func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
-	return commitmenttypes.NewMerklePrefix(chain.App.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix().Bytes())
+	return commitmenttypes.NewMerklePrefix(chain.App.GetIBCKeeper().ConnectionKeeper.GetCommitmentPrefix().Bytes())
 }
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
@@ -452,27 +463,17 @@ func CreateSortedSignerArray(altPrivVal, suitePrivVal tmtypes.PrivValidator,
 // already exist. This function will fail testing on any resulting error.
 // NOTE: only creation of a capbility for a transfer or mock port is supported
 // Other applications must bind to the port in InitGenesis or modify this code.
-// TODO: turn into a callback
-func (chain *TestChain) CreatePortCapability(portID string) {
+func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID string) {
 	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.PortPath(portID))
+	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	if !ok {
 		// create capability using the IBC capability keeper
-		cap, err := chain.App.ScopedIBCKeeper.NewCapability(chain.GetContext(), host.PortPath(portID))
+		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), host.PortPath(portID))
 		require.NoError(chain.t, err)
 
-		switch portID {
-		case MockPort:
-			// claim capability using the mock capability keeper
-			err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
-			require.NoError(chain.t, err)
-		case TransferPort:
-			// claim capability using the transfer capability keeper
-			err = chain.App.ScopedTransferKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
-			require.NoError(chain.t, err)
-		default:
-			panic(fmt.Sprintf("unsupported ibc testing package port ID %s", portID))
-		}
+		// claim capability using the scopedKeeper
+		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
+		require.NoError(chain.t, err)
 	}
 
 	chain.App.Commit()
@@ -483,22 +484,23 @@ func (chain *TestChain) CreatePortCapability(portID string) {
 // GetPortCapability returns the port capability for the given portID. The capability must
 // exist, otherwise testing will fail.
 func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capability {
-	cap, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.PortPath(portID))
+	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	require.True(chain.t, ok)
 
 	return cap
 }
 
 // CreateChannelCapability binds and claims a capability for the given portID and channelID
-// if it does not already exist. This function will fail testing on any resulting error.
-func (chain *TestChain) CreateChannelCapability(portID, channelID string) {
+// if it does not already exist. This function will fail testing on any resulting error. The
+// scoped keeper passed in will claim the new capability.
+func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID, channelID string) {
 	capName := host.ChannelCapabilityPath(portID, channelID)
 	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), capName)
+	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), capName)
 	if !ok {
-		cap, err := chain.App.ScopedIBCKeeper.NewCapability(chain.GetContext(), capName)
+		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), capName)
 		require.NoError(chain.t, err)
-		err = chain.App.ScopedTransferKeeper.ClaimCapability(chain.GetContext(), cap, capName)
+		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, capName)
 		require.NoError(chain.t, err)
 	}
 
@@ -510,7 +512,7 @@ func (chain *TestChain) CreateChannelCapability(portID, channelID string) {
 // GetChannelCapability returns the channel capability for the given portID and channelID.
 // The capability must exist, otherwise testing will fail.
 func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabilitytypes.Capability {
-	cap, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
+	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
 	require.True(chain.t, ok)
 
 	return cap
