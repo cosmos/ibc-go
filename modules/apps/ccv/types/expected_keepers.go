@@ -8,10 +8,13 @@ type StakingKeeper interface {
 	GetInitialValidatorSet(chainID string) []sdk.Tx
 }
 
-// CNSKeeper defines the contract expected by parent-chain ccv module from the Chain Naming Service Module
-// CNSKeeper is responsible for verifying that chain creator is authorized to create a chain with given chain-id
+// RegistryKeeper defines the contract expected by parent-chain ccv module from a Registry Module that will keep track
+// of chain creators and respective validator sets
+// RegistryKeeper is responsible for verifying that chain creator is authorized to create a chain with given chain-id,
+// as well as which validators are staking for a given chain.
 type CNSKeeper interface {
 	AuthorizeChainCreator(chainID, creator string)
+	GetValidatorSet(chainID string) []sdk.ValAddress
 }
 
 // TODO: Expected interfaces for distribution on parent and baby chains
