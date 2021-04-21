@@ -43,7 +43,6 @@ type TestingApp interface {
 	// Implemented by BaseApp
 	LastCommitID() sdk.CommitID
 	LastBlockHeight() int64
-	Query(req abci.RequestQuery) (res abci.ResponseQuery)
 }
 
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
