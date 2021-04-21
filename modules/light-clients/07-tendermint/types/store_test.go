@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	math "math"
+	"math"
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"

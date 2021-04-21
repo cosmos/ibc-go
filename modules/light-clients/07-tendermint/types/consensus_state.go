@@ -38,12 +38,6 @@ func (cs ConsensusState) GetTimestamp() uint64 {
 	return uint64(cs.Timestamp.UnixNano())
 }
 
-// IsExpired returns whether this consensus state is expired given the trusting period and current timestamp
-func (cs ConsensusState) IsExpired(trustingPeriod time.Duration, now time.Time) bool {
-	expirationTime := cs.Timestamp.Add(trustingPeriod)
-	return !expirationTime.After(now)
-}
-
 // ValidateBasic defines a basic validation for the tendermint consensus state.
 // NOTE: ProcessedTimestamp may be zero if this is an initial consensus state passed in by relayer
 // as opposed to a consensus state constructed by the chain.

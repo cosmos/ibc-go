@@ -68,11 +68,12 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	)
 	pruneCb := func(height exported.Height) bool {
 		consState, err := GetConsensusState(clientStore, cdc, height)
+		// this error should never occur
 		if err != nil {
 			pruneError = err
 			return true
 		}
-		if consState.IsExpired(cs.TrustingPeriod, ctx.BlockTime()) {
+		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
 			pruneHeight = height
 		}
 		return true
