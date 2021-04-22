@@ -248,9 +248,8 @@ func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshale
 }
 
 func bigEndianHeightBytes(height exported.Height) []byte {
-	revisionBytes := make([]byte, 8)
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(revisionBytes, height.GetRevisionNumber())
-	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionHeight())
-	return append(revisionBytes, heightBytes...)
+	heightBytes := make([]byte, 16)
+	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionNumber())
+	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
+	return heightBytes
 }
