@@ -235,6 +235,7 @@ func getTmConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, key
 	if !ok {
 		return nil, false
 	}
+	return consensusState, true
 }
 
 func bigEndianHeightBytes(height exported.Height) []byte {

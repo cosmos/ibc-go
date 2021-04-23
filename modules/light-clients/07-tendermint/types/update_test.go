@@ -298,14 +298,14 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// this height will be expired but not pruned
 	path.EndpointA.UpdateClient()
 	expiredHeight := path.EndpointA.GetClientState().GetLatestHeight()
-	// store expected values that must still remain in store after pruning
+
+	// expected values that must still remain in store after pruning
 	expectedConsState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, expiredHeight)
 	suite.Require().True(ok)
 	ctx := path.EndpointA.Chain.GetContext()
 	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 	expectedProcessTime, ok := types.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().True(ok)
-	// check iteration key metadata is pruned
 	expectedConsKey := types.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().NotNil(expectedConsKey)
 
@@ -340,11 +340,11 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	consState, ok = path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, expiredHeight)
 	suite.Require().Equal(expectedConsState, consState, "consensus state incorrectly pruned")
 	suite.Require().True(ok)
-	// check processed time metadata is pruned
+	// check processed time metadata is not pruned
 	processTime, ok = types.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().Equal(expectedProcessTime, processTime, "processed time metadata incorrectly pruned")
 	suite.Require().True(ok)
-	// check iteration key metadata is pruned
+	// check iteration key metadata is not pruned
 	consKey = types.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }
