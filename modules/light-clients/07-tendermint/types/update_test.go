@@ -7,7 +7,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	types "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
@@ -243,7 +242,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 		ctx := suite.chainA.GetContext().WithBlockTime(currentTime)
 
 		// Set trusted consensus state in client store
-		suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(ctx, clientID, consStateHeight, consensusState)
+		suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, consStateHeight, consensusState)
 
 		height := newHeader.GetHeight()
 		expectedConsensus := &types.ConsensusState{
@@ -255,7 +254,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 		newClientState, consensusState, err := clientState.CheckHeaderAndUpdateState(
 			ctx,
 			suite.cdc,
-			suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID), // pass in clientID prefixed clientStore
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID), // pass in clientID prefixed clientStore
 			newHeader,
 		)
 
@@ -282,64 +281,65 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 }
 
 func (suite *TendermintTestSuite) TestPruneConsensusState() {
-	ctx := suite.chainA.GetContext().WithBlockTime(suite.now)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
-	// create 2 consensus states with the clientTime along with the metadata that would be stored by UpdateClient
-	consensusState := types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(ctx, clientID, height, consensusState)
-	types.SetProcessedTime(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(ctx, clientID), height, uint64(ctx.BlockTime().UnixNano()))
-	types.SetIterationKey(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(ctx, clientID), height)
-	nextHeight := height.Increment()
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(ctx, clientID, nextHeight, consensusState)
-	types.SetProcessedTime(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(ctx, clientID), nextHeight, uint64(ctx.BlockTime().UnixNano()))
-	types.SetIterationKey(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(ctx, clientID), nextHeight)
+	clientState := path.EndpointA.GetClientState().(*types.ClientState)
 
-	// Set consensus state to a timestamp a week from now so that it is valid for the next consensus state which will be two weeks from now.
-	trustedCtx := suite.chainA.GetContext().WithBlockTime(suite.now.Add(7 * 24 * time.Hour))
-	trustedHeight := nextHeight.Increment().(clienttypes.Height)
-	trustedConsensusState := types.NewConsensusState(suite.clientTime.Add(7*24*time.Hour), commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetClientConsensusState(trustedCtx, clientID, trustedHeight, trustedConsensusState)
-	types.SetProcessedTime(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(trustedCtx, clientID), trustedHeight, uint64(trustedCtx.BlockTime().UnixNano()))
-	types.SetIterationKey(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(trustedCtx, clientID), trustedHeight)
+	// call update client twice. When pruning occurs, only first consensus state should be pruned.
+	// this height will be pruned
+	path.EndpointA.UpdateClient()
+	pruneHeight := path.EndpointA.GetClientState().GetLatestHeight()
 
-	// Set current time to be two weeks from suite.now. This will cause the first two consensus state to become expired
-	// Create the header that will be submitted to `CheckHeaderAndUpdateState`
-	currentHeight := trustedHeight.Increment().(clienttypes.Height)
-	clientState := types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, trustedHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-	currentCtx := suite.chainA.GetContext().WithBlockTime(suite.now.Add(2 * 7 * 24 * time.Hour))
-	newHeader := suite.chainA.CreateTMClientHeader(chainID, int64(currentHeight.RevisionHeight), trustedHeight, currentCtx.BlockTime(), suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
+	// this height will be expired but not pruned
+	path.EndpointA.UpdateClient()
+	expiredHeight := path.EndpointA.GetClientState().GetLatestHeight()
+	// store expected values that must still remain in store after pruning
+	expiredConsState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, expiredHeight)
+	suite.Require().True(ok)
+	ctx := path.EndpointA.Chain.GetContext()
+	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+	expectedProcessTime, ok := types.GetProcessedTime(clientStore, pruneHeight)
+	suite.Require().True(ok)
+	// check iteration key metadata is pruned
+	expectedConsKey := types.GetIterationKey(clientStore, pruneHeight)
+	suite.Require().NotNil(expectedConsKey)
 
-	// CheckHeaderAndUpdateState must prune the oldest expired consensus state which is at height: `height`
-	_, _, err := clientState.CheckHeaderAndUpdateState(
-		currentCtx,
-		suite.cdc,
-		suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID),
-		newHeader,
-	)
-	suite.Require().NoError(err)
+	// Increment the time by a week
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+
+	// create the consensus state that can be used as trusted height for next update
+	path.EndpointA.UpdateClient()
+
+	// Increment the time by another week, then update the client.
+	// This will cause the first two consensus states to become expired.
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+	path.EndpointA.UpdateClient()
+
+	ctx = path.EndpointA.Chain.GetContext()
+	clientStore = path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 
 	// check that the first expired consensus state got deleted along with all associated metadata
-	consState, err := types.GetConsensusState(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), suite.cdc, height)
+	consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
 	suite.Require().Nil(consState, "expired consensus state not pruned")
-	suite.Require().Error(err, "getting deleted consensus state did not return error")
+	suite.Require().False(ok)
 	// check processed time metadata is pruned
-	processTime, ok := types.GetProcessedTime(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), height)
+	processTime, ok := types.GetProcessedTime(clientStore, pruneHeight)
 	suite.Require().Equal(uint64(0), processTime, "processed time metadata not pruned")
 	suite.Require().False(ok)
 	// check iteration key metadata is pruned
-	consKey := types.GetIterationKey(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), height)
+	consKey := types.GetIterationKey(clientStore, pruneHeight)
 	suite.Require().Nil(consKey, "iteration key not pruned")
 
 	// check that second expired consensus state doesn't get deleted
 	// this ensures that there is a cap on gas cost of UpdateClient
-	consState, err = types.GetConsensusState(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), suite.cdc, nextHeight)
-	suite.Require().Equal(consensusState, consState, "consensus state is unexpectedly pruned")
-	suite.Require().NoError(err)
-	// check processed time metadata is not pruned
-	processTime, ok = types.GetProcessedTime(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), nextHeight)
-	suite.Require().Equal(uint64(ctx.BlockTime().UnixNano()), processTime, "processed time metadata is incorrect")
+	consState, ok = path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+	suite.Require().Equal(expectedConsState, consState, "consensus state incorrectly pruned")
 	suite.Require().True(ok)
-	// check iteration key metadata is not pruned
-	consKey = types.GetIterationKey(suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(currentCtx, clientID), nextHeight)
-	suite.Require().Equal(host.ConsensusStateKey(nextHeight), consKey, "iteration key does not store consensus state key correctly")
+	// check processed time metadata is pruned
+	processTime, ok = types.GetProcessedTime(clientStore, pruneHeight)
+	suite.Require().Equal(expectedProcessTime, processTime, "processed time metadata incorrectly pruned")
+	suite.Require().False(ok)
+	// check iteration key metadata is pruned
+	consKey := types.GetIterationKey(clientStore, pruneHeight)
+	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }
