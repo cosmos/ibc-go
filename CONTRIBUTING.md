@@ -15,7 +15,6 @@
     - [Pull Merge Procedure](#pull-merge-procedure)
     - [Release Procedure](#release-procedure)
     - [Point Release Procedure](#point-release-procedure)
-  - [Code Owner Membership](#code-owner-membership)
 
 Thank you for considering making contributions to ibc-go! 
 
@@ -189,7 +188,7 @@ All development should be targeted against `main`. Bug fixes which are required 
 ### Pull Merge Procedure
 
 - ensure all github requirements pass
-- merge pull request
+- squash and merge pull request 
 
 ### Release Procedure
 
