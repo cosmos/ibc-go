@@ -198,22 +198,8 @@ func GetNextConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, h
 	}
 
 	csKey := iterator.Value()
-	bz := clientStore.Get(csKey)
-	if bz == nil {
-		return nil, false
-	}
 
-	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
-	if err != nil {
-		return nil, false
-	}
-
-	consensusState, ok := consensusStateI.(*ConsensusState)
-	if !ok {
-		return nil, false
-	}
-
-	return consensusState, true
+	return getTmConsensusState(clientStore, cdc, csKey)
 }
 
 // GetPreviousConsensusState returns the highest consensus state that is lower than the given height.
@@ -229,7 +215,13 @@ func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshale
 	}
 
 	csKey := iterator.Value()
-	bz := clientStore.Get(csKey)
+
+	return getTmConsensusState(clientStore, cdc, csKey)
+}
+
+// Helper function for GetNextConsensusState and GetPreviousConsensusState
+func getTmConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, key []byte) (*ConsensusState, bool) {
+	bz := clientStore.Get(key)
 	if bz == nil {
 		return nil, false
 	}
@@ -243,8 +235,6 @@ func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshale
 	if !ok {
 		return nil, false
 	}
-
-	return consensusState, true
 }
 
 func bigEndianHeightBytes(height exported.Height) []byte {
