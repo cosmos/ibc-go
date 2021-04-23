@@ -175,6 +175,56 @@
         
           
           <li>
+            <a href="#ibc%2fapps%2fccv%2fv1%2fccv.proto">ibc/apps/ccv/v1/ccv.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#ibc.apps.ccv.v1.ValidatorSetChangePacketData"><span class="badge">M</span>ValidatorSetChangePacketData</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#ibc%2fapps%2fccv%2fv1%2ftx.proto">ibc/apps/ccv/v1/tx.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#ibc.apps.ccv.v1.MsgBondStake"><span class="badge">M</span>MsgBondStake</a>
+                </li>
+              
+                <li>
+                  <a href="#ibc.apps.ccv.v1.MsgBondStakeResponse"><span class="badge">M</span>MsgBondStakeResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibc.apps.ccv.v1.MsgSubmitNewChain"><span class="badge">M</span>MsgSubmitNewChain</a>
+                </li>
+              
+                <li>
+                  <a href="#ibc.apps.ccv.v1.MsgSubmitNewChainResponse"><span class="badge">M</span>MsgSubmitNewChainResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#ibc.apps.ccv.v1.MsgUnbondStake"><span class="badge">M</span>MsgUnbondStake</a>
+                </li>
+              
+                <li>
+                  <a href="#ibc.apps.ccv.v1.MsgUnbondStakeResponse"><span class="badge">M</span>MsgUnbondStakeResponse</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#ibc%2fapps%2ftransfer%2fv1%2ftransfer.proto">ibc/apps/transfer/v1/transfer.proto</a>
             <ul>
               
@@ -1056,6 +1106,210 @@
       </ul>
     </div>
 
+    
+      
+      <div class="file-heading">
+        <h2 id="ibc/apps/ccv/v1/ccv.proto">ibc/apps/ccv/v1/ccv.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="ibc.apps.ccv.v1.ValidatorSetChangePacketData">ValidatorSetChangePacketData</h3>
+        <p>This packet is sent from parent chain to baby chain if the validator set for baby chain</p><p>changes (due to new bonding/unbonding messages or slashing events)</p><p>The acknowledgement from baby chain will be sent asynchronously once unbonding period is over,</p><p>and this will function as `UnbondingOver` message for this packet.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>validator_updates</td>
+                  <td><a href="#tendermint.abci.ValidatorUpdate">tendermint.abci.ValidatorUpdate</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="ibc/apps/ccv/v1/tx.proto">ibc/apps/ccv/v1/tx.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="ibc.apps.ccv.v1.MsgBondStake">MsgBondStake</h3>
+        <p>MsgBondStake defines a msg for a parent chain validator to stake on a baby chain.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>chain_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>the chain-id of baby-chain </p></td>
+                </tr>
+              
+                <tr>
+                  <td>stake</td>
+                  <td><a href="#cosmos.base.v1beta1.Coin">cosmos.base.v1beta1.Coin</a></td>
+                  <td></td>
+                  <td><p>amount that validator wants to stake on baby chain. This is in addition to current stake on baby chain,
+thus the maximum they may stake on baby chain is: `total stake on parent chain - current stake on baby chain` </p></td>
+                </tr>
+              
+                <tr>
+                  <td>sender</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>the sender address </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibc.apps.ccv.v1.MsgBondStakeResponse">MsgBondStakeResponse</h3>
+        <p>MsgBondStakeResponse defines the Msg/BondStake response type</p>
+
+        
+
+        
+      
+        <h3 id="ibc.apps.ccv.v1.MsgSubmitNewChain">MsgSubmitNewChain</h3>
+        <p>MsgSubmitNewChain defines a msg to submit a new baby chain that can be validated</p><p>by the parent chain validators.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>chain_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>the proposed chain-id of new chain </p></td>
+                </tr>
+              
+                <tr>
+                  <td>minimum_stake</td>
+                  <td><a href="#cosmos.base.v1beta1.Coin">cosmos.base.v1beta1.Coin</a></td>
+                  <td></td>
+                  <td><p>minimum stake that must commit to validate new chain before it can start </p></td>
+                </tr>
+              
+                <tr>
+                  <td>grace_period</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>optional grace period to allow validators to join initial validator set after minimum stake is reached
+grace period is a duration in nanoseconds </p></td>
+                </tr>
+              
+                <tr>
+                  <td>genesis_hash</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>hash of the genesis file with no staking genesis. Staking genesis will be filled in using gen-txs of initial
+validator set </p></td>
+                </tr>
+              
+                <tr>
+                  <td>sender</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>the sender address </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibc.apps.ccv.v1.MsgSubmitNewChainResponse">MsgSubmitNewChainResponse</h3>
+        <p>MsgSubmitNewChainResponse defines the Msg/SubmitNewChain response type.</p>
+
+        
+
+        
+      
+        <h3 id="ibc.apps.ccv.v1.MsgUnbondStake">MsgUnbondStake</h3>
+        <p>MsgUnbondStake defines a msg for parent chain validator to unbond their stake on baby chain.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>chain_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>the chain-id of baby-chain </p></td>
+                </tr>
+              
+                <tr>
+                  <td>stake</td>
+                  <td><a href="#cosmos.base.v1beta1.Coin">cosmos.base.v1beta1.Coin</a></td>
+                  <td></td>
+                  <td><p>amount that validator wants to unbond from baby chain. This may be a maximum of the current stake on baby chain </p></td>
+                </tr>
+              
+                <tr>
+                  <td>sender</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>the sender address </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="ibc.apps.ccv.v1.MsgUnbondStakeResponse">MsgUnbondStakeResponse</h3>
+        <p>MsgUnbondStakeResponse defines the Msg/UnbondStake response type</p>
+
+        
+
+        
+      
+
+      
+
+      
+
+      
     
       
       <div class="file-heading">

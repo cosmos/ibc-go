@@ -11,7 +11,7 @@ import "cosmos/base/v1beta1/coin.proto";
 // by the parent chain validators.
 message MsgSubmitNewChain {
   option (gogoproto.goproto_getters) = false;
-  
+
   // the proposed chain-id of new chain
   string chain_id = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
   // minimum stake that must commit to validate new chain before it can start
@@ -19,7 +19,8 @@ message MsgSubmitNewChain {
   // optional grace period to allow validators to join initial validator set after minimum stake is reached
   // grace period is a duration in nanoseconds
   uint64 grace_period = 3 [(gogoproto.moretags) = "yaml:\"grace_period\""];
-  // hash of the genesis file with no staking genesis. Staking genesis will be filled in using gen-txs of initial validator set
+  // hash of the genesis file with no staking genesis. Staking genesis will be filled in using gen-txs of initial
+  // validator set
   bytes genesis_hash = 4 [(gogoproto.moretags) = "yaml:\"genesis_hash\""];
   // the sender address
   string sender = 5;
@@ -41,6 +42,7 @@ message MsgBondStake {
   string sender = 3;
 }
 
+// MsgBondStakeResponse defines the Msg/BondStake response type
 message MsgBondStakeResponse {}
 
 // MsgUnbondStake defines a msg for parent chain validator to unbond their stake on baby chain.
@@ -50,7 +52,10 @@ message MsgUnbondStake {
   // the chain-id of baby-chain
   string chain_id = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
   // amount that validator wants to unbond from baby chain. This may be a maximum of the current stake on baby chain
-   cosmos.base.v1beta1.Coin stake = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin stake = 2 [(gogoproto.nullable) = false];
   // the sender address
   string sender = 3;
 }
+
+// MsgUnbondStakeResponse defines the Msg/UnbondStake response type
+message MsgUnbondStakeResponse {}

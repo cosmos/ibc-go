@@ -1,5 +1,10 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+)
+
 // StakingKeeper defines the contract expected by parent-chain ccv module.
 // StakingKeeper is responsible for keeping track of latest validator set of all baby chains
 type StakingKeeper interface {
