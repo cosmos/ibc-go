@@ -180,15 +180,6 @@ func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 			expPass: false,
 		},
 		{
-			name:        "client is frozen",
-			clientState: &types.ClientState{LatestHeight: height, FrozenHeight: clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)},
-			consensusState: &types.ConsensusState{
-				Root: commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()),
-			},
-			prefix:  commitmenttypes.NewMerklePrefix([]byte("ibc")),
-			expPass: false,
-		},
-		{
 			name:        "proof verification failed",
 			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			consensusState: &types.ConsensusState{
@@ -242,11 +233,6 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 		{
 			"latest client height < height", func() {
 				proofHeight = clientState.LatestHeight.Increment()
-			}, false,
-		},
-		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			}, false,
 		},
 		{
@@ -321,11 +307,6 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 		{
 			"latest client height < height", func() {
 				proofHeight = clientState.LatestHeight.Increment()
-			}, false,
-		},
-		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			}, false,
 		},
 		{
@@ -416,11 +397,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 		{
 			"latest client height < height", func() {
 				proofHeight = clientState.LatestHeight.Increment()
-			}, false,
-		},
-		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			}, false,
 		},
 		{
@@ -516,11 +492,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 		{
 			"latest client height < height", func() {
 				proofHeight = clientState.LatestHeight.Increment()
-			}, false,
-		},
-		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			}, false,
 		},
 		{
@@ -624,11 +595,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 			}, false,
 		},
 		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			}, false,
-		},
-		{
 			"proof verification failed", func() {
 				proof = invalidProof
 			}, false,
@@ -722,11 +688,6 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 		{
 			"latest client height < height", func() {
 				proofHeight = clientState.LatestHeight.Increment()
-			}, false,
-		},
-		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			}, false,
 		},
 		{

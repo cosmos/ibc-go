@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -81,7 +80,7 @@ func (cs ClientState) Status(
 	// get latest consensus state from clientStore to check for expiry
 	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
 	if err != nil {
-		panic(fmt.Sprintf("could not get latest consensus state from clientStore using height %s: %s", cs.GetLatestHeight(), err))
+		return exported.Unknown
 	}
 
 	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {

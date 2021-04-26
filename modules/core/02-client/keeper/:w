@@ -54,12 +54,10 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		return header
 	}
 
-	createPastUpdateFn := func(fillHeight, trustedHeight clienttypes.Height) *ibctmtypes.Header {
-		consState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, trustedHeight)
-		suite.Require().True(found)
+	createPastUpdateFn := func(fillHeight clienttypes.Height) *ibctmtypes.Header {
 
-		return suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(fillHeight.RevisionHeight), trustedHeight, consState.(*ibctmtypes.ConsensusState).Timestamp.Add(time.Second*5),
-			suite.chainB.Vals, suite.chainB.Vals, suite.chainB.Signers)
+		return suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(fillHeight.RevisionHeight), fillHeight, suite.header.Header.Time,
+			suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
 	}
 	cases := []struct {
 		name     string
@@ -68,7 +66,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 	}{
 		{"valid update", func() {
 			clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
-			trustHeight := clientState.GetLatestHeight().(types.Height)
+			trustHeight := clientState.GetLatestHeight()
 
 			// store intermediate consensus state to check that trustedHeight does not need to be highest consensus state before header height
 			path.EndpointA.UpdateClient()
@@ -77,8 +75,6 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		}, true},
 		{"valid past update", func() {
 			clientState := path.EndpointA.GetClientState()
-			trustedHeight := clientState.GetLatestHeight().(types.Height)
-
 			currHeight := suite.chainB.CurrentHeader.Height
 			fillHeight := types.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), uint64(currHeight))
 
@@ -89,17 +85,16 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			path.EndpointA.UpdateClient()
 
 			// ensure fill height not set
-			_, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, fillHeight)
+			_, found := suite.keeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, fillHeight)
 			suite.Require().False(found)
 
 			// updateHeader will fill in consensus state between prevConsState and suite.consState
 			// clientState should not be updated
-			updateHeader = createPastUpdateFn(fillHeight, trustedHeight)
+			updateHeader = createPastUpdateFn(fillHeight)
 		}, true},
 		{"client state not found", func() {
-			updateHeader = createFutureUpdateFn(path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
-
 			path.EndpointA.ClientID = ibctesting.InvalidID
+			updateHeader = createFutureUpdateFn(suite)
 		}, false},
 		{"consensus state not found", func() {
 			clientState := path.EndpointA.GetClientState()
@@ -107,18 +102,35 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.Require().True(ok)
 			tmClient.LatestHeight = tmClient.LatestHeight.Increment().(types.Height)
 
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientState)
-			updateHeader = createFutureUpdateFn(clientState.GetLatestHeight().(types.Height))
+			suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
+			updateHeader = createFutureUpdateFn(suite)
 		}, false},
-		{"client is not active", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
-			clientState.FrozenHeight = types.NewHeight(0, 1)
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientState)
-			updateHeader = createFutureUpdateFn(clientState.GetLatestHeight().(types.Height))
+		{"frozen client before update", func() {
+			clientState = &ibctmtypes.ClientState{FrozenHeight: types.NewHeight(0, 1), LatestHeight: testClientHeight}
+			suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
+			updateHeader = createFutureUpdateFn(suite)
 		}, false},
-		{"invalid header", func() {
-			updateHeader = createFutureUpdateFn(path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
-			updateHeader.TrustedHeight = updateHeader.TrustedHeight.Increment().(types.Height)
+		{"valid past update before client was frozen", func() {
+			clientState.FrozenHeight = types.NewHeight(0, testClientHeight.RevisionHeight-1)
+			suite.Require().NoError(err)
+
+			height1 := types.NewHeight(0, 1)
+
+			// store previous consensus state
+			prevConsState := &ibctmtypes.ConsensusState{
+				Timestamp:          suite.past,
+				NextValidatorsHash: suite.valSetHash,
+			}
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, height1, prevConsState)
+
+			// updateHeader will fill in consensus state between prevConsState and suite.consState
+			// clientState should not be updated
+			updateHeader = createPastUpdateFn(suite)
+		}, true},
+		{"invalid header", func() error {
+			updateHeader = createPastUpdateFn(suite)
+
+			return nil
 		}, false},
 	}
 
@@ -126,17 +138,12 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest()
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			tc.malleate()
+			err := tc.malleate()
+			clientState := path.EndpointA.GetClientState()
 
-			var clientState exported.ClientState
-			if tc.expPass {
-				clientState = path.EndpointA.GetClientState()
-			}
-
-			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpdateClient(suite.chainA.GetContext(), path.EndpointA.ClientID, updateHeader)
+			err = suite.keeper.UpdateClient(suite.chainA.GetContext(), path.EndpointA.ClientID, updateHeader)
 
 			if tc.expPass {
 				suite.Require().NoError(err, err)
@@ -149,7 +156,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 				newClientState := path.EndpointA.GetClientState()
 
-				consensusState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, updateHeader.GetHeight())
+				consensusState, found := suite.keeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, updateHeader.GetHeight())
 				suite.Require().True(found)
 
 				// Determine if clientState should be updated or not

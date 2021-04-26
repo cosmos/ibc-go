@@ -27,6 +27,9 @@ const (
 
 	// Frozen is a status type of a client. A frozen client is not allowed to be used.
 	Frozen string = "Frozen"
+
+	// Unknown indicates there was an error in determining the status of a client
+	Unknown string = "Unknown"
 )
 
 // ClientState defines the required common functions for light clients.
