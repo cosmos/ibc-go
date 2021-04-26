@@ -92,7 +92,7 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 	}
 	// Ensure that Height1 is greater than or equal to Height2
 	if misbehaviour.Header1.GetHeight().LT(misbehaviour.Header2.GetHeight()) {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour, "Header1 height is less than Header2 height (%d < %d)", misbehaviour.Header1.GetHeight(), misbehaviour.Header2.GetHeight())
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour, "Header1 height is less than Header2 height (%s < %s)", misbehaviour.Header1.GetHeight(), misbehaviour.Header2.GetHeight())
 	}
 
 	blockID1, err := tmtypes.BlockIDFromProto(&misbehaviour.Header1.SignedHeader.Commit.BlockID)
