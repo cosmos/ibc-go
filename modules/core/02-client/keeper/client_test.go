@@ -178,6 +178,28 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.keeper.SetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight(), conflictConsState)
 			return nil
 		}, true, true},
+		{"misbehaviour detection: monotonic time violation", func() error {
+			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+			clientID, err = suite.keeper.CreateClient(suite.ctx, clientState, suite.consensusState)
+
+			// store intermediate consensus state at a time greater than updateHeader time
+			// this will break time monotonicity
+			incrementedClientHeight := testClientHeight.Increment().(types.Height)
+			intermediateConsState := &ibctmtypes.ConsensusState{
+				Timestamp:          suite.header.Header.Time.Add(2 * time.Hour),
+				NextValidatorsHash: suite.valSetHash,
+			}
+			suite.keeper.SetClientConsensusState(suite.ctx, clientID, incrementedClientHeight, intermediateConsState)
+			// set iteration key
+			clientStore := suite.keeper.ClientStore(suite.ctx, clientID)
+			ibctmtypes.SetIterationKey(clientStore, incrementedClientHeight)
+
+			clientState.LatestHeight = incrementedClientHeight
+			suite.keeper.SetClientState(suite.ctx, clientID, clientState)
+
+			updateHeader = createFutureUpdateFn(suite)
+			return err
+		}, true, true},
 		{"client state not found", func() error {
 			updateHeader = createFutureUpdateFn(suite)
 
@@ -224,26 +246,8 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			if tc.expPass {
 				suite.Require().NoError(err, err)
 
-				expConsensusState := &ibctmtypes.ConsensusState{
-					Timestamp:          updateHeader.GetTime(),
-					Root:               commitmenttypes.NewMerkleRoot(updateHeader.Header.GetAppHash()),
-					NextValidatorsHash: updateHeader.Header.NextValidatorsHash,
-				}
-
 				newClientState, found := suite.keeper.GetClientState(suite.ctx, clientID)
 				suite.Require().True(found, "valid test case %d failed: %s", i, tc.name)
-
-				consensusState, found := suite.keeper.GetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight())
-				suite.Require().True(found, "valid test case %d failed: %s", i, tc.name)
-
-				// Determine if clientState should be updated or not
-				if updateHeader.GetHeight().GT(clientState.GetLatestHeight()) {
-					// Header Height is greater than clientState latest Height, clientState should be updated with header.GetHeight()
-					suite.Require().Equal(updateHeader.GetHeight(), newClientState.GetLatestHeight(), "clientstate height did not update")
-				} else {
-					// Update will add past consensus state, clientState should not be updated at all
-					suite.Require().Equal(clientState.GetLatestHeight(), newClientState.GetLatestHeight(), "client state height updated for past header")
-				}
 
 				// If the update freezes the client, check that client was frozen to update header's height.
 				// Otherwise check that consensus state is stored as expected.
@@ -251,6 +255,24 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 					suite.Require().True(newClientState.IsFrozen(), "client did not freeze after conflicting header was submitted to UpdateClient")
 					suite.Require().Equal(newClientState.GetFrozenHeight(), updateHeader.GetHeight(), "client frozen at wrong height")
 				} else {
+					expConsensusState := &ibctmtypes.ConsensusState{
+						Timestamp:          updateHeader.GetTime(),
+						Root:               commitmenttypes.NewMerkleRoot(updateHeader.Header.GetAppHash()),
+						NextValidatorsHash: updateHeader.Header.NextValidatorsHash,
+					}
+
+					consensusState, found := suite.keeper.GetClientConsensusState(suite.ctx, clientID, updateHeader.GetHeight())
+					suite.Require().True(found, "valid test case %d failed: %s", i, tc.name)
+
+					// Determine if clientState should be updated or not
+					if updateHeader.GetHeight().GT(clientState.GetLatestHeight()) {
+						// Header Height is greater than clientState latest Height, clientState should be updated with header.GetHeight()
+						suite.Require().Equal(updateHeader.GetHeight(), newClientState.GetLatestHeight(), "clientstate height did not update")
+					} else {
+						// Update will add past consensus state, clientState should not be updated at all
+						suite.Require().Equal(clientState.GetLatestHeight(), newClientState.GetLatestHeight(), "client state height updated for past header")
+					}
+
 					suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
 					suite.Require().Equal(expConsensusState, consensusState, "consensus state should have been updated on case %s", tc.name)
 				}

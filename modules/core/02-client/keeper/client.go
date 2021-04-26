@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"encoding/hex"
-	"reflect"
 
 	"github.com/armon/go-metrics"
 
@@ -67,15 +66,8 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		return sdkerrors.Wrapf(types.ErrClientFrozen, "cannot update client with ID %s", clientID)
 	}
 
-	var (
-		existingConsState exported.ConsensusState
-		exists            bool
-		consensusHeight   exported.Height
-	)
+	var consensusHeight exported.Height
 	eventType := types.EventTypeUpdateClient
-	if header != nil {
-		existingConsState, exists = k.GetClientConsensusState(ctx, clientID, header.GetHeight())
-	}
 
 	cacheCtx, writeFn := ctx.CacheContext()
 	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(cacheCtx, k.cdc, k.ClientStore(ctx, clientID), header)
@@ -95,12 +87,11 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 
 	}
 
-	// If an existing consensus state doesn't exist, then write the update state changes,
-	// and set new consensus state.
-	// Else if there already exists a consensus state in client store for the header height
-	// and it does not match the updated consensus state, this is evidence of misbehaviour
-	// and we must freeze the client and emit appropriate events.
-	if !exists {
+	k.SetClientState(ctx, clientID, newClientState)
+	// If client state is not frozen after clientState CheckHeaderAndUpdateState,
+	// then write the update state changes, and set new consensus state.
+	// Else the update was proof of misbehaviour and we must emit appropriate misbehaviour events.
+	if !newClientState.IsFrozen() {
 		// write any cached state changes from CheckHeaderAndUpdateState
 		// to store metadata in client store for new consensus state.
 		writeFn()
@@ -112,13 +103,9 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		} else {
 			consensusHeight = types.GetSelfHeight(ctx)
 		}
-		k.SetClientState(ctx, clientID, newClientState)
 
 		k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
-	} else if exists && !reflect.DeepEqual(existingConsState, newConsensusState) {
-		clientState.Freeze(header)
-		k.SetClientState(ctx, clientID, clientState)
-
+	} else {
 		// set eventType to SubmitMisbehaviour
 		eventType = types.EventTypeSubmitMisbehaviour
 

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/binary"
 	"strings"
 
@@ -191,10 +192,17 @@ func GetNextConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, h
 	iterateStore := prefix.NewStore(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	iterator := iterateStore.Iterator(bigEndianHeightBytes(height), nil)
 	defer iterator.Close()
-	// ignore the consensus state at current height and get next height
-	iterator.Next()
 	if !iterator.Valid() {
 		return nil, false
+	}
+
+	// if iterator is at current height, ignore the consensus state at current height and get next height
+	// if iterator value is not at current height, it is already at next height.
+	if bytes.Equal(iterator.Value(), host.ConsensusStateKey(height)) {
+		iterator.Next()
+		if !iterator.Valid() {
+			return nil, false
+		}
 	}
 
 	csKey := iterator.Value()

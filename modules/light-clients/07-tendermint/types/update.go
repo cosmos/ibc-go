@@ -57,7 +57,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// Check if the Client store already has a consensus state for the header's height
 	// If the consensus state exists, and it matches the header then we return early
 	// since header has already been submitted in a previous UpdateClient.
-	var alreadyExists bool
+	var conflictingHeader bool
 	prevConsState, _ := GetConsensusState(clientStore, cdc, header.GetHeight())
 	if prevConsState != nil {
 		// This header has already been submitted and the necessary state is already stored
@@ -67,27 +67,43 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		}
 		// A consensus state already exists for this height, but it does not match the provided header.
 		// Thus, we must check that this header is valid, and if so we will freeze the client.
-		alreadyExists = true
+		conflictingHeader = true
 	}
 
 	// get consensus state from clientStore
-	tmConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
+	trustedConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
 	if err != nil {
 		return nil, nil, sdkerrors.Wrapf(
 			err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
 		)
 	}
 
-	if err := checkValidity(&cs, tmConsState, tmHeader, ctx.BlockTime()); err != nil {
+	if err := checkValidity(&cs, trustedConsState, tmHeader, ctx.BlockTime()); err != nil {
 		return nil, nil, err
 	}
 
-	// Header is different from existing consensus state and also valid, so return the consensus state of the header.
-	// ClientKeeper must freeze the client based on the header.
-	if alreadyExists {
-		return &cs, tmHeader.ConsensusState(), nil
+	consState := tmHeader.ConsensusState()
+	// Header is different from existing consensus state and also valid, so freeze the client and return
+	if conflictingHeader {
+		cs.Freeze(header)
+		return &cs, consState, nil
 	}
-	
+	// Check that consensus state timestamps are monotonic
+	prevCons, prevOk := GetPreviousConsensusState(clientStore, cdc, header.GetHeight())
+	nextCons, nextOk := GetNextConsensusState(clientStore, cdc, header.GetHeight())
+	// if previous consensus state exists, check consensus state time is greater than previous consensus state time
+	// if previous consensus state is not before current consensus state, freeze the client and return.
+	if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
+		cs.Freeze(header)
+		return &cs, consState, nil
+	}
+	// if next consensus state exists, check consensus state time is less than next consensus state time
+	// if next consensus state is not after current consensus state, freeze the client and return.
+	if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
+		cs.Freeze(header)
+		return &cs, consState, nil
+	}
+
 	// Check the earliest consensus state to see if it is expired, if so then set the prune height
 	// so that we can delete consensus state and all associated metadata.
 	var (
