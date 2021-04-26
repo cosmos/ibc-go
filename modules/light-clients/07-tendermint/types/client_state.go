@@ -196,7 +196,7 @@ func (cs ClientState) VerifyClientState(
 	proof []byte,
 	clientState exported.ClientState,
 ) error {
-	merkleProof, provingConsensusState, err := produceVerificationArgs(ctx, store, cdc, cs, height, prefix, proof)
+	merkleProof, provingConsensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
 	}
@@ -521,7 +521,6 @@ func verifyDelayPeriodPassed(store sdk.KVStore, proofHeight exported.Height, cur
 // shared between the verification functions and returns the unmarshalled
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
-	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	cs ClientState,
@@ -534,10 +533,6 @@ func produceVerificationArgs(
 			sdkerrors.ErrInvalidHeight,
 			"client state height < proof height (%d < %d)", cs.GetLatestHeight(), height,
 		)
-	}
-
-	if status := cs.Status(ctx, store, cdc); status != exported.Active {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrapf(clienttypes.ErrNotActive, "client status is %s", status)
 	}
 
 	if prefix == nil {

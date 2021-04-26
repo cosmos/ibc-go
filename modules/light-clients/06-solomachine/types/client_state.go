@@ -40,6 +40,22 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return clienttypes.NewHeight(0, cs.Sequence)
 }
 
+// Status returns the status of the solo machine client.
+// The client may be:
+// - Active
+// - Frozen
+func (cs ClientState) Status(
+	ctx sdk.Context,
+	clientStore sdk.KVStore,
+	cdc codec.BinaryMarshaler,
+) string {
+	if cs.FrozenSequence != 0 {
+		return exported.Frozen
+	}
+
+	return exported.Active
+}
+
 // IsFrozen returns true if the client is frozen.
 func (cs ClientState) IsFrozen() bool {
 	return cs.FrozenSequence != 0
