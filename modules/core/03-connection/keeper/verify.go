@@ -24,7 +24,7 @@ func (k Keeper) VerifyClientState(
 		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+	if status := targetClient.Status(ctx, clientStore, k.cdc); status != exported.Active {
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
 	}
 
