@@ -87,9 +87,10 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 
 	}
 
+	// set new client state regardless of if update is valid update or misbehaviour
 	k.SetClientState(ctx, clientID, newClientState)
 	// If client state is not frozen after clientState CheckHeaderAndUpdateState,
-	// then write the update state changes, and set new consensus state.
+	// then update was valid. Write the update state changes, and set new consensus state.
 	// Else the update was proof of misbehaviour and we must emit appropriate misbehaviour events.
 	if !newClientState.IsFrozen() {
 		// write any cached state changes from CheckHeaderAndUpdateState

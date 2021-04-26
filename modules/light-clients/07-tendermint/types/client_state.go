@@ -69,12 +69,6 @@ func (cs ClientState) GetFrozenHeight() exported.Height {
 	return cs.FrozenHeight
 }
 
-// Freeze takes a misbehaving header and freezes the client at the header height
-// NOTE: Header must be verified as misbehaviour before calling this function.
-func (cs *ClientState) Freeze(header exported.Header) {
-	cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
-}
-
 // IsExpired returns whether or not the client has passed the trusting period since the last
 // update (in which case no headers are considered valid).
 func (cs ClientState) IsExpired(latestTimestamp, now time.Time) bool {

@@ -31,7 +31,6 @@ type ClientState interface {
 	GetLatestHeight() Height
 	IsFrozen() bool
 	GetFrozenHeight() Height
-	Freeze(Header)
 	Validate() error
 	GetProofSpecs() []*ics23.ProofSpec
 

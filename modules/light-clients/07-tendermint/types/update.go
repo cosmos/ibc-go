@@ -39,6 +39,11 @@ import (
 // Tendermint client validity checking uses the bisection algorithm described
 // in the [Tendermint spec](https://github.com/tendermint/spec/blob/master/spec/consensus/light-client.md).
 //
+// Misbehaviour Detection:
+// UpdateClient will detect implicit misbehaviour by enforcing certain invariants on any new update call and will return a frozen client.
+// 1. Any valid update that creates a different consensus state for an already existing height is evidence of misbehaviour and will freeze client.
+// 2. Any valid update that breaks time monotonicity with respect to its neighboring consensus states is evidence of misbehaviour and will freeze client.
+//
 // Pruning:
 // UpdateClient will additionally retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
@@ -85,7 +90,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	consState := tmHeader.ConsensusState()
 	// Header is different from existing consensus state and also valid, so freeze the client and return
 	if conflictingHeader {
-		cs.Freeze(header)
+		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
 		return &cs, consState, nil
 	}
 	// Check that consensus state timestamps are monotonic
@@ -94,13 +99,13 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// if previous consensus state exists, check consensus state time is greater than previous consensus state time
 	// if previous consensus state is not before current consensus state, freeze the client and return.
 	if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
-		cs.Freeze(header)
+		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
 		return &cs, consState, nil
 	}
 	// if next consensus state exists, check consensus state time is less than next consensus state time
 	// if next consensus state is not after current consensus state, freeze the client and return.
 	if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
-		cs.Freeze(header)
+		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
 		return &cs, consState, nil
 	}
 

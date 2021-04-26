@@ -53,11 +53,6 @@ func (cs ClientState) GetFrozenHeight() exported.Height {
 	return clienttypes.ZeroHeight()
 }
 
-// Freeze is a no-op for localhost clients
-func (cs *ClientState) Freeze(exported.Header) {
-	return
-}
-
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if strings.TrimSpace(cs.ChainId) == "" {
