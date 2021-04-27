@@ -25,13 +25,13 @@ func (k Keeper) VerifyClientState(
 	}
 
 	if status := targetClient.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := targetClient.VerifyClientState(
 		clientStore, k.cdc, height,
 		connection.GetCounterparty().GetPrefix(), connection.GetCounterparty().GetClientID(), proof, clientState); err != nil {
-		return sdkerrors.Wrapf(err, "failed client state verification for target client: %s", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed client state verification for target client: %s", clientID)
 	}
 
 	return nil
@@ -56,14 +56,14 @@ func (k Keeper) VerifyClientConsensusState(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := clientState.VerifyClientConsensusState(
 		clientStore, k.cdc, height,
 		connection.GetCounterparty().GetClientID(), consensusHeight, connection.GetCounterparty().GetPrefix(), proof, consensusState,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed consensus state verification for client (%s)", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed consensus state verification for client (%s)", clientID)
 	}
 
 	return nil
@@ -79,22 +79,23 @@ func (k Keeper) VerifyConnectionState(
 	connectionID string,
 	connectionEnd exported.ConnectionI, // opposite connection
 ) error {
-	clientStore := k.clientKeeper.ClientStore(ctx, connection.GetClientID())
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, connection.GetClientID())
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := clientState.VerifyConnectionState(
 		clientStore, k.cdc, height,
 		connection.GetCounterparty().GetPrefix(), proof, connectionID, connectionEnd,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed connection state verification for client (%s)", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed connection state verification for client (%s)", clientID)
 	}
 
 	return nil
@@ -111,15 +112,16 @@ func (k Keeper) VerifyChannelState(
 	channelID string,
 	channel exported.ChannelI,
 ) error {
-	clientStore := k.clientKeeper.ClientStore(ctx, connection.GetClientID())
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, connection.GetClientID())
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := clientState.VerifyChannelState(
@@ -127,7 +129,7 @@ func (k Keeper) VerifyChannelState(
 		connection.GetCounterparty().GetPrefix(), proof,
 		portID, channelID, channel,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
 	}
 
 	return nil
@@ -145,15 +147,16 @@ func (k Keeper) VerifyPacketCommitment(
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
-	clientStore := k.clientKeeper.ClientStore(ctx, connection.GetClientID())
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, connection.GetClientID())
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := clientState.VerifyPacketCommitment(
@@ -162,7 +165,7 @@ func (k Keeper) VerifyPacketCommitment(
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, commitmentBytes,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
 	}
 
 	return nil
@@ -180,15 +183,16 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	sequence uint64,
 	acknowledgement []byte,
 ) error {
-	clientStore := k.clientKeeper.ClientStore(ctx, connection.GetClientID())
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, connection.GetClientID())
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := clientState.VerifyPacketAcknowledgement(
@@ -197,7 +201,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, acknowledgement,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
 	}
 
 	return nil
@@ -215,15 +219,16 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	channelID string,
 	sequence uint64,
 ) error {
-	clientStore := k.clientKeeper.ClientStore(ctx, connection.GetClientID())
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, connection.GetClientID())
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := clientState.VerifyPacketReceiptAbsence(
@@ -232,7 +237,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet receipt absence verification for client (%s)", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
 	}
 
 	return nil
@@ -249,15 +254,16 @@ func (k Keeper) VerifyNextSequenceRecv(
 	channelID string,
 	nextSequenceRecv uint64,
 ) error {
-	clientStore := k.clientKeeper.ClientStore(ctx, connection.GetClientID())
+	clientID := connection.GetClientID()
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, connection.GetClientID())
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client status is %s", status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	if err := clientState.VerifyNextSequenceRecv(
@@ -266,7 +272,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		nextSequenceRecv,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed next sequence receive verification for client (%s)", connection.GetClientID())
+		return sdkerrors.Wrapf(err, "failed next sequence receive verification for client (%s)", clientID)
 	}
 
 	return nil
