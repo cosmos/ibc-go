@@ -64,7 +64,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot updated client (%s) with status %s", clientID, status)
+		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
 	clientState, consensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, clientStore, header)
