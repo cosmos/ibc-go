@@ -250,8 +250,10 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			expPass: false,
 		},
 		{
-			name: "client state frozen",
+			name: "client state is not active",
 			setup: func() {
+				// client is frozen
+
 				// last Height is at next block
 				lastHeight = clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
@@ -483,7 +485,7 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			false,
 		},
 		{
-			"client already frozen at earlier height",
+			"client already is not active - client is frozen",
 			&ibctmtypes.Misbehaviour{
 				Header1:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeight, altTime, bothValSet, bothValSet, bothSigners),
 				Header2:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeight, suite.ctx.BlockTime(), bothValSet, bothValSet, bothSigners),
