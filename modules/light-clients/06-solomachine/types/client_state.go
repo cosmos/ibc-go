@@ -44,11 +44,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // The client may be:
 // - Active
 // - Frozen
-func (cs ClientState) Status(
-	ctx sdk.Context,
-	clientStore sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-) string {
+func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryMarshaler) string {
 	if cs.FrozenSequence != 0 {
 		return exported.Frozen
 	}

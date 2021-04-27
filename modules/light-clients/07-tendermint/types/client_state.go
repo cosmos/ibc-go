@@ -19,6 +19,9 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
+// Expired is a potential status of a client. A client is expired
+// if its latest consensus state timestamp added to its trusting period
+// is before or equal to the current time.
 const Expired = "Expired"
 
 var _ exported.ClientState = (*ClientState)(nil)

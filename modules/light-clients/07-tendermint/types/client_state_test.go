@@ -28,6 +28,46 @@ var (
 	invalidProof = []byte("invalid proof")
 )
 
+func (suite *TendermintTestSuite) TestStatus() {
+	var (
+		path        *ibctesting.Path
+		clientState *types.ClientState
+	)
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expStatus string
+	}{
+		{"client is active", func() {}, exported.Active},
+		{"client is frozen", func() {
+			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+			path.EndpointA.SetClientState(clientState)
+		}, exported.Frozen},
+		{"client status is unknown", func() {
+			clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
+			path.EndpointA.SetClientState(clientState)
+		}, exported.Unknown},
+		{"client status is expired", func() {
+			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
+		}, types.Expired},
+	}
+
+	for _, tc := range testCases {
+		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		suite.coordinator.SetupClients(path)
+
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+		clientState = path.EndpointA.GetClientState().(*types.ClientState)
+
+		tc.malleate()
+
+		status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+		suite.Require().Equal(tc.expStatus, status)
+
+	}
+}
+
 func (suite *TendermintTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
