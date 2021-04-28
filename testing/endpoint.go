@@ -438,6 +438,15 @@ func (endpoint *Endpoint) SetClientState(clientState exported.ClientState) {
 	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.ClientID, clientState)
 }
 
+// GetConsensusState retrieves the Consensus State for this endpoint at the provided height.
+// The consensus state is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetConsensusState(height exported.Height) exported.ConsensusState {
+	consensusState, found := endpoint.Chain.GetConsensusState(endpoint.ClientID, height)
+	require.True(endpoint.Chain.t, found)
+
+	return consensusState
+}
+
 // GetConnection retrieves an IBC Connection for the endpoint. The
 // connection is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetConnection() connectiontypes.ConnectionEnd {

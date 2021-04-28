@@ -137,6 +137,19 @@ message QueryConsensusStatesResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
+// QueryClientStatusRequest is the request type for the Query/ClientStatus RPC
+// method
+message QueryClientStatusRequest {
+  // client unique identifier
+  string client_id = 1;
+}
+
+// QueryClientStatusResponse is the response type for the Query/ClientStatus RPC
+// method. It returns the current status of the IBC client.
+message QueryClientStatusResponse {
+  string status = 1;
+}
+
 // QueryClientParamsRequest is the request type for the Query/ClientParams RPC
 // method.
 message QueryClientParamsRequest {}
@@ -168,17 +181,4 @@ message QueryUpgradedConsensusStateRequest {}
 message QueryUpgradedConsensusStateResponse {
   // Consensus state associated with the request identifier
   google.protobuf.Any upgraded_consensus_state = 1;
-}
-
-// QueryClientStatusRequest is the request type for the Query/ClientStatus RPC
-// method
-message QueryClientStatusRequest {
-  // client unique identifier
-  string client_id = 1;
-}
-
-// QueryClientStatusResponse is the response type for the Query/ClientStatus RPC
-// method. It returns the current status of the IBC client.
-message QueryClientStatusResponse {
-  string status = 1;
 }

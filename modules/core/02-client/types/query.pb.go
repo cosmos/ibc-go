@@ -500,261 +500,6 @@ func (m *QueryConsensusStatesResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryClientParamsRequest is the request type for the Query/ClientParams RPC
-// method.
-type QueryClientParamsRequest struct {
-}
-
-func (m *QueryClientParamsRequest) Reset()         { *m = QueryClientParamsRequest{} }
-func (m *QueryClientParamsRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryClientParamsRequest) ProtoMessage()    {}
-func (*QueryClientParamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{8}
-}
-func (m *QueryClientParamsRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryClientParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryClientParamsRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryClientParamsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryClientParamsRequest.Merge(m, src)
-}
-func (m *QueryClientParamsRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryClientParamsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryClientParamsRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryClientParamsRequest proto.InternalMessageInfo
-
-// QueryClientParamsResponse is the response type for the Query/ClientParams RPC
-// method.
-type QueryClientParamsResponse struct {
-	// params defines the parameters of the module.
-	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
-}
-
-func (m *QueryClientParamsResponse) Reset()         { *m = QueryClientParamsResponse{} }
-func (m *QueryClientParamsResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryClientParamsResponse) ProtoMessage()    {}
-func (*QueryClientParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{9}
-}
-func (m *QueryClientParamsResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryClientParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryClientParamsResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryClientParamsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryClientParamsResponse.Merge(m, src)
-}
-func (m *QueryClientParamsResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryClientParamsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryClientParamsResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryClientParamsResponse proto.InternalMessageInfo
-
-func (m *QueryClientParamsResponse) GetParams() *Params {
-	if m != nil {
-		return m.Params
-	}
-	return nil
-}
-
-// QueryUpgradedClientStateRequest is the request type for the
-// Query/UpgradedClientState RPC method
-type QueryUpgradedClientStateRequest struct {
-}
-
-func (m *QueryUpgradedClientStateRequest) Reset()         { *m = QueryUpgradedClientStateRequest{} }
-func (m *QueryUpgradedClientStateRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryUpgradedClientStateRequest) ProtoMessage()    {}
-func (*QueryUpgradedClientStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{10}
-}
-func (m *QueryUpgradedClientStateRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryUpgradedClientStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryUpgradedClientStateRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryUpgradedClientStateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryUpgradedClientStateRequest.Merge(m, src)
-}
-func (m *QueryUpgradedClientStateRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryUpgradedClientStateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryUpgradedClientStateRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryUpgradedClientStateRequest proto.InternalMessageInfo
-
-// QueryUpgradedClientStateResponse is the response type for the
-// Query/UpgradedClientState RPC method.
-type QueryUpgradedClientStateResponse struct {
-	// client state associated with the request identifier
-	UpgradedClientState *types.Any `protobuf:"bytes,1,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
-}
-
-func (m *QueryUpgradedClientStateResponse) Reset()         { *m = QueryUpgradedClientStateResponse{} }
-func (m *QueryUpgradedClientStateResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryUpgradedClientStateResponse) ProtoMessage()    {}
-func (*QueryUpgradedClientStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{11}
-}
-func (m *QueryUpgradedClientStateResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryUpgradedClientStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryUpgradedClientStateResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryUpgradedClientStateResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryUpgradedClientStateResponse.Merge(m, src)
-}
-func (m *QueryUpgradedClientStateResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryUpgradedClientStateResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryUpgradedClientStateResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryUpgradedClientStateResponse proto.InternalMessageInfo
-
-func (m *QueryUpgradedClientStateResponse) GetUpgradedClientState() *types.Any {
-	if m != nil {
-		return m.UpgradedClientState
-	}
-	return nil
-}
-
-// QueryUpgradedConsensusStateRequest is the request type for the
-// Query/UpgradedConsensusState RPC method
-type QueryUpgradedConsensusStateRequest struct {
-}
-
-func (m *QueryUpgradedConsensusStateRequest) Reset()         { *m = QueryUpgradedConsensusStateRequest{} }
-func (m *QueryUpgradedConsensusStateRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryUpgradedConsensusStateRequest) ProtoMessage()    {}
-func (*QueryUpgradedConsensusStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{12}
-}
-func (m *QueryUpgradedConsensusStateRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryUpgradedConsensusStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryUpgradedConsensusStateRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryUpgradedConsensusStateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryUpgradedConsensusStateRequest.Merge(m, src)
-}
-func (m *QueryUpgradedConsensusStateRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryUpgradedConsensusStateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryUpgradedConsensusStateRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryUpgradedConsensusStateRequest proto.InternalMessageInfo
-
-// QueryUpgradedConsensusStateResponse is the response type for the
-// Query/UpgradedConsensusState RPC method.
-type QueryUpgradedConsensusStateResponse struct {
-	// Consensus state associated with the request identifier
-	UpgradedConsensusState *types.Any `protobuf:"bytes,1,opt,name=upgraded_consensus_state,json=upgradedConsensusState,proto3" json:"upgraded_consensus_state,omitempty"`
-}
-
-func (m *QueryUpgradedConsensusStateResponse) Reset()         { *m = QueryUpgradedConsensusStateResponse{} }
-func (m *QueryUpgradedConsensusStateResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryUpgradedConsensusStateResponse) ProtoMessage()    {}
-func (*QueryUpgradedConsensusStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{13}
-}
-func (m *QueryUpgradedConsensusStateResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryUpgradedConsensusStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryUpgradedConsensusStateResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryUpgradedConsensusStateResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryUpgradedConsensusStateResponse.Merge(m, src)
-}
-func (m *QueryUpgradedConsensusStateResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryUpgradedConsensusStateResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryUpgradedConsensusStateResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryUpgradedConsensusStateResponse proto.InternalMessageInfo
-
-func (m *QueryUpgradedConsensusStateResponse) GetUpgradedConsensusState() *types.Any {
-	if m != nil {
-		return m.UpgradedConsensusState
-	}
-	return nil
-}
-
 // QueryClientStatusRequest is the request type for the Query/ClientStatus RPC
 // method
 type QueryClientStatusRequest struct {
@@ -766,7 +511,7 @@ func (m *QueryClientStatusRequest) Reset()         { *m = QueryClientStatusReque
 func (m *QueryClientStatusRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryClientStatusRequest) ProtoMessage()    {}
 func (*QueryClientStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{14}
+	return fileDescriptor_dc42cdfd1d52d76e, []int{8}
 }
 func (m *QueryClientStatusRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -812,7 +557,7 @@ func (m *QueryClientStatusResponse) Reset()         { *m = QueryClientStatusResp
 func (m *QueryClientStatusResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryClientStatusResponse) ProtoMessage()    {}
 func (*QueryClientStatusResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dc42cdfd1d52d76e, []int{15}
+	return fileDescriptor_dc42cdfd1d52d76e, []int{9}
 }
 func (m *QueryClientStatusResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -848,6 +593,261 @@ func (m *QueryClientStatusResponse) GetStatus() string {
 	return ""
 }
 
+// QueryClientParamsRequest is the request type for the Query/ClientParams RPC
+// method.
+type QueryClientParamsRequest struct {
+}
+
+func (m *QueryClientParamsRequest) Reset()         { *m = QueryClientParamsRequest{} }
+func (m *QueryClientParamsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryClientParamsRequest) ProtoMessage()    {}
+func (*QueryClientParamsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dc42cdfd1d52d76e, []int{10}
+}
+func (m *QueryClientParamsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryClientParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryClientParamsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryClientParamsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryClientParamsRequest.Merge(m, src)
+}
+func (m *QueryClientParamsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryClientParamsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryClientParamsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryClientParamsRequest proto.InternalMessageInfo
+
+// QueryClientParamsResponse is the response type for the Query/ClientParams RPC
+// method.
+type QueryClientParamsResponse struct {
+	// params defines the parameters of the module.
+	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+}
+
+func (m *QueryClientParamsResponse) Reset()         { *m = QueryClientParamsResponse{} }
+func (m *QueryClientParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryClientParamsResponse) ProtoMessage()    {}
+func (*QueryClientParamsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dc42cdfd1d52d76e, []int{11}
+}
+func (m *QueryClientParamsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryClientParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryClientParamsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryClientParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryClientParamsResponse.Merge(m, src)
+}
+func (m *QueryClientParamsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryClientParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryClientParamsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryClientParamsResponse proto.InternalMessageInfo
+
+func (m *QueryClientParamsResponse) GetParams() *Params {
+	if m != nil {
+		return m.Params
+	}
+	return nil
+}
+
+// QueryUpgradedClientStateRequest is the request type for the
+// Query/UpgradedClientState RPC method
+type QueryUpgradedClientStateRequest struct {
+}
+
+func (m *QueryUpgradedClientStateRequest) Reset()         { *m = QueryUpgradedClientStateRequest{} }
+func (m *QueryUpgradedClientStateRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryUpgradedClientStateRequest) ProtoMessage()    {}
+func (*QueryUpgradedClientStateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dc42cdfd1d52d76e, []int{12}
+}
+func (m *QueryUpgradedClientStateRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUpgradedClientStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUpgradedClientStateRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUpgradedClientStateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUpgradedClientStateRequest.Merge(m, src)
+}
+func (m *QueryUpgradedClientStateRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUpgradedClientStateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUpgradedClientStateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUpgradedClientStateRequest proto.InternalMessageInfo
+
+// QueryUpgradedClientStateResponse is the response type for the
+// Query/UpgradedClientState RPC method.
+type QueryUpgradedClientStateResponse struct {
+	// client state associated with the request identifier
+	UpgradedClientState *types.Any `protobuf:"bytes,1,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
+}
+
+func (m *QueryUpgradedClientStateResponse) Reset()         { *m = QueryUpgradedClientStateResponse{} }
+func (m *QueryUpgradedClientStateResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryUpgradedClientStateResponse) ProtoMessage()    {}
+func (*QueryUpgradedClientStateResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dc42cdfd1d52d76e, []int{13}
+}
+func (m *QueryUpgradedClientStateResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUpgradedClientStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUpgradedClientStateResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUpgradedClientStateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUpgradedClientStateResponse.Merge(m, src)
+}
+func (m *QueryUpgradedClientStateResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUpgradedClientStateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUpgradedClientStateResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUpgradedClientStateResponse proto.InternalMessageInfo
+
+func (m *QueryUpgradedClientStateResponse) GetUpgradedClientState() *types.Any {
+	if m != nil {
+		return m.UpgradedClientState
+	}
+	return nil
+}
+
+// QueryUpgradedConsensusStateRequest is the request type for the
+// Query/UpgradedConsensusState RPC method
+type QueryUpgradedConsensusStateRequest struct {
+}
+
+func (m *QueryUpgradedConsensusStateRequest) Reset()         { *m = QueryUpgradedConsensusStateRequest{} }
+func (m *QueryUpgradedConsensusStateRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryUpgradedConsensusStateRequest) ProtoMessage()    {}
+func (*QueryUpgradedConsensusStateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dc42cdfd1d52d76e, []int{14}
+}
+func (m *QueryUpgradedConsensusStateRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUpgradedConsensusStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUpgradedConsensusStateRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUpgradedConsensusStateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUpgradedConsensusStateRequest.Merge(m, src)
+}
+func (m *QueryUpgradedConsensusStateRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUpgradedConsensusStateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUpgradedConsensusStateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUpgradedConsensusStateRequest proto.InternalMessageInfo
+
+// QueryUpgradedConsensusStateResponse is the response type for the
+// Query/UpgradedConsensusState RPC method.
+type QueryUpgradedConsensusStateResponse struct {
+	// Consensus state associated with the request identifier
+	UpgradedConsensusState *types.Any `protobuf:"bytes,1,opt,name=upgraded_consensus_state,json=upgradedConsensusState,proto3" json:"upgraded_consensus_state,omitempty"`
+}
+
+func (m *QueryUpgradedConsensusStateResponse) Reset()         { *m = QueryUpgradedConsensusStateResponse{} }
+func (m *QueryUpgradedConsensusStateResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryUpgradedConsensusStateResponse) ProtoMessage()    {}
+func (*QueryUpgradedConsensusStateResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dc42cdfd1d52d76e, []int{15}
+}
+func (m *QueryUpgradedConsensusStateResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUpgradedConsensusStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUpgradedConsensusStateResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUpgradedConsensusStateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUpgradedConsensusStateResponse.Merge(m, src)
+}
+func (m *QueryUpgradedConsensusStateResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUpgradedConsensusStateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUpgradedConsensusStateResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUpgradedConsensusStateResponse proto.InternalMessageInfo
+
+func (m *QueryUpgradedConsensusStateResponse) GetUpgradedConsensusState() *types.Any {
+	if m != nil {
+		return m.UpgradedConsensusState
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryClientStateRequest)(nil), "ibc.core.client.v1.QueryClientStateRequest")
 	proto.RegisterType((*QueryClientStateResponse)(nil), "ibc.core.client.v1.QueryClientStateResponse")
@@ -857,20 +857,20 @@ func init() {
 	proto.RegisterType((*QueryConsensusStateResponse)(nil), "ibc.core.client.v1.QueryConsensusStateResponse")
 	proto.RegisterType((*QueryConsensusStatesRequest)(nil), "ibc.core.client.v1.QueryConsensusStatesRequest")
 	proto.RegisterType((*QueryConsensusStatesResponse)(nil), "ibc.core.client.v1.QueryConsensusStatesResponse")
+	proto.RegisterType((*QueryClientStatusRequest)(nil), "ibc.core.client.v1.QueryClientStatusRequest")
+	proto.RegisterType((*QueryClientStatusResponse)(nil), "ibc.core.client.v1.QueryClientStatusResponse")
 	proto.RegisterType((*QueryClientParamsRequest)(nil), "ibc.core.client.v1.QueryClientParamsRequest")
 	proto.RegisterType((*QueryClientParamsResponse)(nil), "ibc.core.client.v1.QueryClientParamsResponse")
 	proto.RegisterType((*QueryUpgradedClientStateRequest)(nil), "ibc.core.client.v1.QueryUpgradedClientStateRequest")
 	proto.RegisterType((*QueryUpgradedClientStateResponse)(nil), "ibc.core.client.v1.QueryUpgradedClientStateResponse")
 	proto.RegisterType((*QueryUpgradedConsensusStateRequest)(nil), "ibc.core.client.v1.QueryUpgradedConsensusStateRequest")
 	proto.RegisterType((*QueryUpgradedConsensusStateResponse)(nil), "ibc.core.client.v1.QueryUpgradedConsensusStateResponse")
-	proto.RegisterType((*QueryClientStatusRequest)(nil), "ibc.core.client.v1.QueryClientStatusRequest")
-	proto.RegisterType((*QueryClientStatusResponse)(nil), "ibc.core.client.v1.QueryClientStatusResponse")
 }
 
 func init() { proto.RegisterFile("ibc/core/client/v1/query.proto", fileDescriptor_dc42cdfd1d52d76e) }
 
 var fileDescriptor_dc42cdfd1d52d76e = []byte{
-	// 984 bytes of a gzipped FileDescriptorProto
+	// 983 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xcd, 0x6f, 0x1b, 0x45,
 	0x14, 0xcf, 0xa4, 0x69, 0xd4, 0x3e, 0xbb, 0x09, 0x9a, 0xa6, 0xa9, 0xbb, 0x2d, 0x8e, 0xbb, 0x41,
 	0x34, 0x2d, 0xc9, 0x4e, 0xe2, 0xd0, 0x86, 0x0b, 0x07, 0x52, 0xa9, 0xb4, 0x97, 0xb6, 0x2c, 0x42,
@@ -905,34 +905,34 @@ var fileDescriptor_dc42cdfd1d52d76e = []byte{
 	0xfb, 0x30, 0x1f, 0xe5, 0x9a, 0x12, 0x4b, 0x3a, 0x17, 0x19, 0x61, 0xfe, 0xcf, 0x3d, 0x7d, 0x61,
 	0x47, 0xce, 0x4b, 0x75, 0xfb, 0x81, 0x65, 0xe4, 0xff, 0x66, 0x91, 0x7f, 0x41, 0x70, 0xc3, 0x0e,
 	0x42, 0xf7, 0xef, 0x73, 0x78, 0xe3, 0x4c, 0xff, 0xf2, 0x75, 0x5e, 0xb5, 0x95, 0x6b, 0x86, 0xf9,
-	0x34, 0xc9, 0xf6, 0x8c, 0x06, 0xcc, 0x9b, 0xed, 0xfd, 0x0f, 0x57, 0xd7, 0x31, 0x6e, 0xfd, 0xd3,
-	0xa0, 0x17, 0x74, 0xf2, 0x4e, 0xba, 0x4f, 0x8c, 0xcb, 0x9a, 0xeb, 0x74, 0x81, 0x4d, 0x98, 0xed,
-	0x4a, 0x89, 0xde, 0x0b, 0xeb, 0x14, 0xb5, 0x8f, 0xb6, 0x74, 0x6f, 0xc2, 0x92, 0x0c, 0xf8, 0x49,
-	0x37, 0xee, 0x05, 0x2d, 0xe3, 0x6e, 0xe6, 0x39, 0xdb, 0xd0, 0x18, 0x6d, 0xa2, 0x53, 0x3f, 0x84,
-	0x2b, 0x42, 0xab, 0x77, 0x4a, 0xd3, 0xe8, 0x65, 0x31, 0x1c, 0xd1, 0x7d, 0x0b, 0x5c, 0x33, 0x9b,
-	0xed, 0xfe, 0xba, 0x02, 0x96, 0xff, 0xd1, 0x4a, 0xc3, 0x7a, 0x0c, 0xb5, 0x01, 0xac, 0x09, 0xee,
-	0xce, 0xa2, 0xb0, 0xc6, 0x75, 0xb7, 0x86, 0x08, 0x59, 0x94, 0x5a, 0x72, 0x77, 0x73, 0x88, 0x64,
-	0xc5, 0x60, 0x6e, 0x8b, 0x30, 0xcb, 0xa5, 0x44, 0xbb, 0xe9, 0x53, 0xf3, 0x8b, 0x0a, 0x9c, 0x97,
-	0x5e, 0xf8, 0x5b, 0x04, 0x95, 0x42, 0x93, 0xf0, 0x3b, 0xb6, 0xc9, 0x8e, 0x78, 0x13, 0x9d, 0xd5,
-	0x72, 0xc6, 0x0a, 0x8c, 0x7b, 0xf7, 0xc5, 0xaf, 0x7f, 0x7d, 0x3d, 0x4d, 0xf0, 0x1a, 0x19, 0xf9,
-	0xaa, 0xeb, 0xcb, 0x43, 0x9e, 0x9f, 0xd6, 0x7b, 0x88, 0xbf, 0x41, 0x50, 0x2d, 0xf2, 0x3a, 0x2e,
-	0x95, 0x35, 0x6f, 0x9e, 0xb3, 0x56, 0xd2, 0x5a, 0x83, 0xbc, 0x2d, 0x41, 0x2e, 0xe3, 0x9b, 0x63,
-	0x41, 0xe2, 0x23, 0x04, 0x73, 0xe6, 0x14, 0xb1, 0x37, 0x3a, 0x99, 0x6d, 0xd9, 0x1c, 0x52, 0xda,
-	0x5e, 0xc3, 0x6b, 0x4b, 0x78, 0xbb, 0xb8, 0x65, 0x85, 0x77, 0x86, 0x83, 0x8a, 0x6d, 0x24, 0xf9,
-	0xbb, 0x41, 0x9e, 0x9f, 0x79, 0x81, 0x0e, 0x89, 0x22, 0xe8, 0x82, 0x42, 0x09, 0x0e, 0xf1, 0x4b,
-	0x04, 0xf3, 0x67, 0x38, 0x0f, 0x97, 0x85, 0x7c, 0x3a, 0x80, 0xf5, 0xf2, 0x0e, 0xba, 0xc8, 0xf7,
-	0x64, 0x91, 0x4d, 0xbc, 0x3e, 0x69, 0x91, 0xf8, 0xcb, 0xd3, 0x5d, 0x51, 0x64, 0x34, 0x76, 0x57,
-	0x0c, 0x0e, 0x1c, 0xbb, 0x2b, 0x26, 0x2b, 0xba, 0x6f, 0x4a, 0x9c, 0x57, 0xf1, 0x15, 0x85, 0xf3,
-	0x14, 0xa2, 0x22, 0x40, 0xfc, 0x23, 0x82, 0xcb, 0x16, 0x66, 0xc3, 0x9b, 0x23, 0xb3, 0x8c, 0xa6,
-	0x4a, 0xe7, 0xdd, 0xc9, 0x9c, 0x34, 0xc2, 0xa6, 0x44, 0xb8, 0x8a, 0xef, 0xd8, 0x3a, 0x69, 0xa5,
-	0x55, 0x8e, 0x7f, 0x46, 0xb0, 0x68, 0x27, 0x3f, 0x7c, 0x6f, 0x3c, 0x08, 0xeb, 0x9a, 0x6f, 0x4d,
-	0xec, 0x57, 0x86, 0x32, 0x46, 0xf1, 0x2f, 0xc7, 0xdf, 0x19, 0x94, 0x21, 0xca, 0x51, 0x86, 0x98,
-	0x88, 0x32, 0x06, 0x24, 0x5b, 0x9a, 0xd7, 0x84, 0xb1, 0xab, 0xdb, 0x4f, 0x5e, 0x1d, 0xd7, 0xd1,
-	0xeb, 0xe3, 0x3a, 0xfa, 0xf3, 0xb8, 0x8e, 0xbe, 0x3a, 0xa9, 0x4f, 0xbd, 0x3e, 0xa9, 0x4f, 0xfd,
-	0x7e, 0x52, 0x9f, 0xfa, 0xec, 0x6e, 0x9c, 0x64, 0x7b, 0x22, 0xf4, 0x22, 0xd6, 0x21, 0xfa, 0x67,
-	0x29, 0x09, 0xa3, 0xb5, 0x98, 0x91, 0x0e, 0x6b, 0x89, 0x36, 0xe5, 0x2a, 0xc9, 0x7a, 0x73, 0x4d,
-	0xe7, 0xc9, 0x0e, 0xba, 0x94, 0x87, 0xb3, 0xf2, 0xa1, 0xd9, 0xfc, 0x3b, 0x00, 0x00, 0xff, 0xff,
-	0x16, 0x25, 0xbd, 0xda, 0x95, 0x0d, 0x00, 0x00,
+	0x34, 0xc9, 0xf6, 0x8c, 0x06, 0xcc, 0x9b, 0xed, 0xfd, 0x0f, 0x57, 0x77, 0x6b, 0xe8, 0xd6, 0x8b,
+	0x52, 0x9d, 0x74, 0x37, 0x87, 0x6e, 0xb2, 0x18, 0x54, 0xbf, 0x08, 0xb3, 0x5c, 0x4a, 0xb4, 0x9b,
+	0x3e, 0xb9, 0x8e, 0x91, 0xed, 0x69, 0xd0, 0x0b, 0x3a, 0x79, 0x36, 0xf7, 0x89, 0x11, 0x30, 0xd7,
+	0xe9, 0x80, 0x4d, 0x98, 0xed, 0x4a, 0x89, 0xde, 0x42, 0xeb, 0xce, 0x68, 0x1f, 0x6d, 0xe9, 0xde,
+	0x84, 0x25, 0x19, 0xf0, 0x93, 0x6e, 0xdc, 0x0b, 0x5a, 0x06, 0x13, 0xe4, 0x39, 0xdb, 0xd0, 0x18,
+	0x6d, 0xa2, 0x53, 0x3f, 0x84, 0x2b, 0x42, 0xab, 0x77, 0x4a, 0x93, 0xf6, 0x65, 0x31, 0x1c, 0xd1,
+	0x7d, 0x0b, 0x5c, 0x33, 0x9b, 0x8d, 0x2d, 0x5c, 0x01, 0xcb, 0xff, 0x68, 0xa5, 0x61, 0x3d, 0x86,
+	0xda, 0x00, 0xd6, 0x04, 0x37, 0x75, 0x51, 0x58, 0xe3, 0x36, 0xbf, 0xa8, 0xc0, 0x79, 0x99, 0x17,
+	0x7f, 0x8b, 0xa0, 0x52, 0x80, 0x8d, 0xdf, 0xb1, 0xf5, 0x7a, 0xc4, 0x9b, 0xe8, 0xac, 0x96, 0x33,
+	0x56, 0x45, 0xb8, 0x77, 0x5f, 0xfc, 0xfa, 0xd7, 0xd7, 0xd3, 0x04, 0xaf, 0x91, 0x91, 0xaf, 0xba,
+	0xbe, 0x3c, 0xe4, 0xf9, 0xe9, 0x2a, 0x1e, 0xe2, 0x6f, 0x10, 0x54, 0x8b, 0xbc, 0x8e, 0x4b, 0x65,
+	0xcd, 0x37, 0xcd, 0x59, 0x2b, 0x69, 0xad, 0x41, 0xde, 0x96, 0x20, 0x97, 0xf1, 0xcd, 0xb1, 0x20,
+	0xf1, 0x11, 0x82, 0x39, 0xb3, 0xaf, 0xd8, 0x1b, 0x9d, 0xcc, 0x36, 0x7e, 0x87, 0x94, 0xb6, 0xd7,
+	0xf0, 0xda, 0x12, 0xde, 0x2e, 0x6e, 0x59, 0xe1, 0x9d, 0xe1, 0xa0, 0x62, 0x1b, 0x49, 0xfe, 0x6e,
+	0x90, 0xe7, 0x67, 0x5e, 0xa0, 0x43, 0xa2, 0x08, 0xba, 0xa0, 0x50, 0x82, 0x43, 0xfc, 0x12, 0xc1,
+	0xfc, 0x19, 0xce, 0xc3, 0x65, 0x21, 0x9f, 0x0e, 0x60, 0xbd, 0xbc, 0x83, 0x2e, 0xf2, 0x3d, 0x59,
+	0x64, 0x13, 0xaf, 0x4f, 0x5a, 0x24, 0xfe, 0xf2, 0x74, 0x57, 0x14, 0x3d, 0x8c, 0xdd, 0x15, 0x83,
+	0x95, 0xc6, 0xee, 0x8a, 0xc9, 0x53, 0xee, 0x9b, 0x12, 0xe7, 0x55, 0x7c, 0x45, 0xe1, 0x3c, 0x85,
+	0xa8, 0x28, 0x09, 0xff, 0x88, 0xe0, 0xb2, 0x85, 0x6b, 0xf0, 0xe6, 0xc8, 0x2c, 0xa3, 0xc9, 0xcb,
+	0x79, 0x77, 0x32, 0x27, 0x8d, 0xb0, 0x29, 0x11, 0xae, 0xe2, 0x3b, 0xb6, 0x4e, 0x5a, 0x89, 0x8e,
+	0xe3, 0x9f, 0x11, 0x2c, 0xda, 0xe9, 0x08, 0xdf, 0x1b, 0x0f, 0xc2, 0xba, 0xe6, 0x5b, 0x13, 0xfb,
+	0x95, 0xa1, 0x8c, 0x51, 0x8c, 0xc8, 0xf1, 0x77, 0x06, 0x65, 0x88, 0x72, 0x94, 0x21, 0x26, 0xa2,
+	0x8c, 0xc1, 0xfb, 0x57, 0x9a, 0xd7, 0x84, 0xb1, 0xab, 0xdb, 0x4f, 0x5e, 0x1d, 0xd7, 0xd1, 0xeb,
+	0xe3, 0x3a, 0xfa, 0xf3, 0xb8, 0x8e, 0xbe, 0x3a, 0xa9, 0x4f, 0xbd, 0x3e, 0xa9, 0x4f, 0xfd, 0x7e,
+	0x52, 0x9f, 0xfa, 0xec, 0x6e, 0x9c, 0x64, 0x7b, 0x22, 0xf4, 0x22, 0xd6, 0x21, 0xfa, 0x67, 0x29,
+	0x09, 0xa3, 0xb5, 0x98, 0x91, 0x0e, 0x6b, 0x89, 0x36, 0xe5, 0x2a, 0xc9, 0x7a, 0x73, 0x4d, 0xe7,
+	0xc9, 0x0e, 0xba, 0x94, 0x87, 0xb3, 0x92, 0xfa, 0x37, 0xff, 0x0e, 0x00, 0x00, 0xff, 0xff, 0x31,
+	0x92, 0x6d, 0xd2, 0x95, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1646,6 +1646,66 @@ func (m *QueryConsensusStatesResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryClientStatusRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryClientStatusRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryClientStatusRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ClientId) > 0 {
+		i -= len(m.ClientId)
+		copy(dAtA[i:], m.ClientId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ClientId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryClientStatusResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryClientStatusResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryClientStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Status) > 0 {
+		i -= len(m.Status)
+		copy(dAtA[i:], m.Status)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Status)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *QueryClientParamsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1820,66 +1880,6 @@ func (m *QueryUpgradedConsensusStateResponse) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryClientStatusRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryClientStatusRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryClientStatusRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.ClientId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryClientStatusResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryClientStatusResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryClientStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Status) > 0 {
-		i -= len(m.Status)
-		copy(dAtA[i:], m.Status)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Status)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -2032,6 +2032,32 @@ func (m *QueryConsensusStatesResponse) Size() (n int) {
 	return n
 }
 
+func (m *QueryClientStatusRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ClientId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryClientStatusResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Status)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
 func (m *QueryClientParamsRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2093,32 +2119,6 @@ func (m *QueryUpgradedConsensusStateResponse) Size() (n int) {
 	_ = l
 	if m.UpgradedConsensusState != nil {
 		l = m.UpgradedConsensusState.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryClientStatusRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.ClientId)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryClientStatusResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Status)
-	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
@@ -3102,6 +3102,170 @@ func (m *QueryConsensusStatesResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *QueryClientStatusRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryClientStatusRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryClientStatusRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ClientId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryClientStatusResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryClientStatusResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryClientStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Status = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *QueryClientParamsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3488,170 +3652,6 @@ func (m *QueryUpgradedConsensusStateResponse) Unmarshal(dAtA []byte) error {
 			if err := m.UpgradedConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryClientStatusRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryClientStatusRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryClientStatusRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryClientStatusResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryClientStatusResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryClientStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Status = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
