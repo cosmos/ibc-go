@@ -65,9 +65,9 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 
 // Status returns the status of the tendermint client.
 // The client may be:
-// - Active
-// - Frozen
-// - Expired
+// - Active: FrozenHeight is zero and client is not expired
+// - Frozen: Frozen Height is not zero
+// - Expired: the latest consensus state timestamp + trusting period <= current time
 //
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
