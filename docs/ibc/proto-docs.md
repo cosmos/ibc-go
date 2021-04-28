@@ -4856,6 +4856,13 @@ client.</p></td>
               </tr>
             
               <tr>
+                <td>ClientStatus</td>
+                <td><a href="#ibc.core.client.v1.QueryClientStatusRequest">QueryClientStatusRequest</a></td>
+                <td><a href="#ibc.core.client.v1.QueryClientStatusResponse">QueryClientStatusResponse</a></td>
+                <td><p>Status queries the status of an IBC client.</p></td>
+              </tr>
+            
+              <tr>
                 <td>ClientParams</td>
                 <td><a href="#ibc.core.client.v1.QueryClientParamsRequest">QueryClientParamsRequest</a></td>
                 <td><a href="#ibc.core.client.v1.QueryClientParamsResponse">QueryClientParamsResponse</a></td>
@@ -4874,13 +4881,6 @@ client.</p></td>
                 <td><a href="#ibc.core.client.v1.QueryUpgradedConsensusStateRequest">QueryUpgradedConsensusStateRequest</a></td>
                 <td><a href="#ibc.core.client.v1.QueryUpgradedConsensusStateResponse">QueryUpgradedConsensusStateResponse</a></td>
                 <td><p>UpgradedConsensusState queries an Upgraded IBC consensus state.</p></td>
-              </tr>
-            
-              <tr>
-                <td>ClientStatus</td>
-                <td><a href="#ibc.core.client.v1.QueryClientStatusRequest">QueryClientStatusRequest</a></td>
-                <td><a href="#ibc.core.client.v1.QueryClientStatusResponse">QueryClientStatusResponse</a></td>
-                <td><p>Status queries the status of an IBC client.</p></td>
               </tr>
             
           </tbody>
@@ -4944,6 +4944,16 @@ client.</p></td>
               
               
               <tr>
+                <td>ClientStatus</td>
+                <td>GET</td>
+                <td>/ibc/core/client/v1/client_status/{client_id}</td>
+                <td></td>
+              </tr>
+              
+            
+              
+              
+              <tr>
                 <td>ClientParams</td>
                 <td>GET</td>
                 <td>/ibc/client/v1/params</td>
@@ -4967,16 +4977,6 @@ client.</p></td>
                 <td>UpgradedConsensusState</td>
                 <td>GET</td>
                 <td>/ibc/core/client/v1/upgraded_consensus_states</td>
-                <td></td>
-              </tr>
-              
-            
-              
-              
-              <tr>
-                <td>ClientStatus</td>
-                <td>GET</td>
-                <td>/ibc/core/client/v1/client_status/{client_id}</td>
                 <td></td>
               </tr>
               

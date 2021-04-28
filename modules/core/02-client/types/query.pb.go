@@ -870,7 +870,7 @@ func init() {
 func init() { proto.RegisterFile("ibc/core/client/v1/query.proto", fileDescriptor_dc42cdfd1d52d76e) }
 
 var fileDescriptor_dc42cdfd1d52d76e = []byte{
-	// 983 bytes of a gzipped FileDescriptorProto
+	// 981 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xcd, 0x6f, 0x1b, 0x45,
 	0x14, 0xcf, 0xa4, 0x69, 0xd4, 0x3e, 0xbb, 0x09, 0x9a, 0xa6, 0xa9, 0xbb, 0x2d, 0x8e, 0xbb, 0x41,
 	0x34, 0x2d, 0xc9, 0x4e, 0xe2, 0xd0, 0x86, 0x0b, 0x07, 0x52, 0xa9, 0xb4, 0x97, 0xb6, 0x2c, 0x42,
@@ -921,18 +921,18 @@ var fileDescriptor_dc42cdfd1d52d76e = []byte{
 	0xf0, 0xda, 0x12, 0xde, 0x2e, 0x6e, 0x59, 0xe1, 0x9d, 0xe1, 0xa0, 0x62, 0x1b, 0x49, 0xfe, 0x6e,
 	0x90, 0xe7, 0x67, 0x5e, 0xa0, 0x43, 0xa2, 0x08, 0xba, 0xa0, 0x50, 0x82, 0x43, 0xfc, 0x12, 0xc1,
 	0xfc, 0x19, 0xce, 0xc3, 0x65, 0x21, 0x9f, 0x0e, 0x60, 0xbd, 0xbc, 0x83, 0x2e, 0xf2, 0x3d, 0x59,
-	0x64, 0x13, 0xaf, 0x4f, 0x5a, 0x24, 0xfe, 0xf2, 0x74, 0x57, 0x14, 0x3d, 0x8c, 0xdd, 0x15, 0x83,
-	0x95, 0xc6, 0xee, 0x8a, 0xc9, 0x53, 0xee, 0x9b, 0x12, 0xe7, 0x55, 0x7c, 0x45, 0xe1, 0x3c, 0x85,
-	0xa8, 0x28, 0x09, 0xff, 0x88, 0xe0, 0xb2, 0x85, 0x6b, 0xf0, 0xe6, 0xc8, 0x2c, 0xa3, 0xc9, 0xcb,
-	0x79, 0x77, 0x32, 0x27, 0x8d, 0xb0, 0x29, 0x11, 0xae, 0xe2, 0x3b, 0xb6, 0x4e, 0x5a, 0x89, 0x8e,
-	0xe3, 0x9f, 0x11, 0x2c, 0xda, 0xe9, 0x08, 0xdf, 0x1b, 0x0f, 0xc2, 0xba, 0xe6, 0x5b, 0x13, 0xfb,
-	0x95, 0xa1, 0x8c, 0x51, 0x8c, 0xc8, 0xf1, 0x77, 0x06, 0x65, 0x88, 0x72, 0x94, 0x21, 0x26, 0xa2,
-	0x8c, 0xc1, 0xfb, 0x57, 0x9a, 0xd7, 0x84, 0xb1, 0xab, 0xdb, 0x4f, 0x5e, 0x1d, 0xd7, 0xd1, 0xeb,
-	0xe3, 0x3a, 0xfa, 0xf3, 0xb8, 0x8e, 0xbe, 0x3a, 0xa9, 0x4f, 0xbd, 0x3e, 0xa9, 0x4f, 0xfd, 0x7e,
-	0x52, 0x9f, 0xfa, 0xec, 0x6e, 0x9c, 0x64, 0x7b, 0x22, 0xf4, 0x22, 0xd6, 0x21, 0xfa, 0x67, 0x29,
-	0x09, 0xa3, 0xb5, 0x98, 0x91, 0x0e, 0x6b, 0x89, 0x36, 0xe5, 0x2a, 0xc9, 0x7a, 0x73, 0x4d, 0xe7,
-	0xc9, 0x0e, 0xba, 0x94, 0x87, 0xb3, 0x92, 0xfa, 0x37, 0xff, 0x0e, 0x00, 0x00, 0xff, 0xff, 0x31,
-	0x92, 0x6d, 0xd2, 0x95, 0x0d, 0x00, 0x00,
+	0x64, 0x13, 0xaf, 0x4f, 0x5a, 0x24, 0xfe, 0xce, 0xd8, 0x15, 0x51, 0x6e, 0x57, 0xc4, 0x44, 0xbb,
+	0x32, 0x20, 0xbe, 0xd2, 0x0b, 0x2d, 0x4c, 0x90, 0x5f, 0x9e, 0x82, 0x54, 0x1c, 0x36, 0x16, 0xa4,
+	0x41, 0x9d, 0x63, 0x41, 0x9a, 0x64, 0xea, 0xbe, 0x29, 0x41, 0x5e, 0xc5, 0x57, 0x14, 0xc8, 0x53,
+	0x7c, 0x8a, 0x37, 0xf1, 0x8f, 0x08, 0x2e, 0x5b, 0x08, 0x11, 0x6f, 0x8e, 0xcc, 0x32, 0x9a, 0x61,
+	0x9d, 0x77, 0x27, 0x73, 0xd2, 0x08, 0x9b, 0x12, 0xe1, 0x2a, 0xbe, 0x63, 0x6b, 0xa3, 0x95, 0x8d,
+	0x39, 0xfe, 0x19, 0xc1, 0xa2, 0x9d, 0x33, 0xf1, 0xbd, 0xf1, 0x20, 0xac, 0x77, 0x71, 0x6b, 0x62,
+	0xbf, 0x32, 0x6b, 0x30, 0x8a, 0xb6, 0xf9, 0xf6, 0x93, 0x57, 0xc7, 0x75, 0xf4, 0xfa, 0xb8, 0x8e,
+	0xfe, 0x3c, 0xae, 0xa3, 0xaf, 0x4e, 0xea, 0x53, 0xaf, 0x4f, 0xea, 0x53, 0xbf, 0x9f, 0xd4, 0xa7,
+	0x3e, 0xbb, 0x1b, 0x27, 0xd9, 0x9e, 0x08, 0xbd, 0x88, 0x75, 0x88, 0xfe, 0x59, 0x4a, 0xc2, 0x68,
+	0x2d, 0x66, 0xa4, 0xc3, 0x5a, 0xa2, 0x4d, 0xb9, 0x4a, 0xb2, 0xde, 0x5c, 0xd3, 0x79, 0xb2, 0x83,
+	0x2e, 0xe5, 0xe1, 0xac, 0xa4, 0xfe, 0xcd, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0x50, 0xa9, 0x40,
+	0x56, 0x95, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -957,14 +957,14 @@ type QueryClient interface {
 	// ConsensusStates queries all the consensus state associated with a given
 	// client.
 	ConsensusStates(ctx context.Context, in *QueryConsensusStatesRequest, opts ...grpc.CallOption) (*QueryConsensusStatesResponse, error)
+	// Status queries the status of an IBC client.
+	ClientStatus(ctx context.Context, in *QueryClientStatusRequest, opts ...grpc.CallOption) (*QueryClientStatusResponse, error)
 	// ClientParams queries all parameters of the ibc client.
 	ClientParams(ctx context.Context, in *QueryClientParamsRequest, opts ...grpc.CallOption) (*QueryClientParamsResponse, error)
 	// UpgradedClientState queries an Upgraded IBC light client.
 	UpgradedClientState(ctx context.Context, in *QueryUpgradedClientStateRequest, opts ...grpc.CallOption) (*QueryUpgradedClientStateResponse, error)
 	// UpgradedConsensusState queries an Upgraded IBC consensus state.
 	UpgradedConsensusState(ctx context.Context, in *QueryUpgradedConsensusStateRequest, opts ...grpc.CallOption) (*QueryUpgradedConsensusStateResponse, error)
-	// Status queries the status of an IBC client.
-	ClientStatus(ctx context.Context, in *QueryClientStatusRequest, opts ...grpc.CallOption) (*QueryClientStatusResponse, error)
 }
 
 type queryClient struct {
@@ -1011,6 +1011,15 @@ func (c *queryClient) ConsensusStates(ctx context.Context, in *QueryConsensusSta
 	return out, nil
 }
 
+func (c *queryClient) ClientStatus(ctx context.Context, in *QueryClientStatusRequest, opts ...grpc.CallOption) (*QueryClientStatusResponse, error) {
+	out := new(QueryClientStatusResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.client.v1.Query/ClientStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) ClientParams(ctx context.Context, in *QueryClientParamsRequest, opts ...grpc.CallOption) (*QueryClientParamsResponse, error) {
 	out := new(QueryClientParamsResponse)
 	err := c.cc.Invoke(ctx, "/ibc.core.client.v1.Query/ClientParams", in, out, opts...)
@@ -1038,15 +1047,6 @@ func (c *queryClient) UpgradedConsensusState(ctx context.Context, in *QueryUpgra
 	return out, nil
 }
 
-func (c *queryClient) ClientStatus(ctx context.Context, in *QueryClientStatusRequest, opts ...grpc.CallOption) (*QueryClientStatusResponse, error) {
-	out := new(QueryClientStatusResponse)
-	err := c.cc.Invoke(ctx, "/ibc.core.client.v1.Query/ClientStatus", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// ClientState queries an IBC light client.
@@ -1059,14 +1059,14 @@ type QueryServer interface {
 	// ConsensusStates queries all the consensus state associated with a given
 	// client.
 	ConsensusStates(context.Context, *QueryConsensusStatesRequest) (*QueryConsensusStatesResponse, error)
+	// Status queries the status of an IBC client.
+	ClientStatus(context.Context, *QueryClientStatusRequest) (*QueryClientStatusResponse, error)
 	// ClientParams queries all parameters of the ibc client.
 	ClientParams(context.Context, *QueryClientParamsRequest) (*QueryClientParamsResponse, error)
 	// UpgradedClientState queries an Upgraded IBC light client.
 	UpgradedClientState(context.Context, *QueryUpgradedClientStateRequest) (*QueryUpgradedClientStateResponse, error)
 	// UpgradedConsensusState queries an Upgraded IBC consensus state.
 	UpgradedConsensusState(context.Context, *QueryUpgradedConsensusStateRequest) (*QueryUpgradedConsensusStateResponse, error)
-	// Status queries the status of an IBC client.
-	ClientStatus(context.Context, *QueryClientStatusRequest) (*QueryClientStatusResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1085,6 +1085,9 @@ func (*UnimplementedQueryServer) ConsensusState(ctx context.Context, req *QueryC
 func (*UnimplementedQueryServer) ConsensusStates(ctx context.Context, req *QueryConsensusStatesRequest) (*QueryConsensusStatesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConsensusStates not implemented")
 }
+func (*UnimplementedQueryServer) ClientStatus(ctx context.Context, req *QueryClientStatusRequest) (*QueryClientStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClientStatus not implemented")
+}
 func (*UnimplementedQueryServer) ClientParams(ctx context.Context, req *QueryClientParamsRequest) (*QueryClientParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClientParams not implemented")
 }
@@ -1093,9 +1096,6 @@ func (*UnimplementedQueryServer) UpgradedClientState(ctx context.Context, req *Q
 }
 func (*UnimplementedQueryServer) UpgradedConsensusState(ctx context.Context, req *QueryUpgradedConsensusStateRequest) (*QueryUpgradedConsensusStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpgradedConsensusState not implemented")
-}
-func (*UnimplementedQueryServer) ClientStatus(ctx context.Context, req *QueryClientStatusRequest) (*QueryClientStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClientStatus not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1174,6 +1174,24 @@ func _Query_ConsensusStates_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_ClientStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryClientStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ClientStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.client.v1.Query/ClientStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ClientStatus(ctx, req.(*QueryClientStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_ClientParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryClientParamsRequest)
 	if err := dec(in); err != nil {
@@ -1228,24 +1246,6 @@ func _Query_UpgradedConsensusState_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_ClientStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryClientStatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).ClientStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ibc.core.client.v1.Query/ClientStatus",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ClientStatus(ctx, req.(*QueryClientStatusRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.core.client.v1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -1267,6 +1267,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_ConsensusStates_Handler,
 		},
 		{
+			MethodName: "ClientStatus",
+			Handler:    _Query_ClientStatus_Handler,
+		},
+		{
 			MethodName: "ClientParams",
 			Handler:    _Query_ClientParams_Handler,
 		},
@@ -1277,10 +1281,6 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpgradedConsensusState",
 			Handler:    _Query_UpgradedConsensusState_Handler,
-		},
-		{
-			MethodName: "ClientStatus",
-			Handler:    _Query_ClientStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
