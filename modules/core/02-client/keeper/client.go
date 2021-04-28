@@ -66,9 +66,10 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		return sdkerrors.Wrapf(types.ErrClientFrozen, "cannot update client with ID %s", clientID)
 	}
 
-	var consensusHeight exported.Height
 	eventType := types.EventTypeUpdateClient
 
+	// Cache the context to ensure that any writes in CheckHeaderAndUpdateState are only written if
+	// the update is successful and the update is not evidence of misbehaviour.
 	cacheCtx, writeFn := ctx.CacheContext()
 	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(cacheCtx, k.cdc, k.ClientStore(ctx, clientID), header)
 	if err != nil {
@@ -76,7 +77,10 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 	}
 
 	// emit the full header in events
-	var headerStr string
+	var (
+		headerStr       string
+		consensusHeight exported.Height
+	)
 	if header != nil {
 		// Marshal the Header as an Any and encode the resulting bytes to hex.
 		// This prevents the event value from containing invalid UTF-8 characters
@@ -106,11 +110,36 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		}
 
 		k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
+
+		defer func() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"ibc", "client", "update"},
+				1,
+				[]metrics.Label{
+					telemetry.NewLabel("client-type", clientState.ClientType()),
+					telemetry.NewLabel("client-id", clientID),
+					telemetry.NewLabel("update-type", "msg"),
+				},
+			)
+		}()
+
 	} else {
 		// set eventType to SubmitMisbehaviour
 		eventType = types.EventTypeSubmitMisbehaviour
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID, "height", header.GetHeight().String())
+
+		defer func() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"ibc", "client", "misbehaviour"},
+				1,
+				[]metrics.Label{
+					telemetry.NewLabel("client-type", clientState.ClientType()),
+					telemetry.NewLabel("client-id", clientID),
+					telemetry.NewLabel("msg-type", "update"),
+				},
+			)
+		}()
 	}
 
 	// emitting events in the keeper emits for both begin block and handler client updates
@@ -123,19 +152,6 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
 		),
 	)
-
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "update"},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel("client-type", clientState.ClientType()),
-				telemetry.NewLabel("client-id", clientID),
-				telemetry.NewLabel("update-type", "msg"),
-			},
-		)
-	}()
-
 	return nil
 }
 

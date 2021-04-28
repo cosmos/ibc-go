@@ -31,11 +31,6 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &Misbehaviour{})
 	}
 
-	// If client is already frozen, return with error
-	if cs.IsFrozen() {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour, "client is already frozen at height %s", cs.FrozenHeight)
-	}
-
 	// if heights are equal check that this is valid misbehaviour of a fork
 	// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
 	if tmMisbehaviour.Header1.GetHeight().EQ(tmMisbehaviour.Header2.GetHeight()) {

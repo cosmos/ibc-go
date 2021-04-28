@@ -80,6 +80,21 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			true,
 		},
 		{
+			"valid time misbehaviour header 1 stricly less than header 2",
+			types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
+			height,
+			&types.Misbehaviour{
+				Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+3), height, suite.now, bothValSet, bothValSet, bothSigners),
+				Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Hour), bothValSet, bothValSet, bothSigners),
+				ClientId: chainID,
+			},
+			suite.now,
+			true,
+		},
+		{
 			"valid misbehavior at height greater than last consensusState",
 			types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
@@ -397,7 +412,7 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 
 			clientState, err := tc.clientState.CheckMisbehaviourAndUpdateState(
 				ctx,
-				suite.cdc,
+				suite.chainA.App.AppCodec(),
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, clientID), // pass in clientID prefixed clientStore
 				tc.misbehaviour,
 			)

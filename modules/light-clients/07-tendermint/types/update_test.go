@@ -139,7 +139,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 			name: "misbehaviour detection: previous consensus state time is not before header time. time monotonicity violation",
 			setup: func(suite *TendermintTestSuite) {
 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-				// swap header and client time to create violation
+				// create an intermediate consensus state with the same time as the newHeader to create a time violation.
+				// header time is after client time
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
@@ -156,7 +157,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 			name: "misbehaviour detection: next consensus state time is not after header time. time monotonicity violation",
 			setup: func(suite *TendermintTestSuite) {
 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-				// swap header and client time to create violation
+				// create the next consensus state with the same time as the intermediate newHeader to create a time violation.
+				// header time is after clientTime
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, signers)
 				currentTime = suite.now
