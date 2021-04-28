@@ -31,7 +31,7 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 	status := clientState.Status(suite.chainA.GetContext(), nil, nil)
 	suite.Require().Equal(exported.Active, status)
 
-	// free solo machine
+	// freeze solo machine
 	clientState.FrozenSequence = 1
 	status = clientState.Status(suite.chainA.GetContext(), nil, nil)
 	suite.Require().Equal(exported.Frozen, status)
