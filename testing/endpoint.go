@@ -447,6 +447,11 @@ func (endpoint *Endpoint) GetConsensusState(height exported.Height) exported.Con
 	return consensusState
 }
 
+// SetConsensusState sets the consensus state for this endpoint.
+func (endpoint *Endpoint) SetConsensusState(consensusState exported.ConsensusState, height exported.Height) {
+	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(endpoint.Chain.GetContext(), endpoint.ClientID, height, consensusState)
+}
+
 // GetConnection retrieves an IBC Connection for the endpoint. The
 // connection is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetConnection() connectiontypes.ConnectionEnd {
