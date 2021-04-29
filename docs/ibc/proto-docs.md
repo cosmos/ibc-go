@@ -220,6 +220,10 @@
               
               
               
+                <li>
+                  <a href="#ibc.apps.ccv.v1.Msg"><span class="badge">S</span>Msg</a>
+                </li>
+              
             </ul>
           </li>
         
@@ -1310,6 +1314,39 @@ validator set </p></td>
       
 
       
+        <h3 id="ibc.apps.ccv.v1.Msg">Msg</h3>
+        <p>Msg defines the ibc/ccv Msg service</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>SubmitNewChain</td>
+                <td><a href="#ibc.apps.ccv.v1.MsgSubmitNewChain">MsgSubmitNewChain</a></td>
+                <td><a href="#ibc.apps.ccv.v1.MsgSubmitNewChainResponse">MsgSubmitNewChainResponse</a></td>
+                <td><p>SubmitNewChain defines a rpc handler method for MsgSubmitNewChain</p></td>
+              </tr>
+            
+              <tr>
+                <td>BondStake</td>
+                <td><a href="#ibc.apps.ccv.v1.MsgBondStake">MsgBondStake</a></td>
+                <td><a href="#ibc.apps.ccv.v1.MsgBondStakeResponse">MsgBondStakeResponse</a></td>
+                <td><p>BondStake defines a rpc handler method for MsgBondStake</p></td>
+              </tr>
+            
+              <tr>
+                <td>UnbondStake</td>
+                <td><a href="#ibc.apps.ccv.v1.MsgUnbondStake">MsgUnbondStake</a></td>
+                <td><a href="#ibc.apps.ccv.v1.MsgUnbondStakeResponse">MsgUnbondStakeResponse</a></td>
+                <td><p>UnbondStake defines a rpc handler method for MsgUnbondStake</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+
+        
     
       
       <div class="file-heading">

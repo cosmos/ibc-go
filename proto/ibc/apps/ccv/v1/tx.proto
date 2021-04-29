@@ -7,6 +7,16 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/ccv/types";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
+// Msg defines the ibc/ccv Msg service
+service Msg {
+  // SubmitNewChain defines a rpc handler method for MsgSubmitNewChain
+  rpc SubmitNewChain(MsgSubmitNewChain) returns (MsgSubmitNewChainResponse);
+  // BondStake defines a rpc handler method for MsgBondStake
+  rpc BondStake(MsgBondStake) returns (MsgBondStakeResponse);
+  // UnbondStake defines a rpc handler method for MsgUnbondStake
+  rpc UnbondStake(MsgUnbondStake) returns (MsgUnbondStakeResponse);
+}
+
 // MsgSubmitNewChain defines a msg to submit a new baby chain that can be validated
 // by the parent chain validators.
 message MsgSubmitNewChain {
