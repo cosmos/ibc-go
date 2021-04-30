@@ -68,6 +68,8 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 
 	eventType := types.EventTypeUpdateClient
 
+	// Any writes made in CheckHeaderAndUpdateState are persisted on both valid updates and misbehaviour updates.
+	// Light client implementations are responsible for writing the correct metadata (if any) in either case.
 	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, clientID), header)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "cannot update client with ID %s", clientID)
