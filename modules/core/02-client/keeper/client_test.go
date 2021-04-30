@@ -161,7 +161,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			// this will break time monotonicity
 			incrementedClientHeight := clientState.GetLatestHeight().Increment().(types.Height)
 			intermediateConsState := &ibctmtypes.ConsensusState{
-				Timestamp:          suite.header.Header.Time.Add(2 * time.Hour),
+				Timestamp:          suite.coordinator.CurrentTime.Add(2 * time.Hour),
 				NextValidatorsHash: suite.chainB.Vals.Hash(),
 			}
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, incrementedClientHeight, intermediateConsState)
@@ -223,7 +223,6 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 				if tc.expFreeze {
 					suite.Require().True(newClientState.IsFrozen(), "client did not freeze after conflicting header was submitted to UpdateClient")
-					suite.Require().Equal(newClientState.GetFrozenHeight(), updateHeader.GetHeight(), "client frozen at wrong height")
 				} else {
 					expConsensusState := &ibctmtypes.ConsensusState{
 						Timestamp:          updateHeader.GetTime(),
@@ -657,8 +656,6 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 				clientState, found := suite.keeper.GetClientState(suite.ctx, clientID)
 				suite.Require().True(found, "valid test case %d failed: %s", i, tc.name)
 				suite.Require().True(clientState.IsFrozen(), "valid test case %d failed: %s", i, tc.name)
-				suite.Require().Equal(tc.misbehaviour.GetHeight(), clientState.GetFrozenHeight(),
-					"valid test case %d failed: %s. Expected FrozenHeight %s got %s", tc.misbehaviour.GetHeight(), clientState.GetFrozenHeight())
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 			}

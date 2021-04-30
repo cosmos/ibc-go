@@ -43,6 +43,7 @@ import (
 // UpdateClient will detect implicit misbehaviour by enforcing certain invariants on any new update call and will return a frozen client.
 // 1. Any valid update that creates a different consensus state for an already existing height is evidence of misbehaviour and will freeze client.
 // 2. Any valid update that breaks time monotonicity with respect to its neighboring consensus states is evidence of misbehaviour and will freeze client.
+// Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
 //
 // Pruning:
 // UpdateClient will additionally retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
@@ -90,7 +91,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	consState := tmHeader.ConsensusState()
 	// Header is different from existing consensus state and also valid, so freeze the client and return
 	if conflictingHeader {
-		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
+		cs.FrozenHeight = clienttypes.NewHeight(0, 1)
 		return &cs, consState, nil
 	}
 	// Check that consensus state timestamps are monotonic
@@ -99,13 +100,13 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// if previous consensus state exists, check consensus state time is greater than previous consensus state time
 	// if previous consensus state is not before current consensus state, freeze the client and return.
 	if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
-		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
+		cs.FrozenHeight = clienttypes.NewHeight(0, 1)
 		return &cs, consState, nil
 	}
 	// if next consensus state exists, check consensus state time is less than next consensus state time
 	// if next consensus state is not after current consensus state, freeze the client and return.
 	if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
-		cs.FrozenHeight = header.GetHeight().(clienttypes.Height)
+		cs.FrozenHeight = clienttypes.NewHeight(0, 1)
 		return &cs, consState, nil
 	}
 

@@ -421,8 +421,6 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
 				suite.Require().NotNil(clientState, "valid test case %d failed: %s", i, tc.name)
 				suite.Require().True(clientState.IsFrozen(), "valid test case %d failed: %s", i, tc.name)
-				suite.Require().Equal(tc.misbehaviour.GetHeight(), clientState.GetFrozenHeight(),
-					"valid test case %d failed: %s. Expected FrozenHeight %s got %s", tc.misbehaviour.GetHeight(), clientState.GetFrozenHeight())
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 				suite.Require().Nil(clientState, "invalid test case %d passed: %s", i, tc.name)

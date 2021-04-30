@@ -20,6 +20,7 @@ import (
 // of misbehaviour.Header1
 // Similarly, consensusState2 is the trusted consensus state that corresponds
 // to misbehaviour.Header2
+// Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	ctx sdk.Context,
 	cdc codec.BinaryMarshaler,
@@ -88,7 +89,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		return nil, sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 	}
 
-	cs.FrozenHeight = tmMisbehaviour.GetHeight().(clienttypes.Height)
+	cs.FrozenHeight = clienttypes.NewHeight(0, 1)
 
 	return &cs, nil
 }

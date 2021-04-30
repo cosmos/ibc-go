@@ -68,10 +68,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 
 	eventType := types.EventTypeUpdateClient
 
-	// Cache the context to ensure that any writes in CheckHeaderAndUpdateState are only written if
-	// the update is successful and the update is not evidence of misbehaviour.
-	cacheCtx, writeFn := ctx.CacheContext()
-	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(cacheCtx, k.cdc, k.ClientStore(ctx, clientID), header)
+	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, clientID), header)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "cannot update client with ID %s", clientID)
 	}
@@ -97,10 +94,6 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 	// then update was valid. Write the update state changes, and set new consensus state.
 	// Else the update was proof of misbehaviour and we must emit appropriate misbehaviour events.
 	if !newClientState.IsFrozen() {
-		// write any cached state changes from CheckHeaderAndUpdateState
-		// to store metadata in client store for new consensus state.
-		writeFn()
-
 		// if update is not misbehaviour then update the consensus state
 		// we don't set consensus state for localhost client
 		if header != nil && clientID != exported.Localhost {
@@ -122,7 +115,6 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 				},
 			)
 		}()
-
 	} else {
 		// set eventType to SubmitMisbehaviour
 		eventType = types.EventTypeSubmitMisbehaviour
