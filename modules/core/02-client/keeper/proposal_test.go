@@ -204,7 +204,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 			if oldPlan.Height != 0 {
 				// set upgrade plan in the upgrade store
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
-				bz := suite.chainA.App.AppCodec().MustMarshalBinaryBare(&oldPlan)
+				bz := suite.chainA.App.AppCodec().MustMarshal(&oldPlan)
 				store.Set(upgradetypes.PlanKey(), bz)
 
 				bz, err := types.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClientState)

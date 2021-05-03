@@ -75,7 +75,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 }
 
 // Initialize ensures that initial consensus state for localhost is nil
-func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryMarshaler, _ sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
 	if consState != nil {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
@@ -89,7 +89,7 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 
 // CheckHeaderAndUpdateState updates the localhost client. It only needs access to the context
 func (cs *ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, _ codec.BinaryMarshaler, _ sdk.KVStore, _ exported.Header,
+	ctx sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Header,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	// use the chain ID from context since the localhost client is from the running chain (i.e self).
 	cs.ChainId = ctx.ChainID()
@@ -102,7 +102,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 // Since localhost is the client of the running chain, misbehaviour cannot be submitted to it
 // Thus, CheckMisbehaviourAndUpdateState returns an error for localhost
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	_ sdk.Context, _ codec.BinaryMarshaler, _ sdk.KVStore, _ exported.Misbehaviour,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Misbehaviour,
 ) (exported.ClientState, error) {
 	return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "cannot submit misbehaviour to localhost client")
 }
@@ -110,7 +110,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 // CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
 // proposals.
 func (cs ClientState) CheckSubstituteAndUpdateState(
-	ctx sdk.Context, _ codec.BinaryMarshaler, _, _ sdk.KVStore,
+	ctx sdk.Context, _ codec.BinaryCodec, _, _ sdk.KVStore,
 	_ exported.ClientState, _ exported.Height,
 ) (exported.ClientState, error) {
 	return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
@@ -118,7 +118,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded
 func (cs ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryMarshaler, _ sdk.KVStore,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	return nil, nil, sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
@@ -126,7 +126,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 
 // VerifyClientState verifies that the localhost client state is stored locally
 func (cs ClientState) VerifyClientState(
-	store sdk.KVStore, cdc codec.BinaryMarshaler,
+	store sdk.KVStore, cdc codec.BinaryCodec,
 	_ exported.Height, _ exported.Prefix, _ string, _ []byte, clientState exported.ClientState,
 ) error {
 	path := host.KeyClientState
@@ -150,7 +150,7 @@ func (cs ClientState) VerifyClientState(
 // VerifyClientConsensusState returns nil since a local host client does not store consensus
 // states.
 func (cs ClientState) VerifyClientConsensusState(
-	sdk.KVStore, codec.BinaryMarshaler,
+	sdk.KVStore, codec.BinaryCodec,
 	exported.Height, string, exported.Height, exported.Prefix,
 	[]byte, exported.ConsensusState,
 ) error {
@@ -161,7 +161,7 @@ func (cs ClientState) VerifyClientConsensusState(
 // specified connection end stored locally.
 func (cs ClientState) VerifyConnectionState(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	_ exported.Height,
 	_ exported.Prefix,
 	_ []byte,
@@ -175,7 +175,7 @@ func (cs ClientState) VerifyConnectionState(
 	}
 
 	var prevConnection connectiontypes.ConnectionEnd
-	err := cdc.UnmarshalBinaryBare(bz, &prevConnection)
+	err := cdc.Unmarshal(bz, &prevConnection)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (cs ClientState) VerifyConnectionState(
 // channel end, under the specified port, stored on the local machine.
 func (cs ClientState) VerifyChannelState(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	_ exported.Height,
 	prefix exported.Prefix,
 	_ []byte,
@@ -209,7 +209,7 @@ func (cs ClientState) VerifyChannelState(
 	}
 
 	var prevChannel channeltypes.Channel
-	err := cdc.UnmarshalBinaryBare(bz, &prevChannel)
+	err := cdc.Unmarshal(bz, &prevChannel)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func (cs ClientState) VerifyChannelState(
 // the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
 	store sdk.KVStore,
-	_ codec.BinaryMarshaler,
+	_ codec.BinaryCodec,
 	_ exported.Height,
 	_ uint64,
 	_ uint64,
@@ -260,7 +260,7 @@ func (cs ClientState) VerifyPacketCommitment(
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketAcknowledgement(
 	store sdk.KVStore,
-	_ codec.BinaryMarshaler,
+	_ codec.BinaryCodec,
 	_ exported.Height,
 	_ uint64,
 	_ uint64,
@@ -293,7 +293,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 // specified sequence.
 func (cs ClientState) VerifyPacketReceiptAbsence(
 	store sdk.KVStore,
-	_ codec.BinaryMarshaler,
+	_ codec.BinaryCodec,
 	_ exported.Height,
 	_ uint64,
 	_ uint64,
@@ -317,7 +317,7 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 // received of the specified channel at the specified port.
 func (cs ClientState) VerifyNextSequenceRecv(
 	store sdk.KVStore,
-	_ codec.BinaryMarshaler,
+	_ codec.BinaryCodec,
 	_ exported.Height,
 	_ uint64,
 	_ uint64,

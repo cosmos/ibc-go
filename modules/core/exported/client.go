@@ -37,16 +37,16 @@ type ClientState interface {
 	// Initialization function
 	// Clients must validate the initial consensus state, and may store any client-specific metadata
 	// necessary for correct light client operation
-	Initialize(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, ConsensusState) error
+	Initialize(sdk.Context, codec.BinaryCodec, sdk.KVStore, ConsensusState) error
 
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
 	// Update and Misbehaviour functions
 
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, Header) (ClientState, ConsensusState, error)
-	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, Misbehaviour) (ClientState, error)
-	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryMarshaler, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState, height Height) (ClientState, error)
+	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
+	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) (ClientState, error)
+	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState, height Height) (ClientState, error)
 
 	// Upgrade functions
 	// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
@@ -56,7 +56,7 @@ type ClientState interface {
 	// may be cancelled or modified before the last planned height.
 	VerifyUpgradeAndUpdateState(
 		ctx sdk.Context,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		store sdk.KVStore,
 		newClient ClientState,
 		newConsState ConsensusState,
@@ -72,7 +72,7 @@ type ClientState interface {
 
 	VerifyClientState(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		prefix Prefix,
 		counterpartyClientIdentifier string,
@@ -81,7 +81,7 @@ type ClientState interface {
 	) error
 	VerifyClientConsensusState(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		counterpartyClientIdentifier string,
 		consensusHeight Height,
@@ -91,7 +91,7 @@ type ClientState interface {
 	) error
 	VerifyConnectionState(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		prefix Prefix,
 		proof []byte,
@@ -100,7 +100,7 @@ type ClientState interface {
 	) error
 	VerifyChannelState(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		prefix Prefix,
 		proof []byte,
@@ -110,7 +110,7 @@ type ClientState interface {
 	) error
 	VerifyPacketCommitment(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		currentTimestamp uint64,
 		delayPeriod uint64,
@@ -123,7 +123,7 @@ type ClientState interface {
 	) error
 	VerifyPacketAcknowledgement(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		currentTimestamp uint64,
 		delayPeriod uint64,
@@ -136,7 +136,7 @@ type ClientState interface {
 	) error
 	VerifyPacketReceiptAbsence(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		currentTimestamp uint64,
 		delayPeriod uint64,
@@ -148,7 +148,7 @@ type ClientState interface {
 	) error
 	VerifyNextSequenceRecv(
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		currentTimestamp uint64,
 		delayPeriod uint64,
