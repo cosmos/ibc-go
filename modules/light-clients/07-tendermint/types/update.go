@@ -91,7 +91,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	consState := tmHeader.ConsensusState()
 	// Header is different from existing consensus state and also valid, so freeze the client and return
 	if conflictingHeader {
-		cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+		cs.FrozenHeight = FrozenHeight
 		return &cs, consState, nil
 	}
 	// Check that consensus state timestamps are monotonic
@@ -100,13 +100,13 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// if previous consensus state exists, check consensus state time is greater than previous consensus state time
 	// if previous consensus state is not before current consensus state, freeze the client and return.
 	if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
-		cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+		cs.FrozenHeight = FrozenHeight
 		return &cs, consState, nil
 	}
 	// if next consensus state exists, check consensus state time is less than next consensus state time
 	// if next consensus state is not after current consensus state, freeze the client and return.
 	if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
-		cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+		cs.FrozenHeight = FrozenHeight
 		return &cs, consState, nil
 	}
 

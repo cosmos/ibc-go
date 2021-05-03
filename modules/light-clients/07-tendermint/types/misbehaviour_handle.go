@@ -89,7 +89,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		return nil, sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 	}
 
-	cs.FrozenHeight = clienttypes.NewHeight(0, 1)
+	cs.FrozenHeight = FrozenHeight
 
 	return &cs, nil
 }

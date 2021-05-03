@@ -14,6 +14,9 @@ import (
 
 var _ exported.Misbehaviour = &Misbehaviour{}
 
+// Use the same FrozenHeight for all misbehaviour
+var FrozenHeight = clienttypes.NewHeight(0, 1)
+
 // NewMisbehaviour creates a new Misbehaviour instance.
 func NewMisbehaviour(clientID string, header1, header2 *Header) *Misbehaviour {
 	return &Misbehaviour{
