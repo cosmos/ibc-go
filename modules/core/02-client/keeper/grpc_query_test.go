@@ -436,7 +436,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: path.EndpointA.ClientID,
 				}
 			},
-			true, exported.Active,
+			true, exported.Active.String(),
 		},
 		{
 			"Unknown client status",
@@ -453,7 +453,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: path.EndpointA.ClientID,
 				}
 			},
-			true, exported.Unknown,
+			true, exported.Unknown.String(),
 		},
 		{
 			"Frozen client status",
@@ -469,7 +469,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: path.EndpointA.ClientID,
 				}
 			},
-			true, exported.Frozen,
+			true, exported.Frozen.String(),
 		},
 	}
 

@@ -211,7 +211,7 @@ func (q Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	status := clientState.Status(ctx, clientStore, q.cdc)
 
 	return &types.QueryClientStatusResponse{
-		Status: status,
+		Status: status.String(),
 	}, nil
 }
 

@@ -8,6 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Status represents the status of a client
+type Status string
+
 const (
 	// TypeClientMisbehaviour is the shared evidence misbehaviour type
 	TypeClientMisbehaviour string = "client_misbehaviour"
@@ -23,13 +26,16 @@ const (
 	Localhost string = "09-localhost"
 
 	// Active is a status type of a client. An active client is allowed to be used.
-	Active string = "Active"
+	Active Status = "Active"
 
 	// Frozen is a status type of a client. A frozen client is not allowed to be used.
-	Frozen string = "Frozen"
+	Frozen Status = "Frozen"
 
-	// Unknown indicates there was an error in determining the status of a client
-	Unknown string = "Unknown"
+	// Expired is a status type of a client. An expired client is not allowed to be used.
+	Expired Status = "Expired"
+
+	// Unknown indicates there was an error in determining the status of a client.
+	Unknown Status = "Unknown"
 )
 
 // ClientState defines the required common functions for light clients.
@@ -49,7 +55,7 @@ type ClientState interface {
 
 	// Status function
 	// Clients must return their status. Only Active clients are allowed to process packets.
-	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) string
+	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) Status
 
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
@@ -232,4 +238,9 @@ type GenesisMetadata interface {
 	GetKey() []byte
 	// returns metadata value
 	GetValue() []byte
+}
+
+// String returns the string representation of a client status.
+func (s Status) String() string {
+	return string(s)
 }

@@ -19,11 +19,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
-// Expired is a potential status of a client. A client is expired
-// if its latest consensus state timestamp added to its trusting period
-// is before or equal to the current time.
-const Expired = "Expired"
-
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new ClientState instance
@@ -75,7 +70,7 @@ func (cs ClientState) Status(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-) string {
+) exported.Status {
 	if !cs.FrozenHeight.IsZero() {
 		return exported.Frozen
 	}
@@ -87,7 +82,7 @@ func (cs ClientState) Status(
 	}
 
 	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
-		return Expired
+		return exported.Expired
 	}
 
 	return exported.Active

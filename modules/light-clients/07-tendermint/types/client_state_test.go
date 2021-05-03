@@ -37,7 +37,7 @@ func (suite *TendermintTestSuite) TestStatus() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expStatus string
+		expStatus exported.Status
 	}{
 		{"client is active", func() {}, exported.Active},
 		{"client is frozen", func() {
@@ -50,7 +50,7 @@ func (suite *TendermintTestSuite) TestStatus() {
 		}, exported.Unknown},
 		{"client status is expired", func() {
 			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
-		}, types.Expired},
+		}, exported.Expired},
 	}
 
 	for _, tc := range testCases {
