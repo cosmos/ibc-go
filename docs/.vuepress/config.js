@@ -1,53 +1,81 @@
 module.exports = {
   theme: "cosmos",
-  title: "IBC-GO",
+  title: "IBC-Go",
   locales: {
     "/": {
       lang: "en-US"
     },
   },
   base: process.env.VUEPRESS_BASE || "/",
-  head: [
-    ['link', { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" }],
-    ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" }],
-    ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" }],
-    ['link', { rel: "manifest", href: "/site.webmanifest" }],
-    ['meta', { name: "msapplication-TileColor", content: "#2e3148" }],
-    ['meta', { name: "theme-color", content: "#ffffff" }],
-    ['link', { rel: "icon", type: "image/svg+xml", href: "/favicon-svg.svg" }],
-    ['link', { rel: "apple-touch-icon-precomposed", href: "/apple-touch-icon-precomposed.png" }],
-  ],
   themeConfig: {
     repo: "cosmos/ibc-go",
     docsRepo: "cosmos/ibc-go",
     docsDir: "docs",
     editLinks: true,
-    label: "sdk",
-    algolia: {
-      id: "BH4D9OD16A",
-      key: "ac317234e6a42074175369b2f42e9754",
-      index: "cosmos-sdk"
-    },
+    label: "ibc",
+    //  label: "ibc-go",
+    // TODO
+    //algolia: {
+    //  id: "BH4D9OD16A",
+    //  key: "ac317234e6a42074175369b2f42e9754",
+    //  index: "ibc-go"
+    //},
     versions: [
       {
         "label": "main",
         "key": "main"
       }
     ],
-    topbar: {
-      banner: true
-    },
     sidebar: { 
-      auto: true,
+      auto: false,
       nav: [
-        {
-          title: "Using IBC-GO",
+          {
+          title: "Using IBC-Go",
           children: [
             {
-              title: "Modules",
+              title: "Overview",
+              directory: false,
+              path: "/ibc/overview.md"
+            }, 
+            {
+              title: "Integration",
+              directory: false,
+              path: "/ibc/integration.md"
+            },
+            {
+              title: "Applications",
+              directory: false,
+              path: "/ibc/customization.md"
+            },
+            {
+              title: "Upgrades",
               directory: true,
-              path: "/modules"
-            }
+              path: "/ibc/upgrades"
+            },
+            {
+              title: "Governance Proposals",
+              directory: false,
+              path: "/ibc/proposals.md"
+            },
+            {
+              title: "Relayer",
+              directory: false,
+              path: "/ibc/relayer.md"
+            },
+            {
+              title: "Protobuf Documentation",
+              directory: false,
+              path: "/ibc/proto-docs.md"
+            },
+          ]
+        },
+        {
+          title: "Migrations",
+          children: [
+            {
+              title: "v0.43 SDK to IBC-Go v1.0.0",
+              path: "/migrations"
+            },
           ]
         },
         {
@@ -85,10 +113,6 @@ module.exports = {
         {
           title: "Documentation",
           children: [
-            {
-              title: "IBC GO",
-              url: "https://ibc.cosmos.network"
-            },
             {
               title: "Cosmos SDK",
               url: "https://docs.cosmos.network"
