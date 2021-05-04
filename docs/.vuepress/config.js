@@ -35,17 +35,17 @@ module.exports = {
             {
               title: "Overview",
               directory: false,
-              path: "/ibc/overview.md"
+              path: "/ibc/overview.html"
             }, 
             {
               title: "Integration",
               directory: false,
-              path: "/ibc/integration.md"
+              path: "/ibc/integration.html"
             },
             {
               title: "Applications",
               directory: false,
-              path: "/ibc/customization.md"
+              path: "/ibc/customization.html"
             },
             {
               title: "Upgrades",
@@ -55,17 +55,17 @@ module.exports = {
             {
               title: "Governance Proposals",
               directory: false,
-              path: "/ibc/proposals.md"
+              path: "/ibc/proposals.html"
             },
             {
               title: "Relayer",
               directory: false,
-              path: "/ibc/relayer.md"
+              path: "/ibc/relayer.html"
             },
             {
               title: "Protobuf Documentation",
               directory: false,
-              path: "/ibc/proto-docs.md"
+              path: "/ibc/proto-docs.html"
             },
           ]
         },
@@ -74,7 +74,8 @@ module.exports = {
           children: [
             {
               title: "v0.43 SDK to IBC-Go v1.0.0",
-              path: "/migrations"
+              directory: false,
+              path: "/migrations/ibc-migration-043.html"
             },
           ]
         },
