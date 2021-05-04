@@ -217,16 +217,7 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	if err := ValidateParentChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
-		return err
-	}
-
-	// Claim channel capability passed back by IBC module
-	if err := am.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
-	}
-
-	return nil
+	return sdkerrors.Wrap(ccv.ErrInvalidChannelFlow, "channel handshake must be initiated by child chain")
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -260,6 +251,9 @@ func (am AppModule) OnChanOpenTry(
 		}
 	}
 
+	if err := am.keeper.VerifyChildChain(ctx, channelID); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -270,10 +264,7 @@ func (am AppModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != ccv.Version {
-		return sdkerrors.Wrapf(ccv.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, ccv.Version)
-	}
-	return nil
+	return sdkerrors.Wrap(ccv.ErrInvalidChannelFlow, "channel handshake must be initiated by child chain")
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
@@ -282,6 +273,8 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
+	// Set CCV channel status to Validating
+	am.keeper.SetChannelStatus(ctx, channelID, types.Validating)
 	return nil
 }
 

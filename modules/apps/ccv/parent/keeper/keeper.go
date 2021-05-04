@@ -7,28 +7,45 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/ibc-go/modules/apps/ccv/parent/types"
+	ccv "github.com/cosmos/ibc-go/modules/apps/ccv/types"
+	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
+	conntypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper defines the Cross-Chain Validation Parent Keeper
 type Keeper struct {
-	storeKey      sdk.StoreKey
-	cdc           codec.BinaryMarshaler
-	scopedKeeper  capabilitykeeper.ScopedKeeper
-	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
+	storeKey         sdk.StoreKey
+	cdc              codec.BinaryMarshaler
+	scopedKeeper     capabilitykeeper.ScopedKeeper
+	channelKeeper    types.ChannelKeeper
+	portKeeper       types.PortKeeper
+	connectionKeeper types.ConnectionKeeper
+	clientKeeper     types.ClientKeeper
+	registryKeeper   types.RegistryKeeper
 }
 
 // NewKeeper creates a new parent Keeper instance
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey, scopedKeeper capabilitykeeper.ScopedKeeper,
+	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	connectionKeeper types.ConnectionKeeper, clientKeeper types.ClientKeeper,
+	registryKeeper types.RegistryKeeper,
 ) Keeper {
 	return Keeper{
-		cdc:          cdc,
-		storeKey:     key,
-		scopedKeeper: scopedKeeper,
+		cdc:              cdc,
+		storeKey:         key,
+		scopedKeeper:     scopedKeeper,
+		channelKeeper:    channelKeeper,
+		portKeeper:       portKeeper,
+		connectionKeeper: connectionKeeper,
+		clientKeeper:     clientKeeper,
+		registryKeeper:   registryKeeper,
 	}
 }
 
@@ -82,4 +99,110 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// SetChainToChannel sets the mapping from a baby chainID to the CCV channel ID for that baby chain.
+func (k Keeper) SetChainToChannel(ctx sdk.Context, chainID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.ChainToChannelKey(chainID), []byte(channelID))
+}
+
+// GetChainToChannel gets the CCV channelID for the given baby chainID
+func (k Keeper) GetChainToChannel(ctx sdk.Context, chainID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ChainToChannelKey(chainID))
+	if bz == nil {
+		return "", false
+	}
+	return string(bz), true
+}
+
+// SetChannelToChain sets the mapping from the CCV channel ID to the baby chainID.
+func (k Keeper) SetChannelToChain(ctx sdk.Context, channelID, chainID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.ChannelToChainKey(channelID), []byte(chainID))
+}
+
+// GetChannelToChain gets the baby chainID for a given CCV channelID
+func (k Keeper) GetChannelToChain(ctx sdk.Context, channelID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ChannelToChainKey(channelID))
+	if bz == nil {
+		return "", false
+	}
+	return string(bz), true
+}
+
+// SetUnbondingChanges sets the unbonding changes for a given baby chain and sequence
+func (k Keeper) SetUnbondingChanges(ctx sdk.Context, chainID string, seq uint64, valUpdates []abci.ValidatorUpdate) {
+	// TODO
+}
+
+// GetUnbondingChanges gets the unbonding changes for a given baby chain and sequence
+func (k Keeper) GetUnbondingChanges(ctx sdk.Context, chainID string, seq uint64) []abci.ValidatorUpdate {
+	// TODO
+	return nil
+}
+
+// DeleteUnbondingChanges deletes the unbonding changes for a given baby chain and sequence
+func (k Keeper) DeleteUnbondingChanges(ctx sdk.Context, chainID string, seq uint64) {
+	// TODO
+}
+
+// SetChannelStatus sets the status of a CCV channel with the given status
+func (k Keeper) SetChannelStatus(ctx sdk.Context, channelID string, status types.Status) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.ChannelStatusKey(channelID), []byte{byte(status)})
+}
+
+// GetChannelStatus gets the status of a CCV channel
+func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) types.Status {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ChannelStatusKey(channelID))
+	if bz == nil {
+		return types.Uninitialized
+	}
+	return types.Status(bz[0])
+}
+
+// VerifyChildChain verifies that the chain trying to connect on the channel handshake
+// is the expected baby chain.
+func (k Keeper) VerifyChildChain(ctx sdk.Context, channelID string) error {
+	// Verify CCV channel is in Initialized state
+	status := k.GetChannelStatus(ctx, channelID)
+	if status != types.Initialized {
+		return sdkerrors.Wrap(ccv.ErrInvalidStatus, "CCV channel status must be in Initialized state")
+	}
+	// Retrieve the underlying client state.
+	channel, ok := k.channelKeeper.GetChannel(ctx, types.PortID, channelID)
+	if !ok {
+		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel not found for channel ID: %s", channelID)
+	}
+	if len(channel.ConnectionHops) == 1 {
+		return sdkerrors.Wrap(channeltypes.ErrTooManyConnectionHops, "must have direct connection to baby chain")
+	}
+	connectionID := channel.ConnectionHops[0]
+	conn, ok := k.connectionKeeper.GetConnection(ctx, connectionID)
+	if !ok {
+		return sdkerrors.Wrapf(conntypes.ErrConnectionNotFound, "connection not found for connection ID: %s", connectionID)
+	}
+	client, ok := k.clientKeeper.GetClientState(ctx, conn.ClientId)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client not found for client ID: %s", conn.ClientId)
+	}
+	tmClient, ok := client.(*ibctmtypes.ClientState)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "invalid client type. expected %s, got %s", ibcexported.Tendermint, client.ClientType())
+	}
+	// Verify that client state has expected chainID
+	expectedChainID, ok := k.GetChannelToChain(ctx, channelID)
+	if !ok {
+		return sdkerrors.Wrapf(ccv.ErrInvalidChildChain, "chain ID doesn't exist for channel ID: %s", channelID)
+	}
+	if expectedChainID != tmClient.ChainId {
+		return sdkerrors.Wrapf(ccv.ErrInvalidChildChain, "child chain has unexpected chain id. Expected %s, got %s", expectedChainID, tmClient.ChainId)
+	}
+
+	// TODO: Verify that the latest consensus state has the expected validator set
+	return nil
 }
