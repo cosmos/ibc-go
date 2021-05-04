@@ -45,7 +45,7 @@ module.exports = {
             {
               title: "Applications",
               directory: false,
-              path: "/ibc/customization.html"
+              path: "/ibc/apps.html"
             },
             {
               title: "Upgrades",
