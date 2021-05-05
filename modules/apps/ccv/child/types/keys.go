@@ -1,5 +1,10 @@
 package types
 
+import (
+	"encoding/binary"
+	"time"
+)
+
 const (
 	// ModuleName defines the CCV child module name
 	ModuleName = "child"
@@ -15,9 +20,57 @@ const (
 
 	// QuerierRoute is the querier route for IBC child
 	QuerierRoute = ModuleName
+
+	// ParentChainKeyString is the key for storing the chainID of the parent chain
+	ParentChainKeyString = "parentchain"
+
+	// ParentChannelKeyString is the key for storing the channelID of the CCV channel
+	ParentChannelKeyString = "parentchannel"
+
+	// PendingChangesKeyString is the key that will store any pending validator set changes
+	// received over CCV channel but not yet flushed over ABCI
+	PendingChangesKeyString = "pendingchanges"
+
+	// UnbondingPacketPrefix is the key prefix that will store the unbonding packet at the given sequence
+	UnbondingPacketPrefix = "unbondingpacket"
+
+	// UnbondingTimePrefix is the key prefix that will store unbonding time for each recently received packet.
+	UnbondingTimePrefix = "unbondingtime"
+
+	// UnbondingTime is set to 4 weeks
+	UnbondingTime = 4 * 7 * 24 * time.Hour
 )
 
 var (
 	// PortKey defines the key to store the port ID in store
 	PortKey = []byte{0x01}
 )
+
+// ParentChainKey returns the key for storing chainID of the parent chain.
+func ParentChainKey() []byte {
+	return []byte(ParentChainKeyString)
+}
+
+// ParentChannelKey returns the key for storing channelID of the parent chain.
+func ParentChannelKey() []byte {
+	return []byte(ParentChannelKeyString)
+}
+
+// PendingChangesKey returns the key for storing pending validator set changes
+func PendingChangesKey() []byte {
+	return []byte(PendingChangesKeyString)
+}
+
+// UnbondingPacketKey returns the key for storing unbonding packet for a given received packet sequence
+func UnbondingPacketKey(sequence uint64) []byte {
+	seqBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(seqBytes, sequence)
+	return append([]byte(UnbondingPacketPrefix), seqBytes...)
+}
+
+// UnbondingTimeKey returns the key for storing unbonding time for a given received packet sequence
+func UnbondingTimeKey(sequence uint64) []byte {
+	seqBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(seqBytes, sequence)
+	return append([]byte(UnbondingTimePrefix), seqBytes...)
+}

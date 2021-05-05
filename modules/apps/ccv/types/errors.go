@@ -10,5 +10,6 @@ var (
 	ErrInvalidVersion       = sdkerrors.Register(ModuleName, 3, "invalid CCV version")
 	ErrInvalidChannelFlow   = sdkerrors.Register(ModuleName, 4, "invalid message sent to channel end")
 	ErrInvalidChildChain    = sdkerrors.Register(ModuleName, 5, "invalid child chain")
-	ErrInvalidStatus        = sdkerrors.Register(ModuleName, 6, "invalid channel status")
+	ErrInvalidParentChain   = sdkerrors.Register(ModuleName, 6, "invalid parent chain")
+	ErrInvalidStatus        = sdkerrors.Register(ModuleName, 7, "invalid channel status")
 )

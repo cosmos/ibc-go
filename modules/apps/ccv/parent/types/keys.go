@@ -28,18 +28,8 @@ const (
 	// from the CCV channel ID to the baby chain ID.
 	ChannelToChainKeyPrefix = "channeltochain"
 
-	// ChannelStatusKeyPrefix is the key prefix for storing the validation status of the CCV channel
-	ChannelStatusKeyPrefix = "channelstatus"
-
 	// UnbondingChangesPrefix is the key prefix for storing unbonding changes
 	UnbondingChangesPrefix = "unbondingchanges"
-)
-
-const (
-	Uninitialized Status = iota
-	Initialized
-	Validating
-	Invalid
 )
 
 var (
@@ -55,11 +45,6 @@ func ChainToChannelKey(chainID string) []byte {
 // ChannelToChainKey returns the key under which the baby chain ID will be stored for the given channelID.
 func ChannelToChainKey(channelID string) []byte {
 	return []byte(ChannelToChainKeyPrefix + "/" + channelID)
-}
-
-// ChannelStatusKey returns the key under which the Status of a baby chain is stored.
-func ChannelStatusKey(channelID string) []byte {
-	return []byte(ChannelStatusKeyPrefix + "/" + channelID)
 }
 
 // UnbondingChanges stores the validator set changes that are still unbonding

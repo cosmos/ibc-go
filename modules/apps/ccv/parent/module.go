@@ -274,7 +274,7 @@ func (am AppModule) OnChanOpenConfirm(
 	channelID string,
 ) error {
 	// Set CCV channel status to Validating
-	am.keeper.SetChannelStatus(ctx, channelID, types.Validating)
+	am.keeper.SetChannelStatus(ctx, channelID, ccv.Validating)
 	return nil
 }
 

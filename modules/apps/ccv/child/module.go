@@ -146,9 +146,15 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 }
 
 // EndBlock implements the AppModule interface
-// TODO: Apply all received packets in this block and return final ValidatorUpdates
+// Flush PendingChanges to ABCI, and write acknowledgements for any packets that have finished unbonding.
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+	data, ok := am.keeper.GetPendingChanges(ctx)
+	if !ok {
+		return []abci.ValidatorUpdate{}
+	}
+	am.keeper.DeletePendingChanges(ctx)
+	am.keeper.UnbondMaturePackets(ctx)
+	return data.ValidatorUpdates
 }
 
 // AppModuleSimulation functions
@@ -226,6 +232,10 @@ func (am AppModule) OnChanOpenInit(
 		return err
 	}
 
+	if err := am.keeper.VerifyParentChain(ctx, channelID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -241,26 +251,7 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	if err := ValidateChildChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
-		return err
-	}
-
-	if counterpartyVersion != ccv.Version {
-		return sdkerrors.Wrapf(ccv.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, ccv.Version)
-	}
-
-	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-	// If module can already authenticate the capability then module already owns it so we don't need to claim
-	// Otherwise, module does not have channel capability and we must claim it from IBC
-	if !am.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		// Only claim channel capability passed back by IBC module if we do not already own it
-		if err := am.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return sdkerrors.Wrap(ccv.ErrInvalidChannelFlow, "channel handshake must be initiated by child chain")
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -273,6 +264,9 @@ func (am AppModule) OnChanOpenAck(
 	if counterpartyVersion != ccv.Version {
 		return sdkerrors.Wrapf(ccv.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, ccv.Version)
 	}
+	// Set CCV channel status to Validating and set parent channel
+	am.keeper.SetChannelStatus(ctx, channelID, ccv.Validating)
+	am.keeper.SetParentChannel(ctx, channelID)
 	return nil
 }
 
@@ -282,7 +276,7 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	return sdkerrors.Wrap(ccv.ErrInvalidChannelFlow, "channel handshake must be initiated by child chain")
 }
 
 // OnChanCloseInit implements the IBCModule interface

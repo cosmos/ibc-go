@@ -23,19 +23,19 @@ type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              codec.BinaryMarshaler
 	scopedKeeper     capabilitykeeper.ScopedKeeper
-	channelKeeper    types.ChannelKeeper
-	portKeeper       types.PortKeeper
-	connectionKeeper types.ConnectionKeeper
-	clientKeeper     types.ClientKeeper
-	registryKeeper   types.RegistryKeeper
+	channelKeeper    ccv.ChannelKeeper
+	portKeeper       ccv.PortKeeper
+	connectionKeeper ccv.ConnectionKeeper
+	clientKeeper     ccv.ClientKeeper
+	registryKeeper   ccv.RegistryKeeper
 }
 
 // NewKeeper creates a new parent Keeper instance
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey, scopedKeeper capabilitykeeper.ScopedKeeper,
-	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
-	connectionKeeper types.ConnectionKeeper, clientKeeper types.ClientKeeper,
-	registryKeeper types.RegistryKeeper,
+	channelKeeper ccv.ChannelKeeper, portKeeper ccv.PortKeeper,
+	connectionKeeper ccv.ConnectionKeeper, clientKeeper ccv.ClientKeeper,
+	registryKeeper ccv.RegistryKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:              cdc,
@@ -150,19 +150,19 @@ func (k Keeper) DeleteUnbondingChanges(ctx sdk.Context, chainID string, seq uint
 }
 
 // SetChannelStatus sets the status of a CCV channel with the given status
-func (k Keeper) SetChannelStatus(ctx sdk.Context, channelID string, status types.Status) {
+func (k Keeper) SetChannelStatus(ctx sdk.Context, channelID string, status ccv.Status) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ChannelStatusKey(channelID), []byte{byte(status)})
+	store.Set(ccv.ChannelStatusKey(channelID), []byte{byte(status)})
 }
 
 // GetChannelStatus gets the status of a CCV channel
-func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) types.Status {
+func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) ccv.Status {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ChannelStatusKey(channelID))
+	bz := store.Get(ccv.ChannelStatusKey(channelID))
 	if bz == nil {
-		return types.Uninitialized
+		return ccv.Uninitialized
 	}
-	return types.Status(bz[0])
+	return ccv.Status(bz[0])
 }
 
 // VerifyChildChain verifies that the chain trying to connect on the channel handshake
@@ -170,8 +170,8 @@ func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) types.Status
 func (k Keeper) VerifyChildChain(ctx sdk.Context, channelID string) error {
 	// Verify CCV channel is in Initialized state
 	status := k.GetChannelStatus(ctx, channelID)
-	if status != types.Initialized {
-		return sdkerrors.Wrap(ccv.ErrInvalidStatus, "CCV channel status must be in Initialized state")
+	if status != ccv.Initializing {
+		return sdkerrors.Wrap(ccv.ErrInvalidStatus, "CCV channel status must be in Initializing state")
 	}
 	// Retrieve the underlying client state.
 	channel, ok := k.channelKeeper.GetChannel(ctx, types.PortID, channelID)
