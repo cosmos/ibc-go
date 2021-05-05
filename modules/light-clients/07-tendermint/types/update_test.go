@@ -347,7 +347,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
 
-				suite.Require().Equal(tc.expFrozen, newClientState.IsFrozen(), "client state status is unexpected after update")
+				suite.Require().Equal(tc.expFrozen, !newClientState.(*types.ClientState).FrozenHeight.IsZero(), "client state status is unexpected after update")
 
 				// further writes only happen if update is not misbehaviour
 				if !tc.expFrozen {
