@@ -55,7 +55,7 @@ type ClientState interface {
 
 	// Status function
 	// Clients must return their status. Only Active clients are allowed to process packets.
-	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) Status
+	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status
 
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata

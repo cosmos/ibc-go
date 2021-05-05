@@ -187,7 +187,7 @@ func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height expo
 // GetNextConsensusState returns the lowest consensus state that is larger than the given height.
 // The Iterator returns a storetypes.Iterator which iterates from start (inclusive) to end (exclusive).
 // Thus, to get the next consensus state, we must first call iterator.Next() and then get the value.
-func GetNextConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, height exported.Height) (*ConsensusState, bool) {
+func GetNextConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
 	iterateStore := prefix.NewStore(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	iterator := iterateStore.Iterator(bigEndianHeightBytes(height), nil)
 	defer iterator.Close()
@@ -205,7 +205,7 @@ func GetNextConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, h
 // GetPreviousConsensusState returns the highest consensus state that is lower than the given height.
 // The Iterator returns a storetypes.Iterator which iterates from the end (exclusive) to start (inclusive).
 // Thus to get previous consensus state we call iterator.Value() immediately.
-func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, height exported.Height) (*ConsensusState, bool) {
+func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
 	iterateStore := prefix.NewStore(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	iterator := iterateStore.ReverseIterator(nil, bigEndianHeightBytes(height))
 	defer iterator.Close()
@@ -220,7 +220,7 @@ func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshale
 }
 
 // Helper function for GetNextConsensusState and GetPreviousConsensusState
-func getTmConsensusState(clientStore sdk.KVStore, cdc codec.BinaryMarshaler, key []byte) (*ConsensusState, bool) {
+func getTmConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, key []byte) (*ConsensusState, bool) {
 	bz := clientStore.Get(key)
 	if bz == nil {
 		return nil, false

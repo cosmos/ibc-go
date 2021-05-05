@@ -44,7 +44,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // The client may be:
 // - Active: if frozen sequence is 0
 // - Frozen: otherwise solo machine is frozen
-func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryMarshaler) exported.Status {
+func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
 	if cs.FrozenSequence != 0 {
 		return exported.Frozen
 	}

@@ -69,7 +69,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 func (cs ClientState) Status(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 ) exported.Status {
 	if !cs.FrozenHeight.IsZero() {
 		return exported.Frozen
