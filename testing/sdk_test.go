@@ -231,7 +231,7 @@ func (s *IntegrationTestSuite) TestLegacyRestErrMessages() {
 				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 				fmt.Sprintf("--gas=%d", flags.DefaultGasLimit),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
-				fmt.Sprintf("--%s=foobar", flags.FlagMemo),
+				fmt.Sprintf("--%s=foobar", flags.FlagNote),
 			},
 			uint32(8),
 		},
@@ -246,7 +246,7 @@ func (s *IntegrationTestSuite) TestLegacyRestErrMessages() {
 				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 				fmt.Sprintf("--gas=%d", flags.DefaultGasLimit),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
-				fmt.Sprintf("--%s=foobar", flags.FlagMemo),
+				fmt.Sprintf("--%s=foobar", flags.FlagNote),
 			},
 			uint32(0),
 		},
@@ -257,7 +257,7 @@ func (s *IntegrationTestSuite) TestLegacyRestErrMessages() {
 			out, err := clitestutil.ExecTestCLICmd(val.ClientCtx, tc.cmd, tc.args)
 			s.Require().NoError(err)
 			var txRes sdk.TxResponse
-			s.Require().NoError(val.ClientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), &txRes))
+			s.Require().NoError(val.ClientCtx.JSONCodec.UnmarshalJSON(out.Bytes(), &txRes))
 			s.Require().Equal(tc.code, txRes.Code)
 
 			s.Require().NoError(s.network.WaitForNextBlock())
@@ -310,7 +310,7 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 	s.Require().NoError(err)
 
 	var getTxRes txtypes.GetTxResponse
-	s.Require().NoError(val.ClientCtx.JSONMarshaler.UnmarshalJSON(grpcJSON, &getTxRes))
+	s.Require().NoError(val.ClientCtx.JSONCodec.UnmarshalJSON(grpcJSON, &getTxRes))
 	s.Require().Equal(getTxRes.Tx.Body.Memo, "foobar")
 
 	// generate broadcast only txn.
