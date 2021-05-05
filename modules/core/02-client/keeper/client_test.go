@@ -222,7 +222,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 				newClientState := path.EndpointA.GetClientState()
 
 				if tc.expFreeze {
-					suite.Require().True(newClientState.IsFrozen(), "client did not freeze after conflicting header was submitted to UpdateClient")
+					suite.Require().True(!newClientState.(*ibctmtypes.ClientState).FrozenHeight.IsZero(), "client did not freeze after conflicting header was submitted to UpdateClient")
 				} else {
 					expConsensusState := &ibctmtypes.ConsensusState{
 						Timestamp:          updateHeader.GetTime(),
@@ -332,8 +332,10 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			expPass: false,
 		},
 		{
-			name: "client state frozen",
+			name: "client state is not active",
 			setup: func() {
+				// client is frozen
+
 				// last Height is at next block
 				lastHeight = clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
@@ -597,7 +599,7 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			false,
 		},
 		{
-			"client already frozen at earlier height",
+			"client already is not active - client is frozen",
 			&ibctmtypes.Misbehaviour{
 				Header1:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight+1), testClientHeight, altTime, bothValSet, bothValSet, bothSigners),
 				Header2:  suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight+1), testClientHeight, suite.ctx.BlockTime(), bothValSet, bothValSet, bothSigners),
@@ -655,7 +657,7 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 
 				clientState, found := suite.keeper.GetClientState(suite.ctx, clientID)
 				suite.Require().True(found, "valid test case %d failed: %s", i, tc.name)
-				suite.Require().True(clientState.IsFrozen(), "valid test case %d failed: %s", i, tc.name)
+				suite.Require().True(!clientState.(*ibctmtypes.ClientState).FrozenHeight.IsZero(), "valid test case %d failed: %s", i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 			}
