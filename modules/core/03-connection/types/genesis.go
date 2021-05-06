@@ -17,12 +17,13 @@ func NewConnectionPaths(id string, paths []string) ConnectionPaths {
 // NewGenesisState creates a GenesisState instance.
 func NewGenesisState(
 	connections []IdentifiedConnection, connPaths []ConnectionPaths,
-	nextConnectionSequence uint64,
+	nextConnectionSequence uint64, params Params,
 ) GenesisState {
 	return GenesisState{
 		Connections:            connections,
 		ClientConnectionPaths:  connPaths,
 		NextConnectionSequence: nextConnectionSequence,
+		Params:                 params,
 	}
 }
 
@@ -32,6 +33,7 @@ func DefaultGenesisState() GenesisState {
 		Connections:            []IdentifiedConnection{},
 		ClientConnectionPaths:  []ConnectionPaths{},
 		NextConnectionSequence: 0,
+		Params:                 DefaultParams(),
 	}
 }
 

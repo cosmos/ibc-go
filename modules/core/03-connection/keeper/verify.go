@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
@@ -159,9 +161,17 @@ func (k Keeper) VerifyPacketCommitment(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	// calculate minimum block delay by dividing time delay period
+	// by the maximum expected time per block. Round up the block delay.
+	timeDelay := connection.GetDelayPeriod()
+	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
+	minBlocks := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+
+	// verify that block delay has passed
+
 	if err := clientState.VerifyPacketCommitment(
 		clientStore, k.cdc, height,
-		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayPeriod(),
+		uint64(ctx.BlockTime().UnixNano()), timeDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, commitmentBytes,
 	); err != nil {
