@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ibc.apps.transfer.v1;
+package ibc.applications.transfer.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
