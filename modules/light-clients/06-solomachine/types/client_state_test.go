@@ -164,7 +164,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -297,7 +297,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -426,7 +426,7 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -516,7 +516,7 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -605,7 +605,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -692,7 +692,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -779,7 +779,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -866,7 +866,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
