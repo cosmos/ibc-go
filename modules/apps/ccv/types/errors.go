@@ -12,4 +12,5 @@ var (
 	ErrInvalidChildChain    = sdkerrors.Register(ModuleName, 5, "invalid child chain")
 	ErrInvalidParentChain   = sdkerrors.Register(ModuleName, 6, "invalid parent chain")
 	ErrInvalidStatus        = sdkerrors.Register(ModuleName, 7, "invalid channel status")
+	ErrInvalidGenesis       = sdkerrors.Register(ModuleName, 8, "invalid genesis state")
 )

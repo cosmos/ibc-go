@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"encoding/binary"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -12,8 +14,6 @@ import (
 	conntypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -130,6 +130,23 @@ func (k Keeper) GetParentChain(ctx sdk.Context) (string, bool) {
 	return string(chainIdBytes), true
 }
 
+// SetParentClient sets the parent clientID that is validating the chain.
+// Set in InitGenesis
+func (k Keeper) SetParentClient(ctx sdk.Context, clientID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.ParentClientKey(), []byte(clientID))
+}
+
+// GetParentClient gets the parent clientID that is validating the chain.
+func (k Keeper) GetParentClient(ctx sdk.Context) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	clientIdBytes := store.Get(types.ParentChainKey())
+	if clientIdBytes == nil {
+		return "", false
+	}
+	return string(clientIdBytes), true
+}
+
 // SetParentChannel sets the parent channelID that is validating the chain.
 func (k Keeper) SetParentChannel(ctx sdk.Context, channelID string) {
 	store := ctx.KVStore(k.storeKey)
@@ -176,10 +193,11 @@ func (k Keeper) DeletePendingChanges(ctx sdk.Context) {
 }
 
 // SetUnbondingTime sets the unbonding time for a given received packet sequence
-func (k Keeper) SetUnbondingTime(ctx sdk.Context, sequence uint64) {
+func (k Keeper) SetUnbondingTime(ctx sdk.Context, sequence, unbondingTime uint64) {
 	store := ctx.KVStore(k.storeKey)
-	unbondingTime := ctx.BlockTime().Add(types.UnbondingTime)
-	store.Set(types.UnbondingTimeKey(sequence), []byte{byte(unbondingTime.UnixNano())})
+	timeBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeBytes, unbondingTime)
+	store.Set(types.UnbondingTimeKey(sequence), timeBytes)
 }
 
 // GetUnbondingTime gets the unbonding time for a given received packet sequence
@@ -189,7 +207,7 @@ func (k Keeper) GetUnbondingTime(ctx sdk.Context, sequence uint64) uint64 {
 	if bz == nil {
 		return 0
 	}
-	return uint64(bz[0])
+	return binary.BigEndian.Uint64(bz)
 }
 
 // DeleteUnbondingTime deletes the unbonding time
@@ -251,23 +269,14 @@ func (k Keeper) VerifyParentChain(ctx sdk.Context, channelID string) error {
 	if !ok {
 		return sdkerrors.Wrapf(conntypes.ErrConnectionNotFound, "connection not found for connection ID: %s", connectionID)
 	}
-	client, ok := k.clientKeeper.GetClientState(ctx, conn.ClientId)
+	// Verify that client id is expected clientID
+	expectedClientId, ok := k.GetParentClient(ctx)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client not found for client ID: %s", conn.ClientId)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "could not find parent client id")
 	}
-	tmClient, ok := client.(*ibctmtypes.ClientState)
-	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "invalid client type. expected %s, got %s", ibcexported.Tendermint, client.ClientType())
-	}
-	// Verify that client state has expected chainID
-	expectedChainID, ok := k.GetParentChain(ctx)
-	if !ok {
-		return sdkerrors.Wrap(ccv.ErrInvalidParentChain, "could not retrieve parent chain")
-	}
-	if expectedChainID != tmClient.ChainId {
-		return sdkerrors.Wrapf(ccv.ErrInvalidParentChain, "parent chain has unexpected chain id. Expected %s, got %s", expectedChainID, tmClient.ChainId)
+	if expectedClientId == conn.ClientId {
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client: %s, channel must be built on top of client: %s")
 	}
 
-	// TODO: Determine how to verify counterparty is actual parent chain
 	return nil
 }

@@ -24,6 +24,9 @@ const (
 	// ParentChainKeyString is the key for storing the chainID of the parent chain
 	ParentChainKeyString = "parentchain"
 
+	// ParentClientKeyString is the key for storing the clientID of the parent client
+	ParentClientKeyString = "parentclient"
+
 	// ParentChannelKeyString is the key for storing the channelID of the CCV channel
 	ParentChannelKeyString = "parentchannel"
 
@@ -54,6 +57,11 @@ func ParentChainKey() []byte {
 // ParentChannelKey returns the key for storing channelID of the parent chain.
 func ParentChannelKey() []byte {
 	return []byte(ParentChannelKeyString)
+}
+
+// ParentClientKey returns the key for storing clientID of the parent
+func ParentClientKey() []byte {
+	return []byte(ParentClientKeyString)
 }
 
 // PendingChangesKey returns the key for storing pending validator set changes

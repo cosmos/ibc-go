@@ -117,6 +117,28 @@ func (k Keeper) GetChainToChannel(ctx sdk.Context, chainID string) (string, bool
 	return string(bz), true
 }
 
+// IterateBabyChains iterates over all of the baby chains that the parent module controls.
+// It calls the provided callback function which takes in a chainID and channelID and returns
+// a stop boolean which will stop the iteration.
+func (k Keeper) IterateBabyChains(ctx sdk.Context, cb func(ctx sdk.Context, chainID string) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ChainToChannelKeyPrefix+"/"))
+	defer iterator.Close()
+
+	if !iterator.Valid() {
+		return
+	}
+
+	for ; iterator.Valid(); iterator.Next() {
+		chainID := string(iterator.Key())
+
+		stop := cb(ctx, chainID)
+		if stop {
+			return
+		}
+	}
+}
+
 // SetChannelToChain sets the mapping from the CCV channel ID to the baby chainID.
 func (k Keeper) SetChannelToChain(ctx sdk.Context, channelID, chainID string) {
 	store := ctx.KVStore(k.storeKey)

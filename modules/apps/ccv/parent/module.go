@@ -145,9 +145,8 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 }
 
 // EndBlock implements the AppModule interface
-// TODO: Get all pending ValidatorUpdates, loop through child chains and construct each child chain's ValidatorUpdates
-// and then send ValidatorSetChangePackets on each channel.
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+	am.keeper.IterateBabyChains(ctx, am.keeper.EndBlockCallback)
 	return []abci.ValidatorUpdate{}
 }
 

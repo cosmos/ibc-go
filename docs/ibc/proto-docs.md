@@ -5,17 +5,54 @@
 ## Table of Contents
 
 - [ibc/applications/ccv/v1/ccv.proto](#ibc/applications/ccv/v1/ccv.proto)
-    - [ValidatorSetChangePacketData](#ibc.apps.ccv.v1.ValidatorSetChangePacketData)
+    - [ValidatorSetChangePacketData](#ibc.applications.ccv.v1.ValidatorSetChangePacketData)
+  
+- [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
+    - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
+    - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
+    - [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight)
+    - [Height](#ibc.core.client.v1.Height)
+    - [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState)
+    - [Params](#ibc.core.client.v1.Params)
+    - [UpgradeProposal](#ibc.core.client.v1.UpgradeProposal)
+  
+- [ibc/core/commitment/v1/commitment.proto](#ibc/core/commitment/v1/commitment.proto)
+    - [MerklePath](#ibc.core.commitment.v1.MerklePath)
+    - [MerklePrefix](#ibc.core.commitment.v1.MerklePrefix)
+    - [MerkleProof](#ibc.core.commitment.v1.MerkleProof)
+    - [MerkleRoot](#ibc.core.commitment.v1.MerkleRoot)
+  
+- [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
+    - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
+    - [ConsensusState](#ibc.lightclients.tendermint.v1.ConsensusState)
+    - [Fraction](#ibc.lightclients.tendermint.v1.Fraction)
+    - [Header](#ibc.lightclients.tendermint.v1.Header)
+    - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
+  
+- [ibc/core/channel/v1/channel.proto](#ibc/core/channel/v1/channel.proto)
+    - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
+    - [Channel](#ibc.core.channel.v1.Channel)
+    - [Counterparty](#ibc.core.channel.v1.Counterparty)
+    - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
+    - [Packet](#ibc.core.channel.v1.Packet)
+    - [PacketState](#ibc.core.channel.v1.PacketState)
+  
+    - [Order](#ibc.core.channel.v1.Order)
+    - [State](#ibc.core.channel.v1.State)
+  
+- [ibc/applications/ccv/v1/genesis.proto](#ibc/applications/ccv/v1/genesis.proto)
+    - [ChildGenesisState](#ibc.applications.ccv.v1.ChildGenesisState)
+    - [UnbondingSequence](#ibc.applications.ccv.v1.UnbondingSequence)
   
 - [ibc/applications/ccv/v1/tx.proto](#ibc/applications/ccv/v1/tx.proto)
-    - [MsgBondStake](#ibc.apps.ccv.v1.MsgBondStake)
-    - [MsgBondStakeResponse](#ibc.apps.ccv.v1.MsgBondStakeResponse)
-    - [MsgSubmitNewChain](#ibc.apps.ccv.v1.MsgSubmitNewChain)
-    - [MsgSubmitNewChainResponse](#ibc.apps.ccv.v1.MsgSubmitNewChainResponse)
-    - [MsgUnbondStake](#ibc.apps.ccv.v1.MsgUnbondStake)
-    - [MsgUnbondStakeResponse](#ibc.apps.ccv.v1.MsgUnbondStakeResponse)
+    - [MsgBondStake](#ibc.applications.ccv.v1.MsgBondStake)
+    - [MsgBondStakeResponse](#ibc.applications.ccv.v1.MsgBondStakeResponse)
+    - [MsgSubmitNewChain](#ibc.applications.ccv.v1.MsgSubmitNewChain)
+    - [MsgSubmitNewChainResponse](#ibc.applications.ccv.v1.MsgSubmitNewChainResponse)
+    - [MsgUnbondStake](#ibc.applications.ccv.v1.MsgUnbondStake)
+    - [MsgUnbondStakeResponse](#ibc.applications.ccv.v1.MsgUnbondStakeResponse)
   
-    - [Msg](#ibc.apps.ccv.v1.Msg)
+    - [Msg](#ibc.applications.ccv.v1.Msg)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
@@ -35,31 +72,11 @@
   
     - [Query](#ibc.applications.transfer.v1.Query)
   
-- [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
-    - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
-    - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
-    - [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight)
-    - [Height](#ibc.core.client.v1.Height)
-    - [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState)
-    - [Params](#ibc.core.client.v1.Params)
-    - [UpgradeProposal](#ibc.core.client.v1.UpgradeProposal)
-  
 - [ibc/applications/transfer/v1/tx.proto](#ibc/applications/transfer/v1/tx.proto)
     - [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer)
     - [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse)
   
     - [Msg](#ibc.applications.transfer.v1.Msg)
-  
-- [ibc/core/channel/v1/channel.proto](#ibc/core/channel/v1/channel.proto)
-    - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
-    - [Channel](#ibc.core.channel.v1.Channel)
-    - [Counterparty](#ibc.core.channel.v1.Counterparty)
-    - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
-    - [Packet](#ibc.core.channel.v1.Packet)
-    - [PacketState](#ibc.core.channel.v1.PacketState)
-  
-    - [Order](#ibc.core.channel.v1.Order)
-    - [State](#ibc.core.channel.v1.State)
   
 - [ibc/core/channel/v1/genesis.proto](#ibc/core/channel/v1/genesis.proto)
     - [GenesisState](#ibc.core.channel.v1.GenesisState)
@@ -156,12 +173,6 @@
   
     - [Msg](#ibc.core.client.v1.Msg)
   
-- [ibc/core/commitment/v1/commitment.proto](#ibc/core/commitment/v1/commitment.proto)
-    - [MerklePath](#ibc.core.commitment.v1.MerklePath)
-    - [MerklePrefix](#ibc.core.commitment.v1.MerklePrefix)
-    - [MerkleProof](#ibc.core.commitment.v1.MerkleProof)
-    - [MerkleRoot](#ibc.core.commitment.v1.MerkleRoot)
-  
 - [ibc/core/connection/v1/connection.proto](#ibc/core/connection/v1/connection.proto)
     - [ClientPaths](#ibc.core.connection.v1.ClientPaths)
     - [ConnectionEnd](#ibc.core.connection.v1.ConnectionEnd)
@@ -227,13 +238,6 @@
   
     - [DataType](#ibc.lightclients.solomachine.v1.DataType)
   
-- [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
-    - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
-    - [ConsensusState](#ibc.lightclients.tendermint.v1.ConsensusState)
-    - [Fraction](#ibc.lightclients.tendermint.v1.Fraction)
-    - [Header](#ibc.lightclients.tendermint.v1.Header)
-    - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
-  
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -245,7 +249,7 @@
 
 
 
-<a name="ibc.apps.ccv.v1.ValidatorSetChangePacketData"></a>
+<a name="ibc.applications.ccv.v1.ValidatorSetChangePacketData"></a>
 
 ### ValidatorSetChangePacketData
 This packet is sent from parent chain to baby chain if the validator set for baby chain
@@ -272,6 +276,586 @@ and this will function as `UnbondingOver` message for this packet.
 
 
 
+<a name="ibc/core/client/v1/client.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/client/v1/client.proto
+
+
+
+<a name="ibc.core.client.v1.ClientConsensusStates"></a>
+
+### ClientConsensusStates
+ClientConsensusStates defines all the stored consensus states for a given
+client.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | client identifier |
+| `consensus_states` | [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight) | repeated | consensus states and their heights associated with the client |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.ClientUpdateProposal"></a>
+
+### ClientUpdateProposal
+ClientUpdateProposal is a governance proposal. If it passes, the substitute
+client's consensus states starting from the 'initial height' are copied over
+to the subjects client state. The proposal handler may fail if the subject
+and the substitute do not match in client and chain parameters (with
+exception to latest height, frozen height, and chain-id). The updated client
+must also be valid (cannot be expired).
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | the title of the update proposal |
+| `description` | [string](#string) |  | the description of the proposal |
+| `subject_client_id` | [string](#string) |  | the client identifier for the client to be updated if the proposal passes |
+| `substitute_client_id` | [string](#string) |  | the substitute client identifier for the client standing in for the subject client |
+| `initial_height` | [Height](#ibc.core.client.v1.Height) |  | the intital height to copy consensus states from the substitute to the subject |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.ConsensusStateWithHeight"></a>
+
+### ConsensusStateWithHeight
+ConsensusStateWithHeight defines a consensus state with an additional height
+field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [Height](#ibc.core.client.v1.Height) |  | consensus state height |
+| `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | consensus state |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.Height"></a>
+
+### Height
+Height is a monotonically increasing data type
+that can be compared against another Height for the purposes of updating and
+freezing clients
+
+Normally the RevisionHeight is incremented at each height while keeping
+RevisionNumber the same. However some consensus algorithms may choose to
+reset the height in certain conditions e.g. hard forks, state-machine
+breaking changes In these cases, the RevisionNumber is incremented so that
+height continues to be monitonically increasing even as the RevisionHeight
+gets reset
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `revision_number` | [uint64](#uint64) |  | the revision that the client is currently on |
+| `revision_height` | [uint64](#uint64) |  | the height within the given revision |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.IdentifiedClientState"></a>
+
+### IdentifiedClientState
+IdentifiedClientState defines a client state with an additional client
+identifier field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | client identifier |
+| `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | client state |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.Params"></a>
+
+### Params
+Params defines the set of IBC light client parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_clients` | [string](#string) | repeated | allowed_clients defines the list of allowed client state types. |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.UpgradeProposal"></a>
+
+### UpgradeProposal
+UpgradeProposal is a gov Content type for initiating an IBC breaking
+upgrade.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `plan` | [cosmos.upgrade.v1beta1.Plan](#cosmos.upgrade.v1beta1.Plan) |  |  |
+| `upgraded_client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | An UpgradedClientState must be provided to perform an IBC breaking upgrade. This will make the chain commit to the correct upgraded (self) client state before the upgrade occurs, so that connecting chains can verify that the new upgraded client is valid by verifying a proof on the previous version of the chain. This will allow IBC connections to persist smoothly across planned chain upgrades |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/commitment/v1/commitment.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/commitment/v1/commitment.proto
+
+
+
+<a name="ibc.core.commitment.v1.MerklePath"></a>
+
+### MerklePath
+MerklePath is the path used to verify commitment proofs, which can be an
+arbitrary structured object (defined by a commitment type).
+MerklePath is represented from root-to-leaf
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key_path` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.core.commitment.v1.MerklePrefix"></a>
+
+### MerklePrefix
+MerklePrefix is merkle path prefixed to the key.
+The constructed key from the Path and the key will be append(Path.KeyPath,
+append(Path.KeyPrefix, key...))
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key_prefix` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.core.commitment.v1.MerkleProof"></a>
+
+### MerkleProof
+MerkleProof is a wrapper type over a chain of CommitmentProofs.
+It demonstrates membership or non-membership for an element or set of
+elements, verifiable in conjunction with a known commitment root. Proofs
+should be succinct.
+MerkleProofs are ordered from leaf-to-root
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proofs` | [ics23.CommitmentProof](#ics23.CommitmentProof) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.core.commitment.v1.MerkleRoot"></a>
+
+### MerkleRoot
+MerkleRoot defines a merkle root hash.
+In the Cosmos SDK, the AppHash of a block header becomes the root.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/lightclients/tendermint/v1/tendermint.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/tendermint/v1/tendermint.proto
+
+
+
+<a name="ibc.lightclients.tendermint.v1.ClientState"></a>
+
+### ClientState
+ClientState from Tendermint tracks the current validator set, latest height,
+and a possible frozen height.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_id` | [string](#string) |  |  |
+| `trust_level` | [Fraction](#ibc.lightclients.tendermint.v1.Fraction) |  |  |
+| `trusting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | duration of the period since the LastestTimestamp during which the submitted headers are valid for upgrade |
+| `unbonding_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | duration of the staking unbonding period |
+| `max_clock_drift` | [google.protobuf.Duration](#google.protobuf.Duration) |  | defines how much new (untrusted) header's Time can drift into the future. |
+| `frozen_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Block height when the client was frozen due to a misbehaviour |
+| `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
+| `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
+| `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
+| `allow_update_after_expiry` | [bool](#bool) |  | This flag, when set to true, will allow governance to recover a client which has expired |
+| `allow_update_after_misbehaviour` | [bool](#bool) |  | This flag, when set to true, will allow governance to unfreeze a client whose chain has experienced a misbehaviour event |
+
+
+
+
+
+
+<a name="ibc.lightclients.tendermint.v1.ConsensusState"></a>
+
+### ConsensusState
+ConsensusState defines the consensus state from Tendermint.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
+| `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
+| `next_validators_hash` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.tendermint.v1.Fraction"></a>
+
+### Fraction
+Fraction defines the protobuf message type for tmmath.Fraction that only
+supports positive values.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `numerator` | [uint64](#uint64) |  |  |
+| `denominator` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.tendermint.v1.Header"></a>
+
+### Header
+Header defines the Tendermint client consensus Header.
+It encapsulates all the information necessary to update from a trusted
+Tendermint ConsensusState. The inclusion of TrustedHeight and
+TrustedValidators allows this update to process correctly, so long as the
+ConsensusState for the TrustedHeight exists, this removes race conditions
+among relayers The SignedHeader and ValidatorSet are the new untrusted update
+fields for the client. The TrustedHeight is the height of a stored
+ConsensusState on the client that will be used to verify the new untrusted
+header. The Trusted ConsensusState must be within the unbonding period of
+current time in order to correctly verify, and the TrustedValidators must
+hash to TrustedConsensusState.NextValidatorsHash since that is the last
+trusted validator set at the TrustedHeight.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signed_header` | [tendermint.types.SignedHeader](#tendermint.types.SignedHeader) |  |  |
+| `validator_set` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
+| `trusted_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `trusted_validators` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.tendermint.v1.Misbehaviour"></a>
+
+### Misbehaviour
+Misbehaviour is a wrapper over two conflicting Headers
+that implements Misbehaviour interface expected by ICS-02
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
+| `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/channel/v1/channel.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/channel/v1/channel.proto
+
+
+
+<a name="ibc.core.channel.v1.Acknowledgement"></a>
+
+### Acknowledgement
+Acknowledgement is the recommended acknowledgement format to be used by
+app-specific protocols.
+NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
+conflicts with other protobuf message formats used for acknowledgements.
+The first byte of any message with this format will be the non-ASCII values
+`0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
+https://github.com/cosmos/ics/tree/master/spec/ics-004-channel-and-packet-semantics#acknowledgement-envelope
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [bytes](#bytes) |  |  |
+| `error` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Channel"></a>
+
+### Channel
+Channel defines pipeline for exactly-once packet delivery between specific
+modules on separate blockchains, which has at least one end capable of
+sending packets and one end capable of receiving packets.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
+| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
+| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
+| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Counterparty"></a>
+
+### Counterparty
+Counterparty defines a channel end counterparty
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | port on the counterparty chain which owns the other end of the channel. |
+| `channel_id` | [string](#string) |  | channel end on the counterparty chain |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.IdentifiedChannel"></a>
+
+### IdentifiedChannel
+IdentifiedChannel defines a channel with additional port and channel
+identifier fields.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
+| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
+| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
+| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
+| `port_id` | [string](#string) |  | port identifier |
+| `channel_id` | [string](#string) |  | channel identifier |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Packet"></a>
+
+### Packet
+Packet defines a type that carries data across different chains through IBC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | number corresponds to the order of sends and receives, where a Packet with an earlier sequence number must be sent and received before a Packet with a later sequence number. |
+| `source_port` | [string](#string) |  | identifies the port on the sending chain. |
+| `source_channel` | [string](#string) |  | identifies the channel end on the sending chain. |
+| `destination_port` | [string](#string) |  | identifies the port on the receiving chain. |
+| `destination_channel` | [string](#string) |  | identifies the channel end on the receiving chain. |
+| `data` | [bytes](#bytes) |  | actual opaque bytes transferred directly to the application module |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the packet times out |
+| `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the packet times out |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.PacketState"></a>
+
+### PacketState
+PacketState defines the generic type necessary to retrieve and store
+packet commitments, acknowledgements, and receipts.
+Caller is responsible for knowing the context necessary to interpret this
+state as a commitment, acknowledgement, or a receipt.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | channel port identifier. |
+| `channel_id` | [string](#string) |  | channel unique identifier. |
+| `sequence` | [uint64](#uint64) |  | packet sequence. |
+| `data` | [bytes](#bytes) |  | embedded data that represents packet state. |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.core.channel.v1.Order"></a>
+
+### Order
+Order defines if a channel is ORDERED or UNORDERED
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| ORDER_NONE_UNSPECIFIED | 0 | zero-value for channel ordering |
+| ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
+| ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
+
+
+
+<a name="ibc.core.channel.v1.State"></a>
+
+### State
+State defines if a channel is in one of the following states:
+CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STATE_UNINITIALIZED_UNSPECIFIED | 0 | Default State |
+| STATE_INIT | 1 | A channel has just started the opening handshake. |
+| STATE_TRYOPEN | 2 | A channel has acknowledged the handshake step on the counterparty chain. |
+| STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
+| STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/ccv/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/ccv/v1/genesis.proto
+
+
+
+<a name="ibc.applications.ccv.v1.ChildGenesisState"></a>
+
+### ChildGenesisState
+ChildGenesisState defines the CCV child chain genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `parent_chain_id` | [string](#string) |  |  |
+| `parent_channel_id` | [string](#string) |  | empty for a completely new chain |
+| `new_chain` | [bool](#bool) |  | true for new chain GenesisState, false for chain restart. |
+| `parent_client_state` | [ibc.lightclients.tendermint.v1.ClientState](#ibc.lightclients.tendermint.v1.ClientState) |  | ParentClientState filled in on new chain, nil on restart. |
+| `parent_consensus_state` | [ibc.lightclients.tendermint.v1.ConsensusState](#ibc.lightclients.tendermint.v1.ConsensusState) |  | ParentConsensusState filled in on new chain, nil on restart. |
+| `unbonding_sequences` | [UnbondingSequence](#ibc.applications.ccv.v1.UnbondingSequence) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.ccv.v1.UnbondingSequence"></a>
+
+### UnbondingSequence
+UnbondingSequence defines the genesis information for each unbonding packet sequence.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  |  |
+| `unbonding_time` | [uint64](#uint64) |  |  |
+| `unbonding_packet` | [ibc.core.channel.v1.Packet](#ibc.core.channel.v1.Packet) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/applications/ccv/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -279,7 +863,7 @@ and this will function as `UnbondingOver` message for this packet.
 
 
 
-<a name="ibc.apps.ccv.v1.MsgBondStake"></a>
+<a name="ibc.applications.ccv.v1.MsgBondStake"></a>
 
 ### MsgBondStake
 MsgBondStake defines a msg for a parent chain validator to stake on a baby chain.
@@ -296,7 +880,7 @@ MsgBondStake defines a msg for a parent chain validator to stake on a baby chain
 
 
 
-<a name="ibc.apps.ccv.v1.MsgBondStakeResponse"></a>
+<a name="ibc.applications.ccv.v1.MsgBondStakeResponse"></a>
 
 ### MsgBondStakeResponse
 MsgBondStakeResponse defines the Msg/BondStake response type
@@ -306,7 +890,7 @@ MsgBondStakeResponse defines the Msg/BondStake response type
 
 
 
-<a name="ibc.apps.ccv.v1.MsgSubmitNewChain"></a>
+<a name="ibc.applications.ccv.v1.MsgSubmitNewChain"></a>
 
 ### MsgSubmitNewChain
 MsgSubmitNewChain defines a msg to submit a new baby chain that can be validated
@@ -326,7 +910,7 @@ by the parent chain validators.
 
 
 
-<a name="ibc.apps.ccv.v1.MsgSubmitNewChainResponse"></a>
+<a name="ibc.applications.ccv.v1.MsgSubmitNewChainResponse"></a>
 
 ### MsgSubmitNewChainResponse
 MsgSubmitNewChainResponse defines the Msg/SubmitNewChain response type.
@@ -336,7 +920,7 @@ MsgSubmitNewChainResponse defines the Msg/SubmitNewChain response type.
 
 
 
-<a name="ibc.apps.ccv.v1.MsgUnbondStake"></a>
+<a name="ibc.applications.ccv.v1.MsgUnbondStake"></a>
 
 ### MsgUnbondStake
 MsgUnbondStake defines a msg for parent chain validator to unbond their stake on baby chain.
@@ -353,7 +937,7 @@ MsgUnbondStake defines a msg for parent chain validator to unbond their stake on
 
 
 
-<a name="ibc.apps.ccv.v1.MsgUnbondStakeResponse"></a>
+<a name="ibc.applications.ccv.v1.MsgUnbondStakeResponse"></a>
 
 ### MsgUnbondStakeResponse
 MsgUnbondStakeResponse defines the Msg/UnbondStake response type
@@ -369,16 +953,16 @@ MsgUnbondStakeResponse defines the Msg/UnbondStake response type
  <!-- end HasExtensions -->
 
 
-<a name="ibc.apps.ccv.v1.Msg"></a>
+<a name="ibc.applications.ccv.v1.Msg"></a>
 
 ### Msg
 Msg defines the ibc/ccv Msg service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `SubmitNewChain` | [MsgSubmitNewChain](#ibc.apps.ccv.v1.MsgSubmitNewChain) | [MsgSubmitNewChainResponse](#ibc.apps.ccv.v1.MsgSubmitNewChainResponse) | SubmitNewChain defines a rpc handler method for MsgSubmitNewChain | |
-| `BondStake` | [MsgBondStake](#ibc.apps.ccv.v1.MsgBondStake) | [MsgBondStakeResponse](#ibc.apps.ccv.v1.MsgBondStakeResponse) | BondStake defines a rpc handler method for MsgBondStake | |
-| `UnbondStake` | [MsgUnbondStake](#ibc.apps.ccv.v1.MsgUnbondStake) | [MsgUnbondStakeResponse](#ibc.apps.ccv.v1.MsgUnbondStakeResponse) | UnbondStake defines a rpc handler method for MsgUnbondStake | |
+| `SubmitNewChain` | [MsgSubmitNewChain](#ibc.applications.ccv.v1.MsgSubmitNewChain) | [MsgSubmitNewChainResponse](#ibc.applications.ccv.v1.MsgSubmitNewChainResponse) | SubmitNewChain defines a rpc handler method for MsgSubmitNewChain | |
+| `BondStake` | [MsgBondStake](#ibc.applications.ccv.v1.MsgBondStake) | [MsgBondStakeResponse](#ibc.applications.ccv.v1.MsgBondStakeResponse) | BondStake defines a rpc handler method for MsgBondStake | |
+| `UnbondStake` | [MsgUnbondStake](#ibc.applications.ccv.v1.MsgUnbondStake) | [MsgUnbondStakeResponse](#ibc.applications.ccv.v1.MsgUnbondStakeResponse) | UnbondStake defines a rpc handler method for MsgUnbondStake | |
 
  <!-- end services -->
 
@@ -607,156 +1191,6 @@ Query provides defines the gRPC querier service.
 
 
 
-<a name="ibc/core/client/v1/client.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/core/client/v1/client.proto
-
-
-
-<a name="ibc.core.client.v1.ClientConsensusStates"></a>
-
-### ClientConsensusStates
-ClientConsensusStates defines all the stored consensus states for a given
-client.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client identifier |
-| `consensus_states` | [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight) | repeated | consensus states and their heights associated with the client |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.ClientUpdateProposal"></a>
-
-### ClientUpdateProposal
-ClientUpdateProposal is a governance proposal. If it passes, the substitute
-client's consensus states starting from the 'initial height' are copied over
-to the subjects client state. The proposal handler may fail if the subject
-and the substitute do not match in client and chain parameters (with
-exception to latest height, frozen height, and chain-id). The updated client
-must also be valid (cannot be expired).
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  | the title of the update proposal |
-| `description` | [string](#string) |  | the description of the proposal |
-| `subject_client_id` | [string](#string) |  | the client identifier for the client to be updated if the proposal passes |
-| `substitute_client_id` | [string](#string) |  | the substitute client identifier for the client standing in for the subject client |
-| `initial_height` | [Height](#ibc.core.client.v1.Height) |  | the intital height to copy consensus states from the substitute to the subject |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.ConsensusStateWithHeight"></a>
-
-### ConsensusStateWithHeight
-ConsensusStateWithHeight defines a consensus state with an additional height
-field.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `height` | [Height](#ibc.core.client.v1.Height) |  | consensus state height |
-| `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | consensus state |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.Height"></a>
-
-### Height
-Height is a monotonically increasing data type
-that can be compared against another Height for the purposes of updating and
-freezing clients
-
-Normally the RevisionHeight is incremented at each height while keeping
-RevisionNumber the same. However some consensus algorithms may choose to
-reset the height in certain conditions e.g. hard forks, state-machine
-breaking changes In these cases, the RevisionNumber is incremented so that
-height continues to be monitonically increasing even as the RevisionHeight
-gets reset
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `revision_number` | [uint64](#uint64) |  | the revision that the client is currently on |
-| `revision_height` | [uint64](#uint64) |  | the height within the given revision |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.IdentifiedClientState"></a>
-
-### IdentifiedClientState
-IdentifiedClientState defines a client state with an additional client
-identifier field.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client identifier |
-| `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | client state |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.Params"></a>
-
-### Params
-Params defines the set of IBC light client parameters.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `allowed_clients` | [string](#string) | repeated | allowed_clients defines the list of allowed client state types. |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.UpgradeProposal"></a>
-
-### UpgradeProposal
-UpgradeProposal is a gov Content type for initiating an IBC breaking
-upgrade.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  |  |
-| `description` | [string](#string) |  |  |
-| `plan` | [cosmos.upgrade.v1beta1.Plan](#cosmos.upgrade.v1beta1.Plan) |  |  |
-| `upgraded_client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | An UpgradedClientState must be provided to perform an IBC breaking upgrade. This will make the chain commit to the correct upgraded (self) client state before the upgrade occurs, so that connecting chains can verify that the new upgraded client is valid by verifying a proof on the previous version of the chain. This will allow IBC connections to persist smoothly across planned chain upgrades |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/applications/transfer/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -811,175 +1245,6 @@ Msg defines the ibc/transfer Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Transfer` | [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer) | [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
-
- <!-- end services -->
-
-
-
-<a name="ibc/core/channel/v1/channel.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/core/channel/v1/channel.proto
-
-
-
-<a name="ibc.core.channel.v1.Acknowledgement"></a>
-
-### Acknowledgement
-Acknowledgement is the recommended acknowledgement format to be used by
-app-specific protocols.
-NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
-conflicts with other protobuf message formats used for acknowledgements.
-The first byte of any message with this format will be the non-ASCII values
-`0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
-https://github.com/cosmos/ics/tree/master/spec/ics-004-channel-and-packet-semantics#acknowledgement-envelope
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `result` | [bytes](#bytes) |  |  |
-| `error` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.Channel"></a>
-
-### Channel
-Channel defines pipeline for exactly-once packet delivery between specific
-modules on separate blockchains, which has at least one end capable of
-sending packets and one end capable of receiving packets.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
-| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
-| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
-| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
-| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.Counterparty"></a>
-
-### Counterparty
-Counterparty defines a channel end counterparty
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | port on the counterparty chain which owns the other end of the channel. |
-| `channel_id` | [string](#string) |  | channel end on the counterparty chain |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.IdentifiedChannel"></a>
-
-### IdentifiedChannel
-IdentifiedChannel defines a channel with additional port and channel
-identifier fields.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
-| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
-| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
-| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
-| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
-| `port_id` | [string](#string) |  | port identifier |
-| `channel_id` | [string](#string) |  | channel identifier |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.Packet"></a>
-
-### Packet
-Packet defines a type that carries data across different chains through IBC
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `sequence` | [uint64](#uint64) |  | number corresponds to the order of sends and receives, where a Packet with an earlier sequence number must be sent and received before a Packet with a later sequence number. |
-| `source_port` | [string](#string) |  | identifies the port on the sending chain. |
-| `source_channel` | [string](#string) |  | identifies the channel end on the sending chain. |
-| `destination_port` | [string](#string) |  | identifies the port on the receiving chain. |
-| `destination_channel` | [string](#string) |  | identifies the channel end on the receiving chain. |
-| `data` | [bytes](#bytes) |  | actual opaque bytes transferred directly to the application module |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the packet times out |
-| `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the packet times out |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.PacketState"></a>
-
-### PacketState
-PacketState defines the generic type necessary to retrieve and store
-packet commitments, acknowledgements, and receipts.
-Caller is responsible for knowing the context necessary to interpret this
-state as a commitment, acknowledgement, or a receipt.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | channel port identifier. |
-| `channel_id` | [string](#string) |  | channel unique identifier. |
-| `sequence` | [uint64](#uint64) |  | packet sequence. |
-| `data` | [bytes](#bytes) |  | embedded data that represents packet state. |
-
-
-
-
-
- <!-- end messages -->
-
-
-<a name="ibc.core.channel.v1.Order"></a>
-
-### Order
-Order defines if a channel is ORDERED or UNORDERED
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| ORDER_NONE_UNSPECIFIED | 0 | zero-value for channel ordering |
-| ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
-| ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
-
-
-
-<a name="ibc.core.channel.v1.State"></a>
-
-### State
-State defines if a channel is in one of the following states:
-CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| STATE_UNINITIALIZED_UNSPECIFIED | 0 | Default State |
-| STATE_INIT | 1 | A channel has just started the opening handshake. |
-| STATE_TRYOPEN | 2 | A channel has acknowledged the handshake step on the counterparty chain. |
-| STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
-| STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
-
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
 
  <!-- end services -->
 
@@ -2375,91 +2640,6 @@ Msg defines the ibc/client Msg service.
 
 
 
-<a name="ibc/core/commitment/v1/commitment.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/core/commitment/v1/commitment.proto
-
-
-
-<a name="ibc.core.commitment.v1.MerklePath"></a>
-
-### MerklePath
-MerklePath is the path used to verify commitment proofs, which can be an
-arbitrary structured object (defined by a commitment type).
-MerklePath is represented from root-to-leaf
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `key_path` | [string](#string) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.core.commitment.v1.MerklePrefix"></a>
-
-### MerklePrefix
-MerklePrefix is merkle path prefixed to the key.
-The constructed key from the Path and the key will be append(Path.KeyPath,
-append(Path.KeyPrefix, key...))
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `key_prefix` | [bytes](#bytes) |  |  |
-
-
-
-
-
-
-<a name="ibc.core.commitment.v1.MerkleProof"></a>
-
-### MerkleProof
-MerkleProof is a wrapper type over a chain of CommitmentProofs.
-It demonstrates membership or non-membership for an element or set of
-elements, verifiable in conjunction with a known commitment root. Proofs
-should be succinct.
-MerkleProofs are ordered from leaf-to-root
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `proofs` | [ics23.CommitmentProof](#ics23.CommitmentProof) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.core.commitment.v1.MerkleRoot"></a>
-
-### MerkleRoot
-MerkleRoot defines a merkle root hash.
-In the Cosmos SDK, the AppHash of a block header becomes the root.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `hash` | [bytes](#bytes) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/core/connection/v1/connection.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3373,129 +3553,6 @@ to preserve uniqueness of different data sign byte encodings.
 | DATA_TYPE_NEXT_SEQUENCE_RECV | 8 | Data type for next sequence recv verification |
 | DATA_TYPE_HEADER | 9 | Data type for header verification |
 
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/lightclients/tendermint/v1/tendermint.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/lightclients/tendermint/v1/tendermint.proto
-
-
-
-<a name="ibc.lightclients.tendermint.v1.ClientState"></a>
-
-### ClientState
-ClientState from Tendermint tracks the current validator set, latest height,
-and a possible frozen height.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  |  |
-| `trust_level` | [Fraction](#ibc.lightclients.tendermint.v1.Fraction) |  |  |
-| `trusting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | duration of the period since the LastestTimestamp during which the submitted headers are valid for upgrade |
-| `unbonding_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | duration of the staking unbonding period |
-| `max_clock_drift` | [google.protobuf.Duration](#google.protobuf.Duration) |  | defines how much new (untrusted) header's Time can drift into the future. |
-| `frozen_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Block height when the client was frozen due to a misbehaviour |
-| `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
-| `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
-| `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
-| `allow_update_after_expiry` | [bool](#bool) |  | This flag, when set to true, will allow governance to recover a client which has expired |
-| `allow_update_after_misbehaviour` | [bool](#bool) |  | This flag, when set to true, will allow governance to unfreeze a client whose chain has experienced a misbehaviour event |
-
-
-
-
-
-
-<a name="ibc.lightclients.tendermint.v1.ConsensusState"></a>
-
-### ConsensusState
-ConsensusState defines the consensus state from Tendermint.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
-| `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
-| `next_validators_hash` | [bytes](#bytes) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.tendermint.v1.Fraction"></a>
-
-### Fraction
-Fraction defines the protobuf message type for tmmath.Fraction that only
-supports positive values.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `numerator` | [uint64](#uint64) |  |  |
-| `denominator` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.tendermint.v1.Header"></a>
-
-### Header
-Header defines the Tendermint client consensus Header.
-It encapsulates all the information necessary to update from a trusted
-Tendermint ConsensusState. The inclusion of TrustedHeight and
-TrustedValidators allows this update to process correctly, so long as the
-ConsensusState for the TrustedHeight exists, this removes race conditions
-among relayers The SignedHeader and ValidatorSet are the new untrusted update
-fields for the client. The TrustedHeight is the height of a stored
-ConsensusState on the client that will be used to verify the new untrusted
-header. The Trusted ConsensusState must be within the unbonding period of
-current time in order to correctly verify, and the TrustedValidators must
-hash to TrustedConsensusState.NextValidatorsHash since that is the last
-trusted validator set at the TrustedHeight.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `signed_header` | [tendermint.types.SignedHeader](#tendermint.types.SignedHeader) |  |  |
-| `validator_set` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
-| `trusted_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
-| `trusted_validators` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.tendermint.v1.Misbehaviour"></a>
-
-### Misbehaviour
-Misbehaviour is a wrapper over two conflicting Headers
-that implements Misbehaviour interface expected by ICS-02
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
-| `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
-
-
-
-
-
- <!-- end messages -->
 
  <!-- end enums -->
 

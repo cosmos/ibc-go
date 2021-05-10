@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ibc.apps.ccv.v1;
+package ibc.applications.ccv.v1;
 
 option go_package = "github.com/cosmos/ibc-go/modules/apps/ccv/types";
 

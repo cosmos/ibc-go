@@ -17,7 +17,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data c
 	// Set PendingChanges to be flushed and the unbonding time and unbonding packet.
 	// TODO: Get PendingChanges and update the pending changes if they already exist
 	k.SetPendingChanges(ctx, data)
-	k.SetUnbondingTime(ctx, packet.Sequence)
+	unbondingTime := ctx.BlockTime().Add(types.UnbondingTime)
+	k.SetUnbondingTime(ctx, packet.Sequence, uint64(unbondingTime.UnixNano()))
 	k.SetUnbondingPacket(ctx, packet.Sequence, packet)
 	return nil
 }

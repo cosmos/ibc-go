@@ -9,19 +9,14 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// StakingKeeper defines the contract expected by parent-chain ccv module.
-// StakingKeeper is responsible for keeping track of latest validator set of all baby chains
-type StakingKeeper interface {
-	GetValidatorSetChanges(chainID string) []abci.ValidatorUpdate
-	// This method is not required by CCV module explicitly but necessary for init protocol
-	GetInitialValidatorSet(chainID string) []sdk.Tx
-}
-
 // RegistryKeeper defines the contract expected by parent-chain ccv module from a Registry Module that will keep track
 // of chain creators and respective validator sets
 // RegistryKeeper is responsible for verifying that chain creator is authorized to create a chain with given chain-id,
 // as well as which validators are staking for a given chain.
 type RegistryKeeper interface {
+	GetValidatorSetChanges(chainID string) []abci.ValidatorUpdate
+	// This method is not required by CCV module explicitly but necessary for init protocol
+	GetInitialValidatorSet(chainID string) []sdk.Tx
 	GetValidatorSet(ctx sdk.Context, chainID string) []sdk.ValAddress
 	UnbondValidators(ctx sdk.Context, chainID string, valUpdates []abci.ValidatorUpdate)
 }
@@ -47,6 +42,7 @@ type ConnectionKeeper interface {
 
 // ClientKeeper defines the expected IBC client keeper
 type ClientKeeper interface {
+	CreateClient(ctx sdk.Context, clientState ibcexported.ClientState, consensusState ibcexported.ConsensusState) (string, error)
 	GetClientState(ctx sdk.Context, clientID string) (ibcexported.ClientState, bool)
 	GetLatestClientConsensusState(ctx sdk.Context, clientID string) (ibcexported.ConsensusState, bool)
 }

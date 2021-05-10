@@ -70,3 +70,11 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 	// TODO: Unbonding everything?
 	return nil
 }
+
+// EndBlockCallback is called for each baby chain in Endblock. It sends latest validator updates to each baby chain
+// in a packet over the CCV channel.
+func (k Keeper) EndBlockCallback(ctx sdk.Context, chainID string) bool {
+	valUpdates := k.registryKeeper.GetValidatorSetChanges(chainID)
+	k.SendPacket(ctx, chainID, valUpdates)
+	return false
+}
