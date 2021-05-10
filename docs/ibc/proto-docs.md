@@ -2939,7 +2939,7 @@ state and if the client is frozen.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `sequence` | [uint64](#uint64) |  | latest sequence of the client state |
-| `frozen_sequence` | [uint64](#uint64) |  | frozen sequence of the solo machine |
+| `is_frozen` | [bool](#bool) |  | frozen sequence of the solo machine |
 | `consensus_state` | [ConsensusState](#ibc.lightclients.solomachine.v1.ConsensusState) |  |  |
 | `allow_update_after_proposal` | [bool](#bool) |  | when set to true, will allow governance to update a solo machine client. The client will be unfrozen if it is frozen. |
 
