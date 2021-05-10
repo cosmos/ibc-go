@@ -40,6 +40,18 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return clienttypes.NewHeight(0, cs.Sequence)
 }
 
+// Status returns the status of the solo machine client.
+// The client may be:
+// - Active: if frozen sequence is 0
+// - Frozen: otherwise solo machine is frozen
+func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
+	if cs.FrozenSequence != 0 {
+		return exported.Frozen
+	}
+
+	return exported.Active
+}
+
 // IsFrozen returns true if the client is frozen.
 func (cs ClientState) IsFrozen() bool {
 	return cs.FrozenSequence != 0
@@ -77,7 +89,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 }
 
 // Initialize will check that initial consensus state is equal to the latest consensus state of the initial client.
-func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryMarshaler, _ sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
 	if !reflect.DeepEqual(cs.ConsensusState, consState) {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
 			cs.ConsensusState, consState)
@@ -92,7 +104,7 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
 func (cs ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryMarshaler, _ sdk.KVStore,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	return nil, nil, sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
@@ -100,9 +112,9 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 
 // VerifyClientState verifies a proof of the client state of the running chain
 // stored on the solo machine.
-func (cs ClientState) VerifyClientState(
+func (cs *ClientState) VerifyClientState(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	prefix exported.Prefix,
 	counterpartyClientIdentifier string,
@@ -131,15 +143,15 @@ func (cs ClientState) VerifyClientState(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
 // VerifyClientConsensusState verifies a proof of the consensus state of the
 // running chain stored on the solo machine.
-func (cs ClientState) VerifyClientConsensusState(
+func (cs *ClientState) VerifyClientConsensusState(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	counterpartyClientIdentifier string,
 	consensusHeight exported.Height,
@@ -169,15 +181,15 @@ func (cs ClientState) VerifyClientConsensusState(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
 // VerifyConnectionState verifies a proof of the connection state of the
 // specified connection end stored on the target machine.
-func (cs ClientState) VerifyConnectionState(
+func (cs *ClientState) VerifyConnectionState(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	prefix exported.Prefix,
 	proof []byte,
@@ -206,15 +218,15 @@ func (cs ClientState) VerifyConnectionState(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
 // VerifyChannelState verifies a proof of the channel state of the specified
 // channel end, under the specified port, stored on the target machine.
-func (cs ClientState) VerifyChannelState(
+func (cs *ClientState) VerifyChannelState(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	prefix exported.Prefix,
 	proof []byte,
@@ -244,15 +256,15 @@ func (cs ClientState) VerifyChannelState(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
-func (cs ClientState) VerifyPacketCommitment(
+func (cs *ClientState) VerifyPacketCommitment(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	_ uint64,
 	_ uint64,
@@ -285,15 +297,15 @@ func (cs ClientState) VerifyPacketCommitment(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
-func (cs ClientState) VerifyPacketAcknowledgement(
+func (cs *ClientState) VerifyPacketAcknowledgement(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	_ uint64,
 	_ uint64,
@@ -326,16 +338,16 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
 // VerifyPacketReceiptAbsence verifies a proof of the absence of an
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.
-func (cs ClientState) VerifyPacketReceiptAbsence(
+func (cs *ClientState) VerifyPacketReceiptAbsence(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	_ uint64,
 	_ uint64,
@@ -367,15 +379,15 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
 // VerifyNextSequenceRecv verifies a proof of the next sequence number to be
 // received of the specified channel at the specified port.
-func (cs ClientState) VerifyNextSequenceRecv(
+func (cs *ClientState) VerifyNextSequenceRecv(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	_ uint64,
 	_ uint64,
@@ -407,7 +419,7 @@ func (cs ClientState) VerifyNextSequenceRecv(
 
 	cs.Sequence++
 	cs.ConsensusState.Timestamp = timestamp
-	setClientState(store, cdc, &cs)
+	setClientState(store, cdc, cs)
 	return nil
 }
 
@@ -416,8 +428,8 @@ func (cs ClientState) VerifyNextSequenceRecv(
 // consensus state, the unmarshalled proof representing the signature and timestamp
 // along with the solo-machine sequence encoded in the proofHeight.
 func produceVerificationArgs(
-	cdc codec.BinaryMarshaler,
-	cs ClientState,
+	cdc codec.BinaryCodec,
+	cs *ClientState,
 	height exported.Height,
 	prefix exported.Prefix,
 	proof []byte,
@@ -435,7 +447,7 @@ func produceVerificationArgs(
 		return nil, nil, 0, 0, sdkerrors.Wrap(commitmenttypes.ErrInvalidPrefix, "prefix cannot be empty")
 	}
 
-	_, ok := prefix.(commitmenttypes.MerklePrefix)
+	_, ok := prefix.(*commitmenttypes.MerklePrefix)
 	if !ok {
 		return nil, nil, 0, 0, sdkerrors.Wrapf(commitmenttypes.ErrInvalidPrefix, "invalid prefix type %T, expected MerklePrefix", prefix)
 	}
@@ -445,7 +457,7 @@ func produceVerificationArgs(
 	}
 
 	timestampedSigData := &TimestampedSignatureData{}
-	if err := cdc.UnmarshalBinaryBare(proof, timestampedSigData); err != nil {
+	if err := cdc.Unmarshal(proof, timestampedSigData); err != nil {
 		return nil, nil, 0, 0, sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
 	}
 
@@ -485,7 +497,7 @@ func produceVerificationArgs(
 }
 
 // sets the client state to the store
-func setClientState(store sdk.KVStore, cdc codec.BinaryMarshaler, clientState exported.ClientState) {
+func setClientState(store sdk.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	bz := clienttypes.MustMarshalClientState(cdc, clientState)
 	store.Set([]byte(host.KeyClientState), bz)
 }

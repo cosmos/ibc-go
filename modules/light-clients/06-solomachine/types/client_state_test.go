@@ -19,9 +19,23 @@ const (
 )
 
 var (
-	prefix          = commitmenttypes.NewMerklePrefix([]byte("ibc"))
+	prefix = &commitmenttypes.MerklePrefix{
+		KeyPrefix: []byte("ibc"),
+	}
 	consensusHeight = clienttypes.ZeroHeight()
 )
+
+func (suite *SoloMachineTestSuite) TestStatus() {
+	clientState := suite.solomachine.ClientState()
+	// solo machine discards arguements
+	status := clientState.Status(suite.chainA.GetContext(), nil, nil)
+	suite.Require().Equal(exported.Active, status)
+
+	// freeze solo machine
+	clientState.FrozenSequence = 1
+	status = clientState.Status(suite.chainA.GetContext(), nil, nil)
+	suite.Require().Equal(exported.Frozen, status)
+}
 
 func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
 	// test singlesig and multisig public keys
@@ -117,7 +131,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		for _, tc := range testCases {
 			err := solomachine.ClientState().Initialize(
 				suite.chainA.GetContext(), suite.chainA.Codec,
-				suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine"),
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine"),
 				tc.consState,
 			)
 
@@ -132,8 +146,9 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 
 func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 	// create client for tendermint so we can use client state for verification
-	clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-	clientState := suite.chainA.GetClientState(clientA)
+	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(tmPath)
+	clientState := suite.chainA.GetClientState(tmPath.EndpointA.ClientID)
 	path := suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
 
 	// test singlesig and multisig public keys
@@ -149,7 +164,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -247,6 +262,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 
 				if tc.expPass {
 					suite.Require().NoError(err)
+					suite.Require().Equal(expSeq, tc.clientState.Sequence)
 					suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", suite.GetSequenceFromStore(), tc.name)
 				} else {
 					suite.Require().Error(err)
@@ -258,9 +274,10 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 
 func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 	// create client for tendermint so we can use consensus state for verification
-	clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-	clientState := suite.chainA.GetClientState(clientA)
-	consensusState, found := suite.chainA.GetConsensusState(clientA, clientState.GetLatestHeight())
+	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(tmPath)
+	clientState := suite.chainA.GetClientState(tmPath.EndpointA.ClientID)
+	consensusState, found := suite.chainA.GetConsensusState(tmPath.EndpointA.ClientID, clientState.GetLatestHeight())
 	suite.Require().True(found)
 
 	path := suite.solomachine.GetConsensusStatePath(counterpartyClientIdentifier, consensusHeight)
@@ -277,7 +294,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -375,6 +392,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 
 				if tc.expPass {
 					suite.Require().NoError(err)
+					suite.Require().Equal(expSeq, tc.clientState.Sequence)
 					suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", suite.GetSequenceFromStore(), tc.name)
 				} else {
 					suite.Require().Error(err)
@@ -385,7 +403,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 }
 
 func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
-	counterparty := connectiontypes.NewCounterparty("clientB", testConnectionID, prefix)
+	counterparty := connectiontypes.NewCounterparty("clientB", testConnectionID, *prefix)
 	conn := connectiontypes.NewConnectionEnd(connectiontypes.OPEN, "clientA", counterparty, connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions()), 0)
 
 	path := suite.solomachine.GetConnectionStatePath(testConnectionID)
@@ -402,7 +420,7 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -465,6 +483,7 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+				suite.Require().Equal(expSeq, tc.clientState.Sequence)
 				suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %d: %s", suite.GetSequenceFromStore(), i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
@@ -491,7 +510,7 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -554,6 +573,7 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+				suite.Require().Equal(expSeq, tc.clientState.Sequence)
 				suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %d: %s", suite.GetSequenceFromStore(), i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
@@ -579,7 +599,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -666,7 +686,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -753,7 +773,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -840,7 +860,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 			Timestamp:     solomachine.Time,
 		}
 
-		proof, err := suite.chainA.Codec.MarshalBinaryBare(signatureDoc)
+		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
 		suite.Require().NoError(err)
 
 		testCases := []struct {
@@ -903,6 +923,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+				suite.Require().Equal(expSeq, tc.clientState.Sequence)
 				suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %d: %s", suite.GetSequenceFromStore(), i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)

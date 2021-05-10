@@ -25,14 +25,14 @@ import (
 // state information
 type Keeper struct {
 	storeKey      sdk.StoreKey
-	cdc           codec.BinaryMarshaler
+	cdc           codec.BinaryCodec
 	paramSpace    paramtypes.Subspace
 	stakingKeeper types.StakingKeeper
 	upgradeKeeper types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -274,7 +274,7 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 			&ibctmtypes.ClientState{}, tmClient)
 	}
 
-	if clientState.IsFrozen() {
+	if !tmClient.FrozenHeight.IsZero() {
 		return types.ErrClientFrozen
 	}
 

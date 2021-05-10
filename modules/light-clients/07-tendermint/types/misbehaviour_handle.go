@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"time"
 
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -19,9 +20,10 @@ import (
 // of misbehaviour.Header1
 // Similarly, consensusState2 is the trusted consensus state that corresponds
 // to misbehaviour.Header2
+// Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	clientStore sdk.KVStore,
 	misbehaviour exported.Misbehaviour,
 ) (exported.ClientState, error) {
@@ -30,11 +32,33 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &Misbehaviour{})
 	}
 
-	// If client is already frozen at earlier height than misbehaviour, return with error
-	if cs.IsFrozen() && cs.FrozenHeight.LTE(misbehaviour.GetHeight()) {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidMisbehaviour,
-			"client is already frozen at earlier height %s than misbehaviour height %s", cs.FrozenHeight, misbehaviour.GetHeight())
+	// The status of the client is checked in 02-client
+
+	// if heights are equal check that this is valid misbehaviour of a fork
+	// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
+	if tmMisbehaviour.Header1.GetHeight().EQ(tmMisbehaviour.Header2.GetHeight()) {
+		blockID1, err := tmtypes.BlockIDFromProto(&tmMisbehaviour.Header1.SignedHeader.Commit.BlockID)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "invalid block ID from header 1 in misbehaviour")
+		}
+		blockID2, err := tmtypes.BlockIDFromProto(&tmMisbehaviour.Header2.SignedHeader.Commit.BlockID)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
+		}
+
+		// Ensure that Commit Hashes are different
+		if bytes.Equal(blockID1.Hash, blockID2.Hash) {
+			return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
+		}
+	} else {
+		// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
+		// Header2 time in order to be valid misbehaviour (violation of monotonic time).
+		if tmMisbehaviour.Header1.SignedHeader.Header.Time.After(tmMisbehaviour.Header2.SignedHeader.Header.Time) {
+			return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
+		}
 	}
+
+	// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
 	// and unmarshal from clientStore
@@ -67,7 +91,8 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		return nil, sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 	}
 
-	cs.FrozenHeight = tmMisbehaviour.GetHeight().(clienttypes.Height)
+	cs.FrozenHeight = FrozenHeight
+
 	return &cs, nil
 }
 

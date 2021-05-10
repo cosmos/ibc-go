@@ -10,9 +10,13 @@ The most obvious changes is import name changes. We need to change:
 
 On my GNU/Linux based machine I used the following commands, executed in order:
 
-`grep -RiIl 'cosmos-sdk\/x\/ibc\/applications' | xargs sed -i 's/cosmos-sdk\/x\/ibc\/applications/ibc-go\/modules\/apps/g'`
+```
+grep -RiIl 'cosmos-sdk\/x\/ibc\/applications' | xargs sed -i 's/cosmos-sdk\/x\/ibc\/applications/ibc-go\/modules\/apps/g'
+```
 
-`grep -RiIl 'cosmos-sdk\/x\/ibc' | xargs sed -i 's/cosmos-sdk\/x\/ibc/ibc-go\/modules/g'`
+```
+grep -RiIl 'cosmos-sdk\/x\/ibc' | xargs sed -i 's/cosmos-sdk\/x\/ibc/ibc-go\/modules/g'
+```
 
 ref: [explanation of the above commands](https://www.internalpointers.com/post/linux-find-and-replace-text-multiple-files)
 
@@ -99,3 +103,16 @@ The gRPC querier service endpoints have changed slightly. The previous files use
 Application developers need to update their `OnRecvPacket` callback logic. 
 
 The `OnRecvPacket` callback has been modified to only return the acknowledgement. The acknowledgement returned must implement the `Acknowledgement` interface. The acknowledgement should indicate if it represents a successful processing of a packet by returning true on `Success()` and false in all other cases. A return value of false on `Success()` will result in all state changes which occurred in the callback being discarded. More information can be found in the [documentation](https://github.com/cosmos/ibc-go/blob/main/docs/custom.md#receiving-packets).
+
+## IBC Event changes
+
+The `packet_data` attribute has been deprecated in favor of `packet_data_hex`, in order to provide standardized encoding/decoding of packet data in events. While the `packet_data` event still exists, all relayers and IBC Event consumers are strongly encouraged to switch over to using `packet_data_hex` as soon as possible.
+
+## Relevant SDK changes
+
+* (codec) [\#9226](https://github.com/cosmos/cosmos-sdk/pull/9226) Rename codec interfaces and methods, to follow a general Go interfaces:
+  * `codec.Marshaler` → `codec.Codec` (this defines objects which serialize other objects)
+  * `codec.BinaryMarshaler` → `codec.BinaryCodec`
+  * `codec.JSONMarshaler` → `codec.JSONCodec`
+  * Removed `BinaryBare` suffix from `BinaryCodec` methods (`MarshalBinaryBare`, `UnmarshalBinaryBare`, ...)
+  * Removed `Binary` infix from `BinaryCodec` methods (`MarshalBinaryLengthPrefixed`, `UnmarshalBinaryLengthPrefixed`, ...)

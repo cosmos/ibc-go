@@ -120,7 +120,7 @@ func (suite *SoloMachineTestSuite) TestCheckMisbehaviourAndUpdateState() {
 						Data:        msg,
 					}
 
-					data, err := suite.chainA.Codec.MarshalBinaryBare(signBytes)
+					data, err := suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
 					sig := solomachine.GenerateSignature(data)
@@ -148,7 +148,7 @@ func (suite *SoloMachineTestSuite) TestCheckMisbehaviourAndUpdateState() {
 						Data:        msg,
 					}
 
-					data, err := suite.chainA.Codec.MarshalBinaryBare(signBytes)
+					data, err := suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
 					sig := solomachine.GenerateSignature(data)
@@ -209,7 +209,7 @@ func (suite *SoloMachineTestSuite) TestCheckMisbehaviourAndUpdateState() {
 						Data:        msg,
 					}
 
-					data, err := suite.chainA.Codec.MarshalBinaryBare(signBytes)
+					data, err := suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
 					sig := solomachine.GenerateSignature(data)
@@ -228,7 +228,7 @@ func (suite *SoloMachineTestSuite) TestCheckMisbehaviourAndUpdateState() {
 						DataType:    types.CLIENT,
 						Data:        msg,
 					}
-					data, err = suite.chainA.Codec.MarshalBinaryBare(signBytes)
+					data, err = suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
 					sig = solomachine.GenerateSignature(data)
@@ -264,7 +264,7 @@ func (suite *SoloMachineTestSuite) TestCheckMisbehaviourAndUpdateState() {
 
 				if tc.expPass {
 					suite.Require().NoError(err)
-					suite.Require().True(clientState.IsFrozen(), "client not frozen")
+					suite.Require().True(clientState.(*types.ClientState).FrozenSequence != 0, "client not frozen")
 				} else {
 					suite.Require().Error(err)
 					suite.Require().Nil(clientState)

@@ -19,6 +19,14 @@ const (
 	testSequence     = 1
 )
 
+func (suite *LocalhostTestSuite) TestStatus() {
+	clientState := types.NewClientState("chainID", clienttypes.NewHeight(3, 10))
+
+	// localhost should always return active
+	status := clientState.Status(suite.ctx, nil, nil)
+	suite.Require().Equal(exported.Active, status)
+}
+
 func (suite *LocalhostTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
@@ -191,7 +199,7 @@ func (suite *LocalhostTestSuite) TestVerifyConnectionState() {
 			name:        "proof verification success",
 			clientState: types.NewClientState("chainID", clientHeight),
 			malleate: func() {
-				bz, err := suite.cdc.MarshalBinaryBare(&conn1)
+				bz, err := suite.cdc.Marshal(&conn1)
 				suite.Require().NoError(err)
 				suite.store.Set(host.ConnectionKey(testConnectionID), bz)
 			},
@@ -218,7 +226,7 @@ func (suite *LocalhostTestSuite) TestVerifyConnectionState() {
 			name:        "proof verification failed: different connection stored",
 			clientState: types.NewClientState("chainID", clientHeight),
 			malleate: func() {
-				bz, err := suite.cdc.MarshalBinaryBare(&conn2)
+				bz, err := suite.cdc.Marshal(&conn2)
 				suite.Require().NoError(err)
 				suite.store.Set(host.ConnectionKey(testConnectionID), bz)
 			},
@@ -263,7 +271,7 @@ func (suite *LocalhostTestSuite) TestVerifyChannelState() {
 			name:        "proof verification success",
 			clientState: types.NewClientState("chainID", clientHeight),
 			malleate: func() {
-				bz, err := suite.cdc.MarshalBinaryBare(&ch1)
+				bz, err := suite.cdc.Marshal(&ch1)
 				suite.Require().NoError(err)
 				suite.store.Set(host.ChannelKey(testPortID, testChannelID), bz)
 			},
@@ -291,7 +299,7 @@ func (suite *LocalhostTestSuite) TestVerifyChannelState() {
 			name:        "proof verification failed: different channel stored",
 			clientState: types.NewClientState("chainID", clientHeight),
 			malleate: func() {
-				bz, err := suite.cdc.MarshalBinaryBare(&ch2)
+				bz, err := suite.cdc.Marshal(&ch2)
 				suite.Require().NoError(err)
 				suite.store.Set(host.ChannelKey(testPortID, testChannelID), bz)
 

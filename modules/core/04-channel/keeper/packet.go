@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -68,8 +69,9 @@ func (k Keeper) SendPacket(
 	}
 
 	// prevent accidental sends with clients that cannot be updated
-	if clientState.IsFrozen() {
-		return sdkerrors.Wrapf(clienttypes.ErrClientFrozen, "cannot send packet on a frozen client with ID %s", connectionEnd.GetClientID())
+	clientStore := k.clientKeeper.ClientStore(ctx, connectionEnd.GetClientID())
+	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 
 	// check if packet timeouted on the receiving chain
@@ -120,7 +122,8 @@ func (k Keeper) SendPacket(
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
-			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
+			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeight.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
@@ -283,7 +286,8 @@ func (k Keeper) RecvPacket(
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
-			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
+			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
@@ -367,7 +371,8 @@ func (k Keeper) WriteAcknowledgement(
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
-			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
+			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),

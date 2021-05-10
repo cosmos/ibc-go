@@ -40,7 +40,7 @@ func (suite *SoloMachineTestSuite) SetupTest() {
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
 	suite.solomachineMulti = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinemulti", "testing", 4)
 
-	suite.store = suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Solomachine)
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Solomachine)
 }
 
 func TestSoloMachineTestSuite(t *testing.T) {
@@ -58,7 +58,7 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 }
 
 func (suite *SoloMachineTestSuite) GetInvalidProof() []byte {
-	invalidProof, err := suite.chainA.Codec.MarshalBinaryBare(&types.TimestampedSignatureData{Timestamp: suite.solomachine.Time})
+	invalidProof, err := suite.chainA.Codec.Marshal(&types.TimestampedSignatureData{Timestamp: suite.solomachine.Time})
 	suite.Require().NoError(err)
 
 	return invalidProof

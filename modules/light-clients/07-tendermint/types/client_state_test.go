@@ -28,6 +28,46 @@ var (
 	invalidProof = []byte("invalid proof")
 )
 
+func (suite *TendermintTestSuite) TestStatus() {
+	var (
+		path        *ibctesting.Path
+		clientState *types.ClientState
+	)
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expStatus exported.Status
+	}{
+		{"client is active", func() {}, exported.Active},
+		{"client is frozen", func() {
+			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+			path.EndpointA.SetClientState(clientState)
+		}, exported.Frozen},
+		{"client status is unknown", func() {
+			clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
+			path.EndpointA.SetClientState(clientState)
+		}, exported.Unknown},
+		{"client status is expired", func() {
+			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
+		}, exported.Expired},
+	}
+
+	for _, tc := range testCases {
+		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		suite.coordinator.SetupClients(path)
+
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+		clientState = path.EndpointA.GetClientState().(*types.ClientState)
+
+		tc.malleate()
+
+		status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+		suite.Require().Equal(tc.expStatus, status)
+
+	}
+}
+
 func (suite *TendermintTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
@@ -125,11 +165,12 @@ func (suite *TendermintTestSuite) TestInitialize() {
 		},
 	}
 
-	clientA, err := suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	err := path.EndpointA.CreateClient()
 	suite.Require().NoError(err)
 
-	clientState := suite.chainA.GetClientState(clientA)
-	store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
+	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 	for _, tc := range testCases {
 		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
@@ -172,15 +213,6 @@ func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 		{
 			name:        "latest client height < height",
 			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
-			consensusState: &types.ConsensusState{
-				Root: commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()),
-			},
-			prefix:  commitmenttypes.NewMerklePrefix([]byte("ibc")),
-			expPass: false,
-		},
-		{
-			name:        "client is frozen",
-			clientState: &types.ClientState{LatestHeight: height, FrozenHeight: clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)},
 			consensusState: &types.ConsensusState{
 				Root: commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()),
 			},
@@ -244,11 +276,6 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 			}, false,
 		},
 		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			}, false,
-		},
-		{
 			"proof verification failed", func() {
 				proof = invalidProof
 			}, false,
@@ -262,26 +289,27 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, _, _, connB, _, _ := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			connection := suite.chainB.GetConnection(connB)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+			connection := path.EndpointB.GetConnection()
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
 			prefix = suite.chainB.GetPrefix()
 
 			// make connection proof
-			connectionKey := host.ConnectionKey(connB.ID)
+			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
 			proof, proofHeight = suite.chainB.QueryProof(connectionKey)
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			err := clientState.VerifyConnectionState(
-				store, suite.chainA.Codec, proofHeight, &prefix, proof, connB.ID, connection,
+				store, suite.chainA.Codec, proofHeight, &prefix, proof, path.EndpointB.ConnectionID, connection,
 			)
 
 			if tc.expPass {
@@ -322,11 +350,6 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 			}, false,
 		},
 		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			}, false,
-		},
-		{
 			"proof verification failed", func() {
 				proof = invalidProof
 			}, false,
@@ -340,27 +363,28 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, _, _, _, _, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			channel := suite.chainB.GetChannel(channelB)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+			channel := path.EndpointB.GetChannel()
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
 			prefix = suite.chainB.GetPrefix()
 
 			// make channel proof
-			channelKey := host.ChannelKey(channelB.PortID, channelB.ID)
+			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proof, proofHeight = suite.chainB.QueryProof(channelKey)
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			err := clientState.VerifyChannelState(
 				store, suite.chainA.Codec, proofHeight, &prefix, proof,
-				channelB.PortID, channelB.ID, channel,
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel,
 			)
 
 			if tc.expPass {
@@ -416,11 +440,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			}, false,
 		},
 		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			}, false,
-		},
-		{
 			"proof verification failed", func() {
 				proof = invalidProof
 			}, false,
@@ -434,13 +453,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, _, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelB.PortID, channelB.ID, channelA.PortID, channelA.ID, clienttypes.NewHeight(0, 100), 0)
-			err := suite.coordinator.SendPacket(suite.chainB, suite.chainA, packet, clientA)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			err := path.EndpointB.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
@@ -448,14 +468,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			// make packet commitment proof
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-			proof, proofHeight = suite.chainB.QueryProof(packetKey)
+			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
-			commitment := channeltypes.CommitPacket(suite.chainA.App.IBCKeeper.Codec(), packet)
+			commitment := channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
 			err = clientState.VerifyPacketCommitment(
 				store, suite.chainA.Codec, proofHeight, currentTime, delayPeriod, &prefix, proof,
 				packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment,
@@ -515,11 +535,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			}, false,
 		},
 		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			}, false,
-		},
-		{
 			"proof verification failed", func() {
 				proof = invalidProof
 			}, false,
@@ -533,19 +548,20 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, clienttypes.NewHeight(0, 100), 0)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// write receipt and ack
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
@@ -557,7 +573,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyPacketAcknowledgement(
@@ -619,11 +635,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 			}, false,
 		},
 		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			}, false,
-		},
-		{
 			"proof verification failed", func() {
 				proof = invalidProof
 			}, false,
@@ -637,18 +648,16 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, clienttypes.NewHeight(0, 100), 0)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet, but no recv
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
-			// need to update chainA's client representing chainB to prove missing ack
-			suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
-
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
@@ -656,11 +665,11 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 
 			// make packet receipt absence proof
 			receiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			proof, proofHeight = suite.chainB.QueryProof(receiptKey)
+			proof, proofHeight = path.EndpointB.QueryProof(receiptKey)
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyPacketReceiptAbsence(
@@ -722,11 +731,6 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 			}, false,
 		},
 		{
-			"client is frozen", func() {
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			}, false,
-		},
-		{
 			"proof verification failed", func() {
 				proof = invalidProof
 			}, false,
@@ -740,22 +744,21 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, clienttypes.NewHeight(0, 100), 0)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetChannelOrdered()
+			suite.coordinator.Setup(path)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// send packet
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// next seq recv incremented
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
-			// need to update chainA's client representing chainB
-			suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
-
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
@@ -767,7 +770,7 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			currentTime := uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			err = clientState.VerifyNextSequenceRecv(

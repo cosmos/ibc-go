@@ -95,7 +95,7 @@ func (suite *TypesTestSuite) SetupTest() {
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
-	proof, err := app.AppCodec().MarshalBinaryBare(&merkleProof)
+	proof, err := app.AppCodec().Marshal(&merkleProof)
 	suite.Require().NoError(err)
 
 	suite.proof = proof
@@ -313,12 +313,6 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 			}
 		})
 	}
-}
-
-func (suite *TypesTestSuite) TestMsgRecvPacketType() {
-	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
-
-	suite.Equal("recv_packet", msg.Type())
 }
 
 func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
