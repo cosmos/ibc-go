@@ -16,19 +16,20 @@ const GasMultiplier uint64 = 100
 var _ exported.ClientState = (*ClientState)(nil)
 
 type queryResponse struct {
-	ProofSpecs []*ics23.ProofSpec `json:"proof_specs,omitempty"`
-	Height types2.Height `json:"height,omitempty"`
-	IsFrozen bool `json:"is_frozen,omitempty"`
-	FrozenHeight types2.Height `json:"frozen_height,omitempty"`
+	ProofSpecs      []*ics23.ProofSpec       `json:"proof_specs,omitempty"`
+	Height          types2.Height            `json:"height,omitempty"`
+	IsFrozen        bool                     `json:"is_frozen,omitempty"`
+	FrozenHeight    types2.Height            `json:"frozen_height,omitempty"`
 	GenesisMetadata []types2.GenesisMetadata `json:"genesis_metadata,omitempty"`
-	Result contractResult `json:"result,omitempty"`
-	ClientType string `json:"client_type,omitempty"`
-	Root types3.MerkleRoot `json:"root,omitempty"`
-	Timestamp uint64 `json:"timestamp,omitempty"`
+	Result          contractResult           `json:"result,omitempty"`
+	ClientType      string                   `json:"client_type,omitempty"`
+	Root            types3.MerkleRoot        `json:"root,omitempty"`
+	Timestamp       uint64                   `json:"timestamp,omitempty"`
+	Status          exported.Status          `json:"status,omitempty"`
 }
 
 type contractResult struct {
-	IsValid bool `json:"is_valid,omitempty"`
+	IsValid  bool   `json:"is_valid,omitempty"`
 	ErrorMsg string `json:"err_msg,omitempty"`
 }
 
@@ -83,12 +84,11 @@ func initContract(codeId []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 	}
 
 	msgInfo := types.MessageInfo{
-		Sender:  "",
+		Sender:    "",
 		SentFunds: nil,
 	}
 	mockFailureAPI := *api.NewMockFailureAPI()
 	mockQuerier := api.MockQuerier{}
-
 
 	response, _, err := keeper.WasmVM.Instantiate(codeId, env, msgInfo, msg, store, mockFailureAPI, mockQuerier, gasMeter, gasMeter.Limit())
 	return response, err
@@ -126,7 +126,7 @@ func callContract(codeId []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 // Calls vm.Execute with supplied environment and gas meter
 func callContractWithEnvAndMeter(codeId []byte, ctx *sdk.Context, store sdk.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.HandleResponse, error) {
 	msgInfo := types.MessageInfo{
-		Sender:  "",
+		Sender:    "",
 		SentFunds: nil,
 	}
 	mockFailureAPI := *api.NewMockFailureAPI()
@@ -161,4 +161,3 @@ func consumeGas(ctx sdk.Context, gas uint64) {
 		panic(sdk.ErrorOutOfGas{Descriptor: "Wasmer function execution"})
 	}
 }
-

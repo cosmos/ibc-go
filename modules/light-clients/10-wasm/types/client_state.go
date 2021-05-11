@@ -132,40 +132,28 @@ func (c *ClientState) CheckMisbehaviourAndUpdateState(context sdk.Context, marsh
 	return output.NewClientState, nil
 }
 
-func (c *ClientState) CheckProposedHeaderAndUpdateState(context sdk.Context, marshaler codec.BinaryCodec, store sdk.KVStore, header exported.Header) (exported.ClientState, exported.ConsensusState, error) {
-	// get consensus state corresponding to client state to check if the client is expired
-	consensusState, err := GetConsensusState(store, marshaler, c.LatestHeight)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at height: %d", c.LatestHeight,
-		)
-	}
-
-	const CheckProposedHeaderAndUpdateState = "checkproposedheaderandupdatestate"
-	payload := make(map[string]map[string]interface{})
-	payload[CheckProposedHeaderAndUpdateState] = make(map[string]interface{})
-	inner := payload[CheckProposedHeaderAndUpdateState]
-	inner["me"] = c
-	inner["header"] = header
-	inner["consensus_state"] = consensusState
-
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	out, err := callContract(c.CodeId, context, store, encodedData)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	output := clientStateCallResponse{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.Result.IsValid {
-		return nil, nil, fmt.Errorf("%s error ocurred while updating client state", output.Result.ErrorMsg)
-	}
-	output.resetImmutables(c)
-	return output.NewClientState, output.NewConsensusState, nil
+func (c *ClientState) CheckSubstituteAndUpdateState(
+	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
+	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
+	initialHeight exported.Height,
+) (exported.ClientState, error) {
+	// TODO: How to implement this method to be WASM compatible?
+	// Using the example of tendermint LC (modules/light-clients/07-tendermint/types/proposal_handle.go):
+	// * two client stores (subject + substitute) can't be passed to WASM at the same time (only one can go)
+	// * copying the client states in the loop might be expensive
+	// * binary marshaling ain't easy on the WASM contract side (at least not implemented afaik)
+	//
+	// One option that comes to mind is to split the call to WASM (ie. validation) and non-WASM (copying the client states)
+	// but it won't be pretty. The flow might look like this:
+	// 1. (WASM) validate subjectClient Consensus State and substituteClientState
+	// 2a. (Go) in the loop copy the conesnus state between store
+	// 2b. (WASM) post update (ie. set processing time)
+	// 3. (WASM) validate latest consensus state from subjectClientStore
+	//
+	// ^^ This flow has approximately:
+	//    * Wasm operations = 2 + n
+	//    * Go operations: n
+	return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "CheckSubstituteAndUpdateState is not implemented for WASM client")
 }
 
 func (c *ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, newClient exported.ClientState, newConsState exported.ConsensusState, proofUpgradeClient, proofUpgradeConsState []byte) (exported.ClientState, exported.ConsensusState, error) {
@@ -277,12 +265,35 @@ func (c *ClientState) GetLatestHeight() exported.Height {
 	return c.LatestHeight
 }
 
-func (c *ClientState) IsFrozen() bool {
-	return c.Frozen
-}
+func (c *ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
+	consensusState, err := GetConsensusState(store, cdc, c.LatestHeight)
+	if err != nil {
+		return exported.Unknown
+	}
 
-func (c *ClientState) GetFrozenHeight() exported.Height {
-	return c.FrozenHeight
+	const Status = "status"
+	payload := make(map[string]map[string]interface{})
+	payload[Status] = make(map[string]interface{})
+	inner := payload[Status]
+	inner["me"] = c
+	inner["consensus_state"] = consensusState
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return exported.Unknown
+	}
+
+	response, err := queryContractWithStore(c.CodeId, store, encodedData)
+	if err != nil {
+		return exported.Unknown
+	}
+
+	output := queryResponse{}
+	if err := json.Unmarshal(response, &output); err != nil {
+		return exported.Unknown
+	}
+
+	return output.Status
 }
 
 func (c *ClientState) Validate() error {
