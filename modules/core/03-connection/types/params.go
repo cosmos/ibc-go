@@ -9,7 +9,7 @@ import (
 
 // DefaultTimePerBlock is the default value for maximum time
 // expected per block.
-const DefaultTimePerBlock = 10 * time.Minute
+const DefaultTimePerBlock = time.Hour
 
 // KeyMaxTimePerBlock is store's key for MaxTimePerBlock parameter
 var KeyMaxTimePerBlock = []byte("MaxTimePerBlock")
@@ -31,8 +31,11 @@ func DefaultParams() Params {
 	return NewParams(uint64(DefaultTimePerBlock))
 }
 
-// Validate is a no-op for connection parameters
+// Validate ensures MaxTimePerBlock is non-zero
 func (p Params) Validate() error {
+	if p.MaxTimePerBlock == 0 {
+		return fmt.Errorf("MaxTimePerBlock cannot be zero")
+	}
 	return nil
 }
 

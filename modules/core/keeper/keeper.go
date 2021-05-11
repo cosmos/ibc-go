@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	clientkeeper "github.com/cosmos/ibc-go/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/modules/core/03-connection/keeper"
@@ -11,7 +12,6 @@ import (
 	portkeeper "github.com/cosmos/ibc-go/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/modules/core/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -37,7 +37,7 @@ func NewKeeper(
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) *Keeper {
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, clientKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
 

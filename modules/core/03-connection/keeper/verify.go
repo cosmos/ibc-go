@@ -165,13 +165,13 @@ func (k Keeper) VerifyPacketCommitment(
 	// by the maximum expected time per block. Round up the block delay.
 	timeDelay := connection.GetDelayPeriod()
 	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
-	minBlocks := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
 
 	// verify that block delay has passed
 
 	if err := clientState.VerifyPacketCommitment(
-		clientStore, k.cdc, height,
-		uint64(ctx.BlockTime().UnixNano()), timeDelay,
+		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
+		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, commitmentBytes,
 	); err != nil {
@@ -205,9 +205,15 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	// calculate minimum block delay by dividing time delay period
+	// by the maximum expected time per block. Round up the block delay.
+	timeDelay := connection.GetDelayPeriod()
+	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
+	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+
 	if err := clientState.VerifyPacketAcknowledgement(
-		clientStore, k.cdc, height,
-		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayPeriod(),
+		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
+		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, acknowledgement,
 	); err != nil {
@@ -241,9 +247,15 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	// calculate minimum block delay by dividing time delay period
+	// by the maximum expected time per block. Round up the block delay.
+	timeDelay := connection.GetDelayPeriod()
+	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
+	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+
 	if err := clientState.VerifyPacketReceiptAbsence(
-		clientStore, k.cdc, height,
-		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayPeriod(),
+		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
+		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence,
 	); err != nil {
@@ -276,9 +288,15 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	// calculate minimum block delay by dividing time delay period
+	// by the maximum expected time per block. Round up the block delay.
+	timeDelay := connection.GetDelayPeriod()
+	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
+	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+
 	if err := clientState.VerifyNextSequenceRecv(
-		clientStore, k.cdc, height,
-		uint64(ctx.BlockTime().UnixNano()), connection.GetDelayPeriod(),
+		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
+		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		nextSequenceRecv,
 	); err != nil {
