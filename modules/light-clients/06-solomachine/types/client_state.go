@@ -52,13 +52,6 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) 
 	return exported.Active
 }
 
-// GetFrozenHeight returns the frozen sequence of the client.
-// Return exported.Height to satisfy interface
-// Revision number is always 0 for a solo-machine
-func (cs ClientState) GetFrozenHeight() exported.Height {
-	return clienttypes.NewHeight(0, 1)
-}
-
 // GetProofSpecs returns nil proof specs since client state verification uses signatures.
 func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 	return nil
