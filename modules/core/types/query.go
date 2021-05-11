@@ -3,6 +3,8 @@ package types
 import (
 	"github.com/gogo/protobuf/grpc"
 
+	wasm "github.com/cosmos/ibc-go/modules/core/28-wasm"
+	wasmtypes "github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 	client "github.com/cosmos/ibc-go/modules/core/02-client"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connection "github.com/cosmos/ibc-go/modules/core/03-connection"
@@ -16,6 +18,7 @@ type QueryServer interface {
 	clienttypes.QueryServer
 	connectiontypes.QueryServer
 	channeltypes.QueryServer
+	wasmtypes.QueryServer
 }
 
 // RegisterQueryService registers each individual IBC submodule query service
@@ -23,4 +26,5 @@ func RegisterQueryService(server grpc.Server, queryService QueryServer) {
 	client.RegisterQueryService(server, queryService)
 	connection.RegisterQueryService(server, queryService)
 	channel.RegisterQueryService(server, queryService)
+	wasm.RegisterQueryService(server, queryService)
 }

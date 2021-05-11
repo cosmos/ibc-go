@@ -10,10 +10,14 @@ import (
 
 var (
 	// DefaultAllowedClients are "06-solomachine" and "07-tendermint"
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint}
+	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, "wasm_dummy"}
+
+	DefaultWASMClientEnabled = false
 
 	// KeyAllowedClients is store's key for AllowedClients Params
 	KeyAllowedClients = []byte("AllowedClients")
+
+	KeyWasmClientsEnabled = []byte("WasmClientsEnabled")
 )
 
 // ParamKeyTable type declaration for parameters
@@ -22,26 +26,33 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new parameter configuration for the ibc client module
-func NewParams(allowedClients ...string) Params {
+func NewParams(wasmClientAllowed bool, allowedClients ...string) Params {
 	return Params{
-		AllowedClients: allowedClients,
+		WasmClientsEnabled: wasmClientAllowed,
+		AllowedClients:     allowedClients,
 	}
 }
 
 // DefaultParams is the default parameter configuration for the ibc-client module
 func DefaultParams() Params {
-	return NewParams(DefaultAllowedClients...)
+	return NewParams(DefaultWASMClientEnabled, DefaultAllowedClients...)
 }
 
 // Validate all ibc-client module parameters
 func (p Params) Validate() error {
-	return validateClients(p.AllowedClients)
+	err := validateClients(p.AllowedClients)
+	if err != nil {
+		return err
+	}
+
+	return validateWasmClientEnabledFlag(p.WasmClientsEnabled)
 }
 
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyAllowedClients, p.AllowedClients, validateClients),
+		paramtypes.NewParamSetPair(KeyWasmClientsEnabled, p.WasmClientsEnabled, validateWasmClientEnabledFlag),
 	}
 }
 
@@ -53,6 +64,15 @@ func (p Params) IsAllowedClient(clientType string) bool {
 		}
 	}
 	return false
+}
+
+func validateWasmClientEnabledFlag(i interface{}) error {
+	_, ok := i.(bool)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
 }
 
 func validateClients(i interface{}) error {

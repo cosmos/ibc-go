@@ -233,3 +233,15 @@ func sequencePath(sequence uint64) string {
 func PortPath(portID string) string {
 	return fmt.Sprintf("%s/%s", KeyPortPrefix, portID)
 }
+
+func LatestWASMCode(clientType string) []byte {
+	return []byte(fmt.Sprintf("%s/latest", clientType))
+}
+
+func WASMCode(clientType string, hash string) []byte {
+	return []byte(fmt.Sprintf("%s/%s", clientType, hash))
+}
+
+func WASMCodeEntry(clientType string, codeID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/entry", clientType, codeID))
+}

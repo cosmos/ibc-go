@@ -27,14 +27,14 @@ func (k Keeper) CreateClient(
 
 	clientID := k.GenerateClientIdentifier(ctx, clientState.ClientType())
 
-	k.SetClientState(ctx, clientID, clientState)
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
-
 	// verifies initial consensus state against client state and initializes client store with any client-specific metadata
 	// e.g. set ProcessedTime in Tendermint clients
 	if err := clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, clientID), consensusState); err != nil {
 		return "", err
 	}
+
+	k.SetClientState(ctx, clientID, clientState)
+	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
 
 	// check if consensus state is nil in case the created client is Localhost
 	if consensusState != nil {
