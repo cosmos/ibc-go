@@ -57,13 +57,6 @@ func (cs ClientState) IsFrozen() bool {
 	return cs.FrozenSequence != 0
 }
 
-// GetFrozenHeight returns the frozen sequence of the client.
-// Return exported.Height to satisfy interface
-// Revision number is always 0 for a solo-machine
-func (cs ClientState) GetFrozenHeight() exported.Height {
-	return clienttypes.NewHeight(0, cs.FrozenSequence)
-}
-
 // GetProofSpecs returns nil proof specs since client state verification uses signatures.
 func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 	return nil
@@ -121,6 +114,9 @@ func (cs *ClientState) VerifyClientState(
 	proof []byte,
 	clientState exported.ClientState,
 ) error {
+	// NOTE: the proof height sequence is incremented by one due to the connection handshake verification ordering
+	height = clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
+
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
@@ -159,6 +155,9 @@ func (cs *ClientState) VerifyClientConsensusState(
 	proof []byte,
 	consensusState exported.ConsensusState,
 ) error {
+	// NOTE: the proof height sequence is incremented by two due to the connection handshake verification ordering
+	height = clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+2)
+
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
