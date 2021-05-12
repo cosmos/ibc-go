@@ -44,7 +44,6 @@ type ClientState interface {
 
 	ClientType() string
 	GetLatestHeight() Height
-	GetFrozenHeight() Height
 	Validate() error
 	GetProofSpecs() []*ics23.ProofSpec
 
@@ -201,9 +200,6 @@ type Misbehaviour interface {
 	ClientType() string
 	GetClientID() string
 	ValidateBasic() error
-
-	// Height at which the infraction occurred
-	GetHeight() Height
 }
 
 // Header is the consensus state update information
