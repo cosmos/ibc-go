@@ -101,8 +101,6 @@ func IterateProcessedTime(store sdk.KVStore, cb func(key, val []byte) bool) {
 	}
 }
 
-// ProcessedTime Store code
-
 // ProcessedTimeKey returns the key under which the processed time will be stored in the client store.
 func ProcessedTimeKey(height exported.Height) []byte {
 	return append(host.ConsensusStateKey(height), KeyProcessedTime...)
@@ -133,8 +131,6 @@ func deleteProcessedTime(clientStore sdk.KVStore, height exported.Height) {
 	key := ProcessedTimeKey(height)
 	clientStore.Delete(key)
 }
-
-// ProcessedHeight Store code
 
 // ProcessedHeightKey returns the key under which the processed height will be stored in the client store.
 func ProcessedHeightKey(height exported.Height) []byte {
@@ -170,8 +166,6 @@ func deleteProcessedHeight(clientStore sdk.KVStore, height exported.Height) {
 	key := ProcessedHeightKey(height)
 	clientStore.Delete(key)
 }
-
-// Iteration Code
 
 // IterationKey returns the key under which the consensus state key will be stored.
 // The iteration key is a BigEndian representation of the consensus state key to support efficient iteration.

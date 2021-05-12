@@ -167,11 +167,9 @@ func (k Keeper) VerifyPacketCommitment(
 	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
 	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
 
-	// verify that block delay has passed
-
 	if err := clientState.VerifyPacketCommitment(
-		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
-		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
+		ctx, clientStore, k.cdc, height,
+		timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, commitmentBytes,
 	); err != nil {
@@ -212,8 +210,8 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
 
 	if err := clientState.VerifyPacketAcknowledgement(
-		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
-		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
+		ctx, clientStore, k.cdc, height,
+		timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence, acknowledgement,
 	); err != nil {
@@ -254,8 +252,8 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
 
 	if err := clientState.VerifyPacketReceiptAbsence(
-		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
-		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
+		ctx, clientStore, k.cdc, height,
+		timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		sequence,
 	); err != nil {
@@ -295,8 +293,8 @@ func (k Keeper) VerifyNextSequenceRecv(
 	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
 
 	if err := clientState.VerifyNextSequenceRecv(
-		clientStore, k.cdc, height, clienttypes.GetSelfHeight(ctx),
-		uint64(ctx.BlockTime().UnixNano()), timeDelay, blockDelay,
+		ctx, clientStore, k.cdc, height,
+		timeDelay, blockDelay,
 		connection.GetCounterparty().GetPrefix(), proof, portID, channelID,
 		nextSequenceRecv,
 	); err != nil {

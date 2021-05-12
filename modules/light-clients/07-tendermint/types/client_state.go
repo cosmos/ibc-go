@@ -347,11 +347,10 @@ func (cs ClientState) VerifyChannelState(
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	currentHeight exported.Height,
-	currentTimestamp uint64,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	prefix exported.Prefix,
@@ -367,7 +366,7 @@ func (cs ClientState) VerifyPacketCommitment(
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentHeight, currentTimestamp, delayTimePeriod, delayBlockPeriod); err != nil {
+	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
 		return err
 	}
 
@@ -387,11 +386,10 @@ func (cs ClientState) VerifyPacketCommitment(
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketAcknowledgement(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	currentHeight exported.Height,
-	currentTimestamp uint64,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	prefix exported.Prefix,
@@ -407,7 +405,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentHeight, currentTimestamp, delayTimePeriod, delayBlockPeriod); err != nil {
+	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
 		return err
 	}
 
@@ -428,11 +426,10 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.
 func (cs ClientState) VerifyPacketReceiptAbsence(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	currentHeight exported.Height,
-	currentTimestamp uint64,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	prefix exported.Prefix,
@@ -447,7 +444,7 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentHeight, currentTimestamp, delayTimePeriod, delayBlockPeriod); err != nil {
+	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
 		return err
 	}
 
@@ -467,11 +464,10 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 // VerifyNextSequenceRecv verifies a proof of the next sequence number to be
 // received of the specified channel at the specified port.
 func (cs ClientState) VerifyNextSequenceRecv(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	currentHeight exported.Height,
-	currentTimestamp uint64,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	prefix exported.Prefix,
@@ -486,7 +482,7 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentHeight, currentTimestamp, delayTimePeriod, delayBlockPeriod); err != nil {
+	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
 		return err
 	}
 
@@ -505,17 +501,18 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	return nil
 }
 
-// verifyDelayPeriodPassed will ensure that at least delayPeriod amount of time has passed since consensus state was submitted
-// before allowing verification to continue.
-func verifyDelayPeriodPassed(store sdk.KVStore, proofHeight, currentHeight exported.Height, currentTimestamp, delayTimePeriod, delayBlockPeriod uint64) error {
+// verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPerion number of blocks have passed
+// since consensus state was submitted before allowing verification to continue.
+func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
 	// check that executing chain's timestamp has passed consensusState's processed time + delay time period
 	processedTime, ok := GetProcessedTime(store, proofHeight)
 	if !ok {
 		return sdkerrors.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
 	}
+	currentTimestamp := uint64(ctx.BlockTime().UnixNano())
 	validTime := processedTime + delayTimePeriod
 	// NOTE: delay time period is inclusive, so if currentTimestamp is validTime, then we return no error
-	if validTime > currentTimestamp {
+	if currentTimestamp < validTime {
 		return sdkerrors.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
 			validTime, currentTimestamp)
 	}
@@ -524,6 +521,7 @@ func verifyDelayPeriodPassed(store sdk.KVStore, proofHeight, currentHeight expor
 	if !ok {
 		return sdkerrors.Wrapf(ErrProcessedHeightNotFound, "processed height not found for height: %s", proofHeight)
 	}
+	currentHeight := clienttypes.GetSelfHeight(ctx)
 	validHeight := clienttypes.NewHeight(processedHeight.GetRevisionNumber(), processedHeight.GetRevisionHeight()+delayBlockPeriod)
 	// NOTE: delay block period is inclusive, so if currentHeight is validHeight, then we return no error
 	if currentHeight.LT(validHeight) {

@@ -263,11 +263,10 @@ func (cs *ClientState) VerifyChannelState(
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
 func (cs *ClientState) VerifyPacketCommitment(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	_ exported.Height,
-	_ uint64,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
@@ -306,11 +305,10 @@ func (cs *ClientState) VerifyPacketCommitment(
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (cs *ClientState) VerifyPacketAcknowledgement(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	_ exported.Height,
-	_ uint64,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
@@ -350,11 +348,10 @@ func (cs *ClientState) VerifyPacketAcknowledgement(
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.
 func (cs *ClientState) VerifyPacketReceiptAbsence(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	_ exported.Height,
-	_ uint64,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
@@ -392,11 +389,10 @@ func (cs *ClientState) VerifyPacketReceiptAbsence(
 // VerifyNextSequenceRecv verifies a proof of the next sequence number to be
 // received of the specified channel at the specified port.
 func (cs *ClientState) VerifyNextSequenceRecv(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	_ exported.Height,
-	_ uint64,
 	_ uint64,
 	_ uint64,
 	prefix exported.Prefix,
