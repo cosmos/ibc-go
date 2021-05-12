@@ -161,11 +161,9 @@ func (k Keeper) VerifyPacketCommitment(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	// calculate minimum block delay by dividing time delay period
-	// by the maximum expected time per block. Round up the block delay.
+	// get time and block delays
 	timeDelay := connection.GetDelayPeriod()
-	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
-	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+	blockDelay := k.getBlockDelay(ctx, connection)
 
 	if err := clientState.VerifyPacketCommitment(
 		ctx, clientStore, k.cdc, height,
@@ -203,11 +201,9 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	// calculate minimum block delay by dividing time delay period
-	// by the maximum expected time per block. Round up the block delay.
+	// get time and block delays
 	timeDelay := connection.GetDelayPeriod()
-	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
-	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+	blockDelay := k.getBlockDelay(ctx, connection)
 
 	if err := clientState.VerifyPacketAcknowledgement(
 		ctx, clientStore, k.cdc, height,
@@ -245,11 +241,9 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	// calculate minimum block delay by dividing time delay period
-	// by the maximum expected time per block. Round up the block delay.
+	// get time and block delays
 	timeDelay := connection.GetDelayPeriod()
-	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
-	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+	blockDelay := k.getBlockDelay(ctx, connection)
 
 	if err := clientState.VerifyPacketReceiptAbsence(
 		ctx, clientStore, k.cdc, height,
@@ -286,11 +280,9 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	// calculate minimum block delay by dividing time delay period
-	// by the maximum expected time per block. Round up the block delay.
+	// get time and block delays
 	timeDelay := connection.GetDelayPeriod()
-	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
-	blockDelay := uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
+	blockDelay := k.getBlockDelay(ctx, connection)
 
 	if err := clientState.VerifyNextSequenceRecv(
 		ctx, clientStore, k.cdc, height,
@@ -302,4 +294,14 @@ func (k Keeper) VerifyNextSequenceRecv(
 	}
 
 	return nil
+}
+
+// getBlockDelay calculates the block delay period from the time delay of the connection
+// and the maximum expected time per block.
+func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
+	// calculate minimum block delay by dividing time delay period
+	// by the maximum expected time per block. Round up the block delay.
+	timeDelay := connection.GetDelayPeriod()
+	maxTimePerBlock := k.GetMaxTimePerBlock(ctx)
+	return uint64(math.Ceil(float64(timeDelay) / float64(maxTimePerBlock)))
 }
