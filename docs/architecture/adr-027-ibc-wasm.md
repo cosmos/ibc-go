@@ -10,8 +10,8 @@
 
 ## Abstract
 
-In the Cosmos SDK light clients are current hardcoded in Go. This makes upgrading existing IBC light clients or add
-support for new light client is multi step process which is time-consuming.
+In the Cosmos SDK light clients are current hardcoded in Go. This makes upgrading existing IBC light clients or adding
+support for new light client a multi step process involving on-chain governance which is time-consuming.
 
 To remedy this, we are proposing a WASM VM to host light client bytecode, which allows easier upgrading of
 existing IBC light clients as well as adding support for new IBC light clients without requiring a code release and corresponding
@@ -19,7 +19,7 @@ hard-fork event.
 
 ## Context
 Currently in the SDK, light clients are defined as part of the codebase and are implemented as submodules under
-`/x/ibc/light-clients/`.
+`ibc-go/core/modules/light-clients/`.
 
 Adding support for new light client or update an existing light client in the event of security
 issue or consensus update is multi-step process which is both time consuming and error prone:
