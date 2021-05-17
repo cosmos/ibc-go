@@ -32,7 +32,7 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 	suite.Require().Equal(exported.Active, status)
 
 	// freeze solo machine
-	clientState.FrozenSequence = 1
+	clientState.IsFrozen = true
 	status = clientState.Status(suite.chainA.GetContext(), nil, nil)
 	suite.Require().Equal(exported.Frozen, status)
 }
@@ -189,18 +189,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 				false,
 			},
 			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
-				proof,
-				false,
-			},
-			{
 				"consensus state in client state is nil",
 				types.NewClientState(1, nil, false),
 				prefix,
@@ -256,8 +244,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 					expSeq = tc.clientState.Sequence + 1
 				}
 
+				// NOTE: to replicate the ordering of connection handshake, we must decrement proof height by 1
+				height := clienttypes.NewHeight(solomachine.GetHeight().GetRevisionNumber(), solomachine.GetHeight().GetRevisionHeight()-1)
+
 				err := tc.clientState.VerifyClientState(
-					suite.store, suite.chainA.Codec, solomachine.GetHeight(), tc.prefix, counterpartyClientIdentifier, tc.proof, clientState,
+					suite.store, suite.chainA.Codec, height, tc.prefix, counterpartyClientIdentifier, tc.proof, clientState,
 				)
 
 				if tc.expPass {
@@ -319,18 +310,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 				false,
 			},
 			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
-				proof,
-				false,
-			},
-			{
 				"consensus state in client state is nil",
 				types.NewClientState(1, nil, false),
 				prefix,
@@ -386,8 +365,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 					expSeq = tc.clientState.Sequence + 1
 				}
 
+				// NOTE: to replicate the ordering of connection handshake, we must decrement proof height by 1
+				height := clienttypes.NewHeight(solomachine.GetHeight().GetRevisionNumber(), solomachine.GetHeight().GetRevisionHeight()-2)
+
 				err := tc.clientState.VerifyClientConsensusState(
-					suite.store, suite.chainA.Codec, solomachine.GetHeight(), counterpartyClientIdentifier, consensusHeight, tc.prefix, tc.proof, consensusState,
+					suite.store, suite.chainA.Codec, height, counterpartyClientIdentifier, consensusHeight, tc.prefix, tc.proof, consensusState,
 				)
 
 				if tc.expPass {
@@ -441,18 +423,6 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 				"ApplyPrefix failed",
 				solomachine.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
-				proof,
-				false,
-			},
-			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
 				proof,
 				false,
 			},
@@ -535,18 +505,6 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 				false,
 			},
 			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
-				proof,
-				false,
-			},
-			{
 				"proof is nil",
 				solomachine.ClientState(),
 				prefix,
@@ -620,18 +578,6 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 				"ApplyPrefix failed",
 				solomachine.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
-				proof,
-				false,
-			},
-			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
 				proof,
 				false,
 			},
@@ -712,18 +658,6 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 				false,
 			},
 			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
-				proof,
-				false,
-			},
-			{
 				"proof is nil",
 				solomachine.ClientState(),
 				prefix,
@@ -800,18 +734,6 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 				false,
 			},
 			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
-				proof,
-				false,
-			},
-			{
 				"proof is nil",
 				solomachine.ClientState(),
 				prefix,
@@ -884,18 +806,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 				"ApplyPrefix failed",
 				solomachine.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
-				proof,
-				false,
-			},
-			{
-				"client is frozen",
-				&types.ClientState{
-					Sequence:                 1,
-					FrozenSequence:           1,
-					ConsensusState:           solomachine.ConsensusState(),
-					AllowUpdateAfterProposal: false,
-				},
-				prefix,
 				proof,
 				false,
 			},

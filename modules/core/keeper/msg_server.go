@@ -123,7 +123,6 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 			clienttypes.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(clienttypes.AttributeKeyClientID, msg.ClientId),
 			sdk.NewAttribute(clienttypes.AttributeKeyClientType, misbehaviour.ClientType()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, misbehaviour.GetHeight().String()),
 		),
 	)
 
@@ -462,7 +461,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", msg.Type()},
+			[]string{"tx", "msg", "ibc", channeltypes.EventTypeRecvPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel("source-port", msg.Packet.SourcePort),
@@ -604,7 +603,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", msg.Type()},
+			[]string{"tx", "msg", "ibc", channeltypes.EventTypeAcknowledgePacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel("source-port", msg.Packet.SourcePort),
