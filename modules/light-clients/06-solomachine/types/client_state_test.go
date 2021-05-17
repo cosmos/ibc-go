@@ -655,9 +655,10 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 			tc := tc
 
 			expSeq := tc.clientState.Sequence + 1
+			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyPacketCommitment(
-				suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence, commitmentBytes,
+				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence, commitmentBytes,
 			)
 
 			if tc.expPass {
@@ -742,9 +743,10 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 			tc := tc
 
 			expSeq := tc.clientState.Sequence + 1
+			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyPacketAcknowledgement(
-				suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence, ack,
+				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence, ack,
 			)
 
 			if tc.expPass {
@@ -829,9 +831,10 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 			tc := tc
 
 			expSeq := tc.clientState.Sequence + 1
+			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyPacketReceiptAbsence(
-				suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence,
+				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence,
 			)
 
 			if tc.expPass {
@@ -916,9 +919,10 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 			tc := tc
 
 			expSeq := tc.clientState.Sequence + 1
+			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyNextSequenceRecv(
-				suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, nextSeqRecv,
+				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, nextSeqRecv,
 			)
 
 			if tc.expPass {
