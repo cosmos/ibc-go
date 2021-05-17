@@ -106,6 +106,20 @@ func TestValidateGenesis(t *testing.T) {
 			),
 			expPass: false,
 		},
+		{
+			name: "invalid params",
+			genState: types.NewGenesisState(
+				[]types.IdentifiedConnection{
+					types.NewIdentifiedConnection(connectionID, types.NewConnectionEnd(types.INIT, clientID, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, []*types.Version{ibctesting.ConnectionVersion}, 500)),
+				},
+				[]types.ConnectionPaths{
+					{clientID, []string{connectionID}},
+				},
+				0,
+				types.Params{},
+			),
+			expPass: false,
+		},
 	}
 
 	for _, tc := range testCases {
