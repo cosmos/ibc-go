@@ -8,6 +8,7 @@ import (
 	clientkeeper "github.com/cosmos/ibc-go/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	channelkeeper "github.com/cosmos/ibc-go/modules/core/04-channel/keeper"
 	portkeeper "github.com/cosmos/ibc-go/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
@@ -36,6 +37,14 @@ func NewKeeper(
 	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) *Keeper {
+	// register paramSpace at top level keeper
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		keyTable := clienttypes.ParamKeyTable()
+		keyTable.RegisterParamSet(&connectiontypes.Params{})
+		paramSpace = paramSpace.WithKeyTable(keyTable)
+	}
+
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
