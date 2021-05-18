@@ -10,8 +10,8 @@ func (suite *KeeperTestSuite) TestParams() {
 	params := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetParams(suite.chainA.GetContext())
 	suite.Require().Equal(expParams, params)
 
-	expParams.MaxTimePerBlock = 10
+	expParams.ExpectedTimePerBlock = 10
 	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetParams(suite.chainA.GetContext(), expParams)
 	params = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetParams(suite.chainA.GetContext())
-	suite.Require().Equal(uint64(10), expParams.MaxTimePerBlock)
+	suite.Require().Equal(uint64(10), expParams.ExpectedTimePerBlock)
 }
