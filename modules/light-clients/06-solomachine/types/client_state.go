@@ -22,7 +22,7 @@ var _ exported.ClientState = (*ClientState)(nil)
 func NewClientState(latestSequence uint64, consensusState *ConsensusState, allowUpdateAfterProposal bool) *ClientState {
 	return &ClientState{
 		Sequence:                 latestSequence,
-		FrozenSequence:           0,
+		IsFrozen:                 false,
 		ConsensusState:           consensusState,
 		AllowUpdateAfterProposal: allowUpdateAfterProposal,
 	}
@@ -45,23 +45,11 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // - Active: if frozen sequence is 0
 // - Frozen: otherwise solo machine is frozen
 func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
-	if cs.FrozenSequence != 0 {
+	if cs.IsFrozen {
 		return exported.Frozen
 	}
 
 	return exported.Active
-}
-
-// IsFrozen returns true if the client is frozen.
-func (cs ClientState) IsFrozen() bool {
-	return cs.FrozenSequence != 0
-}
-
-// GetFrozenHeight returns the frozen sequence of the client.
-// Return exported.Height to satisfy interface
-// Revision number is always 0 for a solo-machine
-func (cs ClientState) GetFrozenHeight() exported.Height {
-	return clienttypes.NewHeight(0, cs.FrozenSequence)
 }
 
 // GetProofSpecs returns nil proof specs since client state verification uses signatures.
@@ -121,6 +109,9 @@ func (cs *ClientState) VerifyClientState(
 	proof []byte,
 	clientState exported.ClientState,
 ) error {
+	// NOTE: the proof height sequence is incremented by one due to the connection handshake verification ordering
+	height = clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
+
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
@@ -159,6 +150,9 @@ func (cs *ClientState) VerifyClientConsensusState(
 	proof []byte,
 	consensusState exported.ConsensusState,
 ) error {
+	// NOTE: the proof height sequence is incremented by two due to the connection handshake verification ordering
+	height = clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+2)
+
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
@@ -443,10 +437,6 @@ func produceVerificationArgs(
 	}
 	// sequence is encoded in the revision height of height struct
 	sequence := height.GetRevisionHeight()
-	if cs.IsFrozen() {
-		return nil, nil, 0, 0, clienttypes.ErrClientFrozen
-	}
-
 	if prefix == nil {
 		return nil, nil, 0, 0, sdkerrors.Wrap(commitmenttypes.ErrInvalidPrefix, "prefix cannot be empty")
 	}

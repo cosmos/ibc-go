@@ -94,7 +94,9 @@ REST routes are not supported for these proposals.
 
 ## Proto file changes
 
-The gRPC querier service endpoints have changed slightly. The previous files used `v1beta1`, this has been updated to `v1`.
+The gRPC querier service endpoints have changed slightly. The previous files used `v1beta1` gRPC route, this has been updated to `v1`.
+
+The solo machine has replaced the FrozenSequence uint64 field with a IsFrozen boolean field. The package has been bumped from `v1` to `v2`
 
 ## IBC callback changes
 
@@ -107,6 +109,8 @@ The `OnRecvPacket` callback has been modified to only return the acknowledgement
 ## IBC Event changes
 
 The `packet_data` attribute has been deprecated in favor of `packet_data_hex`, in order to provide standardized encoding/decoding of packet data in events. While the `packet_data` event still exists, all relayers and IBC Event consumers are strongly encouraged to switch over to using `packet_data_hex` as soon as possible.
+
+The `consensus_height` attribute has been removed in the Misbehaviour event emitted. IBC clients no longer have a frozen height and misbehaviour does not necessarily have an associated height.
 
 ## Relevant SDK changes
 
