@@ -74,5 +74,9 @@ func (gs GenesisState) Validate() error {
 		return fmt.Errorf("next connection sequence %d must be greater than maximum sequence used in connection identifier %d", gs.NextConnectionSequence, maxSequence)
 	}
 
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
