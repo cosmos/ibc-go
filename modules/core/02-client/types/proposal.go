@@ -28,13 +28,12 @@ func init() {
 }
 
 // NewClientUpdateProposal creates a new client update proposal.
-func NewClientUpdateProposal(title, description, subjectClientID, substituteClientID string, initialHeight Height) govtypes.Content {
+func NewClientUpdateProposal(title, description, subjectClientID, substituteClientID string) govtypes.Content {
 	return &ClientUpdateProposal{
 		Title:              title,
 		Description:        description,
 		SubjectClientId:    subjectClientID,
 		SubstituteClientId: substituteClientID,
-		InitialHeight:      initialHeight,
 	}
 }
 
@@ -65,10 +64,6 @@ func (cup *ClientUpdateProposal) ValidateBasic() error {
 	}
 	if _, _, err := ParseClientIdentifier(cup.SubstituteClientId); err != nil {
 		return err
-	}
-
-	if cup.InitialHeight.IsZero() {
-		return sdkerrors.Wrap(ErrInvalidHeight, "initial height cannot be zero height")
 	}
 
 	return nil
@@ -109,10 +104,6 @@ func (up *UpgradeProposal) ValidateBasic() error {
 
 	if err := up.Plan.ValidateBasic(); err != nil {
 		return err
-	}
-
-	if up.Plan.Height <= 0 {
-		return sdkerrors.Wrap(ErrInvalidUpgradeProposal, "IBC chain upgrades must set a positive height")
 	}
 
 	if up.UpgradedClientState == nil {
