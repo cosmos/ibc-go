@@ -6,10 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/modules/core/exported"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 // VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
@@ -69,10 +69,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	consState, err := GetConsensusState(clientStore, cdc, lastHeight)
 	if err != nil {
 		return nil, nil, sdkerrors.Wrap(err, "could not retrieve consensus state for lastHeight")
-	}
-
-	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
-		return nil, nil, sdkerrors.Wrap(clienttypes.ErrInvalidClient, "cannot upgrade an expired client")
 	}
 
 	// Verify client proof
