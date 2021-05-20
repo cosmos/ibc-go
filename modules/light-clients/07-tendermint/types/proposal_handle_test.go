@@ -261,6 +261,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			// get updated substitute
 			substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
+			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight())
 
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID)
@@ -270,11 +271,10 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(clienttypes.ZeroHeight(), updatedClient.(*types.ClientState).FrozenHeight)
 
-				// check that the consensus state was copied over
+				// check that the correct consensus state was copied over
 				suite.Require().Equal(substituteClientState.GetLatestHeight(), updatedClient.GetLatestHeight())
 				subjectConsState := subjectPath.EndpointA.GetConsensusState(updatedClient.GetLatestHeight())
-				substituteConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight())
-				suite.Require().Equal(substituteConsState, subjectConsState)
+				suite.Require().Equal(expectedConsState, subjectConsState)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(updatedClient)

@@ -13,8 +13,8 @@ import (
 // CheckSubstituteAndUpdateState will try to update the client with the state of the
 // substitute if and only if the proposal passes and one of the following conditions are
 // satisfied:
-//	1) AllowUpdateAfterMisbehaviour and IsFrozen() = true
-// 	2) AllowUpdateAfterExpiry=true and Expire(ctx.BlockTime) = true
+//	1) AllowUpdateAfterMisbehaviour and Status() == Frozen
+// 	2) AllowUpdateAfterExpiry=true and Status() == Expired
 //
 // The following must always be true:
 //	- The substitute client is the same type as the subject client
@@ -23,8 +23,6 @@ import (
 // In case 1) before updating the client, the client will be unfrozen by resetting
 // the FrozenHeight to the zero Height. If a client is frozen and AllowUpdateAfterMisbehaviour
 // is set to true, the client will be unexpired even if AllowUpdateAfterExpiry is set to false.
-// Note, that even if the subject is updated to the state of the substitute, an error may be
-// returned if the updated client state is invalid or the client is expired.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
@@ -48,9 +46,9 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		)
 	}
 
-	switch {
+	switch cs.Status(ctx, subjectClientStore, cdc) {
 
-	case !cs.FrozenHeight.IsZero():
+	case exported.Frozen:
 		if !cs.AllowUpdateAfterMisbehaviour {
 			return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "client is not allowed to be unfrozen")
 		}
@@ -58,7 +56,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		// unfreeze the client
 		cs.FrozenHeight = clienttypes.ZeroHeight()
 
-	case cs.IsExpired(consensusState.Timestamp, ctx.BlockTime()):
+	case exported.Expired:
 		if !cs.AllowUpdateAfterExpiry {
 			return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "client is not allowed to be unexpired")
 		}
@@ -84,6 +82,9 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	SetProcessedTime(subjectClientStore, height, processedTime)
 
 	cs.LatestHeight = substituteClientState.LatestHeight
+
+	// no validation is necessary since the substitute is verified to be Active
+	// in 02-client.
 
 	return &cs, nil
 }
