@@ -38,14 +38,6 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		return nil, sdkerrors.Wrap(clienttypes.ErrInvalidSubstitute, "subject client state does not match substitute client state")
 	}
 
-	// get consensus state corresponding to client state to check if the client is expired
-	consensusState, err := GetConsensusState(subjectClientStore, cdc, cs.GetLatestHeight())
-	if err != nil {
-		return nil, sdkerrors.Wrapf(
-			err, "unexpected error: could not get consensus state from clientstore at height: %d", cs.GetLatestHeight(),
-		)
-	}
-
 	switch cs.Status(ctx, subjectClientStore, cdc) {
 
 	case exported.Frozen:
@@ -69,7 +61,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	// starting from initial height and ending on the latest height (inclusive)
 	height := substituteClientState.GetLatestHeight()
 
-	consensusState, err = GetConsensusState(substituteClientStore, cdc, height)
+	consensusState, err := GetConsensusState(substituteClientStore, cdc, height)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "unable to retrieve latest consensus state for substitute client")
 	}
