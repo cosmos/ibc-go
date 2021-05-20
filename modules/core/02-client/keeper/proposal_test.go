@@ -56,6 +56,15 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			}, false,
 		},
 		{
+			"cannot use solomachine as substitute for tendermint client", func() {
+				solomachine := ibctesting.NewSolomachine(suite.T(), suite.cdc, "solo machine", "", 1)
+				solomachine.Sequence = subjectClientState.GetLatestHeight().GetRevisionHeight() + 1
+				substituteClientState = solomachine.ClientState()
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, substituteClientState)
+				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute)
+			}, false,
+		},
+		{
 			"subject client does not exist", func() {
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, ibctesting.InvalidID, substitute)
 			}, false,
@@ -81,6 +90,16 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 				suite.Require().True(ok)
 				tmClientState.FrozenHeight = types.ZeroHeight()
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
+
+				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute)
+			}, false,
+		},
+		{
+			"substitute is frozen", func() {
+				tmClientState, ok := substituteClientState.(*ibctmtypes.ClientState)
+				suite.Require().True(ok)
+				tmClientState.FrozenHeight = types.NewHeight(0, 1)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
 
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute)
 			}, false,
