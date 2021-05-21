@@ -261,6 +261,11 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			// get updated substitute
 			substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
+
+			// test that subject gets updated chain-id
+			newChainID := "new-chain-id"
+			substituteClientState.ChainId = newChainID
+
 			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight())
 
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
@@ -275,6 +280,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(substituteClientState.GetLatestHeight(), updatedClient.GetLatestHeight())
 				subjectConsState := subjectPath.EndpointA.GetConsensusState(updatedClient.GetLatestHeight())
 				suite.Require().Equal(expectedConsState, subjectConsState)
+				suite.Require().Equal(newChainID, updatedClient.(*types.ClientState).ChainId)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(updatedClient)

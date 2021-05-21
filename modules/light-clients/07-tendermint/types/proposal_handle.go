@@ -74,6 +74,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	SetProcessedTime(subjectClientStore, height, processedTime)
 
 	cs.LatestHeight = substituteClientState.LatestHeight
+	cs.ChainId = substituteClientState.ChainId
 
 	// no validation is necessary since the substitute is verified to be Active
 	// in 02-client.
