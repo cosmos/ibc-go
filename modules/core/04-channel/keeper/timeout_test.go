@@ -42,6 +42,31 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// need to update chainA's client representing chainB to prove missing ack
 			path.EndpointA.UpdateClient()
 		}, true},
+		{"packet already timed out: ORDERED", func() {
+			ordered = true
+			path.SetChannelOrdered()
+
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), uint64(suite.chainB.GetContext().BlockTime().UnixNano()))
+			path.EndpointA.SendPacket(packet)
+			// need to update chainA's client representing chainB to prove missing ack
+			path.EndpointA.UpdateClient()
+
+			err := path.EndpointA.TimeoutPacket(packet)
+			suite.Require().NoError(err)
+		}, false},
+		{"packet already timed out: UNORDERED", func() {
+			ordered = false
+
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), disabledTimeoutTimestamp)
+			path.EndpointA.SendPacket(packet)
+			// need to update chainA's client representing chainB to prove missing ack
+			path.EndpointA.UpdateClient()
+
+			err := path.EndpointA.TimeoutPacket(packet)
+			suite.Require().NoError(err)
+		}, false},
 		{"channel not found", func() {
 			// use wrong channel naming
 			suite.coordinator.Setup(path)

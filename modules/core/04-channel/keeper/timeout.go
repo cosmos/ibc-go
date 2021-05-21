@@ -80,6 +80,10 @@ func (k Keeper) TimeoutPacket(
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
+	if len(commitment) == 0 {
+		return sdkerrors.Wrapf(types.ErrPacketTimedOut, "packet sequence (%d)", packet.GetSequence())
+	}
+
 	packetCommitment := types.CommitPacket(k.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
