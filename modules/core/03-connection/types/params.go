@@ -7,11 +7,11 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-// DefaultTimePerBlock is the default value for expected time per block.
+// DefaultTimePerBlock is the default value for maximum expected time per block.
 const DefaultTimePerBlock = 30 * time.Second
 
-// KeyExpectedTimePerBlock is store's key for ExpectedTimePerBlock parameter
-var KeyExpectedTimePerBlock = []byte("ExpectedTimePerBlock")
+// KeyMaxExpectedTimePerBlock is store's key for MaxExpectedTimePerBlock parameter
+var KeyMaxExpectedTimePerBlock = []byte("MaxExpectedTimePerBlock")
 
 // ParamKeyTable type declaration for parameters
 func ParamKeyTable() paramtypes.KeyTable {
@@ -21,7 +21,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new parameter configuration for the ibc connection module
 func NewParams(timePerBlock uint64) Params {
 	return Params{
-		ExpectedTimePerBlock: timePerBlock,
+		MaxExpectedTimePerBlock: timePerBlock,
 	}
 }
 
@@ -30,10 +30,10 @@ func DefaultParams() Params {
 	return NewParams(uint64(DefaultTimePerBlock))
 }
 
-// Validate ensures ExpectedTimePerBlock is non-zero
+// Validate ensures MaxExpectedTimePerBlock is non-zero
 func (p Params) Validate() error {
-	if p.ExpectedTimePerBlock == 0 {
-		return fmt.Errorf("ExpectedTimePerBlock cannot be zero")
+	if p.MaxExpectedTimePerBlock == 0 {
+		return fmt.Errorf("MaxExpectedTimePerBlock cannot be zero")
 	}
 	return nil
 }
@@ -41,7 +41,7 @@ func (p Params) Validate() error {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyExpectedTimePerBlock, p.ExpectedTimePerBlock, validateParams),
+		paramtypes.NewParamSetPair(KeyMaxExpectedTimePerBlock, p.MaxExpectedTimePerBlock, validateParams),
 	}
 }
 

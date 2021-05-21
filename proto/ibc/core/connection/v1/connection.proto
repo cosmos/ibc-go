@@ -107,6 +107,6 @@ message Version {
 
 // Params defines the set of Connection parameters.
 message Params {
-  // expected time per block, used to enforce block delay.
-  uint64 expected_time_per_block = 1 [(gogoproto.moretags) = "yaml:\"expected_time_per_block\""];
+  // maximum expected time per block, used to enforce block delay.
+  uint64 max_expected_time_per_block = 1 [(gogoproto.moretags) = "yaml:\"max_expected_time_per_block\""];
 }

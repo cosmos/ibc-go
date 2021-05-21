@@ -297,11 +297,11 @@ func (k Keeper) VerifyNextSequenceRecv(
 }
 
 // getBlockDelay calculates the block delay period from the time delay of the connection
-// and the expected time per block.
+// and the maximum expected time per block.
 func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
 	// expectedTimePerBlock should never be zero, however if it is then return a 0 blcok delay for safety
 	// as the expectedTimePerBlock parameter was not set.
-	expectedTimePerBlock := k.GetExpectedTimePerBlock(ctx)
+	expectedTimePerBlock := k.GetMaxExpectedTimePerBlock(ctx)
 	if expectedTimePerBlock == 0 {
 		return 0
 	}

@@ -2408,7 +2408,7 @@ Params defines the set of Connection parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `expected_time_per_block` | [uint64](#uint64) |  | expected time per block, used to enforce block delay. |
+| `max_expected_time_per_block` | [uint64](#uint64) |  | maximum expected time per block, used to enforce block delay. |
 
 
 
