@@ -289,3 +289,20 @@ func bigEndianHeightBytes(height exported.Height) []byte {
 	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
 	return heightBytes
 }
+
+// setConsensusMetadata sets context time as processed time and set context height as processed height
+// as this is internal tendermint light client logic.
+// client state and consensus state will be set by client keeper
+// set iteration key to provide ability for efficient ordered iteration of consensus states.
+func setConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, height exported.Height) {
+	SetProcessedTime(clientStore, height, uint64(ctx.BlockTime().UnixNano()))
+	SetProcessedHeight(clientStore, height, clienttypes.GetSelfHeight(ctx))
+	SetIterationKey(clientStore, height)
+}
+
+// deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
+func deleteConsensusMetadata(clientStore sdk.KVStore, height exported.Height) {
+	deleteProcessedTime(clientStore, height)
+	deleteProcessedHeight(clientStore, height)
+	deleteIterationKey(clientStore, height)
+}

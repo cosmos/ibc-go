@@ -134,9 +134,9 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	}
 	// if pruneHeight is set, delete consensus state and metadata
 	if pruneHeight != nil {
+
 		deleteConsensusState(clientStore, pruneHeight)
-		deleteProcessedTime(clientStore, pruneHeight)
-		deleteIterationKey(clientStore, pruneHeight)
+		deleteConsensusMetadata(clientStore, pruneHeight)
 	}
 
 	newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
@@ -261,14 +261,4 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
 	return clientState, consensusState
-}
-
-// set context time as processed time and set context height as processed height
-// as this is internal tendermint light client logic.
-// client state and consensus state will be set by client keeper
-// set iteration key to provide ability for efficient ordered iteration of consensus states.
-func setConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, height exported.Height) {
-	SetProcessedTime(clientStore, height, uint64(ctx.BlockTime().UnixNano()))
-	SetProcessedHeight(clientStore, height, clienttypes.GetSelfHeight(ctx))
-	SetIterationKey(clientStore, height)
 }
