@@ -138,7 +138,7 @@ func QueryTendermintHeader(clientCtx client.Context) (ibctmtypes.Header, int64, 
 		return ibctmtypes.Header{}, 0, err
 	}
 
-	page := 0
+	page := 1
 	count := 10_000
 
 	validators, err := node.Validators(context.Background(), &height, &page, &count)
@@ -168,12 +168,7 @@ func QueryNodeConsensusState(clientCtx client.Context) (*ibctmtypes.ConsensusSta
 		return &ibctmtypes.ConsensusState{}, 0, err
 	}
 
-	info, err := node.ABCIInfo(context.Background())
-	if err != nil {
-		return &ibctmtypes.ConsensusState{}, 0, err
-	}
-
-	height := info.Response.LastBlockHeight
+	height := clientCtx.Height
 
 	commit, err := node.Commit(context.Background(), &height)
 	if err != nil {
