@@ -118,6 +118,9 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		tmUpgradeConsState.Timestamp, commitmenttypes.MerkleRoot{}, tmUpgradeConsState.NextValidatorsHash,
 	)
 
+	// set metadata for this consensus state
+	setConsensusMetadata(ctx, clientStore, tmUpgradeClient.LatestHeight)
+
 	return newClientState, newConsState, nil
 }
 
