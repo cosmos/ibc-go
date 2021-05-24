@@ -65,13 +65,21 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "unable to retrieve latest consensus state for substitute client")
 	}
+
 	SetConsensusState(subjectClientStore, cdc, consensusState, height)
+
+	// set metadata stored for the substitute consensus state
+	processedHeight, found := GetProcessedHeight(substituteClientStore, height)
+	if !found {
+		return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "unable to retrieve processed height for substitute client latest height")
+	}
 
 	processedTime, found := GetProcessedTime(substituteClientStore, height)
 	if !found {
 		return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "unable to retrieve processed time for substitute client latest height")
 	}
-	SetProcessedTime(subjectClientStore, height, processedTime)
+
+	setConsensusMetadataWithValues(subjectClientStore, height, processedHeight, processedTime)
 
 	cs.LatestHeight = substituteClientState.LatestHeight
 	cs.ChainId = substituteClientState.ChainId
