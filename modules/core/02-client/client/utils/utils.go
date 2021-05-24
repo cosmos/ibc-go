@@ -131,7 +131,12 @@ func QueryTendermintHeader(clientCtx client.Context) (ibctmtypes.Header, int64, 
 		return ibctmtypes.Header{}, 0, err
 	}
 
-	height := info.Response.LastBlockHeight
+	var height int64
+	if clientCtx.Height != 0 {
+		height = clientCtx.Height
+	} else {
+		height = info.Response.LastBlockHeight
+	}
 
 	commit, err := node.Commit(context.Background(), &height)
 	if err != nil {
@@ -168,7 +173,17 @@ func QueryNodeConsensusState(clientCtx client.Context) (*ibctmtypes.ConsensusSta
 		return &ibctmtypes.ConsensusState{}, 0, err
 	}
 
-	height := clientCtx.Height
+	info, err := node.ABCIInfo(context.Background())
+	if err != nil {
+		return &ibctmtypes.ConsensusState{}, 0, err
+	}
+
+	var height int64
+	if clientCtx.Height != 0 {
+		height = clientCtx.Height
+	} else {
+		height = info.Response.LastBlockHeight
+	}
 
 	commit, err := node.Commit(context.Background(), &height)
 	if err != nil {
