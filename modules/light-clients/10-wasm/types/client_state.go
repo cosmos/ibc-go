@@ -490,7 +490,7 @@ func (c *ClientState) VerifyChannelState(store sdk.KVStore, cdc codec.BinaryCode
 	}
 }
 
-func (c *ClientState) VerifyPacketCommitment(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, currentTimestamp uint64, delayPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, sequence uint64, commitmentBytes []byte) error {
+func (c *ClientState) VerifyPacketCommitment(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod, delayBlockPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, sequence uint64, commitmentBytes []byte) error {
 	consensusState, err := GetConsensusState(store, cdc, height)
 	if err != nil {
 		return err
@@ -506,8 +506,8 @@ func (c *ClientState) VerifyPacketCommitment(store sdk.KVStore, cdc codec.Binary
 	inner["proof"] = proof
 	inner["port_id"] = portID
 	inner["channel_id"] = channelID
-	inner["current_timestamp"] = currentTimestamp
-	inner["delay_period"] = delayPeriod
+	inner["delay_time_period"] = delayTimePeriod
+	inner["delay_block_period"] = delayBlockPeriod
 	inner["sequence"] = sequence
 	inner["commitment_bytes"] = commitmentBytes
 	inner["consensus_state"] = consensusState
@@ -534,7 +534,7 @@ func (c *ClientState) VerifyPacketCommitment(store sdk.KVStore, cdc codec.Binary
 
 }
 
-func (c *ClientState) VerifyPacketAcknowledgement(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, currentTimestamp uint64, delayPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, sequence uint64, acknowledgement []byte) error {
+func (c *ClientState) VerifyPacketAcknowledgement(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod, delayBlockPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, sequence uint64, acknowledgement []byte) error {
 	consensusState, err := GetConsensusState(store, cdc, height)
 	if err != nil {
 		return err
@@ -550,8 +550,8 @@ func (c *ClientState) VerifyPacketAcknowledgement(store sdk.KVStore, cdc codec.B
 	inner["proof"] = proof
 	inner["port_id"] = portID
 	inner["channel_id"] = channelID
-	inner["current_timestamp"] = currentTimestamp
-	inner["delay_period"] = delayPeriod
+	inner["delay_time_period"] = delayTimePeriod
+	inner["delay_block_period"] = delayBlockPeriod
 	inner["sequence"] = sequence
 	inner["acknowledgement"] = acknowledgement
 	inner["consensus_state"] = consensusState
@@ -577,7 +577,7 @@ func (c *ClientState) VerifyPacketAcknowledgement(store sdk.KVStore, cdc codec.B
 	}
 }
 
-func (c *ClientState) VerifyPacketReceiptAbsence(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, currentTimestamp uint64, delayPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, sequence uint64) error {
+func (c *ClientState) VerifyPacketReceiptAbsence(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod, delayBlockPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, sequence uint64) error {
 	consensusState, err := GetConsensusState(store, cdc, height)
 	if err != nil {
 		return err
@@ -593,8 +593,8 @@ func (c *ClientState) VerifyPacketReceiptAbsence(store sdk.KVStore, cdc codec.Bi
 	inner["proof"] = proof
 	inner["port_id"] = portID
 	inner["channel_id"] = channelID
-	inner["current_timestamp"] = currentTimestamp
-	inner["delay_period"] = delayPeriod
+	inner["delay_time_period"] = delayTimePeriod
+	inner["delay_block_period"] = delayBlockPeriod
 	inner["sequence"] = sequence
 	inner["consensus_state"] = consensusState
 
@@ -619,7 +619,7 @@ func (c *ClientState) VerifyPacketReceiptAbsence(store sdk.KVStore, cdc codec.Bi
 	}
 }
 
-func (c *ClientState) VerifyNextSequenceRecv(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, currentTimestamp uint64, delayPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, nextSequenceRecv uint64) error {
+func (c *ClientState) VerifyNextSequenceRecv(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod, delayBlockPeriod uint64, prefix exported.Prefix, proof []byte, portID, channelID string, nextSequenceRecv uint64) error {
 	consensusState, err := GetConsensusState(store, cdc, height)
 	if err != nil {
 		return err
@@ -635,8 +635,8 @@ func (c *ClientState) VerifyNextSequenceRecv(store sdk.KVStore, cdc codec.Binary
 	inner["proof"] = proof
 	inner["port_id"] = portID
 	inner["channel_id"] = channelID
-	inner["current_timestamp"] = currentTimestamp
-	inner["delay_period"] = delayPeriod
+	inner["delay_time_period"] = delayTimePeriod
+	inner["delay_block_period"] = delayBlockPeriod
 	inner["next_sequence_recv"] = nextSequenceRecv
 	inner["consensus_state"] = consensusState
 
