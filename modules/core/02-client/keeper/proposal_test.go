@@ -40,6 +40,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight, consState)
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute)
 				ibctmtypes.SetProcessedTime(clientStore, tmClientState.LatestHeight, 100)
+				ibctmtypes.SetProcessedHeight(clientStore, tmClientState.LatestHeight, types.NewHeight(0, 1))
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
 
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute)

@@ -266,20 +266,38 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			newChainID := "new-chain-id"
 			substituteClientState.ChainId = newChainID
 
-			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight())
-
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID)
+
+			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight())
+			expectedProcessedTime, found := types.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight())
+			suite.Require().True(found)
+			expectedProcessedHeight, found := types.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight())
+			suite.Require().True(found)
+			expectedIterationKey := types.GetIterationKey(substituteClientStore, substituteClientState.GetLatestHeight())
+
 			updatedClient, err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(clienttypes.ZeroHeight(), updatedClient.(*types.ClientState).FrozenHeight)
 
+				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
+
 				// check that the correct consensus state was copied over
 				suite.Require().Equal(substituteClientState.GetLatestHeight(), updatedClient.GetLatestHeight())
 				subjectConsState := subjectPath.EndpointA.GetConsensusState(updatedClient.GetLatestHeight())
+				subjectProcessedTime, found := types.GetProcessedTime(subjectClientStore, updatedClient.GetLatestHeight())
+				suite.Require().True(found)
+				subjectProcessedHeight, found := types.GetProcessedTime(substituteClientStore, updatedClient.GetLatestHeight())
+				suite.Require().True(found)
+				subjectIterationKey := types.GetIterationKey(substituteClientStore, updatedClient.GetLatestHeight())
+
 				suite.Require().Equal(expectedConsState, subjectConsState)
+				suite.Require().Equal(expectedProcessedTime, subjectProcessedTime)
+				suite.Require().Equal(expectedProcessedHeight, subjectProcessedHeight)
+				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
+
 				suite.Require().Equal(newChainID, updatedClient.(*types.ClientState).ChainId)
 			} else {
 				suite.Require().Error(err)
