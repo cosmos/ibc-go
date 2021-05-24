@@ -17,7 +17,7 @@ import (
 // client implementations are responsible for validating the parameters of the
 // subtitute (enusring they match the subject's parameters) as well as copying
 // the necessary consensus states from the subtitute to the subject client
-// store. The substitute must be Active and the subject must no be Active.
+// store. The substitute must be Active and the subject must not be Active.
 func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdateProposal) error {
 	if p.SubjectClientId == exported.Localhost || p.SubstituteClientId == exported.Localhost {
 		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update localhost client with proposal")
