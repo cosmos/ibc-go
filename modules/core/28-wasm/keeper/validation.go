@@ -3,11 +3,11 @@ package keeper
 import cosmwasm "github.com/CosmWasm/wasmvm"
 
 // Basic validation config can be extended to add other configuration later
-type WASMValidationConfig struct {
+type ValidationConfig struct {
 	MaxSizeAllowed int
 }
 
-func NewWASMValidator(config *WASMValidationConfig, vmCreateFn func() (*cosmwasm.VM, error)) (*WASMValidator, error) {
+func NewWASMValidator(config *ValidationConfig, vmCreateFn func() (*cosmwasm.VM, error)) (*WASMValidator, error) {
 	return &WASMValidator{
 		config:     config,
 		vmCreateFn: vmCreateFn,
@@ -16,7 +16,7 @@ func NewWASMValidator(config *WASMValidationConfig, vmCreateFn func() (*cosmwasm
 
 type WASMValidator struct {
 	vmCreateFn func() (*cosmwasm.VM, error)
-	config     *WASMValidationConfig
+	config     *ValidationConfig
 }
 
 func (v *WASMValidator) validateWASMCode(code []byte) (bool, error) {

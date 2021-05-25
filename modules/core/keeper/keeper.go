@@ -51,8 +51,14 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
-	wasmKeeper := wasmkeeper.NewKeeper(cdc, key, &wasmkeeper.WASMValidationConfig{
-		MaxSizeAllowed: 1024 * 1024,
+	wasmKeeper := wasmkeeper.NewKeeper(cdc, key, &wasmkeeper.VMConfig{
+		DataDir:           "wasm_data",
+		SupportedFeatures: []string{"staking"},
+		MemoryLimitMb:     8,
+		PrintDebug:        true,
+		CacheSizeMb:       8,
+	}, &wasmkeeper.ValidationConfig{
+		MaxSizeAllowed: 1024 * 1024, // 1 MB
 	})
 
 	return &Keeper{

@@ -373,7 +373,7 @@ func (c *ClientState) VerifyClientState(store sdk.KVStore, cdc codec.BinaryCodec
 }
 
 func (c *ClientState) VerifyClientConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, counterpartyClientIdentifier string, consensusHeight exported.Height, prefix exported.Prefix, proof []byte, consensusState exported.ConsensusState) error {
-	consensusState, err := GetConsensusState(store, cdc, height)
+	currentConsensusState, err := GetConsensusState(store, cdc, height)
 	if err != nil {
 		return err
 	}
@@ -389,7 +389,7 @@ func (c *ClientState) VerifyClientConsensusState(store sdk.KVStore, cdc codec.Bi
 	inner["counterparty_client_identifier"] = counterpartyClientIdentifier
 	inner["proof"] = proof
 	inner["counterparty_consensus_state"] = consensusState
-	inner["consensus_state"] = consensusState
+	inner["consensus_state"] = currentConsensusState
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {

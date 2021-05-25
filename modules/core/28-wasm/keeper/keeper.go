@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	wasm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,6 +15,15 @@ import (
 
 // WasmVM initialized by wasm keeper
 var WasmVM *wasm.VM
+
+// VMConfig represents WASM virtual machine settings
+type VMConfig struct {
+	DataDir           string
+	SupportedFeatures []string
+	MemoryLimitMb     uint32
+	PrintDebug        bool
+	CacheSizeMb       uint32
+}
 
 func generateWASMCodeHash(code []byte) string {
 	hash := sha256.Sum256(code)
@@ -27,15 +37,16 @@ type Keeper struct {
 	wasmValidator *WASMValidator
 }
 
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, validationConfig *WASMValidationConfig) Keeper {
-	// TODO: Make this configurable
-	vm, err := wasm.NewVM("wasm_data", "staking", 8, true, 8)
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, vmConfig *VMConfig, validationConfig *ValidationConfig) Keeper {
+	supportedFeatures := strings.Join(vmConfig.SupportedFeatures, ",")
+
+	vm, err := wasm.NewVM(vmConfig.DataDir, supportedFeatures, vmConfig.MemoryLimitMb, vmConfig.PrintDebug, vmConfig.CacheSizeMb)
 	if err != nil {
 		panic(err)
 	}
 
 	wasmValidator, err := NewWASMValidator(validationConfig, func() (*wasm.VM, error) {
-		return wasm.NewVM("wasm_test_data", "staking", 8, true, 8)
+		return wasm.NewVM(vmConfig.DataDir, supportedFeatures, vmConfig.MemoryLimitMb, vmConfig.PrintDebug, vmConfig.CacheSizeMb)
 	})
 	if err != nil {
 		panic(err)
