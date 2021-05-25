@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -10,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 	"github.com/spf13/cobra"
 )
-
 
 // GetCmdQueryLatestWASMCode defines the command to query latest wasm code
 // uploaded for that client type
@@ -20,7 +20,7 @@ func GetCmdQueryLatestWASMCode() *cobra.Command {
 		Short:   "Query latest wasm code",
 		Long:    "Query latest wasm code for particular client type",
 		Example: fmt.Sprintf("%s query %s %s wasm_code client_type", version.AppName, host.ModuleName, types.SubModuleName),
-		Args: cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {

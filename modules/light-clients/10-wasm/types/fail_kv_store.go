@@ -1,9 +1,10 @@
 package types
 
 import (
+	"io"
+
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	"io"
 )
 
 var _ types.KVStore = (*FailKVStore)(nil)

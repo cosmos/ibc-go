@@ -1,12 +1,13 @@
 package cli
 
 import (
+	"io/ioutil"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
 // NewPushNewWASMCodeCmd returns the command to create a PushNewWASMCode transaction
@@ -31,8 +32,8 @@ func NewPushNewWASMCodeCmd() *cobra.Command {
 
 			msg := &types.MsgPushNewWASMCode{
 				ClientType: clientType,
-				Code: code,
-				Signer: clientCtx.GetFromAddress().String(),
+				Code:       code,
+				Signer:     clientCtx.GetFromAddress().String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

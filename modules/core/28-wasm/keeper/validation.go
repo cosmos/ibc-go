@@ -7,16 +7,16 @@ type WASMValidationConfig struct {
 	MaxSizeAllowed int
 }
 
-func NewWASMValidator(config *WASMValidationConfig, vmCreateFn func () (*cosmwasm.VM, error)) (*WASMValidator, error) {
+func NewWASMValidator(config *WASMValidationConfig, vmCreateFn func() (*cosmwasm.VM, error)) (*WASMValidator, error) {
 	return &WASMValidator{
-		config: config,
+		config:     config,
 		vmCreateFn: vmCreateFn,
 	}, nil
 }
 
 type WASMValidator struct {
-	vmCreateFn func () (*cosmwasm.VM, error)
-	config *WASMValidationConfig
+	vmCreateFn func() (*cosmwasm.VM, error)
+	config     *WASMValidationConfig
 }
 
 func (v *WASMValidator) validateWASMCode(code []byte) (bool, error) {
@@ -24,22 +24,16 @@ func (v *WASMValidator) validateWASMCode(code []byte) (bool, error) {
 		return false, nil
 	}
 
-	testVm, err := v.vmCreateFn()
+	testVM, err := v.vmCreateFn()
 	if err != nil {
 		return false, err
 	}
 
-	_, err = testVm.Create(code)
+	_, err = testVM.Create(code)
 	if err != nil {
 		return false, nil
 	}
 
-	// Validation start
-
-	// Validation ends
-
-	testVm.Cleanup()
+	testVM.Cleanup()
 	return true, nil
 }
-
-

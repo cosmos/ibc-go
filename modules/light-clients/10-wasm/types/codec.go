@@ -25,4 +25,3 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&Misbehaviour{},
 	)
 }
-

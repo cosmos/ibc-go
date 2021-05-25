@@ -40,4 +40,3 @@ func NewTxCmd() *cobra.Command {
 
 	return txCmd
 }
-

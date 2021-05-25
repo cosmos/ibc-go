@@ -3,7 +3,6 @@ package cli
 import (
 	"github.com/cosmos/ibc-go/modules/light-clients/10-wasm/types"
 	"github.com/spf13/cobra"
-
 )
 
 // NewTxCmd returns a root CLI command handler for all x/ibc/light-clients/07-tendermint transaction commands.

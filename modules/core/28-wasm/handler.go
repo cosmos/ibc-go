@@ -8,12 +8,13 @@ import (
 )
 
 func HandleMsgPushNewWASMCode(ctx sdk.Context, k keeper.Keeper, msg *types.MsgPushNewWASMCode) (*types.MsgPushNewWASMCodeResponse, error) {
-	if codeId, codeHash, err := k.PushNewWASMCode(ctx, msg.ClientType, msg.Code); err != nil {
+	codeID, codeHash, err := k.PushNewWASMCode(ctx, msg.ClientType, msg.Code)
+	if err != nil {
 		return nil, sdkerrors.Wrap(err, "pushing new wasm code failed")
-	} else {
-		return &types.MsgPushNewWASMCodeResponse{
-			CodeId: codeId,
-			CodeHash: codeHash,
-		}, nil
 	}
+
+	return &types.MsgPushNewWASMCodeResponse{
+		CodeId:   codeID,
+		CodeHash: codeHash,
+	}, nil
 }

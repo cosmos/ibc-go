@@ -1,20 +1,18 @@
 package keeper
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+
+	wasm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
-
-	wasm "github.com/CosmWasm/wasmvm"
-
 	"github.com/cosmos/ibc-go/modules/core/28-wasm/types"
-
-	"crypto/sha256"
-	"encoding/hex"
 )
 
-// WASM VM initialized by wasm keeper
+// WasmVM initialized by wasm keeper
 var WasmVM *wasm.VM
 
 func generateWASMCodeHash(code []byte) string {
@@ -60,13 +58,11 @@ func (k Keeper) PushNewWASMCode(ctx sdk.Context, clientType string, code []byte)
 
 	if isValidWASMCode, err := k.wasmValidator.validateWASMCode(code); err != nil {
 		return nil, "", fmt.Errorf("unable to validate wasm code, error: %s", err)
-	} else {
-		if !isValidWASMCode {
-			return nil, "", fmt.Errorf("invalid wasm code")
-		}
+	} else if !isValidWASMCode {
+		return nil, "", fmt.Errorf("invalid wasm code")
 	}
 
-	codeId, err := WasmVM.Create(code)
+	codeID, err := WasmVM.Create(code)
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid wasm code")
 	}
@@ -80,26 +76,26 @@ func (k Keeper) PushNewWASMCode(ctx sdk.Context, clientType string, code []byte)
 	// But we do not see any significant advantage of it.
 	if store.Has(entryKey) {
 		return nil, "", fmt.Errorf("wasm code already exists")
-	} else {
-		codeEntry := types.WasmCodeEntry{
-			PreviousCodeHash: string(latestVersionCodeHash),
-			NextCodeHash:     "",
-			CodeId:           codeId,
-		}
-
-		previousVersionEntryKey := host.WASMCodeEntry(clientType, string(latestVersionCodeHash))
-		previousVersionEntryBz := store.Get(previousVersionEntryKey)
-		if len(previousVersionEntryBz) != 0 {
-			var previousEntry types.WasmCodeEntry
-			k.cdc.MustUnmarshal(previousVersionEntryBz, &previousEntry)
-			previousEntry.NextCodeHash = codeHash
-			store.Set(previousVersionEntryKey, k.cdc.MustMarshal(&previousEntry))
-		}
-
-		store.Set(entryKey, k.cdc.MustMarshal(&codeEntry))
-		store.Set(latestVersionKey, []byte(codeHash))
-		store.Set(codekey, code)
 	}
 
-	return codeId, codeHash, nil
+	codeEntry := types.WasmCodeEntry{
+		PreviousCodeHash: string(latestVersionCodeHash),
+		NextCodeHash:     "",
+		CodeId:           codeID,
+	}
+
+	previousVersionEntryKey := host.WASMCodeEntry(clientType, string(latestVersionCodeHash))
+	previousVersionEntryBz := store.Get(previousVersionEntryKey)
+	if len(previousVersionEntryBz) != 0 {
+		var previousEntry types.WasmCodeEntry
+		k.cdc.MustUnmarshal(previousVersionEntryBz, &previousEntry)
+		previousEntry.NextCodeHash = codeHash
+		store.Set(previousVersionEntryKey, k.cdc.MustMarshal(&previousEntry))
+	}
+
+	store.Set(entryKey, k.cdc.MustMarshal(&codeEntry))
+	store.Set(latestVersionKey, []byte(codeHash))
+	store.Set(codekey, code)
+
+	return codeID, codeHash, nil
 }

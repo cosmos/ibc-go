@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -12,7 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/10-wasm/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
 func NewCreateClientCmd() *cobra.Command {
@@ -48,7 +49,7 @@ func NewCreateClientCmd() *cobra.Command {
 				return errors.Wrap(err, "error unmarshalling consensus state")
 			}
 
-			if bytes.Compare(clientState.CodeId, consensusState.CodeId) != 0 {
+			if !bytes.Equal(clientState.CodeId, consensusState.CodeId) {
 				return fmt.Errorf("CodeId mismatch between client state and consensus state")
 			}
 

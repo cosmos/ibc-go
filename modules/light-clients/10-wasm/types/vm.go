@@ -58,7 +58,7 @@ func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 }
 
 // Calls vm.Init with appropriate arguments
-func initContract(codeId []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.InitResponse, error) {
+func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.InitResponse, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
@@ -90,12 +90,12 @@ func initContract(codeId []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 	mockFailureAPI := *api.NewMockFailureAPI()
 	mockQuerier := api.MockQuerier{}
 
-	response, _, err := keeper.WasmVM.Instantiate(codeId, env, msgInfo, msg, store, mockFailureAPI, mockQuerier, gasMeter, gasMeter.Limit())
+	response, _, err := keeper.WasmVM.Instantiate(codeID, env, msgInfo, msg, store, mockFailureAPI, mockQuerier, gasMeter, gasMeter.Limit())
 	return response, err
 }
 
 // Calls vm.Execute with internally constructed Gas meter and environment
-func callContract(codeId []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.HandleResponse, error) {
+func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.HandleResponse, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
@@ -120,11 +120,11 @@ func callContract(codeId []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 		},
 	}
 
-	return callContractWithEnvAndMeter(codeId, &ctx, store, env, gasMeter, msg)
+	return callContractWithEnvAndMeter(codeID, &ctx, store, env, gasMeter, msg)
 }
 
 // Calls vm.Execute with supplied environment and gas meter
-func callContractWithEnvAndMeter(codeId []byte, ctx *sdk.Context, store sdk.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.HandleResponse, error) {
+func callContractWithEnvAndMeter(codeID []byte, ctx *sdk.Context, store sdk.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.HandleResponse, error) {
 	msgInfo := types.MessageInfo{
 		Sender:    "",
 		SentFunds: nil,
@@ -132,24 +132,20 @@ func callContractWithEnvAndMeter(codeId []byte, ctx *sdk.Context, store sdk.KVSt
 	mockFailureAPI := *api.NewMockFailureAPI()
 	mockQuerier := api.MockQuerier{}
 
-	resp, gasUsed, err := keeper.WasmVM.Execute(codeId, env, msgInfo, msg, store, mockFailureAPI, mockQuerier, gasMeter, gasMeter.Limit())
+	resp, gasUsed, err := keeper.WasmVM.Execute(codeID, env, msgInfo, msg, store, mockFailureAPI, mockQuerier, gasMeter, gasMeter.Limit())
 	if ctx != nil {
 		consumeGas(*ctx, gasUsed)
 	}
 	return resp, err
 }
 
-func queryContract(codeId []byte, msg []byte) ([]byte, error) {
-	return queryContractWithStore(codeId, &FailKVStore{}, msg)
-}
-
-func queryContractWithStore(codeId []byte, store sdk.KVStore, msg []byte) ([]byte, error) {
+func queryContractWithStore(codeID []byte, store sdk.KVStore, msg []byte) ([]byte, error) {
 	mockEnv := api.MockEnv()
 	mockGasMeter := api.NewMockGasMeter(1)
 	mockFailureAPI := *api.NewMockFailureAPI()
 	mockQuerier := api.MockQuerier{}
 
-	resp, _, err := keeper.WasmVM.Query(codeId, mockEnv, msg, store, mockFailureAPI, mockQuerier, mockGasMeter, 0)
+	resp, _, err := keeper.WasmVM.Query(codeID, mockEnv, msg, store, mockFailureAPI, mockQuerier, mockGasMeter, 0)
 	return resp, err
 }
 
