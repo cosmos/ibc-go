@@ -268,7 +268,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			suite.Require().NoError(err)
 		}, false},
 		{"out of order packet failure with ORDERED channel", func() {
-			expError = types.ErrPacketReceiptOutOfOrder
+			expError = types.ErrPacketSequenceOutOfOrder
 
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
@@ -557,6 +557,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		ack    = ibcmock.MockAcknowledgement
 
 		channelCap *capabilitytypes.Capability
+		expError   *sdkerrors.Error
 	)
 
 	testCases := []testCase{
@@ -590,6 +591,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"packet already acknowledged ordered channel", func() {
+			expError = types.ErrPacketCommitmentNotFound
+
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -607,6 +610,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.Require().NoError(err)
 		}, false},
 		{"packet already acknowledged unordered channel", func() {
+			expError = types.ErrPacketCommitmentNotFound
+
 			// setup uses an UNORDERED channel
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -625,11 +630,15 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.Require().NoError(err)
 		}, false},
 		{"channel not found", func() {
+			expError = types.ErrChannelNotFound
+
 			// use wrong channel naming
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 		}, false},
 		{"channel not open", func() {
+			expError = types.ErrInvalidChannelState
+
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 
@@ -638,8 +647,11 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"capability authentication failed ORDERED", func() {
+			expError = types.ErrInvalidChannelCapability
+
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
+
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			// create packet commitment
 			err := path.EndpointA.SendPacket(packet)
@@ -652,18 +664,23 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = capabilitytypes.NewCapability(3)
 		}, false},
 		{"packet destination port ≠ channel counterparty port", func() {
+			expError = types.ErrInvalidPacket
 			suite.coordinator.Setup(path)
+
 			// use wrong port for dest
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.InvalidID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"packet destination channel ID ≠ channel counterparty channel ID", func() {
+			expError = types.ErrInvalidPacket
 			suite.coordinator.Setup(path)
+
 			// use wrong channel for dest
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, ibctesting.InvalidID, timeoutHeight, disabledTimeoutTimestamp)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"connection not found", func() {
+			expError = connectiontypes.ErrConnectionNotFound
 			suite.coordinator.Setup(path)
 
 			// pass channel check
@@ -677,6 +694,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"connection not OPEN", func() {
+			expError = connectiontypes.ErrInvalidConnectionState
 			suite.coordinator.SetupClients(path)
 			// connection on chainA is in INIT
 			err := path.EndpointA.ConnOpenInit()
@@ -693,12 +711,16 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"packet hasn't been sent", func() {
+			expError = types.ErrPacketCommitmentNotFound
+
 			// packet commitment never written
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"packet ack verification failed", func() {
+			// skip error code check since error occurs in light-clients
+
 			// ack never written
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -708,6 +730,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"packet commitment bytes do not match", func() {
+			expError = types.ErrInvalidPacket
+
 			// setup uses an UNORDERED channel
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -725,6 +749,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			packet.Data = []byte("invalid packet commitment")
 		}, false},
 		{"next ack sequence not found", func() {
+			expError = types.ErrSequenceAckNotFound
 			suite.coordinator.SetupConnections(path)
 
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
@@ -753,6 +778,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			path.EndpointB.UpdateClient()
 		}, false},
 		{"next ack sequence mismatch ORDERED", func() {
+			expError = types.ErrPacketSequenceOutOfOrder
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -774,6 +800,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
+			expError = nil    // must explcitly set error for failed cases
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -798,6 +825,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				}
 			} else {
 				suite.Error(err)
+				// only check if expError is set, since not all error codes can be known
+				if expError != nil {
+					suite.Require().True(errors.Is(err, expError))
+				}
 			}
 		})
 	}

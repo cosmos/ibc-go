@@ -29,5 +29,5 @@ var (
 	ErrPacketCommitmentNotFound = sdkerrors.Register(SubModuleName, 20, "packet commitment not found") // may occur for already received acknowledgements or timeouts and in rare cases for packets never sent
 
 	// ORDERED channel error
-	ErrPacketReceiptOutOfOrder = sdkerrors.Register(SubModuleName, 23, "packet cannot be received out of order")
+	ErrPacketSequenceOutOfOrder = sdkerrors.Register(SubModuleName, 21, "packet sequence is out of order")
 )

@@ -272,7 +272,7 @@ func (k Keeper) RecvPacket(
 
 		if packet.GetSequence() != nextSequenceRecv {
 			return sdkerrors.Wrapf(
-				types.ErrPacketReceiptOutOfOrder,
+				types.ErrPacketSequenceOutOfOrder,
 				"packet sequence ≠ next receive sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceRecv,
 			)
 		}
@@ -499,7 +499,7 @@ func (k Keeper) AcknowledgePacket(
 
 		if packet.GetSequence() != nextSequenceAck {
 			return sdkerrors.Wrapf(
-				sdkerrors.ErrInvalidSequence,
+				types.ErrPacketSequenceOutOfOrder,
 				"packet sequence ≠ next ack sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceAck,
 			)
 		}
