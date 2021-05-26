@@ -122,7 +122,7 @@ func GetCmdQueryEscrowAddress() *cobra.Command {
 			}
 			port := args[0]
 			channel := args[1]
-			addr := GetEscrowAddress(port, channel)
+			addr := types.GetEscrowAddress(port, channel)
 			return clientCtx.PrintProto(addr.String())
 		},
 	}
