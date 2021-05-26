@@ -21,14 +21,12 @@ var (
 	ErrPacketTimeout             = sdkerrors.Register(SubModuleName, 14, "packet timeout")
 	ErrTooManyConnectionHops     = sdkerrors.Register(SubModuleName, 15, "too many connection hops")
 	ErrInvalidAcknowledgement    = sdkerrors.Register(SubModuleName, 16, "invalid acknowledgement")
-	ErrPacketCommitmentNotFound  = sdkerrors.Register(SubModuleName, 17, "packet commitment not found")
-	ErrAcknowledgementExists     = sdkerrors.Register(SubModuleName, 18, "acknowledgement for packet already exists")
-	ErrInvalidChannelIdentifier  = sdkerrors.Register(SubModuleName, 19, "invalid channel identifier")
+	ErrAcknowledgementExists     = sdkerrors.Register(SubModuleName, 17, "acknowledgement for packet already exists")
+	ErrInvalidChannelIdentifier  = sdkerrors.Register(SubModuleName, 18, "invalid channel identifier")
 
 	// packets already relayed errors
-	ErrPacketReceived     = sdkerrors.Register(SubModuleName, 20, "packet already received")
-	ErrPacketAcknowledged = sdkerrors.Register(SubModuleName, 21, "packet acknowledgement already processed")
-	ErrPacketTimedOut     = sdkerrors.Register(SubModuleName, 22, "packet already timed out")
+	ErrPacketReceived           = sdkerrors.Register(SubModuleName, 19, "packet already received")
+	ErrPacketCommitmentNotFound = sdkerrors.Register(SubModuleName, 20, "packet commitment not found") // may occur for already received acknowledgements or timeouts and in rare cases for packets never sent
 
 	// ORDERED channel error
 	ErrPacketReceiptOutOfOrder = sdkerrors.Register(SubModuleName, 23, "packet cannot be received out of order")

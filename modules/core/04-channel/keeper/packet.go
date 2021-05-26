@@ -470,7 +470,7 @@ func (k Keeper) AcknowledgePacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		return sdkerrors.Wrapf(types.ErrPacketAcknowledged, "packet commitment does not exist")
+		return sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "packet with sequence (%d) has been acknowledged, or timed out. In rare cases the packet was never sent or the packet sequence is incorrect", packet.GetSequence())
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)
