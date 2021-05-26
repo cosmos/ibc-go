@@ -96,7 +96,7 @@ func (k Keeper) TimeoutPacket(
 		// check that packet has not been received
 		if nextSequenceRecv > packet.GetSequence() {
 			return sdkerrors.Wrapf(
-				types.ErrInvalidPacket,
+				types.ErrPacketReceived,
 				"packet already received, next sequence receive > packet sequence (%d > %d)", nextSequenceRecv, packet.GetSequence(),
 			)
 		}
