@@ -115,7 +115,7 @@ func GetCmdQueryEscrowAddress() *cobra.Command {
 		Long:    "Get the escrow address for a channel",
 		Args:    cobra.ExactArgs(2),
 		Example: fmt.Sprintf("%s query ibc-transfer escrow-address [port] [channel-id]", version.AppName),
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -123,7 +123,7 @@ func GetCmdQueryEscrowAddress() *cobra.Command {
 			port := args[0]
 			channel := args[1]
 			addr := types.GetEscrowAddress(port, channel)
-			return clientCtx.PrintProto(addr.String())
+			return clientCtx.PrintString(fmt.Sprintf("%s\n", addr.String()))
 		},
 	}
 
