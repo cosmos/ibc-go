@@ -81,6 +81,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#198](https://github.com/cosmos/ibc-go/pull/198) New CLI command `query ibc-transfer escrow-address <port> <channel id>` to get the escrow address for a channel; can be used to then query balance of escrowed tokens
 
+### Client Breaking Changes
+
+* (02-client/cli) [\#196](https://github.com/cosmos/ibc-go/pull/196) Rename `node-state` cli command to `self-consensus-state`.
 
 ## IBC in the Cosmos SDK Repository
 
