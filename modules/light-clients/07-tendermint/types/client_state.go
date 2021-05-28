@@ -568,7 +568,7 @@ func produceVerificationArgs(
 
 	consensusState, err = GetConsensusState(store, cdc, height)
 	if err != nil {
-		return commitmenttypes.MerkleProof{}, nil, err
+		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(err, "please ensure the proof was constructed against the height the client was updated to")
 	}
 
 	return merkleProof, consensusState, nil
