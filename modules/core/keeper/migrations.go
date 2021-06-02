@@ -3,7 +3,9 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v100 "github.com/cosmos/ibc-go/modules/core/02-client/legacy/v100"
+	clientkeeper "github.com/cosmos/ibc-go/modules/core/02-client/keeper"
+	connectionkeeper "github.com/cosmos/ibc-go/modules/core/03-connection/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/modules/core/04-channel/keeper"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -26,5 +28,20 @@ func NewMigrator(keeper Keeper) Migrator {
 // Connections are removed if the associated client does not exist.
 // Channels are removed if the associated connection does not exist.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	return v100.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+	clientMigrator := clientkeeper.NewMigrator(m.keeper.ClientKeeper)
+	if err := clientMigrator.Migrate1to2(ctx); err != nil {
+		return err
+	}
+
+	connectionMigrator := connectionkeeper.NewMigrator(m.keeper.ConnectionKeeper)
+	if err := connectionMigrator.Migrate1to2(ctx); err != nil {
+		return err
+	}
+
+	channelMigrator := channelkeeper.NewMigrator(m.keeper.ChannelKeeper)
+	if err := channelMigrator.Migrate1to2(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }

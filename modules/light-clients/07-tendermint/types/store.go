@@ -271,6 +271,8 @@ func PruneAllExpiredConsensusStates(
 	ctx sdk.Context, clientStore sdk.KVStore,
 	cdc codec.BinaryCodec, clientState *ClientState,
 ) (err error) {
+	var heights []exported.Height
+
 	pruneCb := func(height exported.Height) bool {
 		consState, err := GetConsensusState(clientStore, cdc, height)
 		// this error should never occur
@@ -279,15 +281,20 @@ func PruneAllExpiredConsensusStates(
 		}
 
 		if clientState.IsExpired(consState.Timestamp, ctx.BlockTime()) {
-			deleteConsensusState(clientStore, height)
-			deleteConsensusMetadata(clientStore, height)
+			heights = append(heights, height)
 		}
 
 		return false
 	}
+
 	IterateConsensusStateAscending(clientStore, pruneCb)
 	if err != nil {
 		return err
+	}
+
+	for _, height := range heights {
+		deleteConsensusState(clientStore, height)
+		deleteConsensusMetadata(clientStore, height)
 	}
 
 	return nil
