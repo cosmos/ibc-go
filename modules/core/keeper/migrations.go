@@ -4,8 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/modules/core/02-client/keeper"
-	connectionkeeper "github.com/cosmos/ibc-go/modules/core/03-connection/keeper"
-	channelkeeper "github.com/cosmos/ibc-go/modules/core/04-channel/keeper"
 )
 
 // Migrator is a struct for handling in-place store migrations.

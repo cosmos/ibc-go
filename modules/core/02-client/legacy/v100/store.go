@@ -52,22 +52,23 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 		switch clientType {
 		case exported.Solomachine:
-			migrateSolomachine(clientStore, clientID)
+			migrateSolomachine(clientStore, cdc, clientID)
 
 		case exported.Tendermint:
-			clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, client.ClientId))
+			clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 			clientStore := prefix.NewStore(ctx.KVStore(storeKey), clientPrefix)
-			clientState, err := types.UnpackClientState(client.ClientState)
-			if err != nil {
+			// get tendermint client state from client store
+			bz := clientStore.Get(host.ClientStateKey())
+			if bz == nil {
+				return clienttypes.ErrClientNotFound
+			}
+
+			var clientState *ibctmtypes.ClientState
+			if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
 				return err
 			}
 
-			// ensure client is tendermint type
-			tmClientState, ok := clientState.(*ibctmtypes.ClientState)
-			if !ok {
-				panic("client with identifier '07-tendermint' is not tendermint type!")
-			}
-			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState); err != nil {
+			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, clientState); err != nil {
 				return err
 			}
 
