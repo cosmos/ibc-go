@@ -380,13 +380,13 @@ proto-gen:
 
 proto-format:
 	@echo "Formatting Protobuf files"
-	$(DOCKER) run --rm -v $(CURDIR):/workspace \
-      --workdir /workspace tendermintdev/docker-build-proto \
-      find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -i {} \;
-
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+		find ./ -not -path "./third_party/*" -name "*.proto" -exec clang-format -i {} \; ; fi
 
 proto-swagger-gen:
-	@./scripts/protoc-swagger-gen.sh
+	@echo "Generating Protobuf Swagger"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) \
+		sh ./scripts/protoc-swagger-gen.sh; fi
 
 proto-lint:
 	@$(DOCKER_BUF) lint --error-format=json
