@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
@@ -58,7 +59,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 		switch clientType {
 		case exported.Solomachine:
 			var clientState *ClientState
-			if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+			if err := cdc.Unmarshal(bz, clientState); err != nil {
 				return err
 			}
 
@@ -75,12 +76,12 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 			pruneSolomachineConsensusStates(clientStore)
 
 		case exported.Tendermint:
-			var clientState *ibctmtypes.ClientState
+			var clientState exported.ClientState
 			if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
-				return err
+				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into tendermint client state")
 			}
 
-			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, clientState); err != nil {
+			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, clientState.(*ibctmtypes.ClientState)); err != nil {
 				return err
 			}
 
