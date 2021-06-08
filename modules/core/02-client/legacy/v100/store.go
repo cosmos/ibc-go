@@ -20,7 +20,7 @@ import (
 // The migration includes:
 //
 // - Migrating solo machine client states from v1 to v2 protobuf definition
-// - Pruning all solo machine consensus states from the client stores
+// - Pruning all solo machine consensus states
 // - Pruning expired tendermint consensus states
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) (err error) {
 	store := ctx.KVStore(storeKey)
@@ -50,19 +50,31 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 		clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 		clientStore := prefix.NewStore(ctx.KVStore(storeKey), clientPrefix)
 
+		bz := clientStore.Get(host.ClientStateKey())
+		if bz == nil {
+			return clienttypes.ErrClientNotFound
+		}
+
 		switch clientType {
 		case exported.Solomachine:
-			migrateSolomachine(clientStore, cdc, clientID)
-
-		case exported.Tendermint:
-			clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-			clientStore := prefix.NewStore(ctx.KVStore(storeKey), clientPrefix)
-			// get tendermint client state from client store
-			bz := clientStore.Get(host.ClientStateKey())
-			if bz == nil {
-				return clienttypes.ErrClientNotFound
+			var clientState *ClientState
+			if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+				return err
 			}
 
+			updatedClientState := migrateSolomachine(clientState)
+
+			bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
+			if err != nil {
+				return err
+			}
+
+			// update solomachine in store
+			clientStore.Set(host.ClientStateKey(), bz)
+
+			pruneSolomachineConsensusStates(clientStore)
+
+		case exported.Tendermint:
 			var clientState *ibctmtypes.ClientState
 			if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
 				return err
@@ -81,20 +93,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 }
 
 // migrateSolomachine migrates the solomachine from v1 to v2 solo machine protobuf defintion.
-// It also deletes all consensus states stored in the client store as they are not necessary
-// and reference the v1 consensus state type.
-func migrateSolomachine(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientID string) error {
-	// get legacy solo machine from client store
-	bz := clientStore.Get(host.ClientStateKey())
-	if bz == nil {
-		return clienttypes.ErrClientNotFound
-	}
-
-	var clientState *ClientState
-	if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
-		return err
-	}
-
+func migrateSolomachine(clientState *ClientState) *smtypes.ClientState {
 	isFrozen := clientState.FrozenSequence != 0
 	consensusState := &smtypes.ConsensusState{
 		PublicKey:   clientState.ConsensusState.PublicKey,
@@ -102,22 +101,17 @@ func migrateSolomachine(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientID
 		Timestamp:   clientState.ConsensusState.Timestamp,
 	}
 
-	newSolomachine := &smtypes.ClientState{
+	return &smtypes.ClientState{
 		Sequence:                 clientState.Sequence,
 		IsFrozen:                 isFrozen,
 		ConsensusState:           consensusState,
 		AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
 	}
+}
 
-	bz, err := clienttypes.MarshalClientState(cdc, newSolomachine)
-	if err != nil {
-		return err
-	}
-
-	// update solomachine in store
-	clientStore.Set(host.ClientStateKey(), bz)
-
-	// collect consensus states to be pruned
+// pruneSolomachineConsensusStates removes all solomachine consensus states from the
+// client store.
+func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 	var heights []exported.Height
 
@@ -128,6 +122,8 @@ func migrateSolomachine(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientID
 		if len(keySplit) != 4 || keySplit[2] != string(host.KeyConsensusStatePrefix) {
 			continue
 		}
+
+		// collect consensus states to be pruned
 		heights = append(heights, types.MustParseHeight(keySplit[3]))
 	}
 
@@ -135,6 +131,4 @@ func migrateSolomachine(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientID
 	for _, height := range heights {
 		clientStore.Delete(host.ConsensusStateKey(height))
 	}
-
-	return nil
 }
