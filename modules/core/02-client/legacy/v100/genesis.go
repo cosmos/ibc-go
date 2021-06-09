@@ -18,6 +18,15 @@ import (
 // - Remove all solo machine consensus states
 // - Remove all expired tendermint consensus states
 func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, genesisBlockTime time.Time) (*types.GenesisState, error) {
+	// To prune the consensus states, we will create new clientsConsensus
+	// and clientsMetadata. These slices will be filled up with consensus states
+	// which should not be pruned. No solo machine consensus states should be added
+	// and only unexpired consensus states for tendermint clients will be added.
+	// The metadata keys for unexpired consensus states will be added to clientsMetadata
+	var (
+		clientsConsensus []types.ClientConsensusStates
+		clientsMetadata  []types.IdentifiedGenesisMetadata
+	)
 
 	for i, client := range clientGenState.Clients {
 		clientType, _, err := types.ParseClientIdentifier(client.ClientId)
@@ -30,11 +39,6 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 			clientState := &ClientState{}
 			if err := cdc.Unmarshal(client.ClientState.Value, clientState); err != nil {
 				return nil, sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
-			}
-
-			clientState, ok := client.ClientState.GetCachedValue().(*ClientState)
-			if !ok {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into ClientState %T", client.ClientState)
 			}
 
 			updatedClientState := migrateSolomachine(clientState)
@@ -50,65 +54,69 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 			}
 		}
 
-		// collect the client consensus state index for solo machine clients
-		var smConsStateByIndex []int
-
-		// iterate consensus states
-		for i, clientConsensusState := range clientGenState.ClientsConsensus {
+		// iterate consensus states by client
+		for _, clientConsensusStates := range clientGenState.ClientsConsensus {
 			// look for consensus states for the current client
-			if clientConsensusState.ClientId == client.ClientId {
+			if clientConsensusStates.ClientId == client.ClientId {
 				switch clientType {
 				case exported.Solomachine:
 					// remove all consensus states for the solo machine
-					smConsStateByIndex = append(smConsStateByIndex, i)
+					// do not add to new clientsConsensus
+
 				case exported.Tendermint:
-					// prune expired consensus state
+					// only add non expired consensus states to new clientsConsensus
 					tmClientState, ok := client.ClientState.GetCachedValue().(*ibctmtypes.ClientState)
 					if !ok {
 						return nil, types.ErrInvalidClient
 					}
 
-					// collect the consensus state index for expired tendermint consensus states
-					var tmConsStateByIndex []int
-
-					for i, consState := range clientConsensusState.ConsensusStates {
+					// collect unexpired consensus states
+					var unexpiredConsensusStates []types.ConsensusStateWithHeight
+					for _, consState := range clientConsensusStates.ConsensusStates {
 						tmConsState := consState.ConsensusState.GetCachedValue().(*ibctmtypes.ConsensusState)
-						if tmClientState.IsExpired(tmConsState.Timestamp, genesisBlockTime) {
-							tmConsStateByIndex = append(tmConsStateByIndex, i)
+						if !tmClientState.IsExpired(tmConsState.Timestamp, genesisBlockTime) {
+							unexpiredConsensusStates = append(unexpiredConsensusStates, consState)
 						}
 					}
 
-					// remove all expired tendermint consensus states
-					for _, index := range tmConsStateByIndex {
-						for i, identifiedGenMetadata := range clientGenState.ClientsMetadata {
+					// if we found at least one unexpired consensus state, create a clientConsensusState
+					// and add it to clientsConsensus
+					if len(unexpiredConsensusStates) != 0 {
+						clientsConsensus = append(clientsConsensus, types.ClientConsensusStates{
+							ClientId:        client.ClientId,
+							ConsensusStates: unexpiredConsensusStates,
+						})
+					}
+
+					// remove all expired tendermint consensus state metadata by adding only
+					// unexpired consensus state metadata
+					for _, consState := range unexpiredConsensusStates {
+						for _, identifiedGenMetadata := range clientGenState.ClientsMetadata {
 							// look for metadata for current client
 							if identifiedGenMetadata.ClientId == client.ClientId {
 
-								// collect the metadata indicies to be removed
-								var tmConsMetadataByIndex []int
-
 								// obtain height for consensus state being pruned
-								height := clientConsensusState.ConsensusStates[index].Height
+								height := consState.Height
 
-								// iterate throught metadata and find metadata which should be pruned
-								for j, metadata := range identifiedGenMetadata.ClientMetadata {
+								// iterate through metadata and find metadata which should be pruned
+								// only unexpired consensus state heights should be added
+								var clientMetadata []types.GenesisMetadata
+								for _, metadata := range identifiedGenMetadata.ClientMetadata {
 									if bytes.Equal(metadata.Key, ibctmtypes.IterationKey(height)) ||
 										bytes.Equal(metadata.Key, ibctmtypes.ProcessedTimeKey(height)) ||
 										bytes.Equal(metadata.Key, ibctmtypes.ProcessedHeightKey(height)) {
-										tmConsMetadataByIndex = append(tmConsMetadataByIndex, j)
+										clientMetadata = append(clientMetadata, metadata)
 									}
 								}
 
-								for _, metadataIndex := range tmConsMetadataByIndex {
-									clientGenState.ClientsMetadata[i].ClientMetadata = append(clientGenState.ClientsMetadata[i].ClientMetadata[:metadataIndex], clientGenState.ClientsMetadata[i].ClientMetadata[metadataIndex+1:]...)
+								// if we have metadata for unexipred consensus states, add it to consensusMetadata
+								if len(clientMetadata) != 0 {
+									clientsMetadata = append(clientsMetadata, types.IdentifiedGenesisMetadata{
+										ClientId:       client.ClientId,
+										ClientMetadata: clientMetadata,
+									})
 								}
 							}
-						}
-
-						// remove client state
-						clientGenState.ClientsConsensus[i] = types.ClientConsensusStates{
-							ClientId:        clientConsensusState.ClientId,
-							ConsensusStates: append(clientConsensusState.ConsensusStates[:index], clientConsensusState.ConsensusStates[index+1:]...),
 						}
 					}
 
@@ -117,12 +125,9 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 				}
 			}
 		}
-
-		// remove all solo machine consensus states
-		for _, index := range smConsStateByIndex {
-			clientGenState.ClientsConsensus = append(clientGenState.ClientsConsensus[:index], clientGenState.ClientsConsensus[index+1:]...)
-		}
 	}
 
+	clientGenState.ClientsConsensus = clientsConsensus
+	clientGenState.ClientsMetadata = clientsMetadata
 	return clientGenState, nil
 }
