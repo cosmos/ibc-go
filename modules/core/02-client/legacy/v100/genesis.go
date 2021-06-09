@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
@@ -11,12 +12,12 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 )
 
-// Migrate accepts exported v1.0.0 IBC client genesis file and migrates it to:
+// MigrateGenesis accepts exported v1.0.0 IBC client genesis file and migrates it to:
 //
 // - Update solo machine client state protobuf definition (v1 to v2)
 // - Remove all solo machine consensus states
 // - Remove all expired tendermint consensus states
-func Migrate(clientGenState *types.GenesisState, genesisBlockTime time.Time) (*types.GenesisState, error) {
+func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, genesisBlockTime time.Time) (*types.GenesisState, error) {
 
 	for i, client := range clientGenState.Clients {
 		clientType, _, err := types.ParseClientIdentifier(client.ClientId)
@@ -26,6 +27,11 @@ func Migrate(clientGenState *types.GenesisState, genesisBlockTime time.Time) (*t
 
 		// update solo machine client state defintions
 		if clientType == exported.Solomachine {
+			clientState := &ClientState{}
+			if err := cdc.Unmarshal(client.ClientState.Value, clientState); err != nil {
+				return nil, sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
+			}
+
 			clientState, ok := client.ClientState.GetCachedValue().(*ClientState)
 			if !ok {
 				return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into ClientState %T", client.ClientState)

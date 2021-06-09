@@ -89,7 +89,6 @@ func (suite *LegacyTestSuite) TestMigrateStoreSolomachine() {
 		clientStore.Set(host.ConsensusStateKey(height1), bz)
 		clientStore.Set(host.ConsensusStateKey(height2), bz)
 		clientStore.Set(host.ConsensusStateKey(height3), bz)
-
 	}
 
 	// create tendermint clients
