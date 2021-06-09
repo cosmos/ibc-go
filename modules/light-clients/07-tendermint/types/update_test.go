@@ -428,7 +428,7 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	suite.Require().Equal(uint64(0), processTime, "processed time metadata not pruned")
 	suite.Require().False(ok)
 	processHeight, ok := types.GetProcessedHeight(clientStore, pruneHeight)
-	suite.Require().Equal(uint64(0), processHeight, "processed height metadata not pruned")
+	suite.Require().Nil(processHeight, "processed height metadata not pruned")
 	suite.Require().False(ok)
 
 	// check iteration key metadata is pruned

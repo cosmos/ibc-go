@@ -27,6 +27,44 @@ Feel free to use your own method for modifying import names.
 NOTE: Updating to the `v0.43.0` SDK release and then running `go mod tidy` will cause a downgrade to `v0.42.0` in order to support the old IBC import paths.
 Update the import paths before running `go mod tidy`.  
 
+## Chain Upgrades
+
+Chains may choose to upgrade via an upgrade proposal or genesis upgrades. Both in-place store migrations and genesis migrations are supported. 
+
+**WARNING**: Please read at least the quick guide for [IBC client upgrades](../ibc/upgrades/README.md) before upgrading your chain. It is highly recommended to not change the chain id during an upgrade, otherwise you must follow the IBC client upgrade instructions.
+
+Both in-place store migrations and genesis migrations will:
+- update the solo machine client state to using the v2 solo machine protobuf defintion
+- prune all solo machine consensus states
+- prune all expired tendermint consensus states
+
+### In-Place Store Migrations
+
+In place store migrations will automatically be run after the binary is swapped and the application is started again during an upgrade proposal. 
+
+### Genesis Migrations
+
+To perform genesis migrations, the following code must be added to your existing migration code.
+
+```go
+// add imports as necessary
+import (
+    "github.com/cosmos/cosmos-sdk/codec"
+    ibcv100"github.com/cosmos/ibc-go/modules/core/legacy/v100"
+    ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
+)
+
+...
+
+// add in migrate cmd function
+newGenState, err = ibcv100.MigrateGenesis(clientCtx.InterfaceRegistry, newGenState, genDoc.GenesisTime)
+if err != nil {
+    return err
+}
+```
+
+**NOTE:** The genesis time MUST be updated before migrating IBC, otherwise the tendermint consensus state will not be pruned.
+
 ## IBC Keeper Changes
 
 The IBC Keeper now takes in the Upgrade Keeper. Please add the chains' Upgrade Keeper after the Staking Keeper:
