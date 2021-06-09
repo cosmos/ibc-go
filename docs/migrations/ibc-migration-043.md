@@ -49,7 +49,7 @@ To perform genesis migrations, the following code must be added to your existing
 ```go
 // add imports as necessary
 import (
-    ibcv100"github.com/cosmos/ibc-go/modules/core/legacy/v100"
+    ibcv100 "github.com/cosmos/ibc-go/modules/core/legacy/v100"
     ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
