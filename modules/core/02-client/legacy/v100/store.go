@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -29,6 +30,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 	var clients []string
 
+	// collect all clients
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
@@ -39,7 +41,6 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 		// key is clients/{clientid}/clientState
 		// Thus, keySplit[1] is clientID
 		clients = append(clients, keySplit[1])
-
 	}
 
 	for _, clientID := range clients {
@@ -58,16 +59,21 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 		switch clientType {
 		case exported.Solomachine:
-			var clientState *ClientState
-			if err := cdc.Unmarshal(bz, clientState); err != nil {
-				return err
+			any := &codectypes.Any{}
+			if err := cdc.Unmarshal(bz, any); err != nil {
+				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
+			}
+
+			clientState := &ClientState{}
+			if err := cdc.Unmarshal(any.Value, clientState); err != nil {
+				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 			}
 
 			updatedClientState := migrateSolomachine(clientState)
 
 			bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
 			if err != nil {
-				return err
+				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 			}
 
 			// update solomachine in store
@@ -119,13 +125,13 @@ func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
-		// key is in the format "clients/<clientID>/consensusStates/<height>"
-		if len(keySplit) != 4 || keySplit[2] != string(host.KeyConsensusStatePrefix) {
+		// key is in the format "consensusStates/<height>"
+		if len(keySplit) != 2 || keySplit[0] != string(host.KeyConsensusStatePrefix) {
 			continue
 		}
 
 		// collect consensus states to be pruned
-		heights = append(heights, types.MustParseHeight(keySplit[3]))
+		heights = append(heights, types.MustParseHeight(keySplit[1]))
 	}
 
 	// delete all consensus states

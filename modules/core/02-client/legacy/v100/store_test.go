@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/modules/core/02-client/legacy/v100"
+	"github.com/cosmos/ibc-go/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
@@ -42,7 +43,76 @@ func (suite *LegacyTestSuite) SetupTest() {
 // ensure all client states are migrated and all consensus states
 // are removed
 func (suite *LegacyTestSuite) TestMigrateStoreSolomachine() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
+	// create multiple legacy solo machine clients
+	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
+	solomachineMulti := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
+
+	// manually generate old proto buf definitions and set in store
+	// NOTE: we cannot use 'CreateClient' and 'UpdateClient' functions since we are
+	// using client states and consensus states which do not implement the exported.ClientState
+	// and exported.ConsensusState interface
+	for _, sm := range []*ibctesting.Solomachine{solomachine, solomachineMulti} {
+		clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(path.EndpointA.Chain.GetContext(), sm.ClientID)
+		clientState := sm.ClientState()
+
+		var seq uint64
+		if clientState.IsFrozen {
+			seq = 1
+		}
+
+		// generate old client state proto defintion
+		legacyClientState := &v100.ClientState{
+			Sequence:       clientState.Sequence,
+			FrozenSequence: seq,
+			ConsensusState: &v100.ConsensusState{
+				PublicKey:   clientState.ConsensusState.PublicKey,
+				Diversifier: clientState.ConsensusState.Diversifier,
+				Timestamp:   clientState.ConsensusState.Timestamp,
+			},
+			AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
+		}
+
+		// set client state
+		bz, err := path.EndpointA.Chain.App.AppCodec().MarshalInterface(legacyClientState)
+		suite.Require().NoError(err)
+		clientStore.Set(host.ClientStateKey(), bz)
+
+		// set some consensus states
+		height1 := types.NewHeight(0, 1)
+		height2 := types.NewHeight(1, 2)
+		height3 := types.NewHeight(0, 123)
+
+		bz, err = path.EndpointA.Chain.App.AppCodec().MarshalInterface(legacyClientState.ConsensusState)
+		suite.Require().NoError(err)
+		clientStore.Set(host.ConsensusStateKey(height1), bz)
+		clientStore.Set(host.ConsensusStateKey(height2), bz)
+		clientStore.Set(host.ConsensusStateKey(height3), bz)
+
+	}
+
+	// create tendermint clients
+	suite.coordinator.SetupClients(path)
+
+	err := v100.MigrateStore(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.GetSimApp().GetKey(host.StoreKey), path.EndpointA.Chain.App.AppCodec())
+	suite.Require().NoError(err)
+
+	// verify client state has been migrated
+	for _, sm := range []*ibctesting.Solomachine{solomachine, solomachineMulti} {
+		clientState, ok := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.GetClientState(path.EndpointA.Chain.GetContext(), sm.ClientID)
+		suite.Require().True(ok)
+		suite.Require().Equal(sm.ClientState(), clientState)
+	}
+
+	// verify consensus states have been removed
+	for _, sm := range []*ibctesting.Solomachine{solomachine, solomachineMulti} {
+		clientConsensusStates := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.GetAllConsensusStates(path.EndpointA.Chain.GetContext())
+		for _, client := range clientConsensusStates {
+			// GetAllConsensusStates should not return consensus states for our solo machine clients
+			suite.Require().NotEqual(sm.ClientID, client.ClientId)
+		}
+	}
 }
 
 // only test migration for tendermint clients
