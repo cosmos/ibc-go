@@ -203,7 +203,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	suite.Require().NoError(err)
 
 	// check path 1 client pruning
-	//	fmt.Println(migrated.ClientsConsensus)
 	for _, height := range path1PruneHeights {
 		for _, client := range migrated.ClientsConsensus {
 			if client.ClientId == path1.EndpointA.ClientID {
@@ -266,7 +265,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 
 	fmt.Println(string(indentedBz))
 
-	fmt.Println(string(expectedIndentedBz))
 
 	suite.Require().Equal(string(expectedIndentedBz), string(indentedBz))
 }
