@@ -18,11 +18,10 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // Migrate1to2 migrates from version 1 to 2.
 // This migration prunes:
-// - solo machine consensus states
-// - expired tendermint consensus states
-//
-// This migration migrates:
-// - solo machine client state from protobuf definition v1 to v2
+// - migrates solo machine client state from protobuf definition v1 to v2
+// - prunes solo machine consensus states
+// - prunes expired tendermint consensus states
+// - adds ProcessedHeight and Iteration keys for unexpired tendermint consensus states
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	clientMigrator := clientkeeper.NewMigrator(m.keeper.ClientKeeper)
 	if err := clientMigrator.Migrate1to2(ctx); err != nil {

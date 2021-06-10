@@ -24,6 +24,7 @@ import (
 // - Migrating solo machine client states from v1 to v2 protobuf definition
 // - Pruning all solo machine consensus states
 // - Pruning expired tendermint consensus states
+// - Adds ProcessedHeight and Iteration keys for unexpired tendermint consensus states
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) (err error) {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, host.KeyClientStorePrefix)

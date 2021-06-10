@@ -56,13 +56,13 @@ import (
 ...
 
 // add in migrate cmd function
-newGenState, err = ibcv100.MigrateGenesis(clientCtx.InterfaceRegistry, newGenState, genDoc.GenesisTime)
+newGenState, err = ibcv100.MigrateGenesis(clientCtx.InterfaceRegistry, newGenState, genDoc)
 if err != nil {
     return err
 }
 ```
 
-**NOTE:** The genesis time MUST be updated before migrating IBC, otherwise the tendermint consensus state will not be pruned.
+**NOTE:** The genesis chain-id, time and height MUST be updated before migrating IBC, otherwise the tendermint consensus state will not be pruned.
 
 ## IBC Keeper Changes
 

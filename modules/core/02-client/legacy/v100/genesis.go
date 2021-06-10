@@ -18,6 +18,7 @@ import (
 // - Update solo machine client state protobuf definition (v1 to v2)
 // - Remove all solo machine consensus states
 // - Remove all expired tendermint consensus states
+// - Adds ProcessedHeight and Iteration keys for unexpired tendermint consensus states
 func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, genesisBlockTime time.Time, selfHeight exported.Height) (*types.GenesisState, error) {
 	// To prune the consensus states, we will create new clientsConsensus
 	// and clientsMetadata. These slices will be filled up with consensus states
