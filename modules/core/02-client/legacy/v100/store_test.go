@@ -185,4 +185,21 @@ func (suite *LegacyTestSuite) TestMigrateStoreTendermint() {
 		expectedConsKey := ibctmtypes.GetIterationKey(clientStore, pruneHeight)
 		suite.Require().Nil(expectedConsKey, i)
 	}
+
+	// ensure metadata is set for unexpired consensus state
+	height := path.EndpointA.GetClientState().GetLatestHeight()
+	consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, height)
+	suite.Require().True(ok)
+	suite.Require().NotNil(consState)
+
+	processedTime, ok := ibctmtypes.GetProcessedTime(clientStore, height)
+	suite.Require().True(ok)
+	suite.Require().NotEqual(uint64(0), processedTime)
+
+	processedHeight, ok := ibctmtypes.GetProcessedHeight(clientStore, height)
+	suite.Require().True(ok)
+	suite.Require().Equal(types.GetSelfHeight(path.EndpointA.Chain.GetContext()), processedHeight)
+
+	consKey := ibctmtypes.GetIterationKey(clientStore, height)
+	suite.Require().Equal(host.ConsensusStateKey(height), consKey)
 }

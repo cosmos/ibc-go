@@ -87,7 +87,16 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into tendermint client state")
 			}
 
-			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, clientState.(*ibctmtypes.ClientState)); err != nil {
+			tmClientState, ok := clientState.(*ibctmtypes.ClientState)
+			if !ok {
+				return sdkerrors.Wrap(types.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+			}
+
+			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState); err != nil {
+				return err
+			}
+
+			if err = addConsensusMetadata(ctx, clientStore, cdc, tmClientState); err != nil {
 				return err
 			}
 
@@ -138,4 +147,37 @@ func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 	for _, height := range heights {
 		clientStore.Delete(host.ConsensusStateKey(height))
 	}
+}
+
+// addConsensusMetadata adds the iteration key and processed height for all unexpired tendermint consensus states
+// These keys were not included in the previous release of the IBC module.
+func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ibctmtypes.ClientState) error {
+	var heights []exported.Height
+
+	metadataCb := func(height exported.Height) bool {
+		consState, err := ibctmtypes.GetConsensusState(clientStore, cdc, height)
+		// this error should never occur
+		if err != nil {
+			return true
+		}
+
+		if !clientState.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+			heights = append(heights, height)
+		}
+
+		return false
+	}
+
+	if err := ibctmtypes.IterateConsensusStateAscending(clientStore, metadataCb); err != nil {
+		return err
+	}
+
+	for _, height := range heights {
+		// set the iteration key and processed height
+		// these keys were not included in the SDK v0.42.0 release
+		ibctmtypes.SetProcessedHeight(clientStore, height, clienttypes.GetSelfHeight(ctx))
+		ibctmtypes.SetIterationKey(clientStore, height)
+	}
+
+	return nil
 }

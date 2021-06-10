@@ -17,7 +17,7 @@ import (
 // - Update solo machine client state protobuf definition (v1 to v2)
 // - Remove all solo machine consensus states
 // - Remove all expired tendermint consensus states
-func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, genesisBlockTime time.Time) (*types.GenesisState, error) {
+func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, genesisBlockTime time.Time, selfHeight exported.Height) (*types.GenesisState, error) {
 	// To prune the consensus states, we will create new clientsConsensus
 	// and clientsMetadata. These slices will be filled up with consensus states
 	// which should not be pruned. No solo machine consensus states should be added
@@ -102,9 +102,14 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 								// only unexpired consensus state heights should be added
 								var clientMetadata []types.GenesisMetadata
 								for _, metadata := range identifiedGenMetadata.ClientMetadata {
-									if bytes.Equal(metadata.Key, ibctmtypes.IterationKey(height)) ||
-										bytes.Equal(metadata.Key, ibctmtypes.ProcessedTimeKey(height)) ||
-										bytes.Equal(metadata.Key, ibctmtypes.ProcessedHeightKey(height)) {
+									// the previous version of IBC only contained the processed time metadata
+									// if we find the processed time metadata for an unexpired height, add the
+									// iteration key and processed height keys.
+									if bytes.Equal(metadata.Key, ibctmtypes.ProcessedTimeKey(height)) {
+										clientMetadata = append(clientMetadata, types.GenesisMetadata{
+											Key:   ibctmtypes.ProcessedHeightKey(height),
+											Value: []byte(selfHeight.String()),
+										})
 										clientMetadata = append(clientMetadata, metadata)
 									}
 								}
