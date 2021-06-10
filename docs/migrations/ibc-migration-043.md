@@ -31,10 +31,10 @@ Update the import paths before running `go mod tidy`.
 
 Chains may choose to upgrade via an upgrade proposal or genesis upgrades. Both in-place store migrations and genesis migrations are supported. 
 
-**WARNING**: Please read at least the quick guide for [IBC client upgrades](../ibc/upgrades/README.md) before upgrading your chain. It is highly recommended to not change the chain id during an upgrade, otherwise you must follow the IBC client upgrade instructions.
+**WARNING**: Please read at least the quick guide for [IBC client upgrades](../ibc/upgrades/README.md) before upgrading your chain. It is highly recommended you do not change the chain-ID during an upgrade, otherwise you must follow the IBC client upgrade instructions.
 
 Both in-place store migrations and genesis migrations will:
-- update the solo machine client state to using the v2 solo machine protobuf defintion
+- migrate the solo machine client state from v1 to v2 protobuf definitions
 - prune all solo machine consensus states
 - prune all expired tendermint consensus states
 
@@ -49,8 +49,7 @@ To perform genesis migrations, the following code must be added to your existing
 ```go
 // add imports as necessary
 import (
-    "github.com/cosmos/cosmos-sdk/codec"
-    ibcv100"github.com/cosmos/ibc-go/modules/core/legacy/v100"
+    ibcv100 "github.com/cosmos/ibc-go/modules/core/legacy/v100"
     ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
