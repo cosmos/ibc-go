@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 )
@@ -111,6 +112,11 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 											Value: []byte(selfHeight.String()),
 										})
 										clientMetadata = append(clientMetadata, metadata)
+										clientMetadata = append(clientMetadata, types.GenesisMetadata{
+											Key:   ibctmtypes.IterationKey(height),
+											Value: host.ConsensusStateKey(height),
+										})
+
 									}
 								}
 
