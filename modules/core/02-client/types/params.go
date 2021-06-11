@@ -10,7 +10,7 @@ import (
 
 var (
 	// DefaultAllowedClients are "06-solomachine" and "07-tendermint"
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, "wasm_dummy"}
+	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint}
 
 	DefaultWASMClientEnabled = false
 
@@ -26,9 +26,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new parameter configuration for the ibc client module
-func NewParams(wasmClientAllowed bool, allowedClients ...string) Params {
+func NewParams(wasmClientEnabled bool, allowedClients ...string) Params {
 	return Params{
-		WasmClientsEnabled: wasmClientAllowed,
+		WasmClientsEnabled: wasmClientEnabled,
 		AllowedClients:     allowedClients,
 	}
 }

@@ -12,6 +12,7 @@ import (
 )
 
 const GasMultiplier uint64 = 100
+const maxGasLimit = uint64(0x7FFFFFFFFFFFFFFF)
 
 var _ exported.ClientState = (*ClientState)(nil)
 
@@ -145,7 +146,7 @@ func queryContractWithStore(codeID []byte, store sdk.KVStore, msg []byte) ([]byt
 	mockFailureAPI := *api.NewMockFailureAPI()
 	mockQuerier := api.MockQuerier{}
 
-	resp, _, err := keeper.WasmVM.Query(codeID, mockEnv, msg, store, mockFailureAPI, mockQuerier, mockGasMeter, 0)
+	resp, _, err := keeper.WasmVM.Query(codeID, mockEnv, msg, store, mockFailureAPI, mockQuerier, mockGasMeter, maxGasLimit)
 	return resp, err
 }
 

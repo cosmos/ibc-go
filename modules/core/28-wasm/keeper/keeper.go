@@ -9,7 +9,6 @@ import (
 	wasm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 )
 
@@ -65,7 +64,7 @@ func (k Keeper) PushNewWASMCode(ctx sdk.Context, clientType string, code []byte)
 	store := ctx.KVStore(k.storeKey)
 	codeHash := generateWASMCodeHash(code)
 
-	latestVersionKey := host.LatestWASMCode(clientType)
+	latestVersionKey := types.LatestWASMCode(clientType)
 
 	if isValidWASMCode, err := k.wasmValidator.validateWASMCode(code); err != nil {
 		return nil, "", fmt.Errorf("unable to validate wasm code, error: %s", err)
@@ -78,8 +77,8 @@ func (k Keeper) PushNewWASMCode(ctx sdk.Context, clientType string, code []byte)
 		return nil, "", fmt.Errorf("invalid wasm code")
 	}
 
-	codekey := host.WASMCode(clientType, codeHash)
-	entryKey := host.WASMCodeEntry(clientType, codeHash)
+	codekey := types.WASMCode(clientType, codeHash)
+	entryKey := types.WASMCodeEntry(clientType, codeHash)
 
 	latestVersionCodeHash := store.Get(latestVersionKey)
 
@@ -95,7 +94,7 @@ func (k Keeper) PushNewWASMCode(ctx sdk.Context, clientType string, code []byte)
 		CodeId:           codeID,
 	}
 
-	previousVersionEntryKey := host.WASMCodeEntry(clientType, string(latestVersionCodeHash))
+	previousVersionEntryKey := types.WASMCodeEntry(clientType, string(latestVersionCodeHash))
 	previousVersionEntryBz := store.Get(previousVersionEntryKey)
 	if len(previousVersionEntryBz) != 0 {
 		var previousEntry types.WasmCodeEntry

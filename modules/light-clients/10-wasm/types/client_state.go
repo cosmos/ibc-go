@@ -237,7 +237,7 @@ func (c *ClientState) ZeroCustomFields() exported.ClientState {
 		// TODO: Handle error
 	}
 
-	gasMeter := sdk.NewGasMeter(0)
+	gasMeter := sdk.NewGasMeter(maxGasLimit)
 	out, err := callContractWithEnvAndMeter(c.CodeId, nil, &FailKVStore{}, api.MockEnv(), gasMeter, encodedData)
 	if err != nil {
 		// TODO: Handle error

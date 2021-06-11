@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 )
 
@@ -27,14 +26,14 @@ func (q Keeper) LatestWASMCode(c context.Context, query *types.LatestWASMCodeQue
 	ctx := sdk.UnwrapSDKContext(c)
 	store := ctx.KVStore(q.storeKey)
 
-	latestCodeKey := host.LatestWASMCode(clientType)
+	latestCodeKey := types.LatestWASMCode(clientType)
 	latestCodeID := store.Get(latestCodeKey)
 	if latestCodeID == nil {
 		return nil, status.Error(codes.NotFound, "no code has been uploaded till now.")
 	}
 
 	return &types.LatestWASMCodeResponse{
-		Code: store.Get(host.WASMCode(clientType, string(latestCodeID))),
+		Code: store.Get(types.WASMCode(clientType, string(latestCodeID))),
 	}, nil
 }
 
@@ -51,13 +50,13 @@ func (q Keeper) LatestWASMCodeEntry(c context.Context, query *types.LatestWASMCo
 
 	ctx := sdk.UnwrapSDKContext(c)
 	store := ctx.KVStore(q.storeKey)
-	latestCodeKey := host.LatestWASMCode(clientType)
+	latestCodeKey := types.LatestWASMCode(clientType)
 	latestCodeID := store.Get(latestCodeKey)
 	if latestCodeID == nil {
 		return nil, status.Error(codes.NotFound, "no code has been uploaded till now.")
 	}
 
-	bz := store.Get(host.WASMCodeEntry(clientType, string(latestCodeID)))
+	bz := store.Get(types.WASMCodeEntry(clientType, string(latestCodeID)))
 	var entry types.WasmCodeEntry
 	if err := q.cdc.Unmarshal(bz, &entry); err != nil {
 		return nil, status.Error(codes.Internal, "internal error")
