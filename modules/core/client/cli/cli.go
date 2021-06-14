@@ -4,12 +4,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	wasmmanager "github.com/cosmos/ibc-go/modules/core/28-wasm"
-	wasm "github.com/cosmos/ibc-go/modules/light-clients/10-wasm"
 	ibcclient "github.com/cosmos/ibc-go/modules/core/02-client"
 	connection "github.com/cosmos/ibc-go/modules/core/03-connection"
 	channel "github.com/cosmos/ibc-go/modules/core/04-channel"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	wasmmanager "github.com/cosmos/ibc-go/modules/core/28-wasm"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -26,7 +25,6 @@ func GetTxCmd() *cobra.Command {
 		ibcclient.GetTxCmd(),
 		channel.GetTxCmd(),
 		wasmmanager.GetTxCmd(),
-		wasm.GetTxCmd(),
 	)
 
 	return ibcTxCmd
