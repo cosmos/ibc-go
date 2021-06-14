@@ -15,6 +15,9 @@ const (
 	// TypeClientMisbehaviour is the shared evidence misbehaviour type
 	TypeClientMisbehaviour string = "client_misbehaviour"
 
+	// WasmClientPrefix is used to indicate that the client is a on-chain Wasm blob.
+	WasmClientPrefix string = "wasm-"
+
 	// Solomachine is used to indicate that the light client is a solo machine.
 	Solomachine string = "06-solomachine"
 
