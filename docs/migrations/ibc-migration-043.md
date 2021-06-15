@@ -78,9 +78,9 @@ import (
 // add in migrate cmd function
 // expectedTimePerBlock is a new connection parameter
 // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
-newGenState, err = ibcv100.MigrateGenesis(clientCtx.InterfaceRegistry, newGenState, genDoc, expectedTimePerBlock)
+newGenState, err = ibcv100.MigrateGenesis(newGenState, clientCtx, *genDoc, expectedTimePerBlock)
 if err != nil {
-    return err
+    return err 
 }
 ```
 
