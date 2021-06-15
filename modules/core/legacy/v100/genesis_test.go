@@ -13,6 +13,7 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/modules/core/02-client"
 	clientv100 "github.com/cosmos/ibc-go/modules/core/02-client/legacy/v100"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/legacy/v100"
 	"github.com/cosmos/ibc-go/modules/core/types"
@@ -183,7 +184,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	}
 
 	// NOTE: genesis time isn't updated since we aren't testing for tendermint consensus state pruning
-	migrated, err := v100.MigrateGenesis(appState, clientCtx, genDoc)
+	migrated, err := v100.MigrateGenesis(appState, clientCtx, genDoc, uint64(connectiontypes.DefaultTimePerBlock))
 	suite.Require().NoError(err)
 
 	expectedAppState := genutiltypes.AppMap{}

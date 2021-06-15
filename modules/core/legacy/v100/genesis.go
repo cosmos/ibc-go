@@ -8,6 +8,7 @@ import (
 
 	clientv100 "github.com/cosmos/ibc-go/modules/core/02-client/legacy/v100"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/types"
 )
@@ -17,7 +18,7 @@ import (
 // - Update solo machine client state protobuf definition (v1 to v2)
 // - Remove all solo machine consensus states
 // - Remove all expired tendermint consensus states
-func MigrateGenesis(appState genutiltypes.AppMap, clientCtx client.Context, genDoc tmtypes.GenesisDoc) (genutiltypes.AppMap, error) {
+func MigrateGenesis(appState genutiltypes.AppMap, clientCtx client.Context, genDoc tmtypes.GenesisDoc, maxExpectedTimePerBlock uint64) (genutiltypes.AppMap, error) {
 	if appState[host.ModuleName] != nil {
 		// ensure legacy solo machines are registered
 		clientv100.RegisterInterfaces(clientCtx.InterfaceRegistry)
@@ -32,6 +33,16 @@ func MigrateGenesis(appState genutiltypes.AppMap, clientCtx client.Context, genD
 		}
 
 		ibcGenState.ClientGenesis = *clientGenState
+
+		// set max expected time per block
+		connectionGenesis := connectiontypes.GenesisState{
+			Connections:            ibcGenState.ConnectionGenesis.Connections,
+			ClientConnectionPaths:  ibcGenState.ConnectionGenesis.ClientConnectionPaths,
+			NextConnectionSequence: ibcGenState.ConnectionGenesis.NextConnectionSequence,
+			Params:                 connectiontypes.NewParams(maxExpectedTimePerBlock),
+		}
+
+		ibcGenState.ConnectionGenesis = connectionGenesis
 
 		// delete old genesis state
 		delete(appState, host.ModuleName)

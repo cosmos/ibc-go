@@ -38,9 +38,29 @@ Both in-place store migrations and genesis migrations will:
 - prune all solo machine consensus states
 - prune all expired tendermint consensus states
 
+Chains must set a new connection parameter during either in place store migrations or genesis migration. The new parameter, max expected block time, is used to enforce packet processing delays on the receiving end of an IBC packet flow. Checkout the [docs](https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2) for more information.
+
 ### In-Place Store Migrations
 
-In place store migrations will automatically be run after the binary is swapped and the application is started again during an upgrade proposal. 
+The new chain binary will need to run migrations in the upgrade handler. The fromVM (previous module version) for the IBC module should be 1. This will allow migrations to be run for IBC updating the version from 1 to 2.
+
+Ex:
+```go
+app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
+        func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+            // set max expected block time parameter. Replace the default with your expected value
+            // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+            app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+
+            fromVM := map[string]uint64{
+                ... // other modules
+                "ibc":          1,
+                ... 
+            }   
+            return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+        })      
+
+```
 
 ### Genesis Migrations
 
@@ -56,13 +76,16 @@ import (
 ...
 
 // add in migrate cmd function
-newGenState, err = ibcv100.MigrateGenesis(clientCtx.InterfaceRegistry, newGenState, genDoc)
+// expectedTimePerBlock is a new connection parameter
+// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+newGenState, err = ibcv100.MigrateGenesis(clientCtx.InterfaceRegistry, newGenState, genDoc, expectedTimePerBlock)
 if err != nil {
     return err
 }
 ```
 
 **NOTE:** The genesis chain-id, time and height MUST be updated before migrating IBC, otherwise the tendermint consensus state will not be pruned.
+
 
 ## IBC Keeper Changes
 
