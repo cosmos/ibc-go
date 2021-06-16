@@ -6,7 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/modules/core/02-client/types";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
-import "cosmos/upgrade/v1beta1/upgrade.proto";
+import "cosmos/upgrade/v1/upgrade.proto";
 
 // IdentifiedClientState defines a client state with an additional client
 // identifier field.
@@ -60,9 +60,9 @@ message UpgradeProposal {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.equal)            = true;
 
-  string                      title       = 1;
-  string                      description = 2;
-  cosmos.upgrade.v1beta1.Plan plan        = 3 [(gogoproto.nullable) = false];
+  string                 title       = 1;
+  string                 description = 2;
+  cosmos.upgrade.v1.Plan plan        = 3 [(gogoproto.nullable) = false];
 
   // An UpgradedClientState must be provided to perform an IBC breaking upgrade.
   // This will make the chain commit to the correct upgraded (self) client state
