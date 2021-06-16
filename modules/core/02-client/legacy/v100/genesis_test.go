@@ -34,6 +34,8 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 
 	// create tendermint clients
 	suite.coordinator.SetupClients(path)
+	err := path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 	clientGenState := ibcclient.ExportGenesis(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper)
 
 	// manually generate old proto buf definitions and set in genesis
@@ -117,15 +119,19 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 
 	// migrate store get expected genesis
 	// store migration and genesis migration should produce identical results
-	err := v100.MigrateStore(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.GetSimApp().GetKey(host.StoreKey), path.EndpointA.Chain.App.AppCodec())
+	err = v100.MigrateStore(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.GetSimApp().GetKey(host.StoreKey), path.EndpointA.Chain.App.AppCodec())
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper)
 
+	// NOTE: genesis time isn't updated since we aren't testing for tendermint consensus state pruning
+	migrated, err := v100.MigrateGenesis(codec.NewProtoCodec(clientCtx.InterfaceRegistry), &clientGenState, suite.coordinator.CurrentTime, types.GetSelfHeight(suite.chainA.GetContext()))
+	suite.Require().NoError(err)
+
 	// 'ExportGenesis' order metadata keys by processedheight, processedtime for all heights, then it appends all iteration keys
-	// In order to match the genesis migration with export genesis we must reorder the iteration keys to be last
+	// In order to match the genesis migration with export genesis (from store migrations) we must reorder the iteration keys to be last
 	// This isn't ideal, but it is better than modifying the genesis migration from a previous version to match the export genesis of a new version
 	// which provides no benefit except nicer testing
-	for i, clientMetadata := range expectedClientGenState.ClientsMetadata {
+	for i, clientMetadata := range migrated.ClientsMetadata {
 		var updatedMetadata []types.GenesisMetadata
 		var iterationKeys []types.GenesisMetadata
 		for _, metadata := range clientMetadata.ClientMetadata {
@@ -136,15 +142,11 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 			}
 		}
 		updatedMetadata = append(updatedMetadata, iterationKeys...)
-		expectedClientGenState.ClientsMetadata[i] = types.IdentifiedGenesisMetadata{
+		migrated.ClientsMetadata[i] = types.IdentifiedGenesisMetadata{
 			ClientId:       clientMetadata.ClientId,
 			ClientMetadata: updatedMetadata,
 		}
 	}
-
-	// NOTE: genesis time isn't updated since we aren't testing for tendermint consensus state pruning
-	migrated, err := v100.MigrateGenesis(codec.NewProtoCodec(clientCtx.InterfaceRegistry), &clientGenState, suite.coordinator.CurrentTime, types.GetSelfHeight(suite.chainA.GetContext()))
-	suite.Require().NoError(err)
 
 	bz, err := clientCtx.JSONCodec.MarshalJSON(&expectedClientGenState)
 	suite.Require().NoError(err)
@@ -203,6 +205,8 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 
 	// create the consensus state that can be used as trusted height for next update
 	path1.EndpointA.UpdateClient()
+	path1.EndpointA.UpdateClient()
+	path2.EndpointA.UpdateClient()
 	path2.EndpointA.UpdateClient()
 
 	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
@@ -221,11 +225,15 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(path1.EndpointA.Chain.GetContext(), path1.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper)
 
+	migrated, err := v100.MigrateGenesis(codec.NewProtoCodec(clientCtx.InterfaceRegistry), &clientGenState, suite.coordinator.CurrentTime, types.GetSelfHeight(suite.chainA.GetContext()))
+	suite.Require().NoError(err)
+
 	// 'ExportGenesis' order metadata keys by processedheight, processedtime for all heights, then it appends all iteration keys
 	// In order to match the genesis migration with export genesis we must reorder the iteration keys to be last
 	// This isn't ideal, but it is better than modifying the genesis migration from a previous version to match the export genesis of a new version
 	// which provides no benefit except nicer testing
-	for i, clientMetadata := range expectedClientGenState.ClientsMetadata {
+	for i, clientMetadata := range migrated.ClientsMetadata {
+		i := i
 		var updatedMetadata []types.GenesisMetadata
 		var iterationKeys []types.GenesisMetadata
 		for _, metadata := range clientMetadata.ClientMetadata {
@@ -236,14 +244,11 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 			}
 		}
 		updatedMetadata = append(updatedMetadata, iterationKeys...)
-		expectedClientGenState.ClientsMetadata[i] = types.IdentifiedGenesisMetadata{
+		migrated.ClientsMetadata[i] = types.IdentifiedGenesisMetadata{
 			ClientId:       clientMetadata.ClientId,
 			ClientMetadata: updatedMetadata,
 		}
 	}
-
-	migrated, err := v100.MigrateGenesis(codec.NewProtoCodec(clientCtx.InterfaceRegistry), &clientGenState, suite.coordinator.CurrentTime, types.GetSelfHeight(suite.chainA.GetContext()))
-	suite.Require().NoError(err)
 
 	// check path 1 client pruning
 	for _, height := range path1PruneHeights {
@@ -307,7 +312,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	suite.Require().NoError(err)
 
 	fmt.Println(string(indentedBz))
-
 
 	suite.Require().Equal(string(expectedIndentedBz), string(indentedBz))
 }

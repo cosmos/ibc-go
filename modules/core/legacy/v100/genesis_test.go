@@ -1,7 +1,6 @@
 package v100_test
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -17,7 +16,6 @@ import (
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/cosmos/ibc-go/modules/core/legacy/v100"
 	"github.com/cosmos/ibc-go/modules/core/types"
-	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 	"github.com/cosmos/ibc-go/testing/simapp"
 )
@@ -61,6 +59,8 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	solomachineMulti := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
 
 	// create tendermint clients
+	// NOTE: only 1 set of metadata is created, we aren't testing ordering
+	// The purpose of this test is to ensure the genesis states can be marshalled/unmarshalled
 	suite.coordinator.SetupClients(path)
 	clientGenState := ibcclient.ExportGenesis(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper)
 
@@ -148,27 +148,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	err := clientv100.MigrateStore(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.GetSimApp().GetKey(host.StoreKey), path.EndpointA.Chain.App.AppCodec())
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper)
-
-	// 'ExportGenesis' order metadata keys by processedheight, processedtime for all heights, then it appends all iteration keys
-	// In order to match the genesis migration with export genesis we must reorder the iteration keys to be last
-	// This isn't ideal, but it is better than modifying the genesis migration from a previous version to match the export genesis of a new version
-	// which provides no benefit except nicer testing
-	for i, clientMetadata := range expectedClientGenState.ClientsMetadata {
-		var updatedMetadata []clienttypes.GenesisMetadata
-		var iterationKeys []clienttypes.GenesisMetadata
-		for _, metadata := range clientMetadata.ClientMetadata {
-			if bytes.HasPrefix(metadata.Key, []byte(ibctmtypes.KeyIterateConsensusStatePrefix)) {
-				iterationKeys = append(iterationKeys, metadata)
-			} else {
-				updatedMetadata = append(updatedMetadata, metadata)
-			}
-		}
-		updatedMetadata = append(updatedMetadata, iterationKeys...)
-		expectedClientGenState.ClientsMetadata[i] = clienttypes.IdentifiedGenesisMetadata{
-			ClientId:       clientMetadata.ClientId,
-			ClientMetadata: updatedMetadata,
-		}
-	}
 
 	// NOTE: these lines are added in comparison to 02-client/legacy/v100
 	// generate appState with old ibc genesis state

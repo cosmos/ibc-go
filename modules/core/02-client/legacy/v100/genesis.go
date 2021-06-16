@@ -90,6 +90,9 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 						})
 					}
 
+					// collect metadata for unexpired consensus states
+					var clientMetadata []types.GenesisMetadata
+
 					// remove all expired tendermint consensus state metadata by adding only
 					// unexpired consensus state metadata
 					for _, consState := range unexpiredConsensusStates {
@@ -100,9 +103,8 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 								// obtain height for consensus state being pruned
 								height := consState.Height
 
-								// iterate through metadata and find metadata which should be pruned
-								// only unexpired consensus state heights should be added
-								var clientMetadata []types.GenesisMetadata
+								// iterate through metadata and find metadata for current unexpired height
+								// only unexpired consensus state metadata should be added
 								for _, metadata := range identifiedGenMetadata.ClientMetadata {
 									// the previous version of IBC only contained the processed time metadata
 									// if we find the processed time metadata for an unexpired height, add the
@@ -112,7 +114,7 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 											Key:   ibctmtypes.ProcessedHeightKey(height),
 											Value: []byte(selfHeight.String()),
 										})
-										clientMetadata = append(clientMetadata, metadata)
+										clientMetadata = append(clientMetadata, metadata) // processed time
 										clientMetadata = append(clientMetadata, types.GenesisMetadata{
 											Key:   ibctmtypes.IterationKey(height),
 											Value: host.ConsensusStateKey(height),
@@ -121,15 +123,17 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 									}
 								}
 
-								// if we have metadata for unexipred consensus states, add it to consensusMetadata
-								if len(clientMetadata) != 0 {
-									clientsMetadata = append(clientsMetadata, types.IdentifiedGenesisMetadata{
-										ClientId:       client.ClientId,
-										ClientMetadata: clientMetadata,
-									})
-								}
 							}
 						}
+
+					}
+
+					// if we have metadata for unexipred consensus states, add it to consensusMetadata
+					if len(clientMetadata) != 0 {
+						clientsMetadata = append(clientsMetadata, types.IdentifiedGenesisMetadata{
+							ClientId:       client.ClientId,
+							ClientMetadata: clientMetadata,
+						})
 					}
 
 				default:
