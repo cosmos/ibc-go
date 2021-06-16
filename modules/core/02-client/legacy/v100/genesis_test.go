@@ -233,7 +233,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	// This isn't ideal, but it is better than modifying the genesis migration from a previous version to match the export genesis of a new version
 	// which provides no benefit except nicer testing
 	for i, clientMetadata := range migrated.ClientsMetadata {
-		i := i
 		var updatedMetadata []types.GenesisMetadata
 		var iterationKeys []types.GenesisMetadata
 		for _, metadata := range clientMetadata.ClientMetadata {
