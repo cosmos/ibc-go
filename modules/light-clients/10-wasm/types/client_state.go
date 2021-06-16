@@ -255,7 +255,7 @@ Following functions only queries the state so should be part of query call
 */
 
 func (c *ClientState) ClientType() string {
-	return c.Type
+	return exported.Wasm
 }
 
 func (c *ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {

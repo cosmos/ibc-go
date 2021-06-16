@@ -9,7 +9,7 @@ import (
 var _ exported.Header = (*Header)(nil)
 
 func (m *Header) ClientType() string {
-	return m.Type
+	return exported.Wasm
 }
 
 func (m *Header) GetHeight() exported.Height {

@@ -14,12 +14,10 @@ service Msg {
 // Message type to push new wasm code
 message MsgPushNewWASMCode {
   string signer      = 1;
-  string client_type = 2;
   bytes  code        = 3;
 }
 
 // Response in case of successful handling
 message MsgPushNewWASMCodeResponse {
   bytes  code_id   = 1;
-  string code_hash = 2;
 }

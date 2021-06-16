@@ -13,6 +13,7 @@ const (
 	AttributeKeyClientType      = "client_type"
 	AttributeKeyConsensusHeight = "consensus_height"
 	AttributeKeyHeader          = "header"
+	AttributeKeyWasmCodeID      = "wasm_code_id"
 )
 
 // IBC client events vars
@@ -22,6 +23,7 @@ var (
 	EventTypeUpgradeClient        = "upgrade_client"
 	EventTypeSubmitMisbehaviour   = "client_misbehaviour"
 	EventTypeUpdateClientProposal = "update_client_proposal"
+	EventTypePushWasmCode         = "push_wasm_code"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", host.ModuleName, SubModuleName)
 )

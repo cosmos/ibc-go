@@ -12,14 +12,8 @@ var (
 	// DefaultAllowedClients are "06-solomachine" and "07-tendermint"
 	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint}
 
-	// DefaultWasmClientsEnabled is false
-	DefaultWasmClientsEnabled = false
-
 	// KeyAllowedClients is store's key for AllowedClients Params
 	KeyAllowedClients = []byte("AllowedClients")
-
-	// KeyWasmClientsEnabled indicates whether Wasm light clients are allowed
-	KeyWasmClientsEnabled = []byte("WasmClientsEnabled")
 )
 
 // ParamKeyTable type declaration for parameters
@@ -28,16 +22,15 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new parameter configuration for the ibc client module
-func NewParams(wasmClientEnabled bool, allowedClients ...string) Params {
+func NewParams(allowedClients ...string) Params {
 	return Params{
-		WasmClientsEnabled: wasmClientEnabled,
-		AllowedClients:     allowedClients,
+		AllowedClients: allowedClients,
 	}
 }
 
 // DefaultParams is the default parameter configuration for the ibc-client module
 func DefaultParams() Params {
-	return NewParams(DefaultWasmClientsEnabled, DefaultAllowedClients...)
+	return NewParams(DefaultAllowedClients...)
 }
 
 // Validate all ibc-client module parameters
@@ -54,16 +47,11 @@ func (p Params) Validate() error {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyAllowedClients, p.AllowedClients, validateClients),
-		paramtypes.NewParamSetPair(KeyWasmClientsEnabled, p.WasmClientsEnabled, validateWasmClientEnabledFlag),
 	}
 }
 
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	if p.WasmClientsEnabled && isWasmClient(clientType) {
-		return true
-	}
-
 	for _, allowedClient := range p.AllowedClients {
 		if allowedClient == clientType {
 			return true
@@ -94,8 +82,4 @@ func validateClients(i interface{}) error {
 	}
 
 	return nil
-}
-
-func isWasmClient(clientType string) bool {
-	return strings.HasPrefix(clientType, exported.WasmClientPrefix)
 }

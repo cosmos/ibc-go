@@ -13,17 +13,16 @@ import (
 // NewPushNewWASMCodeCmd returns the command to create a PushNewWASMCode transaction
 func NewPushNewWASMCodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "push_wasm client_type wasm_file",
+		Use:   "push-wasm [wasm-file]",
 		Short: "Reads wasm code from the file and creates push transaction",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			clientType := args[0]
-			fileName := args[1]
+			fileName := args[0]
 
 			code, err := ioutil.ReadFile(fileName)
 			if err != nil {
@@ -31,9 +30,8 @@ func NewPushNewWASMCodeCmd() *cobra.Command {
 			}
 
 			msg := &types.MsgPushNewWASMCode{
-				ClientType: clientType,
-				Code:       code,
-				Signer:     clientCtx.GetFromAddress().String(),
+				Code:   code,
+				Signer: clientCtx.GetFromAddress().String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

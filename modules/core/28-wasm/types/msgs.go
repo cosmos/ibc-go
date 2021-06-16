@@ -17,14 +17,8 @@ func (m *MsgPushNewWASMCode) Type() string {
 }
 
 func (m *MsgPushNewWASMCode) ValidateBasic() error {
-	if len(m.ClientType) == 0 {
-		return sdkerrors.Wrapf(ErrEmptyClientType,
-			"empty client type",
-		)
-	}
-
 	if len(m.Code) == 0 {
-		return sdkerrors.Wrapf(ErrEmptyWASMCode,
+		return sdkerrors.Wrapf(ErrWasmEmptyCode,
 			"empty wasm code",
 		)
 	}

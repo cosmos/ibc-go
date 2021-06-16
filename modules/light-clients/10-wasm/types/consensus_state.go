@@ -11,7 +11,7 @@ import (
 var _ exported.ConsensusState = (*ConsensusState)(nil)
 
 func (m *ConsensusState) ClientType() string {
-	return m.Type
+	return exported.Wasm
 }
 
 func (m *ConsensusState) GetRoot() exported.Root {

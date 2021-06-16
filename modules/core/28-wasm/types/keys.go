@@ -1,19 +1,14 @@
 package types
 
-import "fmt"
+import (
+	"encoding/hex"
+	"fmt"
+)
 
 const (
 	SubModuleName = "wasm-manager"
 )
 
-func LatestWASMCode(clientType string) []byte {
-	return []byte(fmt.Sprintf("%s/latest", clientType))
-}
-
-func WASMCode(clientType string, hash string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", clientType, hash))
-}
-
-func WASMCodeEntry(clientType string, codeID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/entry", clientType, codeID))
+func CodeID(codeID []byte) []byte {
+	return []byte(fmt.Sprintf("code_id/%s", hex.EncodeToString(codeID)))
 }

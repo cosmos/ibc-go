@@ -3,10 +3,10 @@ package keeper
 import (
 	"context"
 
-	wasmtypes "github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	wasmtypes "github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 )
 
 // ClientState implements the IBC QueryServer interface
@@ -134,12 +134,7 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNe
 	return q.ChannelKeeper.NextSequenceReceive(c, req)
 }
 
-// LatestWASMCode implements the IBC QueryServer interface
-func (q Keeper) LatestWASMCode(c context.Context, req *wasmtypes.LatestWASMCodeQuery) (*wasmtypes.LatestWASMCodeResponse, error) {
-	return q.WasmKeeper.LatestWASMCode(c, req)
-}
-
-// LatestWASMCodeEntry implements the IBC QueryServer interface
-func (q Keeper) LatestWASMCodeEntry(c context.Context, req *wasmtypes.LatestWASMCodeEntryQuery) (*wasmtypes.LatestWASMCodeEntryResponse, error) {
-	return q.WasmKeeper.LatestWASMCodeEntry(c, req)
+// WasmCode implements the IBC QueryServer interface
+func (q Keeper) WasmCode(c context.Context, req *wasmtypes.WasmCodeQuery) (*wasmtypes.WasmCodeResponse, error) {
+	return q.WasmKeeper.WasmCode(c, req)
 }

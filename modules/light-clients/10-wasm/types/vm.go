@@ -19,11 +19,8 @@ var _ exported.ClientState = (*ClientState)(nil)
 type queryResponse struct {
 	ProofSpecs      []*ics23.ProofSpec       `json:"proof_specs,omitempty"`
 	Height          types2.Height            `json:"height,omitempty"`
-	IsFrozen        bool                     `json:"is_frozen,omitempty"`
-	FrozenHeight    types2.Height            `json:"frozen_height,omitempty"`
 	GenesisMetadata []types2.GenesisMetadata `json:"genesis_metadata,omitempty"`
 	Result          contractResult           `json:"result,omitempty"`
-	ClientType      string                   `json:"client_type,omitempty"`
 	Root            types3.MerkleRoot        `json:"root,omitempty"`
 	Timestamp       uint64                   `json:"timestamp,omitempty"`
 	Status          exported.Status          `json:"status,omitempty"`
@@ -44,16 +41,13 @@ type clientStateCallResponse struct {
 func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 	if r.Me != nil {
 		r.Me.CodeId = c.CodeId
-		r.Me.Type = c.Type
 	}
 
 	if r.NewConsensusState != nil {
-		r.NewConsensusState.Type = c.Type
 		r.NewConsensusState.CodeId = c.CodeId
 	}
 
 	if r.NewClientState != nil {
-		r.NewClientState.Type = c.Type
 		r.NewClientState.CodeId = c.CodeId
 	}
 }

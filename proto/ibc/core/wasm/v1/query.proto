@@ -1,41 +1,24 @@
 syntax = "proto3";
 package ibc.core.wasm.v1;
 
-import "ibc/core/wasm/v1/wasm.proto";
 import "google/api/annotations.proto";
 
 option go_package = "github.com/cosmos/ibc-go/modules/core/28-wasm/types";
 
-// Latest wasm code query
-message LatestWASMCodeQuery {
-  string client_type = 1;
+// WasmCode query
+message WasmCodeQuery {
+  string code_id = 1;
 }
 
-// Latest wasm code response
-message LatestWASMCodeResponse {
+// WasmCode response
+message WasmCodeResponse {
   bytes code = 1;
-}
-
-// Latest wasm code entry query
-message LatestWASMCodeEntryQuery {
-  string client_type = 1;
-}
-
-// Latest wasm code entry response
-message LatestWASMCodeEntryResponse {
-  string                         code_id = 1;
-  ibc.core.wasm.v1.WasmCodeEntry entry   = 2;
 }
 
 // Query service for wasm module
 service Query {
-  // Query to get latest wasm code for particular client type.
-  rpc LatestWASMCode(LatestWASMCodeQuery) returns (LatestWASMCodeResponse) {
-    option (google.api.http).get = "/ibc/core/wasm/v1beta1/latest_wasm_code/{client_type}";
-  }
-
-  // Query for get latest wasm code entry for particular client type
-  rpc LatestWASMCodeEntry(LatestWASMCodeEntryQuery) returns (LatestWASMCodeEntryResponse) {
-    option (google.api.http).get = "/ibc/core/wasm/v1beta1/latest_wasm_code_entry/{client_type}";
+  // Get Wasm code for given code id
+  rpc WasmCode(WasmCodeQuery) returns (WasmCodeResponse) {
+    option (google.api.http).get = "/ibc/core/wasm/v1beta1/code/{code_id}";
   }
 }

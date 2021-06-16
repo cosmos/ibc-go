@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
@@ -27,13 +25,5 @@ func (m *Misbehaviour) ValidateBasic() error {
 		return err
 	}
 
-	if m.CodeId == nil || len(m.CodeId) == 0 {
-		return fmt.Errorf("codeid cannot be empty")
-	}
-
 	return nil
-}
-
-func (m *Misbehaviour) GetHeight() exported.Height {
-	return m.Header1.GetHeight()
 }

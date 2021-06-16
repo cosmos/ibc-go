@@ -192,14 +192,9 @@
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
-- [ibc/core/wasm/v1/wasm.proto](#ibc/core/wasm/v1/wasm.proto)
-    - [WasmCodeEntry](#ibc.core.wasm.v1.WasmCodeEntry)
-  
 - [ibc/core/wasm/v1/query.proto](#ibc/core/wasm/v1/query.proto)
-    - [LatestWASMCodeEntryQuery](#ibc.core.wasm.v1.LatestWASMCodeEntryQuery)
-    - [LatestWASMCodeEntryResponse](#ibc.core.wasm.v1.LatestWASMCodeEntryResponse)
-    - [LatestWASMCodeQuery](#ibc.core.wasm.v1.LatestWASMCodeQuery)
-    - [LatestWASMCodeResponse](#ibc.core.wasm.v1.LatestWASMCodeResponse)
+    - [WasmCodeQuery](#ibc.core.wasm.v1.WasmCodeQuery)
+    - [WasmCodeResponse](#ibc.core.wasm.v1.WasmCodeResponse)
   
     - [Query](#ibc.core.wasm.v1.Query)
   
@@ -2913,40 +2908,6 @@ GenesisState defines the ibc module's genesis state.
 
 
 
-<a name="ibc/core/wasm/v1/wasm.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/core/wasm/v1/wasm.proto
-
-
-
-<a name="ibc.core.wasm.v1.WasmCodeEntry"></a>
-
-### WasmCodeEntry
-WASM code entry that allows keeper to traverse
-the doubly linked list
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `code_id` | [bytes](#bytes) |  |  |
-| `previous_code_hash` | [string](#string) |  |  |
-| `next_code_hash` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/core/wasm/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2954,56 +2915,25 @@ the doubly linked list
 
 
 
-<a name="ibc.core.wasm.v1.LatestWASMCodeEntryQuery"></a>
+<a name="ibc.core.wasm.v1.WasmCodeQuery"></a>
 
-### LatestWASMCodeEntryQuery
-Latest wasm code entry query
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_type` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.core.wasm.v1.LatestWASMCodeEntryResponse"></a>
-
-### LatestWASMCodeEntryResponse
-Latest wasm code entry response
+### WasmCodeQuery
+WasmCode query
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `code_id` | [string](#string) |  |  |
-| `entry` | [WasmCodeEntry](#ibc.core.wasm.v1.WasmCodeEntry) |  |  |
 
 
 
 
 
 
-<a name="ibc.core.wasm.v1.LatestWASMCodeQuery"></a>
+<a name="ibc.core.wasm.v1.WasmCodeResponse"></a>
 
-### LatestWASMCodeQuery
-Latest wasm code query
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_type` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.core.wasm.v1.LatestWASMCodeResponse"></a>
-
-### LatestWASMCodeResponse
-Latest wasm code response
+### WasmCodeResponse
+WasmCode response
 
 
 | Field | Type | Label | Description |
@@ -3028,8 +2958,7 @@ Query service for wasm module
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `LatestWASMCode` | [LatestWASMCodeQuery](#ibc.core.wasm.v1.LatestWASMCodeQuery) | [LatestWASMCodeResponse](#ibc.core.wasm.v1.LatestWASMCodeResponse) | Query to get latest wasm code for particular client type. | GET|/ibc/core/wasm/v1beta1/latest_wasm_code/{client_type}|
-| `LatestWASMCodeEntry` | [LatestWASMCodeEntryQuery](#ibc.core.wasm.v1.LatestWASMCodeEntryQuery) | [LatestWASMCodeEntryResponse](#ibc.core.wasm.v1.LatestWASMCodeEntryResponse) | Query for get latest wasm code entry for particular client type | GET|/ibc/core/wasm/v1beta1/latest_wasm_code_entry/{client_type}|
+| `WasmCode` | [WasmCodeQuery](#ibc.core.wasm.v1.WasmCodeQuery) | [WasmCodeResponse](#ibc.core.wasm.v1.WasmCodeResponse) | Get Wasm code for given code id | GET|/ibc/core/wasm/v1beta1/code/{code_id}|
 
  <!-- end services -->
 
@@ -3051,7 +2980,6 @@ Message type to push new wasm code
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `signer` | [string](#string) |  |  |
-| `client_type` | [string](#string) |  |  |
 | `code` | [bytes](#bytes) |  |  |
 
 
@@ -3068,7 +2996,6 @@ Response in case of successful handling
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `code_id` | [bytes](#bytes) |  |  |
-| `code_hash` | [string](#string) |  |  |
 
 
 
@@ -3585,10 +3512,7 @@ WASM light client's Client state
 | ----- | ---- | ----- | ----------- |
 | `data` | [bytes](#bytes) |  |  |
 | `code_id` | [bytes](#bytes) |  |  |
-| `frozen` | [bool](#bool) |  |  |
-| `frozen_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
-| `type` | [string](#string) |  |  |
 | `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated |  |
 
 
@@ -3608,7 +3532,6 @@ WASM light client's ConsensusState
 | `code_id` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
 | `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
-| `type` | [string](#string) |  |  |
 
 
 
@@ -3625,7 +3548,6 @@ WASM light client Header
 | ----- | ---- | ----- | ----------- |
 | `data` | [bytes](#bytes) |  |  |
 | `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
-| `type` | [string](#string) |  |  |
 
 
 
@@ -3640,7 +3562,6 @@ WASM light client Misbehaviour
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `code_id` | [bytes](#bytes) |  |  |
 | `client_id` | [string](#string) |  |  |
 | `header_1` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |

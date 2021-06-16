@@ -1,14 +1,14 @@
 package keeper
 
 import (
+	"bytes"
 	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
 	"strings"
 
 	wasm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 )
 
@@ -22,11 +22,6 @@ type VMConfig struct {
 	MemoryLimitMb     uint32
 	PrintDebug        bool
 	CacheSizeMb       uint32
-}
-
-func generateWASMCodeHash(code []byte) string {
-	hash := sha256.Sum256(code)
-	return hex.EncodeToString(hash[:])
 }
 
 // Keeper will have a reference to Wasmer with it's own data directory.
@@ -60,52 +55,37 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, vmConfig *VMConfig, vali
 	}
 }
 
-func (k Keeper) PushNewWASMCode(ctx sdk.Context, clientType string, code []byte) ([]byte, string, error) {
+func (k Keeper) PushNewWASMCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	store := ctx.KVStore(k.storeKey)
 	codeHash := generateWASMCodeHash(code)
+	codeIDKey := types.CodeID(codeHash)
 
-	latestVersionKey := types.LatestWASMCode(clientType)
+	if store.Has(codeIDKey) {
+		return nil, types.ErrWasmCodeExists
+	}
 
 	if isValidWASMCode, err := k.wasmValidator.validateWASMCode(code); err != nil {
-		return nil, "", fmt.Errorf("unable to validate wasm code, error: %s", err)
+		return nil, sdkerrors.Wrapf(types.ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
 	} else if !isValidWASMCode {
-		return nil, "", fmt.Errorf("invalid wasm code")
+		return nil, types.ErrWasmInvalidCode
 	}
 
 	codeID, err := WasmVM.Create(code)
 	if err != nil {
-		return nil, "", fmt.Errorf("invalid wasm code")
+		return nil, types.ErrWasmInvalidCode
 	}
 
-	codekey := types.WASMCode(clientType, codeHash)
-	entryKey := types.WASMCodeEntry(clientType, codeHash)
-
-	latestVersionCodeHash := store.Get(latestVersionKey)
-
-	// More careful management of doubly linked list can lift this constraint
-	// But we do not see any significant advantage of it.
-	if store.Has(entryKey) {
-		return nil, "", fmt.Errorf("wasm code already exists")
+	// safety check to assert that code id returned by WasmVM equals to code hash
+	if !bytes.Equal(codeID, codeHash) {
+		return nil, types.ErrWasmInvalidCodeID
 	}
 
-	codeEntry := types.WasmCodeEntry{
-		PreviousCodeHash: string(latestVersionCodeHash),
-		NextCodeHash:     "",
-		CodeId:           codeID,
-	}
+	store.Set(codeIDKey, code)
 
-	previousVersionEntryKey := types.WASMCodeEntry(clientType, string(latestVersionCodeHash))
-	previousVersionEntryBz := store.Get(previousVersionEntryKey)
-	if len(previousVersionEntryBz) != 0 {
-		var previousEntry types.WasmCodeEntry
-		k.cdc.MustUnmarshal(previousVersionEntryBz, &previousEntry)
-		previousEntry.NextCodeHash = codeHash
-		store.Set(previousVersionEntryKey, k.cdc.MustMarshal(&previousEntry))
-	}
+	return codeID, nil
+}
 
-	store.Set(entryKey, k.cdc.MustMarshal(&codeEntry))
-	store.Set(latestVersionKey, []byte(codeHash))
-	store.Set(codekey, code)
-
-	return codeID, codeHash, nil
+func generateWASMCodeHash(code []byte) []byte {
+	hash := sha256.Sum256(code)
+	return hash[:]
 }

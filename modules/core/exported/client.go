@@ -15,9 +15,6 @@ const (
 	// TypeClientMisbehaviour is the shared evidence misbehaviour type
 	TypeClientMisbehaviour string = "client_misbehaviour"
 
-	// WasmClientPrefix is used to indicate that the client is a on-chain Wasm blob.
-	WasmClientPrefix string = "wasm-"
-
 	// Solomachine is used to indicate that the light client is a solo machine.
 	Solomachine string = "06-solomachine"
 
@@ -27,6 +24,9 @@ const (
 	// Localhost is the client type for a localhost client. It is also used as the clientID
 	// for the localhost client.
 	Localhost string = "09-localhost"
+
+	// Wasm is used to indicate that the light client is a on-chain Wasm program
+	Wasm string = "10-wasm"
 
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"

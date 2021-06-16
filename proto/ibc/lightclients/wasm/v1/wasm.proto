@@ -14,11 +14,8 @@ message ClientState {
   option (gogoproto.goproto_getters)      = false;
   bytes                     data          = 1;
   bytes                     code_id       = 2;
-  bool                      frozen        = 3;
-  ibc.core.client.v1.Height frozen_height = 4;
-  ibc.core.client.v1.Height latest_height = 5;
-  string                    type          = 6;
-  repeated ics23.ProofSpec proof_specs    = 7;
+  ibc.core.client.v1.Height latest_height = 3;
+  repeated ics23.ProofSpec proof_specs    = 4;
 }
 
 // WASM light client's ConsensusState
@@ -32,7 +29,6 @@ message ConsensusState {
   uint64 timestamp = 3;
   // commitment root (i.e app hash)
   ibc.core.commitment.v1.MerkleRoot root = 4;
-  string                            type = 5;
 }
 
 // WASM light client Header
@@ -41,13 +37,13 @@ message Header {
 
   bytes                     data   = 1;
   ibc.core.client.v1.Height height = 2;
-  string                    type   = 3;
 }
 
 // WASM light client Misbehaviour
 message Misbehaviour {
-  bytes  code_id   = 1;
-  string client_id = 2 [(gogoproto.moretags) = "yaml:\"client_id\""];
-  Header header_1  = 3 [(gogoproto.customname) = "Header1", (gogoproto.moretags) = "yaml:\"header_1\""];
-  Header header_2  = 4 [(gogoproto.customname) = "Header2", (gogoproto.moretags) = "yaml:\"header_2\""];
+  option (gogoproto.goproto_getters) = false;
+
+  string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
+  Header header_1  = 2 [(gogoproto.customname) = "Header1", (gogoproto.moretags) = "yaml:\"header_1\""];
+  Header header_2  = 3 [(gogoproto.customname) = "Header2", (gogoproto.moretags) = "yaml:\"header_2\""];
 }
