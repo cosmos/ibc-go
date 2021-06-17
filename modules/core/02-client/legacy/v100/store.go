@@ -93,11 +93,12 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 				return sdkerrors.Wrap(types.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 			}
 
-			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState); err != nil {
+			// add iteration keys so pruning will be successful
+			if err = addConsensusMetadata(ctx, clientStore, cdc, tmClientState); err != nil {
 				return err
 			}
 
-			if err = addConsensusMetadata(ctx, clientStore, cdc, tmClientState); err != nil {
+			if err = ibctmtypes.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState); err != nil {
 				return err
 			}
 
@@ -150,27 +151,22 @@ func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 	}
 }
 
-// addConsensusMetadata adds the iteration key and processed height for all unexpired tendermint consensus states
-// These keys were not included in the previous release of the IBC module.
+// addConsensusMetadata adds the iteration key and processed height for all tendermint consensus states
+// These keys were not included in the previous release of the IBC module. Adding the iteration keys allows
+// for pruning iteration.
 func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ibctmtypes.ClientState) error {
 	var heights []exported.Height
+	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 
-	metadataCb := func(height exported.Height) bool {
-		consState, err := ibctmtypes.GetConsensusState(clientStore, cdc, height)
-		// this error should never occur
-		if err != nil {
-			return true
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+		// consensus key is in the format "consensusStates/<height>"
+		if len(keySplit) != 2 {
+			continue
 		}
 
-		if !clientState.IsExpired(consState.Timestamp, ctx.BlockTime()) {
-			heights = append(heights, height)
-		}
-
-		return false
-	}
-
-	if err := ibctmtypes.IterateConsensusStateAscending(clientStore, metadataCb); err != nil {
-		return err
+		heights = append(heights, types.MustParseHeight(keySplit[1]))
 	}
 
 	for _, height := range heights {

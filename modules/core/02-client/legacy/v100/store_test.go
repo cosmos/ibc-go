@@ -118,88 +118,114 @@ func (suite *LegacyTestSuite) TestMigrateStoreSolomachine() {
 // ensure all expired consensus states are removed from tendermint client stores
 func (suite *LegacyTestSuite) TestMigrateStoreTendermint() {
 	// create path and setup clients
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path1)
 
-	// collect all heights expected to be pruned
-	var pruneHeights []exported.Height
-	pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
+	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path2)
+	pruneHeightMap := make(map[*ibctesting.Path][]exported.Height)
+	unexpiredHeightMap := make(map[*ibctesting.Path][]exported.Height)
 
-	// these heights will be expired and also pruned
-	for i := 0; i < 3; i++ {
-		path.EndpointA.UpdateClient()
+	for _, path := range []*ibctesting.Path{path1, path2} {
+		// collect all heights expected to be pruned
+		var pruneHeights []exported.Height
 		pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
-	}
 
-	// double chedck all information is currently stored
-	for _, pruneHeight := range pruneHeights {
-		consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-		suite.Require().True(ok)
-		suite.Require().NotNil(consState)
+		// these heights will be expired and also pruned
+		for i := 0; i < 3; i++ {
+			path.EndpointA.UpdateClient()
+			pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		}
 
-		ctx := path.EndpointA.Chain.GetContext()
-		clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+		// double chedck all information is currently stored
+		for _, pruneHeight := range pruneHeights {
+			consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+			suite.Require().True(ok)
+			suite.Require().NotNil(consState)
 
-		processedTime, ok := ibctmtypes.GetProcessedTime(clientStore, pruneHeight)
-		suite.Require().True(ok)
-		suite.Require().NotNil(processedTime)
+			ctx := path.EndpointA.Chain.GetContext()
+			clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 
-		processedHeight, ok := ibctmtypes.GetProcessedHeight(clientStore, pruneHeight)
-		suite.Require().True(ok)
-		suite.Require().NotNil(processedHeight)
+			processedTime, ok := ibctmtypes.GetProcessedTime(clientStore, pruneHeight)
+			suite.Require().True(ok)
+			suite.Require().NotNil(processedTime)
 
-		expectedConsKey := ibctmtypes.GetIterationKey(clientStore, pruneHeight)
-		suite.Require().NotNil(expectedConsKey)
+			processedHeight, ok := ibctmtypes.GetProcessedHeight(clientStore, pruneHeight)
+			suite.Require().True(ok)
+			suite.Require().NotNil(processedHeight)
+
+			expectedConsKey := ibctmtypes.GetIterationKey(clientStore, pruneHeight)
+			suite.Require().NotNil(expectedConsKey)
+		}
+		pruneHeightMap[path] = pruneHeights
 	}
 
 	// Increment the time by a week
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
-	// create the consensus state that can be used as trusted height for next update
-	path.EndpointA.UpdateClient()
+	for _, path := range []*ibctesting.Path{path1, path2} {
+		// create the consensus state that can be used as trusted height for next update
+		var unexpiredHeights []exported.Height
+		path.EndpointA.UpdateClient()
+		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		path.EndpointA.UpdateClient()
+		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
+
+		// remove processed height and iteration keys since these were missing from previous version of ibc module
+		clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(path.EndpointA.Chain.GetContext(), path.EndpointA.ClientID)
+		for _, height := range unexpiredHeights {
+			clientStore.Delete(ibctmtypes.ProcessedHeightKey(height))
+			clientStore.Delete(ibctmtypes.IterationKey(height))
+		}
+
+		unexpiredHeightMap[path] = unexpiredHeights
+	}
 
 	// Increment the time by another week, then update the client.
 	// This will cause the consensus states created before the first time increment
 	// to be expired
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	err := v100.MigrateStore(path.EndpointA.Chain.GetContext(), path.EndpointA.Chain.GetSimApp().GetKey(host.StoreKey), path.EndpointA.Chain.App.AppCodec())
+	err := v100.MigrateStore(path1.EndpointA.Chain.GetContext(), path1.EndpointA.Chain.GetSimApp().GetKey(host.StoreKey), path1.EndpointA.Chain.App.AppCodec())
 	suite.Require().NoError(err)
 
-	ctx := path.EndpointA.Chain.GetContext()
-	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+	for _, path := range []*ibctesting.Path{path1, path2} {
+		ctx := path.EndpointA.Chain.GetContext()
+		clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 
-	// ensure everything has been pruned
-	for i, pruneHeight := range pruneHeights {
-		consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-		suite.Require().False(ok, i)
-		suite.Require().Nil(consState, i)
+		// ensure everything has been pruned
+		for i, pruneHeight := range pruneHeightMap[path] {
+			consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+			suite.Require().False(ok, i)
+			suite.Require().Nil(consState, i)
 
-		processedTime, ok := ibctmtypes.GetProcessedTime(clientStore, pruneHeight)
-		suite.Require().False(ok, i)
-		suite.Require().Equal(uint64(0), processedTime, i)
+			processedTime, ok := ibctmtypes.GetProcessedTime(clientStore, pruneHeight)
+			suite.Require().False(ok, i)
+			suite.Require().Equal(uint64(0), processedTime, i)
 
-		processedHeight, ok := ibctmtypes.GetProcessedHeight(clientStore, pruneHeight)
-		suite.Require().False(ok, i)
-		suite.Require().Nil(processedHeight, i)
+			processedHeight, ok := ibctmtypes.GetProcessedHeight(clientStore, pruneHeight)
+			suite.Require().False(ok, i)
+			suite.Require().Nil(processedHeight, i)
 
-		expectedConsKey := ibctmtypes.GetIterationKey(clientStore, pruneHeight)
-		suite.Require().Nil(expectedConsKey, i)
+			expectedConsKey := ibctmtypes.GetIterationKey(clientStore, pruneHeight)
+			suite.Require().Nil(expectedConsKey, i)
+		}
+
+		// ensure metadata is set for unexpired consensus state
+		for _, height := range unexpiredHeightMap[path] {
+			consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, height)
+			suite.Require().True(ok)
+			suite.Require().NotNil(consState)
+
+			processedTime, ok := ibctmtypes.GetProcessedTime(clientStore, height)
+			suite.Require().True(ok)
+			suite.Require().NotEqual(uint64(0), processedTime)
+
+			processedHeight, ok := ibctmtypes.GetProcessedHeight(clientStore, height)
+			suite.Require().True(ok)
+			suite.Require().Equal(types.GetSelfHeight(path.EndpointA.Chain.GetContext()), processedHeight)
+
+			consKey := ibctmtypes.GetIterationKey(clientStore, height)
+			suite.Require().Equal(host.ConsensusStateKey(height), consKey)
+		}
 	}
-
-	// ensure metadata is set for unexpired consensus state
-	height := path.EndpointA.GetClientState().GetLatestHeight()
-	consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, height)
-	suite.Require().True(ok)
-	suite.Require().NotNil(consState)
-
-	processedTime, ok := ibctmtypes.GetProcessedTime(clientStore, height)
-	suite.Require().True(ok)
-	suite.Require().NotEqual(uint64(0), processedTime)
-
-	processedHeight, ok := ibctmtypes.GetProcessedHeight(clientStore, height)
-	suite.Require().True(ok)
-	suite.Require().Equal(types.GetSelfHeight(path.EndpointA.Chain.GetContext()), processedHeight)
-
-	consKey := ibctmtypes.GetIterationKey(clientStore, height)
-	suite.Require().Equal(host.ConsensusStateKey(height), consKey)
 }

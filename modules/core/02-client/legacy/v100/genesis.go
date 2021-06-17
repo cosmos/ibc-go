@@ -110,15 +110,19 @@ func MigrateGenesis(cdc codec.BinaryCodec, clientGenState *types.GenesisState, g
 									// if we find the processed time metadata for an unexpired height, add the
 									// iteration key and processed height keys.
 									if bytes.Equal(metadata.Key, ibctmtypes.ProcessedTimeKey(height)) {
-										clientMetadata = append(clientMetadata, types.GenesisMetadata{
-											Key:   ibctmtypes.ProcessedHeightKey(height),
-											Value: []byte(selfHeight.String()),
-										})
-										clientMetadata = append(clientMetadata, metadata) // processed time
-										clientMetadata = append(clientMetadata, types.GenesisMetadata{
-											Key:   ibctmtypes.IterationKey(height),
-											Value: host.ConsensusStateKey(height),
-										})
+										clientMetadata = append(clientMetadata,
+											// set the processed height using the current self height
+											// this is safe, it may cause delays in packet processing if there
+											// is a non zero connection delay time
+											types.GenesisMetadata{
+												Key:   ibctmtypes.ProcessedHeightKey(height),
+												Value: []byte(selfHeight.String()),
+											},
+											metadata, // processed time
+											types.GenesisMetadata{
+												Key:   ibctmtypes.IterationKey(height),
+												Value: host.ConsensusStateKey(height),
+											})
 
 									}
 								}

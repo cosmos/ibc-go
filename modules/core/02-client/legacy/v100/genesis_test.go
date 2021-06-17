@@ -3,7 +3,6 @@ package v100_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -167,8 +166,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	indentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
 	suite.Require().NoError(err)
 
-	fmt.Println(string(indentedBz))
-
 	suite.Require().Equal(string(expectedIndentedBz), string(indentedBz))
 }
 
@@ -309,8 +306,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	suite.Require().NoError(err)
 	indentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
 	suite.Require().NoError(err)
-
-	fmt.Println(string(indentedBz))
 
 	suite.Require().Equal(string(expectedIndentedBz), string(indentedBz))
 }
