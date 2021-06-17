@@ -17,7 +17,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-// Keeper defines the Cross-Chain Validation Parent Keeper
+// Keeper defines the Cross-Chain Validation Child Keeper
 type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              codec.BinaryCodec
@@ -28,7 +28,7 @@ type Keeper struct {
 	clientKeeper     ccv.ClientKeeper
 }
 
-// NewKeeper creates a new parent Keeper instance
+// NewKeeper creates a new Child Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, scopedKeeper capabilitykeeper.ScopedKeeper,
 	channelKeeper ccv.ChannelKeeper, portKeeper ccv.PortKeeper,
