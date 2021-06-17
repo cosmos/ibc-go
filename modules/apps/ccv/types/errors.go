@@ -13,4 +13,5 @@ var (
 	ErrInvalidParentChain   = sdkerrors.Register(ModuleName, 6, "invalid parent chain")
 	ErrInvalidStatus        = sdkerrors.Register(ModuleName, 7, "invalid channel status")
 	ErrInvalidGenesis       = sdkerrors.Register(ModuleName, 8, "invalid genesis state")
+	ErrDuplicateChannel     = sdkerrors.Register(ModuleName, 9, "CCV channel already exists")
 )

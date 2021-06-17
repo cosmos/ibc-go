@@ -272,8 +272,10 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	// Set CCV channel status to Validating
-	am.keeper.SetChannelStatus(ctx, channelID, ccv.Validating)
+	err := am.keeper.SetChildChain(ctx, channelID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

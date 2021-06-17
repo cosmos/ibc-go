@@ -54,17 +54,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
 }
 
-// ChanCloseInit defines a wrapper function for the channel Keeper's function
-// in order to expose it to the ICS20 transfer handler.
-func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
-	capName := host.ChannelCapabilityPath(portID, channelID)
-	chanCap, ok := k.scopedKeeper.GetCapability(ctx, capName)
-	if !ok {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
-	}
-	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
-}
-
 // IsBound checks if the transfer module is already bound to the desired port
 func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
@@ -195,36 +184,73 @@ func (k Keeper) VerifyChildChain(ctx sdk.Context, channelID string) error {
 	if status != ccv.Initializing {
 		return sdkerrors.Wrap(ccv.ErrInvalidStatus, "CCV channel status must be in Initializing state")
 	}
+	_, tmClient, err := k.getUnderlyingClient(ctx, channelID)
+	if err != nil {
+		return err
+	}
+	// TODO: Verify consensus state against initial validator set of the child chain
+
+	// Verify that there isn't already a CCV channel for the child chain
+	if prevChannel, ok := k.GetChainToChannel(ctx, tmClient.ChainId); ok {
+		return sdkerrors.Wrapf(ccv.ErrDuplicateChannel, "CCV channel with ID: %s already created for child chain %s", prevChannel, tmClient.ChainId)
+	}
+	return nil
+}
+
+// SetChildChain ensures that the child chain has not already been set by a different channel, and then sets the child chain mappings in keeper,
+// and set the channel status to validating.
+// If there is already a ccv channel between the parent and child chain then close the channel, so that another channel can be made.
+func (k Keeper) SetChildChain(ctx sdk.Context, channelID string) error {
+	chainID, tmClient, err := k.getUnderlyingClient(ctx, channelID)
+	if err != nil {
+		return err
+	}
+	// Verify that there isn't already a CCV channel for the child chain
+	// If there is, then close the channel.
+	if prevChannel, ok := k.GetChannelToChain(ctx, chainID); ok {
+		k.SetChannelStatus(ctx, channelID, ccv.Invalid)
+		k.chanCloseInit(ctx, channelID)
+		return sdkerrors.Wrapf(ccv.ErrDuplicateChannel, "CCV channel with ID: %s already created for child chain %s", prevChannel, chainID)
+	}
+	// set channel mappings
+	k.SetChainToChannel(ctx, tmClient.ChainId, channelID)
+	k.SetChannelToChain(ctx, channelID, tmClient.ChainId)
+	// Set CCV channel status to Validating
+	k.SetChannelStatus(ctx, channelID, ccv.Validating)
+	return nil
+}
+
+func (k Keeper) getUnderlyingClient(ctx sdk.Context, channelID string) (string, *ibctmtypes.ClientState, error) {
 	// Retrieve the underlying client state.
 	channel, ok := k.channelKeeper.GetChannel(ctx, types.PortID, channelID)
 	if !ok {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel not found for channel ID: %s", channelID)
+		return "", nil, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel not found for channel ID: %s", channelID)
 	}
 	if len(channel.ConnectionHops) == 1 {
-		return sdkerrors.Wrap(channeltypes.ErrTooManyConnectionHops, "must have direct connection to baby chain")
+		return "", nil, sdkerrors.Wrap(channeltypes.ErrTooManyConnectionHops, "must have direct connection to baby chain")
 	}
 	connectionID := channel.ConnectionHops[0]
 	conn, ok := k.connectionKeeper.GetConnection(ctx, connectionID)
 	if !ok {
-		return sdkerrors.Wrapf(conntypes.ErrConnectionNotFound, "connection not found for connection ID: %s", connectionID)
+		return "", nil, sdkerrors.Wrapf(conntypes.ErrConnectionNotFound, "connection not found for connection ID: %s", connectionID)
 	}
 	client, ok := k.clientKeeper.GetClientState(ctx, conn.ClientId)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client not found for client ID: %s", conn.ClientId)
+		return "", nil, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "client not found for client ID: %s", conn.ClientId)
 	}
 	tmClient, ok := client.(*ibctmtypes.ClientState)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "invalid client type. expected %s, got %s", ibcexported.Tendermint, client.ClientType())
+		return "", nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "invalid client type. expected %s, got %s", ibcexported.Tendermint, client.ClientType())
 	}
-	// Verify that client state has expected chainID
-	expectedChainID, ok := k.GetChannelToChain(ctx, channelID)
-	if !ok {
-		return sdkerrors.Wrapf(ccv.ErrInvalidChildChain, "chain ID doesn't exist for channel ID: %s", channelID)
-	}
-	if expectedChainID != tmClient.ChainId {
-		return sdkerrors.Wrapf(ccv.ErrInvalidChildChain, "child chain has unexpected chain id. Expected %s, got %s", expectedChainID, tmClient.ChainId)
-	}
+	return conn.ClientId, tmClient, nil
+}
 
-	// TODO: Verify that the latest consensus state has the expected validator set
-	return nil
+// chanCloseInit defines a wrapper function for the channel Keeper's function
+func (k Keeper) chanCloseInit(ctx sdk.Context, channelID string) error {
+	capName := host.ChannelCapabilityPath(types.PortID, channelID)
+	chanCap, ok := k.scopedKeeper.GetCapability(ctx, capName)
+	if !ok {
+		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
+	}
+	return k.channelKeeper.ChanCloseInit(ctx, types.PortID, channelID, chanCap)
 }
