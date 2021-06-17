@@ -21,9 +21,6 @@ const (
 	// QuerierRoute is the querier route for IBC child
 	QuerierRoute = ModuleName
 
-	// ParentChainKeyString is the key for storing the chainID of the parent chain
-	ParentChainKeyString = "parentchain"
-
 	// ParentClientKeyString is the key for storing the clientID of the parent client
 	ParentClientKeyString = "parentclient"
 
@@ -48,11 +45,6 @@ var (
 	// PortKey defines the key to store the port ID in store
 	PortKey = []byte{0x01}
 )
-
-// ParentChainKey returns the key for storing chainID of the parent chain.
-func ParentChainKey() []byte {
-	return []byte(ParentChainKeyString)
-}
 
 // ParentChannelKey returns the key for storing channelID of the parent chain.
 func ParentChannelKey() []byte {

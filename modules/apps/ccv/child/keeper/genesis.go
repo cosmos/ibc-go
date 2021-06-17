@@ -23,8 +23,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state ccv.ChildGenesisState) {
 		}
 	}
 
-	// set parent chain id.
-	k.SetParentChain(ctx, state.ParentChainId)
 	if state.NewChain {
 		// Create the parent client in InitGenesis for new child chain. CCV Handshake must be established with this client id.
 		clientID, err := k.clientKeeper.CreateClient(ctx, state.ParentClientState, state.ParentConsensusState)

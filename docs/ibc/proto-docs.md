@@ -818,7 +818,6 @@ ChildGenesisState defines the CCV child chain genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `parent_chain_id` | [string](#string) |  |  |
 | `parent_channel_id` | [string](#string) |  | empty for a completely new chain |
 | `new_chain` | [bool](#bool) |  | true for new chain GenesisState, false for chain restart. |
 | `parent_client_state` | [ibc.lightclients.tendermint.v1.ClientState](#ibc.lightclients.tendermint.v1.ClientState) |  | ParentClientState filled in on new chain, nil on restart. |

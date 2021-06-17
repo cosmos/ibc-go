@@ -113,23 +113,6 @@ func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) ccv.Status {
 	return ccv.Status(bz[0])
 }
 
-// SetParentChain sets the parent chainID that is validating the chain.
-// Set in InitGenesis
-func (k Keeper) SetParentChain(ctx sdk.Context, chainID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ParentChainKey(), []byte(chainID))
-}
-
-// GetParentChain gets the parent chainID that is validating the chain.
-func (k Keeper) GetParentChain(ctx sdk.Context) (string, bool) {
-	store := ctx.KVStore(k.storeKey)
-	chainIdBytes := store.Get(types.ParentChainKey())
-	if chainIdBytes == nil {
-		return "", false
-	}
-	return string(chainIdBytes), true
-}
-
 // SetParentClient sets the parent clientID that is validating the chain.
 // Set in InitGenesis
 func (k Keeper) SetParentClient(ctx sdk.Context, clientID string) {
@@ -140,7 +123,7 @@ func (k Keeper) SetParentClient(ctx sdk.Context, clientID string) {
 // GetParentClient gets the parent clientID that is validating the chain.
 func (k Keeper) GetParentClient(ctx sdk.Context) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	clientIdBytes := store.Get(types.ParentChainKey())
+	clientIdBytes := store.Get(types.ParentClientKey())
 	if clientIdBytes == nil {
 		return "", false
 	}

@@ -10,18 +10,17 @@ import "gogoproto/gogo.proto";
 
 // ChildGenesisState defines the CCV child chain genesis state
 message ChildGenesisState {
-  string parent_chain_id   = 1 [(gogoproto.moretags) = "yaml:\"parent_chain_id\""];
-  string parent_channel_id = 2
+  string parent_channel_id = 1
       [(gogoproto.moretags) = "yaml:\"parent_channel_id\""]; // empty for a completely new chain
-  bool new_chain = 3
+  bool new_chain = 2
       [(gogoproto.moretags) = "yaml:\"new_chain\""]; // true for new chain GenesisState, false for chain restart.
   // ParentClientState filled in on new chain, nil on restart.
-  ibc.lightclients.tendermint.v1.ClientState parent_client_state = 4
+  ibc.lightclients.tendermint.v1.ClientState parent_client_state = 3
       [(gogoproto.moretags) = "yaml:\"parent_client_state\""];
   // ParentConsensusState filled in on new chain, nil on restart.
-  ibc.lightclients.tendermint.v1.ConsensusState parent_consensus_state = 5
+  ibc.lightclients.tendermint.v1.ConsensusState parent_consensus_state = 4
       [(gogoproto.moretags) = "yaml:\"parent_consensus_state\""];
-  repeated UnbondingSequence unbonding_sequences = 6 [(gogoproto.moretags) = "yaml:\"unbonding_sequences\""];
+  repeated UnbondingSequence unbonding_sequences = 5 [(gogoproto.moretags) = "yaml:\"unbonding_sequences\""];
 }
 
 // UnbondingSequence defines the genesis information for each unbonding packet sequence.
