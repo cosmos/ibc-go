@@ -75,6 +75,8 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 // in a packet over the CCV channel.
 func (k Keeper) EndBlockCallback(ctx sdk.Context, chainID string) bool {
 	valUpdates := k.registryKeeper.GetValidatorSetChanges(chainID)
-	k.SendPacket(ctx, chainID, valUpdates)
+	if len(valUpdates) != 0 {
+		k.SendPacket(ctx, chainID, valUpdates)
+	}
 	return false
 }
