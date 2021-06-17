@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	"github.com/cosmos/cosmos-sdk/version"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -76,14 +75,7 @@ func NewCreateClientCmd() *cobra.Command {
 				return err
 			}
 
-			svcMsgClientConn := &msgservice.ServiceMsgClientConn{}
-			msgClient := types.NewMsgClient(svcMsgClientConn)
-			_, err = msgClient.CreateClient(cmd.Context(), msg)
-			if err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), svcMsgClientConn.GetMsgs()...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -129,14 +121,7 @@ func NewUpdateClientCmd() *cobra.Command {
 				return err
 			}
 
-			svcMsgClientConn := &msgservice.ServiceMsgClientConn{}
-			msgClient := types.NewMsgClient(svcMsgClientConn)
-			_, err = msgClient.UpdateClient(cmd.Context(), msg)
-			if err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), svcMsgClientConn.GetMsgs()...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
@@ -177,14 +162,7 @@ func NewSubmitMisbehaviourCmd() *cobra.Command {
 				return err
 			}
 
-			svcMsgClientConn := &msgservice.ServiceMsgClientConn{}
-			msgClient := types.NewMsgClient(svcMsgClientConn)
-			_, err = msgClient.SubmitMisbehaviour(cmd.Context(), msg)
-			if err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), svcMsgClientConn.GetMsgs()...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
@@ -247,14 +225,7 @@ func NewUpgradeClientCmd() *cobra.Command {
 				return err
 			}
 
-			svcMsgClientConn := &msgservice.ServiceMsgClientConn{}
-			msgClient := types.NewMsgClient(svcMsgClientConn)
-			_, err = msgClient.UpgradeClient(cmd.Context(), msg)
-			if err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), svcMsgClientConn.GetMsgs()...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -266,12 +237,12 @@ func NewUpgradeClientCmd() *cobra.Command {
 // NewCmdSubmitUpdateClientProposal implements a command handler for submitting an update IBC client proposal transaction.
 func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-client [subject-client-id] [substitute-client-id] [initial-height] [flags]",
+		Use:   "update-client [subject-client-id] [substitute-client-id] [flags]",
 		Args:  cobra.ExactArgs(3),
 		Short: "Submit an update IBC client proposal",
 		Long: "Submit an update IBC client proposal along with an initial deposit.\n" +
 			"Please specify a subject client identifier you want to update..\n" +
-			"Please specify the substitute client the subject client will use and the initial height to reference the substitute client's state.",
+			"Please specify the substitute client the subject client will be updated to.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -291,12 +262,7 @@ func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 			subjectClientID := args[0]
 			substituteClientID := args[1]
 
-			initialHeight, err := types.ParseHeight(args[2])
-			if err != nil {
-				return err
-			}
-
-			content := types.NewClientUpdateProposal(title, description, subjectClientID, substituteClientID, initialHeight)
+			content := types.NewClientUpdateProposal(title, description, subjectClientID, substituteClientID)
 
 			from := clientCtx.GetFromAddress()
 

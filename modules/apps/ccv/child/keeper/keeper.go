@@ -20,7 +20,7 @@ import (
 // Keeper defines the Cross-Chain Validation Parent Keeper
 type Keeper struct {
 	storeKey         sdk.StoreKey
-	cdc              codec.BinaryMarshaler
+	cdc              codec.BinaryCodec
 	scopedKeeper     capabilitykeeper.ScopedKeeper
 	channelKeeper    ccv.ChannelKeeper
 	portKeeper       ccv.PortKeeper
@@ -30,7 +30,7 @@ type Keeper struct {
 
 // NewKeeper creates a new parent Keeper instance
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey, scopedKeeper capabilitykeeper.ScopedKeeper,
+	cdc codec.BinaryCodec, key sdk.StoreKey, scopedKeeper capabilitykeeper.ScopedKeeper,
 	channelKeeper ccv.ChannelKeeper, portKeeper ccv.PortKeeper,
 	connectionKeeper ccv.ConnectionKeeper, clientKeeper ccv.ClientKeeper,
 ) Keeper {

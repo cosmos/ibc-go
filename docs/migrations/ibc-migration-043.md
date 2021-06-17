@@ -94,7 +94,9 @@ REST routes are not supported for these proposals.
 
 ## Proto file changes
 
-The gRPC querier service endpoints have changed slightly. The previous files used `v1beta1`, this has been updated to `v1`.
+The gRPC querier service endpoints have changed slightly. The previous files used `v1beta1` gRPC route, this has been updated to `v1`.
+
+The solo machine has replaced the FrozenSequence uint64 field with a IsFrozen boolean field. The package has been bumped from `v1` to `v2`
 
 ## IBC callback changes
 
@@ -104,9 +106,15 @@ Application developers need to update their `OnRecvPacket` callback logic.
 
 The `OnRecvPacket` callback has been modified to only return the acknowledgement. The acknowledgement returned must implement the `Acknowledgement` interface. The acknowledgement should indicate if it represents a successful processing of a packet by returning true on `Success()` and false in all other cases. A return value of false on `Success()` will result in all state changes which occurred in the callback being discarded. More information can be found in the [documentation](https://github.com/cosmos/ibc-go/blob/main/docs/custom.md#receiving-packets).
 
+The `OnRecvPacket`, `OnAcknowledgementPacket`, and `OnTimeoutPacket` callbacks are now passed the `sdk.AccAddress` of the relayer who relayed the IBC packet. Applications may use or ignore this information. 
+
 ## IBC Event changes
 
 The `packet_data` attribute has been deprecated in favor of `packet_data_hex`, in order to provide standardized encoding/decoding of packet data in events. While the `packet_data` event still exists, all relayers and IBC Event consumers are strongly encouraged to switch over to using `packet_data_hex` as soon as possible.
+
+The `packet_ack` attribute has also been deprecated in favor of `packet_ack_hex` for the same reason stated above. All relayers and IBC Event consumers are strongly encouraged to switch over to using `packet_ack_hex` as soon as possible.
+
+The `consensus_height` attribute has been removed in the Misbehaviour event emitted. IBC clients no longer have a frozen height and misbehaviour does not necessarily have an associated height.
 
 ## Relevant SDK changes
 

@@ -9,7 +9,6 @@ import (
 // TODO: Include chain status
 func NewInitialChildGenesisState(chainID string, cs *ibctmtypes.ClientState, consState *ibctmtypes.ConsensusState) ChildGenesisState {
 	return ChildGenesisState{
-		ParentChainId:        chainID,
 		NewChain:             true,
 		ParentClientState:    cs,
 		ParentConsensusState: consState,
@@ -19,7 +18,6 @@ func NewInitialChildGenesisState(chainID string, cs *ibctmtypes.ClientState, con
 // NewRestartChildGenesisState returns a child GenesisState that has already been established.
 func NewRestartChildGenesisState(chainID, channelID string, unbondingSequences []*UnbondingSequence) ChildGenesisState {
 	return ChildGenesisState{
-		ParentChainId:      chainID,
 		ParentChannelId:    channelID,
 		UnbondingSequences: unbondingSequences,
 		NewChain:           false,
@@ -29,7 +27,6 @@ func NewRestartChildGenesisState(chainID, channelID string, unbondingSequences [
 // DefaultGenesisState returns a default new child chain genesis state with blank clientstate and consensus states for testing.
 func DefaultChildGenesisState() ChildGenesisState {
 	return ChildGenesisState{
-		ParentChainId:        "testparentchainid",
 		NewChain:             true,
 		ParentClientState:    &ibctmtypes.ClientState{},
 		ParentConsensusState: &ibctmtypes.ConsensusState{},
@@ -39,9 +36,6 @@ func DefaultChildGenesisState() ChildGenesisState {
 // Validate performs basic genesis state validation returning an error upon any failure.
 // TODO: Validate UnbondingSequences
 func (gs ChildGenesisState) Validate() error {
-	if gs.ParentChainId == "" {
-		return sdkerrors.Wrap(ErrInvalidGenesis, "parent chain id cannot be blank")
-	}
 	if gs.NewChain {
 		if gs.ParentClientState == nil {
 			return sdkerrors.Wrap(ErrInvalidGenesis, "parent client state cannot be nil for new chain")

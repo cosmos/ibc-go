@@ -49,11 +49,6 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec,
 	return exported.Active
 }
 
-// GetFrozenHeight returns an uninitialized IBC Height.
-func (cs ClientState) GetFrozenHeight() exported.Height {
-	return clienttypes.ZeroHeight()
-}
-
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if strings.TrimSpace(cs.ChainId) == "" {
@@ -112,7 +107,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 // proposals.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, _ codec.BinaryCodec, _, _ sdk.KVStore,
-	_ exported.ClientState, _ exported.Height,
+	_ exported.ClientState,
 ) (exported.ClientState, error) {
 	return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
@@ -228,6 +223,7 @@ func (cs ClientState) VerifyChannelState(
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	_ codec.BinaryCodec,
 	_ exported.Height,
@@ -260,6 +256,7 @@ func (cs ClientState) VerifyPacketCommitment(
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketAcknowledgement(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	_ codec.BinaryCodec,
 	_ exported.Height,
@@ -293,6 +290,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.
 func (cs ClientState) VerifyPacketReceiptAbsence(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	_ codec.BinaryCodec,
 	_ exported.Height,
@@ -317,6 +315,7 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 // VerifyNextSequenceRecv verifies a proof of the next sequence number to be
 // received of the specified channel at the specified port.
 func (cs ClientState) VerifyNextSequenceRecv(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	_ codec.BinaryCodec,
 	_ exported.Height,

@@ -36,7 +36,10 @@ const KeyIterateConsensusStatePrefix = "iterateConsensusStates"
 var (
 	// KeyProcessedTime is appended to consensus state key to store the processed time
 	KeyProcessedTime = []byte("/processedTime")
-	KeyIteration     = []byte("/iterationKey")
+	// KeyProcessedHeight is appended to consensus state key to store the processed height
+	KeyProcessedHeight = []byte("/processedHeight")
+	// KeyIteration stores the key mapping to consensus state key for efficient iteration
+	KeyIteration = []byte("/iterationKey")
 )
 
 // SetConsensusState stores the consensus state at the given height.
@@ -79,17 +82,24 @@ func deleteConsensusState(clientStore sdk.KVStore, height exported.Height) {
 	clientStore.Delete(key)
 }
 
-// IterateProcessedTime iterates through the prefix store and applies the callback.
+// IterateConsensusMetadata iterates through the prefix store and applies the callback.
 // If the cb returns true, then iterator will close and stop.
-func IterateProcessedTime(store sdk.KVStore, cb func(key, val []byte) bool) {
+func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) {
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyConsensusStatePrefix))
 
+	// iterate over processed time and processed height
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 		// processed time key in prefix store has format: "consensusState/<height>/processedTime"
-		if len(keySplit) != 3 || keySplit[2] != "processedTime" {
+		if len(keySplit) != 3 {
 			// ignore all consensus state keys
+			continue
+
+		}
+
+		if keySplit[2] != "processedTime" && keySplit[2] != "processedHeight" {
+			// only perform callback on consensus metadata
 			continue
 		}
 
@@ -97,9 +107,17 @@ func IterateProcessedTime(store sdk.KVStore, cb func(key, val []byte) bool) {
 			break
 		}
 	}
-}
 
-// ProcessedTime Store code
+	// iterate over iteration keys
+	iterator = sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		if cb(iterator.Key(), iterator.Value()) {
+			break
+		}
+	}
+}
 
 // ProcessedTimeKey returns the key under which the processed time will be stored in the client store.
 func ProcessedTimeKey(height exported.Height) []byte {
@@ -107,7 +125,7 @@ func ProcessedTimeKey(height exported.Height) []byte {
 }
 
 // SetProcessedTime stores the time at which a header was processed and the corresponding consensus state was created.
-// This is useful when validating whether a packet has reached the specified delay period in the tendermint client's
+// This is useful when validating whether a packet has reached the time specified delay period in the tendermint client's
 // verification functions
 func SetProcessedTime(clientStore sdk.KVStore, height exported.Height, timeNs uint64) {
 	key := ProcessedTimeKey(height)
@@ -116,7 +134,7 @@ func SetProcessedTime(clientStore sdk.KVStore, height exported.Height, timeNs ui
 }
 
 // GetProcessedTime gets the time (in nanoseconds) at which this chain received and processed a tendermint header.
-// This is used to validate that a received packet has passed the delay period.
+// This is used to validate that a received packet has passed the time delay period.
 func GetProcessedTime(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
 	key := ProcessedTimeKey(height)
 	bz := clientStore.Get(key)
@@ -132,7 +150,40 @@ func deleteProcessedTime(clientStore sdk.KVStore, height exported.Height) {
 	clientStore.Delete(key)
 }
 
-// Iteration Code
+// ProcessedHeightKey returns the key under which the processed height will be stored in the client store.
+func ProcessedHeightKey(height exported.Height) []byte {
+	return append(host.ConsensusStateKey(height), KeyProcessedHeight...)
+}
+
+// SetProcessedHeight stores the height at which a header was processed and the corresponding consensus state was created.
+// This is useful when validating whether a packet has reached the specified block delay period in the tendermint client's
+// verification functions
+func SetProcessedHeight(clientStore sdk.KVStore, consHeight, processedHeight exported.Height) {
+	key := ProcessedHeightKey(consHeight)
+	val := []byte(processedHeight.String())
+	clientStore.Set(key, val)
+}
+
+// GetProcessedHeight gets the height at which this chain received and processed a tendermint header.
+// This is used to validate that a received packet has passed the block delay period.
+func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (exported.Height, bool) {
+	key := ProcessedHeightKey(height)
+	bz := clientStore.Get(key)
+	if bz == nil {
+		return nil, false
+	}
+	processedHeight, err := clienttypes.ParseHeight(string(bz))
+	if err != nil {
+		return nil, false
+	}
+	return processedHeight, true
+}
+
+// deleteProcessedHeight deletes the processedHeight for a given height
+func deleteProcessedHeight(clientStore sdk.KVStore, height exported.Height) {
+	key := ProcessedHeightKey(height)
+	clientStore.Delete(key)
+}
 
 // IterationKey returns the key under which the consensus state key will be stored.
 // The iteration key is a BigEndian representation of the consensus state key to support efficient iteration.
@@ -254,4 +305,30 @@ func bigEndianHeightBytes(height exported.Height) []byte {
 	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionNumber())
 	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
 	return heightBytes
+}
+
+// setConsensusMetadata sets context time as processed time and set context height as processed height
+// as this is internal tendermint light client logic.
+// client state and consensus state will be set by client keeper
+// set iteration key to provide ability for efficient ordered iteration of consensus states.
+func setConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, height exported.Height) {
+	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
+}
+
+// setConsensusMetadataWithValues sets the consensus metadata with the provided values
+func setConsensusMetadataWithValues(
+	clientStore sdk.KVStore, height,
+	processedHeight exported.Height,
+	processedTime uint64,
+) {
+	SetProcessedTime(clientStore, height, processedTime)
+	SetProcessedHeight(clientStore, height, processedHeight)
+	SetIterationKey(clientStore, height)
+}
+
+// deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
+func deleteConsensusMetadata(clientStore sdk.KVStore, height exported.Height) {
+	deleteProcessedTime(clientStore, height)
+	deleteProcessedHeight(clientStore, height)
+	deleteIterationKey(clientStore, height)
 }

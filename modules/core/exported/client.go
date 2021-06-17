@@ -44,7 +44,6 @@ type ClientState interface {
 
 	ClientType() string
 	GetLatestHeight() Height
-	GetFrozenHeight() Height
 	Validate() error
 	GetProofSpecs() []*ics23.ProofSpec
 
@@ -64,7 +63,7 @@ type ClientState interface {
 
 	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
 	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) (ClientState, error)
-	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState, height Height) (ClientState, error)
+	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
 	// Upgrade functions
 	// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
@@ -127,11 +126,12 @@ type ClientState interface {
 		channel ChannelI,
 	) error
 	VerifyPacketCommitment(
+		ctx sdk.Context,
 		store sdk.KVStore,
 		cdc codec.BinaryCodec,
 		height Height,
-		currentTimestamp uint64,
-		delayPeriod uint64,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
 		prefix Prefix,
 		proof []byte,
 		portID,
@@ -140,11 +140,12 @@ type ClientState interface {
 		commitmentBytes []byte,
 	) error
 	VerifyPacketAcknowledgement(
+		ctx sdk.Context,
 		store sdk.KVStore,
 		cdc codec.BinaryCodec,
 		height Height,
-		currentTimestamp uint64,
-		delayPeriod uint64,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
 		prefix Prefix,
 		proof []byte,
 		portID,
@@ -153,11 +154,12 @@ type ClientState interface {
 		acknowledgement []byte,
 	) error
 	VerifyPacketReceiptAbsence(
+		ctx sdk.Context,
 		store sdk.KVStore,
 		cdc codec.BinaryCodec,
 		height Height,
-		currentTimestamp uint64,
-		delayPeriod uint64,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
 		prefix Prefix,
 		proof []byte,
 		portID,
@@ -165,11 +167,12 @@ type ClientState interface {
 		sequence uint64,
 	) error
 	VerifyNextSequenceRecv(
+		ctx sdk.Context,
 		store sdk.KVStore,
 		cdc codec.BinaryCodec,
 		height Height,
-		currentTimestamp uint64,
-		delayPeriod uint64,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
 		prefix Prefix,
 		proof []byte,
 		portID,
@@ -201,9 +204,6 @@ type Misbehaviour interface {
 	ClientType() string
 	GetClientID() string
 	ValidateBasic() error
-
-	// Height at which the infraction occurred
-	GetHeight() Height
 }
 
 // Header is the consensus state update information

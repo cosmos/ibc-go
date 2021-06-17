@@ -70,14 +70,14 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), solomachine.ClientID)
 				substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute.ClientID)
 
-				updatedClient, err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState, nil)
+				updatedClient, err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
 
 					suite.Require().Equal(substituteClientState.(*types.ClientState).ConsensusState, updatedClient.(*types.ClientState).ConsensusState)
 					suite.Require().Equal(substituteClientState.(*types.ClientState).Sequence, updatedClient.(*types.ClientState).Sequence)
-					suite.Require().Equal(uint64(0), updatedClient.(*types.ClientState).FrozenSequence)
+					suite.Require().Equal(false, updatedClient.(*types.ClientState).IsFrozen)
 				} else {
 					suite.Require().Error(err)
 					suite.Require().Nil(updatedClient)
