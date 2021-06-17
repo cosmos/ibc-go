@@ -235,6 +235,8 @@ func (am AppModule) OnChanOpenInit(
 		return err
 	}
 
+	am.keeper.SetChannelStatus(ctx, channelID, ccv.Initializing)
+
 	if err := am.keeper.VerifyParentChain(ctx, channelID); err != nil {
 		return err
 	}

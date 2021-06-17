@@ -14,6 +14,11 @@ import (
 // OnRecvPacket sets the pending validator set changes that will be flushed to ABCI on Endblock
 // and set the unbonding time for the packet so that we can WriteAcknowledgement after unbonding time is over.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data ccv.ValidatorSetChangePacketData) error {
+	if status := k.GetChannelStatus(ctx, packet.DestinationChannel); status != ccv.Validating {
+		// Set CCV channel status to Validating and set parent channel
+		k.SetChannelStatus(ctx, packet.DestinationChannel, ccv.Validating)
+		k.SetParentChannel(ctx, packet.DestinationChannel)
+	}
 	// Set PendingChanges to be flushed and the unbonding time and unbonding packet.
 	// TODO: Get PendingChanges and update the pending changes if they already exist
 	k.SetPendingChanges(ctx, data)
