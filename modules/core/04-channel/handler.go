@@ -8,21 +8,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/04-channel/types"
 )
 
-// HandleMsgChannelOpenInit defines the sdk.Handler for MsgChannelOpenInit
-func HandleMsgChannelOpenInit(ctx sdk.Context, k keeper.Keeper, portCap *capabilitytypes.Capability, msg *types.MsgChannelOpenInit) (*sdk.Result, string, *capabilitytypes.Capability, error) {
-	channelID, capKey, err := k.ChanOpenInit(
-		ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId,
-		portCap, msg.Channel.Counterparty, msg.Channel.Version,
-	)
-	if err != nil {
-		return nil, "", nil, sdkerrors.Wrap(err, "channel handshake open init failed")
-	}
-
-	return &sdk.Result{
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, channelID, capKey, nil
-}
-
 // HandleMsgChannelOpenTry defines the sdk.Handler for MsgChannelOpenTry
 func HandleMsgChannelOpenTry(ctx sdk.Context, k keeper.Keeper, portCap *capabilitytypes.Capability, msg *types.MsgChannelOpenTry) (*sdk.Result, string, *capabilitytypes.Capability, error) {
 	channelID, capKey, err := k.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, msg.PreviousChannelId,
@@ -66,35 +51,6 @@ func HandleMsgChannelOpenAck(ctx sdk.Context, k keeper.Keeper, channelCap *capab
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenAck,
-			sdk.NewAttribute(types.AttributeKeyPortID, msg.PortId),
-			sdk.NewAttribute(types.AttributeKeyChannelID, msg.ChannelId),
-			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
-			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-
-	return &sdk.Result{
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, nil
-}
-
-// HandleMsgChannelOpenConfirm defines the sdk.Handler for MsgChannelOpenConfirm
-func HandleMsgChannelOpenConfirm(ctx sdk.Context, k keeper.Keeper, channelCap *capabilitytypes.Capability, msg *types.MsgChannelOpenConfirm) (*sdk.Result, error) {
-	err := k.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, channelCap, msg.ProofAck, msg.ProofHeight)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "channel handshake open confirm failed")
-	}
-
-	channel, _ := k.GetChannel(ctx, msg.PortId, msg.ChannelId)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeChannelOpenConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, msg.PortId),
 			sdk.NewAttribute(types.AttributeKeyChannelID, msg.ChannelId),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
