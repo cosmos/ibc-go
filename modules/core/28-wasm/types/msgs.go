@@ -6,17 +6,17 @@ import (
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
-var _ sdk.Msg = &MsgPushNewWASMCode{}
+var _ sdk.Msg = &MsgPushNewWasmCode{}
 
-func (m *MsgPushNewWASMCode) Route() string {
+func (m *MsgPushNewWasmCode) Route() string {
 	return host.RouterKey
 }
 
-func (m *MsgPushNewWASMCode) Type() string {
+func (m *MsgPushNewWasmCode) Type() string {
 	return "wasm_push_new_code"
 }
 
-func (m *MsgPushNewWASMCode) ValidateBasic() error {
+func (m *MsgPushNewWasmCode) ValidateBasic() error {
 	if len(m.Code) == 0 {
 		return sdkerrors.Wrapf(ErrWasmEmptyCode,
 			"empty wasm code",
@@ -26,11 +26,11 @@ func (m *MsgPushNewWASMCode) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgPushNewWASMCode) GetSignBytes() []byte {
+func (m *MsgPushNewWasmCode) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
 }
 
-func (m *MsgPushNewWASMCode) GetSigners() []sdk.AccAddress {
+func (m *MsgPushNewWasmCode) GetSigners() []sdk.AccAddress {
 	signer, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		panic(err)

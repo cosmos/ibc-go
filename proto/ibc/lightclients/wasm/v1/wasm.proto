@@ -9,7 +9,7 @@ import "confio/proofs.proto";
 
 option go_package = "github.com/cosmos/ibc-go/modules/light-clients/10-wasm/types";
 
-// WASM light client's Client state
+// Wasm light client's Client state
 message ClientState {
   option (gogoproto.goproto_getters)      = false;
   bytes                     data          = 1;
@@ -18,7 +18,7 @@ message ClientState {
   repeated ics23.ProofSpec proof_specs    = 4;
 }
 
-// WASM light client's ConsensusState
+// Wasm light client's ConsensusState
 message ConsensusState {
   option (gogoproto.goproto_getters) = false;
   bytes data                         = 1;
@@ -31,7 +31,7 @@ message ConsensusState {
   ibc.core.commitment.v1.MerkleRoot root = 4;
 }
 
-// WASM light client Header
+// Wasm light client Header
 message Header {
   option (gogoproto.goproto_getters) = false;
 
@@ -39,7 +39,7 @@ message Header {
   ibc.core.client.v1.Height height = 2;
 }
 
-// WASM light client Misbehaviour
+// Wasm light client Misbehaviour
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 

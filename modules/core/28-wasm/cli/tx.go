@@ -10,8 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewPushNewWASMCodeCmd returns the command to create a PushNewWASMCode transaction
-func NewPushNewWASMCodeCmd() *cobra.Command {
+// NewPushNewWasmCodeCmd returns the command to create a PushNewWasmCode transaction
+func NewPushNewWasmCodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push-wasm [wasm-file]",
 		Short: "Reads wasm code from the file and creates push transaction",
@@ -29,7 +29,7 @@ func NewPushNewWASMCodeCmd() *cobra.Command {
 				return err
 			}
 
-			msg := &types.MsgPushNewWASMCode{
+			msg := &types.MsgPushNewWasmCode{
 				Code:   code,
 				Signer: clientCtx.GetFromAddress().String(),
 			}

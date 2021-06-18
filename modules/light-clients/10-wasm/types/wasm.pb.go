@@ -27,7 +27,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// WASM light client's Client state
+// Wasm light client's Client state
 type ClientState struct {
 	Data         []byte           `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	CodeId       []byte           `protobuf:"bytes,2,opt,name=code_id,json=codeId,proto3" json:"code_id,omitempty"`
@@ -68,7 +68,7 @@ func (m *ClientState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ClientState proto.InternalMessageInfo
 
-// WASM light client's ConsensusState
+// Wasm light client's ConsensusState
 type ConsensusState struct {
 	Data   []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	CodeId []byte `protobuf:"bytes,2,opt,name=code_id,json=codeId,proto3" json:"code_id,omitempty"`
@@ -112,7 +112,7 @@ func (m *ConsensusState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ConsensusState proto.InternalMessageInfo
 
-// WASM light client Header
+// Wasm light client Header
 type Header struct {
 	Data   []byte        `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Height *types.Height `protobuf:"bytes,2,opt,name=height,proto3" json:"height,omitempty"`
@@ -151,7 +151,7 @@ func (m *Header) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Header proto.InternalMessageInfo
 
-// WASM light client Misbehaviour
+// Wasm light client Misbehaviour
 type Misbehaviour struct {
 	ClientId string  `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty" yaml:"client_id"`
 	Header1  *Header `protobuf:"bytes,2,opt,name=header_1,json=header1,proto3" json:"header_1,omitempty" yaml:"header_1"`

@@ -23,10 +23,10 @@ var _ connectiontypes.MsgServer = Keeper{}
 var _ channeltypes.MsgServer = Keeper{}
 var _ wasmtypes.MsgServer = Keeper{}
 
-// PushNewWASMCode defines a rpc handler method for MsgPushNewWASMCode
-func (k Keeper) PushNewWASMCode(goCtx context.Context, msg *wasmtypes.MsgPushNewWASMCode) (*wasmtypes.MsgPushNewWASMCodeResponse, error) {
+// PushNewWasmCode defines a rpc handler method for MsgPushNewWasmCode
+func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *wasmtypes.MsgPushNewWasmCode) (*wasmtypes.MsgPushNewWasmCodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	response, err := wasm.HandleMsgPushNewWASMCode(ctx, k.WasmKeeper, msg)
+	response, err := wasm.HandleMsgPushNewWasmCode(ctx, k.WasmKeeper, msg)
 	if err != nil {
 		return nil, err
 	}

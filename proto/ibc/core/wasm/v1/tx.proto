@@ -7,17 +7,17 @@ option go_package = "github.com/cosmos/ibc-go/modules/core/28-wasm/types";
 
 // Msg defines the ibc/wasm Msg service.
 service Msg {
-  // PushNewWASMCode defines a rpc handler method for PushNewWASMCode.
-  rpc PushNewWASMCode(MsgPushNewWASMCode) returns (MsgPushNewWASMCodeResponse);
+  // PushNewWasmCode defines a rpc handler method for PushNewWasmCode.
+  rpc PushNewWasmCode(MsgPushNewWasmCode) returns (MsgPushNewWasmCodeResponse);
 }
 
 // Message type to push new wasm code
-message MsgPushNewWASMCode {
+message MsgPushNewWasmCode {
   string signer      = 1;
   bytes  code        = 3;
 }
 
 // Response in case of successful handling
-message MsgPushNewWASMCodeResponse {
+message MsgPushNewWasmCodeResponse {
   bytes  code_id   = 1;
 }

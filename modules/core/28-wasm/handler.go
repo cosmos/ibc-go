@@ -7,13 +7,13 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/28-wasm/types"
 )
 
-func HandleMsgPushNewWASMCode(ctx sdk.Context, k keeper.Keeper, msg *types.MsgPushNewWASMCode) (*types.MsgPushNewWASMCodeResponse, error) {
-	codeID, err := k.PushNewWASMCode(ctx, msg.Code)
+func HandleMsgPushNewWasmCode(ctx sdk.Context, k keeper.Keeper, msg *types.MsgPushNewWasmCode) (*types.MsgPushNewWasmCodeResponse, error) {
+	codeID, err := k.PushNewWasmCode(ctx, msg.Code)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "pushing new wasm code failed")
 	}
 
-	return &types.MsgPushNewWASMCodeResponse{
+	return &types.MsgPushNewWasmCodeResponse{
 		CodeId: codeID,
 	}, nil
 }

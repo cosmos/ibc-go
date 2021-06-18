@@ -15,7 +15,7 @@ import (
 // WasmVM initialized by wasm keeper
 var WasmVM *wasm.VM
 
-// VMConfig represents WASM virtual machine settings
+// VMConfig represents Wasm virtual machine settings
 type VMConfig struct {
 	DataDir           string
 	SupportedFeatures []string
@@ -28,7 +28,7 @@ type VMConfig struct {
 type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           codec.BinaryCodec
-	wasmValidator *WASMValidator
+	wasmValidator *WasmValidator
 }
 
 func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, vmConfig *VMConfig, validationConfig *ValidationConfig) Keeper {
@@ -39,7 +39,7 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, vmConfig *VMConfig, vali
 		panic(err)
 	}
 
-	wasmValidator, err := NewWASMValidator(validationConfig, func() (*wasm.VM, error) {
+	wasmValidator, err := NewWasmValidator(validationConfig, func() (*wasm.VM, error) {
 		return wasm.NewVM(vmConfig.DataDir, supportedFeatures, vmConfig.MemoryLimitMb, vmConfig.PrintDebug, vmConfig.CacheSizeMb)
 	})
 	if err != nil {
@@ -55,18 +55,18 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, vmConfig *VMConfig, vali
 	}
 }
 
-func (k Keeper) PushNewWASMCode(ctx sdk.Context, code []byte) ([]byte, error) {
+func (k Keeper) PushNewWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	store := ctx.KVStore(k.storeKey)
-	codeHash := generateWASMCodeHash(code)
+	codeHash := generateWasmCodeHash(code)
 	codeIDKey := types.CodeID(codeHash)
 
 	if store.Has(codeIDKey) {
 		return nil, types.ErrWasmCodeExists
 	}
 
-	if isValidWASMCode, err := k.wasmValidator.validateWASMCode(code); err != nil {
+	if isValidWasmCode, err := k.wasmValidator.validateWasmCode(code); err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
-	} else if !isValidWASMCode {
+	} else if !isValidWasmCode {
 		return nil, types.ErrWasmInvalidCode
 	}
 
@@ -85,7 +85,7 @@ func (k Keeper) PushNewWASMCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	return codeID, nil
 }
 
-func generateWASMCodeHash(code []byte) []byte {
+func generateWasmCodeHash(code []byte) []byte {
 	hash := sha256.Sum256(code)
 	return hash[:]
 }
