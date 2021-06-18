@@ -100,10 +100,6 @@ func (k Keeper) ChanOpenInit(
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, counterparty.ChannelId),
 			sdk.NewAttribute(types.AttributeKeyConnectionID, connectionHops[0]),
 		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
 	})
 
 	return channelID, capKey, nil

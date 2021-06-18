@@ -305,7 +305,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 		portCap, msg.Channel.Counterparty, msg.Channel.Version, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
 	)
 	if err != nil {
-		return &channeltypes.MsgChannelOpenTryResponse{}, sdkerrors.Wrap(err, "channel handshake open try failed")
+		return nil, sdkerrors.Wrap(err, "channel handshake open try failed")
 	}
 
 	// Retrieve callbacks from router
