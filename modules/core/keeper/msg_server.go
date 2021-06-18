@@ -269,7 +269,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 		portCap, msg.Channel.Counterparty, msg.Channel.Version,
 	)
 	if err != nil {
-		return &channeltypes.MsgChannelOpenInitResponse{}, sdkerrors.Wrap(err, "channel handshake open init failed")
+		return nil, sdkerrors.Wrap(err, "channel handshake open init failed")
 	}
 
 	// Retrieve callbacks from router
@@ -348,7 +348,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 		ctx, msg.PortId, msg.ChannelId, cap, msg.CounterpartyVersion, msg.CounterpartyChannelId, msg.ProofTry, msg.ProofHeight,
 	)
 	if err != nil {
-		return &channeltypes.MsgChannelOpenAckResponse{}, sdkerrors.Wrap(err, "channel handshake open ack failed")
+		return nil, sdkerrors.Wrap(err, "channel handshake open ack failed")
 	}
 
 	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion); err != nil {
@@ -383,7 +383,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 
 	err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofAck, msg.ProofHeight)
 	if err != nil {
-		return &channeltypes.MsgChannelOpenConfirmResponse{}, sdkerrors.Wrap(err, "channel handshake open confirm failed")
+		return nil, sdkerrors.Wrap(err, "channel handshake open confirm failed")
 	}
 
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
@@ -421,7 +421,7 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 
 	err = k.ChannelKeeper.ChanCloseInit(ctx, msg.PortId, msg.ChannelId, cap)
 	if err != nil {
-		return &channeltypes.MsgChannelCloseInitResponse{}, sdkerrors.Wrap(err, "channel handshake close init failed")
+		return nil, sdkerrors.Wrap(err, "channel handshake close init failed")
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -456,7 +456,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 
 	err = k.ChannelKeeper.ChanCloseConfirm(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofInit, msg.ProofHeight)
 	if err != nil {
-		return &channeltypes.MsgChannelCloseConfirmResponse{}, sdkerrors.Wrap(err, "channel handshake close confirm failed")
+		return nil, sdkerrors.Wrap(err, "channel handshake close confirm failed")
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
