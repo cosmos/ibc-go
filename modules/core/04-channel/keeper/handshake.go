@@ -91,6 +91,21 @@ func (k Keeper) ChanOpenInit(
 		telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 	}()
 
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeChannelOpenInit,
+			sdk.NewAttribute(types.AttributeKeyPortID, portID),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, connectionHops[0]),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+
 	return channelID, capKey, nil
 }
 

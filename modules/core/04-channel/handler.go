@@ -18,21 +18,6 @@ func HandleMsgChannelOpenInit(ctx sdk.Context, k keeper.Keeper, portCap *capabil
 		return nil, "", nil, sdkerrors.Wrap(err, "channel handshake open init failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeChannelOpenInit,
-			sdk.NewAttribute(types.AttributeKeyPortID, msg.PortId),
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-			sdk.NewAttribute(types.AttributeCounterpartyPortID, msg.Channel.Counterparty.PortId),
-			sdk.NewAttribute(types.AttributeCounterpartyChannelID, msg.Channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, msg.Channel.ConnectionHops[0]),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-
 	return &sdk.Result{
 		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, channelID, capKey, nil
