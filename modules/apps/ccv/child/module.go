@@ -269,9 +269,6 @@ func (am AppModule) OnChanOpenAck(
 	if counterpartyVersion != ccv.Version {
 		return sdkerrors.Wrapf(ccv.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, ccv.Version)
 	}
-	// Set CCV channel status to Validating and set parent channel
-	am.keeper.SetChannelStatus(ctx, channelID, ccv.Validating)
-	am.keeper.SetParentChannel(ctx, channelID)
 	return nil
 }
 
