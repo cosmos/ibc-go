@@ -24,17 +24,19 @@ func NewRestartChildGenesisState(channelID string, unbondingSequences []*Unbondi
 	}
 }
 
-// DefaultGenesisState returns a default new child chain genesis state with blank clientstate and consensus states for testing.
+// DefaultGenesisState returns a default disabled child chain genesis state. This allows the module to be hooked up to app without getting use
+// unless explicitly specified in genesis.
 func DefaultChildGenesisState() ChildGenesisState {
 	return ChildGenesisState{
-		NewChain:             true,
-		ParentClientState:    &ibctmtypes.ClientState{},
-		ParentConsensusState: &ibctmtypes.ConsensusState{},
+		Disabled: true,
 	}
 }
 
 // Validate performs basic genesis state validation returning an error upon any failure.
 func (gs ChildGenesisState) Validate() error {
+	if gs.Disabled {
+		return nil
+	}
 	if gs.NewChain {
 		if gs.ParentClientState == nil {
 			return sdkerrors.Wrap(ErrInvalidGenesis, "parent client state cannot be nil for new chain")

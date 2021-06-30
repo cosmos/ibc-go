@@ -175,6 +175,24 @@ func (k Keeper) DeletePendingChanges(ctx sdk.Context) {
 	store.Delete(types.PendingChangesKey())
 }
 
+// IterateUnbondingTime iterates through the unbonding times set in the store
+func (k Keeper) IterateUnbondingTime(ctx sdk.Context, cb func(seq, timeNs uint64) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.UnbondingTimePrefix))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		seqBytes := iterator.Key()[len([]byte(types.UnbondingTimePrefix)):]
+		seq := binary.BigEndian.Uint64(seqBytes)
+
+		timeNs := binary.BigEndian.Uint64(iterator.Value())
+
+		if cb(seq, timeNs) {
+			break
+		}
+	}
+}
+
 // SetUnbondingTime sets the unbonding time for a given received packet sequence
 func (k Keeper) SetUnbondingTime(ctx sdk.Context, sequence, unbondingTime uint64) {
 	store := ctx.KVStore(k.storeKey)
@@ -197,6 +215,29 @@ func (k Keeper) GetUnbondingTime(ctx sdk.Context, sequence uint64) uint64 {
 func (k Keeper) DeleteUnbondingTime(ctx sdk.Context, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.UnbondingTimeKey(sequence))
+}
+
+// IterateUnbondingPacket iterates through the unbonding packets set in the store
+func (k Keeper) IterateUnbondingPacket(ctx sdk.Context, cb func(seq uint64, packet channeltypes.Packet) bool) error {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.UnbondingPacketPrefix))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		seqBytes := iterator.Key()[len([]byte(types.UnbondingPacketPrefix)):]
+		seq := binary.BigEndian.Uint64(seqBytes)
+
+		var packet channeltypes.Packet
+		err := packet.Unmarshal(iterator.Value())
+		if err != nil {
+			return err
+		}
+
+		if cb(seq, packet) {
+			break
+		}
+	}
+	return nil
 }
 
 // SetUnbondingPacket sets the unbonding packet for a given received packet sequence

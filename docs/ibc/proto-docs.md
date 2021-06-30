@@ -305,11 +305,9 @@ client.
 
 ### ClientUpdateProposal
 ClientUpdateProposal is a governance proposal. If it passes, the substitute
-client's consensus states starting from the 'initial height' are copied over
-to the subjects client state. The proposal handler may fail if the subject
-and the substitute do not match in client and chain parameters (with
-exception to latest height, frozen height, and chain-id). The updated client
-must also be valid (cannot be expired).
+client's latest consensus state is copied over to the subject client. The proposal
+handler may fail if the subject and the substitute do not match in client and
+chain parameters (with exception to latest height, frozen height, and chain-id).
 
 
 | Field | Type | Label | Description |
@@ -318,7 +316,6 @@ must also be valid (cannot be expired).
 | `description` | [string](#string) |  | the description of the proposal |
 | `subject_client_id` | [string](#string) |  | the client identifier for the client to be updated if the proposal passes |
 | `substitute_client_id` | [string](#string) |  | the substitute client identifier for the client standing in for the subject client |
-| `initial_height` | [Height](#ibc.core.client.v1.Height) |  | the intital height to copy consensus states from the substitute to the subject |
 
 
 
@@ -453,30 +450,15 @@ MerklePath is represented from root-to-leaf
 
 <a name="ibc.core.commitment.v1.MerklePrefix"></a>
 
-<<<<<<< HEAD
 ### MerklePrefix
 MerklePrefix is merkle path prefixed to the key.
 The constructed key from the Path and the key will be append(Path.KeyPath,
 append(Path.KeyPrefix, key...))
-=======
-### ClientUpdateProposal
-ClientUpdateProposal is a governance proposal. If it passes, the substitute
-client's latest consensus state is copied over to the subject client. The proposal
-handler may fail if the subject and the substitute do not match in client and
-chain parameters (with exception to latest height, frozen height, and chain-id).
->>>>>>> 2548ab5f52d3dff51bb2e7075b4bb0d3b79949eb
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-<<<<<<< HEAD
 | `key_prefix` | [bytes](#bytes) |  |  |
-=======
-| `title` | [string](#string) |  | the title of the update proposal |
-| `description` | [string](#string) |  | the description of the proposal |
-| `subject_client_id` | [string](#string) |  | the client identifier for the client to be updated if the proposal passes |
-| `substitute_client_id` | [string](#string) |  | the substitute client identifier for the client standing in for the subject client |
->>>>>>> 2548ab5f52d3dff51bb2e7075b4bb0d3b79949eb
 
 
 
@@ -834,6 +816,7 @@ ChildGenesisState defines the CCV child chain genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `disabled` | [bool](#bool) |  |  |
 | `parent_channel_id` | [string](#string) |  | empty for a completely new chain |
 | `new_chain` | [bool](#bool) |  | true for new chain GenesisState, false for chain restart. |
 | `parent_client_state` | [ibc.lightclients.tendermint.v1.ClientState](#ibc.lightclients.tendermint.v1.ClientState) |  | ParentClientState filled in on new chain, nil on restart. |

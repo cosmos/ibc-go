@@ -81,6 +81,12 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibcchild "github.com/cosmos/ibc-go/modules/apps/ccv/child"
+	ibcchildkeeper "github.com/cosmos/ibc-go/modules/apps/ccv/child/keeper"
+	ibcchildtypes "github.com/cosmos/ibc-go/modules/apps/ccv/child/types"
+	ibcparent "github.com/cosmos/ibc-go/modules/apps/ccv/parent"
+	ibcparentkeeper "github.com/cosmos/ibc-go/modules/apps/ccv/parent/keeper"
+	ibcparenttypes "github.com/cosmos/ibc-go/modules/apps/ccv/parent/types"
 	transfer "github.com/cosmos/ibc-go/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
@@ -185,6 +191,8 @@ type SimApp struct {
 	EvidenceKeeper   evidencekeeper.Keeper
 	TransferKeeper   ibctransferkeeper.Keeper
 	FeeGrantKeeper   feegrantkeeper.Keeper
+	ChildKeeper      ibcchildkeeper.Keeper
+	ParentKeeper     ibcparentkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -231,7 +239,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		authzkeeper.StoreKey,
+		authzkeeper.StoreKey, ibcchildtypes.StoreKey, ibcparenttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -259,6 +267,8 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedIBCChildKeeper := app.CapabilityKeeper.ScopeToModule(ibcchildtypes.ModuleName)
+	scopedIBCParentKeeper := app.CapabilityKeeper.ScopeToModule(ibcparenttypes.ModuleName)
 
 	// add keepers
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
@@ -325,6 +335,15 @@ func NewSimApp(
 	// note replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
 
+	// Create CCV child and parent keepers and modules
+	app.ChildKeeper = ibcchildkeeper.NewKeeper(appCodec, keys[ibcchildtypes.StoreKey], scopedIBCChildKeeper,
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper,
+	)
+	childModule := ibcchild.NewAppModule(app.ChildKeeper)
+	app.ParentKeeper = ibcparentkeeper.NewKeeper(appCodec, keys[ibcparenttypes.StoreKey], scopedIBCParentKeeper,
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, nil)
+	parentModule := ibcparent.NewAppModule(app.ParentKeeper)
+
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
@@ -369,6 +388,8 @@ func NewSimApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		transferModule,
 		mockModule,
+		childModule,
+		parentModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -379,7 +400,7 @@ func NewSimApp(
 		upgradetypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
 	)
-	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
+	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibcchildtypes.ModuleName, ibcparenttypes.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
@@ -390,7 +411,7 @@ func NewSimApp(
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibchost.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		ibcmock.ModuleName, feegrant.ModuleName,
+		ibcmock.ModuleName, feegrant.ModuleName, ibcchildtypes.ModuleName, ibcparenttypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
