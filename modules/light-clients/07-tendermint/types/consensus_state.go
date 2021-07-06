@@ -12,6 +12,8 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
+const SentinelRoot = "sentinel_root"
+
 // NewConsensusState creates a new ConsensusState instance.
 func NewConsensusState(
 	timestamp time.Time, root commitmenttypes.MerkleRoot, nextValsHash tmbytes.HexBytes,
