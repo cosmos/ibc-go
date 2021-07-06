@@ -10,9 +10,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
-	channel "github.com/cosmos/ibc-go/modules/core/04-channel"
+	"github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
+	coretypes "github.com/cosmos/ibc-go/modules/core/types"
 )
 
 var _ clienttypes.MsgServer = Keeper{}
@@ -264,9 +265,12 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	_, channelID, cap, err := channel.HandleMsgChannelOpenInit(ctx, k.ChannelKeeper, portCap, msg)
+	channelID, cap, err := k.ChannelKeeper.ChanOpenInit(
+		ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId,
+		portCap, msg.Channel.Counterparty, msg.Channel.Version,
+	)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "channel handshake open init failed")
 	}
 
 	// Retrieve callbacks from router
@@ -278,6 +282,13 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	if err = cbs.OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.Channel.Version); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open init callback failed")
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
+		),
+	})
 
 	return &channeltypes.MsgChannelOpenInitResponse{}, nil
 }
@@ -291,9 +302,11 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	_, channelID, cap, err := channel.HandleMsgChannelOpenTry(ctx, k.ChannelKeeper, portCap, msg)
+	channelID, cap, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, msg.PreviousChannelId,
+		portCap, msg.Channel.Counterparty, msg.Channel.Version, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
+	)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "channel handshake open try failed")
 	}
 
 	// Retrieve callbacks from router
@@ -305,6 +318,13 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	if err = cbs.OnChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.Channel.Version, msg.CounterpartyVersion); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open try callback failed")
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 
 	return &channeltypes.MsgChannelOpenTryResponse{}, nil
 }
@@ -325,14 +345,23 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	_, err = channel.HandleMsgChannelOpenAck(ctx, k.ChannelKeeper, cap, msg)
+	err = k.ChannelKeeper.ChanOpenAck(
+		ctx, msg.PortId, msg.ChannelId, cap, msg.CounterpartyVersion, msg.CounterpartyChannelId, msg.ProofTry, msg.ProofHeight,
+	)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "channel handshake open ack failed")
 	}
 
 	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open ack callback failed")
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 
 	return &channeltypes.MsgChannelOpenAckResponse{}, nil
 }
@@ -353,14 +382,21 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	_, err = channel.HandleMsgChannelOpenConfirm(ctx, k.ChannelKeeper, cap, msg)
+	err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofAck, msg.ProofHeight)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "channel handshake open confirm failed")
 	}
 
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open confirm callback failed")
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 
 	return &channeltypes.MsgChannelOpenConfirmResponse{}, nil
 }
@@ -384,10 +420,17 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 		return nil, sdkerrors.Wrap(err, "channel close init callback failed")
 	}
 
-	_, err = channel.HandleMsgChannelCloseInit(ctx, k.ChannelKeeper, cap, msg)
+	err = k.ChannelKeeper.ChanCloseInit(ctx, msg.PortId, msg.ChannelId, cap)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "channel handshake close init failed")
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 
 	return &channeltypes.MsgChannelCloseInitResponse{}, nil
 }
@@ -412,10 +455,17 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 		return nil, sdkerrors.Wrap(err, "channel close confirm callback failed")
 	}
 
-	_, err = channel.HandleMsgChannelCloseConfirm(ctx, k.ChannelKeeper, cap, msg)
+	err = k.ChannelKeeper.ChanCloseConfirm(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofInit, msg.ProofHeight)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "channel handshake close confirm failed")
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
@@ -469,10 +519,10 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 			[]string{"tx", "msg", "ibc", channeltypes.EventTypeRecvPacket},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("source-port", msg.Packet.SourcePort),
-				telemetry.NewLabel("source-channel", msg.Packet.SourceChannel),
-				telemetry.NewLabel("destination-port", msg.Packet.DestinationPort),
-				telemetry.NewLabel("destination-channel", msg.Packet.DestinationChannel),
+				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
 			},
 		)
 	}()
@@ -507,7 +557,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	}
 
 	// Perform application logic callback
-	_, err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "timeout packet callback failed")
 	}
@@ -522,11 +572,11 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 			[]string{"ibc", "timeout", "packet"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("source-port", msg.Packet.SourcePort),
-				telemetry.NewLabel("source-channel", msg.Packet.SourceChannel),
-				telemetry.NewLabel("destination-port", msg.Packet.DestinationPort),
-				telemetry.NewLabel("destination-channel", msg.Packet.DestinationChannel),
-				telemetry.NewLabel("timeout-type", "height"),
+				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
+				telemetry.NewLabel(coretypes.LabelTimeoutType, "height"),
 			},
 		)
 	}()
@@ -563,7 +613,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	// Perform application logic callback
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
 	// application logic callback.
-	_, err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "timeout packet callback failed")
 	}
@@ -578,11 +628,11 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 			[]string{"ibc", "timeout", "packet"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("source-port", msg.Packet.SourcePort),
-				telemetry.NewLabel("source-channel", msg.Packet.SourceChannel),
-				telemetry.NewLabel("destination-port", msg.Packet.DestinationPort),
-				telemetry.NewLabel("destination-channel", msg.Packet.DestinationChannel),
-				telemetry.NewLabel("timeout-type", "channel-closed"),
+				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
+				telemetry.NewLabel(coretypes.LabelTimeoutType, "channel-closed"),
 			},
 		)
 	}()
@@ -617,7 +667,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Perform application logic callback
-	_, err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
+	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "acknowledge packet callback failed")
 	}
@@ -627,10 +677,10 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 			[]string{"tx", "msg", "ibc", channeltypes.EventTypeAcknowledgePacket},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("source-port", msg.Packet.SourcePort),
-				telemetry.NewLabel("source-channel", msg.Packet.SourceChannel),
-				telemetry.NewLabel("destination-port", msg.Packet.DestinationPort),
-				telemetry.NewLabel("destination-channel", msg.Packet.DestinationChannel),
+				telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
+				telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
+				telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
+				telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
 			},
 		)
 	}()
