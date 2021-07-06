@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
-// SentinelRoot is used as a stand-in root value for consensus state set at the upgrade height
+// SentinelRoot is used as a stand-in root value for the consensus state set at the upgrade height
 const SentinelRoot = "sentinel_root"
 
 // NewConsensusState creates a new ConsensusState instance.
