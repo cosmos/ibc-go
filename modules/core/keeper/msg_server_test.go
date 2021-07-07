@@ -657,7 +657,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			name: "successful upgrade",
 			setup: func() {
 
-				upgradedClient = ibctmtypes.NewClientState("newChainId", ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				upgradedClient = ibctmtypes.NewClientState("newChainId-1", ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 				// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 				upgradedClient = upgradedClient.ZeroCustomFields()
 
@@ -698,7 +698,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			name: "VerifyUpgrade fails",
 			setup: func() {
 
-				upgradedClient = ibctmtypes.NewClientState("newChainId", ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				upgradedClient = ibctmtypes.NewClientState("newChainId-1", ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 				// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 				upgradedClient = upgradedClient.ZeroCustomFields()
 
