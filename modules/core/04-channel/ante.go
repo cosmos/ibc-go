@@ -15,8 +15,8 @@ func NewChannelAnteDecorator(k keeper.Keeper) ChannelAnteDecorator {
 }
 
 func (cad ChannelAnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	// do not run redundancy check on simulate
-	if !simulate {
+	// do not run redundancy check on DeliverTx or simulate
+	if (ctx.IsCheckTx() || ctx.IsReCheckTx()) && !simulate {
 		// keep track of total packet messages and number of redundancies across `RecvPacket`, `AcknowledgePacket`, and `TimeoutPacket/OnClose`
 		msgs := 0
 		redundancies := 0
