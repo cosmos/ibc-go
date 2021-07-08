@@ -299,7 +299,7 @@ func (k Keeper) VerifyParentChain(ctx sdk.Context, channelID string) error {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "could not find parent client id")
 	}
 	if expectedClientId == conn.ClientId {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client: %s, channel must be built on top of client: %s")
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client: %s, channel must be built on top of client: %s", conn.ClientId, expectedClientId)
 	}
 
 	return nil

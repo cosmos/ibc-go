@@ -67,6 +67,7 @@ func TestValidateInitialChildGenesisState(t *testing.T) {
 		{
 			"invalid new child genesis state: channel id not empty",
 			types.ChildGenesisState{
+				false,
 				"ccvchannel",
 				true,
 				cs,
@@ -78,6 +79,7 @@ func TestValidateInitialChildGenesisState(t *testing.T) {
 		{
 			"invalid new child genesis state: non-nil unbonding sequences",
 			types.ChildGenesisState{
+				false,
 				"",
 				true,
 				cs,
@@ -244,6 +246,7 @@ func TestValidateRestartGenesisState(t *testing.T) {
 		{
 			"invalid restart child genesis: client state defined",
 			types.ChildGenesisState{
+				false,
 				"ccvchannel",
 				false,
 				cs,
@@ -255,6 +258,7 @@ func TestValidateRestartGenesisState(t *testing.T) {
 		{
 			"invalid restart child genesis: consensus state defined",
 			types.ChildGenesisState{
+				false,
 				"ccvchannel",
 				false,
 				nil,
