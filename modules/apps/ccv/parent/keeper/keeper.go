@@ -226,7 +226,7 @@ func (k Keeper) getUnderlyingClient(ctx sdk.Context, channelID string) (string, 
 	if !ok {
 		return "", nil, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel not found for channel ID: %s", channelID)
 	}
-	if len(channel.ConnectionHops) == 1 {
+	if len(channel.ConnectionHops) != 1 {
 		return "", nil, sdkerrors.Wrap(channeltypes.ErrTooManyConnectionHops, "must have direct connection to baby chain")
 	}
 	connectionID := channel.ConnectionHops[0]

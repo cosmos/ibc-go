@@ -140,7 +140,7 @@ func (k Keeper) SetParentChannel(ctx sdk.Context, channelID string) {
 func (k Keeper) GetParentChannel(ctx sdk.Context) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	channelIdBytes := store.Get(types.ParentChannelKey())
-	if channelIdBytes == nil {
+	if len(channelIdBytes) == 0 {
 		return "", false
 	}
 	return string(channelIdBytes), true
@@ -285,7 +285,7 @@ func (k Keeper) VerifyParentChain(ctx sdk.Context, channelID string) error {
 	if !ok {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel not found for channel ID: %s", channelID)
 	}
-	if len(channel.ConnectionHops) == 1 {
+	if len(channel.ConnectionHops) != 1 {
 		return sdkerrors.Wrap(channeltypes.ErrTooManyConnectionHops, "must have direct connection to parent chain")
 	}
 	connectionID := channel.ConnectionHops[0]
@@ -298,7 +298,7 @@ func (k Keeper) VerifyParentChain(ctx sdk.Context, channelID string) error {
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "could not find parent client id")
 	}
-	if expectedClientId == conn.ClientId {
+	if expectedClientId != conn.ClientId {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client: %s, channel must be built on top of client: %s", conn.ClientId, expectedClientId)
 	}
 

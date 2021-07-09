@@ -139,6 +139,8 @@ var (
 		ibcmock.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		ibcchild.AppModuleBasic{},
+		ibcparent.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -348,6 +350,8 @@ func NewSimApp(
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
+	ibcRouter.AddRoute(ibcchildtypes.ModuleName, childModule)
+	ibcRouter.AddRoute(ibcparenttypes.ModuleName, parentModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router

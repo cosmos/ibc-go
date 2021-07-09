@@ -3,27 +3,16 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/ibc transfer interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgSubmitNewChain{}, "cosmos-sdk/MsgSubmitNewChain", nil)
-	cdc.RegisterConcrete(&MsgBondStake{}, "cosmos-sdk/MsgBondStake", nil)
-	cdc.RegisterConcrete(&MsgUnbondStake{}, "cosmos-sdk/MsgUnbondStake", nil)
-
 }
 
 // RegisterInterfaces register the ibc transfer module interfaces to protobuf
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgSubmitNewChain{})
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgBondStake{})
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgUnbondStake{})
-
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
 var (
