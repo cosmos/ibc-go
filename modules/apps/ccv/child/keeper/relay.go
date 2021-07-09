@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,7 +14,16 @@ import (
 
 // OnRecvPacket sets the pending validator set changes that will be flushed to ABCI on Endblock
 // and set the unbonding time for the packet so that we can WriteAcknowledgement after unbonding time is over.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data ccv.ValidatorSetChangePacketData) error {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data ccv.ValidatorSetChangePacketData) (*channeltypes.Acknowledgement, error) {
+	// packet is not sent on parent channel, return error acknowledgement and close channel
+	if parentChannel, ok := k.GetParentChannel(ctx); ok && parentChannel != packet.DestinationChannel {
+		ack := channeltypes.NewErrorAcknowledgement(
+			fmt.Sprintf("packet sent on a channel %s other than the established parent channel %s", packet.DestinationChannel, parentChannel),
+		)
+		chanCap, _ := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))
+		k.channelKeeper.ChanCloseInit(ctx, packet.DestinationPort, packet.DestinationChannel, chanCap)
+		return &ack, nil
+	}
 	if status := k.GetChannelStatus(ctx, packet.DestinationChannel); status != ccv.Validating {
 		// Set CCV channel status to Validating and set parent channel
 		k.SetChannelStatus(ctx, packet.DestinationChannel, ccv.Validating)
@@ -25,7 +35,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data c
 	unbondingTime := ctx.BlockTime().Add(types.UnbondingTime)
 	k.SetUnbondingTime(ctx, packet.Sequence, uint64(unbondingTime.UnixNano()))
 	k.SetUnbondingPacket(ctx, packet.Sequence, packet)
-	return nil
+	// ack will be sent asynchronously
+	return nil, nil
 }
 
 // UnbondMaturePackets will iterate over the unbonding packets in order and write acknowledgements for all

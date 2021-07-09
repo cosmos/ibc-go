@@ -328,7 +328,8 @@ func (am AppModule) OnRecvPacket(
 	if err := ccv.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal CCV packet data: %s", err.Error()))
 	} else {
-		err := am.keeper.OnRecvPacket(ctx, packet, data)
+		var err error
+		ack, err = am.keeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err.Error())
 		}
