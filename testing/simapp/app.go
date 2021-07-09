@@ -197,9 +197,11 @@ type SimApp struct {
 	ParentKeeper     ibcparentkeeper.Keeper
 
 	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-	ScopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper       capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper  capabilitykeeper.ScopedKeeper
+	ScopedIBCMockKeeper   capabilitykeeper.ScopedKeeper
+	ScopedIBCChildKeeper  capabilitykeeper.ScopedKeeper
+	ScopedIBCParentKeeper capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
@@ -492,6 +494,8 @@ func NewSimApp(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
+	app.ScopedIBCChildKeeper = scopedIBCChildKeeper
+	app.ScopedIBCParentKeeper = scopedIBCParentKeeper
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.

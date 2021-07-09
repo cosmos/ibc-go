@@ -226,6 +226,11 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
+	// ensure parent channel hasn't already been created
+	if parentChannel, ok := am.keeper.GetParentChannel(ctx); ok {
+		return sdkerrors.Wrapf(ccv.ErrDuplicateChannel, "parent channel: %s already set", parentChannel)
+	}
+
 	if err := ValidateChildChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
 		return err
 	}
@@ -266,6 +271,11 @@ func (am AppModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
+	// ensure parent channel hasn't already been created
+	if parentChannel, ok := am.keeper.GetParentChannel(ctx); ok {
+		return sdkerrors.Wrapf(ccv.ErrDuplicateChannel, "parent channel: %s already established", parentChannel)
+	}
+
 	if counterpartyVersion != ccv.Version {
 		return sdkerrors.Wrapf(ccv.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, ccv.Version)
 	}
@@ -287,7 +297,10 @@ func (am AppModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// Disallow user-initiated channel closing for child channels
+	// allow relayers to close duplicate OPEN channels, if the parent channel has already been established
+	if parentChannel, ok := am.keeper.GetParentChannel(ctx); ok && parentChannel != channelID {
+		return nil
+	}
 	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
