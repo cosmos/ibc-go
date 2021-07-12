@@ -26,7 +26,8 @@ If the IBC-connected chain is conducting an upgrade that will break counterparty
 4. Export the genesis file.
 5. Swap to the new binary.
 6. Run migrations on the genesis file.
-7. Remove the `UpgradeProposal` plan from the genesis file (this may be done by migrations).
+7. Remove the `UpgradeProposal` plan from the genesis file. This may be done by migrations.
+8. Change desired chain-specific fields (chain id, unbonding period, etc). This may be done by migrations.
 8. Reset the node's data.
 9. Start the chain.
 
