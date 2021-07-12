@@ -48,6 +48,8 @@ service Query {
 message QueryConnectionRequest {
   // connection unique identifier
   string connection_id = 1;
+  // query height
+  uint64 height = 2;
 }
 
 // QueryConnectionResponse is the response type for the Query/Connection RPC
@@ -66,6 +68,8 @@ message QueryConnectionResponse {
 // method
 message QueryConnectionsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // query height
+  uint64 height = 2;
 }
 
 // QueryConnectionsResponse is the response type for the Query/Connections RPC
@@ -84,6 +88,8 @@ message QueryConnectionsResponse {
 message QueryClientConnectionsRequest {
   // client identifier associated with a connection
   string client_id = 1;
+  // query height
+  uint64 height = 2;
 }
 
 // QueryClientConnectionsResponse is the response type for the
@@ -102,6 +108,8 @@ message QueryClientConnectionsResponse {
 message QueryConnectionClientStateRequest {
   // connection identifier
   string connection_id = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  // query height
+  uint64 height = 2;
 }
 
 // QueryConnectionClientStateResponse is the response type for the
@@ -122,6 +130,8 @@ message QueryConnectionConsensusStateRequest {
   string connection_id   = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
   uint64 revision_number = 2;
   uint64 revision_height = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryConnectionConsensusStateResponse is the response type for the

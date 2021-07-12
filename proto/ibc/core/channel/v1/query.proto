@@ -106,6 +106,8 @@ message QueryChannelRequest {
   string port_id = 1;
   // channel unique identifier
   string channel_id = 2;
+  // query height
+  uint64 height = 3;
 }
 
 // QueryChannelResponse is the response type for the Query/Channel RPC method.
@@ -124,6 +126,9 @@ message QueryChannelResponse {
 message QueryChannelsRequest {
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // query height
+  uint64 height = 2;
+
 }
 
 // QueryChannelsResponse is the response type for the Query/Channels RPC method.
@@ -143,6 +148,8 @@ message QueryConnectionChannelsRequest {
   string connection = 1;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  // query height
+  uint64 height = 3;
 }
 
 // QueryConnectionChannelsResponse is the Response type for the
@@ -163,6 +170,8 @@ message QueryChannelClientStateRequest {
   string port_id = 1;
   // channel unique identifier
   string channel_id = 2;
+  // query height
+  uint64 height = 3;
 }
 
 // QueryChannelClientStateResponse is the Response type for the
@@ -187,6 +196,8 @@ message QueryChannelConsensusStateRequest {
   uint64 revision_number = 3;
   // revision height of the consensus state
   uint64 revision_height = 4;
+  // query height
+  uint64 height = 5;
 }
 
 // QueryChannelClientStateResponse is the Response type for the
@@ -211,6 +222,8 @@ message QueryPacketCommitmentRequest {
   string channel_id = 2;
   // packet sequence
   uint64 sequence = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryPacketCommitmentResponse defines the client query response for a packet
@@ -234,6 +247,8 @@ message QueryPacketCommitmentsRequest {
   string channel_id = 2;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryPacketCommitmentsResponse is the request type for the
@@ -255,6 +270,8 @@ message QueryPacketReceiptRequest {
   string channel_id = 2;
   // packet sequence
   uint64 sequence = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryPacketReceiptResponse defines the client query response for a packet
@@ -278,6 +295,8 @@ message QueryPacketAcknowledgementRequest {
   string channel_id = 2;
   // packet sequence
   uint64 sequence = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryPacketAcknowledgementResponse defines the client query response for a
@@ -301,6 +320,8 @@ message QueryPacketAcknowledgementsRequest {
   string channel_id = 2;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryPacketAcknowledgemetsResponse is the request type for the
@@ -322,6 +343,8 @@ message QueryUnreceivedPacketsRequest {
   string channel_id = 2;
   // list of packet sequences
   repeated uint64 packet_commitment_sequences = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryUnreceivedPacketsResponse is the response type for the
@@ -342,6 +365,8 @@ message QueryUnreceivedAcksRequest {
   string channel_id = 2;
   // list of acknowledgement sequences
   repeated uint64 packet_ack_sequences = 3;
+  // query height
+  uint64 height = 4;
 }
 
 // QueryUnreceivedAcksResponse is the response type for the
@@ -360,6 +385,8 @@ message QueryNextSequenceReceiveRequest {
   string port_id = 1;
   // channel unique identifier
   string channel_id = 2;
+  // query height
+  uint64 height = 3;
 }
 
 // QuerySequenceResponse is the request type for the

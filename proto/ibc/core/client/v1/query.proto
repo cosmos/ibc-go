@@ -62,6 +62,8 @@ service Query {
 message QueryClientStateRequest {
   // client state unique identifier
   string client_id = 1;
+  // query height
+  uint64 height = 2;
 }
 
 // QueryClientStateResponse is the response type for the Query/ClientState RPC
@@ -81,6 +83,8 @@ message QueryClientStateResponse {
 message QueryClientStatesRequest {
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // query height
+  uint64 height = 2;
 }
 
 // QueryClientStatesResponse is the response type for the Query/ClientStates RPC
@@ -106,6 +110,8 @@ message QueryConsensusStateRequest {
   // latest_height overrrides the height field and queries the latest stored
   // ConsensusState
   bool latest_height = 4;
+  // query height
+  uint64 height = 5;
 }
 
 // QueryConsensusStateResponse is the response type for the Query/ConsensusState
@@ -126,6 +132,8 @@ message QueryConsensusStatesRequest {
   string client_id = 1;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  // query height
+  uint64 height = 3;
 }
 
 // QueryConsensusStatesResponse is the response type for the
@@ -142,6 +150,8 @@ message QueryConsensusStatesResponse {
 message QueryClientStatusRequest {
   // client unique identifier
   string client_id = 1;
+  // query height
+  uint64 height = 2;
 }
 
 // QueryClientStatusResponse is the response type for the Query/ClientStatus RPC
@@ -152,7 +162,10 @@ message QueryClientStatusResponse {
 
 // QueryClientParamsRequest is the request type for the Query/ClientParams RPC
 // method.
-message QueryClientParamsRequest {}
+message QueryClientParamsRequest {
+  // query height
+  uint64 height = 1;
+}
 
 // QueryClientParamsResponse is the response type for the Query/ClientParams RPC
 // method.
@@ -163,7 +176,10 @@ message QueryClientParamsResponse {
 
 // QueryUpgradedClientStateRequest is the request type for the
 // Query/UpgradedClientState RPC method
-message QueryUpgradedClientStateRequest {}
+message QueryUpgradedClientStateRequest {
+  // query height
+  uint64 height = 1;
+}
 
 // QueryUpgradedClientStateResponse is the response type for the
 // Query/UpgradedClientState RPC method.
@@ -174,7 +190,10 @@ message QueryUpgradedClientStateResponse {
 
 // QueryUpgradedConsensusStateRequest is the request type for the
 // Query/UpgradedConsensusState RPC method
-message QueryUpgradedConsensusStateRequest {}
+message QueryUpgradedConsensusStateRequest {
+  // query height
+  uint64 height = 1;
+}
 
 // QueryUpgradedConsensusStateResponse is the response type for the
 // Query/UpgradedConsensusState RPC method.

@@ -368,6 +368,7 @@ method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+| `height` | [uint64](#uint64) |  |  |
 
 
 
@@ -400,6 +401,7 @@ method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+| `height` | [uint64](#uint64) |  |  |
 
 
 
@@ -427,6 +429,11 @@ method.
 
 ### QueryParamsRequest
 QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [uint64](#uint64) |  |  |
 
 
 
@@ -918,6 +925,7 @@ RPC method
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -955,6 +963,7 @@ Query/ConsensusState RPC method
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `revision_number` | [uint64](#uint64) |  | revision number of the consensus state |
 | `revision_height` | [uint64](#uint64) |  | revision height of the consensus state |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -990,6 +999,7 @@ QueryChannelRequest is the request type for the Query/Channel RPC method
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1024,6 +1034,7 @@ QueryChannelsRequest is the request type for the Query/Channels RPC method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1058,6 +1069,7 @@ Query/QueryConnectionChannels RPC method
 | ----- | ---- | ----- | ----------- |
 | `connection` | [string](#string) |  | connection unique identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1093,6 +1105,7 @@ Query/QueryNextSequenceReceiveRequest RPC method
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1129,6 +1142,7 @@ Query/PacketAcknowledgement RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1166,6 +1180,7 @@ Query/QueryPacketCommitments RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1202,6 +1217,7 @@ Query/PacketCommitment RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1239,6 +1255,7 @@ Query/QueryPacketCommitments RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1275,6 +1292,7 @@ Query/PacketReceipt RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1312,6 +1330,7 @@ Query/UnreceivedAcks RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `packet_ack_sequences` | [uint64](#uint64) | repeated | list of acknowledgement sequences |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1347,6 +1366,7 @@ Query/UnreceivedPackets RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `packet_commitment_sequences` | [uint64](#uint64) | repeated | list of packet sequences |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1818,6 +1838,11 @@ QueryClientParamsRequest is the request type for the Query/ClientParams RPC
 method.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [uint64](#uint64) |  | query height |
+
+
 
 
 
@@ -1848,6 +1873,7 @@ method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client state unique identifier |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1883,6 +1909,7 @@ method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1916,6 +1943,7 @@ method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client unique identifier |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1952,6 +1980,7 @@ from which the proof was retrieved.
 | `revision_number` | [uint64](#uint64) |  | consensus state revision number |
 | `revision_height` | [uint64](#uint64) |  | consensus state revision height |
 | `latest_height` | [bool](#bool) |  | latest_height overrrides the height field and queries the latest stored ConsensusState |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -1987,6 +2016,7 @@ RPC method.
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -2017,6 +2047,11 @@ QueryUpgradedClientStateRequest is the request type for the
 Query/UpgradedClientState RPC method
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [uint64](#uint64) |  | query height |
+
+
 
 
 
@@ -2042,6 +2077,11 @@ Query/UpgradedClientState RPC method.
 ### QueryUpgradedConsensusStateRequest
 QueryUpgradedConsensusStateRequest is the request type for the
 Query/UpgradedConsensusState RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -2524,6 +2564,7 @@ Query/ClientConnections RPC method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client identifier associated with a connection |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -2558,6 +2599,7 @@ Query/ConnectionClientState RPC method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `connection_id` | [string](#string) |  | connection identifier |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -2594,6 +2636,7 @@ Query/ConnectionConsensusState RPC method
 | `connection_id` | [string](#string) |  | connection identifier |
 | `revision_number` | [uint64](#uint64) |  |  |
 | `revision_height` | [uint64](#uint64) |  |  |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -2629,6 +2672,7 @@ method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `connection_id` | [string](#string) |  | connection unique identifier |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
@@ -2664,6 +2708,7 @@ method
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+| `height` | [uint64](#uint64) |  | query height |
 
 
 
