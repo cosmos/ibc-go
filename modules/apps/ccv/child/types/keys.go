@@ -74,3 +74,7 @@ func UnbondingTimeKey(sequence uint64) []byte {
 	binary.BigEndian.PutUint64(seqBytes, sequence)
 	return append([]byte(UnbondingTimePrefix), seqBytes...)
 }
+
+func GetSequenceFromUnbondingTimeKey(key []byte) uint64 {
+	return binary.BigEndian.Uint64(key[len(UnbondingTimePrefix):])
+}

@@ -58,7 +58,7 @@ func (k Keeper) UnbondMaturePackets(ctx sdk.Context) error {
 	}
 
 	for unbondingIterator.Valid() {
-		sequence := binary.BigEndian.Uint64(unbondingIterator.Key())
+		sequence := types.GetSequenceFromUnbondingTimeKey(unbondingIterator.Key())
 		if currentTime > binary.BigEndian.Uint64(unbondingIterator.Value()) {
 			// write successful ack and delete unbonding information
 			packet, err := k.GetUnbondingPacket(ctx, sequence)
