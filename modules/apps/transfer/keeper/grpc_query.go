@@ -28,6 +28,8 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	ctx = ctx.WithBlockHeight(int64(req.Height))
+
 	denomTrace, found := q.GetDenomTrace(ctx, hash)
 	if !found {
 		return nil, status.Error(
@@ -48,6 +50,7 @@ func (q Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	ctx = ctx.WithBlockHeight(int64(req.Height))
 
 	traces := types.Traces{}
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), types.DenomTraceKey)
@@ -73,8 +76,10 @@ func (q Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 }
 
 // Params implements the Query/Params gRPC method
-func (q Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (q Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	ctx = ctx.WithBlockHeight(int64(req.Height))
+
 	params := q.GetParams(ctx)
 
 	return &types.QueryParamsResponse{
