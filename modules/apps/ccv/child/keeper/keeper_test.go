@@ -32,6 +32,8 @@ type KeeperTestSuite struct {
 	parentClient    *ibctmtypes.ClientState
 	parentConsState *ibctmtypes.ConsensusState
 
+	path *ibctesting.Path
+
 	ctx sdk.Context
 }
 
@@ -59,23 +61,27 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.childChain.GetSimApp().ChildKeeper.InitGenesis(suite.childChain.GetContext(), childGenesis)
 
 	suite.ctx = suite.childChain.GetContext()
-}
 
-func (suite *KeeperTestSuite) NewCCVPath(parentChain, childChain *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(childChain, parentChain)
-	path.EndpointA.ChannelConfig.PortID = childtypes.PortID
-	path.EndpointB.ChannelConfig.PortID = parenttypes.PortID
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
-	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
+	suite.path = ibctesting.NewPath(suite.childChain, suite.parentChain)
+	suite.path.EndpointA.ChannelConfig.PortID = childtypes.PortID
+	suite.path.EndpointB.ChannelConfig.PortID = parenttypes.PortID
+	suite.path.EndpointA.ChannelConfig.Version = types.Version
+	suite.path.EndpointB.ChannelConfig.Version = types.Version
+	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
+	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	parentClient, ok := suite.childChain.GetSimApp().ChildKeeper.GetParentClient(suite.ctx)
 	if !ok {
 		panic("must already have parent client on child chain")
 	}
 	// set child endpoint's clientID
-	path.EndpointA.ClientID = parentClient
-	return path
+	suite.path.EndpointA.ClientID = parentClient
+}
+
+func (suite *KeeperTestSuite) SetupCCVChannel() {
+	// create child client on parent chain
+	suite.path.EndpointB.CreateClient()
+	suite.coordinator.CreateConnections(suite.path)
+	suite.coordinator.CreateChannels(suite.path)
 }
 
 func (suite *KeeperTestSuite) TestParentClient() {
@@ -195,146 +201,128 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 	channelID := "channel-1"
 	testCases := []struct {
 		name     string
-		setup    func(suite *KeeperTestSuite) *ibctesting.Path
+		setup    func(suite *KeeperTestSuite)
 		expError bool
 	}{
 		{
 			name: "success",
-			setup: func(suite *KeeperTestSuite) *ibctesting.Path {
-				path := suite.NewCCVPath(suite.parentChain, suite.childChain)
-
+			setup: func(suite *KeeperTestSuite) {
 				// create child client on parent chain
-				path.EndpointB.CreateClient()
+				suite.path.EndpointB.CreateClient()
 
-				suite.coordinator.CreateConnections(path)
+				suite.coordinator.CreateConnections(suite.path)
 
 				// Set INIT channel on child chain
 				suite.childChain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.ctx, childtypes.PortID, channelID,
 					channeltypes.NewChannel(
 						channeltypes.INIT, channeltypes.ORDERED, channeltypes.NewCounterparty(parenttypes.PortID, ""),
-						[]string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version),
+						[]string{suite.path.EndpointA.ConnectionID}, suite.path.EndpointA.ChannelConfig.Version),
 				)
-				path.EndpointA.ChannelID = channelID
+				suite.path.EndpointA.ChannelID = channelID
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, path.EndpointA.ChannelID, types.Initializing)
-				return path
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
 			},
 			expError: false,
 		},
 		{
 			name: "not initializing status",
-			setup: func(suite *KeeperTestSuite) *ibctesting.Path {
-				path := suite.NewCCVPath(suite.parentChain, suite.childChain)
-
+			setup: func(suite *KeeperTestSuite) {
 				// create child client on parent chain
-				path.EndpointB.CreateClient()
+				suite.path.EndpointB.CreateClient()
 
-				suite.coordinator.CreateConnections(path)
+				suite.coordinator.CreateConnections(suite.path)
 
 				// Set INIT channel on child chain
 				suite.childChain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.ctx, childtypes.PortID, channelID,
 					channeltypes.NewChannel(
 						channeltypes.INIT, channeltypes.ORDERED, channeltypes.NewCounterparty(parenttypes.PortID, ""),
-						[]string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version),
+						[]string{suite.path.EndpointA.ConnectionID}, suite.path.EndpointA.ChannelConfig.Version),
 				)
-				path.EndpointA.ChannelID = channelID
+				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to validating
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, path.EndpointA.ChannelID, types.Validating)
-				return path
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Validating)
 			},
 			expError: true,
 		},
 		{
 			name: "channel does not exist",
-			setup: func(suite *KeeperTestSuite) *ibctesting.Path {
-				path := suite.NewCCVPath(suite.parentChain, suite.childChain)
-
+			setup: func(suite *KeeperTestSuite) {
 				// create child client on parent chain
-				path.EndpointB.CreateClient()
+				suite.path.EndpointB.CreateClient()
 
-				suite.coordinator.CreateConnections(path)
+				suite.coordinator.CreateConnections(suite.path)
 
 				// set channelID without creating channel
-				path.EndpointA.ChannelID = "channel-1"
+				suite.path.EndpointA.ChannelID = "channel-1"
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, path.EndpointA.ChannelID, types.Initializing)
-				return path
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
 			},
 			expError: true,
 		},
 		{
 			name: "connection hops is not length 1",
-			setup: func(suite *KeeperTestSuite) *ibctesting.Path {
-				path := suite.NewCCVPath(suite.parentChain, suite.childChain)
-
+			setup: func(suite *KeeperTestSuite) {
 				// create child client on parent chain
-				path.EndpointB.CreateClient()
+				suite.path.EndpointB.CreateClient()
 
-				suite.coordinator.CreateConnections(path)
+				suite.coordinator.CreateConnections(suite.path)
 
 				// Set INIT channel on child chain with multiple connection hops
 				suite.childChain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.ctx, childtypes.PortID, channelID,
 					channeltypes.NewChannel(
 						channeltypes.INIT, channeltypes.ORDERED, channeltypes.NewCounterparty(parenttypes.PortID, ""),
-						[]string{path.EndpointA.ConnectionID, "connection-2"}, path.EndpointA.ChannelConfig.Version),
+						[]string{suite.path.EndpointA.ConnectionID, "connection-2"}, suite.path.EndpointA.ChannelConfig.Version),
 				)
-				path.EndpointA.ChannelID = channelID
+				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, path.EndpointA.ChannelID, types.Initializing)
-				return path
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
 			},
 			expError: true,
 		},
 		{
 			name: "connection does not exist",
-			setup: func(suite *KeeperTestSuite) *ibctesting.Path {
-				path := suite.NewCCVPath(suite.parentChain, suite.childChain)
-
+			setup: func(suite *KeeperTestSuite) {
 				// create child client on parent chain
-				path.EndpointB.CreateClient()
+				suite.path.EndpointB.CreateClient()
 
-				suite.coordinator.CreateConnections(path)
+				suite.coordinator.CreateConnections(suite.path)
 
 				// Set INIT channel on child chain with nonexistent connection
 				suite.childChain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.ctx, childtypes.PortID, channelID,
 					channeltypes.NewChannel(
 						channeltypes.INIT, channeltypes.ORDERED, channeltypes.NewCounterparty(parenttypes.PortID, ""),
-						[]string{"nonexistent-connection"}, path.EndpointA.ChannelConfig.Version),
+						[]string{"nonexistent-connection"}, suite.path.EndpointA.ChannelConfig.Version),
 				)
-				path.EndpointA.ChannelID = channelID
+				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, path.EndpointA.ChannelID, types.Initializing)
-				return path
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
 			},
 			expError: true,
 		},
 		{
 			name: "clientID does not match",
-			setup: func(suite *KeeperTestSuite) *ibctesting.Path {
-				path := suite.NewCCVPath(suite.parentChain, suite.childChain)
-
+			setup: func(suite *KeeperTestSuite) {
 				// create child client on parent chain
-				path.EndpointB.CreateClient()
+				suite.path.EndpointB.CreateClient()
 
 				// create a new parent client on child chain that is different from the one in genesis
-				path.EndpointA.CreateClient()
+				suite.path.EndpointA.CreateClient()
 
-				suite.coordinator.CreateConnections(path)
+				suite.coordinator.CreateConnections(suite.path)
 
 				// Set INIT channel on child chain
 				suite.childChain.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.ctx, childtypes.PortID, channelID,
 					channeltypes.NewChannel(
 						channeltypes.INIT, channeltypes.ORDERED, channeltypes.NewCounterparty(parenttypes.PortID, ""),
-						[]string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version),
+						[]string{suite.path.EndpointA.ConnectionID}, suite.path.EndpointA.ChannelConfig.Version),
 				)
-				path.EndpointA.ChannelID = channelID
+				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, path.EndpointA.ChannelID, types.Initializing)
-				return path
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
 			},
 			expError: true,
 		},
@@ -345,10 +333,10 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 		suite.Run(fmt.Sprintf("Case: %s", tc.name), func() {
 			suite.SetupTest() // reset suite
 
-			path := tc.setup(suite)
+			tc.setup(suite)
 
 			// Verify ParentChain on child chain using path returned by setup
-			err := suite.childChain.GetSimApp().ChildKeeper.VerifyParentChain(suite.ctx, path.EndpointA.ChannelID)
+			err := suite.childChain.GetSimApp().ChildKeeper.VerifyParentChain(suite.ctx, suite.path.EndpointA.ChannelID)
 
 			if tc.expError {
 				suite.Require().Error(err, "invalid case did not return error")
@@ -357,10 +345,6 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 			}
 		})
 	}
-}
-
-func (suite *KeeperTestSuite) SetupCCVChannel() {
-
 }
 
 func TestKeeperTestSuite(t *testing.T) {
