@@ -21,30 +21,32 @@ func (cad ChannelAnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 		msgs := 0
 		redundancies := 0
 		for _, m := range tx.GetMsgs() {
-			if msg, ok := m.(*types.MsgRecvPacket); ok {
-				if _, found := cad.k.GetPacketReceipt(ctx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence()); found {
-					redundancies += 1
-				}
-				msgs += 1
-			}
-			if msg, ok := m.(*types.MsgAcknowledgement); ok {
-				if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-					redundancies += 1
-				}
-				msgs += 1
-			}
-			if msg, ok := m.(*types.MsgTimeout); ok {
-				if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-					redundancies += 1
-				}
-				msgs += 1
-			}
-			if msg, ok := m.(*types.MsgTimeoutOnClose); ok {
-				if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-					redundancies += 1
-				}
-				msgs += 1
-			}
+			switch msg := m.(type) {
+            case *types.MsgRecvPacket:
+                if _, found := cad.k.GetPacketReceipt(ctx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence()); found {
+                    redundancies += 1
+                }  
+
+            case *types.MsgAcknowledgement:
+                if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+                    redundancies += 1
+                }  
+
+            case *types.MsgTimeout:
+                if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+                    redundancies += 1
+                }  
+
+            case *types.MsgTimeoutOnClose:
+                if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+                    redundancies += 1
+                }  
+            default:
+                continue
+            }
+
+            msgs += 1
+
 		}
 		// return error if all packet messages are redundant
 		if redundancies == msgs && msgs > 0 {
