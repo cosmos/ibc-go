@@ -492,13 +492,21 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	}
 
 	// Perform TAO verification
-	if err := k.ChannelKeeper.RecvPacket(ctx, cap, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
+	// If the packet was already received we want to perform a no-op. We use a cached context to prevent
+	// accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	if err := k.ChannelKeeper.RecvPacket(cacheCtx, cap, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
+		// packet already received
+		if err == channeltypes.ErrPacketReceived {
+			return &channeltypes.MsgRecvPacketResponse{}, nil // no-op
+		}
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
+	writeFn()
 
 	// Perform application logic callback
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-	cacheCtx, writeFn := ctx.CacheContext()
+	cacheCtx, writeFn = ctx.CacheContext()
 	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer)
 	// This doesn't cause duplicate events to be emitted.
 	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
@@ -556,9 +564,18 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	}
 
 	// Perform TAO verification
-	if err := k.ChannelKeeper.TimeoutPacket(ctx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv); err != nil {
+	// If the timeout was already received we want to perform a no-op. We use a cached context to prevent
+	// accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	if err := k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv); err != nil {
+		// timeout already received
+		// NOTE: ordered channels will error on a closed channel upon replay
+		if err == channeltypes.ErrPacketCommitmentNotFound {
+			return &channeltypes.MsgTimeoutResponse{}, nil // no-op
+		}
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
 	}
+	writeFn()
 
 	// Perform application logic callback
 	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
@@ -610,9 +627,17 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	}
 
 	// Perform TAO verification
-	if err := k.ChannelKeeper.TimeoutOnClose(ctx, cap, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv); err != nil {
+	// If the timeout was already received we want to perform a no-op. We use a cached context to prevent
+	// accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	if err := k.ChannelKeeper.TimeoutOnClose(cacheCtx, cap, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv); err != nil {
+		// timeout already received
+		if err == channeltypes.ErrPacketCommitmentNotFound {
+			return &channeltypes.MsgTimeoutOnCloseResponse{}, nil // no-op
+		}
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
 	}
+	writeFn()
 
 	// Perform application logic callback
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
@@ -666,9 +691,17 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Perform TAO verification
-	if err := k.ChannelKeeper.AcknowledgePacket(ctx, cap, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
+	// If the acknowledgement was already received we want to perform a no-op. We use a cached context to prevent
+	// accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	if err := k.ChannelKeeper.AcknowledgePacket(cacheCtx, cap, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
+		// acknowledgement already received
+		if err == channeltypes.ErrPacketCommitmentNotFound {
+			return &channeltypes.MsgAcknowledgementResponse{}, nil // no-op
+		}
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}
+	writeFn()
 
 	// Perform application logic callback
 	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)

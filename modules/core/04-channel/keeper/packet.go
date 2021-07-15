@@ -249,10 +249,10 @@ func (k Keeper) RecvPacket(
 		// check if the packet receipt has been received already for unordered channels
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			return sdkerrors.Wrapf(
-				types.ErrPacketReceived,
-				"packet sequence (%d)", packet.GetSequence(),
-			)
+			// This error indicates that the packet has already been relayed. Core IBC will
+			// treat this error as a no-op in order to prevent an entire relay transaction
+			// from failing and consuming unnecessary fees.
+			return types.ErrPacketReceived
 		}
 
 		// All verification complete, update state
@@ -271,12 +271,11 @@ func (k Keeper) RecvPacket(
 			)
 		}
 
-		// helpful error message for relayers
 		if packet.GetSequence() < nextSequenceRecv {
-			return sdkerrors.Wrapf(
-				types.ErrPacketReceived,
-				"packet sequence (%d), next sequence receive (%d)", packet.GetSequence(), nextSequenceRecv,
-			)
+			// This error indicates that the packet has already been relayed. Core IBC will
+			// treat this error as a no-op in order to prevent an entire relay transaction
+			// from failing and consuming unnecessary fees.
+			return types.ErrPacketReceived
 		}
 
 		if packet.GetSequence() != nextSequenceRecv {
@@ -480,7 +479,11 @@ func (k Keeper) AcknowledgePacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		return sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "packet with sequence (%d) has been acknowledged, or timed out. In rare cases, the packet referenced was never sent, likely due to the relayer being misconfigured", packet.GetSequence())
+		// This error indicates that the acknowledgement has already been relayed
+		// or there is a misconfigured relayer attempting to prove an acknowledgement
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return types.ErrPacketCommitmentNotFound
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)

@@ -81,7 +81,11 @@ func (k Keeper) TimeoutPacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		return sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "packet with sequence (%d) has been acknowledged or timed out. In rare cases, the packet referenced was never sent, likely due to the relayer being misconfigured", packet.GetSequence())
+		// This error indicates that the timeout has already been relayed
+		// or there is a misconfigured relayer attempting to prove a timeout
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return types.ErrPacketCommitmentNotFound
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)
@@ -221,6 +225,14 @@ func (k Keeper) TimeoutOnClose(
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+
+	if len(commitment) == 0 {
+		// This error indicates that the timeout has already been relayed
+		// or there is a misconfigured relayer attempting to prove a timeout
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return types.ErrPacketCommitmentNotFound
+	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)
 
