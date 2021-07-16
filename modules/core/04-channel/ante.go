@@ -7,11 +7,12 @@ import (
 )
 
 type ChannelAnteDecorator struct {
-	k keeper.Keeper
+	k      keeper.Keeper
+	strict bool
 }
 
-func NewChannelAnteDecorator(k keeper.Keeper) ChannelAnteDecorator {
-	return ChannelAnteDecorator{k: k}
+func NewChannelAnteDecorator(k keeper.Keeper, strict bool) ChannelAnteDecorator {
+	return ChannelAnteDecorator{k: k, strict: strict}
 }
 
 func (cad ChannelAnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
@@ -22,34 +23,38 @@ func (cad ChannelAnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 		redundancies := 0
 		for _, m := range tx.GetMsgs() {
 			switch msg := m.(type) {
-            case *types.MsgRecvPacket:
-                if _, found := cad.k.GetPacketReceipt(ctx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence()); found {
-                    redundancies += 1
-                }  
+			case *types.MsgRecvPacket:
+				if _, found := cad.k.GetPacketReceipt(ctx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence()); found {
+					redundancies += 1
+				}
 
-            case *types.MsgAcknowledgement:
-                if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-                    redundancies += 1
-                }  
+			case *types.MsgAcknowledgement:
+				if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+					redundancies += 1
+				}
 
-            case *types.MsgTimeout:
-                if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-                    redundancies += 1
-                }  
+			case *types.MsgTimeout:
+				if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+					redundancies += 1
+				}
 
-            case *types.MsgTimeoutOnClose:
-                if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-                    redundancies += 1
-                }  
-            default:
-                continue
-            }
+			case *types.MsgTimeoutOnClose:
+				if commitment := cad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+					redundancies += 1
+				}
+			default:
+				continue
+			}
 
-            msgs += 1
+			msgs += 1
 
 		}
-		// return error if all packet messages are redundant
-		if redundancies == msgs && msgs > 0 {
+
+		if cad.strict && redundancies > 1 {
+			// if strict, return error on single redundancy
+			return ctx, types.ErrRedundantTx
+		} else if redundancies == msgs && msgs > 0 {
+			// if not strict, only return error if all packet messages are redundant
 			return ctx, types.ErrRedundantTx
 		}
 	}
