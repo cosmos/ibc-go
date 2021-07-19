@@ -32,5 +32,5 @@ var (
 	ErrPacketSequenceOutOfOrder = sdkerrors.Register(SubModuleName, 21, "packet sequence is out of order")
 
 	// Perform a no-op on the current Msg
-	ErrNoOpMsg = sdkerrors.Register(SubModuleName, 22, "message is redundant, perform no-op")
+	ErrNoOpMsg = sdkerrors.Register(SubModuleName, 22, "message is redundant, no-op will be performed")
 )

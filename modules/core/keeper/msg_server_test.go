@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 				proofHeight clienttypes.Height
 			)
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			if path.EndpointA.ChannelID != "" {
+			if path.EndpointB.ChannelID != "" {
 				proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 			}
 
