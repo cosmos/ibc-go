@@ -500,6 +500,10 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn := ctx.CacheContext()
 	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer)
+	// This doesn't cause duplicate events to be emitted.
+	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+	// Events from callback are emitted regardless of acknowledgement success
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
@@ -557,7 +561,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	}
 
 	// Perform application logic callback
-	_, err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "timeout packet callback failed")
 	}
@@ -613,7 +617,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	// Perform application logic callback
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
 	// application logic callback.
-	_, err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "timeout packet callback failed")
 	}
@@ -667,7 +671,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Perform application logic callback
-	_, err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
+	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "acknowledge packet callback failed")
 	}
