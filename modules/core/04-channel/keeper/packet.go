@@ -252,7 +252,7 @@ func (k Keeper) RecvPacket(
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
-			return types.ErrPacketReceived
+			return types.ErrNoOpMsg
 		}
 
 		// All verification complete, update state
@@ -275,7 +275,7 @@ func (k Keeper) RecvPacket(
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
-			return types.ErrPacketReceived
+			return types.ErrNoOpMsg
 		}
 
 		if packet.GetSequence() != nextSequenceRecv {
@@ -483,7 +483,7 @@ func (k Keeper) AcknowledgePacket(
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return types.ErrPacketCommitmentNotFound
+		return types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)

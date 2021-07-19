@@ -34,13 +34,6 @@ func (k Keeper) TimeoutPacket(
 		)
 	}
 
-	if channel.State != types.OPEN {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
-	}
-
 	// NOTE: TimeoutPacket is called by the AnteHandler which acts upon the packet.Route(),
 	// so the capability authentication can be omitted here
 
@@ -85,7 +78,14 @@ func (k Keeper) TimeoutPacket(
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return types.ErrPacketCommitmentNotFound
+		return types.ErrNoOpMsg
+	}
+
+	if channel.State != types.OPEN {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidChannelState,
+			"channel state is not OPEN (got %s)", channel.State.String(),
+		)
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)
@@ -231,7 +231,7 @@ func (k Keeper) TimeoutOnClose(
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return types.ErrPacketCommitmentNotFound
+		return types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)

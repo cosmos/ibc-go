@@ -492,12 +492,13 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	}
 
 	// Perform TAO verification
-	// If the packet was already received we want to perform a no-op. We use a cached context to prevent
-	// accidental state changes
+	//
+	// If the packet was already received we want to perform a no-op
+	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
 	if err := k.ChannelKeeper.RecvPacket(cacheCtx, cap, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
 		// packet already received
-		if err == channeltypes.ErrPacketReceived {
+		if err == channeltypes.ErrNoOpMsg {
 			return &channeltypes.MsgRecvPacketResponse{}, nil // no-op
 		}
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
@@ -505,6 +506,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	writeFn()
 
 	// Perform application logic callback
+	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
 	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer)
@@ -564,13 +566,13 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	}
 
 	// Perform TAO verification
-	// If the timeout was already received we want to perform a no-op. We use a cached context to prevent
-	// accidental state changes
+	//
+	// If the timeout was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
 	if err := k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv); err != nil {
 		// timeout already received
-		// NOTE: ordered channels will error on a closed channel upon replay
-		if err == channeltypes.ErrPacketCommitmentNotFound {
+		if err == channeltypes.ErrNoOpMsg {
 			return &channeltypes.MsgTimeoutResponse{}, nil // no-op
 		}
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
@@ -627,12 +629,13 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	}
 
 	// Perform TAO verification
-	// If the timeout was already received we want to perform a no-op. We use a cached context to prevent
-	// accidental state changes
+	//
+	// If the timeout was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
 	if err := k.ChannelKeeper.TimeoutOnClose(cacheCtx, cap, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv); err != nil {
 		// timeout already received
-		if err == channeltypes.ErrPacketCommitmentNotFound {
+		if err == channeltypes.ErrNoOpMsg {
 			return &channeltypes.MsgTimeoutOnCloseResponse{}, nil // no-op
 		}
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
@@ -640,6 +643,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	writeFn()
 
 	// Perform application logic callback
+	//
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
 	// application logic callback.
 	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
@@ -691,12 +695,13 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Perform TAO verification
-	// If the acknowledgement was already received we want to perform a no-op. We use a cached context to prevent
-	// accidental state changes
+	//
+	// If the acknowledgement was already received we want to perform a no-op
+	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
 	if err := k.ChannelKeeper.AcknowledgePacket(cacheCtx, cap, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
 		// acknowledgement already received
-		if err == channeltypes.ErrPacketCommitmentNotFound {
+		if err == channeltypes.ErrNoOpMsg {
 			return &channeltypes.MsgAcknowledgementResponse{}, nil // no-op
 		}
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
