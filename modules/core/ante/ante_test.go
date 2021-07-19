@@ -1,43 +1,76 @@
-package channel_test
+package ante_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	channel "github.com/cosmos/ibc-go/modules/core/04-channel"
-	"github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/modules/core/ante"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 	"github.com/cosmos/ibc-go/testing/mock"
+	"github.com/stretchr/testify/suite"
 )
 
-func (suite *ChannelTestSuite) TestAnteDecorator() {
+type AnteTestSuite struct {
+	suite.Suite
+
+	coordinator *ibctesting.Coordinator
+
+	// testing chains used for convenience and readability
+	chainA *ibctesting.TestChain
+	chainB *ibctesting.TestChain
+
+	path *ibctesting.Path
+}
+
+// SetupTest creates a coordinator with 2 test chains.
+func (suite *AnteTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
+	suite.coordinator.CommitNBlocks(suite.chainA, 2)
+	suite.coordinator.CommitNBlocks(suite.chainB, 2)
+	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.Setup(suite.path)
+}
+
+// TestAnteTestSuite runs all the tests within this package.
+func TestAnteTestSuite(t *testing.T) {
+	suite.Run(t, new(AnteTestSuite))
+}
+
+func (suite *AnteTestSuite) TestAnteDecorator() {
 	testCases := []struct {
 		name     string
-		malleate func(suite *ChannelTestSuite) []sdk.Msg
+		malleate func(suite *AnteTestSuite) []sdk.Msg
 		expPass  bool
 	}{
 		{
 			"success on single msg",
-			func(suite *ChannelTestSuite) []sdk.Msg {
-				packet := types.NewPacket([]byte(mock.MockPacketData), 1,
+			func(suite *AnteTestSuite) []sdk.Msg {
+				packet := channeltypes.NewPacket([]byte(mock.MockPacketData), 1,
 					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 					clienttypes.NewHeight(1, 0), 0)
 
-				return []sdk.Msg{types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer")}
+				return []sdk.Msg{channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer")}
 			},
 			true,
 		},
 		{
 			"success on multiple msgs",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				for i := 1; i <= 5; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				return msgs
 			},
@@ -45,11 +78,11 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on multiple msgs: 1 fresh recv packet",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				for i := 1; i <= 5; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -63,7 +96,7 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 						suite.Require().NoError(err)
 					}
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 
 				return msgs
@@ -72,38 +105,38 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on multiple mixed msgs",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
 					err := suite.path.EndpointA.SendPacket(packet)
 					suite.Require().NoError(err)
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
 					err := suite.path.EndpointB.SendPacket(packet)
 					suite.Require().NoError(err)
 
-					msgs = append(msgs, types.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 4; i <= 6; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
 					err := suite.path.EndpointB.SendPacket(packet)
 					suite.Require().NoError(err)
 
-					msgs = append(msgs, types.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				return msgs
 			},
@@ -111,11 +144,11 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on multiple mixed msgs: 1 fresh packet of each type",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -129,10 +162,10 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 						suite.Require().NoError(err)
 					}
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -147,12 +180,12 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 						suite.Require().NoError(err)
 					}
 
-					msgs = append(msgs, types.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 4; i <= 6; i++ {
 					height := suite.chainA.LastHeader.GetHeight()
 					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						timeoutHeight, 0)
@@ -169,7 +202,7 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 						suite.Require().NoError(err)
 					}
 
-					msgs = append(msgs, types.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				return msgs
 			},
@@ -177,11 +210,11 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on multiple mixed msgs: only 1 fresh msg in total",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -190,10 +223,10 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.SendPacket(packet)
 					suite.path.EndpointB.RecvPacket(packet)
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -203,12 +236,12 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.RecvPacket(packet)
 					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
 
-					msgs = append(msgs, types.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 4; i < 5; i++ {
 					height := suite.chainA.LastHeader.GetHeight()
 					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						timeoutHeight, 0)
@@ -216,7 +249,7 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					// do not timeout packet, timeout msg is fresh
 					suite.path.EndpointB.SendPacket(packet)
 
-					msgs = append(msgs, types.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				return msgs
 			},
@@ -224,39 +257,39 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on single update client msg",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 			},
 			true,
 		},
 		{
 			"success on multiple update clients",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
 			},
 			true,
 		},
 		{
 			"success on multiple update clients and fresh packet message",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
 
-				packet := types.NewPacket([]byte(mock.MockPacketData), 1,
+				packet := channeltypes.NewPacket([]byte(mock.MockPacketData), 1,
 					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 					clienttypes.NewHeight(1, 0), 0)
 
-				return append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+				return append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 			},
 			true,
 		},
 		{
 			"success of tx with different msg type even if all packet messages are redundant",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -265,10 +298,10 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.SendPacket(packet)
 					suite.path.EndpointB.RecvPacket(packet)
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -278,12 +311,12 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.RecvPacket(packet)
 					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
 
-					msgs = append(msgs, types.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 4; i < 6; i++ {
 					height := suite.chainA.LastHeader.GetHeight()
 					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						timeoutHeight, 0)
@@ -297,7 +330,7 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointB.UpdateClient()
 					suite.path.EndpointB.TimeoutPacket(packet)
 
-					msgs = append(msgs, types.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
@@ -309,11 +342,11 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on multiple mixed message: all are redundant",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -322,10 +355,10 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.SendPacket(packet)
 					suite.path.EndpointB.RecvPacket(packet)
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -335,12 +368,12 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.RecvPacket(packet)
 					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
 
-					msgs = append(msgs, types.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 4; i < 6; i++ {
 					height := suite.chainA.LastHeader.GetHeight()
 					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						timeoutHeight, 0)
@@ -354,7 +387,7 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointB.UpdateClient()
 					suite.path.EndpointB.TimeoutPacket(packet)
 
-					msgs = append(msgs, types.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				return msgs
 			},
@@ -362,11 +395,11 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success if msgs contain update clients and redundant packet messages",
-			func(suite *ChannelTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
 
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -375,10 +408,10 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.SendPacket(packet)
 					suite.path.EndpointB.RecvPacket(packet)
 
-					msgs = append(msgs, types.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 1; i <= 3; i++ {
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						clienttypes.NewHeight(1, 0), 0)
@@ -388,12 +421,12 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointA.RecvPacket(packet)
 					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
 
-					msgs = append(msgs, types.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				for i := 4; i < 6; i++ {
 					height := suite.chainA.LastHeader.GetHeight()
 					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := types.NewPacket([]byte(mock.MockPacketData), uint64(i),
+					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
 						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 						timeoutHeight, 0)
@@ -407,7 +440,7 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 					suite.path.EndpointB.UpdateClient()
 					suite.path.EndpointB.TimeoutPacket(packet)
 
-					msgs = append(msgs, types.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, channeltypes.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				return msgs
 			},
@@ -423,7 +456,7 @@ func (suite *ChannelTestSuite) TestAnteDecorator() {
 			suite.SetupTest()
 
 			k := suite.chainB.App.GetIBCKeeper().ChannelKeeper
-			decorator := channel.NewChannelAnteDecorator(k)
+			decorator := ante.NewAnteDecorator(k)
 
 			msgs := tc.malleate(suite)
 
