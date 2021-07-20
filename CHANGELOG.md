@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v1.0.0-rc1](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0-rc1) - 2021-07-15
+## [v1.0.0-rc2](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0-rc2) - 2021-07-20
 
 ### Bug Fixes
 
