@@ -25,7 +25,7 @@ service Query {
   }
 }
 
-// QueryReceiveRequestFee is the request type for quering the receieve fee
+// QueryReceiveRequestFee is the request type for quering the receive fee
 message QueryReceiveFeeRequest {
   // Source Port ID
   string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
