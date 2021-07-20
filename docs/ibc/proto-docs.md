@@ -43,6 +43,7 @@
     - [Counterparty](#ibc.core.channel.v1.Counterparty)
     - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
     - [Packet](#ibc.core.channel.v1.Packet)
+    - [PacketId](#ibc.core.channel.v1.PacketId)
     - [PacketState](#ibc.core.channel.v1.PacketState)
   
     - [Order](#ibc.core.channel.v1.Order)
@@ -779,6 +780,23 @@ Packet defines a type that carries data across different chains through IBC
 | `data` | [bytes](#bytes) |  | actual opaque bytes transferred directly to the application module |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the packet times out |
 | `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the packet times out |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.PacketId"></a>
+
+### PacketId
+PacketId is an identifer for a unique Packet
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | channel port identifier. |
+| `channel_id` | [string](#string) |  | channel unique identifier. |
+| `sequence` | [uint64](#uint64) |  | packet sequence. |
 
 
 
