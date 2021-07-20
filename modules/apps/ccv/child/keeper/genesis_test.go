@@ -11,7 +11,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-func (suite *KeeperTestSuite) TestInitialGenesis() {
+func (suite *KeeperTestSuite) TestGenesis() {
 	genesis := suite.childChain.GetSimApp().ChildKeeper.ExportGenesis(suite.childChain.GetContext())
 
 	suite.Require().Equal(suite.parentClient, genesis.ParentClientState)
