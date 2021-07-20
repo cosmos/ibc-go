@@ -40,7 +40,6 @@ func EmitRecvPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 // EmitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
 // a packet is acknowledged for a certain sequence and for all duplicate acknowledgements.
 func EmitAcknowledgePacketEvent(ctx sdk.Context, packet exported.PacketI, channel types.Channel) {
-	// emit an event marking that we have processed the acknowledgement
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,

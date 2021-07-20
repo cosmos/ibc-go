@@ -514,6 +514,7 @@ func (k Keeper) AcknowledgePacket(
 	// log that a packet has been acknowledged
 	k.Logger(ctx).Info("packet acknowledged", "packet", fmt.Sprintf("%v", packet))
 
+	// emit an event marking that we have processed the acknowledgement
 	EmitAcknowledgePacketEvent(ctx, packet, channel)
 
 	return nil
