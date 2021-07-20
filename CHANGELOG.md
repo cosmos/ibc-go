@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v1.0.0-rc1](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0-rc1) - 2021-07-15
+## [v1.0.0-rc2](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0-rc2) - 2021-07-20
 
 ### Bug Fixes
 
@@ -72,6 +72,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#8405](https://github.com/cosmos/cosmos-sdk/pull/8405) Refactor IBC client update governance proposals to use a substitute client to update a frozen or expired client.
 * (modules/core/02-client) [\#8673](https://github.com/cosmos/cosmos-sdk/pull/8673) IBC upgrade logic moved to 02-client and an IBC UpgradeProposal is added.
 * (modules/core/03-connection) [\#171](https://github.com/cosmos/ibc-go/pull/171) Introduces a new parameter `MaxExpectedTimePerBlock` to allow connections to calculate and enforce a block delay that is proportional to time delay set by connection.
+* (core) [\#268](https://github.com/cosmos/ibc-go/pull/268) Perform a no-op on redundant relay messages. Previous behaviour returned an error. Now no state change will occur and no error will be returned.
 
 ### Improvements
 
@@ -84,6 +85,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#197](https://github.com/cosmos/ibc-go/pull/197) Introduced a `packet_ack_hex` attribute to emit the hex-encoded acknowledgement in events. This allows for raw binary (proto-encoded message) to be sent over events and decoded correctly on relayer. Original `packet_ack` is DEPRECATED. All relayers and IBC event consumers are encouraged to switch to `packet_ack_hex` as soon as possible.
 * (modules/light-clients/07-tendermint) [\#125](https://github.com/cosmos/ibc-go/pull/125) Implement efficient iteration of consensus states and pruning of earliest expired consensus state on UpdateClient.
 * (modules/light-clients/07-tendermint) [\#141](https://github.com/cosmos/ibc-go/pull/141) Return early in case there's a duplicate update call to save Gas.
+* (modules/core/ante) [\#235](https://github.com/cosmos/ibc-go/pull/235) Introduces a new IBC Antedecorator that will reject transactions that only contain redundant packet messages (and accompany UpdateClient msgs). This will prevent relayers from wasting fees by submitting messages for packets that have already been processed by previous relayer(s). The Antedecorator is only applied on CheckTx and RecheckTx and is therefore optional for each node.
 
 ### Features
 
