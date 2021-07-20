@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package ibc.applications.middleware.fee.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "ibc/applications/middleware/fee/v1/fee.proto";
+import "google/api/annotations.proto";
+
+// Query provides defines the gRPC querier service.
+service Query {
+  // Gets the fee expected for submitting ReceivePacket msg for the given packet
+  rpc ReceiveFee(QueryReceiveFeeRequest) returns (QueryReceiveFeeResponse) {
+    option (google.api.http).get = "/ibc/apps/middleware/fee/v1/receive_fee";
+  }
+
+  // Gets the fee expected for submitting AcknowledgePacket msg for the given packet
+  rpc AckFee(QueryAckFeeRequest) returns (QueryAckFeeResponse) {
+    option (google.api.http).get = "/ibc/apps/middleware/fee/v1/ack_fee";
+  }
+
+  // Gets the fee expected for submitting TimeoutPacket msg for the given packet
+  rpc TimeoutFee(QueryTimeoutFeeRequest) returns (QueryTimeoutFeeResponse) {
+    option (google.api.http).get = "/ibc/apps/middleware/fee/v1/timeout_fee";
+  }
+}
+
+// QueryReceiveRequestFee is the request type for quering the receieve fee
+message QueryReceiveFeeRequest {
+  // Source Port ID
+  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  // Source Channel ID
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // Packet sequence
+  string sequence = 3 [(gogoproto.moretags) = "yaml:\"sequence\""];
+  // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
+  string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+}
+
+// QueryRequestFeeResponse is the response type for the ReceiveFee RPC
+message QueryReceiveFeeResponse {
+  ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
+}
+
+// QueryAckRequestFee is the request type for quering the acknowledgement fee
+message QueryAckFeeRequest {
+  // Source Port ID
+  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  // Source Channel ID
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // Packet sequence
+  string sequence = 3 [(gogoproto.moretags) = "yaml:\"sequence\""];
+  // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
+  string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+}
+
+// QueryAckFeeResponse is the response type for the AckFee RPC
+message QueryAckFeeResponse {
+  ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
+}
+
+// QueryTimeoutFee is the request type for quering the timeout fee
+message QueryTimeoutFeeRequest {
+  // Source Port ID
+  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  // Source Channel ID
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // Packet sequence
+  string sequence = 3 [(gogoproto.moretags) = "yaml:\"sequence\""];
+  // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
+  string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+}
+
+// QueryTimeoutFeeResponse is the response type for the timeout RPC
+message QueryTimeoutFeeResponse {
+  ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
+}

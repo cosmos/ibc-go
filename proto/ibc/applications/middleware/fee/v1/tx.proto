@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package ibc.applications.middleware.fee.v1;
+
+import "gogoproto/gogo.proto";
+import "ibc/applications/middleware/fee/v1/fee.proto";
+
+// Msg defines the ibc/fee Msg service.
+service Msg {
+  // RegisterCounterPartyAddress defines a rpc handler method for MsgRegisterCounterPartyAddress
+  // RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
+  // counterparty address before relaying This ensures they will be properly compensated for forward relaying since
+  // destination chain must send back relayer's source address (counterparty address) in acknowledgement This function
+  // may be called more than once by a relayer, in which case, latest counterparty address is always used.
+  rpc RegisterCounterPartyAddress(MsgRegisterCounterPartyAddress) returns (MsgRegisterCounterPartyAddressResponse);
+  // EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee
+  // EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
+  // incentivize the relaying of the given packet.
+  rpc EscrowPacketFee(MsgEscrowPacketFee) returns (MsgEscrowPacketFeeResponse);
+  // PayFee defines a rpc handler method for MsgPayFee
+  // PayFee is a callback implemented by fee module called by the ICS-4 AcknowledgePacket handler.
+  rpc PayFee(MsgPayFee) returns (MsgPayFeeResponse);
+  // PayTimeoutFee defines a rpc handler method for MsgPayTimeoutFee
+  // PayFee is a callback implemented by fee module called by the ICS-4 TimeoutPacket handler.
+  rpc PayTimeoutFee(MsgPayTimeoutFee) returns (MsgPayTimeoutFeeResponse);
+}
+
+// MsgRegisterCounterPartyAddress is the request type for registering the counter party address
+message MsgRegisterCounterPartyAddress {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string address              = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"address\""];
+}
+
+// MsgRegisterCounterPartyAddressResponse defines the Msg/RegisterCounteryPartyAddress response type
+message MsgRegisterCounterPartyAddressResponse {}
+
+// MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
+message MsgEscrowPacketFee {
+  string                                 packet_id   = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  ibc.applications.middleware.fee.v1.Fee receive_fee = 2 [(gogoproto.moretags) = "yaml:\"receive_fee\""];
+  ibc.applications.middleware.fee.v1.Fee ack_fee     = 3 [(gogoproto.moretags) = "yaml:\"ack_fee\""];
+  ibc.applications.middleware.fee.v1.Fee timeout_fee = 4 [(gogoproto.moretags) = "yaml:\"timeout_fee\""];
+  repeated string                        relayers    = 5 [(gogoproto.moretags) = "yaml:\"relayers\""];
+}
+
+// MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
+message MsgEscrowPacketFeeResponse {}
+
+// MsgPayFee defines the request type for PayFee the RPC
+message MsgPayFee {
+  string packet_id       = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  string forward_relayer = 2 [(gogoproto.moretags) = "yaml:\"forward_relayer\""];
+  string reverse_relayer = 3 [(gogoproto.moretags) = "yaml:\"reverse_relayer\""];
+}
+
+// MsgPayFeeResponse defines the response type for Msg/PayFee
+message MsgPayFeeResponse {}
+
+// MsgPayTimmeout defines the request type for the PayTimeoutFee RPC
+message MsgPayTimeoutFee {
+  string packet_id       = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  string timeout_relayer = 2 [(gogoproto.moretags) = "yaml:\"timeout_relayer\""];
+}
+
+// MsgPayTimeoutFeeResponse defines the response type for Msg/PayTimeoutFee
+message MsgPayTimeoutFeeResponse {}

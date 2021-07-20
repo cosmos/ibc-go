@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package ibc.applications.middleware.fee.v1;
+
+// Fee interface
+// See Fee Payment Middleware spec:
+// https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
+message Fee {
+  // the token denomination the fee will be paid in
+  string denom = 1;
+  // the token amount to be transferred
+  uint64 amount = 2;
+}

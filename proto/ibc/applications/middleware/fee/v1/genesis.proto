@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package ibc.applications.middleware.fee.v1;
+
+import "gogoproto/gogo.proto";
+
+// GenesisState defines the ibc-transfer genesis state
+message GenesisState {}
