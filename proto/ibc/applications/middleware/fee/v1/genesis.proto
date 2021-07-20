@@ -4,5 +4,5 @@ package ibc.applications.middleware.fee.v1;
 
 import "gogoproto/gogo.proto";
 
-// GenesisState defines the ibc-transfer genesis state
+// GenesisState defines the fee middleware genesis state
 message GenesisState {}
