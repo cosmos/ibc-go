@@ -3,6 +3,12 @@ syntax = "proto3";
 package ibc.applications.middleware.fee.v1;
 
 import "gogoproto/gogo.proto";
+import "ibc/applications/middleware/fee/v1/fee.proto";
+import "ibc/core/channel/v1/channel.proto";
+option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
+
 
 // GenesisState defines the fee middleware genesis state
-message GenesisState {}
+message GenesisState {
+  map<string, ibc.applications.middleware.fee.v1.Fee> packet_fees = 1;
+}

@@ -790,12 +790,14 @@ Packet defines a type that carries data across different chains through IBC
 
 ### PacketId
 PacketId is an identifer for a unique Packet
+Source chains refer to packets by source port/channel
+Destination chains refer to packets by destination port/channel
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | channel port identifier. |
-| `channel_id` | [string](#string) |  | channel unique identifier. |
+| `port_id` | [string](#string) |  | channel port identifier |
+| `channel_id` | [string](#string) |  | channel unique identifier |
 | `sequence` | [uint64](#uint64) |  | packet sequence. |
 
 

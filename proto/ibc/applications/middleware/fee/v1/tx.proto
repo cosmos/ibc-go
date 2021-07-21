@@ -5,6 +5,7 @@ package ibc.applications.middleware.fee.v1;
 import "gogoproto/gogo.proto";
 import "ibc/applications/middleware/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";
+option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // Msg defines the ibc/fee Msg service.
 service Msg {
@@ -18,12 +19,6 @@ service Msg {
   // EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
   // incentivize the relaying of the given packet.
   rpc EscrowPacketFee(MsgEscrowPacketFee) returns (MsgEscrowPacketFeeResponse);
-  // PayFee defines a rpc handler method for MsgPayFee
-  // PayFee is a callback implemented by fee module called by the ICS-4 AcknowledgePacket handler.
-  rpc PayFee(MsgPayFee) returns (MsgPayFeeResponse);
-  // PayTimeoutFee defines a rpc handler method for MsgPayTimeoutFee
-  // PayFee is a callback implemented by fee module called by the ICS-4 TimeoutPacket handler.
-  rpc PayTimeoutFee(MsgPayTimeoutFee) returns (MsgPayTimeoutFeeResponse);
 }
 
 // MsgRegisterCounterPartyAddress is the request type for registering the counter party address
@@ -49,22 +44,3 @@ message MsgEscrowPacketFee {
 
 // MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
 message MsgEscrowPacketFeeResponse {}
-
-// MsgPayFee defines the request type for PayFee the RPC
-message MsgPayFee {
-  ibc.core.channel.v1.PacketId packet_id       = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
-  string                       forward_relayer = 2 [(gogoproto.moretags) = "yaml:\"forward_relayer\""];
-  string                       reverse_relayer = 3 [(gogoproto.moretags) = "yaml:\"reverse_relayer\""];
-}
-
-// MsgPayFeeResponse defines the response type for Msg/PayFee
-message MsgPayFeeResponse {}
-
-// MsgPayTimmeout defines the request type for the PayTimeoutFee RPC
-message MsgPayTimeoutFee {
-  ibc.core.channel.v1.PacketId packet_id       = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
-  string                       timeout_relayer = 2 [(gogoproto.moretags) = "yaml:\"timeout_relayer\""];
-}
-
-// MsgPayTimeoutFeeResponse defines the response type for Msg/PayTimeoutFee
-message MsgPayTimeoutFeeResponse {}

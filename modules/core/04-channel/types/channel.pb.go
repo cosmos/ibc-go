@@ -348,10 +348,12 @@ func (m *PacketState) XXX_DiscardUnknown() {
 var xxx_messageInfo_PacketState proto.InternalMessageInfo
 
 // PacketId is an identifer for a unique Packet
+// Source chains refer to packets by source port/channel
+// Destination chains refer to packets by destination port/channel
 type PacketId struct {
-	// channel port identifier.
+	// channel port identifier
 	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
-	// channel unique identifier.
+	// channel unique identifier
 	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
 	// packet sequence.
 	Sequence uint64 `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
