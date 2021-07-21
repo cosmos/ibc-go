@@ -22,7 +22,7 @@ service Msg {
 }
 
 // MsgRegisterCounterPartyAddress is the request type for registering the counter party address
-message MsgRegisterCounterPartyAddress {
+message MsgRegisterCounterpartyAddress {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
