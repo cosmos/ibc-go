@@ -14,7 +14,7 @@ import (
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/modules/apps/ibc-account/types"
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 )
 
 // Keeper defines the IBC transfer keeper
@@ -34,7 +34,7 @@ type Keeper struct {
 	memKey    sdk.StoreKey
 }
 
-// NewKeeper creates a new IBC account Keeper instance
+// NewKeeper creates a new interchain account Keeper instance
 func NewKeeper(
 	memKey sdk.StoreKey,
 	cdc codec.BinaryCodec, key sdk.StoreKey,
@@ -112,7 +112,7 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
 }
 
-// GetPort returns the portID for the ibc account module. Used in ExportGenesis
+// GetPort returns the portID for the interchain accounts module. Used in ExportGenesis
 func (k Keeper) GetPort(ctx sdk.Context) string {
 	store := ctx.KVStore(k.storeKey)
 	return string(store.Get([]byte(types.PortKey)))

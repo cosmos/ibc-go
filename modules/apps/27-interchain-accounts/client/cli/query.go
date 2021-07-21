@@ -7,13 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/modules/apps/ibc-account/types"
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 )
 
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the ibc account module",
+		Use:                        "interchain-accounts",
+		Short:                      "Querying commands for the interchain accounts module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
