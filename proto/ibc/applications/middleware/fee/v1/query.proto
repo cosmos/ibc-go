@@ -38,12 +38,12 @@ message QueryReceiveFeeRequest {
   string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
 }
 
-// QueryRequestFeeResponse is the response type for the ReceiveFee RPC
+// QueryReceiveFeeResponse is the response type for the ReceiveFee RPC
 message QueryReceiveFeeResponse {
   ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
 }
 
-// QueryAckRequestFee is the request type for quering the acknowledgement fee
+// QueryAckFeeRequest is the request type for querying the acknowledgement fee
 message QueryAckFeeRequest {
   // Source Port ID
   string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
@@ -60,7 +60,7 @@ message QueryAckFeeResponse {
   ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
 }
 
-// QueryTimeoutFee is the request type for quering the timeout fee
+// QueryTimeoutFeeRequest is the request type for querying the timeout fee
 message QueryTimeoutFeeRequest {
   // Source Port ID
   string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];

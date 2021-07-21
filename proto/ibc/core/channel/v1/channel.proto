@@ -142,7 +142,7 @@ message PacketId {
   string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
   // channel unique identifier
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  // packet sequence.
+  // packet sequence
   uint64 sequence = 3;
 }
 
