@@ -33,12 +33,12 @@ func NewIBCAccount(ba *authtypes.BaseAccount, accountOwner string) *IBCAccount {
 
 // SetPubKey - Implements AccountI
 func (IBCAccount) SetPubKey(pubKey crypto.PubKey) error {
-	return fmt.Errorf("not supported for ibc accounts")
+	return fmt.Errorf("not supported for interchain accounts")
 }
 
 // SetSequence - Implements AccountI
 func (IBCAccount) SetSequence(seq uint64) error {
-	return fmt.Errorf("not supported for ibc accounts")
+	return fmt.Errorf("not supported for interchain accounts")
 }
 
 func (ia IBCAccount) Validate() error {

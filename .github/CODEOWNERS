@@ -4,4 +4,4 @@
 
 # CODEOWNERS for interchain-accounts module
 
-*/modules/apps/ibc-account @seantking @colin-axner @AdityaSripal
+*/modules/apps/27-interchain-accounts @seantking @colin-axner @AdityaSripal
