@@ -7,8 +7,13 @@ import "ibc/applications/middleware/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";
 option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
-
 // GenesisState defines the fee middleware genesis state
 message GenesisState {
-  map<string, ibc.applications.middleware.fee.v1.Fee> packet_fees = 1;
+  // An entry for the PacketsFees map
+  message PacketsFeesMapEntry {
+    ibc.core.channel.v1.PacketId           packet_id = 1;
+    ibc.applications.middleware.fee.v1.Fee fee       = 2;
+  }
+  // A mapping of packets -> escrowed fees
+  repeated PacketsFeesMapEntry packets_fees_map = 1;
 }

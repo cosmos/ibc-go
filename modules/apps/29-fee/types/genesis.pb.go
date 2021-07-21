@@ -5,7 +5,7 @@ package types
 
 import (
 	fmt "fmt"
-	_ "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	types "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
@@ -26,7 +26,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the fee middleware genesis state
 type GenesisState struct {
-	PacketFees map[string]*Fee `protobuf:"bytes,1,rep,name=packet_fees,json=packetFees,proto3" json:"packet_fees,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// A mapping of packets -> escrowed fees
+	PacketsFeesMap []*GenesisState_PacketsFeesMapEntry `protobuf:"bytes,1,rep,name=packets_fees_map,json=packetsFeesMap,proto3" json:"packets_fees_map,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -62,16 +63,69 @@ func (m *GenesisState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 
-func (m *GenesisState) GetPacketFees() map[string]*Fee {
+func (m *GenesisState) GetPacketsFeesMap() []*GenesisState_PacketsFeesMapEntry {
 	if m != nil {
-		return m.PacketFees
+		return m.PacketsFeesMap
+	}
+	return nil
+}
+
+// An entry for the PacketsFees map
+type GenesisState_PacketsFeesMapEntry struct {
+	PacketId *types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty"`
+	Fee      *Fee            `protobuf:"bytes,2,opt,name=fee,proto3" json:"fee,omitempty"`
+}
+
+func (m *GenesisState_PacketsFeesMapEntry) Reset()         { *m = GenesisState_PacketsFeesMapEntry{} }
+func (m *GenesisState_PacketsFeesMapEntry) String() string { return proto.CompactTextString(m) }
+func (*GenesisState_PacketsFeesMapEntry) ProtoMessage()    {}
+func (*GenesisState_PacketsFeesMapEntry) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6a4f6c8d78b5dfbf, []int{0, 0}
+}
+func (m *GenesisState_PacketsFeesMapEntry) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GenesisState_PacketsFeesMapEntry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GenesisState_PacketsFeesMapEntry.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GenesisState_PacketsFeesMapEntry) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GenesisState_PacketsFeesMapEntry.Merge(m, src)
+}
+func (m *GenesisState_PacketsFeesMapEntry) XXX_Size() int {
+	return m.Size()
+}
+func (m *GenesisState_PacketsFeesMapEntry) XXX_DiscardUnknown() {
+	xxx_messageInfo_GenesisState_PacketsFeesMapEntry.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GenesisState_PacketsFeesMapEntry proto.InternalMessageInfo
+
+func (m *GenesisState_PacketsFeesMapEntry) GetPacketId() *types.PacketId {
+	if m != nil {
+		return m.PacketId
+	}
+	return nil
+}
+
+func (m *GenesisState_PacketsFeesMapEntry) GetFee() *Fee {
+	if m != nil {
+		return m.Fee
 	}
 	return nil
 }
 
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "ibc.applications.middleware.fee.v1.GenesisState")
-	proto.RegisterMapType((map[string]*Fee)(nil), "ibc.applications.middleware.fee.v1.GenesisState.PacketFeesEntry")
+	proto.RegisterType((*GenesisState_PacketsFeesMapEntry)(nil), "ibc.applications.middleware.fee.v1.GenesisState.PacketsFeesMapEntry")
 }
 
 func init() {
@@ -79,27 +133,29 @@ func init() {
 }
 
 var fileDescriptor_6a4f6c8d78b5dfbf = []byte{
-	// 318 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xc1, 0x4b, 0xfb, 0x30,
-	0x1c, 0xc5, 0x97, 0x8d, 0xdf, 0x0f, 0xcc, 0x04, 0xa5, 0x78, 0x18, 0x3b, 0x84, 0xb9, 0x8b, 0x3b,
-	0xb8, 0xc4, 0xd5, 0x8b, 0x0a, 0x82, 0x08, 0xce, 0x8b, 0x07, 0x99, 0x37, 0x2f, 0x92, 0x66, 0xdf,
-	0x76, 0x61, 0x6d, 0x13, 0x9a, 0xac, 0xd2, 0xff, 0xc2, 0x3f, 0xcb, 0xe3, 0x8e, 0x7a, 0x93, 0xf6,
-	0x1f, 0x91, 0xb4, 0xa2, 0xc3, 0x8b, 0xbb, 0x3d, 0xf2, 0x7d, 0x9f, 0x97, 0xc7, 0xc3, 0x27, 0x32,
-	0x10, 0x8c, 0x6b, 0x1d, 0x4b, 0xc1, 0xad, 0x54, 0xa9, 0x61, 0x89, 0x9c, 0xcf, 0x63, 0x78, 0xe6,
-	0x19, 0xb0, 0x10, 0x80, 0xe5, 0x13, 0x16, 0x41, 0x0a, 0x46, 0x1a, 0xaa, 0x33, 0x65, 0x95, 0x37,
-	0x94, 0x81, 0xa0, 0x9b, 0x04, 0xfd, 0x21, 0x68, 0x08, 0x40, 0xf3, 0x49, 0xff, 0x20, 0x52, 0x91,
-	0xaa, 0xed, 0xcc, 0xa9, 0x86, 0xec, 0x1f, 0x6f, 0xf1, 0x97, 0x0b, 0x68, 0xdc, 0x87, 0xce, 0x2d,
-	0x54, 0x06, 0x4c, 0x2c, 0x78, 0x9a, 0x42, 0xec, 0xce, 0x5f, 0xb2, 0xb1, 0x0c, 0xdf, 0x11, 0xde,
-	0xbd, 0x6d, 0xca, 0x3d, 0x58, 0x6e, 0xc1, 0xe3, 0xb8, 0xab, 0xb9, 0x58, 0x82, 0x7d, 0x0a, 0x01,
-	0x4c, 0x0f, 0x0d, 0x3a, 0xa3, 0xae, 0x7f, 0x45, 0xff, 0x6e, 0x4c, 0x37, 0x63, 0xe8, 0x7d, 0x9d,
-	0x31, 0x05, 0x30, 0x37, 0xa9, 0xcd, 0x8a, 0x19, 0xd6, 0xdf, 0x0f, 0xfd, 0x10, 0xef, 0xfd, 0x3a,
-	0x7b, 0xfb, 0xb8, 0xb3, 0x84, 0xa2, 0x87, 0x06, 0x68, 0xb4, 0x33, 0x73, 0xd2, 0xbb, 0xc4, 0xff,
-	0x72, 0x1e, 0xaf, 0xa0, 0xd7, 0x1e, 0xa0, 0x51, 0xd7, 0x3f, 0xda, 0xa6, 0xc1, 0x14, 0x60, 0xd6,
-	0x50, 0x17, 0xed, 0x33, 0x74, 0x7d, 0xf7, 0x5a, 0x12, 0xb4, 0x2e, 0x09, 0xfa, 0x28, 0x09, 0x7a,
-	0xa9, 0x48, 0x6b, 0x5d, 0x91, 0xd6, 0x5b, 0x45, 0x5a, 0x8f, 0x7e, 0x24, 0xed, 0x62, 0x15, 0x50,
-	0xa1, 0x12, 0x26, 0x94, 0x49, 0x94, 0x61, 0x32, 0x10, 0xe3, 0x48, 0xb1, 0x44, 0xcd, 0x57, 0x31,
-	0x18, 0xb7, 0xb1, 0x61, 0xfe, 0xf9, 0xd8, 0x6d, 0x6a, 0x0b, 0x0d, 0x26, 0xf8, 0x5f, 0x0f, 0x76,
-	0xfa, 0x19, 0x00, 0x00, 0xff, 0xff, 0x9b, 0xa6, 0xc3, 0xbe, 0xef, 0x01, 0x00, 0x00,
+	// 337 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0x41, 0x4b, 0xfb, 0x30,
+	0x18, 0xc6, 0x97, 0x0d, 0xfe, 0xfc, 0xed, 0x44, 0xa4, 0x7a, 0x18, 0x03, 0xcb, 0xdc, 0xc5, 0x1d,
+	0x5c, 0xe2, 0xea, 0x69, 0x1e, 0x45, 0x27, 0x82, 0x82, 0xcc, 0x9b, 0x97, 0x91, 0xa6, 0x6f, 0xbb,
+	0x60, 0x9b, 0x84, 0x26, 0x9b, 0xec, 0x3b, 0x28, 0xf8, 0xb1, 0x3c, 0xee, 0xe8, 0x51, 0xb6, 0x2f,
+	0x22, 0x69, 0x26, 0x4e, 0x10, 0xdc, 0xed, 0xa1, 0xfd, 0x3d, 0xcf, 0xfb, 0xbc, 0x79, 0xbd, 0x13,
+	0x1e, 0x31, 0x42, 0x95, 0xca, 0x38, 0xa3, 0x86, 0x4b, 0xa1, 0x49, 0xce, 0xe3, 0x38, 0x83, 0x27,
+	0x5a, 0x00, 0x49, 0x00, 0xc8, 0xb4, 0x47, 0x52, 0x10, 0xa0, 0xb9, 0xc6, 0xaa, 0x90, 0x46, 0xfa,
+	0x6d, 0x1e, 0x31, 0xbc, 0xee, 0xc0, 0xdf, 0x0e, 0x9c, 0x00, 0xe0, 0x69, 0xaf, 0xb9, 0x9f, 0xca,
+	0x54, 0x96, 0x38, 0xb1, 0xca, 0x39, 0x9b, 0xc7, 0x1b, 0xcc, 0xb2, 0x01, 0x8e, 0x3e, 0xb4, 0x34,
+	0x93, 0x05, 0x10, 0x36, 0xa6, 0x42, 0x40, 0x66, 0x7f, 0xaf, 0xa4, 0x43, 0xda, 0x2f, 0x55, 0x6f,
+	0xfb, 0xca, 0x95, 0xbb, 0x37, 0xd4, 0x80, 0x2f, 0xbc, 0x5d, 0x45, 0xd9, 0x23, 0x18, 0x3d, 0x4a,
+	0x00, 0xf4, 0x28, 0xa7, 0xaa, 0x81, 0x5a, 0xb5, 0x4e, 0x3d, 0xbc, 0xc0, 0x7f, 0xd7, 0xc6, 0xeb,
+	0x59, 0xf8, 0xce, 0x05, 0x0d, 0x00, 0xf4, 0x2d, 0x55, 0x97, 0xc2, 0x14, 0xb3, 0xe1, 0x8e, 0xfa,
+	0xf1, 0xb1, 0xf9, 0x8c, 0xbc, 0xbd, 0x5f, 0x38, 0xff, 0xcc, 0xdb, 0x72, 0xe4, 0x88, 0xc7, 0x0d,
+	0xd4, 0x42, 0x9d, 0x7a, 0x78, 0x50, 0x16, 0xb0, 0xfb, 0xe0, 0xaf, 0x25, 0xa6, 0xbd, 0xd5, 0x90,
+	0xeb, 0x78, 0xf8, 0x5f, 0xad, 0x94, 0xdf, 0xf7, 0x6a, 0x09, 0x40, 0xa3, 0x5a, 0xba, 0x8e, 0x36,
+	0xa9, 0x3d, 0x00, 0x18, 0x5a, 0xcf, 0xf9, 0xcd, 0xdb, 0x22, 0x40, 0xf3, 0x45, 0x80, 0x3e, 0x16,
+	0x01, 0x7a, 0x5d, 0x06, 0x95, 0xf9, 0x32, 0xa8, 0xbc, 0x2f, 0x83, 0xca, 0x43, 0x98, 0x72, 0x33,
+	0x9e, 0x44, 0x98, 0xc9, 0x9c, 0x30, 0xa9, 0x73, 0xa9, 0x09, 0x8f, 0x58, 0x37, 0x95, 0x24, 0x97,
+	0xf1, 0x24, 0x03, 0x6d, 0xef, 0xa2, 0x49, 0xd8, 0xef, 0xda, 0x3b, 0x98, 0x99, 0x02, 0x1d, 0xfd,
+	0x2b, 0x1f, 0xf9, 0xf4, 0x33, 0x00, 0x00, 0xff, 0xff, 0x88, 0x29, 0xef, 0x17, 0x23, 0x02, 0x00,
+	0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -122,31 +178,66 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.PacketFees) > 0 {
-		for k := range m.PacketFees {
-			v := m.PacketFees[k]
-			baseI := i
-			if v != nil {
-				{
-					size, err := v.MarshalToSizedBuffer(dAtA[:i])
-					if err != nil {
-						return 0, err
-					}
-					i -= size
-					i = encodeVarintGenesis(dAtA, i, uint64(size))
+	if len(m.PacketsFeesMap) > 0 {
+		for iNdEx := len(m.PacketsFeesMap) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.PacketsFeesMap[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
 				}
-				i--
-				dAtA[i] = 0x12
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
 			}
-			i -= len(k)
-			copy(dAtA[i:], k)
-			i = encodeVarintGenesis(dAtA, i, uint64(len(k)))
-			i--
-			dAtA[i] = 0xa
-			i = encodeVarintGenesis(dAtA, i, uint64(baseI-i))
 			i--
 			dAtA[i] = 0xa
 		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GenesisState_PacketsFeesMapEntry) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GenesisState_PacketsFeesMapEntry) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GenesisState_PacketsFeesMapEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Fee != nil {
+		{
+			size, err := m.Fee.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintGenesis(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.PacketId != nil {
+		{
+			size, err := m.PacketId.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintGenesis(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -168,18 +259,28 @@ func (m *GenesisState) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.PacketFees) > 0 {
-		for k, v := range m.PacketFees {
-			_ = k
-			_ = v
-			l = 0
-			if v != nil {
-				l = v.Size()
-				l += 1 + sovGenesis(uint64(l))
-			}
-			mapEntrySize := 1 + len(k) + sovGenesis(uint64(len(k))) + l
-			n += mapEntrySize + 1 + sovGenesis(uint64(mapEntrySize))
+	if len(m.PacketsFeesMap) > 0 {
+		for _, e := range m.PacketsFeesMap {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *GenesisState_PacketsFeesMapEntry) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.PacketId != nil {
+		l = m.PacketId.Size()
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	if m.Fee != nil {
+		l = m.Fee.Size()
+		n += 1 + l + sovGenesis(uint64(l))
 	}
 	return n
 }
@@ -221,7 +322,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PacketFees", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PacketsFeesMap", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -248,105 +349,132 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.PacketFees == nil {
-				m.PacketFees = make(map[string]*Fee)
+			m.PacketsFeesMap = append(m.PacketsFeesMap, &GenesisState_PacketsFeesMapEntry{})
+			if err := m.PacketsFeesMap[len(m.PacketsFeesMap)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
-			var mapkey string
-			var mapvalue *Fee
-			for iNdEx < postIndex {
-				entryPreIndex := iNdEx
-				var wire uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowGenesis
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					wire |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GenesisState_PacketsFeesMapEntry) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PacketsFeesMapEntry: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PacketsFeesMapEntry: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PacketId", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
 				}
-				fieldNum := int32(wire >> 3)
-				if fieldNum == 1 {
-					var stringLenmapkey uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowGenesis
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapkey |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapkey := int(stringLenmapkey)
-					if intStringLenmapkey < 0 {
-						return ErrInvalidLengthGenesis
-					}
-					postStringIndexmapkey := iNdEx + intStringLenmapkey
-					if postStringIndexmapkey < 0 {
-						return ErrInvalidLengthGenesis
-					}
-					if postStringIndexmapkey > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-					iNdEx = postStringIndexmapkey
-				} else if fieldNum == 2 {
-					var mapmsglen int
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowGenesis
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						mapmsglen |= int(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					if mapmsglen < 0 {
-						return ErrInvalidLengthGenesis
-					}
-					postmsgIndex := iNdEx + mapmsglen
-					if postmsgIndex < 0 {
-						return ErrInvalidLengthGenesis
-					}
-					if postmsgIndex > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapvalue = &Fee{}
-					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
-						return err
-					}
-					iNdEx = postmsgIndex
-				} else {
-					iNdEx = entryPreIndex
-					skippy, err := skipGenesis(dAtA[iNdEx:])
-					if err != nil {
-						return err
-					}
-					if (skippy < 0) || (iNdEx+skippy) < 0 {
-						return ErrInvalidLengthGenesis
-					}
-					if (iNdEx + skippy) > postIndex {
-						return io.ErrUnexpectedEOF
-					}
-					iNdEx += skippy
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
 				}
 			}
-			m.PacketFees[mapkey] = mapvalue
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PacketId == nil {
+				m.PacketId = &types.PacketId{}
+			}
+			if err := m.PacketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fee", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Fee == nil {
+				m.Fee = &Fee{}
+			}
+			if err := m.Fee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
