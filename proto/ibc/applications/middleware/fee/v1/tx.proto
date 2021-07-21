@@ -9,7 +9,7 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // Msg defines the ibc/fee Msg service.
 service Msg {
-  // RegisterCounterPartyAddress defines a rpc handler method for MsgRegisterCounterPartyAddress
+  // RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
   // RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
   // counterparty address before relaying This ensures they will be properly compensated for forward relaying since
   // destination chain must send back relayer's source address (counterparty address) in acknowledgement This function
