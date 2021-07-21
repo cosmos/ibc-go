@@ -17,9 +17,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/ibc-account/client/cli"
-	"github.com/cosmos/ibc-go/modules/apps/ibc-account/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/ibc-account/types"
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/client/cli"
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/keeper"
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
@@ -68,7 +68,7 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 	types.RegisterInterfaces(registry)
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-account module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the interchain accounts module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 }
 

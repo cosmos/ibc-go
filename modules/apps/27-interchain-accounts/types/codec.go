@@ -10,7 +10,7 @@ import (
 // provided LegacyAmino codec. These types are used for Amino JSON serialization
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*IBCAccountI)(nil), nil)
-	cdc.RegisterConcrete(&IBCAccount{}, "ibc-account/IBCAccount", nil)
+	cdc.RegisterConcrete(&IBCAccount{}, "27-interchain-accounts/IBCAccount", nil)
 }
 
 // RegisterInterface associates protoName with AccountI interface
