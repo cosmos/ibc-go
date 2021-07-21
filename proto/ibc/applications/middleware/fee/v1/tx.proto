@@ -21,7 +21,7 @@ service Msg {
   rpc EscrowPacketFee(MsgEscrowPacketFee) returns (MsgEscrowPacketFeeResponse);
 }
 
-// MsgRegisterCounterPartyAddress is the request type for registering the counter party address
+// MsgRegisterCounterpartyAddress is the request type for registering the counter party address
 message MsgRegisterCounterpartyAddress {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
