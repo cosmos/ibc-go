@@ -32,6 +32,7 @@ service Query {
 message QueryDenomTraceRequest {
   // hash (in hex format) of the denomination trace information.
   string hash = 1;
+  uint64 height = 2;
 }
 
 // QueryDenomTraceResponse is the response type for the Query/DenomTrace RPC
@@ -46,6 +47,7 @@ message QueryDenomTraceResponse {
 message QueryDenomTracesRequest {
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  uint64 height = 2;
 }
 
 // QueryConnectionsResponse is the response type for the Query/DenomTraces RPC
@@ -58,7 +60,9 @@ message QueryDenomTracesResponse {
 }
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.
-message QueryParamsRequest {}
+message QueryParamsRequest {
+  uint64 height = 1;
+}
 
 // QueryParamsResponse is the response type for the Query/Params RPC method.
 message QueryParamsResponse {
