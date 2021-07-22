@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
@@ -145,13 +144,20 @@ func (k Keeper) SetActiveChannel(ctx sdk.Context, portId, channelId string) erro
 	return nil
 }
 
-func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, error) {
+func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyActiveChannel(portId)
 	if !store.Has(key) {
-		return "", sdkerrors.Wrap(types.ErrActiveChannelNotFound, portId)
+		return "", false
 	}
 
 	activeChannel := string(store.Get(key))
-	return activeChannel, nil
+	return activeChannel, true
+}
+
+// IsActiveChannel returns true if there exists an active channel for
+// the provided portID and false otherwise.
+func (k Keeper) IsActiveChannel(ctx sdk.Context, portId string) bool {
+	_, found := k.GetActiveChannel(ctx, portId)
+	return found
 }

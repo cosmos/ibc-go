@@ -4,51 +4,40 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
-// The first step in registering an interchain account
-// Binds a new port & calls OnChanOpenInit
+// InitInterchainAccount is the entry point to registering an interchain account.
+// It generates a new port identifier using the owner address, connection identifier,
+// and counterparty connection identifier. It will bind to the port identifier and
+// call 04-channel 'ChanOpenInit'. An error is returned if the port identifier is
+// already in use. Gaining access to interchain accounts whose channels have closed
+// cannot be done with this function. A regular MsgChanOpenInit must be used.
 func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionId, owner string) error {
 	portId := k.GeneratePortId(owner, connectionId)
 
-	// Check if the port is already bound
-	isBound := k.IsBound(ctx, portId)
-	if isBound == true {
+	// check if the port is already bound
+	if k.IsBound(ctx, portId) {
 		return sdkerrors.Wrap(types.ErrPortAlreadyBound, portId)
 	}
 
 	portCap := k.portKeeper.BindPort(ctx, portId)
 	err := k.ClaimCapability(ctx, portCap, host.PortPath(portId))
 	if err != nil {
+		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
+	}
+
+	msg := channeltypes.NewMsgChannelOpenInit(portId, types.Version, channeltypes.ORDERED, []string{connectionId}, types.PortID, types.ModuleName)
+	handler := k.msgRouter.Handler(msg)
+	if _, err := handler(ctx, msg); err != nil {
 		return err
 	}
 
-	counterParty := channeltypes.Counterparty{PortId: "ibcaccount", ChannelId: ""}
-	order := channeltypes.Order(2)
-	channelId, cap, err := k.channelKeeper.ChanOpenInit(ctx, order, []string{connectionId}, portId, portCap, counterParty, types.Version)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			channeltypes.EventTypeChannelOpenInit,
-			sdk.NewAttribute(channeltypes.AttributeKeyPortID, portId),
-			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, channelId),
-			sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, "ibcaccount"),
-			sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, ""),
-			sdk.NewAttribute(channeltypes.AttributeKeyConnectionID, connectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
-		),
-	})
-
-	_ = k.OnChanOpenInit(ctx, channeltypes.Order(2), []string{connectionId}, portId, channelId, cap, counterParty, types.Version)
-
-	return err
+	return nil
 }
 
 // Register interchain account if it has not already been created
