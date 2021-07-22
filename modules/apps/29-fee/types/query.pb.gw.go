@@ -32,12 +32,74 @@ var _ = utilities.NewDoubleArray
 var _ = descriptor.ForMessage
 
 var (
-	filter_Query_ReceiveFee_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Query_ReceiveFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3, "relayer_address": 4, "query_height": 5}, Base: []int{1, 1, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 1, 1, 3, 4, 5, 6, 7}}
 )
 
 func request_Query_ReceiveFee_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryReceiveFeeRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["packet_id.port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.port_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.port_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.port_id", err)
+	}
+
+	val, ok = pathParams["packet_id.channel_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.channel_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.channel_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.channel_id", err)
+	}
+
+	val, ok = pathParams["packet_id.sequence"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.sequence")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.sequence", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
+	}
+
+	val, ok = pathParams["relayer_address"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
+	}
+
+	protoReq.RelayerAddress, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
+	}
+
+	val, ok = pathParams["query_height"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
+	}
+
+	protoReq.QueryHeight, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -55,6 +117,68 @@ func local_request_Query_ReceiveFee_0(ctx context.Context, marshaler runtime.Mar
 	var protoReq QueryReceiveFeeRequest
 	var metadata runtime.ServerMetadata
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["packet_id.port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.port_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.port_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.port_id", err)
+	}
+
+	val, ok = pathParams["packet_id.channel_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.channel_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.channel_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.channel_id", err)
+	}
+
+	val, ok = pathParams["packet_id.sequence"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.sequence")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.sequence", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
+	}
+
+	val, ok = pathParams["relayer_address"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
+	}
+
+	protoReq.RelayerAddress, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
+	}
+
+	val, ok = pathParams["query_height"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
+	}
+
+	protoReq.QueryHeight, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
+	}
+
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -68,12 +192,74 @@ func local_request_Query_ReceiveFee_0(ctx context.Context, marshaler runtime.Mar
 }
 
 var (
-	filter_Query_AckFee_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Query_AckFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3, "relayer_address": 4, "query_height": 5}, Base: []int{1, 1, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 1, 1, 3, 4, 5, 6, 7}}
 )
 
 func request_Query_AckFee_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryAckFeeRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["packet_id.port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.port_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.port_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.port_id", err)
+	}
+
+	val, ok = pathParams["packet_id.channel_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.channel_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.channel_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.channel_id", err)
+	}
+
+	val, ok = pathParams["packet_id.sequence"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.sequence")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.sequence", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
+	}
+
+	val, ok = pathParams["relayer_address"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
+	}
+
+	protoReq.RelayerAddress, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
+	}
+
+	val, ok = pathParams["query_height"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
+	}
+
+	protoReq.QueryHeight, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -91,6 +277,68 @@ func local_request_Query_AckFee_0(ctx context.Context, marshaler runtime.Marshal
 	var protoReq QueryAckFeeRequest
 	var metadata runtime.ServerMetadata
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["packet_id.port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.port_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.port_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.port_id", err)
+	}
+
+	val, ok = pathParams["packet_id.channel_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.channel_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.channel_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.channel_id", err)
+	}
+
+	val, ok = pathParams["packet_id.sequence"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.sequence")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.sequence", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
+	}
+
+	val, ok = pathParams["relayer_address"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
+	}
+
+	protoReq.RelayerAddress, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
+	}
+
+	val, ok = pathParams["query_height"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
+	}
+
+	protoReq.QueryHeight, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
+	}
+
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -104,12 +352,74 @@ func local_request_Query_AckFee_0(ctx context.Context, marshaler runtime.Marshal
 }
 
 var (
-	filter_Query_TimeoutFee_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Query_TimeoutFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3, "relayer_address": 4, "query_height": 5}, Base: []int{1, 1, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 1, 1, 3, 4, 5, 6, 7}}
 )
 
 func request_Query_TimeoutFee_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryTimeoutFeeRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["packet_id.port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.port_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.port_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.port_id", err)
+	}
+
+	val, ok = pathParams["packet_id.channel_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.channel_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.channel_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.channel_id", err)
+	}
+
+	val, ok = pathParams["packet_id.sequence"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.sequence")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.sequence", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
+	}
+
+	val, ok = pathParams["relayer_address"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
+	}
+
+	protoReq.RelayerAddress, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
+	}
+
+	val, ok = pathParams["query_height"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
+	}
+
+	protoReq.QueryHeight, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -126,6 +436,68 @@ func request_Query_TimeoutFee_0(ctx context.Context, marshaler runtime.Marshaler
 func local_request_Query_TimeoutFee_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryTimeoutFeeRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["packet_id.port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.port_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.port_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.port_id", err)
+	}
+
+	val, ok = pathParams["packet_id.channel_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.channel_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.channel_id", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.channel_id", err)
+	}
+
+	val, ok = pathParams["packet_id.sequence"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "packet_id.sequence")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "packet_id.sequence", val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
+	}
+
+	val, ok = pathParams["relayer_address"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
+	}
+
+	protoReq.RelayerAddress, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
+	}
+
+	val, ok = pathParams["query_height"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
+	}
+
+	protoReq.QueryHeight, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -386,11 +758,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_ReceiveFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"ibc", "apps", "middleware", "fee", "v1", "receive_fee"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ReceiveFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9, 2, 10, 1, 0, 4, 1, 5, 11, 2, 12, 1, 0, 4, 1, 5, 13, 2, 14, 1, 0, 4, 1, 5, 15}, []string{"ibc", "apps", "middleware", "fee", "v1", "receive_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence", "relayer", "relayer_address", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_AckFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"ibc", "apps", "middleware", "fee", "v1", "ack_fee"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_AckFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9, 2, 10, 1, 0, 4, 1, 5, 11, 2, 12, 1, 0, 4, 1, 5, 13, 2, 14, 1, 0, 4, 1, 5, 15}, []string{"ibc", "apps", "middleware", "fee", "v1", "ack_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence", "relayer", "relayer_address", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_TimeoutFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"ibc", "apps", "middleware", "fee", "v1", "timeout_fee"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TimeoutFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9, 2, 10, 1, 0, 4, 1, 5, 11, 1, 0, 4, 1, 5, 12, 2, 13, 1, 0, 4, 1, 5, 14}, []string{"ibc", "apps", "middleware", "fee", "v1", "timeout_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence", "relayer_address", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_IncentivizedPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"ibc", "apps", "middleware", "fee", "v1", "incentivized_packets"}, "", runtime.AssumeColonVerbOpt(true)))
 )

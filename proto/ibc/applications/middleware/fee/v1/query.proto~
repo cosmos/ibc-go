@@ -15,23 +15,20 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 service Query {
   // Gets the fee expected for submitting ReceivePacket msg for the given packet
   rpc ReceiveFee(QueryReceiveFeeRequest) returns (QueryReceiveFeeResponse) {
-    option (google.api.http).get =
-        "/ibc/apps/middleware/fee/v1/receive_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}";
+    option (google.api.http).get = "/ibc/apps/middleware/fee/v1/receive_fee/packet/{packet_id.channel_id}/relayer/"
+                                   "{relayer_address}/height/{query_height}";
   }
 
   // Gets the fee expected for submitting AcknowledgePacket msg for the given packet
   rpc AckFee(QueryAckFeeRequest) returns (QueryAckFeeResponse) {
-    option (google.api.http).get =
-        "/ibc/apps/middleware/fee/v1/ack_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}";
+    option (google.api.http).get = "/ibc/apps/middleware/fee/v1/ack_fee/packet/{packet_id.sequence}/relayer/"
+                                   "{relayer_address}/height/{query_height}";
   }
 
   // Gets the fee expected for submitting TimeoutPacket msg for the given packet
   rpc TimeoutFee(QueryTimeoutFeeRequest) returns (QueryTimeoutFeeResponse) {
-    option (google.api.http).get =
-        "/ibc/apps/middleware/fee/v1/timeout_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}/{relayer_address}/height/{query_height}";
+    option (google.api.http).get = "/ibc/apps/middleware/fee/v1/timeout_fee/packet/{packet_id.channel_id}/relayer/"
+                                   "{relayer_address}/height/{query_height}";
   }
 
   // Gets all incentivized packets
