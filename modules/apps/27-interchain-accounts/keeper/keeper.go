@@ -101,7 +101,7 @@ func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	return ok
 }
 
-// BindPort defines a wrapper function for the ort Keeper's function in
+// BindPort defines a wrapper function for the port Keeper's BindPort function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 	// Set the portID into our store so we can retrieve it later
