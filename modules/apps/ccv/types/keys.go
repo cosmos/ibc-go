@@ -14,13 +14,6 @@ const (
 	ChannelStatusKeyPrefix = "channelstatus"
 )
 
-const (
-	Uninitialized Status = iota
-	Initializing
-	Validating
-	Invalid
-)
-
 // ChannelStatusKey returns the key under which the Status of a baby chain is stored.
 func ChannelStatusKey(channelID string) []byte {
 	return []byte(ChannelStatusKeyPrefix + "/" + channelID)

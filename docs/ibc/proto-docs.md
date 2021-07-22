@@ -7,6 +7,8 @@
 - [ibc/applications/ccv/v1/ccv.proto](#ibc/applications/ccv/v1/ccv.proto)
     - [ValidatorSetChangePacketData](#ibc.applications.ccv.v1.ValidatorSetChangePacketData)
   
+    - [Status](#ibc.applications.ccv.v1.Status)
+  
 - [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
     - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
     - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
@@ -42,17 +44,9 @@
   
 - [ibc/applications/ccv/v1/genesis.proto](#ibc/applications/ccv/v1/genesis.proto)
     - [ChildGenesisState](#ibc.applications.ccv.v1.ChildGenesisState)
+    - [ChildState](#ibc.applications.ccv.v1.ChildState)
+    - [ParentGenesisState](#ibc.applications.ccv.v1.ParentGenesisState)
     - [UnbondingSequence](#ibc.applications.ccv.v1.UnbondingSequence)
-  
-- [ibc/applications/ccv/v1/tx.proto](#ibc/applications/ccv/v1/tx.proto)
-    - [MsgBondStake](#ibc.applications.ccv.v1.MsgBondStake)
-    - [MsgBondStakeResponse](#ibc.applications.ccv.v1.MsgBondStakeResponse)
-    - [MsgSubmitNewChain](#ibc.applications.ccv.v1.MsgSubmitNewChain)
-    - [MsgSubmitNewChainResponse](#ibc.applications.ccv.v1.MsgSubmitNewChainResponse)
-    - [MsgUnbondStake](#ibc.applications.ccv.v1.MsgUnbondStake)
-    - [MsgUnbondStakeResponse](#ibc.applications.ccv.v1.MsgUnbondStakeResponse)
-  
-    - [Msg](#ibc.applications.ccv.v1.Msg)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
@@ -268,6 +262,21 @@ and this will function as `UnbondingOver` message for this packet.
 
 
  <!-- end messages -->
+
+
+<a name="ibc.applications.ccv.v1.Status"></a>
+
+### Status
+Status defines if the ccv channel is in one of the following states:
+UNINITIALIZED, INITIALIZING, VALIDATING, INVALID
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STATUS_UNINITIALIZED_UNSPECIFIED | 0 | Default State |
+| STATUS_INITIALIZING | 1 | channel is in handshake process |
+| STATUS_VALIDATING | 2 | channel is open and validating |
+| STATUS_INVALID | 3 | channel is invalid and can no longer process packets |
+
 
  <!-- end enums -->
 
@@ -828,6 +837,32 @@ ChildGenesisState defines the CCV child chain genesis state
 
 
 
+<a name="ibc.applications.ccv.v1.ChildState"></a>
+
+### ChildState
+ChildState defines the state that the parent chain stores for each child chain
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.ccv.v1.ParentGenesisState"></a>
+
+### ParentGenesisState
+ParentGenesisState defines the CCV parent chain genesis state
+
+
+
+
+
+
 <a name="ibc.applications.ccv.v1.UnbondingSequence"></a>
 
 ### UnbondingSequence
@@ -849,118 +884,6 @@ UnbondingSequence defines the genesis information for each unbonding packet sequ
  <!-- end enums -->
 
  <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/ccv/v1/tx.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/ccv/v1/tx.proto
-
-
-
-<a name="ibc.applications.ccv.v1.MsgBondStake"></a>
-
-### MsgBondStake
-MsgBondStake defines a msg for a parent chain validator to stake on a baby chain.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | the chain-id of baby-chain |
-| `stake` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount that validator wants to stake on baby chain. This is in addition to current stake on baby chain, thus the maximum they may stake on baby chain is: `total stake on parent chain - current stake on baby chain` |
-| `sender` | [string](#string) |  | the sender address |
-
-
-
-
-
-
-<a name="ibc.applications.ccv.v1.MsgBondStakeResponse"></a>
-
-### MsgBondStakeResponse
-MsgBondStakeResponse defines the Msg/BondStake response type
-
-
-
-
-
-
-<a name="ibc.applications.ccv.v1.MsgSubmitNewChain"></a>
-
-### MsgSubmitNewChain
-MsgSubmitNewChain defines a msg to submit a new baby chain that can be validated
-by the parent chain validators.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | the proposed chain-id of new chain |
-| `minimum_stake` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | minimum stake that must commit to validate new chain before it can start |
-| `grace_period` | [uint64](#uint64) |  | optional grace period to allow validators to join initial validator set after minimum stake is reached grace period is a duration in nanoseconds |
-| `genesis_hash` | [bytes](#bytes) |  | hash of the genesis file with no staking genesis. Staking genesis will be filled in using gen-txs of initial validator set |
-| `sender` | [string](#string) |  | the sender address |
-
-
-
-
-
-
-<a name="ibc.applications.ccv.v1.MsgSubmitNewChainResponse"></a>
-
-### MsgSubmitNewChainResponse
-MsgSubmitNewChainResponse defines the Msg/SubmitNewChain response type.
-
-
-
-
-
-
-<a name="ibc.applications.ccv.v1.MsgUnbondStake"></a>
-
-### MsgUnbondStake
-MsgUnbondStake defines a msg for parent chain validator to unbond their stake on baby chain.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | the chain-id of baby-chain |
-| `stake` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount that validator wants to unbond from baby chain. This may be a maximum of the current stake on baby chain |
-| `sender` | [string](#string) |  | the sender address |
-
-
-
-
-
-
-<a name="ibc.applications.ccv.v1.MsgUnbondStakeResponse"></a>
-
-### MsgUnbondStakeResponse
-MsgUnbondStakeResponse defines the Msg/UnbondStake response type
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="ibc.applications.ccv.v1.Msg"></a>
-
-### Msg
-Msg defines the ibc/ccv Msg service
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `SubmitNewChain` | [MsgSubmitNewChain](#ibc.applications.ccv.v1.MsgSubmitNewChain) | [MsgSubmitNewChainResponse](#ibc.applications.ccv.v1.MsgSubmitNewChainResponse) | SubmitNewChain defines a rpc handler method for MsgSubmitNewChain | |
-| `BondStake` | [MsgBondStake](#ibc.applications.ccv.v1.MsgBondStake) | [MsgBondStakeResponse](#ibc.applications.ccv.v1.MsgBondStakeResponse) | BondStake defines a rpc handler method for MsgBondStake | |
-| `UnbondStake` | [MsgUnbondStake](#ibc.applications.ccv.v1.MsgUnbondStake) | [MsgUnbondStakeResponse](#ibc.applications.ccv.v1.MsgUnbondStakeResponse) | UnbondStake defines a rpc handler method for MsgUnbondStake | |
 
  <!-- end services -->
 

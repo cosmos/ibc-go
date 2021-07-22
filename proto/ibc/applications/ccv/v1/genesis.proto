@@ -30,3 +30,12 @@ message UnbondingSequence {
   uint64                     unbonding_time   = 2 [(gogoproto.moretags) = "yaml:\"unbonding_time\""];
   ibc.core.channel.v1.Packet unbonding_packet = 3 [(gogoproto.moretags) = "yaml:\"unbonding_packet\""];
 }
+
+// ParentGenesisState defines the CCV parent chain genesis state
+message ParentGenesisState {}
+
+// ChildState defines the state that the parent chain stores for each child chain
+message ChildState {
+  string chain_id   = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+}
