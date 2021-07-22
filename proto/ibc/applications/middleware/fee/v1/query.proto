@@ -6,6 +6,8 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/middleware/fee/v1/fee.proto";
 import "google/api/annotations.proto";
+import "ibc/core/channel/v1/channel.proto";
+
 option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // Query provides defines the gRPC querier service.
@@ -28,12 +30,8 @@ service Query {
 
 // QueryReceiveRequestFee is the request type for quering the receive fee
 message QueryReceiveFeeRequest {
-  // Source Port ID
-  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  // Source Channel ID
-  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  // Packet sequence
-  string sequence = 3 [(gogoproto.moretags) = "yaml:\"sequence\""];
+  // PacketID
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
   // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
   string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
 }
@@ -45,12 +43,8 @@ message QueryReceiveFeeResponse {
 
 // QueryAckFeeRequest is the request type for querying the acknowledgement fee
 message QueryAckFeeRequest {
-  // Source Port ID
-  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  // Source Channel ID
-  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  // Packet sequence
-  string sequence = 3 [(gogoproto.moretags) = "yaml:\"sequence\""];
+  // PacketID
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
   // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
   string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
 }
@@ -62,12 +56,8 @@ message QueryAckFeeResponse {
 
 // QueryTimeoutFeeRequest is the request type for querying the timeout fee
 message QueryTimeoutFeeRequest {
-  // Source Port ID
-  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  // Source Channel ID
-  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  // Packet sequence
-  string sequence = 3 [(gogoproto.moretags) = "yaml:\"sequence\""];
+  // PacketID
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
   // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
   string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
 }

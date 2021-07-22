@@ -798,7 +798,7 @@ Destination chains refer to packets by destination port/channel
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | channel port identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
-| `sequence` | [uint64](#uint64) |  | packet sequence. |
+| `sequence` | [uint64](#uint64) |  | packet sequence |
 
 
 

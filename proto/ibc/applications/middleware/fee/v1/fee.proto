@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.middleware.fee.v1;
 import "cosmos/base/v1beta1/coin.proto";
+import "ibc/core/channel/v1/channel.proto";
 option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // Fee interface
@@ -9,4 +10,10 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
 message Fee {
   cosmos.base.v1beta1.Coin amount = 1;
+}
+
+// Fee associated with a packet_id 
+message IdentifiedPacketFee {
+  ibc.core.channel.v1.PacketId           packet_id = 1;
+  ibc.applications.middleware.fee.v1.Fee fee       = 2;
 }

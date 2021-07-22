@@ -14,7 +14,7 @@ service Msg {
   // counterparty address before relaying This ensures they will be properly compensated for forward relaying since
   // destination chain must send back relayer's source address (counterparty address) in acknowledgement This function
   // may be called more than once by a relayer, in which case, latest counterparty address is always used.
-  rpc RegisterCounterPartyAddress(MsgRegisterCounterPartyAddress) returns (MsgRegisterCounterPartyAddressResponse);
+  rpc RegisterCounterPartyAddress(MsgRegisterCounterpartyAddress) returns (MsgRegisterCounterPartyAddressResponse);
   // EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee
   // EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
   // incentivize the relaying of the given packet.
@@ -26,8 +26,8 @@ message MsgRegisterCounterpartyAddress {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string address              = 1 [(gogoproto.moretags) = "yaml:\"address\""];
-  string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"address\""];
+  string address              = 1;
+  string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
 }
 
 // MsgRegisterCounterPartyAddressResponse defines the Msg/RegisterCounteryPartyAddress response type
