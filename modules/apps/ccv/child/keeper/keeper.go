@@ -108,7 +108,7 @@ func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) ccv.Status {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(ccv.ChannelStatusKey(channelID))
 	if bz == nil {
-		return ccv.Uninitialized
+		return ccv.UNINITIALIZED
 	}
 	return ccv.Status(bz[0])
 }
@@ -277,7 +277,7 @@ func (k Keeper) DeleteUnbondingPacket(ctx sdk.Context, sequence uint64) {
 func (k Keeper) VerifyParentChain(ctx sdk.Context, channelID string) error {
 	// Verify CCV channel is in Initialized state
 	status := k.GetChannelStatus(ctx, channelID)
-	if status != ccv.Initializing {
+	if status != ccv.INITIALIZING {
 		return sdkerrors.Wrap(ccv.ErrInvalidStatus, "CCV channel status must be in Initializing state")
 	}
 	// Retrieve the underlying client state.

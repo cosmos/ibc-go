@@ -1,7 +1,5 @@
 package types
 
-type Status int
-
 const (
 	// ModuleName defines the CCV module name
 	ModuleName = "CCV"

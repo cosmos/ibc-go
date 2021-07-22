@@ -171,7 +171,7 @@ func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) ccv.Status {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(ccv.ChannelStatusKey(channelID))
 	if bz == nil {
-		return ccv.Uninitialized
+		return ccv.UNINITIALIZED
 	}
 	return ccv.Status(bz[0])
 }
@@ -181,7 +181,7 @@ func (k Keeper) GetChannelStatus(ctx sdk.Context, channelID string) ccv.Status {
 func (k Keeper) VerifyChildChain(ctx sdk.Context, channelID string) error {
 	// Verify CCV channel is in Initialized state
 	status := k.GetChannelStatus(ctx, channelID)
-	if status != ccv.Initializing {
+	if status != ccv.INITIALIZING {
 		return sdkerrors.Wrap(ccv.ErrInvalidStatus, "CCV channel status must be in Initializing state")
 	}
 	_, tmClient, err := k.getUnderlyingClient(ctx, channelID)
@@ -208,7 +208,7 @@ func (k Keeper) SetChildChain(ctx sdk.Context, channelID string) error {
 	// Verify that there isn't already a CCV channel for the child chain
 	// If there is, then close the channel.
 	if prevChannel, ok := k.GetChannelToChain(ctx, chainID); ok {
-		k.SetChannelStatus(ctx, channelID, ccv.Invalid)
+		k.SetChannelStatus(ctx, channelID, ccv.INVALID)
 		k.chanCloseInit(ctx, channelID)
 		return sdkerrors.Wrapf(ccv.ErrDuplicateChannel, "CCV channel with ID: %s already created for child chain %s", prevChannel, chainID)
 	}
@@ -216,7 +216,7 @@ func (k Keeper) SetChildChain(ctx sdk.Context, channelID string) error {
 	k.SetChainToChannel(ctx, tmClient.ChainId, channelID)
 	k.SetChannelToChain(ctx, channelID, tmClient.ChainId)
 	// Set CCV channel status to Validating
-	k.SetChannelStatus(ctx, channelID, ccv.Validating)
+	k.SetChannelStatus(ctx, channelID, ccv.VALIDATING)
 	return nil
 }
 

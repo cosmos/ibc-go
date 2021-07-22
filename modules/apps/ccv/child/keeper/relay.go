@@ -24,9 +24,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data c
 		k.channelKeeper.ChanCloseInit(ctx, packet.DestinationPort, packet.DestinationChannel, chanCap)
 		return &ack, nil
 	}
-	if status := k.GetChannelStatus(ctx, packet.DestinationChannel); status != ccv.Validating {
+	if status := k.GetChannelStatus(ctx, packet.DestinationChannel); status != ccv.VALIDATING {
 		// Set CCV channel status to Validating and set parent channel
-		k.SetChannelStatus(ctx, packet.DestinationChannel, ccv.Validating)
+		k.SetChannelStatus(ctx, packet.DestinationChannel, ccv.VALIDATING)
 		k.SetParentChannel(ctx, packet.DestinationChannel)
 	}
 	// Set PendingChanges to be flushed and the unbonding time and unbonding packet.
