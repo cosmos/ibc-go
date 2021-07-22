@@ -16,7 +16,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, accountOwner sdk.AccAddress, connecti
 	portId := k.GeneratePortId(accountOwner.String(), connectionId)
 	// Check for the active channel
 	activeChannelId, found := k.GetActiveChannel(ctx, portId)
-	if found {
+	if !found {
 		return nil, types.ErrActiveChannelNotFound
 	}
 
