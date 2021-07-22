@@ -84,3 +84,32 @@ func (us UnbondingSequence) Validate() error {
 	}
 	return nil
 }
+
+func NewParentGenesisState(childStates []ChildState) ParentGenesisState {
+	return ParentGenesisState{
+		ChildStates: childStates,
+	}
+}
+
+func DefaultParentGenesisState() ParentGenesisState {
+	return ParentGenesisState{}
+}
+
+func (gs ParentGenesisState) Validate() error {
+	for _, cs := range gs.ChildStates {
+		if err := cs.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (cs ChildState) Validate() error {
+	if cs.ChainId == "" {
+		return sdkerrors.Wrap(ErrInvalidChildState, "chain id cannot be blank")
+	}
+	if cs.ChannelId == "" {
+		return sdkerrors.Wrap(ErrInvalidChildState, "channel id cannot be blank")
+	}
+	return nil
+}
