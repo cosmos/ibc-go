@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 				)
 				suite.path.EndpointA.ChannelID = channelID
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.INITIALIZING)
 			},
 			expError: false,
 		},
@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to validating
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Validating)
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.VALIDATING)
 			},
 			expError: true,
 		},
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 				// set channelID without creating channel
 				suite.path.EndpointA.ChannelID = "channel-1"
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.INITIALIZING)
 			},
 			expError: true,
 		},
@@ -277,7 +277,7 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.INITIALIZING)
 			},
 			expError: true,
 		},
@@ -298,7 +298,7 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.INITIALIZING)
 			},
 			expError: true,
 		},
@@ -322,7 +322,7 @@ func (suite *KeeperTestSuite) TestVerifyParentChain() {
 				suite.path.EndpointA.ChannelID = channelID
 
 				// set channel status to INITIALIZING
-				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.Initializing)
+				suite.childChain.GetSimApp().ChildKeeper.SetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID, types.INITIALIZING)
 			},
 			expError: true,
 		},

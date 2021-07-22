@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		} else {
 			suite.Require().Nil(ack, "successful packet must send ack asynchronously. case: %s", tc.name)
 			suite.Require().NoError(recvErr, "received unexpected error on valid case: %s", tc.name)
-			suite.Require().Equal(ccv.Validating, suite.childChain.GetSimApp().ChildKeeper.GetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID),
+			suite.Require().Equal(ccv.VALIDATING, suite.childChain.GetSimApp().ChildKeeper.GetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID),
 				"channel status is not valdidating after receive packet for valid test case: %s", tc.name)
 			parentChannel, ok := suite.childChain.GetSimApp().ChildKeeper.GetParentChannel(suite.ctx)
 			suite.Require().True(ok)

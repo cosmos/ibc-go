@@ -42,7 +42,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state ccv.ChildGenesisState) {
 		// set all unbonding sequences
 		for _, us := range state.UnbondingSequences {
 			k.SetUnbondingTime(ctx, us.Sequence, us.UnbondingTime)
-			k.SetUnbondingPacket(ctx, us.Sequence, *us.UnbondingPacket)
+			k.SetUnbondingPacket(ctx, us.Sequence, us.UnbondingPacket)
 		}
 	}
 }
@@ -53,15 +53,15 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) ccv.ChildGenesisState {
 	if channelID, ok := k.GetParentChannel(ctx); ok {
 		gs := ccv.NewRestartChildGenesisState(channelID, nil)
 
-		unbondingSequences := []*ccv.UnbondingSequence{}
+		unbondingSequences := []ccv.UnbondingSequence{}
 		cb := func(seq uint64, packet channeltypes.Packet) bool {
 			timeNs := k.GetUnbondingTime(ctx, seq)
 			us := ccv.UnbondingSequence{
 				Sequence:        seq,
 				UnbondingTime:   timeNs,
-				UnbondingPacket: &packet,
+				UnbondingPacket: packet,
 			}
-			unbondingSequences = append(unbondingSequences, &us)
+			unbondingSequences = append(unbondingSequences, us)
 			return false
 		}
 		k.IterateUnbondingPacket(ctx, cb)

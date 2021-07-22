@@ -16,7 +16,7 @@ func NewInitialChildGenesisState(cs *ibctmtypes.ClientState, consState *ibctmtyp
 }
 
 // NewRestartChildGenesisState returns a child GenesisState that has already been established.
-func NewRestartChildGenesisState(channelID string, unbondingSequences []*UnbondingSequence) ChildGenesisState {
+func NewRestartChildGenesisState(channelID string, unbondingSequences []UnbondingSequence) ChildGenesisState {
 	return ChildGenesisState{
 		ParentChannelId:    channelID,
 		UnbondingSequences: unbondingSequences,
@@ -64,9 +64,6 @@ func (gs ChildGenesisState) Validate() error {
 			return sdkerrors.Wrap(ErrInvalidGenesis, "parent client state and consensus states must be nil for a restarting genesis state")
 		}
 		for _, us := range gs.UnbondingSequences {
-			if us == nil {
-				return sdkerrors.Wrap(ErrInvalidGenesis, "unbonding sequence cannot be nil in genesis")
-			}
 			if err := us.Validate(); err != nil {
 				return sdkerrors.Wrap(err, "invalid genesis")
 			}

@@ -84,7 +84,7 @@ func TestValidateInitialChildGenesisState(t *testing.T) {
 				true,
 				cs,
 				consensusState,
-				[]*types.UnbondingSequence{},
+				[]types.UnbondingSequence{},
 			},
 			true,
 		},
@@ -151,31 +151,31 @@ func TestValidateRestartGenesisState(t *testing.T) {
 		},
 		{
 			"valid restart child genesis state: unbonding sequences",
-			types.NewRestartChildGenesisState("ccvchannel", []*types.UnbondingSequence{
-				&types.UnbondingSequence{
+			types.NewRestartChildGenesisState("ccvchannel", []types.UnbondingSequence{
+				types.UnbondingSequence{
 					1,
 					uint64(time.Now().UnixNano()),
-					&channeltypes.Packet{
+					channeltypes.Packet{
 						1, "child", "ccvchannel1",
 						"parent", "ccvchannel1",
 						pdBytes1,
 						clienttypes.NewHeight(0, 100), 0,
 					},
 				},
-				&types.UnbondingSequence{
+				types.UnbondingSequence{
 					3,
 					uint64(time.Now().UnixNano()),
-					&channeltypes.Packet{
+					channeltypes.Packet{
 						3, "child", "ccvchannel1",
 						"parent", "ccvchannel1",
 						pdBytes2,
 						clienttypes.NewHeight(1, 200), 0,
 					},
 				},
-				&types.UnbondingSequence{
+				types.UnbondingSequence{
 					5,
 					uint64(time.Now().UnixNano()),
-					&channeltypes.Packet{
+					channeltypes.Packet{
 						5, "child", "ccvchannel2",
 						"parent", "ccvchannel2",
 						pdBytes1,
@@ -191,17 +191,12 @@ func TestValidateRestartGenesisState(t *testing.T) {
 			true,
 		},
 		{
-			"invalid restart child genesis state: unbonding sequence is nil",
-			types.NewRestartChildGenesisState("ccvchannel", []*types.UnbondingSequence{nil}),
-			true,
-		},
-		{
 			"invalid restart child genesis state: unbonding sequence packet is invalid",
-			types.NewRestartChildGenesisState("ccvchannel", []*types.UnbondingSequence{
-				&types.UnbondingSequence{
+			types.NewRestartChildGenesisState("ccvchannel", []types.UnbondingSequence{
+				types.UnbondingSequence{
 					1,
 					uint64(time.Now().UnixNano()),
-					&channeltypes.Packet{
+					channeltypes.Packet{
 						1, "", "ccvchannel1",
 						"parent", "ccvchannel1",
 						pdBytes1,
@@ -213,11 +208,11 @@ func TestValidateRestartGenesisState(t *testing.T) {
 		},
 		{
 			"invalid restart child genesis state: unbonding sequence time is invalid",
-			types.NewRestartChildGenesisState("ccvchannel", []*types.UnbondingSequence{
-				&types.UnbondingSequence{
+			types.NewRestartChildGenesisState("ccvchannel", []types.UnbondingSequence{
+				types.UnbondingSequence{
 					1,
 					0,
-					&channeltypes.Packet{
+					channeltypes.Packet{
 						1, "child", "ccvchannel1",
 						"parent", "ccvchannel1",
 						pdBytes1,
@@ -229,11 +224,11 @@ func TestValidateRestartGenesisState(t *testing.T) {
 		},
 		{
 			"invalid restart child genesis state: unbonding sequence is invalid",
-			types.NewRestartChildGenesisState("ccvchannel", []*types.UnbondingSequence{
-				&types.UnbondingSequence{
+			types.NewRestartChildGenesisState("ccvchannel", []types.UnbondingSequence{
+				types.UnbondingSequence{
 					8,
 					uint64(time.Now().UnixNano()),
-					&channeltypes.Packet{
+					channeltypes.Packet{
 						1, "", "ccvchannel1",
 						"parent", "ccvchannel1",
 						pdBytes1,
