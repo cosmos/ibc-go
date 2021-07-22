@@ -132,6 +132,20 @@ message PacketState {
   bytes data = 4;
 }
 
+// PacketId is an identifer for a unique Packet
+// Source chains refer to packets by source port/channel
+// Destination chains refer to packets by destination port/channel
+message PacketId {
+  option (gogoproto.goproto_getters) = false;
+
+  // channel port identifier
+  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  // channel unique identifier
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // packet sequence
+  uint64 sequence = 3;
+}
+
 // Acknowledgement is the recommended acknowledgement format to be used by
 // app-specific protocols.
 // NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
