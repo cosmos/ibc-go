@@ -34,9 +34,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // QueryReceiveRequestFee is the request type for quering the receive fee
 type QueryReceiveFeeRequest struct {
 	// PacketID
-	PacketId *types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"relayer_address"`
+	PacketId *types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"packet_id"`
 	// Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-	RelayerAddress string `protobuf:"bytes,4,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
+	RelayerAddress string `protobuf:"bytes,2,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
+	// Height to query at
+	QueryHeight uint64 `protobuf:"varint,3,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty" yaml:"query_height"`
 }
 
 func (m *QueryReceiveFeeRequest) Reset()         { *m = QueryReceiveFeeRequest{} }
@@ -86,9 +88,16 @@ func (m *QueryReceiveFeeRequest) GetRelayerAddress() string {
 	return ""
 }
 
+func (m *QueryReceiveFeeRequest) GetQueryHeight() uint64 {
+	if m != nil {
+		return m.QueryHeight
+	}
+	return 0
+}
+
 // QueryReceiveFeeResponse is the response type for the ReceiveFee RPC
 type QueryReceiveFeeResponse struct {
-	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty" yaml:"fee"`
+	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty"`
 }
 
 func (m *QueryReceiveFeeResponse) Reset()         { *m = QueryReceiveFeeResponse{} }
@@ -134,9 +143,11 @@ func (m *QueryReceiveFeeResponse) GetFee() *Fee {
 // QueryAckFeeRequest is the request type for querying the acknowledgement fee
 type QueryAckFeeRequest struct {
 	// PacketID
-	PacketId *types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"relayer_address"`
+	PacketId *types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"packet_id"`
 	// Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-	RelayerAddress string `protobuf:"bytes,4,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
+	RelayerAddress string `protobuf:"bytes,2,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
+	// Height to query at
+	QueryHeight uint64 `protobuf:"varint,3,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty" yaml:"query_height"`
 }
 
 func (m *QueryAckFeeRequest) Reset()         { *m = QueryAckFeeRequest{} }
@@ -186,9 +197,16 @@ func (m *QueryAckFeeRequest) GetRelayerAddress() string {
 	return ""
 }
 
+func (m *QueryAckFeeRequest) GetQueryHeight() uint64 {
+	if m != nil {
+		return m.QueryHeight
+	}
+	return 0
+}
+
 // QueryAckFeeResponse is the response type for the AckFee RPC
 type QueryAckFeeResponse struct {
-	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty" yaml:"fee"`
+	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty"`
 }
 
 func (m *QueryAckFeeResponse) Reset()         { *m = QueryAckFeeResponse{} }
@@ -234,9 +252,11 @@ func (m *QueryAckFeeResponse) GetFee() *Fee {
 // QueryTimeoutFeeRequest is the request type for querying the timeout fee
 type QueryTimeoutFeeRequest struct {
 	// PacketID
-	PacketId *types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"relayer_address"`
+	PacketId *types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"packet_id"`
 	// Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-	RelayerAddress string `protobuf:"bytes,4,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
+	RelayerAddress string `protobuf:"bytes,2,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
+	// Height to query at
+	QueryHeight uint64 `protobuf:"varint,3,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty" yaml:"query_height"`
 }
 
 func (m *QueryTimeoutFeeRequest) Reset()         { *m = QueryTimeoutFeeRequest{} }
@@ -286,9 +306,16 @@ func (m *QueryTimeoutFeeRequest) GetRelayerAddress() string {
 	return ""
 }
 
+func (m *QueryTimeoutFeeRequest) GetQueryHeight() uint64 {
+	if m != nil {
+		return m.QueryHeight
+	}
+	return 0
+}
+
 // QueryTimeoutFeeResponse is the response type for the timeout RPC
 type QueryTimeoutFeeResponse struct {
-	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty" yaml:"fee"`
+	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty"`
 }
 
 func (m *QueryTimeoutFeeResponse) Reset()         { *m = QueryTimeoutFeeResponse{} }
@@ -331,6 +358,98 @@ func (m *QueryTimeoutFeeResponse) GetFee() *Fee {
 	return nil
 }
 
+// QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+type QueryIncentivizedPacketsRequest struct {
+}
+
+func (m *QueryIncentivizedPacketsRequest) Reset()         { *m = QueryIncentivizedPacketsRequest{} }
+func (m *QueryIncentivizedPacketsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryIncentivizedPacketsRequest) ProtoMessage()    {}
+func (*QueryIncentivizedPacketsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9cafe0e1bd8b928c, []int{6}
+}
+func (m *QueryIncentivizedPacketsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryIncentivizedPacketsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryIncentivizedPacketsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryIncentivizedPacketsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryIncentivizedPacketsRequest.Merge(m, src)
+}
+func (m *QueryIncentivizedPacketsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryIncentivizedPacketsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryIncentivizedPacketsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryIncentivizedPacketsRequest proto.InternalMessageInfo
+
+// QueryTimeoutFeeResponse is the response type for the timeout RPC
+type QueryIncentivizedPacketsResponse struct {
+	// Map of all incentivized_packets
+	IncentivizedPackets []*IdentifiedPacketFee `protobuf:"bytes,1,rep,name=incentivized_packets,json=incentivizedPackets,proto3" json:"incentivized_packets,omitempty" yaml:"incentivized_packets"`
+	// Height to query at
+	QueryHeight uint64 `protobuf:"varint,2,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty" yaml:"query_height"`
+}
+
+func (m *QueryIncentivizedPacketsResponse) Reset()         { *m = QueryIncentivizedPacketsResponse{} }
+func (m *QueryIncentivizedPacketsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryIncentivizedPacketsResponse) ProtoMessage()    {}
+func (*QueryIncentivizedPacketsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9cafe0e1bd8b928c, []int{7}
+}
+func (m *QueryIncentivizedPacketsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryIncentivizedPacketsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryIncentivizedPacketsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryIncentivizedPacketsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryIncentivizedPacketsResponse.Merge(m, src)
+}
+func (m *QueryIncentivizedPacketsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryIncentivizedPacketsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryIncentivizedPacketsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryIncentivizedPacketsResponse proto.InternalMessageInfo
+
+func (m *QueryIncentivizedPacketsResponse) GetIncentivizedPackets() []*IdentifiedPacketFee {
+	if m != nil {
+		return m.IncentivizedPackets
+	}
+	return nil
+}
+
+func (m *QueryIncentivizedPacketsResponse) GetQueryHeight() uint64 {
+	if m != nil {
+		return m.QueryHeight
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*QueryReceiveFeeRequest)(nil), "ibc.applications.middleware.fee.v1.QueryReceiveFeeRequest")
 	proto.RegisterType((*QueryReceiveFeeResponse)(nil), "ibc.applications.middleware.fee.v1.QueryReceiveFeeResponse")
@@ -338,6 +457,8 @@ func init() {
 	proto.RegisterType((*QueryAckFeeResponse)(nil), "ibc.applications.middleware.fee.v1.QueryAckFeeResponse")
 	proto.RegisterType((*QueryTimeoutFeeRequest)(nil), "ibc.applications.middleware.fee.v1.QueryTimeoutFeeRequest")
 	proto.RegisterType((*QueryTimeoutFeeResponse)(nil), "ibc.applications.middleware.fee.v1.QueryTimeoutFeeResponse")
+	proto.RegisterType((*QueryIncentivizedPacketsRequest)(nil), "ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsRequest")
+	proto.RegisterType((*QueryIncentivizedPacketsResponse)(nil), "ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsResponse")
 }
 
 func init() {
@@ -345,42 +466,51 @@ func init() {
 }
 
 var fileDescriptor_9cafe0e1bd8b928c = []byte{
-	// 552 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x55, 0xcf, 0x6a, 0x13, 0x41,
-	0x1c, 0xce, 0x6a, 0x2d, 0x76, 0x84, 0x0a, 0xa3, 0xd4, 0x12, 0x74, 0x5b, 0x57, 0xa4, 0xf5, 0x4f,
-	0x67, 0x48, 0x04, 0xc5, 0x7a, 0x6a, 0x84, 0x42, 0xc1, 0x83, 0x06, 0xf1, 0xe0, 0x25, 0xce, 0xce,
-	0xfe, 0xb2, 0x1d, 0xb2, 0xbb, 0xb3, 0xdd, 0x99, 0x44, 0x72, 0xf5, 0x09, 0x04, 0xdf, 0xc0, 0x83,
-	0x77, 0x0f, 0xfa, 0x0c, 0x1e, 0x0b, 0x5e, 0x3c, 0x15, 0x49, 0x7c, 0x82, 0x3e, 0x81, 0xcc, 0xce,
-	0x68, 0x5a, 0x53, 0x6a, 0x52, 0x7a, 0xe9, 0x6d, 0x98, 0xf9, 0xbe, 0xef, 0xf7, 0xed, 0x37, 0xbf,
-	0xf9, 0x2d, 0x22, 0x22, 0xe4, 0x94, 0xe5, 0x79, 0x22, 0x38, 0xd3, 0x42, 0x66, 0x8a, 0xa6, 0x22,
-	0x8a, 0x12, 0x78, 0xcb, 0x0a, 0xa0, 0x6d, 0x00, 0xda, 0xab, 0xd1, 0x9d, 0x2e, 0x14, 0x7d, 0x92,
-	0x17, 0x52, 0x4b, 0x1c, 0x88, 0x90, 0x93, 0x83, 0x78, 0x32, 0xc2, 0x93, 0x36, 0x00, 0xe9, 0xd5,
-	0xaa, 0x57, 0x63, 0x19, 0xcb, 0x12, 0x4e, 0xcd, 0xca, 0x32, 0xab, 0x77, 0xb9, 0x54, 0xa9, 0x54,
-	0x34, 0x64, 0x0a, 0xac, 0x24, 0xed, 0xd5, 0x42, 0xd0, 0xac, 0x46, 0x73, 0x16, 0x8b, 0xac, 0x94,
-	0x73, 0xd8, 0xfb, 0x13, 0xb8, 0x32, 0xc5, 0x2c, 0xfa, 0x7a, 0x2c, 0x65, 0x9c, 0x00, 0x65, 0xb9,
-	0xa0, 0x2c, 0xcb, 0xa4, 0x76, 0xce, 0xec, 0xe9, 0x4d, 0xa3, 0xc5, 0x65, 0x01, 0x94, 0x6f, 0xb3,
-	0x2c, 0x83, 0xc4, 0x90, 0xdd, 0xd2, 0x42, 0x82, 0x2f, 0x1e, 0x5a, 0x78, 0x61, 0x1c, 0x35, 0x81,
-	0x83, 0xe8, 0xc1, 0x26, 0x40, 0x13, 0x76, 0xba, 0xa0, 0x34, 0x7e, 0x85, 0xe6, 0x72, 0xc6, 0x3b,
-	0xa0, 0x5b, 0x22, 0x5a, 0xf4, 0x96, 0xbd, 0xd5, 0x4b, 0xf5, 0x1b, 0x26, 0x33, 0x62, 0x14, 0xc9,
-	0x1f, 0x99, 0x5e, 0x8d, 0x3c, 0x2f, 0x51, 0x5b, 0x51, 0xa3, 0xba, 0xbf, 0xb7, 0xb4, 0xd0, 0x67,
-	0x69, 0xb2, 0x1e, 0x14, 0x90, 0xb0, 0x3e, 0x14, 0x2d, 0x16, 0x45, 0x05, 0x28, 0x15, 0x34, 0x2f,
-	0xe6, 0x0e, 0x85, 0x9f, 0xa2, 0xcb, 0xff, 0x9c, 0x2e, 0xce, 0x2c, 0x7b, 0xab, 0x73, 0xc7, 0xd2,
-	0xe7, 0xdd, 0xce, 0x86, 0xdb, 0x88, 0xd0, 0xb5, 0x31, 0xdb, 0x2a, 0x97, 0x99, 0x02, 0xbc, 0x85,
-	0xce, 0xb7, 0x01, 0x9c, 0xe3, 0x15, 0xf2, 0xff, 0x5b, 0x23, 0x9b, 0x00, 0x8d, 0xf9, 0xfd, 0xbd,
-	0x25, 0x64, 0x8b, 0xb7, 0x01, 0x82, 0xa6, 0xd1, 0x08, 0x3e, 0x7b, 0x08, 0x97, 0x65, 0x36, 0x78,
-	0xe7, 0xac, 0x24, 0xf3, 0x06, 0x5d, 0x39, 0x64, 0xf9, 0xf4, 0x53, 0xf9, 0xdb, 0x33, 0x2f, 0x45,
-	0x0a, 0xb2, 0xab, 0xcf, 0x5a, 0xcf, 0x1c, 0xb4, 0x7d, 0xea, 0xe9, 0xd4, 0x3f, 0xce, 0xa0, 0x0b,
-	0x65, 0x19, 0xfc, 0xd5, 0x43, 0x68, 0xd4, 0x9f, 0x78, 0x7d, 0x12, 0xd9, 0xa3, 0xdf, 0x62, 0xf5,
-	0xc9, 0x89, 0xb8, 0xf6, 0xe3, 0x02, 0xfa, 0xee, 0xfb, 0xaf, 0x0f, 0xe7, 0xee, 0xe0, 0x15, 0xea,
-	0x66, 0xcb, 0x51, 0x33, 0xa5, 0xb0, 0xbc, 0x56, 0x1b, 0x00, 0x7f, 0xf2, 0xd0, 0xac, 0x6d, 0x1f,
-	0xfc, 0x70, 0xe2, 0xc2, 0x87, 0x9e, 0x48, 0xf5, 0xd1, 0xd4, 0x3c, 0x67, 0xf6, 0x5e, 0x69, 0xf6,
-	0x36, 0xbe, 0x75, 0x9c, 0x59, 0xc6, 0x3b, 0xa5, 0x51, 0x93, 0xf0, 0xe8, 0x36, 0xa7, 0x48, 0x78,
-	0xac, 0x73, 0xa7, 0x48, 0x78, 0xbc, 0x7d, 0x26, 0x4b, 0x58, 0x5b, 0x9e, 0x31, 0xde, 0x78, 0xf6,
-	0x6d, 0xe0, 0x7b, 0xbb, 0x03, 0xdf, 0xfb, 0x39, 0xf0, 0xbd, 0xf7, 0x43, 0xbf, 0xb2, 0x3b, 0xf4,
-	0x2b, 0x3f, 0x86, 0x7e, 0xe5, 0x75, 0x3d, 0x16, 0x7a, 0xbb, 0x1b, 0x12, 0x2e, 0x53, 0xea, 0x7e,
-	0x1b, 0x22, 0xe4, 0x6b, 0xb1, 0xa4, 0xa9, 0x8c, 0xba, 0x09, 0x28, 0x2b, 0x5f, 0x7f, 0xbc, 0x66,
-	0x64, 0x75, 0x3f, 0x07, 0x15, 0xce, 0x96, 0xb3, 0xfc, 0xc1, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x03, 0x73, 0xbc, 0x1c, 0xd2, 0x06, 0x00, 0x00,
+	// 695 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x56, 0xcd, 0x6e, 0xd3, 0x4a,
+	0x18, 0xed, 0xb4, 0xb7, 0xd5, 0xed, 0xf4, 0xea, 0xde, 0xab, 0x49, 0xd5, 0x46, 0x01, 0x92, 0xd4,
+	0x08, 0x35, 0xfc, 0xd4, 0x43, 0x82, 0x44, 0x69, 0x59, 0x35, 0x45, 0x15, 0x95, 0x58, 0x94, 0xa8,
+	0x2b, 0x36, 0xd1, 0xd8, 0xfe, 0xe2, 0x8c, 0xea, 0x78, 0x5c, 0x8f, 0x13, 0x14, 0x96, 0x6c, 0xd9,
+	0x20, 0xf1, 0x0e, 0x3c, 0x02, 0xcf, 0xc0, 0xb2, 0x12, 0x1b, 0xc4, 0x22, 0x42, 0x2d, 0x12, 0x0b,
+	0x58, 0xe5, 0x05, 0x40, 0x9e, 0x71, 0xdb, 0x94, 0xa4, 0xc5, 0xa5, 0x3b, 0xd8, 0xc5, 0x9e, 0x73,
+	0xce, 0x9c, 0x73, 0x32, 0xdf, 0xc8, 0xd8, 0xe4, 0x96, 0x4d, 0x59, 0x10, 0x78, 0xdc, 0x66, 0x11,
+	0x17, 0xbe, 0xa4, 0x2d, 0xee, 0x38, 0x1e, 0x3c, 0x65, 0x21, 0xd0, 0x06, 0x00, 0xed, 0x94, 0xe9,
+	0x6e, 0x1b, 0xc2, 0xae, 0x19, 0x84, 0x22, 0x12, 0xc4, 0xe0, 0x96, 0x6d, 0x0e, 0xe2, 0xcd, 0x63,
+	0xbc, 0xd9, 0x00, 0x30, 0x3b, 0xe5, 0xdc, 0xac, 0x2b, 0x5c, 0xa1, 0xe0, 0x34, 0xfe, 0xa5, 0x99,
+	0xb9, 0x1b, 0xb6, 0x90, 0x2d, 0x21, 0xa9, 0xc5, 0x24, 0x68, 0x49, 0xda, 0x29, 0x5b, 0x10, 0xb1,
+	0x32, 0x0d, 0x98, 0xcb, 0x7d, 0x25, 0x97, 0x60, 0x6f, 0xa5, 0x70, 0x15, 0x6f, 0xa6, 0xd1, 0x97,
+	0x5d, 0x21, 0x5c, 0x0f, 0x28, 0x0b, 0x38, 0x65, 0xbe, 0x2f, 0xa2, 0xc4, 0x99, 0x5e, 0x5d, 0x88,
+	0xb5, 0x6c, 0x11, 0x02, 0xb5, 0x9b, 0xcc, 0xf7, 0xc1, 0x8b, 0xc9, 0xc9, 0x4f, 0x0d, 0x31, 0xbe,
+	0x20, 0x3c, 0xf7, 0x38, 0x76, 0x54, 0x03, 0x1b, 0x78, 0x07, 0x36, 0x00, 0x6a, 0xb0, 0xdb, 0x06,
+	0x19, 0x91, 0x2d, 0x3c, 0x1d, 0x30, 0x7b, 0x07, 0xa2, 0x3a, 0x77, 0xb2, 0xa8, 0x88, 0x4a, 0x33,
+	0x95, 0x2b, 0x71, 0x67, 0x66, 0xac, 0x68, 0x1e, 0xca, 0x74, 0xca, 0xe6, 0x96, 0x42, 0x6d, 0x3a,
+	0xd5, 0xd9, 0x7e, 0xaf, 0xf0, 0x7f, 0x97, 0xb5, 0xbc, 0x55, 0xe3, 0x88, 0x69, 0xd4, 0xfe, 0x0e,
+	0x92, 0x75, 0xb2, 0x8e, 0xff, 0x0b, 0xc1, 0x63, 0x5d, 0x08, 0xeb, 0xcc, 0x71, 0x42, 0x90, 0x32,
+	0x3b, 0x5e, 0x44, 0xa5, 0xe9, 0x6a, 0xae, 0xdf, 0x2b, 0xcc, 0x69, 0xe2, 0x0f, 0x00, 0xa3, 0xf6,
+	0x6f, 0xf2, 0x66, 0x4d, 0xbf, 0x20, 0xab, 0xf8, 0x1f, 0x55, 0x61, 0xbd, 0x09, 0xdc, 0x6d, 0x46,
+	0xd9, 0x89, 0x22, 0x2a, 0xfd, 0x55, 0x9d, 0xef, 0xf7, 0x0a, 0x19, 0xad, 0x30, 0xb8, 0x6a, 0xd4,
+	0x66, 0xd4, 0xe3, 0x43, 0xfd, 0xb4, 0x8d, 0xe7, 0x87, 0xc2, 0xca, 0x40, 0xf8, 0x12, 0xc8, 0x0a,
+	0x9e, 0x68, 0x00, 0x24, 0x39, 0x17, 0xcd, 0x9f, 0xff, 0xd7, 0x66, 0xcc, 0x8e, 0x39, 0xc6, 0x67,
+	0x84, 0x89, 0x92, 0x5d, 0xb3, 0x77, 0x7e, 0xef, 0xfe, 0xb6, 0x70, 0xe6, 0x44, 0xd0, 0x8b, 0x77,
+	0x77, 0x74, 0xfe, 0xb6, 0x79, 0x0b, 0x44, 0x3b, 0xfa, 0x33, 0xce, 0xdf, 0x60, 0xd8, 0x8b, 0x77,
+	0xb8, 0x80, 0x0b, 0x4a, 0x75, 0xd3, 0xb7, 0xc1, 0x8f, 0x78, 0x87, 0x3f, 0x03, 0x47, 0x77, 0x22,
+	0x93, 0x2e, 0x8d, 0xaf, 0x08, 0x17, 0x4f, 0xc7, 0x24, 0x16, 0x5e, 0x20, 0x3c, 0xcb, 0x07, 0xd6,
+	0xeb, 0xba, 0x38, 0x99, 0x45, 0xc5, 0x89, 0xd2, 0x4c, 0x65, 0x39, 0x8d, 0xa9, 0x4d, 0x27, 0xa6,
+	0x37, 0xf8, 0xa1, 0xfa, 0x06, 0x40, 0xb5, 0xd0, 0xef, 0x15, 0x2e, 0xe9, 0x6e, 0x46, 0xc9, 0x1b,
+	0xb5, 0x0c, 0x1f, 0x76, 0x35, 0xd4, 0xf3, 0x78, 0xfa, 0x9e, 0x2b, 0xdf, 0x26, 0xf1, 0xa4, 0x8a,
+	0x4b, 0xde, 0x20, 0x8c, 0x8f, 0xa7, 0x9d, 0xac, 0xa6, 0xc9, 0x30, 0xfa, 0x3e, 0xcc, 0xdd, 0xff,
+	0x25, 0xae, 0xee, 0xd6, 0xa0, 0xcf, 0xdf, 0x7d, 0x7a, 0x35, 0x7e, 0x9d, 0x2c, 0xd2, 0xe4, 0x7e,
+	0x1f, 0x75, 0xaf, 0x87, 0x9a, 0x57, 0x6f, 0x00, 0x90, 0xd7, 0x08, 0x4f, 0xe9, 0x31, 0x23, 0x77,
+	0x53, 0x6f, 0x7c, 0xe2, 0x02, 0xca, 0x2d, 0x9f, 0x9b, 0x97, 0x98, 0xbd, 0xa9, 0xcc, 0x5e, 0x23,
+	0x57, 0xcf, 0x32, 0xcb, 0xec, 0x1d, 0x65, 0x34, 0x6e, 0xf8, 0xf8, 0x3c, 0x9f, 0xa3, 0xe1, 0xa1,
+	0x89, 0x3f, 0x47, 0xc3, 0xc3, 0x03, 0x94, 0xae, 0xe1, 0x48, 0xf3, 0x94, 0xf1, 0x0f, 0x08, 0x67,
+	0x46, 0x8c, 0x03, 0x59, 0x4f, 0xed, 0xe2, 0xf4, 0x81, 0xcb, 0x3d, 0xb8, 0x98, 0x48, 0x92, 0xe9,
+	0x9e, 0xca, 0x54, 0x21, 0xb7, 0xcf, 0xca, 0x34, 0x6a, 0xa6, 0xaa, 0x8f, 0xde, 0xee, 0xe7, 0xd1,
+	0xde, 0x7e, 0x1e, 0x7d, 0xdc, 0xcf, 0xa3, 0x97, 0x07, 0xf9, 0xb1, 0xbd, 0x83, 0xfc, 0xd8, 0xfb,
+	0x83, 0xfc, 0xd8, 0x93, 0x8a, 0xcb, 0xa3, 0x66, 0xdb, 0x32, 0x6d, 0xd1, 0xa2, 0xc9, 0x77, 0x09,
+	0xb7, 0xec, 0x25, 0x57, 0xd0, 0x96, 0x70, 0xda, 0x1e, 0x48, 0xbd, 0x4f, 0x65, 0x65, 0x29, 0xd6,
+	0x8f, 0xba, 0x01, 0x48, 0x6b, 0x4a, 0x7d, 0x2c, 0xdc, 0xf9, 0x1e, 0x00, 0x00, 0xff, 0xff, 0x87,
+	0x9d, 0x3f, 0x24, 0x33, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -401,6 +531,8 @@ type QueryClient interface {
 	AckFee(ctx context.Context, in *QueryAckFeeRequest, opts ...grpc.CallOption) (*QueryAckFeeResponse, error)
 	// Gets the fee expected for submitting TimeoutPacket msg for the given packet
 	TimeoutFee(ctx context.Context, in *QueryTimeoutFeeRequest, opts ...grpc.CallOption) (*QueryTimeoutFeeResponse, error)
+	// Gets all incentivized packets
+	IncentivizedPackets(ctx context.Context, in *QueryIncentivizedPacketsRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketsResponse, error)
 }
 
 type queryClient struct {
@@ -438,6 +570,15 @@ func (c *queryClient) TimeoutFee(ctx context.Context, in *QueryTimeoutFeeRequest
 	return out, nil
 }
 
+func (c *queryClient) IncentivizedPackets(ctx context.Context, in *QueryIncentivizedPacketsRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketsResponse, error) {
+	out := new(QueryIncentivizedPacketsResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.middleware.fee.v1.Query/IncentivizedPackets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Gets the fee expected for submitting ReceivePacket msg for the given packet
@@ -446,6 +587,8 @@ type QueryServer interface {
 	AckFee(context.Context, *QueryAckFeeRequest) (*QueryAckFeeResponse, error)
 	// Gets the fee expected for submitting TimeoutPacket msg for the given packet
 	TimeoutFee(context.Context, *QueryTimeoutFeeRequest) (*QueryTimeoutFeeResponse, error)
+	// Gets all incentivized packets
+	IncentivizedPackets(context.Context, *QueryIncentivizedPacketsRequest) (*QueryIncentivizedPacketsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -460,6 +603,9 @@ func (*UnimplementedQueryServer) AckFee(ctx context.Context, req *QueryAckFeeReq
 }
 func (*UnimplementedQueryServer) TimeoutFee(ctx context.Context, req *QueryTimeoutFeeRequest) (*QueryTimeoutFeeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TimeoutFee not implemented")
+}
+func (*UnimplementedQueryServer) IncentivizedPackets(ctx context.Context, req *QueryIncentivizedPacketsRequest) (*QueryIncentivizedPacketsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IncentivizedPackets not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -520,6 +666,24 @@ func _Query_TimeoutFee_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_IncentivizedPackets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryIncentivizedPacketsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).IncentivizedPackets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.applications.middleware.fee.v1.Query/IncentivizedPackets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).IncentivizedPackets(ctx, req.(*QueryIncentivizedPacketsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.applications.middleware.fee.v1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -535,6 +699,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TimeoutFee",
 			Handler:    _Query_TimeoutFee_Handler,
+		},
+		{
+			MethodName: "IncentivizedPackets",
+			Handler:    _Query_IncentivizedPackets_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -561,12 +729,17 @@ func (m *QueryReceiveFeeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	_ = i
 	var l int
 	_ = l
+	if m.QueryHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.QueryHeight))
+		i--
+		dAtA[i] = 0x18
+	}
 	if len(m.RelayerAddress) > 0 {
 		i -= len(m.RelayerAddress)
 		copy(dAtA[i:], m.RelayerAddress)
 		i = encodeVarintQuery(dAtA, i, uint64(len(m.RelayerAddress)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x12
 	}
 	if m.PacketId != nil {
 		{
@@ -638,12 +811,17 @@ func (m *QueryAckFeeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.QueryHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.QueryHeight))
+		i--
+		dAtA[i] = 0x18
+	}
 	if len(m.RelayerAddress) > 0 {
 		i -= len(m.RelayerAddress)
 		copy(dAtA[i:], m.RelayerAddress)
 		i = encodeVarintQuery(dAtA, i, uint64(len(m.RelayerAddress)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x12
 	}
 	if m.PacketId != nil {
 		{
@@ -715,12 +893,17 @@ func (m *QueryTimeoutFeeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	_ = i
 	var l int
 	_ = l
+	if m.QueryHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.QueryHeight))
+		i--
+		dAtA[i] = 0x18
+	}
 	if len(m.RelayerAddress) > 0 {
 		i -= len(m.RelayerAddress)
 		copy(dAtA[i:], m.RelayerAddress)
 		i = encodeVarintQuery(dAtA, i, uint64(len(m.RelayerAddress)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x12
 	}
 	if m.PacketId != nil {
 		{
@@ -772,6 +955,71 @@ func (m *QueryTimeoutFeeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryIncentivizedPacketsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryIncentivizedPacketsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryIncentivizedPacketsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryIncentivizedPacketsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryIncentivizedPacketsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryIncentivizedPacketsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.QueryHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.QueryHeight))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.IncentivizedPackets) > 0 {
+		for iNdEx := len(m.IncentivizedPackets) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.IncentivizedPackets[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -796,6 +1044,9 @@ func (m *QueryReceiveFeeRequest) Size() (n int) {
 	l = len(m.RelayerAddress)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.QueryHeight != 0 {
+		n += 1 + sovQuery(uint64(m.QueryHeight))
 	}
 	return n
 }
@@ -827,6 +1078,9 @@ func (m *QueryAckFeeRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	if m.QueryHeight != 0 {
+		n += 1 + sovQuery(uint64(m.QueryHeight))
+	}
 	return n
 }
 
@@ -857,6 +1111,9 @@ func (m *QueryTimeoutFeeRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	if m.QueryHeight != 0 {
+		n += 1 + sovQuery(uint64(m.QueryHeight))
+	}
 	return n
 }
 
@@ -869,6 +1126,33 @@ func (m *QueryTimeoutFeeResponse) Size() (n int) {
 	if m.Fee != nil {
 		l = m.Fee.Size()
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryIncentivizedPacketsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryIncentivizedPacketsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.IncentivizedPackets) > 0 {
+		for _, e := range m.IncentivizedPackets {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.QueryHeight != 0 {
+		n += 1 + sovQuery(uint64(m.QueryHeight))
 	}
 	return n
 }
@@ -944,7 +1228,7 @@ func (m *QueryReceiveFeeRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RelayerAddress", wireType)
 			}
@@ -976,6 +1260,25 @@ func (m *QueryReceiveFeeRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.RelayerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field QueryHeight", wireType)
+			}
+			m.QueryHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.QueryHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -1148,7 +1451,7 @@ func (m *QueryAckFeeRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RelayerAddress", wireType)
 			}
@@ -1180,6 +1483,25 @@ func (m *QueryAckFeeRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.RelayerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field QueryHeight", wireType)
+			}
+			m.QueryHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.QueryHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -1352,7 +1674,7 @@ func (m *QueryTimeoutFeeRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RelayerAddress", wireType)
 			}
@@ -1384,6 +1706,25 @@ func (m *QueryTimeoutFeeRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.RelayerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field QueryHeight", wireType)
+			}
+			m.QueryHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.QueryHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -1470,6 +1811,159 @@ func (m *QueryTimeoutFeeResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryIncentivizedPacketsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryIncentivizedPacketsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryIncentivizedPacketsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryIncentivizedPacketsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryIncentivizedPacketsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryIncentivizedPacketsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IncentivizedPackets", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.IncentivizedPackets = append(m.IncentivizedPackets, &IdentifiedPacketFee{})
+			if err := m.IncentivizedPackets[len(m.IncentivizedPackets)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field QueryHeight", wireType)
+			}
+			m.QueryHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.QueryHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])

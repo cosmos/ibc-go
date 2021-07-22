@@ -26,43 +26,66 @@ service Query {
   rpc TimeoutFee(QueryTimeoutFeeRequest) returns (QueryTimeoutFeeResponse) {
     option (google.api.http).get = "/ibc/apps/middleware/fee/v1/timeout_fee";
   }
+
+  // Gets all incentivized packets
+  rpc IncentivizedPackets(QueryIncentivizedPacketsRequest) returns (QueryIncentivizedPacketsResponse) {
+    option (google.api.http).get = "/ibc/apps/middleware/fee/v1/incentivized_packets";
+  }
 }
 
 // QueryReceiveRequestFee is the request type for quering the receive fee
 message QueryReceiveFeeRequest {
   // PacketID
-  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
   // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-  string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  // Height to query at
+  uint64 query_height = 3 [(gogoproto.moretags) = "yaml:\"query_height\""];
 }
 
 // QueryReceiveFeeResponse is the response type for the ReceiveFee RPC
 message QueryReceiveFeeResponse {
-  ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
+  ibc.applications.middleware.fee.v1.Fee fee = 1;
 }
 
 // QueryAckFeeRequest is the request type for querying the acknowledgement fee
 message QueryAckFeeRequest {
   // PacketID
-  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
   // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-  string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  // Height to query at
+  uint64 query_height = 3 [(gogoproto.moretags) = "yaml:\"query_height\""];
 }
 
 // QueryAckFeeResponse is the response type for the AckFee RPC
 message QueryAckFeeResponse {
-  ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
+  ibc.applications.middleware.fee.v1.Fee fee = 1;
 }
 
 // QueryTimeoutFeeRequest is the request type for querying the timeout fee
 message QueryTimeoutFeeRequest {
   // PacketID
-  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
   // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-  string relayer_address = 4 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  // Height to query at
+  uint64 query_height = 3 [(gogoproto.moretags) = "yaml:\"query_height\""];
 }
 
 // QueryTimeoutFeeResponse is the response type for the timeout RPC
 message QueryTimeoutFeeResponse {
-  ibc.applications.middleware.fee.v1.Fee fee = 1 [(gogoproto.moretags) = "yaml:\"fee\""];
+  ibc.applications.middleware.fee.v1.Fee fee = 1;
+}
+
+// QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+message QueryIncentivizedPacketsRequest {}
+
+// QueryTimeoutFeeResponse is the response type for the timeout RPC
+message QueryIncentivizedPacketsResponse {
+  // Map of all incentivized_packets
+  repeated ibc.applications.middleware.fee.v1.IdentifiedPacketFee incentivized_packets = 1
+      [(gogoproto.moretags) = "yaml:\"incentivized_packets\""];
+  // Height to query at
+  uint64 query_height = 2 [(gogoproto.moretags) = "yaml:\"query_height\""];
 }

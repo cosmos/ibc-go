@@ -12,7 +12,7 @@ message Fee {
   cosmos.base.v1beta1.Coin amount = 1;
 }
 
-// Fee associated with a packet_id 
+// Fee associated with a packet_id
 message IdentifiedPacketFee {
   ibc.core.channel.v1.PacketId           packet_id = 1;
   ibc.applications.middleware.fee.v1.Fee fee       = 2;
