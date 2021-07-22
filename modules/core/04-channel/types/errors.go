@@ -30,4 +30,6 @@ var (
 
 	// ORDERED channel error
 	ErrPacketSequenceOutOfOrder = sdkerrors.Register(SubModuleName, 21, "packet sequence is out of order")
+
+	ErrInvalidChannelVersion = sdkerrors.Register(SubModuleName, 24, "invalid channel version")
 )

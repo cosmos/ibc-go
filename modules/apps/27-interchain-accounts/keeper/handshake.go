@@ -4,10 +4,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
+// OnChanOpenInit performs basic validation of channel initialization.
+// The channel order must be ORDERED, the counterparty port identifier
+// must be the host chain representation as defined in the types package,
+// the channel version must be equal to the version in the types package,
+// there must not be an active channel for the specfied port identifier,
+// and the interchain accounts module must be able to claim the channel
+// capability.
 func (k Keeper) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -18,10 +28,18 @@ func (k Keeper) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	//TODO:
-	// check version string
 	if order != channeltypes.ORDERED {
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "invalid channel ordering: %s, expected %s", order.String(), channeltypes.ORDERED.String())
+	}
+	if counterparty.PortId != types.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty port-id must be '%s', (%s != %s)", types.PortID, counterparty.PortId, types.PortID)
+	}
+	if version != types.Version {
+		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelVersion, "channel version must be '%s' (%s != %s)", types.Version, version, types.Version)
+	}
+	channelID, found := k.GetActiveChannel(ctx, portID)
+	if found {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel (%s) for portID (%s)", channelID, portID)
 	}
 
 	// Claim channel capability passed back by IBC module
