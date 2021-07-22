@@ -7,6 +7,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/middleware/fee/v1/fee.proto";
 import "google/api/annotations.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
@@ -79,7 +80,10 @@ message QueryTimeoutFeeResponse {
 }
 
 // QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
-message QueryIncentivizedPacketsRequest {}
+message QueryIncentivizedPacketsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
 
 // QueryTimeoutFeeResponse is the response type for the timeout RPC
 message QueryIncentivizedPacketsResponse {
