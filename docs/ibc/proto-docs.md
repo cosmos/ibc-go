@@ -642,7 +642,10 @@ Fee associated with a packet_id
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
-| `fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `receive_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `ack_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `timeout_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `relayers` | [string](#string) | repeated |  |
 
 
 

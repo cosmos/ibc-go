@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+package ibc.applications.middleware.fee.v1;
 import "gogoproto/gogo.proto";
 import "ibc/applications/middleware/fee/v1/fee.proto";
 option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
