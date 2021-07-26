@@ -25,32 +25,34 @@
     - [Order](#ibc.core.channel.v1.Order)
     - [State](#ibc.core.channel.v1.State)
   
-- [ibc/applications/middleware/fee/v1/fee.proto](#ibc/applications/middleware/fee/v1/fee.proto)
-    - [Fee](#ibc.applications.middleware.fee.v1.Fee)
-    - [IdentifiedPacketFee](#ibc.applications.middleware.fee.v1.IdentifiedPacketFee)
+- [ibc/applications/fee/v1/fee.proto](#ibc/applications/fee/v1/fee.proto)
+    - [Fee](#ibc.applications.fee.v1.Fee)
+    - [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee)
   
-- [ibc/applications/middleware/fee/v1/genesis.proto](#ibc/applications/middleware/fee/v1/genesis.proto)
-    - [GenesisState](#ibc.applications.middleware.fee.v1.GenesisState)
+- [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
+    - [GenesisState](#ibc.applications.fee.v1.GenesisState)
   
-- [ibc/applications/middleware/fee/v1/query.proto](#ibc/applications/middleware/fee/v1/query.proto)
-    - [QueryAckFeeRequest](#ibc.applications.middleware.fee.v1.QueryAckFeeRequest)
-    - [QueryAckFeeResponse](#ibc.applications.middleware.fee.v1.QueryAckFeeResponse)
-    - [QueryIncentivizedPacketsRequest](#ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsRequest)
-    - [QueryIncentivizedPacketsResponse](#ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsResponse)
-    - [QueryReceiveFeeRequest](#ibc.applications.middleware.fee.v1.QueryReceiveFeeRequest)
-    - [QueryReceiveFeeResponse](#ibc.applications.middleware.fee.v1.QueryReceiveFeeResponse)
-    - [QueryTimeoutFeeRequest](#ibc.applications.middleware.fee.v1.QueryTimeoutFeeRequest)
-    - [QueryTimeoutFeeResponse](#ibc.applications.middleware.fee.v1.QueryTimeoutFeeResponse)
+- [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
+    - [QueryAckFeeRequest](#ibc.applications.fee.v1.QueryAckFeeRequest)
+    - [QueryAckFeeResponse](#ibc.applications.fee.v1.QueryAckFeeResponse)
+    - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
+    - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
+    - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
+    - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
+    - [QueryReceiveFeeRequest](#ibc.applications.fee.v1.QueryReceiveFeeRequest)
+    - [QueryReceiveFeeResponse](#ibc.applications.fee.v1.QueryReceiveFeeResponse)
+    - [QueryTimeoutFeeRequest](#ibc.applications.fee.v1.QueryTimeoutFeeRequest)
+    - [QueryTimeoutFeeResponse](#ibc.applications.fee.v1.QueryTimeoutFeeResponse)
   
-    - [Query](#ibc.applications.middleware.fee.v1.Query)
+    - [Query](#ibc.applications.fee.v1.Query)
   
-- [ibc/applications/middleware/fee/v1/tx.proto](#ibc/applications/middleware/fee/v1/tx.proto)
-    - [MsgEscrowPacketFee](#ibc.applications.middleware.fee.v1.MsgEscrowPacketFee)
-    - [MsgEscrowPacketFeeResponse](#ibc.applications.middleware.fee.v1.MsgEscrowPacketFeeResponse)
-    - [MsgRegisterCounterPartyAddressResponse](#ibc.applications.middleware.fee.v1.MsgRegisterCounterPartyAddressResponse)
-    - [MsgRegisterCounterpartyAddress](#ibc.applications.middleware.fee.v1.MsgRegisterCounterpartyAddress)
+- [ibc/applications/fee/v1/tx.proto](#ibc/applications/fee/v1/tx.proto)
+    - [MsgEscrowPacketFee](#ibc.applications.fee.v1.MsgEscrowPacketFee)
+    - [MsgEscrowPacketFeeResponse](#ibc.applications.fee.v1.MsgEscrowPacketFeeResponse)
+    - [MsgRegisterCounterPartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse)
+    - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
   
-    - [Msg](#ibc.applications.middleware.fee.v1.Msg)
+    - [Msg](#ibc.applications.fee.v1.Msg)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
@@ -609,14 +611,14 @@ CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 
 
 
-<a name="ibc/applications/middleware/fee/v1/fee.proto"></a>
+<a name="ibc/applications/fee/v1/fee.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ibc/applications/middleware/fee/v1/fee.proto
+## ibc/applications/fee/v1/fee.proto
 
 
 
-<a name="ibc.applications.middleware.fee.v1.Fee"></a>
+<a name="ibc.applications.fee.v1.Fee"></a>
 
 ### Fee
 Fee interface
@@ -633,7 +635,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 
 
 
-<a name="ibc.applications.middleware.fee.v1.IdentifiedPacketFee"></a>
+<a name="ibc.applications.fee.v1.IdentifiedPacketFee"></a>
 
 ### IdentifiedPacketFee
 Fee associated with a packet_id
@@ -642,9 +644,9 @@ Fee associated with a packet_id
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
-| `receive_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
-| `ack_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
-| `timeout_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `receive_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `ack_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `timeout_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 | `relayers` | [string](#string) | repeated |  |
 
 
@@ -661,14 +663,14 @@ Fee associated with a packet_id
 
 
 
-<a name="ibc/applications/middleware/fee/v1/genesis.proto"></a>
+<a name="ibc/applications/fee/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ibc/applications/middleware/fee/v1/genesis.proto
+## ibc/applications/fee/v1/genesis.proto
 
 
 
-<a name="ibc.applications.middleware.fee.v1.GenesisState"></a>
+<a name="ibc.applications.fee.v1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines the fee middleware genesis state
@@ -676,7 +678,7 @@ GenesisState defines the fee middleware genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `packets_fees` | [IdentifiedPacketFee](#ibc.applications.middleware.fee.v1.IdentifiedPacketFee) | repeated | A mapping of packets -> escrowed fees |
+| `packets_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated | A mapping of packets -> escrowed fees |
 
 
 
@@ -692,14 +694,14 @@ GenesisState defines the fee middleware genesis state
 
 
 
-<a name="ibc/applications/middleware/fee/v1/query.proto"></a>
+<a name="ibc/applications/fee/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ibc/applications/middleware/fee/v1/query.proto
+## ibc/applications/fee/v1/query.proto
 
 
 
-<a name="ibc.applications.middleware.fee.v1.QueryAckFeeRequest"></a>
+<a name="ibc.applications.fee.v1.QueryAckFeeRequest"></a>
 
 ### QueryAckFeeRequest
 QueryAckFeeRequest is the request type for querying the acknowledgement fee
@@ -716,7 +718,7 @@ QueryAckFeeRequest is the request type for querying the acknowledgement fee
 
 
 
-<a name="ibc.applications.middleware.fee.v1.QueryAckFeeResponse"></a>
+<a name="ibc.applications.fee.v1.QueryAckFeeResponse"></a>
 
 ### QueryAckFeeResponse
 QueryAckFeeResponse is the response type for the AckFee RPC
@@ -724,14 +726,45 @@ QueryAckFeeResponse is the response type for the AckFee RPC
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 
 
 
 
 
 
-<a name="ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsRequest"></a>
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketRequest"></a>
+
+### QueryIncentivizedPacketRequest
+QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | PacketID |
+| `query_height` | [uint64](#uint64) |  | Height to query at |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketResponse"></a>
+
+### QueryIncentivizedPacketResponse
+QueryTimeoutFeeResponse is the response type for the timeout RPC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incentivized_packet` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | Incentivized_packet |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsRequest"></a>
 
 ### QueryIncentivizedPacketsRequest
 QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
@@ -740,21 +773,6 @@ QueryIncentivizedPacketRequest is the request type for querying for all incentiv
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
-
-
-
-
-
-
-<a name="ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsResponse"></a>
-
-### QueryIncentivizedPacketsResponse
-QueryTimeoutFeeResponse is the response type for the timeout RPC
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `incentivized_packets` | [IdentifiedPacketFee](#ibc.applications.middleware.fee.v1.IdentifiedPacketFee) | repeated | Map of all incentivized_packets |
 | `query_height` | [uint64](#uint64) |  | Height to query at |
 
 
@@ -762,7 +780,22 @@ QueryTimeoutFeeResponse is the response type for the timeout RPC
 
 
 
-<a name="ibc.applications.middleware.fee.v1.QueryReceiveFeeRequest"></a>
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsResponse"></a>
+
+### QueryIncentivizedPacketsResponse
+QueryTimeoutFeeResponse is the response type for the timeout RPC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incentivized_packets` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated | Map of all incentivized_packets |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryReceiveFeeRequest"></a>
 
 ### QueryReceiveFeeRequest
 QueryReceiveRequestFee is the request type for quering the receive fee
@@ -779,7 +812,7 @@ QueryReceiveRequestFee is the request type for quering the receive fee
 
 
 
-<a name="ibc.applications.middleware.fee.v1.QueryReceiveFeeResponse"></a>
+<a name="ibc.applications.fee.v1.QueryReceiveFeeResponse"></a>
 
 ### QueryReceiveFeeResponse
 QueryReceiveFeeResponse is the response type for the ReceiveFee RPC
@@ -787,14 +820,14 @@ QueryReceiveFeeResponse is the response type for the ReceiveFee RPC
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 
 
 
 
 
 
-<a name="ibc.applications.middleware.fee.v1.QueryTimeoutFeeRequest"></a>
+<a name="ibc.applications.fee.v1.QueryTimeoutFeeRequest"></a>
 
 ### QueryTimeoutFeeRequest
 QueryTimeoutFeeRequest is the request type for querying the timeout fee
@@ -811,7 +844,7 @@ QueryTimeoutFeeRequest is the request type for querying the timeout fee
 
 
 
-<a name="ibc.applications.middleware.fee.v1.QueryTimeoutFeeResponse"></a>
+<a name="ibc.applications.fee.v1.QueryTimeoutFeeResponse"></a>
 
 ### QueryTimeoutFeeResponse
 QueryTimeoutFeeResponse is the response type for the timeout RPC
@@ -819,7 +852,7 @@ QueryTimeoutFeeResponse is the response type for the timeout RPC
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 
 
 
@@ -832,30 +865,31 @@ QueryTimeoutFeeResponse is the response type for the timeout RPC
  <!-- end HasExtensions -->
 
 
-<a name="ibc.applications.middleware.fee.v1.Query"></a>
+<a name="ibc.applications.fee.v1.Query"></a>
 
 ### Query
 Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `ReceiveFee` | [QueryReceiveFeeRequest](#ibc.applications.middleware.fee.v1.QueryReceiveFeeRequest) | [QueryReceiveFeeResponse](#ibc.applications.middleware.fee.v1.QueryReceiveFeeResponse) | Gets the fee expected for submitting ReceivePacket msg for the given packet | GET|/ibc/apps/middleware/fee/v1/receive_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}|
-| `AckFee` | [QueryAckFeeRequest](#ibc.applications.middleware.fee.v1.QueryAckFeeRequest) | [QueryAckFeeResponse](#ibc.applications.middleware.fee.v1.QueryAckFeeResponse) | Gets the fee expected for submitting AcknowledgePacket msg for the given packet | GET|/ibc/apps/middleware/fee/v1/ack_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}|
-| `TimeoutFee` | [QueryTimeoutFeeRequest](#ibc.applications.middleware.fee.v1.QueryTimeoutFeeRequest) | [QueryTimeoutFeeResponse](#ibc.applications.middleware.fee.v1.QueryTimeoutFeeResponse) | Gets the fee expected for submitting TimeoutPacket msg for the given packet | GET|/ibc/apps/middleware/fee/v1/timeout_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/{relayer_address}/height/{query_height}|
-| `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.middleware.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/middleware/fee/v1/incentivized_packets|
+| `ReceiveFee` | [QueryReceiveFeeRequest](#ibc.applications.fee.v1.QueryReceiveFeeRequest) | [QueryReceiveFeeResponse](#ibc.applications.fee.v1.QueryReceiveFeeResponse) | Gets the fee expected for submitting ReceivePacket msg for the given packet | GET|/ibc/apps/fee/v1/receive_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}|
+| `AckFee` | [QueryAckFeeRequest](#ibc.applications.fee.v1.QueryAckFeeRequest) | [QueryAckFeeResponse](#ibc.applications.fee.v1.QueryAckFeeResponse) | Gets the fee expected for submitting AcknowledgePacket msg for the given packet | GET|/ibc/apps/fee/v1/ack_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}|
+| `TimeoutFee` | [QueryTimeoutFeeRequest](#ibc.applications.fee.v1.QueryTimeoutFeeRequest) | [QueryTimeoutFeeResponse](#ibc.applications.fee.v1.QueryTimeoutFeeResponse) | Gets the fee expected for submitting TimeoutPacket msg for the given packet | GET|/ibc/apps/fee/v1/timeout_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/{relayer_address}/height/{query_height}|
+| `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packets|
+| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packet|
 
  <!-- end services -->
 
 
 
-<a name="ibc/applications/middleware/fee/v1/tx.proto"></a>
+<a name="ibc/applications/fee/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ibc/applications/middleware/fee/v1/tx.proto
+## ibc/applications/fee/v1/tx.proto
 
 
 
-<a name="ibc.applications.middleware.fee.v1.MsgEscrowPacketFee"></a>
+<a name="ibc.applications.fee.v1.MsgEscrowPacketFee"></a>
 
 ### MsgEscrowPacketFee
 MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
@@ -864,9 +898,9 @@ MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
-| `receive_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
-| `ack_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
-| `timeout_fee` | [Fee](#ibc.applications.middleware.fee.v1.Fee) |  |  |
+| `receive_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `ack_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `timeout_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 | `relayers` | [string](#string) | repeated |  |
 
 
@@ -874,7 +908,7 @@ MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
 
 
 
-<a name="ibc.applications.middleware.fee.v1.MsgEscrowPacketFeeResponse"></a>
+<a name="ibc.applications.fee.v1.MsgEscrowPacketFeeResponse"></a>
 
 ### MsgEscrowPacketFeeResponse
 MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
@@ -884,7 +918,7 @@ MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
 
 
 
-<a name="ibc.applications.middleware.fee.v1.MsgRegisterCounterPartyAddressResponse"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse"></a>
 
 ### MsgRegisterCounterPartyAddressResponse
 MsgRegisterCounterPartyAddressResponse defines the Msg/RegisterCounteryPartyAddress response type
@@ -894,7 +928,7 @@ MsgRegisterCounterPartyAddressResponse defines the Msg/RegisterCounteryPartyAddr
 
 
 
-<a name="ibc.applications.middleware.fee.v1.MsgRegisterCounterpartyAddress"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
 
 ### MsgRegisterCounterpartyAddress
 MsgRegisterCounterpartyAddress is the request type for registering the counter party address
@@ -916,15 +950,15 @@ MsgRegisterCounterpartyAddress is the request type for registering the counter p
  <!-- end HasExtensions -->
 
 
-<a name="ibc.applications.middleware.fee.v1.Msg"></a>
+<a name="ibc.applications.fee.v1.Msg"></a>
 
 ### Msg
 Msg defines the ibc/fee Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterCounterPartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.middleware.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterPartyAddressResponse](#ibc.applications.middleware.fee.v1.MsgRegisterCounterPartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
-| `EscrowPacketFee` | [MsgEscrowPacketFee](#ibc.applications.middleware.fee.v1.MsgEscrowPacketFee) | [MsgEscrowPacketFeeResponse](#ibc.applications.middleware.fee.v1.MsgEscrowPacketFeeResponse) | EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
+| `RegisterCounterPartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterPartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
+| `EscrowPacketFee` | [MsgEscrowPacketFee](#ibc.applications.fee.v1.MsgEscrowPacketFee) | [MsgEscrowPacketFeeResponse](#ibc.applications.fee.v1.MsgEscrowPacketFeeResponse) | EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
 
  <!-- end services -->
 

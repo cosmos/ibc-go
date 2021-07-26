@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ibc.applications.middleware.fee.v1;
+package ibc.applications.fee.v1;
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto";
