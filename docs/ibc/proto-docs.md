@@ -752,7 +752,7 @@ QueryIncentivizedPacketRequest is the request type for querying for all incentiv
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketResponse"></a>
 
 ### QueryIncentivizedPacketResponse
-QueryTimeoutFeeResponse is the response type for the timeout RPC
+QueryIncentivizedPacketsResponse is the response type for the incentivized packet RPC
 
 
 | Field | Type | Label | Description |
@@ -767,7 +767,7 @@ QueryTimeoutFeeResponse is the response type for the timeout RPC
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsRequest"></a>
 
 ### QueryIncentivizedPacketsRequest
-QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+QueryIncentivizedPacketsRequest is the request type for querying for all incentivized packets
 
 
 | Field | Type | Label | Description |
@@ -783,7 +783,7 @@ QueryIncentivizedPacketRequest is the request type for querying for all incentiv
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsResponse"></a>
 
 ### QueryIncentivizedPacketsResponse
-QueryTimeoutFeeResponse is the response type for the timeout RPC
+QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
 
 
 | Field | Type | Label | Description |
@@ -798,7 +798,7 @@ QueryTimeoutFeeResponse is the response type for the timeout RPC
 <a name="ibc.applications.fee.v1.QueryReceiveFeeRequest"></a>
 
 ### QueryReceiveFeeRequest
-QueryReceiveRequestFee is the request type for quering the receive fee
+QueryReceiveFeeRequest is the request type for querying the receive fee
 
 
 | Field | Type | Label | Description |
@@ -876,7 +876,7 @@ Query provides defines the gRPC querier service.
 | `AckFee` | [QueryAckFeeRequest](#ibc.applications.fee.v1.QueryAckFeeRequest) | [QueryAckFeeResponse](#ibc.applications.fee.v1.QueryAckFeeResponse) | Gets the fee expected for submitting AcknowledgePacket msg for the given packet | GET|/ibc/apps/fee/v1/ack_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}|
 | `TimeoutFee` | [QueryTimeoutFeeRequest](#ibc.applications.fee.v1.QueryTimeoutFeeRequest) | [QueryTimeoutFeeResponse](#ibc.applications.fee.v1.QueryTimeoutFeeResponse) | Gets the fee expected for submitting TimeoutPacket msg for the given packet | GET|/ibc/apps/fee/v1/timeout_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/{relayer_address}/height/{query_height}|
 | `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packets/height/{query_height}|
-| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/height/{query_height}|
+| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets the specified incentivized packet | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}/height/{query_height}|
 
  <!-- end services -->
 
@@ -957,7 +957,7 @@ Msg defines the ibc/fee Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterCounterPartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterPartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
+| `RegisterCounterPartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterPartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
 | `EscrowPacketFee` | [MsgEscrowPacketFee](#ibc.applications.fee.v1.MsgEscrowPacketFee) | [MsgEscrowPacketFeeResponse](#ibc.applications.fee.v1.MsgEscrowPacketFeeResponse) | EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
 
  <!-- end services -->

@@ -247,8 +247,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
 	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
-	// counterparty address before relaying This ensures they will be properly compensated for forward relaying since
-	// destination chain must send back relayer's source address (counterparty address) in acknowledgement This function
+	// counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
+	// destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
 	// may be called more than once by a relayer, in which case, latest counterparty address is always used.
 	RegisterCounterPartyAddress(ctx context.Context, in *MsgRegisterCounterpartyAddress, opts ...grpc.CallOption) (*MsgRegisterCounterPartyAddressResponse, error)
 	// EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee
@@ -287,8 +287,8 @@ func (c *msgClient) EscrowPacketFee(ctx context.Context, in *MsgEscrowPacketFee,
 type MsgServer interface {
 	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
 	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
-	// counterparty address before relaying This ensures they will be properly compensated for forward relaying since
-	// destination chain must send back relayer's source address (counterparty address) in acknowledgement This function
+	// counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
+	// destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
 	// may be called more than once by a relayer, in which case, latest counterparty address is always used.
 	RegisterCounterPartyAddress(context.Context, *MsgRegisterCounterpartyAddress) (*MsgRegisterCounterPartyAddressResponse, error)
 	// EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee
