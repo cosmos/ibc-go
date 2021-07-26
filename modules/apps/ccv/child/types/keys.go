@@ -7,7 +7,7 @@ import (
 
 const (
 	// ModuleName defines the CCV child module name
-	ModuleName = "child"
+	ModuleName = "ccvchild"
 
 	// PortID is the default port id that child module binds to
 	PortID = "child"

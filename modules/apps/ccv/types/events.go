@@ -1,6 +1,6 @@
 package types
 
-// IBC transfer events
+// CCV events
 const (
 	EventTypeTimeout      = "timeout"
 	EventTypePacket       = "ccv_packet"
