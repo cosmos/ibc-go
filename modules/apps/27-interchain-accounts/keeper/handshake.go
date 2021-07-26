@@ -18,6 +18,8 @@ import (
 // there must not be an active channel for the specfied port identifier,
 // and the interchain accounts module must be able to claim the channel
 // capability.
+//
+// Controller Chain
 func (k Keeper) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -50,9 +52,10 @@ func (k Keeper) OnChanOpenInit(
 	return nil
 }
 
-// register account (if it doesn't exist)
-// check if counterpary version is the same
-// TODO: remove ics27-1 hardcoded
+// OnChanOpenTry performs basic validation of the ICA channel
+// and registers a new interchain account (if it doesn't exist).
+//
+// Host Chain
 func (k Keeper) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -67,19 +70,28 @@ func (k Keeper) OnChanOpenTry(
 	if order != channeltypes.ORDERED {
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "invalid channel ordering: %s, expected %s", order.String(), channeltypes.ORDERED.String())
 	}
+	if version != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got: %s, expected %s", version, types.Version)
+	}
+	if counterpartyVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+	}
 
-	// TODO: Check counterparty version
-	// if counterpartyVersion != types.Version {
-	// 	return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid counterparty version: %s, expected %s", counterpartyVersion, "ics20-1")
-	// }
-
-	// Claim channel capability passed back by IBC module
-	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, err.Error())
+	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
+	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
+	// If module can already authenticate the capability then module already owns it so we don't need to claim
+	// Otherwise, module does not have channel capability and we must claim it from IBC
+	if !k.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		// Only claim channel capability passed back by IBC module if we do not already own it
+		if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return err
+		}
 	}
 
 	// Register interchain account if it does not already exist
-	_, _ = k.RegisterInterchainAccount(ctx, counterparty.PortId)
+	if err := k.RegisterInterchainAccount(ctx, counterparty.PortId); err != nil {
+		return err
+	}
 	return nil
 }
 

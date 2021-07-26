@@ -161,3 +161,8 @@ func (k Keeper) IsActiveChannel(ctx sdk.Context, portId string) bool {
 	_, found := k.GetActiveChannel(ctx, portId)
 	return found
 }
+
+// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
+func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
+	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
+}
