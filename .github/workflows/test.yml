@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - interchain-accounts
 jobs:
   cleanup-runs:
     runs-on: ubuntu-latest
