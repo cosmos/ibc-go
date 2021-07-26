@@ -11,8 +11,8 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 service Msg {
   // RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
   // RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
-  // counterparty address before relaying This ensures they will be properly compensated for forward relaying since
-  // destination chain must send back relayer's source address (counterparty address) in acknowledgement This function
+  // counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
+  // destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
   // may be called more than once by a relayer, in which case, latest counterparty address is always used.
   rpc RegisterCounterPartyAddress(MsgRegisterCounterpartyAddress) returns (MsgRegisterCounterPartyAddressResponse);
   // EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee
