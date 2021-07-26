@@ -39,7 +39,7 @@ service Query {
     option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets/height/{query_height}";
   }
 
-  // Gets all incentivized packets
+  // Gets the specified incentivized packet
   rpc IncentivizedPacket(QueryIncentivizedPacketRequest) returns (QueryIncentivizedPacketResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
@@ -47,7 +47,7 @@ service Query {
   }
 }
 
-// QueryReceiveRequestFee is the request type for quering the receive fee
+// QueryReceiveFeeRequest is the request type for querying the receive fee
 message QueryReceiveFeeRequest {
   // PacketID
   ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
@@ -92,7 +92,7 @@ message QueryTimeoutFeeResponse {
   ibc.applications.fee.v1.Fee fee = 1;
 }
 
-// QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+// QueryIncentivizedPacketsRequest is the request type for querying for all incentivized packets
 message QueryIncentivizedPacketsRequest {
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
@@ -100,7 +100,7 @@ message QueryIncentivizedPacketsRequest {
   uint64 query_height = 2 [(gogoproto.moretags) = "yaml:\"query_height\""];
 }
 
-// QueryTimeoutFeeResponse is the response type for the timeout RPC
+// QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
 message QueryIncentivizedPacketsResponse {
   // Map of all incentivized_packets
   repeated ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packets = 1
@@ -115,7 +115,7 @@ message QueryIncentivizedPacketRequest {
   uint64 query_height = 2 [(gogoproto.moretags) = "yaml:\"query_height\""];
 }
 
-// QueryTimeoutFeeResponse is the response type for the timeout RPC
+// QueryIncentivizedPacketsResponse is the response type for the incentivized packet RPC
 message QueryIncentivizedPacketResponse {
   // Incentivized_packet
   ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packet = 1
