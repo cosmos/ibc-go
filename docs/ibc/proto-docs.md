@@ -897,7 +897,7 @@ MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packets` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  |  |
+| `incentivized_packet` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  |  |
 | `relayers` | [string](#string) | repeated |  |
 
 
