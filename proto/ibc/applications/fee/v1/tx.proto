@@ -38,11 +38,8 @@ message MsgEscrowPacketFee {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  ibc.core.channel.v1.PacketId packet_id   = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
-  ibc.applications.fee.v1.Fee  receive_fee = 2 [(gogoproto.moretags) = "yaml:\"receive_fee\""];
-  ibc.applications.fee.v1.Fee  ack_fee     = 3 [(gogoproto.moretags) = "yaml:\"ack_fee\""];
-  ibc.applications.fee.v1.Fee  timeout_fee = 4 [(gogoproto.moretags) = "yaml:\"timeout_fee\""];
-  repeated string              relayers    = 5;
+  ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packets = 1;
+  repeated string                             relayers             = 2;
 }
 
 // MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
