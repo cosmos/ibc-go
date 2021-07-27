@@ -32,7 +32,7 @@ var _ = utilities.NewDoubleArray
 var _ = descriptor.ForMessage
 
 var (
-	filter_Query_ReceiveFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3, "relayer_address": 4, "query_height": 5}, Base: []int{1, 1, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 1, 1, 3, 4, 5, 6, 7}}
+	filter_Query_ReceiveFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3}, Base: []int{1, 1, 1, 2, 3, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 3, 4, 5}}
 )
 
 func request_Query_ReceiveFee_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -77,28 +77,6 @@ func request_Query_ReceiveFee_0(ctx context.Context, marshaler runtime.Marshaler
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
-	}
-
-	val, ok = pathParams["relayer_address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
-	}
-
-	protoReq.RelayerAddress, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -157,28 +135,6 @@ func local_request_Query_ReceiveFee_0(ctx context.Context, marshaler runtime.Mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
 	}
 
-	val, ok = pathParams["relayer_address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
-	}
-
-	protoReq.RelayerAddress, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
-	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -192,7 +148,7 @@ func local_request_Query_ReceiveFee_0(ctx context.Context, marshaler runtime.Mar
 }
 
 var (
-	filter_Query_AckFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3, "relayer_address": 4, "query_height": 5}, Base: []int{1, 1, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 1, 1, 3, 4, 5, 6, 7}}
+	filter_Query_AckFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3}, Base: []int{1, 1, 1, 2, 3, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 3, 4, 5}}
 )
 
 func request_Query_AckFee_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -237,28 +193,6 @@ func request_Query_AckFee_0(ctx context.Context, marshaler runtime.Marshaler, cl
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
-	}
-
-	val, ok = pathParams["relayer_address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
-	}
-
-	protoReq.RelayerAddress, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -317,28 +251,6 @@ func local_request_Query_AckFee_0(ctx context.Context, marshaler runtime.Marshal
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
 	}
 
-	val, ok = pathParams["relayer_address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
-	}
-
-	protoReq.RelayerAddress, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
-	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -352,7 +264,7 @@ func local_request_Query_AckFee_0(ctx context.Context, marshaler runtime.Marshal
 }
 
 var (
-	filter_Query_TimeoutFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3, "relayer_address": 4, "query_height": 5}, Base: []int{1, 1, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 1, 1, 3, 4, 5, 6, 7}}
+	filter_Query_TimeoutFee_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3}, Base: []int{1, 1, 1, 2, 3, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 3, 4, 5}}
 )
 
 func request_Query_TimeoutFee_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -397,28 +309,6 @@ func request_Query_TimeoutFee_0(ctx context.Context, marshaler runtime.Marshaler
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
-	}
-
-	val, ok = pathParams["relayer_address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
-	}
-
-	protoReq.RelayerAddress, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -477,28 +367,6 @@ func local_request_Query_TimeoutFee_0(ctx context.Context, marshaler runtime.Mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
 	}
 
-	val, ok = pathParams["relayer_address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relayer_address")
-	}
-
-	protoReq.RelayerAddress, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relayer_address", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
-	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -512,30 +380,12 @@ func local_request_Query_TimeoutFee_0(ctx context.Context, marshaler runtime.Mar
 }
 
 var (
-	filter_Query_IncentivizedPackets_0 = &utilities.DoubleArray{Encoding: map[string]int{"query_height": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Query_IncentivizedPackets_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
 func request_Query_IncentivizedPackets_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryIncentivizedPacketsRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
-	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -553,24 +403,6 @@ func local_request_Query_IncentivizedPackets_0(ctx context.Context, marshaler ru
 	var protoReq QueryIncentivizedPacketsRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
-	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -584,7 +416,7 @@ func local_request_Query_IncentivizedPackets_0(ctx context.Context, marshaler ru
 }
 
 var (
-	filter_Query_IncentivizedPacket_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3, "query_height": 4}, Base: []int{1, 1, 1, 2, 3, 4, 0, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 1, 3, 4, 5, 6}}
+	filter_Query_IncentivizedPacket_0 = &utilities.DoubleArray{Encoding: map[string]int{"packet_id": 0, "port_id": 1, "channel_id": 2, "sequence": 3}, Base: []int{1, 1, 1, 2, 3, 0, 0, 0}, Check: []int{0, 1, 2, 2, 2, 3, 4, 5}}
 )
 
 func request_Query_IncentivizedPacket_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -629,17 +461,6 @@ func request_Query_IncentivizedPacket_0(ctx context.Context, marshaler runtime.M
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -696,17 +517,6 @@ func local_request_Query_IncentivizedPacket_0(ctx context.Context, marshaler run
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "packet_id.sequence", err)
-	}
-
-	val, ok = pathParams["query_height"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_height")
-	}
-
-	protoReq.QueryHeight, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_height", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -972,15 +782,15 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_ReceiveFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10, 2, 11, 1, 0, 4, 1, 5, 12, 2, 13, 1, 0, 4, 1, 5, 14}, []string{"ibc", "apps", "fee", "v1", "receive_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence", "relayer", "relayer_address", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ReceiveFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10}, []string{"ibc", "apps", "fee", "v1", "receive_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_AckFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10, 2, 11, 1, 0, 4, 1, 5, 12, 2, 13, 1, 0, 4, 1, 5, 14}, []string{"ibc", "apps", "fee", "v1", "ack_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence", "relayer", "relayer_address", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_AckFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10}, []string{"ibc", "apps", "fee", "v1", "ack_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_TimeoutFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10, 1, 0, 4, 1, 5, 11, 2, 12, 1, 0, 4, 1, 5, 13}, []string{"ibc", "apps", "fee", "v1", "timeout_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence", "relayer_address", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TimeoutFee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10}, []string{"ibc", "apps", "fee", "v1", "timeout_fee", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_IncentivizedPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"ibc", "apps", "fee", "v1", "incentivized_packets", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_IncentivizedPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "apps", "fee", "v1", "incentivized_packets"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_IncentivizedPacket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10, 2, 11, 1, 0, 4, 1, 5, 12}, []string{"ibc", "apps", "fee", "v1", "incentivized_packet", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence", "height", "query_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_IncentivizedPacket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8, 2, 9, 1, 0, 4, 1, 5, 10}, []string{"ibc", "apps", "fee", "v1", "incentivized_packet", "port", "packet_id.port_id", "channel", "packet_id.channel_id", "sequence", "packet_id.sequence"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

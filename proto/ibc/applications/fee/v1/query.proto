@@ -17,33 +17,33 @@ service Query {
   rpc ReceiveFee(QueryReceiveFeeRequest) returns (QueryReceiveFeeResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/receive_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}";
+        "{packet_id.sequence}";
   }
 
   // Gets the fee expected for submitting AcknowledgePacket msg for the given packet
   rpc AckFee(QueryAckFeeRequest) returns (QueryAckFeeResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/ack_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}/relayer/{relayer_address}/height/{query_height}";
+        "{packet_id.sequence}";
   }
 
   // Gets the fee expected for submitting TimeoutPacket msg for the given packet
   rpc TimeoutFee(QueryTimeoutFeeRequest) returns (QueryTimeoutFeeResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/timeout_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}/{relayer_address}/height/{query_height}";
+        "{packet_id.sequence}";
   }
 
   // Gets all incentivized packets
   rpc IncentivizedPackets(QueryIncentivizedPacketsRequest) returns (QueryIncentivizedPacketsResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets/height/{query_height}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets";
   }
 
   // Gets the specified incentivized packet
   rpc IncentivizedPacket(QueryIncentivizedPacketRequest) returns (QueryIncentivizedPacketResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}/height/{query_height}";
+        "{packet_id.sequence}";
   }
 }
 
