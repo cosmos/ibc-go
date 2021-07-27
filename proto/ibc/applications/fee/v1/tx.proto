@@ -38,8 +38,9 @@ message MsgEscrowPacketFee {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packet = 1;
-  repeated string                             relayers            = 2;
+  ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packet = 1
+      [(gogoproto.moretags) = "yaml:\"incentivized_packet\""];
+  repeated string relayers = 2;
 }
 
 // MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
