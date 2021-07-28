@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -42,6 +43,22 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) TestIsBound() {
 	isBound := suite.chainA.GetSimApp().ICAKeeper.IsBound(suite.chainA.GetContext(), types.PortID)
 	suite.Require().True(isBound)
+}
+
+// InitInterchainAccount is a helper function for starting the channel handshake
+func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+	portID := endpoint.Chain.GetSimApp().ICAKeeper.GeneratePortId(owner, endpoint.ConnectionID)
+	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
+
+	if err := endpoint.Chain.GetSimApp().ICAKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner); err != nil {
+		return err
+	}
+
+	// update port/channel ids
+	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
+	endpoint.ChannelConfig.PortID = portID
+	endpoint.Chain.NextBlock()
+	return nil
 }
 
 func (suite *KeeperTestSuite) TestGetPort() {
