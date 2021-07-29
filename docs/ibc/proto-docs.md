@@ -443,7 +443,9 @@ Raw tx body
 <a name="ibc.applications.interchain_accounts.v1.Type"></a>
 
 ### Type
-Different types of interchain account transactions
+The different types of interchain account transactions
+EXECUTE_TX is used when sending a TX from the controller side to the host side. The host side will execute the tx on
+behalf of the interchain account.
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
