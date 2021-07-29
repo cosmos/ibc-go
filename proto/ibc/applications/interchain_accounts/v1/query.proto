@@ -18,13 +18,13 @@ message QueryInterchainAccountRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // address is the address to query.
+  // Address is the address to query.
   string address       = 1;
   string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
 }
 
 // Query response for an interchain account address
 message QueryInterchainAccountResponse {
-  // account defines the account of the corresponding address.
+  // Account defines the account of the corresponding address.
   string account_address = 1 [(gogoproto.moretags) = "yaml:\"account_address\""];
 }

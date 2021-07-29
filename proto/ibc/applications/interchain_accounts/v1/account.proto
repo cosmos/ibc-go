@@ -7,7 +7,7 @@ import "cosmos/auth/v1beta1/auth.proto";
 
 option go_package = "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types";
 
-// An InterchainAccount is defined as a BaseAccount + the address of the account owner on the controller chain
+// An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
 message InterchainAccount {
   option (gogoproto.goproto_getters)         = false;
   option (gogoproto.goproto_stringer)        = false;

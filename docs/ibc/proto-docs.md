@@ -17,7 +17,6 @@
     - [Query](#ibc.applications.interchain_accounts.v1.Query)
   
 - [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
-    - [AccountAddress](#ibc.applications.interchain_accounts.v1.AccountAddress)
     - [IBCAccountPacketData](#ibc.applications.interchain_accounts.v1.IBCAccountPacketData)
     - [IBCTxBody](#ibc.applications.interchain_accounts.v1.IBCTxBody)
     - [IBCTxRaw](#ibc.applications.interchain_accounts.v1.IBCTxRaw)
@@ -276,7 +275,7 @@
 <a name="ibc.applications.interchain_accounts.v1.InterchainAccount"></a>
 
 ### InterchainAccount
-An InterchainAccount is defined as a BaseAccount + the address of the account owner on the controller chain
+An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
 
 
 | Field | Type | Label | Description |
@@ -344,7 +343,7 @@ Query request for an interchain account address
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | address is the address to query. |
+| `address` | [string](#string) |  | Address is the address to query. |
 | `connection_id` | [string](#string) |  |  |
 
 
@@ -360,7 +359,7 @@ Query response for an interchain account address
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `account_address` | [string](#string) |  | account defines the account of the corresponding address. |
+| `account_address` | [string](#string) |  | Account defines the account of the corresponding address. |
 
 
 
@@ -393,21 +392,6 @@ Query defines the gRPC querier service.
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.AccountAddress"></a>
-
-### AccountAddress
-Account address type returns a stringified interchain account address
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  |  |
-
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.v1.IBCAccountPacketData"></a>
 
 ### IBCAccountPacketData
@@ -427,7 +411,7 @@ Packet data is comprised of raw transaction & type of transaction
 <a name="ibc.applications.interchain_accounts.v1.IBCTxBody"></a>
 
 ### IBCTxBody
-Body of a tx
+Body of a tx for an ics27 IBC packet
 
 
 | Field | Type | Label | Description |

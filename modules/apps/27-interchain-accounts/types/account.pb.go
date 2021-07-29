@@ -25,7 +25,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// An InterchainAccount is defined as a BaseAccount + the address of the account owner on the controller chain
+// An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
 type InterchainAccount struct {
 	*types.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3,embedded=base_account" json:"base_account,omitempty" yaml:"base_account"`
 	AccountOwner       string `protobuf:"bytes,2,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty" yaml:"port_id"`

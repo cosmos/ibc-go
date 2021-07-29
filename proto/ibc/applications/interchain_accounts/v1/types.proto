@@ -10,7 +10,7 @@ message IBCTxRaw {
   bytes body_bytes = 1 [(gogoproto.moretags) = "yaml:\"body_bytes\""];
 }
 
-// Body of a tx
+// Body of a tx for an ics27 IBC packet
 message IBCTxBody {
   repeated google.protobuf.Any messages = 1;
 }
@@ -26,9 +26,4 @@ enum Type {
 message IBCAccountPacketData {
   Type  type = 1;
   bytes data = 2;
-}
-
-// Account address type returns a stringified interchain account address
-message AccountAddress {
-  string address = 1;
 }

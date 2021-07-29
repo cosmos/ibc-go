@@ -31,7 +31,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Query request for an interchain account address
 type QueryInterchainAccountRequest struct {
-	// address is the address to query.
+	// Address is the address to query.
 	Address      string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 	ConnectionId string `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
 }
@@ -71,7 +71,7 @@ var xxx_messageInfo_QueryInterchainAccountRequest proto.InternalMessageInfo
 
 // Query response for an interchain account address
 type QueryInterchainAccountResponse struct {
-	// account defines the account of the corresponding address.
+	// Account defines the account of the corresponding address.
 	AccountAddress string `protobuf:"bytes,1,opt,name=account_address,json=accountAddress,proto3" json:"account_address,omitempty" yaml:"account_address"`
 }
 
