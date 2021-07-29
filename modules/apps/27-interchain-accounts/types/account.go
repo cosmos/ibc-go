@@ -15,33 +15,33 @@ const (
 	IcaPrefix string = "ics27-1-"
 )
 
-type IBCAccountI interface {
+type InterchainAccountI interface {
 	authtypes.AccountI
 }
 
 var (
-	_ authtypes.GenesisAccount = (*IBCAccount)(nil)
-	_ IBCAccountI              = (*IBCAccount)(nil)
+	_ authtypes.GenesisAccount = (*InterchainAccount)(nil)
+	_ InterchainAccountI       = (*InterchainAccount)(nil)
 )
 
-func NewIBCAccount(ba *authtypes.BaseAccount, accountOwner string) *IBCAccount {
-	return &IBCAccount{
+func NewInterchainAccount(ba *authtypes.BaseAccount, accountOwner string) *InterchainAccount {
+	return &InterchainAccount{
 		BaseAccount:  ba,
 		AccountOwner: accountOwner,
 	}
 }
 
 // SetPubKey - Implements AccountI
-func (IBCAccount) SetPubKey(pubKey crypto.PubKey) error {
+func (InterchainAccount) SetPubKey(pubKey crypto.PubKey) error {
 	return fmt.Errorf("not supported for interchain accounts")
 }
 
 // SetSequence - Implements AccountI
-func (IBCAccount) SetSequence(seq uint64) error {
+func (InterchainAccount) SetSequence(seq uint64) error {
 	return fmt.Errorf("not supported for interchain accounts")
 }
 
-func (ia IBCAccount) Validate() error {
+func (ia InterchainAccount) Validate() error {
 	return ia.BaseAccount.Validate()
 }
 
@@ -53,13 +53,13 @@ type ibcAccountPretty struct {
 	AccountOwner  string         `json:"address" yaml:"account_owner"`
 }
 
-func (ia IBCAccount) String() string {
+func (ia InterchainAccount) String() string {
 	out, _ := ia.MarshalYAML()
 	return out.(string)
 }
 
-// MarshalYAML returns the YAML representation of a IBCAccount.
-func (ia IBCAccount) MarshalYAML() (interface{}, error) {
+// MarshalYAML returns the YAML representation of a InterchainAccount.
+func (ia InterchainAccount) MarshalYAML() (interface{}, error) {
 	accAddr, err := sdk.AccAddressFromBech32(ia.Address)
 	if err != nil {
 		return nil, err
@@ -80,8 +80,8 @@ func (ia IBCAccount) MarshalYAML() (interface{}, error) {
 	return string(bs), nil
 }
 
-// MarshalJSON returns the JSON representation of a IBCAccount.
-func (ia IBCAccount) MarshalJSON() ([]byte, error) {
+// MarshalJSON returns the JSON representation of a InterchainAccount.
+func (ia InterchainAccount) MarshalJSON() ([]byte, error) {
 	accAddr, err := sdk.AccAddressFromBech32(ia.Address)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (ia IBCAccount) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals raw JSON bytes into a ModuleAccount.
-func (ia *IBCAccount) UnmarshalJSON(bz []byte) error {
+func (ia *InterchainAccount) UnmarshalJSON(bz []byte) error {
 	var alias ibcAccountPretty
 	if err := json.Unmarshal(bz, &alias); err != nil {
 		return err

@@ -41,7 +41,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionId, owner strin
 }
 
 // Register interchain account if it has not already been created
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) (types.IBCAccountI, error) {
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) (types.InterchainAccountI, error) {
 	address := k.GenerateAddress(portId)
 	account := k.accountKeeper.GetAccount(ctx, address)
 
@@ -49,7 +49,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) (types
 		return nil, sdkerrors.Wrap(types.ErrAccountAlreadyExist, account.String())
 	}
 
-	interchainAccount := types.NewIBCAccount(
+	interchainAccount := types.NewInterchainAccount(
 		authtypes.NewBaseAccountWithAddress(address),
 		portId,
 	)
@@ -71,7 +71,7 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portId string) (str
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyOwnerAccount(portId)
 	if !store.Has(key) {
-		return "", sdkerrors.Wrap(types.ErrIBCAccountNotFound, portId)
+		return "", sdkerrors.Wrap(types.ErrInterchainAccountNotFound, portId)
 	}
 
 	interchainAccountAddr := string(store.Get(key))
@@ -83,15 +83,15 @@ func (k Keeper) GenerateAddress(identifier string) []byte {
 	return tmhash.SumTruncated(append([]byte(identifier)))
 }
 
-func (k Keeper) GetIBCAccount(ctx sdk.Context, addr sdk.AccAddress) (types.IBCAccount, error) {
+func (k Keeper) GetInterchainAccount(ctx sdk.Context, addr sdk.AccAddress) (types.InterchainAccount, error) {
 	acc := k.accountKeeper.GetAccount(ctx, addr)
 	if acc == nil {
-		return types.IBCAccount{}, sdkerrors.Wrap(types.ErrIBCAccountNotFound, "there is no account")
+		return types.InterchainAccount{}, sdkerrors.Wrap(types.ErrInterchainAccountNotFound, "there is no account")
 	}
 
-	ibcAcc, ok := acc.(*types.IBCAccount)
+	interchainAccount, ok := acc.(*types.InterchainAccount)
 	if !ok {
-		return types.IBCAccount{}, sdkerrors.Wrap(types.ErrIBCAccountNotFound, "account is not an IBC account")
+		return types.InterchainAccount{}, sdkerrors.Wrap(types.ErrInterchainAccountNotFound, "account is not an interchain account")
 	}
-	return *ibcAcc, nil
+	return *interchainAccount, nil
 }

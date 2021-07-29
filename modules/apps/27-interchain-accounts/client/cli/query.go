@@ -19,12 +19,12 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(GetIBCAccountCmd())
+	cmd.AddCommand(GetInterchainAccountCmd())
 
 	return cmd
 }
 
-func GetIBCAccountCmd() *cobra.Command {
+func GetInterchainAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "address [address] [connection-id]",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -33,11 +33,11 @@ func GetIBCAccountCmd() *cobra.Command {
 				return err
 			}
 
-			address := args[0]
+			ownerAddress := args[0]
 			connectionId := args[1]
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.IBCAccount(context.Background(), &types.QueryIBCAccountRequest{Address: address, ConnectionId: connectionId})
+			res, err := queryClient.InterchainAccountAddress(context.Background(), &types.QueryInterchainAccountAddressRequest{OwnerAddress: ownerAddress, ConnectionId: connectionId})
 			if err != nil {
 				return err
 			}
