@@ -15,5 +15,5 @@ message InterchainAccount {
 
   cosmos.auth.v1beta1.BaseAccount base_account = 1
       [(gogoproto.embed) = true, (gogoproto.moretags) = "yaml:\"base_account\""];
-  string account_owner = 2 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string account_owner = 2 [(gogoproto.moretags) = "yaml:\"account_owner\""];
 }

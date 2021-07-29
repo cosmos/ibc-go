@@ -11,8 +11,8 @@
     - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
   
 - [ibc/applications/interchain_accounts/v1/query.proto](#ibc/applications/interchain_accounts/v1/query.proto)
-    - [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountRequest)
-    - [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountResponse)
+    - [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest)
+    - [QueryInterchainAccountAddressResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse)
   
     - [Query](#ibc.applications.interchain_accounts.v1.Query)
   
@@ -335,15 +335,15 @@ GenesisState defines the interchain_account genesis state
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountRequest"></a>
+<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest"></a>
 
-### QueryInterchainAccountRequest
+### QueryInterchainAccountAddressRequest
 Query request for an interchain account address
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | Address is the address to query. |
+| `owner_address` | [string](#string) |  | Owner address is the owner of the interchain account on the controller chain |
 | `connection_id` | [string](#string) |  |  |
 
 
@@ -351,15 +351,15 @@ Query request for an interchain account address
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountResponse"></a>
+<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse"></a>
 
-### QueryInterchainAccountResponse
+### QueryInterchainAccountAddressResponse
 Query response for an interchain account address
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `account_address` | [string](#string) |  | Account defines the account of the corresponding address. |
+| `interchain_account_address` | [string](#string) |  | The corresponding interchain account address on the host chain |
 
 
 
@@ -379,7 +379,7 @@ Query defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `InterchainAccount` | [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountRequest) | [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountResponse) | Query to get the address of an interchain account | |
+| `InterchainAccountAddress` | [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest) | [QueryInterchainAccountAddressResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse) | Query to get the address of an interchain account | |
 
  <!-- end services -->
 

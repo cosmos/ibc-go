@@ -10,21 +10,21 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/27-interchain-account
 // Query defines the gRPC querier service.
 service Query {
   // Query to get the address of an interchain account
-  rpc InterchainAccount(QueryInterchainAccountRequest) returns (QueryInterchainAccountResponse) {}
+  rpc InterchainAccountAddress(QueryInterchainAccountAddressRequest) returns (QueryInterchainAccountAddressResponse) {}
 }
 
 // Query request for an interchain account address
-message QueryInterchainAccountRequest {
+message QueryInterchainAccountAddressRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // Address is the address to query.
-  string address       = 1;
-  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  // Owner address is the owner of the interchain account on the controller chain
+  string owner_address = 1;
+  string connection_id = 2;
 }
 
 // Query response for an interchain account address
-message QueryInterchainAccountResponse {
-  // Account defines the account of the corresponding address.
-  string account_address = 1 [(gogoproto.moretags) = "yaml:\"account_address\""];
+message QueryInterchainAccountAddressResponse {
+  // The corresponding interchain account address on the host chain
+  string interchain_account_address = 1;
 }
