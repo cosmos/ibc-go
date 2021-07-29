@@ -1,0 +1,34 @@
+syntax = "proto3";
+package ibc.applications.interchain_accounts.v1;
+
+import "google/protobuf/any.proto";
+import "gogoproto/gogo.proto";
+option go_package = "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types";
+
+// Raw tx body
+message IBCTxRaw {
+  bytes body_bytes = 1 [(gogoproto.moretags) = "yaml:\"body_bytes\""];
+}
+
+// Body of a tx
+message IBCTxBody {
+  repeated google.protobuf.Any messages = 1;
+}
+
+// Different types of interchain account transactions
+enum Type {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // Execute message type
+  TYPE_EXECUTE_TX_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "EXECUTE_TX"];
+}
+
+// Packet data is comprised of raw transaction & type of transaction
+message IBCAccountPacketData {
+  Type  type = 1;
+  bytes data = 2;
+}
+
+// Account address type returns a stringified interchain account address
+message AccountAddress {
+  string address = 1;
+}

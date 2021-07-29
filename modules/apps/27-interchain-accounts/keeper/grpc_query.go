@@ -13,8 +13,8 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// IBCAccount implements the Query/IBCAccount gRPC method
-func (k Keeper) IBCAccount(ctx context.Context, req *types.QueryIBCAccountRequest) (*types.QueryIBCAccountResponse, error) {
+// InterchainAccount implements the Query/InterchainAccount gRPC method
+func (k Keeper) InterchainAccount(ctx context.Context, req *types.QueryInterchainAccountRequest) (*types.QueryInterchainAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -31,5 +31,5 @@ func (k Keeper) IBCAccount(ctx context.Context, req *types.QueryIBCAccountReques
 		return nil, err
 	}
 
-	return &types.QueryIBCAccountResponse{AccountAddress: address}, nil
+	return &types.QueryInterchainAccountResponse{AccountAddress: address}, nil
 }

@@ -1,0 +1,30 @@
+syntax = "proto3";
+package ibc.applications.interchain_accounts.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "ibc/applications/interchain_accounts/v1/account.proto";
+
+option go_package = "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Query to get the address of an interchain account
+  rpc InterchainAccount(QueryInterchainAccountRequest) returns (QueryInterchainAccountResponse) {}
+}
+
+// Query request for an interchain account address
+message QueryInterchainAccountRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // address is the address to query.
+  string address       = 1;
+  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+}
+
+// Query response for an interchain account address
+message QueryInterchainAccountResponse {
+  // account defines the account of the corresponding address.
+  string account_address = 1 [(gogoproto.moretags) = "yaml:\"account_address\""];
+}

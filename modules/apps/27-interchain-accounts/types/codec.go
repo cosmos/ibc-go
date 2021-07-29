@@ -9,14 +9,14 @@ import (
 // RegisterLegacyAminoCodec registers the account interfaces and concrete types on the
 // provided LegacyAmino codec. These types are used for Amino JSON serialization
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterInterface((*IBCAccountI)(nil), nil)
-	cdc.RegisterConcrete(&IBCAccount{}, "27-interchain-accounts/IBCAccount", nil)
+	cdc.RegisterInterface((*InterchainAccountI)(nil), nil)
+	cdc.RegisterConcrete(&InterchainAccount{}, "27-interchain-accounts/InterchainAccount", nil)
 }
 
 // RegisterInterface associates protoName with AccountI interface
 // and creates a registry of it's concrete implementations
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*authtypes.AccountI)(nil), &IBCAccount{})
+	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
 }
 
 var (
