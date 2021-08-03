@@ -273,3 +273,35 @@ func TestValidateRestartGenesisState(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateParentGenesisState(t *testing.T) {
+	pk1, err := cryptocodec.ToTmProtoPublicKey(ed25519.GenPrivKey().PubKey())
+	require.NoError(t, err)
+	pk2, err := cryptocodec.ToTmProtoPublicKey(ed25519.GenPrivKey().PubKey())
+	require.NoError(t, err)
+
+	updates := []abci.ValidatorUpdate{
+		{
+			PubKey: pk1,
+			Power:  30,
+		},
+		{
+			PubKey: pk2,
+			Power:  20,
+		},
+	}
+
+	testCases := []struct {
+		name     string
+		genState types.ParentGenesisState
+		expPass  bool
+	}{
+		{
+			"valid parent genesis with nil updates",
+			types.NewParentGenesisState(
+				[]types.ChildState{types.ChildState{"chainid", "channelid", 1, nil}},
+			),
+			true,
+		},
+	}
+}

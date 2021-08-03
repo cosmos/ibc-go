@@ -2,6 +2,7 @@ package types
 
 import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 )
 
@@ -105,11 +106,11 @@ func (gs ParentGenesisState) Validate() error {
 }
 
 func (cs ChildState) Validate() error {
-	if cs.ChainId == "" {
-		return sdkerrors.Wrap(ErrInvalidChildState, "chain id cannot be blank")
+	if err := host.ClientIdentifierValidator(cs.ChainId); err != nil {
+		return sdkerrors.Wrap(err, "child chain id cannot be blank")
 	}
-	if cs.ChannelId == "" {
-		return sdkerrors.Wrap(ErrInvalidChildState, "channel id cannot be blank")
+	if err := host.ChannelIdentifierValidator(cs.ChannelId); err != nil {
+		return sdkerrors.Wrapf(err, "ccv channel id for %s cannot be blank", cs.ChainId)
 	}
 	return nil
 }
