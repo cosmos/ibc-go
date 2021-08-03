@@ -1,8 +1,10 @@
 package types
 
 import (
-//	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // 29-fee sentinel errors
-var ()
+var (
+	ErrInvalidVersion = sdkerrors.Register(ModuleName, 2, "invalid ICS29 middleware version")
+)

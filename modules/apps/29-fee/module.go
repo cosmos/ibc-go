@@ -1,6 +1,5 @@
 package fee
 
-/*
 import (
 	"context"
 	"encoding/json"
@@ -90,12 +89,14 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	keeper keeper.Keeper
+	app    porttypes.IBCModule
 }
 
 // NewAppModule creates a new 29-fee module
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, app porttypes.IBCModule) AppModule {
 	return AppModule{
 		keeper: k,
+		app:    app,
 	}
 }
 
@@ -191,7 +192,13 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	return nil
+	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
+	if feeVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
+	}
+	// call underlying app's OnChanOpenInit callback with the appVersion
+	return am.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+		chanCap, counterparty, appVersion)
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -206,7 +213,18 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	return nil
+	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
+	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+
+	if feeVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
+	}
+	if cpFeeVersion != feeVersion {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+	}
+	// call underlying app's OnChanOpenTry callback with the app versions
+	return am.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,
+		chanCap, counterparty, appVersion, cpAppVersion)
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -216,7 +234,13 @@ func (am AppModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	return nil
+	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+
+	if cpFeeVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+	}
+	// call underlying app's OnChanOpenAck callback with the counterparty app version.
+	return am.app.OnChanOpenAck(ctx, portID, channelID, cpAppVersion)
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
@@ -225,7 +249,8 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// call underlying app's OnChanOpenConfirm callback.
+	return am.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
 // OnChanCloseInit implements the IBCModule interface
@@ -234,8 +259,8 @@ func (am AppModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// Disallow user-initiated channel closing for 29-fee channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	// TODO: Unescrow all remaining funds for unprocessed packets
+	return am.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
@@ -244,7 +269,8 @@ func (am AppModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// TODO: Unescrow all remaining funds for unprocessed packets
+	return am.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnRecvPacket implements the IBCModule interface.
@@ -274,4 +300,3 @@ func (am AppModule) OnTimeoutPacket(
 ) error {
 	return nil
 }
-*/

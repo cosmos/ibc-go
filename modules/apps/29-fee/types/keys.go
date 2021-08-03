@@ -12,4 +12,6 @@ const (
 
 	// QuerierRoute is the querier route for IBC transfer
 	QuerierRoute = ModuleName
+
+	Version = "fee29-1"
 )
