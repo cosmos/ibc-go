@@ -230,3 +230,53 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		})
 	}
 }
+
+// ChainA is controller, ChainB is host chain
+func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+
+		{
+			"success", func() {}, true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path = NewICAPath(suite.chainA, suite.chainB)
+			owner := "owner"
+			suite.coordinator.SetupConnections(path)
+
+			err := InitInterchainAccount(path.EndpointA, owner)
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanOpenAck()
+			suite.Require().NoError(err)
+
+			tc.malleate() // explicitly change fields in channel and testChannel
+
+			err = suite.chainB.GetSimApp().ICAKeeper.OnChanOpenConfirm(suite.chainA.GetContext(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+
+		})
+	}
+}
