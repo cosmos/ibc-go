@@ -77,8 +77,8 @@ func (k Keeper) OnChanOpenTry(
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
 
-	// TODO: update explanation
-	// Only claim channel capability passed back by IBC module if we do not already own it
+	// On the host chain the capability may only be claimed during the OnChanOpenTry
+	// The capability being claimed in OpenInit is for a controller chain (the port is different)
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return err
 	}
