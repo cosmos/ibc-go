@@ -72,7 +72,7 @@ func (k Keeper) createOutgoingPacket(
 	}
 
 	packetData := types.IBCAccountPacketData{
-		Type: types.Type_RUNTX,
+		Type: types.EXECUTE_TX,
 		Data: txBytes,
 	}
 
@@ -206,7 +206,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	}
 
 	switch data.Type {
-	case types.Type_RUNTX:
+	case types.EXECUTE_TX:
 		msgs, err := k.DeserializeTx(ctx, data.Data)
 		if err != nil {
 			return err

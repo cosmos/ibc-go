@@ -13,23 +13,23 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// IBCAccount implements the Query/IBCAccount gRPC method
-func (k Keeper) IBCAccount(ctx context.Context, req *types.QueryIBCAccountRequest) (*types.QueryIBCAccountResponse, error) {
+// InterchainAccount implements the Query/InterchainAccount gRPC method
+func (k Keeper) InterchainAccountAddress(ctx context.Context, req *types.QueryInterchainAccountAddressRequest) (*types.QueryInterchainAccountAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if req.Address == "" {
+	if req.OwnerAddress == "" {
 		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	portId := k.GeneratePortId(req.Address, req.ConnectionId)
+	portId := k.GeneratePortId(req.OwnerAddress, req.ConnectionId)
 
-	address, err := k.GetInterchainAccountAddress(sdkCtx, portId)
+	interchainAccountAddress, err := k.GetInterchainAccountAddress(sdkCtx, portId)
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.QueryIBCAccountResponse{AccountAddress: address}, nil
+	return &types.QueryInterchainAccountAddressResponse{InterchainAccountAddress: interchainAccountAddress}, nil
 }

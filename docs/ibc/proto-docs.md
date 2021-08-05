@@ -4,6 +4,25 @@
 
 ## Table of Contents
 
+- [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
+    - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
+  
+- [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
+    - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
+  
+- [ibc/applications/interchain_accounts/v1/query.proto](#ibc/applications/interchain_accounts/v1/query.proto)
+    - [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest)
+    - [QueryInterchainAccountAddressResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse)
+  
+    - [Query](#ibc.applications.interchain_accounts.v1.Query)
+  
+- [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
+    - [IBCAccountPacketData](#ibc.applications.interchain_accounts.v1.IBCAccountPacketData)
+    - [IBCTxBody](#ibc.applications.interchain_accounts.v1.IBCTxBody)
+    - [IBCTxRaw](#ibc.applications.interchain_accounts.v1.IBCTxRaw)
+  
+    - [Type](#ibc.applications.interchain_accounts.v1.Type)
+  
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
     - [FungibleTokenPacketData](#ibc.applications.transfer.v1.FungibleTokenPacketData)
@@ -243,6 +262,201 @@
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/account.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/account.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccount"></a>
+
+### InterchainAccount
+An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
+| `account_owner` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/genesis.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain_account genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/query.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest"></a>
+
+### QueryInterchainAccountAddressRequest
+Query request for an interchain account address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner_address` | [string](#string) |  | Owner address is the owner of the interchain account on the controller chain |
+| `connection_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse"></a>
+
+### QueryInterchainAccountAddressResponse
+Query response for an interchain account address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `interchain_account_address` | [string](#string) |  | The corresponding interchain account address on the host chain |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.v1.Query"></a>
+
+### Query
+Query defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `InterchainAccountAddress` | [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest) | [QueryInterchainAccountAddressResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse) | Query to get the address of an interchain account | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/types.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.IBCAccountPacketData"></a>
+
+### IBCAccountPacketData
+Packet data is comprised of raw transaction & type of transaction
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.IBCTxBody"></a>
+
+### IBCTxBody
+Body of a tx for an ics27 IBC packet
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.IBCTxRaw"></a>
+
+### IBCTxRaw
+Raw tx body
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `body_bytes` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.applications.interchain_accounts.v1.Type"></a>
+
+### Type
+The different types of interchain account transactions
+EXECUTE_TX is used when sending a TX from the controller side to the host side. The host side will execute the tx on
+behalf of the interchain account.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TYPE_EXECUTE_TX_UNSPECIFIED | 0 | Execute message type |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
 
 
 
