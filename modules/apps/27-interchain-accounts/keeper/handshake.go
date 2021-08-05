@@ -77,21 +77,14 @@ func (k Keeper) OnChanOpenTry(
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
 
-	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-	// If module can already authenticate the capability then module already owns it so we don't need to claim
-	// Otherwise, module does not have channel capability and we must claim it from IBC
-	if !k.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		// Only claim channel capability passed back by IBC module if we do not already own it
-		if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return err
-		}
+	// TODO: update explanation
+	// Only claim channel capability passed back by IBC module if we do not already own it
+	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		return err
 	}
 
 	// Register interchain account if it does not already exist
-	if err := k.RegisterInterchainAccount(ctx, counterparty.PortId); err != nil {
-		return err
-	}
+	k.RegisterInterchainAccount(ctx, counterparty.PortId)
 	return nil
 }
 

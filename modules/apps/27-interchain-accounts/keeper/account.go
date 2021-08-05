@@ -41,12 +41,13 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionId, owner strin
 }
 
 // Register interchain account if it has not already been created
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) error {
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) {
 	address := k.GenerateAddress(portId)
 	account := k.accountKeeper.GetAccount(ctx, address)
 
 	if account != nil {
-		return sdkerrors.Wrap(types.ErrAccountAlreadyExist, account.String())
+		// account already created, return no-op
+		return
 	}
 
 	interchainAccount := types.NewIBCAccount(
@@ -57,7 +58,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) error 
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
 	_ = k.SetInterchainAccountAddress(ctx, portId, interchainAccount.Address)
 
-	return nil
+	return
 }
 
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portId string, address string) string {
