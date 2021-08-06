@@ -18,9 +18,8 @@ message QueryInterchainAccountAddressRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // Owner address is the owner of the interchain account on the controller chain
-  string owner_address = 1;
-  string connection_id = 2;
+  // Counterparty PortID is the portID on the controller chain
+  string counterparty_port_id = 1;
 }
 
 // Query response for an interchain account address
