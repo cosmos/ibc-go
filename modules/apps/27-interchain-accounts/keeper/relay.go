@@ -12,15 +12,16 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
-func (k Keeper) TrySendTx(ctx sdk.Context, accountOwner sdk.AccAddress, connectionId string, data interface{}) ([]byte, error) {
-	portId := k.GeneratePortId(accountOwner.String(), connectionId)
+// TODO: implement middleware functionality, this will allow us to use capabilities to
+// manage helper module access to owner addresses they do not have capabilities for
+func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}) ([]byte, error) {
 	// Check for the active channel
-	activeChannelId, found := k.GetActiveChannel(ctx, portId)
+	activeChannelId, found := k.GetActiveChannel(ctx, portID)
 	if !found {
 		return nil, types.ErrActiveChannelNotFound
 	}
 
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portId, activeChannelId)
+	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelId)
 	if !found {
 		return []byte{}, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
 	}
@@ -28,7 +29,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, accountOwner sdk.AccAddress, connecti
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portId, activeChannelId, destinationPort, destinationChannel, data)
+	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, data)
 }
 
 func (k Keeper) createOutgoingPacket(

@@ -14,7 +14,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		channel *channeltypes.Channel
 		path    *ibctesting.Path
 		chanCap *capabilitytypes.Capability
-		err     error
 	)
 
 	testCases := []struct {
@@ -63,7 +62,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
-			portID := suite.chainA.GetSimApp().ICAKeeper.GeneratePortId("owner", path.EndpointA.ConnectionID)
+			portID, err := types.GeneratePortID("owner", path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			suite.Require().NoError(err)
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
 			suite.chainA.GetSimApp().ICAKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
 			path.EndpointA.ChannelConfig.PortID = portID

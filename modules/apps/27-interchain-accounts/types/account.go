@@ -9,7 +9,9 @@ import (
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 )
 
@@ -23,8 +25,12 @@ const (
 // 'ics-27-<connectionSequence>-<counterpartyConnectionSequence>-<owner-address>'
 // https://github.com/seantking/ibc/tree/sean/ics-27-updates/spec/app/ics-027-interchain-accounts#registering--controlling-flows
 // TODO: update link to spec
+// TODO:
 func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (string, error) {
-	ownerId := strings.TrimSpace(owner)
+	ownerID := strings.TrimSpace(owner)
+	if ownerID == "" {
+		return "", sdkerrors.Wrap(ErrInvalidOwnerAddress, "owner address cannot be empty")
+	}
 	connectionSeq, err := connectiontypes.ParseConnectionSequence(connectionID)
 	if err != nil {
 		return "", err
@@ -34,8 +40,8 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 		return "", err
 	}
 
-	portId := fmt.Sprintf("%s-%s-%s-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, ownerId)
-	return portId, nil
+	portID := fmt.Sprintf("%s-%d-%d-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, ownerID)
+	return portID, nil
 }
 
 type InterchainAccountI interface {

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -32,7 +33,8 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		*/
 		{
 			"MsgChanOpenInit fails - channel is already active", func() {
-				portID := suite.chainA.GetSimApp().ICAKeeper.GeneratePortId(owner, path.EndpointA.ConnectionID)
+				portID, err := types.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+				suite.Require().NoError(err)
 				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)
 			}, false,
 		},
@@ -49,7 +51,7 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = suite.chainA.GetSimApp().ICAKeeper.InitInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner)
+			err = suite.chainA.GetSimApp().ICAKeeper.InitInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, path.EndpointB.ConnectionID, owner)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
