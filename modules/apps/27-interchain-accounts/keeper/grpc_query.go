@@ -24,7 +24,7 @@ func (k Keeper) InterchainAccountAddress(ctx context.Context, req *types.QueryIn
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	portId := k.GeneratePortId(req.OwnerAddress, req.ConnectionId)
+	portID, err := types.GeneratePortID(req.OwnerAddress, req.ConnectionId, req.)
 
 	interchainAccountAddress, err := k.GetInterchainAccountAddress(sdkCtx, portId)
 	if err != nil {

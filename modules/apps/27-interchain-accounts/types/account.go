@@ -3,17 +3,40 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 )
 
 const (
-	IcaPrefix string = "ics27-1-"
+	ICAPrefix string = "ics-27"
 )
+
+// GeneratePortID generates the portID for a specific owner
+// on the controller chain in the format:
+//
+// 'ics-27-<connectionSequence>-<counterpartyConnectionSequence>-<owner-address>'
+// https://github.com/seantking/ibc/tree/sean/ics-27-updates/spec/app/ics-027-interchain-accounts#registering--controlling-flows
+// TODO: update link to spec
+func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (string, error) {
+	ownerId := strings.TrimSpace(owner)
+	connectionSeq, err := connectiontypes.ParseConnectionSequence(connectionID)
+	if err != nil {
+		return "", err
+	}
+	counterpartyConnectionSeq, err := connectiontypes.ParseConnectionSequence(counterpartyConnectionID)
+	if err != nil {
+		return "", err
+	}
+
+	portId := fmt.Sprintf("%s-%s-%s-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, ownerId)
+	return portId, nil
+}
 
 type InterchainAccountI interface {
 	authtypes.AccountI

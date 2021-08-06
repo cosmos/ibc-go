@@ -17,8 +17,11 @@ import (
 // call 04-channel 'ChanOpenInit'. An error is returned if the port identifier is
 // already in use. Gaining access to interchain accounts whose channels have closed
 // cannot be done with this function. A regular MsgChanOpenInit must be used.
-func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionId, owner string) error {
-	portId := k.GeneratePortId(owner, connectionId)
+func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpartyConnectionID, owner string) error {
+	portId, err := types.GeneratePortID(owner, connectionID, counterpartyConnectionID)
+	if err != nil {
+		return err
+	}
 
 	// check if the port is already bound
 	if k.IsBound(ctx, portId) {
@@ -26,12 +29,12 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionId, owner strin
 	}
 
 	portCap := k.portKeeper.BindPort(ctx, portId)
-	err := k.ClaimCapability(ctx, portCap, host.PortPath(portId))
+	err = k.ClaimCapability(ctx, portCap, host.PortPath(portId))
 	if err != nil {
 		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portId, types.Version, channeltypes.ORDERED, []string{connectionId}, types.PortID, types.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portId, types.Version, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
 	handler := k.msgRouter.Handler(msg)
 	if _, err := handler(ctx, msg); err != nil {
 		return err
