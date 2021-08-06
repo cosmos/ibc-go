@@ -25,7 +25,6 @@ const (
 // 'ics-27-<connectionSequence>-<counterpartyConnectionSequence>-<owner-address>'
 // https://github.com/seantking/ibc/tree/sean/ics-27-updates/spec/app/ics-027-interchain-accounts#registering--controlling-flows
 // TODO: update link to spec
-// TODO:
 func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (string, error) {
 	ownerID := strings.TrimSpace(owner)
 	if ownerID == "" {
@@ -33,11 +32,11 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 	}
 	connectionSeq, err := connectiontypes.ParseConnectionSequence(connectionID)
 	if err != nil {
-		return "", err
+		return "", sdkerrors.Wrap(err, "invalid connection identifier")
 	}
 	counterpartyConnectionSeq, err := connectiontypes.ParseConnectionSequence(counterpartyConnectionID)
 	if err != nil {
-		return "", err
+		return "", sdkerrors.Wrap(err, "invalid counterparty connection identifier")
 	}
 
 	portID := fmt.Sprintf("%s-%d-%d-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, ownerID)
