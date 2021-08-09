@@ -39,9 +39,10 @@ func (k Keeper) OnChanOpenInit(
 	if version != types.Version {
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelVersion, "channel version must be '%s' (%s != %s)", types.Version, version, types.Version)
 	}
-	channelID, found := k.GetActiveChannel(ctx, portID)
+
+	existingChannelID, found := k.GetActiveChannel(ctx, portID)
 	if found {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel (%s) for portID (%s)", channelID, portID)
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel (%s) for portID (%s)", existingChannelID, portID)
 	}
 
 	// Claim channel capability passed back by IBC module

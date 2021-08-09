@@ -10,7 +10,7 @@ const (
 	// module supports
 	Version = "ics27-1"
 
-	PortID = "interchain-account"
+	PortID = "ibcaccount"
 
 	StoreKey  = ModuleName
 	RouterKey = ModuleName
