@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	baseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -121,19 +120,6 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
-}
-
-// Utility function for parsing the connection number from the connection-id
-func getConnectionNumber(connectionId string) string {
-	ss := strings.Split(connectionId, "-")
-	return ss[len(ss)-1]
-}
-
-func (k Keeper) GeneratePortId(owner, connectionId string) string {
-	ownerId := strings.TrimSpace(owner)
-	connectionNumber := getConnectionNumber(connectionId)
-	portId := types.IcaPrefix + connectionNumber + "-" + ownerId
-	return portId
 }
 
 func (k Keeper) SetActiveChannel(ctx sdk.Context, portId, channelId string) error {

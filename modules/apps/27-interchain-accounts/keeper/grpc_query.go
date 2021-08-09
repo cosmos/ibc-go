@@ -19,14 +19,13 @@ func (k Keeper) InterchainAccountAddress(ctx context.Context, req *types.QueryIn
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if req.OwnerAddress == "" {
-		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
+	if req.CounterpartyPortId == "" {
+		return nil, status.Error(codes.InvalidArgument, "counterparty portID cannot be empty")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	portId := k.GeneratePortId(req.OwnerAddress, req.ConnectionId)
 
-	interchainAccountAddress, err := k.GetInterchainAccountAddress(sdkCtx, portId)
+	interchainAccountAddress, err := k.GetInterchainAccountAddress(sdkCtx, req.CounterpartyPortId)
 	if err != nil {
 		return nil, err
 	}

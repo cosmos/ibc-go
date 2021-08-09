@@ -41,11 +41,15 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 }
 
 // InitInterchainAccount is a helper function for starting the channel handshake
+// TODO: parse identifiers from events
 func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
-	portID := endpoint.Chain.GetSimApp().ICAKeeper.GeneratePortId(owner, endpoint.ConnectionID)
+	portID, err := types.GeneratePortID(owner, endpoint.ConnectionID, endpoint.Counterparty.ConnectionID)
+	if err != nil {
+		return err
+	}
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
 		return err
 	}
 

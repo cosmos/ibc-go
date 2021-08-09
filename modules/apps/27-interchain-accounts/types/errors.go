@@ -15,4 +15,5 @@ var (
 	ErrInterchainAccountAlreadySet = sdkerrors.Register(ModuleName, 9, "Interchain Account is already set")
 	ErrActiveChannelNotFound       = sdkerrors.Register(ModuleName, 10, "no active channel for this owner")
 	ErrInvalidVersion              = sdkerrors.Register(ModuleName, 11, "invalid interchain accounts version")
+	ErrInvalidOwnerAddress         = sdkerrors.Register(ModuleName, 12, "invalid owner address")
 )

@@ -343,8 +343,7 @@ Query request for an interchain account address
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `owner_address` | [string](#string) |  | Owner address is the owner of the interchain account on the controller chain |
-| `connection_id` | [string](#string) |  |  |
+| `counterparty_port_id` | [string](#string) |  | Counterparty PortID is the portID on the controller chain |
 
 
 
