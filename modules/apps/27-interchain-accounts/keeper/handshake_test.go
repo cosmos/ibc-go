@@ -221,12 +221,15 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion,
 			)
 
+			expectedActiveChannel := "channel-0"
+			activeChannel, _ := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			suite.Require().Equal(activeChannel, expectedActiveChannel)
+
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
