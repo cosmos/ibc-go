@@ -1,4 +1,4 @@
-package ibc_account
+package interchain_account
 
 import (
 	"encoding/json"
@@ -217,6 +217,12 @@ func (am AppModule) OnRecvPacket(
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err.Error())
 		}
+
+		// If the packet sequence is 1 add the interchain account address to the acknowledgement
+		if packet.Sequence == 1 {
+			interchainAccountAddress := am.keeper.GenerateAddress(packet.GetSourcePort())
+			ack = channeltypes.NewResultAcknowledgement(interchainAccountAddress)
+		}
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
@@ -234,6 +240,7 @@ func (am AppModule) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 interchain account packet acknowledgment: %v", err)
 	}
+
 	var data types.IBCAccountPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 interchain account packet data: %s", err.Error())
@@ -241,6 +248,11 @@ func (am AppModule) OnAcknowledgementPacket(
 
 	if err := am.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
 		return err
+	}
+
+	if packet.Sequence == 1 && ack.Success() {
+		// pass interchain account address into base applications
+		// connected to the middleware
 	}
 
 	return nil

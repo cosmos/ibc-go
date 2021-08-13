@@ -1,4 +1,4 @@
-package ibc_account
+package interchain_account
 
 import (
 	"fmt"
