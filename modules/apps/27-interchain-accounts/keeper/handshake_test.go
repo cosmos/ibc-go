@@ -185,6 +185,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 	var (
 		path                *ibctesting.Path
+		expectedChannel     string
 		counterpartyVersion string
 	)
 
@@ -193,9 +194,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
+		},
+		{
+			"invalid counterparty version", func() {
+				expectedChannel = ""
+				counterpartyVersion = "version"
+			}, false,
 		},
 	}
 
@@ -214,6 +220,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
+			expectedChannel = path.EndpointA.ChannelID
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
@@ -221,9 +228,9 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion,
 			)
 
-			expectedActiveChannel := "channel-0"
 			activeChannel, _ := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().Equal(activeChannel, expectedActiveChannel)
+
+			suite.Require().Equal(activeChannel, expectedChannel)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
