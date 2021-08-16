@@ -34,6 +34,18 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				portID = "incorrect portID"
 			}, false,
 		},
+		{
+			"data is nil", func() {
+				msg = nil
+				portID = path.EndpointA.ChannelConfig.PortID
+			}, false,
+		},
+		{
+			"data is not an SDK message", func() {
+				msg = "not an sdk message"
+				portID = path.EndpointA.ChannelConfig.PortID
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
