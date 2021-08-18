@@ -221,4 +221,4 @@ different chains. If you want to have a broader view of the changes take a look 
 
 ## Next {hide}
 
-Learn about how to create [custom IBC modules](./custom.md) for your application {hide}
+Learn about how to create [custom IBC modules](./apps.md) for your application {hide}
