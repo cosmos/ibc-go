@@ -23,7 +23,7 @@ var (
 
 // NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
-	denom string, amount uint64,
+	denom string, amount string,
 	sender, receiver string,
 ) FungibleTokenPacketData {
 	return FungibleTokenPacketData{
@@ -38,8 +38,8 @@ func NewFungibleTokenPacketData(
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to IBC.
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
-	if ftpd.Amount == 0 {
-		return sdkerrors.Wrap(ErrInvalidAmount, "amount cannot be 0")
+	if _, ok := sdk.NewIntFromString(ftpd.Amount); !ok {
+		return sdkerrors.Wrapf(ErrInvalidAmount, "invalid big.Int %s", ftpd.Amount)
 	}
 	if strings.TrimSpace(ftpd.Sender) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
