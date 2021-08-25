@@ -144,7 +144,7 @@ func (k Keeper) SendTransfer(
 	}
 
 	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.Uint64(), sender.String(), receiver,
+		fullDenomPath, token.Amount.String(), sender.String(), receiver,
 	)
 
 	packet := channeltypes.NewPacket(
@@ -200,6 +200,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
+	// parse the transfer amount
+	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	if !ok {
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+	}
+
 	labels := []metrics.Label{
 		telemetry.NewLabel(coretypes.LabelSourcePort, packet.GetSourcePort()),
 		telemetry.NewLabel(coretypes.LabelSourceChannel, packet.GetSourceChannel()),
@@ -229,7 +235,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if denomTrace.Path != "" {
 			denom = denomTrace.IBCDenom()
 		}
-		token := sdk.NewCoin(denom, sdk.NewIntFromUint64(data.Amount))
+		token := sdk.NewCoin(denom, transferAmount)
 
 		// unescrow tokens
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
@@ -244,7 +250,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		defer func() {
 			telemetry.SetGaugeWithLabels(
 				[]string{"ibc", types.ModuleName, "packet", "receive"},
-				float32(data.Amount),
+				float32(transferAmount.Int64()),
 				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, unprefixedDenom)},
 			)
 
@@ -283,8 +289,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
 		),
 	)
-
-	voucher := sdk.NewCoin(voucherDenom, sdk.NewIntFromUint64(data.Amount))
+	voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
 	// mint new tokens if the source of the transfer is the same chain
 	if err := k.bankKeeper.MintCoins(
@@ -303,7 +308,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	defer func() {
 		telemetry.SetGaugeWithLabels(
 			[]string{"ibc", types.ModuleName, "packet", "receive"},
-			float32(data.Amount),
+			float32(transferAmount.Int64()),
 			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, data.Denom)},
 		)
 
@@ -350,7 +355,12 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	// parse the denomination from the full denom path
 	trace := types.ParseDenomTrace(data.Denom)
 
-	token := sdk.NewCoin(trace.IBCDenom(), sdk.NewIntFromUint64(data.Amount))
+	// parse the transfer amount
+	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	if !ok {
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+	}
+	token := sdk.NewCoin(trace.IBCDenom(), transferAmount)
 
 	// decode the sender address
 	sender, err := sdk.AccAddressFromBech32(data.Sender)
