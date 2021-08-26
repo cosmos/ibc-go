@@ -34,6 +34,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### API Breaking
+
+* (core) [\#227](https://github.com/cosmos/ibc-go/pull/227) Remove sdk.Result from application callbacks
+
+### State Machine Breaking
+
+* (24-host) [#\344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters. 
+
 ## [v1.0.0](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0) - 2021-08-10
 
 ### Bug Fixes
