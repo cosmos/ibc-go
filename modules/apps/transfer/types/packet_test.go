@@ -24,6 +24,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		{"valid packet with large amount", NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2), true},
 		{"invalid denom", NewFungibleTokenPacketData("", amount, addr1, addr2), false},
 		{"invalid empty amount", NewFungibleTokenPacketData(denom, "", addr1, addr2), false},
+		{"invalid zero amount", NewFungibleTokenPacketData(denom, "0", addr1, addr2), false},
 		{"invalid large amount", NewFungibleTokenPacketData(denom, invalidLargeAmount, addr1, addr2), false},
 		{"missing sender address", NewFungibleTokenPacketData(denom, amount, emptyAddr, addr2), false},
 		{"missing recipient address", NewFungibleTokenPacketData(denom, amount, addr1, emptyAddr), false},
