@@ -26,6 +26,7 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
+	hooks         types.TransferHooks
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
