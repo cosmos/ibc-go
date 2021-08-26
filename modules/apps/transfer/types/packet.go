@@ -38,7 +38,7 @@ func NewFungibleTokenPacketData(
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to IBC.
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
-	if amount, ok := sdk.NewIntFromString(ftpd.Amount); !ok || !amount.IsZero() {
+	if amount, ok := sdk.NewIntFromString(ftpd.Amount); !ok || amount.IsZero() {
 		return sdkerrors.Wrapf(ErrInvalidAmount, "invalid big.Int %s", ftpd.Amount)
 	}
 	if strings.TrimSpace(ftpd.Sender) == "" {
