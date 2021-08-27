@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 )
@@ -18,6 +19,11 @@ import (
 const (
 	ICAPrefix string = "ics-27"
 )
+
+// GenerateAddress returns a truncated SHA256 hash using the provided port string
+func GenerateAddress(port string) []byte {
+	return tmhash.SumTruncated([]byte(port))
+}
 
 // GeneratePortID generates the portID for a specific owner
 // on the controller chain in the format:
