@@ -11,19 +11,22 @@
 
 /.github/CODEOWNERS @colin-axner @AdityaSripal @crodriguezvega
 
-
 # CODEOWNERS for the core IBC module
 
 /modules/core/ @colin-axner @fedekunze @AdityaSripal 
+/proto/core/ @colin-axner @fedekunze @AdityaSripal 
 
 # CODEOWNERS for the light-clients
 
 /modules/light-clients/ @colin-axner @fedekunze @AdityaSripal 
+/proto/lightclients/ @colin-axner @fedekunze @AdityaSripal 
 
 # CODEOWNERS for ICS 20
 
 /modules/apps/transfer/ @colin-axner @fedekunze @AdityaSripal 
+/proto/applications/transfer/ @colin-axner @fedekunze @AdityaSripal 
 
 # CODEOWNERS for interchain-accounts module
 
 /modules/apps/27-interchain-accounts/ @seantking @colin-axner @AdityaSripal
+/proto/applications/interchain_accounts/ @seantking @colin-axner @AdityaSripal
