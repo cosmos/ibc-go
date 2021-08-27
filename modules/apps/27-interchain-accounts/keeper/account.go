@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
@@ -45,9 +44,9 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 
 // Register interchain account if it has not already been created
 func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) {
-	address := k.GenerateAddress(portId)
-	account := k.accountKeeper.GetAccount(ctx, address)
+	address := types.GenerateAddress(portId)
 
+	account := k.accountKeeper.GetAccount(ctx, address)
 	if account != nil {
 		// account already created, return no-op
 		return
@@ -57,11 +56,10 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) {
 		authtypes.NewBaseAccountWithAddress(address),
 		portId,
 	)
+
 	k.accountKeeper.NewAccount(ctx, interchainAccount)
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
 	_ = k.SetInterchainAccountAddress(ctx, portId, interchainAccount.Address)
-
-	return
 }
 
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portId string, address string) string {
@@ -80,11 +78,6 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portId string) (str
 
 	interchainAccountAddr := string(store.Get(key))
 	return interchainAccountAddr, nil
-}
-
-// Determine account's address that will be created.
-func (k Keeper) GenerateAddress(identifier string) []byte {
-	return tmhash.SumTruncated(append([]byte(identifier)))
 }
 
 func (k Keeper) GetInterchainAccount(ctx sdk.Context, addr sdk.AccAddress) (types.InterchainAccount, error) {

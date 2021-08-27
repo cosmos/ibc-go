@@ -330,7 +330,7 @@ func NewSimApp(
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
 	app.ICAKeeper = icakeeper.NewKeeper(
-		keys[icatypes.MemStoreKey], appCodec, keys[icatypes.StoreKey],
+		appCodec, keys[icatypes.StoreKey],
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(), app,
 	)
