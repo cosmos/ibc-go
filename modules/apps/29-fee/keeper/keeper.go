@@ -1,9 +1,6 @@
 package keeper
 
-/*
 import (
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -11,9 +8,10 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
-// Keeper defines the IBC fungible transfer keeper
+// Keeper defines the IBC29 fee keeper
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
@@ -24,7 +22,6 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
-
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
@@ -84,4 +81,3 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
-*/

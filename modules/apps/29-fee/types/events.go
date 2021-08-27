@@ -1,4 +1,6 @@
 package types
 
 // 29-fee events
-const ()
+const (
+	EventTypeRegisterCounterpartyAddress = "register_counterparty_address"
+)
