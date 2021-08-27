@@ -29,7 +29,13 @@ const (
 
 	// DenomPrefix is the prefix used for internal SDK coin representation.
 	DenomPrefix = "ibc"
+
+	KeyAppCapability = "app_capabilities"
 )
+
+func AppCapabilityName(channelID, portID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyAppCapability, channelID, portID)
+}
 
 var (
 	// PortKey defines the key to store the port ID in store

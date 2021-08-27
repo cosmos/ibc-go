@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"math"
 	"math/rand"
 
@@ -37,7 +38,8 @@ var (
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+}
 
 // Name implements AppModuleBasic interface
 func (AppModuleBasic) Name() string {
@@ -92,7 +94,9 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper       keeper.Keeper
+	scopedKeeper capabilitykeeper.ScopedKeeper
+	app          porttypes.IBCModule
 }
 
 // NewAppModule creates a new 20-transfer module
@@ -100,6 +104,11 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
+}
+
+// SetMiddleware set ICS30 middleware
+func (am AppModule) SetMiddleware(app porttypes.IBCModule) {
+	am.app = app
 }
 
 // RegisterInvariants implements the AppModule interface
@@ -230,7 +239,14 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
+	transferVersion, appVersion := channeltypes.SplitChannelVersion(version)
+
+	if transferVersion == "" {
+		// middleware not supported
+		transferVersion = appVersion
+	}
+
+	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, appVersion); err != nil {
 		return err
 	}
 
@@ -239,6 +255,16 @@ func (am AppModule) OnChanOpenInit(
 		return err
 	}
 
+	// call underlying app's OnChanOpenInit callback with the appVersion
+	if am.app != nil {
+		appCap, err := am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(channelID, portID))
+		if err != nil {
+			return sdkerrors.Wrap(err, "could not create capability for underlying application")
+		}
+
+		return am.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+			appCap, counterparty, appVersion)
+	}
 	return nil
 }
 
@@ -254,13 +280,30 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
-		return err
+	transferVersion, appVersion := channeltypes.SplitChannelVersion(version)
+	if transferVersion == "" {
+		// middleware not supported
+		transferVersion = appVersion
 	}
 
-	if counterpartyVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
+	cpTransferVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+	if cpTransferVersion == "" {
+		// middleware not supported
+		cpTransferVersion = cpAppVersion
 	}
+
+	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, transferVersion); err != nil {
+		return err
+	}
+	if cpTransferVersion != transferVersion {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpTransferVersion)
+	}
+
+	var (
+		appCap *capabilitytypes.Capability
+		err    error
+		ok     bool
+	)
 
 	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
 	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
@@ -271,6 +314,21 @@ func (am AppModule) OnChanOpenTry(
 		if err := am.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return err
 		}
+		appCap, err = am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(channelID, portID))
+		if err != nil {
+			return sdkerrors.Wrap(err, "could not create capability for underlying app")
+		}
+	}
+
+	appCap, ok = am.scopedKeeper.GetCapability(ctx, types.AppCapabilityName(channelID, portID))
+	if !ok {
+		return sdkerrors.Wrap(capabilitytypes.ErrCapabilityNotFound,
+			"could not find app capability on OnChanOpenTry even after OnChanOpenInit called on this chain first (crossing hellos)")
+	}
+	// call underlying app's OnChanOpenTry callback with the app versions
+	if am.app != nil {
+		return am.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,
+			appCap, counterparty, appVersion, cpAppVersion)
 	}
 
 	return nil
@@ -283,9 +341,21 @@ func (am AppModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
+	counterpartyVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+	if counterpartyVersion == "" {
+		// middleware not supported
+		counterpartyVersion = cpAppVersion
+	}
+
 	if counterpartyVersion != types.Version {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
+
+	// call underlying app's OnChanOpenAck callback with the counterparty app version.
+	if am.app != nil {
+		return am.app.OnChanOpenAck(ctx, portID, channelID, cpAppVersion)
+	}
+
 	return nil
 }
 
@@ -295,6 +365,11 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
+	// call underlying app's OnChanOpenConfirm callback.
+	if am.app != nil {
+		return am.app.OnChanOpenConfirm(ctx, portID, channelID)
+	}
+
 	return nil
 }
 
@@ -305,7 +380,11 @@ func (am AppModule) OnChanCloseInit(
 	channelID string,
 ) error {
 	// Disallow user-initiated channel closing for transfer channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	if am.app != nil {
+		return am.app.OnChanCloseInit(ctx, portID, channelID)
+	}
+
+	return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
@@ -314,6 +393,10 @@ func (am AppModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
+	if am.app != nil {
+		return am.app.OnChanCloseConfirm(ctx, portID, channelID)
+	}
+
 	return nil
 }
 
