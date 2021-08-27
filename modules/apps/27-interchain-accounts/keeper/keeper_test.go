@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	expectedAddr := authtypes.NewBaseAccountWithAddress(types.GenerateAddress(counterpartyPortID)).GetAddress()
 
 	retrievdAddress, err := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
-	suite.Require().NoError(err, "SetInterchainAccountAddress failed")
+	suite.Require().NoError(err, "GetInterchainAccountAddress failed")
 	suite.Require().Equal(expectedAddr.String(), retrievdAddress)
 
 	retrievdAddress, err = suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), "invalid port")
