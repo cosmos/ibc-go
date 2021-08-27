@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
@@ -75,4 +76,32 @@ func (suite *KeeperTestSuite) TestIsBound() {
 func (suite *KeeperTestSuite) TestGetPort() {
 	port := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext())
 	suite.Require().Equal(types.PortID, port)
+}
+
+func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.Setup(path)
+
+	counterpartyPortID := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext())
+	expectedAddr := authtypes.NewBaseAccountWithAddress(types.GenerateAddress(counterpartyPortID)).GetAddress()
+
+	retrievdAddress, err := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
+	suite.Require().NoError(err, "SetInterchainAccountAddress failed")
+	suite.Require().Equal(expectedAddr.String(), retrievdAddress)
+
+	retrievdAddress, err = suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), "invalid port")
+	suite.Require().Error(err)
+	suite.Require().Empty(retrievdAddress)
+}
+
+func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.Setup(path)
+
+	counterpartyPortID := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext())
+	expectedAddr := authtypes.NewBaseAccountWithAddress(types.GenerateAddress(counterpartyPortID)).GetAddress()
+
+	retrievdAddress, err := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
+	suite.Require().NoError(err, "SetInterchainAccountAddress failed")
+	suite.Require().Equal(expectedAddr.String(), retrievdAddress)
 }

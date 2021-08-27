@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
@@ -148,4 +149,26 @@ func (k Keeper) IsActiveChannel(ctx sdk.Context, portId string) bool {
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
 func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
 	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
+}
+
+func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portId string) (string, error) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyOwnerAccount(portId)
+
+	if !store.Has(key) {
+		return "", sdkerrors.Wrap(types.ErrInterchainAccountNotFound, portId)
+	}
+
+	interchainAccountAddr := string(store.Get(key))
+
+	return interchainAccountAddr, nil
+}
+
+func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portId string, address string) string {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyOwnerAccount(portId)
+
+	store.Set(key, []byte(address))
+
+	return address
 }
