@@ -159,9 +159,7 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portId string) (str
 		return "", sdkerrors.Wrap(types.ErrInterchainAccountNotFound, portId)
 	}
 
-	interchainAccountAddr := string(store.Get(key))
-
-	return interchainAccountAddr, nil
+	return string(store.Get(key)), nil
 }
 
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portId string, address string) string {
