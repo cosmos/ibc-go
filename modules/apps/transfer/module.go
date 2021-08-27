@@ -246,7 +246,7 @@ func (am AppModule) OnChanOpenInit(
 		transferVersion = appVersion
 	}
 
-	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, appVersion); err != nil {
+	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, transferVersion); err != nil {
 		return err
 	}
 
