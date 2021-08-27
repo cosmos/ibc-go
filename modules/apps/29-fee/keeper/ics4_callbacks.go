@@ -14,6 +14,8 @@ func (k Keeper) SendPacket(
 	channelCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 ) error {
+	// will this work this ics20? SendTransfer
+	// if channelKeeper === ics20 then sendTransfer, otherwise SendPacket
 	return k.channelKeeper.SendPacket(ctx, channelCap, packet)
 }
 
@@ -26,5 +28,9 @@ func (k Keeper) WriteAcknowledgement(
 	packet exported.PacketI,
 	acknowledgement []byte,
 ) error {
+	// retrieve the forward relayer that was stored in `onRecvPacket`
+	// relayer = privateStore.get(forwardRelayerPath(packet))
+	// ack = constructIncentivizedAck(acknowledgment, relayer)
+	// ack_bytes marshal(ack)
 	return k.channelKeeper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 }
