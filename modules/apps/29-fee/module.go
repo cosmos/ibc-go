@@ -1,10 +1,8 @@
 package fee
 
-/*
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -20,12 +18,17 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/transfer/client/cli"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/client/cli"
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+
+	// "github.com/cosmos/ibc-go/modules/apps/29-fee/client/cli"
+	// "github.com/cosmos/ibc-go/modules/apps/29-fee/keeper"
+	// "github.com/cosmos/ibc-go/modules/apps/29-fee/simulation"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 )
 
@@ -48,30 +51,32 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
+	//	types.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
-// transfer module.
+// 29-fee module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	//	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return nil
 }
 
 // ValidateGenesis performs genesis state validation for the 29-fee module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var gs types.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
-	}
+	// var gs types.GenesisState
+	// if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
+	// 	return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	// }
 
-	return gs.Validate()
+	// return gs.Validate()
+	return nil
 }
 
 // RegisterRESTRoutes implements AppModuleBasic interface
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-29-fee module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
@@ -89,13 +94,16 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper       keeper.Keeper
+	scopedKeeper capabilitykeeper.ScopedKeeper
+	app          porttypes.IBCModule
 }
 
 // NewAppModule creates a new 29-fee module
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, app porttypes.IBCModule) AppModule {
 	return AppModule{
 		keeper: k,
+		app:    app,
 	}
 }
 
@@ -121,24 +129,25 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	// types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	// types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
-// InitGenesis performs genesis initialization for the ibc-transfer module. It returns
+// InitGenesis performs genesis initialization for the ibc-29-fee module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	am.keeper.InitGenesis(ctx, genesisState)
+	// var genesisState types.GenesisState
+	// cdc.MustUnmarshalJSON(data, &genesisState)
+	// am.keeper.InitGenesis(ctx, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the ibc-transfer
+// ExportGenesis returns the exported genesis state as raw bytes for the ibc-29-fee
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := am.keeper.ExportGenesis(ctx)
-	return cdc.MustMarshalJSON(gs)
+	// gs := am.keeper.ExportGenesis(ctx)
+	// return cdc.MustMarshalJSON(gs)
+	return nil
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
@@ -155,9 +164,9 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the transfer module.
+// GenerateGenesisState creates a randomized GenState of the 29-fee module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
+	// simulation.RandomizedGenState(simState)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
@@ -165,17 +174,18 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 	return nil
 }
 
-// RandomizedParams creates randomized ibc-transfer param changes for the simulator.
+// RandomizedParams creates randomized ibc-29-fee param changes for the simulator.
 func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return simulation.ParamChanges(r)
+	// return simulation.ParamChanges(r)
+	return nil
 }
 
-// RegisterStoreDecoder registers a decoder for transfer module's types
+// RegisterStoreDecoder registers a decoder for 29-fee module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
+	// sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
 }
 
-// WeightedOperations returns the all the transfer module operations with their respective weights.
+// WeightedOperations returns the all the 29-fee module operations with their respective weights.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }
@@ -191,7 +201,23 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	return nil
+	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
+	if feeVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
+	}
+	// Claim channel capability passed back by IBC module
+	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		return err
+	}
+
+	appCap, err := am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(channelID, portID))
+	if err != nil {
+		return sdkerrors.Wrap(err, "could not create capability for underlying application")
+	}
+
+	// call underlying app's OnChanOpenInit callback with the appVersion
+	return am.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+		appCap, counterparty, appVersion)
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -206,7 +232,42 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	return nil
+	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
+	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+
+	if feeVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
+	}
+	if cpFeeVersion != feeVersion {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+	}
+	var (
+		appCap *capabilitytypes.Capability
+		err    error
+		ok     bool
+	)
+	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
+	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
+	// If module can already authenticate the capability then module already owns it so we don't need to claim
+	// Otherwise, module does not have channel capability and we must claim it from IBC
+	if !am.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		// Only claim channel capability passed back by IBC module if we do not already own it
+		if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return err
+		}
+		appCap, err = am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(channelID, portID))
+		if err != nil {
+			return sdkerrors.Wrap(err, "could not create capability for underlying app")
+		}
+	}
+	appCap, ok = am.scopedKeeper.GetCapability(ctx, types.AppCapabilityName(channelID, portID))
+	if !ok {
+		return sdkerrors.Wrap(capabilitytypes.ErrCapabilityNotFound,
+			"could not find app capability on OnChanOpenTry even after OnChanOpenInit called on this chain first (crossing hellos)")
+	}
+	// call underlying app's OnChanOpenTry callback with the app versions
+	return am.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,
+		appCap, counterparty, appVersion, cpAppVersion)
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -216,7 +277,13 @@ func (am AppModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	return nil
+	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+
+	if cpFeeVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+	}
+	// call underlying app's OnChanOpenAck callback with the counterparty app version.
+	return am.app.OnChanOpenAck(ctx, portID, channelID, cpAppVersion)
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
@@ -225,7 +292,8 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// call underlying app's OnChanOpenConfirm callback.
+	return am.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
 // OnChanCloseInit implements the IBCModule interface
@@ -234,8 +302,8 @@ func (am AppModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// Disallow user-initiated channel closing for 29-fee channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	// TODO: Unescrow all remaining funds for unprocessed packets
+	return am.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
@@ -244,7 +312,8 @@ func (am AppModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// TODO: Unescrow all remaining funds for unprocessed packets
+	return am.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnRecvPacket implements the IBCModule interface.
@@ -274,4 +343,3 @@ func (am AppModule) OnTimeoutPacket(
 ) error {
 	return nil
 }
-*/
