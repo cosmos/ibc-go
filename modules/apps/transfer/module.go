@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"math"
 	"math/rand"
 
@@ -15,6 +14,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -38,8 +38,7 @@ var (
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic
-type AppModuleBasic struct {
-}
+type AppModuleBasic struct {}
 
 // Name implements AppModuleBasic interface
 func (AppModuleBasic) Name() string {
@@ -106,7 +105,7 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	}
 }
 
-// SetMiddleware set ICS30 middleware
+// SetMiddleware sets ICS30 middleware
 func (am AppModule) SetMiddleware(app porttypes.IBCModule) {
 	am.app = app
 }
@@ -242,7 +241,9 @@ func (am AppModule) OnChanOpenInit(
 	transferVersion, appVersion := channeltypes.SplitChannelVersion(version)
 
 	if transferVersion == "" {
-		// middleware not supported
+		// This may occur if:
+		// - transfer is acting as the base application in the middleware stack
+		// - the connected base application has chosen not to append its own
 		transferVersion = appVersion
 	}
 
@@ -282,13 +283,17 @@ func (am AppModule) OnChanOpenTry(
 ) error {
 	transferVersion, appVersion := channeltypes.SplitChannelVersion(version)
 	if transferVersion == "" {
-		// middleware not supported
+		// This may occur if:
+		// - transfer is acting as the base application in the middleware stack
+		// - the connected base application has chosen not to append its own
 		transferVersion = appVersion
 	}
 
 	cpTransferVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
 	if cpTransferVersion == "" {
-		// middleware not supported
+		// This may occur if:
+		// - transfer is acting as the base application in the middleware stack
+		// - the connected base application has chosen not to append its own
 		cpTransferVersion = cpAppVersion
 	}
 
@@ -322,8 +327,8 @@ func (am AppModule) OnChanOpenTry(
 
 	appCap, ok = am.scopedKeeper.GetCapability(ctx, types.AppCapabilityName(channelID, portID))
 	if !ok {
-		return sdkerrors.Wrap(capabilitytypes.ErrCapabilityNotFound,
-			"could not find app capability on OnChanOpenTry even after OnChanOpenInit called on this chain first (crossing hellos)")
+		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound,
+			"could not find app capability for channel %s and port %s", channelID, portID)
 	}
 	// call underlying app's OnChanOpenTry callback with the app versions
 	if am.app != nil {
@@ -343,7 +348,9 @@ func (am AppModule) OnChanOpenAck(
 ) error {
 	counterpartyVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
 	if counterpartyVersion == "" {
-		// middleware not supported
+		// This may occur if:
+		// - transfer is acting as the base application in the middleware stack
+		// - the connected base application has chosen not to append its own
 		counterpartyVersion = cpAppVersion
 	}
 
@@ -380,11 +387,7 @@ func (am AppModule) OnChanCloseInit(
 	channelID string,
 ) error {
 	// Disallow user-initiated channel closing for transfer channels
-	if am.app != nil {
-		return am.app.OnChanCloseInit(ctx, portID, channelID)
-	}
-
-	return nil
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
