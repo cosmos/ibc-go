@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
@@ -151,22 +150,20 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
 }
 
-func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portId string) (string, error) {
+// GetInterchainAccountAddress retrieves the InterchainAccount address from the store keyed by the provided portID
+func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyOwnerAccount(portId)
+	key := types.KeyOwnerAccount(portID)
 
 	if !store.Has(key) {
-		return "", sdkerrors.Wrap(types.ErrInterchainAccountNotFound, portId)
+		return "", false
 	}
 
-	return string(store.Get(key)), nil
+	return string(store.Get(key)), true
 }
 
-func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portId string, address string) string {
+// SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated portID
+func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, address string) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyOwnerAccount(portId)
-
-	store.Set(key, []byte(address))
-
-	return address
+	store.Set(types.KeyOwnerAccount(portID), []byte(address))
 }

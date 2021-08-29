@@ -59,7 +59,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) {
 
 	k.accountKeeper.NewAccount(ctx, interchainAccount)
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
-	_ = k.SetInterchainAccountAddress(ctx, portId, interchainAccount.Address)
+	k.SetInterchainAccountAddress(ctx, portId, interchainAccount.Address)
 }
 
 func (k Keeper) GetInterchainAccount(ctx sdk.Context, addr sdk.AccAddress) (types.InterchainAccount, error) {

@@ -136,8 +136,8 @@ func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) e
 		}
 	}
 
-	interchainAccountAddr, err := k.GetInterchainAccountAddress(ctx, portId)
-	if err != nil {
+	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portId)
+	if !found {
 		return sdkerrors.ErrUnauthorized
 	}
 

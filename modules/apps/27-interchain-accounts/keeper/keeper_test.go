@@ -41,6 +41,27 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	return path
 }
 
+// SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
+func SetupICAPath(path *ibctesting.Path, owner string) error {
+	if err := InitInterchainAccount(path.EndpointA, owner); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenTry(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointA.ChanOpenAck(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // InitInterchainAccount is a helper function for starting the channel handshake
 // TODO: parse identifiers from events
 func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
@@ -79,29 +100,31 @@ func (suite *KeeperTestSuite) TestGetPort() {
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
+	suite.SetupTest()
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	suite.coordinator.SetupConnections(path)
 
-	counterpartyPortID := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext())
+	if err := SetupICAPath(path, "testing"); err != nil {
+		suite.FailNow("failed to configure interchain accounts path")
+	}
+
+	counterpartyPortID := path.EndpointA.ChannelConfig.PortID
 	expectedAddr := authtypes.NewBaseAccountWithAddress(types.GenerateAddress(counterpartyPortID)).GetAddress()
 
-	retrievdAddress, err := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
-	suite.Require().NoError(err, "GetInterchainAccountAddress failed")
-	suite.Require().Equal(expectedAddr.String(), retrievdAddress)
+	retrievedAddr, found := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
+	suite.Require().True(found)
+	suite.Require().Equal(expectedAddr.String(), retrievedAddr)
 
-	retrievdAddress, err = suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), "invalid port")
-	suite.Require().Error(err)
-	suite.Require().Empty(retrievdAddress)
+	retrievedAddr, found = suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), "invalid port")
+	suite.Require().False(found)
+	suite.Require().Empty(retrievedAddr)
 }
 
 func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	expectedAddr, portID := "address", "port"
+	suite.chainA.GetSimApp().ICAKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), portID, expectedAddr)
 
-	counterpartyPortID := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext())
-	expectedAddr := authtypes.NewBaseAccountWithAddress(types.GenerateAddress(counterpartyPortID)).GetAddress()
-
-	retrievdAddress, err := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
-	suite.Require().NoError(err, "SetInterchainAccountAddress failed")
-	suite.Require().Equal(expectedAddr.String(), retrievdAddress)
+	retrievedAddr, found := suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), portID)
+	suite.Require().True(found)
+	suite.Require().Equal(expectedAddr, retrievedAddr)
 }
