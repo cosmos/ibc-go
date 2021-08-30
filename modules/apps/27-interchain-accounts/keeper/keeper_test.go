@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"testing"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
@@ -104,9 +104,8 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	if err := SetupICAPath(path, "testing"); err != nil {
-		suite.FailNow("failed to configure interchain accounts path")
-	}
+	err := SetupICAPath(path, "testing")
+	suite.Require().NoError(err)
 
 	counterpartyPortID := path.EndpointA.ChannelConfig.PortID
 	expectedAddr := authtypes.NewBaseAccountWithAddress(types.GenerateAddress(counterpartyPortID)).GetAddress()
