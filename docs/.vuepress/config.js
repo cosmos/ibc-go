@@ -24,8 +24,15 @@ module.exports = {
       {
         "label": "main",
         "key": "main"
+      },
+      {
+        "label": "v1.0.1",
+        "key": "v1.0.1"
       }
     ],
+    topbar: {
+      banner: true
+    },
     sidebar: { 
       auto: false,
       nav: [
