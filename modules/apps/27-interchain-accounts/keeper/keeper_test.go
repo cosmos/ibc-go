@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
@@ -40,6 +41,27 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	return path
 }
 
+// SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
+func SetupICAPath(path *ibctesting.Path, owner string) error {
+	if err := InitInterchainAccount(path.EndpointA, owner); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenTry(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointA.ChanOpenAck(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // InitInterchainAccount is a helper function for starting the channel handshake
 // TODO: parse identifiers from events
 func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
@@ -75,4 +97,33 @@ func (suite *KeeperTestSuite) TestIsBound() {
 func (suite *KeeperTestSuite) TestGetPort() {
 	port := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext())
 	suite.Require().Equal(types.PortID, port)
+}
+
+func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
+	suite.SetupTest()
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, "testing")
+	suite.Require().NoError(err)
+
+	counterpartyPortID := path.EndpointA.ChannelConfig.PortID
+	expectedAddr := authtypes.NewBaseAccountWithAddress(types.GenerateAddress(counterpartyPortID)).GetAddress()
+
+	retrievedAddr, found := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
+	suite.Require().True(found)
+	suite.Require().Equal(expectedAddr.String(), retrievedAddr)
+
+	retrievedAddr, found = suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), "invalid port")
+	suite.Require().False(found)
+	suite.Require().Empty(retrievedAddr)
+}
+
+func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
+	expectedAddr, portID := "address", "port"
+	suite.chainA.GetSimApp().ICAKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), portID, expectedAddr)
+
+	retrievedAddr, found := suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), portID)
+	suite.Require().True(found)
+	suite.Require().Equal(expectedAddr, retrievedAddr)
 }

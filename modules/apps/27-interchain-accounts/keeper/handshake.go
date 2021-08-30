@@ -110,7 +110,6 @@ func (k Keeper) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-
 	return nil
 }
 

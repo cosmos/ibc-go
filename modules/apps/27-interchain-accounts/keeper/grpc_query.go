@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,11 +24,9 @@ func (k Keeper) InterchainAccountAddress(ctx context.Context, req *types.QueryIn
 		return nil, status.Error(codes.InvalidArgument, "counterparty portID cannot be empty")
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	interchainAccountAddress, err := k.GetInterchainAccountAddress(sdkCtx, req.CounterpartyPortId)
-	if err != nil {
-		return nil, err
+	interchainAccountAddress, found := k.GetInterchainAccountAddress(sdk.UnwrapSDKContext(ctx), req.CounterpartyPortId)
+	if !found {
+		return nil, status.Error(codes.NotFound, sdkerrors.Wrap(types.ErrInterchainAccountNotFound, req.CounterpartyPortId).Error())
 	}
 
 	return &types.QueryInterchainAccountAddressResponse{InterchainAccountAddress: interchainAccountAddress}, nil

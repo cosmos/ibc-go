@@ -149,3 +149,21 @@ func (k Keeper) IsActiveChannel(ctx sdk.Context, portId string) bool {
 func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
 	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
 }
+
+// GetInterchainAccountAddress retrieves the InterchainAccount address from the store keyed by the provided portID
+func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyOwnerAccount(portID)
+
+	if !store.Has(key) {
+		return "", false
+	}
+
+	return string(store.Get(key)), true
+}
+
+// SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated portID
+func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, address string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyOwnerAccount(portID), []byte(address))
+}

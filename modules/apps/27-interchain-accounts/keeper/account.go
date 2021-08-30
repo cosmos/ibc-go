@@ -59,25 +59,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) {
 
 	k.accountKeeper.NewAccount(ctx, interchainAccount)
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
-	_ = k.SetInterchainAccountAddress(ctx, portId, interchainAccount.Address)
-}
-
-func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portId string, address string) string {
-	store := ctx.KVStore(k.storeKey)
-	key := types.KeyOwnerAccount(portId)
-	store.Set(key, []byte(address))
-	return address
-}
-
-func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portId string) (string, error) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.KeyOwnerAccount(portId)
-	if !store.Has(key) {
-		return "", sdkerrors.Wrap(types.ErrInterchainAccountNotFound, portId)
-	}
-
-	interchainAccountAddr := string(store.Get(key))
-	return interchainAccountAddr, nil
+	k.SetInterchainAccountAddress(ctx, portId, interchainAccount.Address)
 }
 
 func (k Keeper) GetInterchainAccount(ctx sdk.Context, addr sdk.AccAddress) (types.InterchainAccount, error) {
