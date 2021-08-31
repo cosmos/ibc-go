@@ -13,6 +13,7 @@ import (
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "interchain-accounts",
+		Aliases:                    []string{"ica"},
 		Short:                      "Querying commands for the interchain accounts module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
