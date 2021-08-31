@@ -9,10 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
 // Keeper defines the IBC transfer keeper
@@ -49,6 +49,7 @@ func NewKeeper(
 	}
 }
 
+// SerializeCosmosTx marshals data to bytes using the provided codec
 func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, data interface{}) ([]byte, error) {
 	msgs := make([]sdk.Msg, 0)
 	switch data := data.(type) {
@@ -86,25 +87,9 @@ func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, data interface{}) ([]by
 	return bz, nil
 }
 
+// Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
-}
-
-// IsBound checks if the interchain account module is already bound to the desired port
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
-	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-	return ok
-}
-
-// BindPort defines a wrapper function for the port Keeper's BindPort function in
-// order to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	// Set the portID into our store so we can retrieve it later
-	store := ctx.KVStore(k.storeKey)
-	store.Set([]byte(types.PortKey), []byte(portID))
-
-	cap := k.portKeeper.BindPort(ctx, portID)
-	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
 }
 
 // GetPort returns the portID for the interchain accounts module. Used in ExportGenesis
@@ -113,41 +98,52 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 	return string(store.Get([]byte(types.PortKey)))
 }
 
-// ClaimCapability allows the transfer module that can claim a capability that IBC module
-// passes to it
-func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
-	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
-}
-
-func (k Keeper) SetActiveChannel(ctx sdk.Context, portId, channelId string) error {
+// BindPort stores the provided portID and binds to it, returning the associated capability
+func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	store := ctx.KVStore(k.storeKey)
+	store.Set([]byte(types.PortKey), []byte(portID))
 
-	key := types.KeyActiveChannel(portId)
-	store.Set(key, []byte(channelId))
-	return nil
+	return k.portKeeper.BindPort(ctx, portID)
 }
 
-func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, bool) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.KeyActiveChannel(portId)
-	if !store.Has(key) {
-		return "", false
-	}
-
-	activeChannel := string(store.Get(key))
-	return activeChannel, true
-}
-
-// IsActiveChannel returns true if there exists an active channel for
-// the provided portID and false otherwise.
-func (k Keeper) IsActiveChannel(ctx sdk.Context, portId string) bool {
-	_, found := k.GetActiveChannel(ctx, portId)
-	return found
+// IsBound checks if the interchain account module is already bound to the desired port
+func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
+	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
+	return ok
 }
 
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
 func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
 	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
+}
+
+// ClaimCapability wraps the scopedKeeper's ClaimCapability function
+func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
+	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// GetActiveChannel retrieves the active channelID from the store keyed by the provided portID
+func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyActiveChannel(portId)
+
+	if !store.Has(key) {
+		return "", false
+	}
+
+	return string(store.Get(key)), true
+}
+
+// SetActiveChannel stores the active channelID, keyed by the provided portID
+func (k Keeper) SetActiveChannel(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyActiveChannel(portID), []byte(channelID))
+}
+
+// IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
+func (k Keeper) IsActiveChannel(ctx sdk.Context, portID string) bool {
+	_, ok := k.GetActiveChannel(ctx, portID)
+	return ok
 }
 
 // GetInterchainAccountAddress retrieves the InterchainAccount address from the store keyed by the provided portID

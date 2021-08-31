@@ -17,23 +17,21 @@ import (
 // already in use. Gaining access to interchain accounts whose channels have closed
 // cannot be done with this function. A regular MsgChanOpenInit must be used.
 func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpartyConnectionID, owner string) error {
-	portId, err := types.GeneratePortID(owner, connectionID, counterpartyConnectionID)
+	portID, err := types.GeneratePortID(owner, connectionID, counterpartyConnectionID)
 	if err != nil {
 		return err
 	}
 
-	// check if the port is already bound
-	if k.IsBound(ctx, portId) {
-		return sdkerrors.Wrap(types.ErrPortAlreadyBound, portId)
+	if k.IsBound(ctx, portID) {
+		return sdkerrors.Wrap(types.ErrPortAlreadyBound, portID)
 	}
 
-	portCap := k.portKeeper.BindPort(ctx, portId)
-	err = k.ClaimCapability(ctx, portCap, host.PortPath(portId))
-	if err != nil {
+	cap := k.BindPort(ctx, portID)
+	if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
 		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portId, types.Version, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portID, types.Version, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
 	handler := k.msgRouter.Handler(msg)
 	if _, err := handler(ctx, msg); err != nil {
 		return err
@@ -43,23 +41,22 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 }
 
 // Register interchain account if it has not already been created
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portId string) {
-	address := types.GenerateAddress(portId)
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portID string) {
+	address := types.GenerateAddress(portID)
 
 	account := k.accountKeeper.GetAccount(ctx, address)
 	if account != nil {
-		// account already created, return no-op
 		return
 	}
 
 	interchainAccount := types.NewInterchainAccount(
 		authtypes.NewBaseAccountWithAddress(address),
-		portId,
+		portID,
 	)
 
 	k.accountKeeper.NewAccount(ctx, interchainAccount)
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
-	k.SetInterchainAccountAddress(ctx, portId, interchainAccount.Address)
+	k.SetInterchainAccountAddress(ctx, portID, interchainAccount.Address)
 }
 
 func (k Keeper) GetInterchainAccount(ctx sdk.Context, addr sdk.AccAddress) (types.InterchainAccount, error) {
