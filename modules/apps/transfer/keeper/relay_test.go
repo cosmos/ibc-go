@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				// send coin from chainA back to chainB
 				suite.coordinator.CreateTransferChannels(path)
-				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom, 100)
+				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom, sdk.NewInt(100))
 			}, false, true},
 		{"source channel not found",
 			func() {
@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{"send from module account failed",
 			func() {
 				suite.coordinator.CreateTransferChannels(path)
-				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, " randomdenom", 100)
+				amount = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, " randomdenom", sdk.NewInt(100))
 			}, false, false},
 		{"channel capability not found",
 			func() {

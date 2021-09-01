@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/armon/go-metrics"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
@@ -163,11 +163,13 @@ func (k Keeper) SendTransfer(
 	}
 
 	defer func() {
-		telemetry.SetGaugeWithLabels(
-			[]string{"tx", "msg", "ibc", "transfer"},
-			float32(token.Amount.Int64()),
-			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
-		)
+		if token.Amount.IsInt64() {
+			telemetry.SetGaugeWithLabels(
+				[]string{"tx", "msg", "ibc", "transfer"},
+				float32(token.Amount.Int64()),
+				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
+			)
+		}
 
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", types.ModuleName, "send"},
@@ -248,11 +250,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		defer func() {
-			telemetry.SetGaugeWithLabels(
-				[]string{"ibc", types.ModuleName, "packet", "receive"},
-				float32(transferAmount.Int64()),
-				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, unprefixedDenom)},
-			)
+			if transferAmount.IsInt64() {
+				telemetry.SetGaugeWithLabels(
+					[]string{"ibc", types.ModuleName, "packet", "receive"},
+					float32(transferAmount.Int64()),
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, unprefixedDenom)},
+				)
+			}
 
 			telemetry.IncrCounterWithLabels(
 				[]string{"ibc", types.ModuleName, "receive"},
@@ -306,11 +310,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	defer func() {
-		telemetry.SetGaugeWithLabels(
-			[]string{"ibc", types.ModuleName, "packet", "receive"},
-			float32(transferAmount.Int64()),
-			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, data.Denom)},
-		)
+		if transferAmount.IsInt64() {
+			telemetry.SetGaugeWithLabels(
+				[]string{"ibc", types.ModuleName, "packet", "receive"},
+				float32(transferAmount.Int64()),
+				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, data.Denom)},
+			)
+		}
 
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", types.ModuleName, "receive"},
