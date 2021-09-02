@@ -136,16 +136,16 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
 
 	traceHash := denomTrace.Hash()
-	if !k.transferkeeper.HasDenomTrace(ctx, traceHash) {
-		k.transferkeeper.SetDenomTrace(ctx, denomTrace)
+	if !k.transferKeeper.HasDenomTrace(ctx, traceHash) {
+		k.transferKeeper.SetDenomTrace(ctx, denomTrace)
 	}
 
 	voucherDenom := denomTrace.IBCDenom()
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeDenomTrace,
-			sdk.NewAttribute(types.AttributeKeyTraceHash, traceHash.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
+			transfertypes.EventTypeDenomTrace,
+			sdk.NewAttribute(transfertypes.AttributeKeyTraceHash, traceHash.String()),
+			sdk.NewAttribute(transfertypes.AttributeKeyDenom, voucherDenom),
 		),
 	)
 

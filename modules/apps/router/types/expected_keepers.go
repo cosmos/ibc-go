@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	"github.com/tendermint/tendermint/libs/bytes"
 )
@@ -20,5 +21,5 @@ type TransferKeeper interface {
 	GetReceiveEnabled(ctx sdk.Context) bool
 	GetSendEnabled(ctx sdk.Context) bool
 	HasDenomTrace(ctx sdk.Context, traceHash bytes.HexBytes) bool
-	SetDenomTrace(ctx sdk.Context, traceHash bytes.HexBytes)
+	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
 }
