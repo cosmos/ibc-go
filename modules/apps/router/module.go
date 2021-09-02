@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,6 +22,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/router/client/cli"
 	"github.com/cosmos/ibc-go/modules/apps/router/keeper"
 	"github.com/cosmos/ibc-go/modules/apps/router/types"
+	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
@@ -210,6 +212,40 @@ func (am AppModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string
 
 // OnRecvPacket implements the IBCModule interface.
 func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+	ack := ibcexported.Acknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}))
+
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
+	}
+
+	// only attempt the application logic if the packet data
+	// was successfully decoded
+	if ack.Success() {
+		receiver, finalDest, port, channel, err := ParseIncomingTransferField(data.Receiver)
+		if finalDest == "" && port == "" && channel == "" && err == nil {
+			ack = am.app.OnRecvPacket(ctx, packet, relayer)
+		} else if err != nil {
+			ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
+		} else {
+			if err := am.keeper.OnRecvPacket(ctx, packet, data, receiver, finalDest, port, channel); err != nil {
+				ack = channeltypes.NewErrorAcknowledgement(err.Error())
+			}
+		}
+
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			transfertypes.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(transfertypes.AttributeKeyDenom, data.Denom),
+			sdk.NewAttribute(transfertypes.AttributeKeyAmount, fmt.Sprintf("%d", data.Amount)),
+			sdk.NewAttribute(transfertypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+		),
+	)
+
 	return nil
 }
 
@@ -222,3 +258,43 @@ func (am AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes
 func (am AppModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	return am.app.OnTimeoutPacket(ctx, packet, relayer)
 }
+
+// For now this assumes one hop, should be better parsing
+func ParseIncomingTransferField(receiverData string) (thischainaddr sdk.AccAddress, finaldestination, port, channel string, err error) {
+	sep1 := strings.Split(receiverData, ":")
+	switch len(sep1) {
+	case 1:
+		thischainaddr, err = sdk.AccAddressFromBech32(receiverData)
+		return
+	case 2:
+		finaldestination = sep1[1]
+	default:
+		err = fmt.Errorf("only supporting one hop transactions for now")
+		return
+	}
+	sep2 := strings.Split(sep1[0], "|")
+	if len(sep2) != 2 {
+		err = fmt.Errorf("formatting incorect, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
+		return
+	}
+	thischainaddr, err = sdk.AccAddressFromBech32(sep2[0])
+	if err != nil {
+		return
+	}
+	sep3 := strings.Split(sep2[1], "/")
+	port = sep3[0]
+	channel = sep3[1]
+	return
+}
+
+// sending chain reviecer field
+// cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0: cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k
+
+// first proxy chain reviever field
+// cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k
+
+// second proxy chain reviever field
+// cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k
+
+// final proxy chain reciever field
+// cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k
