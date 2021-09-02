@@ -1,8 +1,6 @@
 package fee_test
 
 import (
-	"fmt"
-
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
@@ -54,8 +52,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 	for _, tc := range testCases {
 		ctx := suite.chainA.GetContext()
-		fmt.Println(ctx)
-		fmt.Println(tc.name)
 		cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(ctx, tc.name)
 		suite.Require().NoError(err)
 		err = suite.module.OnChanOpenInit(
