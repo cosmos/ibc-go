@@ -4,7 +4,7 @@ import "fmt"
 
 const (
 	// ModuleName defines the 29-fee name
-	ModuleName = "ibcfee"
+	ModuleName = "feeibc"
 
 	// StoreKey is the store key string for IBC transfer
 	StoreKey = ModuleName
@@ -20,6 +20,6 @@ const (
 	KeyAppCapability = "app_capabilities"
 )
 
-func AppCapabilityName(channelID, portID string) string {
+func AppCapabilityName(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s", KeyAppCapability, channelID, portID)
 }

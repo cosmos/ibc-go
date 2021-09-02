@@ -24,7 +24,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 
 	// "github.com/cosmos/ibc-go/modules/apps/29-fee/client/cli"
-	// "github.com/cosmos/ibc-go/modules/apps/29-fee/keeper"
 	// "github.com/cosmos/ibc-go/modules/apps/29-fee/simulation"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
@@ -100,10 +99,11 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new 29-fee module
-func NewAppModule(k keeper.Keeper, app porttypes.IBCModule) AppModule {
+func NewAppModule(k keeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, app porttypes.IBCModule) AppModule {
 	return AppModule{
-		keeper: k,
-		app:    app,
+		keeper:       k,
+		scopedKeeper: scopedKeeper,
+		app:          app,
 	}
 }
 
@@ -210,7 +210,7 @@ func (am AppModule) OnChanOpenInit(
 		return err
 	}
 
-	appCap, err := am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(channelID, portID))
+	appCap, err := am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(portID, channelID))
 	if err != nil {
 		return sdkerrors.Wrap(err, "could not create capability for underlying application")
 	}
@@ -255,15 +255,16 @@ func (am AppModule) OnChanOpenTry(
 		if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return err
 		}
-		appCap, err = am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(channelID, portID))
+		appCap, err = am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(portID, channelID))
 		if err != nil {
 			return sdkerrors.Wrap(err, "could not create capability for underlying app")
 		}
-	}
-	appCap, ok = am.scopedKeeper.GetCapability(ctx, types.AppCapabilityName(channelID, portID))
-	if !ok {
-		return sdkerrors.Wrap(capabilitytypes.ErrCapabilityNotFound,
-			"could not find app capability on OnChanOpenTry even after OnChanOpenInit called on this chain first (crossing hellos)")
+	} else {
+		appCap, ok = am.scopedKeeper.GetCapability(ctx, types.AppCapabilityName(portID, channelID))
+		if !ok {
+			return sdkerrors.Wrap(capabilitytypes.ErrCapabilityNotFound,
+				"could not find app capability on OnChanOpenTry even after OnChanOpenInit called on this chain first (crossing hellos)")
+		}
 	}
 	// call underlying app's OnChanOpenTry callback with the app versions
 	return am.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,

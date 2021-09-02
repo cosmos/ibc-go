@@ -190,6 +190,7 @@ func ValidateTransferChannelParams(
 	ctx sdk.Context,
 	keeper keeper.Keeper,
 	order channeltypes.Order,
+	counterparty channeltypes.Counterparty,
 	portID string,
 	channelID string,
 	version string,
@@ -208,9 +209,19 @@ func ValidateTransferChannelParams(
 	}
 
 	// Require portID is the portID transfer module is bound to
-	boundPort := keeper.GetPort(ctx)
-	if boundPort != portID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
+	boundPorts := keeper.GetPorts(ctx)
+	var portOk bool
+	for _, boundPort := range boundPorts {
+		if boundPort == portID {
+			portOk = true
+		}
+	}
+	if !portOk {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s not bound by transfer module", portID)
+	}
+
+	if portID != counterparty.PortId {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID: %s do not match counterparty portID: %s", portID, counterparty.PortId)
 	}
 
 	if version != types.Version {
@@ -230,7 +241,7 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
+	if err := ValidateTransferChannelParams(ctx, am.keeper, order, counterparty, portID, channelID, version); err != nil {
 		return err
 	}
 
@@ -254,7 +265,7 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
+	if err := ValidateTransferChannelParams(ctx, am.keeper, order, counterparty, portID, channelID, version); err != nil {
 		return err
 	}
 

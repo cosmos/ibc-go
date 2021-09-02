@@ -18,6 +18,9 @@ const (
 	// PortID is the default port id that transfer module binds to
 	PortID = "transfer"
 
+	// FeePortID is the port id that is wrapped by fee middleware
+	FeePortID = "feetransfer"
+
 	// StoreKey is the store key string for IBC transfer
 	StoreKey = ModuleName
 

@@ -5,9 +5,9 @@ import (
 )
 
 // NewGenesisState creates a new ibc-transfer GenesisState instance.
-func NewGenesisState(portID string, denomTraces Traces, params Params) *GenesisState {
+func NewGenesisState(portIDs []string, denomTraces Traces, params Params) *GenesisState {
 	return &GenesisState{
-		PortId:      portID,
+		PortIds:     portIDs,
 		DenomTraces: denomTraces,
 		Params:      params,
 	}
@@ -16,7 +16,7 @@ func NewGenesisState(portID string, denomTraces Traces, params Params) *GenesisS
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		PortId:      PortID,
+		PortIds:     []string{PortID, FeePortID},
 		DenomTraces: Traces{},
 		Params:      DefaultParams(),
 	}
@@ -25,8 +25,10 @@ func DefaultGenesisState() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	if err := host.PortIdentifierValidator(gs.PortId); err != nil {
-		return err
+	for _, port := range gs.PortIds {
+		if err := host.PortIdentifierValidator(port); err != nil {
+			return err
+		}
 	}
 	if err := gs.DenomTraces.Validate(); err != nil {
 		return err
