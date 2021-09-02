@@ -4,6 +4,16 @@
 
 ## Table of Contents
 
+- [ibc/applications/router/v1/genesis.proto](#ibc/applications/router/v1/genesis.proto)
+    - [GenesisState](#ibc.applications.router.v1.GenesisState)
+    - [Params](#ibc.applications.router.v1.Params)
+  
+- [ibc/applications/router/v1/query.proto](#ibc/applications/router/v1/query.proto)
+    - [QueryParamsRequest](#ibc.applications.router.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#ibc.applications.router.v1.QueryParamsResponse)
+  
+    - [Query](#ibc.applications.router.v1.Query)
+  
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
     - [FungibleTokenPacketData](#ibc.applications.transfer.v1.FungibleTokenPacketData)
@@ -243,6 +253,103 @@
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="ibc/applications/router/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/router/v1/genesis.proto
+
+
+
+<a name="ibc.applications.router.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the router genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.router.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.router.v1.Params"></a>
+
+### Params
+Params defines the set of IBC router parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee_percentage` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/router/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/router/v1/query.proto
+
+
+
+<a name="ibc.applications.router.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="ibc.applications.router.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.router.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.router.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#ibc.applications.router.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.router.v1.QueryParamsResponse) | Params queries all parameters of the router module. | GET|/ibc/apps/router/v1/params|
+
+ <!-- end services -->
 
 
 
