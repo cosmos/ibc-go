@@ -26,7 +26,7 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 
 	k.Logger(ctx).Info("Registering counterparty address for relayer with:", "Source address:", msg.Address, "With counterparty address:", msg.CounterpartyAddress)
 
-	return &types.MsgRegisterCounterPartyAddressResponse{}, nil
+	return &types.MsgRegisterCounterpartyAddressResponse{}, nil
 }
 
 // EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee

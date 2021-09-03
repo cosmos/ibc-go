@@ -11,8 +11,8 @@ const (
 )
 
 // NewMsgRegisterCounterPartyAddress
-func NewMsgRegisterCounterPartyAddress(sourceAddress, counterPartyAddress string) *MsgRegisterCounterpartyAddress {
-	return &MsgRegisterCounterpartyAddress{Address: sourceAddress, CounterpartyAddress: counterPartyAddress}
+func NewMsgRegisterCounterpartyAddress(sourceAddress, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
+	return &MsgRegisterCounterpartyAddress{Address: sourceAddress, CounterpartyAddress: counterpartyAddress}
 }
 
 // ValidateBasic performs a basic check of the Msg fields
