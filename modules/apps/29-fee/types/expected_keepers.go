@@ -1,6 +1,5 @@
 package types
 
-/*
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -47,4 +46,3 @@ type ConnectionKeeper interface {
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 }
-*/

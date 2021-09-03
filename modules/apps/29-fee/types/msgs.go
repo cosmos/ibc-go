@@ -1,32 +1,40 @@
 package types
 
-/*
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
-// NewMsg
-func NewMsg() *Msg {
-	return &Msg{
-	}
+// msg types
+const (
+	TypeMsgRegisterCounterPartyAddress = "registerCounterPartyAddress"
+)
+
+// NewMsgRegisterCounterPartyAddress
+func NewMsgRegisterCounterPartyAddress(sourceAddress, counterPartyAddress string) *MsgRegisterCounterpartyAddress {
+	return &MsgRegisterCounterpartyAddress{Address: sourceAddress, CounterpartyAddress: counterPartyAddress}
 }
 
-// ValidateBasic performs a basic check of the Msg fields.
-func (msg Msg) ValidateBasic() error {
+// ValidateBasic performs a basic check of the Msg fields
+func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Address)
+	if err != nil {
+		return sdkerrors.Wrap(err, "Incorrect source relayer address")
+	}
+
+	_, err = sdk.AccAddressFromBech32(msg.CounterpartyAddress)
+	if err != nil {
+		return sdkerrors.Wrap(err, "Incorrect counterparty relayer address")
+	}
+
 	return nil
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgTransfer) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Sender)
+func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Address)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
 }
-*/

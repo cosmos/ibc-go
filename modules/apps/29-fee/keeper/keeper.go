@@ -1,15 +1,13 @@
 package keeper
 
-/*
 import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
@@ -24,7 +22,6 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
-
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
@@ -49,6 +46,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
 }
 
+/*
 // IsBound checks if the transfer module is already bound to the desired port
 func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
@@ -60,12 +58,6 @@ func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 	cap := k.portKeeper.BindPort(ctx, portID)
 	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
-}
-
-// GetPort returns the portID for the transfer module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context) string {
-	store := ctx.KVStore(k.storeKey)
-	return string(store.Get(types.PortKey))
 }
 
 // SetPort sets the portID for the transfer module. Used in InitGenesis
@@ -85,3 +77,22 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 */
+
+// SetCounterPartyAddress maps the counterparty relayer address to the source relayer address
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, SourceAddress, CounterpartyAddress string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeySourceAddress(SourceAddress), []byte(CounterpartyAddress))
+}
+
+// GetCounterPartyAddress gets the relayer counterparty address given a source address
+func (k Keeper) GetCounterPartyAddress(ctx sdk.Context, sourceAddress sdk.AccAddress) (sdk.AccAddress, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeySourceAddress(sourceAddress.String())
+
+	if !store.Has(key) {
+		// TODO: add logging here
+		return []byte{}, false
+	}
+
+	return store.Get(key), true
+}
