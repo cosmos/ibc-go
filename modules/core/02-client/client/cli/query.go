@@ -94,7 +94,7 @@ func GetCmdQueryClientStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "status [client-id]",
 		Short:   "Query client status",
-		Long:    "Query client activity status",
+		Long:    "Query client activity status. Any client without an 'Active' status is considered inactive",
 		Example: fmt.Sprintf("%s query %s %s status [client-id]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
