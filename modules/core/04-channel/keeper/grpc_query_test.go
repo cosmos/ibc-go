@@ -1026,6 +1026,34 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 			true,
 		},
 		{
+			"success, filtered res",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+
+				for i := uint64(0); i < 10; i++ {
+					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
+
+					if (i % 2) == 0 {
+						expAcknowledgements = append(expAcknowledgements, &ack)
+					}
+				}
+
+				req = &types.QueryPacketAcknowledgementsRequest{
+					PortId:      path.EndpointA.ChannelConfig.PortID,
+					ChannelId:   path.EndpointA.ChannelID,
+					Commitments: expAcknowledgements,
+					Pagination: &query.PageRequest{
+						Key:        nil,
+						Limit:      10,
+						CountTotal: true,
+					},
+				}
+			},
+			true,
+		},
+		{
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
