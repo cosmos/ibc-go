@@ -335,8 +335,18 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 			return err
 		}
 
-		ack := types.NewPacketState(req.PortId, req.ChannelId, sequence, value)
-		acks = append(acks, &ack)
+		if len(req.Commitments) > 0 {
+			for _, commitment := range req.Commitments {
+				if sequence == commitment.Sequence {
+					ack := types.NewPacketState(req.PortId, req.ChannelId, sequence, value)
+					acks = append(acks, &ack)
+				}
+			}
+		} else {
+			ack := types.NewPacketState(req.PortId, req.ChannelId, sequence, value)
+			acks = append(acks, &ack)
+		}
+
 		return nil
 	})
 

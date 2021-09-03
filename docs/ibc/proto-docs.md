@@ -1166,6 +1166,7 @@ Query/QueryPacketCommitments RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `commitments` | [PacketState](#ibc.core.channel.v1.PacketState) | repeated | list of packet commitments |
 
 
 
