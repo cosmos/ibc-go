@@ -236,7 +236,7 @@ func (am AppModule) OnChanOpenTry(
 	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
 
 	if feeVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected version: %s, got: %s", types.Version, feeVersion)
 	}
 	if cpFeeVersion != feeVersion {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
