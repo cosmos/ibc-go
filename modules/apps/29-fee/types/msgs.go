@@ -12,7 +12,10 @@ const (
 
 // NewMsgRegisterCounterPartyAddress
 func NewMsgRegisterCounterpartyAddress(sourceAddress, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
-	return &MsgRegisterCounterpartyAddress{Address: sourceAddress, CounterpartyAddress: counterpartyAddress}
+	return &MsgRegisterCounterpartyAddress{
+	Address: sourceAddress, 
+	CounterpartyAddress: counterpartyAddress,
+	}
 }
 
 // ValidateBasic performs a basic check of the Msg fields
