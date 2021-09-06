@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
@@ -21,8 +20,6 @@ type KeeperTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 	chainC *ibctesting.TestChain
-
-	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -30,10 +27,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().ICAKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {

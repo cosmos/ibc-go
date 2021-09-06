@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -20,7 +21,7 @@ func (k Keeper) InterchainAccountAddress(ctx context.Context, req *types.QueryIn
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if req.CounterpartyPortId == "" {
+	if strings.TrimSpace(req.CounterpartyPortId) == "" {
 		return nil, status.Error(codes.InvalidArgument, "counterparty portID cannot be empty")
 	}
 

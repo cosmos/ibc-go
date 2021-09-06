@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccountAddress() {
 		{
 			"empty request",
 			func() {
-				req = &types.QueryInterchainAccountAddressRequest{}
+				req = nil
 			},
 			false,
 		},
@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccountAddress() {
 			"invalid counterparty portID",
 			func() {
 				req = &types.QueryInterchainAccountAddressRequest{
-					CounterpartyPortId: "",
+					CounterpartyPortId: "   ",
 				}
 			},
 			false,
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccountAddress() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.InterchainAccountAddress(ctx, req)
+			res, err := suite.chainA.GetSimApp().ICAKeeper.InterchainAccountAddress(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
