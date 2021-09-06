@@ -52,7 +52,7 @@ func (gs ChildGenesisState) Validate() error {
 			return sdkerrors.Wrapf(ErrInvalidGenesis, "parent consensus state invalid for new chain %s", err.Error())
 		}
 		if gs.ParentChannelId != "" {
-			return sdkerrors.Wrap(ErrInvalidGenesis, "parent channel id cannot be set for new chain. must be established on handshake")
+			return sdkerrors.Wrap(ErrInvalidGenesis, "parent channel id cannot be set for new chain. It must be established on handshake")
 		}
 		if gs.UnbondingSequences != nil {
 			return sdkerrors.Wrap(ErrInvalidGenesis, "unbonding sequences must be nil for new chain")
@@ -66,7 +66,7 @@ func (gs ChildGenesisState) Validate() error {
 		}
 		for _, us := range gs.UnbondingSequences {
 			if err := us.Validate(); err != nil {
-				return sdkerrors.Wrap(err, "invalid genesis")
+				return sdkerrors.Wrap(err, "invalid unbonding sequences")
 			}
 		}
 	}
@@ -75,7 +75,7 @@ func (gs ChildGenesisState) Validate() error {
 
 func (us UnbondingSequence) Validate() error {
 	if us.UnbondingTime == 0 {
-		return sdkerrors.Wrap(ErrInvalidUnbondingSequence, "cannot have 0 unbonding time")
+		return sdkerrors.Wrap(ErrInvalidUnbondingTime, "cannot have 0 unbonding time")
 	}
 	if err := us.UnbondingPacket.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "invalid unbonding packet")

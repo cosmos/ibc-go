@@ -6,7 +6,7 @@ import (
 
 // CCV sentinel errors
 var (
-	ErrInvalidPacketData        = sdkerrors.Register(ModuleName, 2, "invalid packet data")
+	ErrInvalidPacketData        = sdkerrors.Register(ModuleName, 2, "invalid CCV packet data")
 	ErrInvalidPacketTimeout     = sdkerrors.Register(ModuleName, 3, "invalid packet timeout")
 	ErrInvalidVersion           = sdkerrors.Register(ModuleName, 4, "invalid CCV version")
 	ErrInvalidChannelFlow       = sdkerrors.Register(ModuleName, 5, "invalid message sent to channel end")
