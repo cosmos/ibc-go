@@ -280,7 +280,7 @@ func TestValidateParentGenesisState(t *testing.T) {
 	pk2, err := cryptocodec.ToTmProtoPublicKey(ed25519.GenPrivKey().PubKey())
 	require.NoError(t, err)
 
-	updates := []abci.ValidatorUpdate{
+	updates := []*abci.ValidatorUpdate{
 		{
 			PubKey: pk1,
 			Power:  30,
@@ -297,11 +297,54 @@ func TestValidateParentGenesisState(t *testing.T) {
 		expPass  bool
 	}{
 		{
-			"valid parent genesis with nil updates",
+			"valid initializing parent genesis with nil updates",
 			types.NewParentGenesisState(
-				[]types.ChildState{types.ChildState{"chainid", "channelid", 1, nil}},
+				[]types.ChildState{{"chainid-1", "channelid", 1, nil}},
 			),
 			true,
 		},
+		{
+			"valid validating parent genesis with nil updates",
+			types.NewParentGenesisState(
+				[]types.ChildState{{"chainid-1", "channelid", 2, nil}},
+			),
+			true,
+		},
+		{
+			"valid multiple parent genesis with multiple child chains",
+			types.NewParentGenesisState(
+				[]types.ChildState{
+					{"chainid-1", "channelid", 2, updates},
+					{"chainid-2", "channelid2", 1, nil},
+					{"chainid-3", "channelid3", 0, nil},
+					{"chainid-4", "channelid4", 3, nil},
+				},
+			),
+			true,
+		},
+		{
+			"invalid chain id",
+			types.NewParentGenesisState(
+				[]types.ChildState{{"invalidid{}", "channelid", 2, updates}},
+			),
+			false,
+		},
+		{
+			"invalid channel id",
+			types.NewParentGenesisState(
+				[]types.ChildState{{"chainid", "invalidchannel{}", 2, updates}},
+			),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		err := tc.genState.Validate()
+
+		if tc.expPass {
+			require.NoError(t, err, "test case: %s must pass", tc.name)
+		} else {
+			require.Error(t, err, "test case: %s must fail", tc.name)
+		}
 	}
 }
