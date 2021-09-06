@@ -327,12 +327,12 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 	acks := []*types.PacketState{}
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
 
-	// if a list of packet sequences is provided then query for each specific ack and return
+	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query
 	for _, seq := range req.PacketCommitmentSequences {
 		acknowledgementBz, found := q.GetPacketAcknowledgement(ctx, req.PortId, req.ChannelId, seq)
 		if !found || len(acknowledgementBz) == 0 {
-			return nil, status.Error(codes.NotFound, "packet acknowledgement hash not found")
+			continue
 		}
 
 		ack := types.NewPacketState(req.PortId, req.ChannelId, seq, acknowledgementBz)
