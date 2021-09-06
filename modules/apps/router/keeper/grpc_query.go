@@ -7,8 +7,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/router/types"
 )
 
-// TODO
-
 var _ types.QueryServer = Keeper{}
 
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {

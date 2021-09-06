@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -212,41 +213,52 @@ func (am AppModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string
 
 // OnRecvPacket implements the IBCModule interface.
 func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	ack := ibcexported.Acknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}))
-
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
+		return channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
 	}
 
-	// only attempt the application logic if the packet data
-	// was successfully decoded
-	if ack.Success() {
-		receiver, finalDest, port, channel, err := ParseIncomingTransferField(data.Receiver)
-		if finalDest == "" && port == "" && channel == "" && err == nil {
-			ack = am.app.OnRecvPacket(ctx, packet, relayer)
-		} else if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
-		} else {
-			if err := am.keeper.OnRecvPacket(ctx, packet, data, receiver, finalDest, port, channel); err != nil {
-				ack = channeltypes.NewErrorAcknowledgement(err.Error())
+	// parse out any forwarding info
+	receiver, finalDest, port, channel, err := ParseIncomingTransferField(data.Receiver)
+	switch {
+
+	// if this isn't a packet to forward, just use the transfer module normally
+	case finalDest == "" && port == "" && channel == "" && err == nil:
+		return am.app.OnRecvPacket(ctx, packet, relayer)
+
+	// If the parsing fails return a failure ack
+	case err != nil:
+		return channeltypes.NewErrorAcknowledgement("cannot parse packet fowrading information")
+
+	// Otherwise we have a packet to forward
+	default:
+		// Modify packet data to process packet transfer for this chain, omitting forwarding info
+		newData := data
+		newData.Receiver = receiver.String()
+		bz, err := transfertypes.ModuleCdc.MarshalJSON(&newData)
+		if err != nil {
+			return channeltypes.NewErrorAcknowledgement(err.Error())
+		}
+		newPacket := packet
+		newPacket.Data = bz
+
+		ack := am.app.OnRecvPacket(ctx, newPacket, relayer)
+		if ack.Success() {
+			// recalculate denom, skip checks that were already done in app.OnRecvPacket
+			var denom string
+			if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), newData.Denom) {
+				denom = transfertypes.ParseDenomTrace(newData.Denom).IBCDenom()
+			} else {
+				prefixedDenom := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel()) + newData.Denom
+				denom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
+			}
+			var token = sdk.NewCoin(denom, sdk.NewIntFromUint64(newData.Amount))
+			if err := am.keeper.ForwardTransferPacket(ctx, receiver, token, port, channel, finalDest, []metrics.Label{}); err != nil {
+				ack = channeltypes.NewErrorAcknowledgement("failed to foward transfer packet")
 			}
 		}
-
+		return ack
 	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			transfertypes.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(transfertypes.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(transfertypes.AttributeKeyAmount, fmt.Sprintf("%d", data.Amount)),
-			sdk.NewAttribute(transfertypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
-		),
-	)
-
-	return nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -262,15 +274,12 @@ func (am AppModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 // For now this assumes one hop, should be better parsing
 func ParseIncomingTransferField(receiverData string) (thischainaddr sdk.AccAddress, finaldestination, port, channel string, err error) {
 	sep1 := strings.Split(receiverData, ":")
-	switch len(sep1) {
-	case 1:
+	switch {
+	case len(sep1) == 1:
 		thischainaddr, err = sdk.AccAddressFromBech32(receiverData)
 		return
-	case 2:
-		finaldestination = sep1[1]
-	default:
-		err = fmt.Errorf("only supporting one hop transactions for now")
-		return
+	case len(sep1) >= 2:
+		finaldestination = strings.Join(sep1[:1], ":")
 	}
 	sep2 := strings.Split(sep1[0], "|")
 	if len(sep2) != 2 {
