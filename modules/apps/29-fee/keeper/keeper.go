@@ -79,7 +79,7 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 */
 
 // SetCounterPartyAddress maps the counterparty relayer address to the source relayer address
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, SourceAddress, CounterpartyAddress string) {
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, CounterpartyAddress string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeySourceAddress(SourceAddress), []byte(CounterpartyAddress))
 }
