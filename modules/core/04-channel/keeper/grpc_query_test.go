@@ -1047,11 +1047,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 					PortId:                    path.EndpointA.ChannelConfig.PortID,
 					ChannelId:                 path.EndpointA.ChannelID,
 					PacketCommitmentSequences: commitments,
-					Pagination: &query.PageRequest{
-						Key:        nil,
-						Limit:      10,
-						CountTotal: true,
-					},
+					Pagination:                nil,
 				}
 			},
 			true,

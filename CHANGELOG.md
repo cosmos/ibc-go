@@ -45,7 +45,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (24-host) [#\344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters. 
 
 ### Improvements
-* [\#373](https://github.com/cosmos/ibc-go/pull/375) Added optional field `commitments` to `QueryPacketAcknowledgementsRequest` to provide filtering of packet acknowledgements
+* [\#373](https://github.com/cosmos/ibc-go/pull/375) Added optional field `PacketCommitmentSequences` to `QueryPacketAcknowledgementsRequest` to provide filtering of packet acknowledgements
 
 ### Features
 * [\#372](https://github.com/cosmos/ibc-go/pull/372) New CLI command `query ibc client status <client id>` to get the current activity status of a client
