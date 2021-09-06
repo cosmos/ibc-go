@@ -1031,19 +1031,22 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
 
-				for i := uint64(0); i < 10; i++ {
+				var commitments []uint64
+
+				for i := uint64(0); i < 100; i++ {
 					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, []byte(fmt.Sprintf("hash_%d", i)))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
 
-					if (i % 2) == 0 {
+					if i < 10 { // populate the store with 100 and query for 10 specific acks
 						expAcknowledgements = append(expAcknowledgements, &ack)
+						commitments = append(commitments, ack.Sequence)
 					}
 				}
 
 				req = &types.QueryPacketAcknowledgementsRequest{
-					PortId:      path.EndpointA.ChannelConfig.PortID,
-					ChannelId:   path.EndpointA.ChannelID,
-					Commitments: expAcknowledgements,
+					PortId:                    path.EndpointA.ChannelConfig.PortID,
+					ChannelId:                 path.EndpointA.ChannelID,
+					PacketCommitmentSequences: commitments,
 					Pagination: &query.PageRequest{
 						Key:        nil,
 						Limit:      10,

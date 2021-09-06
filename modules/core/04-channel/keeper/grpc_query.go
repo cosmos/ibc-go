@@ -327,6 +327,27 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 	acks := []*types.PacketState{}
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
 
+	// if a list of packet sequences is provided then query for each specific ack and return
+	// otherwise, maintain previous behaviour and perform paginated query
+	for _, seq := range req.PacketCommitmentSequences {
+		acknowledgementBz, found := q.GetPacketAcknowledgement(ctx, req.PortId, req.ChannelId, seq)
+		if !found || len(acknowledgementBz) == 0 {
+			return nil, status.Error(codes.NotFound, "packet acknowledgement hash not found")
+		}
+
+		ack := types.NewPacketState(req.PortId, req.ChannelId, seq, acknowledgementBz)
+		acks = append(acks, &ack)
+	}
+
+	if len(acks) > 0 {
+		selfHeight := clienttypes.GetSelfHeight(ctx)
+		return &types.QueryPacketAcknowledgementsResponse{
+			Acknowledgements: acks,
+			Pagination:       nil,
+			Height:           selfHeight,
+		}, nil
+	}
+
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
 
@@ -335,17 +356,8 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 			return err
 		}
 
-		if len(req.Commitments) > 0 {
-			for _, commitment := range req.Commitments {
-				if sequence == commitment.Sequence {
-					ack := types.NewPacketState(req.PortId, req.ChannelId, sequence, value)
-					acks = append(acks, &ack)
-				}
-			}
-		} else {
-			ack := types.NewPacketState(req.PortId, req.ChannelId, sequence, value)
-			acks = append(acks, &ack)
-		}
+		ack := types.NewPacketState(req.PortId, req.ChannelId, sequence, value)
+		acks = append(acks, &ack)
 
 		return nil
 	})
