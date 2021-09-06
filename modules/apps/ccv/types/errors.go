@@ -16,5 +16,6 @@ var (
 	ErrInvalidGenesis           = sdkerrors.Register(ModuleName, 9, "invalid genesis state")
 	ErrDuplicateChannel         = sdkerrors.Register(ModuleName, 10, "CCV channel already exists")
 	ErrInvalidUnbondingSequence = sdkerrors.Register(ModuleName, 11, "invalid unbonding sequence")
-	ErrInvalidChildState        = sdkerrors.Register(ModuleName, 12, "parent chain has invalid state for child chain")
+	ErrInvalidUnbondingTime     = sdkerrors.Register(ModuleName, 12, "child chain has invalid unbonding time")
+	ErrInvalidChildState        = sdkerrors.Register(ModuleName, 13, "parent chain has invalid state for child chain")
 )
