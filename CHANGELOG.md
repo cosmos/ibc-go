@@ -38,11 +38,25 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
-* (core) [\#227](https://github.com/cosmos/ibc-go/pull/227) Remove sdk.Result from application callbacks
+* (core) [\#227](https://github.com/cosmos/ibc-go/pull/227) Remove sdk.Result from application callbacks.
+
+## [v1.2.0](https://github.com/cosmos/ibc-go/releases/tag/v1.2.0) - 2021-09-10
 
 ### State Machine Breaking
 
-* (24-host) [#\344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters. 
+* (24-host) [\#344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters.
+
+### Improvements
+
+* [\#373](https://github.com/cosmos/ibc-go/pull/375) Added optional field `PacketCommitmentSequences` to `QueryPacketAcknowledgementsRequest` to provide filtering of packet acknowledgements.
+
+### Features
+
+* [\#372](https://github.com/cosmos/ibc-go/pull/372) New CLI command `query ibc client status <client id>` to get the current activity status of a client.
+
+### Dependencies
+
+* [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](github.com/tendermint/tendermint) from 0.34.12 to 0.34.13.
 
 ## [v1.0.0](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0) - 2021-08-10
 
@@ -101,7 +115,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * [\#198](https://github.com/cosmos/ibc-go/pull/198) New CLI command `query ibc-transfer escrow-address <port> <channel id>` to get the escrow address for a channel; can be used to then query balance of escrowed tokens
-* [\#372](https://github.com/cosmos/ibc-go/pull/372) New CLI command `query ibc client status <client id>` to get the current activity status of a client
 
 ### Client Breaking Changes
 
