@@ -9,10 +9,8 @@ import (
 )
 
 var (
-	validAadr1   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	validAadr2   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	invalidAadr1 = "invalid_address"
-	invalidAadr2 = "invalid_address"
+	validAddr   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	invalidAddr = "invalid_address"
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
@@ -22,9 +20,9 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 		msg     *MsgRegisterCounterpartyAddress
 		expPass bool
 	}{
-		{"validate with correct sdk.AccAddress", NewMsgRegisterCounterpartyAddress(validAadr1, validAadr2), true},
-		{"validate with incorrect source relayer address", NewMsgRegisterCounterpartyAddress(invalidAadr1, validAadr2), false},
-		{"validate with incorrect counterparty source relayer address", NewMsgRegisterCounterpartyAddress(validAadr1, invalidAadr2), false},
+		{"validate with correct sdk.AccAddress", NewMsgRegisterCounterpartyAddress(validAddr, validAddr), true},
+		{"validate with incorrect destination relayer address", NewMsgRegisterCounterpartyAddress(invalidAddr, validAddr), false},
+		{"validate with incorrect counterparty relayer address", NewMsgRegisterCounterpartyAddress(validAddr, invalidAddr), false},
 	}
 
 	for i, tc := range testCases {

@@ -7,27 +7,27 @@ import (
 
 // msg types
 const (
-	TypeMsgRegisterCounterPartyAddress = "registerCounterPartyAddress"
+	TypeMsgRegisterCounterpartyAddress = "registerCounterpartyAddress"
 )
 
-// NewMsgRegisterCounterPartyAddress
+// NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
 func NewMsgRegisterCounterpartyAddress(sourceAddress, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
 	return &MsgRegisterCounterpartyAddress{
-	Address: sourceAddress, 
-	CounterpartyAddress: counterpartyAddress,
+		Address:             sourceAddress,
+		CounterpartyAddress: counterpartyAddress,
 	}
 }
 
-// ValidateBasic performs a basic check of the Msg fields
+// ValidateBasic performs a basic check of the MsgRegisterCounterpartyAddress fields
 func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Address)
 	if err != nil {
-		return sdkerrors.Wrap(err, "Incorrect source relayer address")
+		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
 	}
 
 	_, err = sdk.AccAddressFromBech32(msg.CounterpartyAddress)
 	if err != nil {
-		return sdkerrors.Wrap(err, "Incorrect counterparty relayer address")
+		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
 	}
 
 	return nil

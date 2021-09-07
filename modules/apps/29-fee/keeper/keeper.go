@@ -78,19 +78,19 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 }
 */
 
-// SetCounterPartyAddress maps the counterparty relayer address to the source relayer address
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, CounterpartyAddress string) {
+// SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
+// The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeySourceAddress(SourceAddress), []byte(CounterpartyAddress))
+	store.Set(types.KeyRelayerAddress(address), []byte(counterpartyAddress))
 }
 
-// GetCounterPartyAddress gets the relayer counterparty address given a source address
-func (k Keeper) GetCounterPartyAddress(ctx sdk.Context, sourceAddress sdk.AccAddress) (sdk.AccAddress, bool) {
+// GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
+func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) (sdk.AccAddress, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeySourceAddress(sourceAddress.String())
+	key := types.KeyRelayerAddress(address.String())
 
 	if !store.Has(key) {
-		// TODO: add logging here
 		return []byte{}, false
 	}
 
