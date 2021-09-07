@@ -339,7 +339,7 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 		acks = append(acks, &ack)
 	}
 
-	if len(acks) > 0 {
+	if len(req.PacketCommitmentSequences) > 0 {
 		selfHeight := clienttypes.GetSelfHeight(ctx)
 		return &types.QueryPacketAcknowledgementsResponse{
 			Acknowledgements: acks,
