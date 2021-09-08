@@ -189,6 +189,12 @@
   
     - [Msg](#ibc.core.connection.v1.Msg)
   
+- [ibc/core/port/v1/query.proto](#ibc/core/port/v1/query.proto)
+    - [QueryPortRequest](#ibc.core.port.v1.QueryPortRequest)
+    - [QueryPortResponse](#ibc.core.port.v1.QueryPortResponse)
+  
+    - [Query](#ibc.core.port.v1.Query)
+  
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
@@ -2869,6 +2875,65 @@ Msg defines the ibc/connection Msg service.
 | `ConnectionOpenTry` | [MsgConnectionOpenTry](#ibc.core.connection.v1.MsgConnectionOpenTry) | [MsgConnectionOpenTryResponse](#ibc.core.connection.v1.MsgConnectionOpenTryResponse) | ConnectionOpenTry defines a rpc handler method for MsgConnectionOpenTry. | |
 | `ConnectionOpenAck` | [MsgConnectionOpenAck](#ibc.core.connection.v1.MsgConnectionOpenAck) | [MsgConnectionOpenAckResponse](#ibc.core.connection.v1.MsgConnectionOpenAckResponse) | ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck. | |
 | `ConnectionOpenConfirm` | [MsgConnectionOpenConfirm](#ibc.core.connection.v1.MsgConnectionOpenConfirm) | [MsgConnectionOpenConfirmResponse](#ibc.core.connection.v1.MsgConnectionOpenConfirmResponse) | ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm. | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/port/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/port/v1/query.proto
+
+
+
+<a name="ibc.core.port.v1.QueryPortRequest"></a>
+
+### QueryPortRequest
+QueryPortRequest is the request type for the Query/Port RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | port unique identifier |
+| `counterparty` | [ibc.core.channel.v1.Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `counterparty_version` | [string](#string) |  | counterparty version |
+
+
+
+
+
+
+<a name="ibc.core.port.v1.QueryPortResponse"></a>
+
+### QueryPortResponse
+QueryPortResponse is the response type for the Query/Port RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | port id associated with the request identifiers |
+| `version` | [string](#string) |  | supported app version |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.core.port.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Port` | [QueryPortRequest](#ibc.core.port.v1.QueryPortRequest) | [QueryPortResponse](#ibc.core.port.v1.QueryPortResponse) | Port queries an IBC Port. | |
 
  <!-- end services -->
 

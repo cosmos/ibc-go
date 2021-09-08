@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package ibc.core.port.v1;
+
+option go_package = "github.com/cosmos/ibc-go/modules/core/05-port/types";
+
+import "ibc/core/channel/v1/channel.proto";
+
+// Query provides defines the gRPC querier service
+service Query {
+  // Port queries an IBC Port.
+  rpc Port(QueryPortRequest) returns (QueryPortResponse) {}
+}
+
+// QueryPortRequest is the request type for the Query/Port RPC method
+message QueryPortRequest {
+  // port unique identifier
+  string port_id = 1;
+  // counterparty channel end
+  ibc.core.channel.v1.Counterparty counterparty = 2;
+  // counterparty version
+  string counterparty_version = 3;
+}
+
+// QueryPortResponse is the response type for the Query/Port RPC method.
+message QueryPortResponse {
+  // port id associated with the request identifiers
+  string port_id = 1;
+  // supported app version
+  string version = 2;
+}
