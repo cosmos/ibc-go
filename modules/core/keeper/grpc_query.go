@@ -6,6 +6,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
 )
 
 // ClientState implements the IBC QueryServer interface
@@ -131,4 +132,9 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *channeltypes.QueryUnrecei
 // NextSequenceReceive implements the IBC QueryServer interface
 func (q Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNextSequenceReceiveRequest) (*channeltypes.QueryNextSequenceReceiveResponse, error) {
 	return q.ChannelKeeper.NextSequenceReceive(c, req)
+}
+
+// Port implements the IBC QueryServer interface
+func (q Keeper) Port(c context.Context, req *porttypes.QueryPortRequest) (*porttypes.QueryPortResponse, error) {
+	return q.PortKeeper.Port(c, req)
 }
