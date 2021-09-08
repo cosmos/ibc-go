@@ -1,15 +1,13 @@
 package keeper_test
 
-/*
 import (
+	// standard library importsn
 	"testing"
 
+	// external library imports
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	// ibc-go imports
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -31,15 +29,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
-func NewFeePath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = ibctesting.FeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.FeePort
-
-	return path
-}
-
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
-*/

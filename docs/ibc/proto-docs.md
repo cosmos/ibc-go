@@ -49,8 +49,8 @@
 - [ibc/applications/fee/v1/tx.proto](#ibc/applications/fee/v1/tx.proto)
     - [MsgEscrowPacketFee](#ibc.applications.fee.v1.MsgEscrowPacketFee)
     - [MsgEscrowPacketFeeResponse](#ibc.applications.fee.v1.MsgEscrowPacketFeeResponse)
-    - [MsgRegisterCounterPartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse)
     - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
+    - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
   
     - [Msg](#ibc.applications.fee.v1.Msg)
   
@@ -915,16 +915,6 @@ MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse"></a>
-
-### MsgRegisterCounterPartyAddressResponse
-MsgRegisterCounterPartyAddressResponse defines the Msg/RegisterCounteryPartyAddress response type
-
-
-
-
-
-
 <a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
 
 ### MsgRegisterCounterpartyAddress
@@ -935,6 +925,16 @@ MsgRegisterCounterpartyAddress is the request type for registering the counter p
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 | `counterparty_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse"></a>
+
+### MsgRegisterCounterpartyAddressResponse
+MsgRegisterCounterpartyAddressResponse defines the Msg/RegisterCounterypartyAddress response type
 
 
 
@@ -954,7 +954,7 @@ Msg defines the ibc/fee Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterCounterPartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterPartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterPartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
+| `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
 | `EscrowPacketFee` | [MsgEscrowPacketFee](#ibc.applications.fee.v1.MsgEscrowPacketFee) | [MsgEscrowPacketFeeResponse](#ibc.applications.fee.v1.MsgEscrowPacketFeeResponse) | EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
 
  <!-- end services -->

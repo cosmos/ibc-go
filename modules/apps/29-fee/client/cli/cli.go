@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
-
+	// external library imports
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/spf13/cobra"
 )
 
 // GetQueryCmd returns the query commands for 29-fee
