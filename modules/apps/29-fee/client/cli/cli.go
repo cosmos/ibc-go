@@ -1,7 +1,6 @@
 package cli
 
 import (
-	// external library imports
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )

@@ -1,14 +1,12 @@
 package keeper
 
 import (
-	// external library imports
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	// ibc-go imports
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
