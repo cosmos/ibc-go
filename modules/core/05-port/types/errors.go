@@ -10,5 +10,5 @@ var (
 	ErrPortNotFound   = sdkerrors.Register(SubModuleName, 3, "port not found")
 	ErrInvalidPort    = sdkerrors.Register(SubModuleName, 4, "invalid port")
 	ErrInvalidRoute   = sdkerrors.Register(SubModuleName, 5, "route not found")
-	ErrInvalidVersion = sdkerrors.Register(SubModuleName, 5, "invalid port version")
+	ErrInvalidVersion = sdkerrors.Register(SubModuleName, 6, "invalid port version")
 )
