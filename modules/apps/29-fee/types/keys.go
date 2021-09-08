@@ -19,11 +19,11 @@ const (
 	// QuerierRoute is the querier route for IBC transfer
 	QuerierRoute = ModuleName
 
-	// Key prefix for relayer address mapping
+	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	RelayerAddressKeyPrefix = "relayerAddress"
 )
 
-// Key for relayer source address -> counteryparty address mapping
+// KeyRelayerAddress returns the key for relayer address -> counteryparty address mapping
 func KeyRelayerAddress(address string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", RelayerAddressKeyPrefix, address))
 }
