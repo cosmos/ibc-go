@@ -82,4 +82,11 @@ type IBCModule interface {
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
+
+	NegotiateAppVersion(
+		ctx sdk.Context,
+		portID string,
+		counterparty channeltypes.Counterparty,
+		counterpartyVersion string,
+	) (version string, err error)
 }
