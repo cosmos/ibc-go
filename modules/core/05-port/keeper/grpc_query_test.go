@@ -47,18 +47,18 @@ func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
 			false,
 		},
 		{
-			"invalid version",
+			"version negotiation failure",
 			func() {
 
 				expVersion = mock.Version
 
 				req = &types.NegotiateAppVersionRequest{
-					PortId: "mock",
+					PortId: "mock", // retrieves the mock testing module
 					Counterparty: &channeltypes.Counterparty{
 						PortId:    "mock-port-id",
 						ChannelId: "mock-channel-id",
 					},
-					ProposedVersion: "invalid-counterparty-version",
+					ProposedVersion: "invalid-proposed-version",
 				}
 			},
 			false,
