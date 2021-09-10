@@ -443,7 +443,7 @@ func (am AppModule) NegotiateAppVersion(
 	proposedVersion string,
 ) (version string, err error) {
 	if proposedVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: got: %s, expected %s", proposedVersion, types.Version)
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.Version, proposedVersion)
 	}
 
 	return types.Version, nil
