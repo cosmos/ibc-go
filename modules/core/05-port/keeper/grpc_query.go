@@ -14,8 +14,8 @@ import (
 
 var _ types.QueryServer = (*Keeper)(nil)
 
-// NegotiateAppVersion implements the Query/NegotiateAppVersion gRPC method
-func (q Keeper) NegotiateAppVersion(c context.Context, req *types.NegotiateAppVersionRequest) (*types.NegotiateAppVersionResponse, error) {
+// AppVersion implements the Query/AppVersion gRPC method
+func (q Keeper) AppVersion(c context.Context, req *types.QueryAppVersionRequest) (*types.QueryAppVersionResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -35,12 +35,12 @@ func (q Keeper) NegotiateAppVersion(c context.Context, req *types.NegotiateAppVe
 		return nil, status.Errorf(codes.NotFound, sdkerrors.Wrapf(types.ErrInvalidRoute, "route not found to module: %s", module).Error())
 	}
 
-	version, err := ibcModule.NegotiateAppVersion(ctx, req.PortId, *req.Counterparty, req.ProposedVersion)
+	version, err := ibcModule.NegotiateAppVersion(ctx, req.Ordering, req.ConnectionId, req.PortId, *req.Counterparty, req.ProposedVersion)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, sdkerrors.Wrap(err, "version negotation failed").Error())
 	}
 
-	return types.NewNegotiateAppVersionResponse(req.PortId, version), nil
+	return types.NewQueryAppVersionResponse(req.PortId, version), nil
 }
 
 func validategRPCRequest(portID string) error {

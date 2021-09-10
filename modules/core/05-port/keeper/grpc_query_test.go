@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/ibc-go/testing/mock"
 )
 
-func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
+func (suite *KeeperTestSuite) TestAppVersion() {
 	var (
-		req        *types.NegotiateAppVersionRequest
+		req        *types.QueryAppVersionRequest
 		expVersion string
 	)
 
@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
 		{
 			"invalid port ID",
 			func() {
-				req = &types.NegotiateAppVersionRequest{
+				req = &types.QueryAppVersionRequest{
 					PortId: "",
 				}
 			},
@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
 		{
 			"module not found",
 			func() {
-				req = &types.NegotiateAppVersionRequest{
+				req = &types.QueryAppVersionRequest{
 					PortId: "mock-port-id",
 				}
 			},
@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
 
 				expVersion = mock.Version
 
-				req = &types.NegotiateAppVersionRequest{
+				req = &types.QueryAppVersionRequest{
 					PortId: "mock", // retrieves the mock testing module
 					Counterparty: &channeltypes.Counterparty{
 						PortId:    "mock-port-id",
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
 
 				expVersion = mock.Version
 
-				req = &types.NegotiateAppVersionRequest{
+				req = &types.QueryAppVersionRequest{
 					PortId: "mock", // retrieves the mock testing module
 					Counterparty: &channeltypes.Counterparty{
 						PortId:    "mock-port-id",
@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.keeper.NegotiateAppVersion(ctx, req)
+			res, err := suite.keeper.AppVersion(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

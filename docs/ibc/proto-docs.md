@@ -190,8 +190,8 @@
     - [Msg](#ibc.core.connection.v1.Msg)
   
 - [ibc/core/port/v1/query.proto](#ibc/core/port/v1/query.proto)
-    - [NegotiateAppVersionRequest](#ibc.core.port.v1.NegotiateAppVersionRequest)
-    - [NegotiateAppVersionResponse](#ibc.core.port.v1.NegotiateAppVersionResponse)
+    - [QueryAppVersionRequest](#ibc.core.port.v1.QueryAppVersionRequest)
+    - [QueryAppVersionResponse](#ibc.core.port.v1.QueryAppVersionResponse)
   
     - [Query](#ibc.core.port.v1.Query)
   
@@ -2887,15 +2887,17 @@ Msg defines the ibc/connection Msg service.
 
 
 
-<a name="ibc.core.port.v1.NegotiateAppVersionRequest"></a>
+<a name="ibc.core.port.v1.QueryAppVersionRequest"></a>
 
-### NegotiateAppVersionRequest
-NegotiateAppVersionRequest is the request type for the Query/NegotiateAppVersion RPC method
+### QueryAppVersionRequest
+QueryAppVersionRequest is the request type for the Query/AppVersion RPC method
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | port unique identifier |
+| `connection_id` | [string](#string) |  | connection unique identifier |
+| `ordering` | [ibc.core.channel.v1.Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
 | `counterparty` | [ibc.core.channel.v1.Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
 | `proposed_version` | [string](#string) |  | proposed version |
 
@@ -2904,10 +2906,10 @@ NegotiateAppVersionRequest is the request type for the Query/NegotiateAppVersion
 
 
 
-<a name="ibc.core.port.v1.NegotiateAppVersionResponse"></a>
+<a name="ibc.core.port.v1.QueryAppVersionResponse"></a>
 
-### NegotiateAppVersionResponse
-NegotiateAppVersionResponse is the response type for the Query/NegotiateAppVersion RPC method.
+### QueryAppVersionResponse
+QueryAppVersionResponse is the response type for the Query/AppVersion RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2933,7 +2935,7 @@ Query defines the gRPC querier service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `NegotiateAppVersion` | [NegotiateAppVersionRequest](#ibc.core.port.v1.NegotiateAppVersionRequest) | [NegotiateAppVersionResponse](#ibc.core.port.v1.NegotiateAppVersionResponse) | NegotiateAppVersion queries an IBC Port and determines the appropriate application version to be used | |
+| `AppVersion` | [QueryAppVersionRequest](#ibc.core.port.v1.QueryAppVersionRequest) | [QueryAppVersionResponse](#ibc.core.port.v1.QueryAppVersionResponse) | AppVersion queries an IBC Port and determines the appropriate application version to be used | |
 
  <!-- end services -->
 
