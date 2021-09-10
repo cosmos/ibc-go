@@ -27,6 +27,16 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			}, true,
 		},
 		{
+			"success with []sdk.Message", func() {
+				amount, _ := sdk.ParseCoinsNormalized("100stake")
+				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				msg1 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+				msg2 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+				msg = []sdk.Msg{msg1, msg2}
+				portID = path.EndpointA.ChannelConfig.PortID
+			}, true,
+		},
+		{
 			"active channel not found", func() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
