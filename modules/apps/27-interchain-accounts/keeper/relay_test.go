@@ -24,7 +24,6 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
-				portID = path.EndpointA.ChannelConfig.PortID
 			}, true,
 		},
 		{
@@ -34,8 +33,12 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				msg1 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				msg2 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				msg = []sdk.Msg{msg1, msg2}
-				portID = path.EndpointA.ChannelConfig.PortID
 			}, true,
+		},
+		{
+			"incorrect outgoing data", func() {
+				msg = []byte{}
+			}, false,
 		},
 		{
 			"active channel not found", func() {
@@ -46,15 +49,21 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			}, false,
 		},
 		{
+			"channel does not exist", func() {
+				amount, _ := sdk.ParseCoinsNormalized("100stake")
+				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, "channel-100")
+			}, false,
+		},
+		{
 			"data is nil", func() {
 				msg = nil
-				portID = path.EndpointA.ChannelConfig.PortID
 			}, false,
 		},
 		{
 			"data is not an SDK message", func() {
 				msg = "not an sdk message"
-				portID = path.EndpointA.ChannelConfig.PortID
 			}, false,
 		},
 	}
@@ -70,7 +79,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 
 			err := suite.SetupICAPath(path, owner)
 			suite.Require().NoError(err)
-
+			portID = path.EndpointA.ChannelConfig.PortID
 			tc.malleate()
 			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), portID, msg)
 
