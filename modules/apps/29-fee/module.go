@@ -50,7 +50,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	//	types.RegisterInterfaces(registry)
+	types.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
@@ -129,7 +129,7 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	// types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	// types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 

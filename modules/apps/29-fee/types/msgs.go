@@ -8,6 +8,7 @@ import (
 // msg types
 const (
 	TypeMsgRegisterCounterpartyAddress = "registerCounterpartyAddress"
+	TypeMsgEscrowPacketFee             = "escrowPacketFee"
 )
 
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
@@ -40,4 +41,24 @@ func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
+}
+
+// NewMsgEscrowPacketFee creates a new instance of MsgEscrowPacketFee
+func NewMsgEscrowPacketFee(incentivizedPacket *IdentifiedPacketFee, relayers []string) *MsgEscrowPacketFee {
+	return &MsgEscrowPacketFee{
+		IncentivizedPacket: incentivizedPacket,
+		Relayers:           relayers,
+	}
+}
+
+// ValidateBasic performs a basic check of the MsgEscrowPacketFee fields
+func (msg MsgEscrowPacketFee) ValidateBasic() error {
+	//TODO
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgEscrowPacketFee) GetSigners() []sdk.AccAddress {
+	//TODO
+	return []sdk.AccAddress{}
 }
