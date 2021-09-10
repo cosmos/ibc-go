@@ -1,6 +1,8 @@
 package fee_test
 
 import (
+	"fmt"
+
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
@@ -51,39 +53,46 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	}
 
 	for _, tc := range testCases {
-		ctx := suite.chainA.GetContext()
-		cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(ctx, tc.name)
-		suite.Require().NoError(err)
-		err = suite.module.OnChanOpenInit(
-			ctx,
-			channeltypes.UNORDERED,
-			[]string{"connection-1"},
-			transfertypes.FeePortID,
-			"channel-1",
-			cap,
-			channeltypes.NewCounterparty(transfertypes.FeePortID, "channel-2"),
-			tc.version,
-		)
+		tc := tc
 
-		if tc.expPass {
-			suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
+		suite.Run(tc.name, func() {
+			// reset suite
+			suite.SetupTest()
 
-			// check that capabilities are properly claimed and issued
 			ctx := suite.chainA.GetContext()
-			ibcCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
-			suite.Require().NotNil(ibcCap, "IBC capability is nil on fee keeper")
-			suite.Require().True(ok)
+			cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
+			suite.Require().NoError(err)
+			err = suite.moduleA.OnChanOpenInit(
+				ctx,
+				channeltypes.UNORDERED,
+				[]string{"connection-1"},
+				transfertypes.FeePortID,
+				"channel-1",
+				cap,
+				channeltypes.NewCounterparty(transfertypes.FeePortID, ""),
+				tc.version,
+			)
 
-			appFeeCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, types.AppCapabilityName(transfertypes.FeePortID, "channel-1"))
-			suite.Require().NotNil(appFeeCap, "App capability not created or owned by ibc fee keeper")
-			suite.Require().True(ok)
-			transferCap, ok := suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
-			suite.Require().NotNil(transferCap, "App capability not claimed by transfer keeper")
-			suite.Require().True(ok)
-			suite.Require().Equal(appFeeCap, transferCap, "app capabilities not equal")
-		} else {
-			suite.Require().Error(err, "error not returned for version: %s", tc.version)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
+
+				// check that capabilities are properly claimed and issued
+				ctx := suite.chainA.GetContext()
+				ibcCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
+				suite.Require().NotNil(ibcCap, "IBC capability is nil on fee keeper")
+				suite.Require().True(ok)
+
+				appFeeCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, types.AppCapabilityName(transfertypes.FeePortID, "channel-1"))
+				suite.Require().NotNil(appFeeCap, "App capability not created or owned by ibc fee keeper")
+				suite.Require().True(ok)
+				transferCap, ok := suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
+				suite.Require().NotNil(transferCap, "App capability not claimed by transfer keeper")
+				suite.Require().True(ok)
+				suite.Require().Equal(appFeeCap, transferCap, "app capabilities not equal")
+			} else {
+				suite.Require().Error(err, "error not returned for version: %s", tc.version)
+			}
+		})
 	}
 }
 
@@ -168,45 +177,42 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	}
 
 	for _, tc := range testCases {
-		ctx := suite.chainA.GetContext()
-		cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(ctx, tc.name)
-		suite.Require().NoError(err)
-		// claim capability if capability already exists in fee keeper before ChanOpenTry
-		if tc.capExists {
-			suite.chainA.GetSimApp().ScopedIBCFeeKeeper.ClaimCapability(ctx, cap, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
-		}
+		tc := tc
 
-		err = suite.module.OnChanOpenTry(
-			ctx,
-			channeltypes.UNORDERED,
-			[]string{"connection-1"},
-			transfertypes.FeePortID,
-			"channel-1",
-			cap,
-			channeltypes.NewCounterparty(transfertypes.FeePortID, "channel-0"),
-			tc.version,
-			tc.cpVersion,
-		)
+		suite.Run(tc.name, func() {
+			// reset suite
+			suite.SetupTest()
+			suite.coordinator.SetupClients(suite.path)
+			suite.coordinator.SetupConnections(suite.path)
+			suite.path.EndpointB.ChanOpenInit()
 
-		if tc.expPass {
-			suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
+			if tc.capExists {
+				suite.path.EndpointA.ChanOpenInit()
+			}
 
-			// check that capabilities are properly claimed and issued
-			ctx := suite.chainA.GetContext()
-			ibcCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
-			suite.Require().NotNil(ibcCap, "IBC capability is nil on fee keeper")
-			suite.Require().True(ok)
+			fmt.Println("port:", suite.path.EndpointA.ChannelConfig.PortID)
+			err := suite.path.EndpointA.ChanOpenTry()
 
-			appFeeCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, types.AppCapabilityName(transfertypes.FeePortID, "channel-1"))
-			suite.Require().NotNil(appFeeCap, "App capability not created or owned by ibc fee keeper")
-			suite.Require().True(ok)
-			transferCap, ok := suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
-			suite.Require().NotNil(transferCap, "App capability not claimed by transfer keeper")
-			suite.Require().True(ok)
-			suite.Require().Equal(appFeeCap, transferCap, "app capabilities not equal")
-		} else {
-			suite.Require().Error(err, "error not returned for version: %s", tc.version)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
+
+				// check that capabilities are properly claimed and issued
+				ctx := suite.chainA.GetContext()
+				ibcCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
+				suite.Require().NotNil(ibcCap, "IBC capability is nil on fee keeper: %s", host.ChannelCapabilityPath(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
+				suite.Require().True(ok)
+
+				appFeeCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, types.AppCapabilityName(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
+				suite.Require().NotNil(appFeeCap, "App capability not created or owned by ibc fee keeper")
+				suite.Require().True(ok)
+				transferCap, ok := suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
+				suite.Require().NotNil(transferCap, "App capability not claimed by transfer keeper")
+				suite.Require().True(ok)
+				suite.Require().Equal(appFeeCap, transferCap, "app capabilities not equal")
+			} else {
+				suite.Require().Error(err, "error not returned for version: %s", tc.version)
+			}
+		})
 	}
 }
 
@@ -235,7 +241,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 
 	for _, tc := range testCases {
 		ctx := suite.chainA.GetContext()
-		err := suite.module.OnChanOpenAck(ctx, transfertypes.FeePortID, "channel-1", tc.cpVersion)
+		err := suite.moduleA.OnChanOpenAck(ctx, transfertypes.FeePortID, "channel-1", tc.cpVersion)
 		if tc.expPass {
 			suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 		} else {

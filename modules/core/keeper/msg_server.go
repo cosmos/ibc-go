@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/armon/go-metrics"
 
@@ -301,6 +302,8 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
+	fmt.Println("PORTID: ", msg.PortId)
+	fmt.Println("MODULE: ", module)
 
 	channelID, cap, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, msg.PreviousChannelId,
 		portCap, msg.Channel.Counterparty, msg.Channel.Version, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
@@ -484,6 +487,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
+	fmt.Println("MODULE: ", module)
 
 	// Retrieve callbacks from router
 	cbs, ok := k.Router.GetRoute(module)

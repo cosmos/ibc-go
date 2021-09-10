@@ -342,6 +342,7 @@ func NewSimApp(
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
+	ibcRouter.AddRoute(ibcfeetypes.ModuleName, feeTransferModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router

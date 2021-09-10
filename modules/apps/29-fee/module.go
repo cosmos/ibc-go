@@ -3,6 +3,7 @@ package fee
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -232,6 +233,7 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
+	fmt.Println("FEE TRANSFER")
 	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
 	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
 
@@ -246,20 +248,24 @@ func (am AppModule) OnChanOpenTry(
 		err    error
 		ok     bool
 	)
+	fmt.Println("why")
+	fmt.Println(host.ChannelCapabilityPath(portID, channelID))
 	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
 	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
 	// If module can already authenticate the capability then module already owns it so we don't need to claim
 	// Otherwise, module does not have channel capability and we must claim it from IBC
 	if !am.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		fmt.Println("hello")
 		// Only claim channel capability passed back by IBC module if we do not already own it
 		if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return err
+			return sdkerrors.Wrap(err, "fee middleware could not claim capability from caller")
 		}
 		appCap, err = am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(portID, channelID))
 		if err != nil {
-			return sdkerrors.Wrap(err, "could not create capability for underlying app")
+			return sdkerrors.Wrap(err, "could not create capability for underlying application")
 		}
 	} else {
+		fmt.Println("bye")
 		appCap, ok = am.scopedKeeper.GetCapability(ctx, types.AppCapabilityName(portID, channelID))
 		if !ok {
 			return sdkerrors.Wrap(capabilitytypes.ErrCapabilityNotFound,

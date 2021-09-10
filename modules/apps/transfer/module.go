@@ -214,6 +214,7 @@ func ValidateTransferChannelParams(
 	for _, boundPort := range boundPorts {
 		if boundPort == portID {
 			portOk = true
+			break
 		}
 	}
 	if !portOk {
