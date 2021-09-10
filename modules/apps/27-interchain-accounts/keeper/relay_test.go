@@ -68,17 +68,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			owner := "owner"
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, owner)
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.ChanOpenAck()
-			suite.Require().NoError(err)
-
-			err = suite.chainB.GetSimApp().ICAKeeper.OnChanOpenConfirm(suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			err := suite.SetupICAPath(path, owner)
 			suite.Require().NoError(err)
 
 			tc.malleate()
