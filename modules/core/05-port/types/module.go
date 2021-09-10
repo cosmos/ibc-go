@@ -83,10 +83,13 @@ type IBCModule interface {
 		relayer sdk.AccAddress,
 	) error
 
+	// NegotiateAppVersion performs application version negotiation given the provided port ID, counterparty and proposed version.
+	// An error is returned if version negotiation cannot be performed. For example, an application module implementing this interface
+	// may decide to return an error in the event of the proposed version being incompatible with it's own
 	NegotiateAppVersion(
 		ctx sdk.Context,
 		portID string,
 		counterparty channeltypes.Counterparty,
-		counterpartyVersion string,
+		proposedVersion string,
 	) (version string, err error)
 }

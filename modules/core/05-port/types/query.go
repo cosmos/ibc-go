@@ -1,8 +1,8 @@
 package types
 
-// NewQueryPortResponse creates a new QueryPortResponse instance
-func NewQueryPortResponse(portID, version string) *QueryPortResponse {
-	return &QueryPortResponse{
+// NewNegotiateAppVersionResponse creates a new NegotiateAppVersionResponse instance
+func NewNegotiateAppVersionResponse(portID, version string) *NegotiateAppVersionResponse {
+	return &NegotiateAppVersionResponse{
 		PortId:  portID,
 		Version: version,
 	}

@@ -134,7 +134,7 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNe
 	return q.ChannelKeeper.NextSequenceReceive(c, req)
 }
 
-// Port implements the IBC QueryServer interface
-func (q Keeper) Port(c context.Context, req *porttypes.QueryPortRequest) (*porttypes.QueryPortResponse, error) {
-	return q.PortKeeper.Port(c, req)
+// NegotiateAppVersion implements the IBC QueryServer interface
+func (q Keeper) NegotiateAppVersion(c context.Context, req *porttypes.NegotiateAppVersionRequest) (*porttypes.NegotiateAppVersionResponse, error) {
+	return q.PortKeeper.NegotiateAppVersion(c, req)
 }

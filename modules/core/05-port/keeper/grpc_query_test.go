@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/ibc-go/testing/mock"
 )
 
-func (suite *KeeperTestSuite) TestQueryPort() {
+func (suite *KeeperTestSuite) TestNegotiateAppVersion() {
 	var (
-		req        *types.QueryPortRequest
+		req        *types.NegotiateAppVersionRequest
 		expVersion string
 	)
 
@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestQueryPort() {
 		{
 			"invalid port ID",
 			func() {
-				req = &types.QueryPortRequest{
+				req = &types.NegotiateAppVersionRequest{
 					PortId: "",
 				}
 			},
@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestQueryPort() {
 		{
 			"module not found",
 			func() {
-				req = &types.QueryPortRequest{
+				req = &types.NegotiateAppVersionRequest{
 					PortId: "mock-port-id",
 				}
 			},
@@ -52,13 +52,13 @@ func (suite *KeeperTestSuite) TestQueryPort() {
 
 				expVersion = mock.Version
 
-				req = &types.QueryPortRequest{
+				req = &types.NegotiateAppVersionRequest{
 					PortId: "mock",
 					Counterparty: &channeltypes.Counterparty{
 						PortId:    "mock-port-id",
 						ChannelId: "mock-channel-id",
 					},
-					CounterpartyVersion: "invalid-counterparty-version",
+					ProposedVersion: "invalid-counterparty-version",
 				}
 			},
 			false,
@@ -69,13 +69,13 @@ func (suite *KeeperTestSuite) TestQueryPort() {
 
 				expVersion = mock.Version
 
-				req = &types.QueryPortRequest{
+				req = &types.NegotiateAppVersionRequest{
 					PortId: "mock", // retrieves the mock testing module
 					Counterparty: &channeltypes.Counterparty{
 						PortId:    "mock-port-id",
 						ChannelId: "mock-channel-id",
 					},
-					CounterpartyVersion: mock.Version,
+					ProposedVersion: mock.Version,
 				}
 			},
 			true,
@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestQueryPort() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.keeper.Port(ctx, req)
+			res, err := suite.keeper.NegotiateAppVersion(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

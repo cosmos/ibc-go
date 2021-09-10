@@ -28,28 +28,28 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// QueryPortRequest is the request type for the Query/Port RPC method
-type QueryPortRequest struct {
+// NegotiateAppVersionRequest is the request type for the Query/NegotiateAppVersion RPC method
+type NegotiateAppVersionRequest struct {
 	// port unique identifier
 	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
 	// counterparty channel end
 	Counterparty *types.Counterparty `protobuf:"bytes,2,opt,name=counterparty,proto3" json:"counterparty,omitempty"`
-	// counterparty version
-	CounterpartyVersion string `protobuf:"bytes,3,opt,name=counterparty_version,json=counterpartyVersion,proto3" json:"counterparty_version,omitempty"`
+	// proposed version
+	ProposedVersion string `protobuf:"bytes,3,opt,name=proposed_version,json=proposedVersion,proto3" json:"proposed_version,omitempty"`
 }
 
-func (m *QueryPortRequest) Reset()         { *m = QueryPortRequest{} }
-func (m *QueryPortRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryPortRequest) ProtoMessage()    {}
-func (*QueryPortRequest) Descriptor() ([]byte, []int) {
+func (m *NegotiateAppVersionRequest) Reset()         { *m = NegotiateAppVersionRequest{} }
+func (m *NegotiateAppVersionRequest) String() string { return proto.CompactTextString(m) }
+func (*NegotiateAppVersionRequest) ProtoMessage()    {}
+func (*NegotiateAppVersionRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9a256596009a8334, []int{0}
 }
-func (m *QueryPortRequest) XXX_Unmarshal(b []byte) error {
+func (m *NegotiateAppVersionRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryPortRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *NegotiateAppVersionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryPortRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_NegotiateAppVersionRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -59,59 +59,59 @@ func (m *QueryPortRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *QueryPortRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPortRequest.Merge(m, src)
+func (m *NegotiateAppVersionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NegotiateAppVersionRequest.Merge(m, src)
 }
-func (m *QueryPortRequest) XXX_Size() int {
+func (m *NegotiateAppVersionRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryPortRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPortRequest.DiscardUnknown(m)
+func (m *NegotiateAppVersionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_NegotiateAppVersionRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryPortRequest proto.InternalMessageInfo
+var xxx_messageInfo_NegotiateAppVersionRequest proto.InternalMessageInfo
 
-func (m *QueryPortRequest) GetPortId() string {
+func (m *NegotiateAppVersionRequest) GetPortId() string {
 	if m != nil {
 		return m.PortId
 	}
 	return ""
 }
 
-func (m *QueryPortRequest) GetCounterparty() *types.Counterparty {
+func (m *NegotiateAppVersionRequest) GetCounterparty() *types.Counterparty {
 	if m != nil {
 		return m.Counterparty
 	}
 	return nil
 }
 
-func (m *QueryPortRequest) GetCounterpartyVersion() string {
+func (m *NegotiateAppVersionRequest) GetProposedVersion() string {
 	if m != nil {
-		return m.CounterpartyVersion
+		return m.ProposedVersion
 	}
 	return ""
 }
 
-// QueryPortResponse is the response type for the Query/Port RPC method.
-type QueryPortResponse struct {
+// NegotiateAppVersionResponse is the response type for the Query/NegotiateAppVersion RPC method.
+type NegotiateAppVersionResponse struct {
 	// port id associated with the request identifiers
 	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
 	// supported app version
 	Version string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 }
 
-func (m *QueryPortResponse) Reset()         { *m = QueryPortResponse{} }
-func (m *QueryPortResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryPortResponse) ProtoMessage()    {}
-func (*QueryPortResponse) Descriptor() ([]byte, []int) {
+func (m *NegotiateAppVersionResponse) Reset()         { *m = NegotiateAppVersionResponse{} }
+func (m *NegotiateAppVersionResponse) String() string { return proto.CompactTextString(m) }
+func (*NegotiateAppVersionResponse) ProtoMessage()    {}
+func (*NegotiateAppVersionResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9a256596009a8334, []int{1}
 }
-func (m *QueryPortResponse) XXX_Unmarshal(b []byte) error {
+func (m *NegotiateAppVersionResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryPortResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *NegotiateAppVersionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryPortResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_NegotiateAppVersionResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -121,26 +121,26 @@ func (m *QueryPortResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *QueryPortResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPortResponse.Merge(m, src)
+func (m *NegotiateAppVersionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NegotiateAppVersionResponse.Merge(m, src)
 }
-func (m *QueryPortResponse) XXX_Size() int {
+func (m *NegotiateAppVersionResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryPortResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPortResponse.DiscardUnknown(m)
+func (m *NegotiateAppVersionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_NegotiateAppVersionResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryPortResponse proto.InternalMessageInfo
+var xxx_messageInfo_NegotiateAppVersionResponse proto.InternalMessageInfo
 
-func (m *QueryPortResponse) GetPortId() string {
+func (m *NegotiateAppVersionResponse) GetPortId() string {
 	if m != nil {
 		return m.PortId
 	}
 	return ""
 }
 
-func (m *QueryPortResponse) GetVersion() string {
+func (m *NegotiateAppVersionResponse) GetVersion() string {
 	if m != nil {
 		return m.Version
 	}
@@ -148,34 +148,35 @@ func (m *QueryPortResponse) GetVersion() string {
 }
 
 func init() {
-	proto.RegisterType((*QueryPortRequest)(nil), "ibc.core.port.v1.QueryPortRequest")
-	proto.RegisterType((*QueryPortResponse)(nil), "ibc.core.port.v1.QueryPortResponse")
+	proto.RegisterType((*NegotiateAppVersionRequest)(nil), "ibc.core.port.v1.NegotiateAppVersionRequest")
+	proto.RegisterType((*NegotiateAppVersionResponse)(nil), "ibc.core.port.v1.NegotiateAppVersionResponse")
 }
 
 func init() { proto.RegisterFile("ibc/core/port/v1/query.proto", fileDescriptor_9a256596009a8334) }
 
 var fileDescriptor_9a256596009a8334 = []byte{
-	// 320 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x91, 0xc1, 0x4e, 0xc2, 0x30,
-	0x18, 0xc7, 0x57, 0x54, 0x88, 0xd5, 0x03, 0x4e, 0x13, 0x17, 0x62, 0x1a, 0x98, 0x17, 0x2e, 0xb4,
-	0x0e, 0xe2, 0x0b, 0x68, 0x34, 0xf1, 0x60, 0x22, 0x1c, 0x3c, 0x70, 0x21, 0xac, 0x34, 0xd0, 0x04,
-	0xf6, 0x8d, 0xb6, 0x5b, 0xc2, 0x5b, 0xf8, 0x12, 0xbe, 0x8b, 0x47, 0x8e, 0x1e, 0x0d, 0xbc, 0x88,
-	0xe9, 0xe6, 0xc8, 0x24, 0xd1, 0x5b, 0xbf, 0xfc, 0xbf, 0xff, 0xaf, 0xff, 0x7c, 0x7f, 0x7c, 0x25,
-	0x43, 0xce, 0x38, 0x28, 0xc1, 0x62, 0x50, 0x86, 0xa5, 0x01, 0x5b, 0x26, 0x42, 0xad, 0x68, 0xac,
-	0xc0, 0x80, 0x5b, 0x97, 0x21, 0xa7, 0x56, 0xa5, 0x56, 0xa5, 0x69, 0xd0, 0x68, 0xed, 0xf6, 0xf9,
-	0x6c, 0x1c, 0x45, 0x62, 0x6e, 0x2d, 0x3f, 0xcf, 0xdc, 0xe4, 0xbf, 0x23, 0x5c, 0xef, 0x5b, 0xc8,
-	0x0b, 0x28, 0x33, 0x10, 0xcb, 0x44, 0x68, 0xe3, 0x5e, 0xe2, 0x9a, 0x45, 0x8c, 0xe4, 0xc4, 0x43,
-	0x4d, 0xd4, 0x3e, 0x1e, 0x54, 0xed, 0xf8, 0x34, 0x71, 0x1f, 0xf0, 0x29, 0x87, 0x24, 0x32, 0x42,
-	0xc5, 0x63, 0x65, 0x56, 0x5e, 0xa5, 0x89, 0xda, 0x27, 0xdd, 0x16, 0xdd, 0xfd, 0x5c, 0xc0, 0xd3,
-	0x80, 0xde, 0x97, 0x16, 0x07, 0xbf, 0x6c, 0x6e, 0x80, 0x2f, 0xca, 0xf3, 0x28, 0x15, 0x4a, 0x4b,
-	0x88, 0xbc, 0x83, 0xec, 0xb3, 0xf3, 0xb2, 0xf6, 0x9a, 0x4b, 0xfe, 0x23, 0x3e, 0x2b, 0xc5, 0xd4,
-	0x31, 0x44, 0x5a, 0xfc, 0x9d, 0xd3, 0xc3, 0xb5, 0x82, 0x59, 0xc9, 0x84, 0x62, 0xec, 0x0e, 0xf1,
-	0x51, 0xc6, 0x71, 0xfb, 0xf8, 0xd0, 0xb2, 0x5c, 0x9f, 0xee, 0x9f, 0x8d, 0xee, 0xdf, 0xa3, 0x71,
-	0xfd, 0xef, 0x4e, 0x1e, 0xc6, 0x77, 0xee, 0x9e, 0x3f, 0x36, 0x04, 0xad, 0x37, 0x04, 0x7d, 0x6d,
-	0x08, 0x7a, 0xdb, 0x12, 0x67, 0xbd, 0x25, 0xce, 0xe7, 0x96, 0x38, 0xc3, 0xde, 0x54, 0x9a, 0x59,
-	0x12, 0x52, 0x0e, 0x0b, 0xc6, 0x41, 0x2f, 0x40, 0x33, 0x19, 0xf2, 0xce, 0x14, 0xd8, 0x02, 0x26,
-	0xc9, 0x5c, 0xe8, 0xbc, 0xa5, 0x9b, 0xdb, 0x4e, 0x56, 0xac, 0x59, 0xc5, 0x42, 0x87, 0xd5, 0xac,
-	0xa1, 0xde, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0xde, 0x36, 0xa9, 0x53, 0xf6, 0x01, 0x00, 0x00,
+	// 334 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0xcd, 0x4e, 0xea, 0x40,
+	0x14, 0xee, 0x70, 0x73, 0x21, 0x77, 0xae, 0x89, 0xa4, 0x2e, 0x6c, 0xd0, 0x34, 0xc0, 0x0a, 0x13,
+	0x99, 0x11, 0x88, 0x0f, 0xa0, 0xc6, 0x85, 0x0b, 0x8d, 0xb2, 0x70, 0xe1, 0x86, 0xd0, 0xe9, 0x09,
+	0x4c, 0x02, 0x3d, 0xc3, 0xcc, 0xb4, 0x09, 0x0b, 0xdf, 0xc1, 0xb7, 0xf0, 0x55, 0x5c, 0xb2, 0x74,
+	0x69, 0xe0, 0x45, 0x4c, 0x5b, 0x4a, 0xd4, 0x40, 0xe2, 0xae, 0xa7, 0xe7, 0xfb, 0xcb, 0x77, 0x86,
+	0x1e, 0xcb, 0x40, 0x70, 0x81, 0x1a, 0xb8, 0x42, 0x6d, 0x79, 0xd2, 0xe1, 0xb3, 0x18, 0xf4, 0x9c,
+	0x29, 0x8d, 0x16, 0xdd, 0xaa, 0x0c, 0x04, 0x4b, 0xb7, 0x2c, 0xdd, 0xb2, 0xa4, 0x53, 0x6b, 0x6c,
+	0xf0, 0x62, 0x3c, 0x8c, 0x22, 0x98, 0xa4, 0x94, 0xf5, 0x67, 0x4e, 0x6a, 0xbe, 0x12, 0x5a, 0xbb,
+	0x83, 0x11, 0x5a, 0x39, 0xb4, 0x70, 0xa1, 0xd4, 0x23, 0x68, 0x23, 0x31, 0xea, 0xc3, 0x2c, 0x06,
+	0x63, 0xdd, 0x43, 0x5a, 0x49, 0xc5, 0x06, 0x32, 0xf4, 0x48, 0x9d, 0xb4, 0xfe, 0xf5, 0xcb, 0xe9,
+	0x78, 0x13, 0xba, 0xd7, 0x74, 0x4f, 0x60, 0x1c, 0x59, 0xd0, 0x6a, 0xa8, 0xed, 0xdc, 0x2b, 0xd5,
+	0x49, 0xeb, 0x7f, 0xb7, 0xc1, 0x36, 0x19, 0x0a, 0x9b, 0xa4, 0xc3, 0xae, 0xbe, 0x00, 0xfb, 0xdf,
+	0x68, 0xee, 0x09, 0xad, 0x2a, 0x8d, 0x0a, 0x0d, 0x84, 0x83, 0x24, 0xb7, 0xf6, 0xfe, 0x64, 0x46,
+	0xfb, 0xc5, 0xff, 0x75, 0xa2, 0xe6, 0x3d, 0x3d, 0xda, 0x1a, 0xd4, 0x28, 0x8c, 0x0c, 0xec, 0x4e,
+	0xea, 0xd1, 0x4a, 0xa1, 0x5c, 0xca, 0x16, 0xc5, 0xd8, 0x7d, 0xa6, 0x7f, 0x1f, 0xd2, 0xfe, 0x5c,
+	0x4b, 0x0f, 0xb6, 0x48, 0xbb, 0xa7, 0xec, 0x67, 0xa3, 0x6c, 0x77, 0x55, 0xb5, 0xf6, 0x2f, 0xd1,
+	0x79, 0xde, 0xa6, 0x73, 0x79, 0xfb, 0xb6, 0xf4, 0xc9, 0x62, 0xe9, 0x93, 0x8f, 0xa5, 0x4f, 0x5e,
+	0x56, 0xbe, 0xb3, 0x58, 0xf9, 0xce, 0xfb, 0xca, 0x77, 0x9e, 0x7a, 0x23, 0x69, 0xc7, 0x71, 0xc0,
+	0x04, 0x4e, 0xb9, 0x40, 0x33, 0x45, 0xc3, 0x65, 0x20, 0xda, 0x23, 0xe4, 0x53, 0x0c, 0xe3, 0x09,
+	0x98, 0xfc, 0xa8, 0x67, 0xe7, 0xed, 0xec, 0x1d, 0xd8, 0xb9, 0x02, 0x13, 0x94, 0xb3, 0x83, 0xf6,
+	0x3e, 0x03, 0x00, 0x00, 0xff, 0xff, 0x8f, 0x12, 0x61, 0x53, 0x25, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -190,8 +191,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Port queries an IBC Port.
-	Port(ctx context.Context, in *QueryPortRequest, opts ...grpc.CallOption) (*QueryPortResponse, error)
+	// NegotiateAppVersion queries an IBC Port and determines the appropriate application version to be used
+	NegotiateAppVersion(ctx context.Context, in *NegotiateAppVersionRequest, opts ...grpc.CallOption) (*NegotiateAppVersionResponse, error)
 }
 
 type queryClient struct {
@@ -202,9 +203,9 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 	return &queryClient{cc}
 }
 
-func (c *queryClient) Port(ctx context.Context, in *QueryPortRequest, opts ...grpc.CallOption) (*QueryPortResponse, error) {
-	out := new(QueryPortResponse)
-	err := c.cc.Invoke(ctx, "/ibc.core.port.v1.Query/Port", in, out, opts...)
+func (c *queryClient) NegotiateAppVersion(ctx context.Context, in *NegotiateAppVersionRequest, opts ...grpc.CallOption) (*NegotiateAppVersionResponse, error) {
+	out := new(NegotiateAppVersionResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.port.v1.Query/NegotiateAppVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -213,36 +214,36 @@ func (c *queryClient) Port(ctx context.Context, in *QueryPortRequest, opts ...gr
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Port queries an IBC Port.
-	Port(context.Context, *QueryPortRequest) (*QueryPortResponse, error)
+	// NegotiateAppVersion queries an IBC Port and determines the appropriate application version to be used
+	NegotiateAppVersion(context.Context, *NegotiateAppVersionRequest) (*NegotiateAppVersionResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
 type UnimplementedQueryServer struct {
 }
 
-func (*UnimplementedQueryServer) Port(ctx context.Context, req *QueryPortRequest) (*QueryPortResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Port not implemented")
+func (*UnimplementedQueryServer) NegotiateAppVersion(ctx context.Context, req *NegotiateAppVersionRequest) (*NegotiateAppVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NegotiateAppVersion not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
 	s.RegisterService(&_Query_serviceDesc, srv)
 }
 
-func _Query_Port_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryPortRequest)
+func _Query_NegotiateAppVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NegotiateAppVersionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).Port(ctx, in)
+		return srv.(QueryServer).NegotiateAppVersion(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.core.port.v1.Query/Port",
+		FullMethod: "/ibc.core.port.v1.Query/NegotiateAppVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Port(ctx, req.(*QueryPortRequest))
+		return srv.(QueryServer).NegotiateAppVersion(ctx, req.(*NegotiateAppVersionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -252,15 +253,15 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Port",
-			Handler:    _Query_Port_Handler,
+			MethodName: "NegotiateAppVersion",
+			Handler:    _Query_NegotiateAppVersion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "ibc/core/port/v1/query.proto",
 }
 
-func (m *QueryPortRequest) Marshal() (dAtA []byte, err error) {
+func (m *NegotiateAppVersionRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -270,20 +271,20 @@ func (m *QueryPortRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryPortRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *NegotiateAppVersionRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryPortRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *NegotiateAppVersionRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.CounterpartyVersion) > 0 {
-		i -= len(m.CounterpartyVersion)
-		copy(dAtA[i:], m.CounterpartyVersion)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.CounterpartyVersion)))
+	if len(m.ProposedVersion) > 0 {
+		i -= len(m.ProposedVersion)
+		copy(dAtA[i:], m.ProposedVersion)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ProposedVersion)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -309,7 +310,7 @@ func (m *QueryPortRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryPortResponse) Marshal() (dAtA []byte, err error) {
+func (m *NegotiateAppVersionResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -319,12 +320,12 @@ func (m *QueryPortResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryPortResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *NegotiateAppVersionResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryPortResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *NegotiateAppVersionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -357,7 +358,7 @@ func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *QueryPortRequest) Size() (n int) {
+func (m *NegotiateAppVersionRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -371,14 +372,14 @@ func (m *QueryPortRequest) Size() (n int) {
 		l = m.Counterparty.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
-	l = len(m.CounterpartyVersion)
+	l = len(m.ProposedVersion)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
 
-func (m *QueryPortResponse) Size() (n int) {
+func (m *NegotiateAppVersionResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -401,7 +402,7 @@ func sovQuery(x uint64) (n int) {
 func sozQuery(x uint64) (n int) {
 	return sovQuery(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *QueryPortRequest) Unmarshal(dAtA []byte) error {
+func (m *NegotiateAppVersionRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -424,10 +425,10 @@ func (m *QueryPortRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPortRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: NegotiateAppVersionRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPortRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: NegotiateAppVersionRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -500,7 +501,7 @@ func (m *QueryPortRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyVersion", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposedVersion", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -528,7 +529,7 @@ func (m *QueryPortRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CounterpartyVersion = string(dAtA[iNdEx:postIndex])
+			m.ProposedVersion = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -551,7 +552,7 @@ func (m *QueryPortRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryPortResponse) Unmarshal(dAtA []byte) error {
+func (m *NegotiateAppVersionResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -574,10 +575,10 @@ func (m *QueryPortResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPortResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: NegotiateAppVersionResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPortResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: NegotiateAppVersionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

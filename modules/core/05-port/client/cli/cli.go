@@ -4,10 +4,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
+
 	"github.com/cosmos/ibc-go/modules/core/05-port/types"
 )
 
-// GetQueryCmd returns the query commands for IBC channels
+// GetQueryCmd returns the query commands for IBC ports
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        types.SubModuleName,
@@ -17,9 +18,7 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	queryCmd.AddCommand(
-		GetCmdQueryPort(),
-	)
+	queryCmd.AddCommand()
 
 	return queryCmd
 }

@@ -6,24 +6,24 @@ option go_package = "github.com/cosmos/ibc-go/modules/core/05-port/types";
 
 import "ibc/core/channel/v1/channel.proto";
 
-// Query provides defines the gRPC querier service
+// Query defines the gRPC querier service
 service Query {
-  // Port queries an IBC Port.
-  rpc Port(QueryPortRequest) returns (QueryPortResponse) {}
+  // NegotiateAppVersion queries an IBC Port and determines the appropriate application version to be used
+  rpc NegotiateAppVersion(NegotiateAppVersionRequest) returns (NegotiateAppVersionResponse) {}
 }
 
-// QueryPortRequest is the request type for the Query/Port RPC method
-message QueryPortRequest {
+// NegotiateAppVersionRequest is the request type for the Query/NegotiateAppVersion RPC method
+message NegotiateAppVersionRequest {
   // port unique identifier
   string port_id = 1;
   // counterparty channel end
   ibc.core.channel.v1.Counterparty counterparty = 2;
-  // counterparty version
-  string counterparty_version = 3;
+  // proposed version
+  string proposed_version = 3;
 }
 
-// QueryPortResponse is the response type for the Query/Port RPC method.
-message QueryPortResponse {
+// NegotiateAppVersionResponse is the response type for the Query/NegotiateAppVersion RPC method.
+message NegotiateAppVersionResponse {
   // port id associated with the request identifiers
   string port_id = 1;
   // supported app version

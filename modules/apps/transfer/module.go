@@ -440,10 +440,10 @@ func (am AppModule) NegotiateAppVersion(
 	ctx sdk.Context,
 	portID string,
 	counterparty channeltypes.Counterparty,
-	counterpartyVersion string,
+	proposedVersion string,
 ) (version string, err error) {
-	if counterpartyVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
+	if proposedVersion != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: got: %s, expected %s", proposedVersion, types.Version)
 	}
 
 	return types.Version, nil
