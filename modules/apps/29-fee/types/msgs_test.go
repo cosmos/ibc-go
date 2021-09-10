@@ -1,36 +1,36 @@
 package types
 
-/*
 import (
-	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
-func (suite *TypesTestSuite) TestMsgValidateBasic() {
+var (
+	validAddr   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	invalidAddr = "invalid_address"
+)
+
+// TestMsgTransferValidation tests ValidateBasic for MsgTransfer
+func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 	testCases := []struct {
 		name    string
-		msg     *types.Msg
+		msg     *MsgRegisterCounterpartyAddress
 		expPass bool
 	}{
-		{"", types.NewMsg(), true},
+		{"validate with correct sdk.AccAddress", NewMsgRegisterCounterpartyAddress(validAddr, validAddr), true},
+		{"validate with incorrect destination relayer address", NewMsgRegisterCounterpartyAddress(invalidAddr, validAddr), false},
+		{"validate with incorrect counterparty relayer address", NewMsgRegisterCounterpartyAddress(validAddr, invalidAddr), false},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			err := tc.msg.ValidateBasic()
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+	for i, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+		}
 	}
 }
-*/

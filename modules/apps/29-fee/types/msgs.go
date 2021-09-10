@@ -1,32 +1,43 @@
 package types
 
-/*
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
-// NewMsg
-func NewMsg() *Msg {
-	return &Msg{
+// msg types
+const (
+	TypeMsgRegisterCounterpartyAddress = "registerCounterpartyAddress"
+)
+
+// NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
+func NewMsgRegisterCounterpartyAddress(address, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
+	return &MsgRegisterCounterpartyAddress{
+		Address:             address,
+		CounterpartyAddress: counterpartyAddress,
 	}
 }
 
-// ValidateBasic performs a basic check of the Msg fields.
-func (msg Msg) ValidateBasic() error {
+// ValidateBasic performs a basic check of the MsgRegisterCounterpartyAddress fields
+func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Address)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
+	}
+
+	_, err = sdk.AccAddressFromBech32(msg.CounterpartyAddress)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to convert msg.CounterpartyAddress into sdk.AccAddress")
+	}
+
 	return nil
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgTransfer) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Sender)
+func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Address)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
 }
-*/
