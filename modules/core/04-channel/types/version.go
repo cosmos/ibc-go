@@ -2,7 +2,7 @@ package types
 
 import "strings"
 
-// SplitChannelVersion middleware version will split the channel version string
+// SplitChannelVersion splits the channel version string
 // into the outermost middleware version and the underlying app version.
 // It will use the default delimiter `:` for middleware versions.
 // In case there's no delimeter, this function returns an empty string for the middleware version (first return argument),
