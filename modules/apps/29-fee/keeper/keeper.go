@@ -74,9 +74,9 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address string, counterpartyAddress sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyRelayerAddress(address), []byte(counterpartyAddress))
+	store.Set(types.KeyRelayerAddress(address), counterpartyAddress)
 }
 
 // GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address

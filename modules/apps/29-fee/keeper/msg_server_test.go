@@ -5,28 +5,41 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
-	validAddr := suite.chainA.SenderAccount.GetAddress().String()
-	validAddr2 := suite.chainB.SenderAccount.GetAddress().String()
+	var (
+		addr  string
+		addr2 string
+	)
 
 	testCases := []struct {
-		msg     *types.MsgRegisterCounterpartyAddress
-		expPass bool
+		name     string
+		expPass  bool
+		malleate func()
 	}{
 		{
-			types.NewMsgRegisterCounterpartyAddress(validAddr, validAddr2),
+			"CounterpartyAddress registered",
 			true,
+			func() {},
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		_, err := suite.chainA.SendMsgs(tc.msg)
+		ctx := suite.chainA.GetContext()
+
+		addr = suite.chainA.SenderAccount.GetAddress().String()
+		addr2 = suite.chainB.SenderAccount.GetAddress().String()
+		msg := types.NewMsgRegisterCounterpartyAddress(addr, addr2)
+		tc.malleate()
+
+		_, err := suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
+
+			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress())
+			suite.Require().Equal(addr2, counterpartyAddress.String())
 		} else {
 			suite.Require().Error(err)
 		}
-
 	}
 }
