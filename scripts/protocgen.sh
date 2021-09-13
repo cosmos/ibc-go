@@ -36,5 +36,5 @@ go mod tidy
 
 
 # move proto files to the right places
-cp -r github.com/cosmos/ibc-go/* ./
+cp -r github.com/cosmos/ibc-go/v2/modules/* modules/
 rm -rf github.com
