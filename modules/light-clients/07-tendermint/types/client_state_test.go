@@ -5,14 +5,14 @@ import (
 
 	ics23 "github.com/confio/ics23/go"
 
-	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	"github.com/cosmos/ibc-go/modules/core/exported"
-	"github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	ibcmock "github.com/cosmos/ibc-go/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v2/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v2/modules/core/exported"
+	"github.com/cosmos/ibc-go/v2/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v2/testing"
+	ibcmock "github.com/cosmos/ibc-go/v2/testing/mock"
 )
 
 const (
@@ -95,7 +95,7 @@ func (suite *TendermintTestSuite) TestValidate() {
 		{
 			// NOTE: if this test fails, the code must account for the change in chainID length across tendermint versions!
 			// Do not only fix the test, fix the code!
-			// https://github.com/cosmos/ibc-go/issues/177
+			// https://github.com/cosmos/ibc-go/v2/issues/177
 			name:        "valid chainID - chainID validation failed for chainID of length 50! ",
 			clientState: types.NewClientState(fiftyCharChainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     true,
@@ -103,7 +103,7 @@ func (suite *TendermintTestSuite) TestValidate() {
 		{
 			// NOTE: if this test fails, the code must account for the change in chainID length across tendermint versions!
 			// Do not only fix the test, fix the code!
-			// https://github.com/cosmos/ibc-go/issues/177
+			// https://github.com/cosmos/ibc-go/v2/issues/177
 			name:        "invalid chainID - chainID validation did not fail for chainID of length 51! ",
 			clientState: types.NewClientState(fiftyOneCharChainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
