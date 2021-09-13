@@ -95,7 +95,7 @@ func (suite *TendermintTestSuite) TestValidate() {
 		{
 			// NOTE: if this test fails, the code must account for the change in chainID length across tendermint versions!
 			// Do not only fix the test, fix the code!
-			// https://github.com/cosmos/ibc-go/v2/issues/177
+			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "valid chainID - chainID validation failed for chainID of length 50! ",
 			clientState: types.NewClientState(fiftyCharChainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     true,
@@ -103,7 +103,7 @@ func (suite *TendermintTestSuite) TestValidate() {
 		{
 			// NOTE: if this test fails, the code must account for the change in chainID length across tendermint versions!
 			// Do not only fix the test, fix the code!
-			// https://github.com/cosmos/ibc-go/v2/issues/177
+			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "invalid chainID - chainID validation did not fail for chainID of length 51! ",
 			clientState: types.NewClientState(fiftyOneCharChainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
