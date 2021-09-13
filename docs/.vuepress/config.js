@@ -37,6 +37,10 @@ module.exports = {
       {
         "label": "v1.1.0",
         "key": "v1.1.0"
+      },
+      {
+        "label": "v1.2.0",
+        "key": "v1.2.0"
       }      
     ],
     topbar: {
@@ -139,7 +143,7 @@ module.exports = {
         },
         {
           service: "linkedin",
-          url: "https://www.linkedin.com/company/tendermint/"
+          url: "https://www.linkedin.com/company/interchain-gmbh"
         },
         {
           service: "reddit",
