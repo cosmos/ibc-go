@@ -40,7 +40,6 @@ func (k Keeper) createOutgoingPacket(
 	destinationChannel string,
 	data interface{},
 ) ([]byte, error) {
-
 	if data == nil {
 		return []byte{}, types.ErrInvalidOutgoingData
 	}

@@ -3,7 +3,7 @@ package types
 import "fmt"
 
 const (
-	// ModuleName defines the IBC transfer name
+	// ModuleName defines the Interchain Account module name
 	ModuleName = "interchainaccounts"
 
 	// Version defines the current version the IBC tranfer

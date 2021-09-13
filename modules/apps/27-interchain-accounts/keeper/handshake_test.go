@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = suite.chainB.GetSimApp().ICAKeeper.OnChanOpenConfirm(suite.chainA.GetContext(),
+			err = suite.chainB.GetSimApp().ICAKeeper.OnChanOpenConfirm(suite.chainB.GetContext(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			if tc.expPass {

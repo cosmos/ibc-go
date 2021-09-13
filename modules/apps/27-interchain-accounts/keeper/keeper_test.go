@@ -127,3 +127,24 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAddr, retrievedAddr)
 }
+
+func (suite *KeeperTestSuite) SetupICAPath(path *ibctesting.Path, owner string) error {
+	if err := InitInterchainAccount(path.EndpointA, owner); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenTry(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointA.ChanOpenAck(); err != nil {
+		return err
+	}
+
+	if err := suite.chainB.GetSimApp().ICAKeeper.OnChanOpenConfirm(suite.chainA.GetContext(),
+		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID); err != nil {
+		return err
+	}
+
+	return nil
+}
