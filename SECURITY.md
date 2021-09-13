@@ -1,12 +1,12 @@
 # Security
 
 > **IMPORTANT**: If you find a security issue, you can contact our team directly at
-security@interchain.berlin, or report it to our [bug bounty program](https://hackerone.com/tendermint) on HackerOne. *DO NOT* open a public issue on the repository.
+security@interchain.berlin, or report it to our [bug bounty program](https://hackerone.com/cosmos) on HackerOne. *DO NOT* open a public issue on the repository.
 
 ## Bug Bounty
 
 As part of our [Coordinated Vulnerability Disclosure Policy](https://tendermint.com/security), we operate a
-[bug bounty program](https://hackerone.com/tendermint) with Hacker One.
+[bug bounty program](https://hackerone.com/cosmos) with Hacker One.
 
 See the policy linked above for more details on submissions and rewards and read
 this [blog post](https://blog.cosmos.network/bug-bounty-program-for-tendermint-cosmos-833c67693586) for the program scope.

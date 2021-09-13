@@ -10,7 +10,7 @@ If you want to update the documentation please open a pr on ibc-go.
 
 ## Docs Build Workflow
 
-The documentation for the Cosmos SDK is hosted at https://ibc.cosmos.network/
+The documentation for IBC-Go is hosted at https://ibc.cosmos.network.
 
 built from the files in this (`/docs`) directory for
 [main](https://github.com/cosmos/ibc-go/tree/main/docs).
@@ -83,7 +83,7 @@ Install the theme and all dependencies.
 npm run serve
 ```
 
-Run `pre` and `post` hooks and start a hot-reloading web-server. See output of this command for the URL (it is often https://localhost:8080).
+Run `pre` and `post` hooks and start a hot-reloading web-server. See output of this command for the URL (it is often https://localhost:8080.
 
 To build documentation as a static website run `npm run build`. You will find the website in `.vuepress/dist` directory.
 
