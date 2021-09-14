@@ -1,6 +1,6 @@
 # Migrating from ibc-go v1.x.x to v2.0.0
 
-This document is intended to highlight signficant changes which may require more information than presented in the CHANGELOG.
+This document is intended to highlight significant changes which may require more information than presented in the CHANGELOG.
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
