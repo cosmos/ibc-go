@@ -329,7 +329,7 @@ func (am AppModule) OnRecvPacket(
 
 	var data types.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error()))
+		ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
 	}
 
 	// only attempt the application logic if the packet data
@@ -347,7 +347,7 @@ func (am AppModule) OnRecvPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Amount)),
+			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
 			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 		),
 	)
@@ -382,7 +382,7 @@ func (am AppModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Amount)),
+			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 	)
@@ -428,9 +428,25 @@ func (am AppModule) OnTimeoutPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyRefundAmount, fmt.Sprintf("%d", data.Amount)),
+			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
 		),
 	)
 
 	return nil
+}
+
+// NegotiateAppVersion implements the IBCModule interface
+func (am AppModule) NegotiateAppVersion(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionID string,
+	portID string,
+	counterparty channeltypes.Counterparty,
+	proposedVersion string,
+) (string, error) {
+	if proposedVersion != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.Version, proposedVersion)
+	}
+
+	return types.Version, nil
 }
