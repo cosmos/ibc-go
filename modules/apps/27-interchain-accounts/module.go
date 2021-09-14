@@ -254,3 +254,7 @@ func (am AppModule) OnTimeoutPacket(
 	// TODO
 	return nil
 }
+
+func (am AppModule) NegotiateAppVersion(ctx sdk.Context, order channeltypes.Order, connectionID, portID string, counterparty channeltypes.Counterparty, proposedVersion string) (string, error) {
+	return "", nil
+}
