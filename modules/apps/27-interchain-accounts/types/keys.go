@@ -29,11 +29,6 @@ var (
 
 	// Key to store portID in our store
 	PortKey = "portID"
-
-	// MemStoreKey defines the in-memory store key
-	MemStoreKey = "mem_capability"
-
-	KeyPrefixRegisteredAccount = []byte("register")
 )
 
 func KeyActiveChannel(portId string) []byte {
