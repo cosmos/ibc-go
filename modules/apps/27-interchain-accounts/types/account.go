@@ -9,9 +9,9 @@ import (
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 )
@@ -20,9 +20,10 @@ const (
 	ICAPrefix string = "ics-27"
 )
 
-// GenerateAddress returns an sdk.AccAddress using a truncated SHA256 hash of the provided port identifier
+// GenerateAddress returns an sdk.AccAddress using the provided port identifier and derived from the IBC interchainaccounts module account
 func GenerateAddress(portID string) sdk.AccAddress {
-	return sdk.AccAddress(tmhash.SumTruncated([]byte(portID)))
+	moduleAcc := address.Module(ModuleName, ModuleAccountKey)
+	return sdk.AccAddress(address.Derive(moduleAcc, []byte(portID)))
 }
 
 // GeneratePortID generates the portID for a specific owner
