@@ -28,8 +28,8 @@ const (
 	// from the CCV channel ID to the baby chain ID.
 	ChannelToChainKeyPrefix = "channeltochain"
 
-	// UnbondingChangesPrefix is the key prefix for storing unbonding changes
-	UnbondingChangesPrefix = "unbondingchanges"
+	// UnbondingPacketDataPrefix is the key prefix for storing unbonding PacketData
+	UnbondingPacketDataPrefix = "unbondingPacketData"
 )
 
 var (
@@ -47,7 +47,7 @@ func ChannelToChainKey(channelID string) []byte {
 	return []byte(ChannelToChainKeyPrefix + "/" + channelID)
 }
 
-// UnbondingChanges stores the validator set changes that are still unbonding
-func UnbondingChanges(chainID string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%d", UnbondingChangesPrefix, chainID, sequence))
+// UnbondingPacketData stores the packet data that is still unbonding
+func UnbondingPacketData(chainID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%d", UnbondingPacketDataPrefix, chainID, sequence))
 }

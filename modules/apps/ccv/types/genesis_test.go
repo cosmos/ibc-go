@@ -280,7 +280,7 @@ func TestValidateParentGenesisState(t *testing.T) {
 	pk2, err := cryptocodec.ToTmProtoPublicKey(ed25519.GenPrivKey().PubKey())
 	require.NoError(t, err)
 
-	updates := []*abci.ValidatorUpdate{
+	updates := []abci.ValidatorUpdate{
 		{
 			PubKey: pk1,
 			Power:  30,
@@ -314,7 +314,7 @@ func TestValidateParentGenesisState(t *testing.T) {
 			"valid multiple parent genesis with multiple child chains",
 			types.NewParentGenesisState(
 				[]types.ChildState{
-					{"chainid-1", "channelid", 2, updates},
+					{"chainid-1", "channelid", 2, []types.UnbondingGenesis{{2, updates}, {4, updates}}},
 					{"chainid-2", "channelid2", 1, nil},
 					{"chainid-3", "channelid3", 0, nil},
 					{"chainid-4", "channelid4", 3, nil},
@@ -325,14 +325,14 @@ func TestValidateParentGenesisState(t *testing.T) {
 		{
 			"invalid chain id",
 			types.NewParentGenesisState(
-				[]types.ChildState{{"invalidid{}", "channelid", 2, updates}},
+				[]types.ChildState{{"invalidid{}", "channelid", 2, []types.UnbondingGenesis{{2, updates}, {4, updates}}}},
 			),
 			false,
 		},
 		{
 			"invalid channel id",
 			types.NewParentGenesisState(
-				[]types.ChildState{{"chainid", "invalidchannel{}", 2, updates}},
+				[]types.ChildState{{"chainid", "invalidchannel{}", 2, []types.UnbondingGenesis{{2, updates}, {4, updates}}}},
 			),
 			false,
 		},

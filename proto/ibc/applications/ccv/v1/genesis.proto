@@ -42,8 +42,16 @@ message ParentGenesisState {
 
 // ChildState defines the state that the parent chain stores for each child chain
 message ChildState {
-  string                                    chain_id        = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
-  string                                    channel_id      = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  Status                                    status          = 3;
-  repeated .tendermint.abci.ValidatorUpdate pending_changes = 4 [(gogoproto.moretags) = "yaml:\"pending_changes\""];
+  string                    chain_id          = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  string                    channel_id        = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  Status                    status            = 3;
+  repeated UnbondingGenesis unbonding_packets = 4
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"unbonding_packets\""];
+}
+
+// UnbondingGenesis defines the genesis state for an unbonding packet
+message UnbondingGenesis {
+  uint64                                    sequence          = 1;
+  repeated .tendermint.abci.ValidatorUpdate unbonding_changes = 2
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"pending_changes\""];
 }

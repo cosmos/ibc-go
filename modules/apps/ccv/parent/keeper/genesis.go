@@ -27,5 +27,46 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.ParentGenesisState) 
 		k.SetChainToChannel(ctx, cc.ChainId, cc.ChannelId)
 		k.SetChannelToChain(ctx, cc.ChannelId, cc.ChainId)
 		k.SetChannelStatus(ctx, cc.ChannelId, cc.Status)
+		for _, up := range cc.UnbondingPackets {
+			packetData := types.NewValidatorSetChangePacketData(up.UnbondingChanges)
+			k.SetUnbondingPacketData(ctx, cc.ChainId, up.Sequence, packetData)
+		}
 	}
+}
+
+func (k Keeper) ExportGenesis(ctx sdk.Context) types.ParentGenesisState {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(parenttypes.ChannelToChainKeyPrefix+"/"))
+	defer iterator.Close()
+
+	if !iterator.Valid() {
+		return types.DefaultParentGenesisState()
+	}
+
+	var childStates []types.ChildState
+
+	for ; iterator.Valid(); iterator.Next() {
+		channelID := string(iterator.Key())
+		chainID := string(iterator.Value())
+		var unbondingPackets []types.UnbondingGenesis
+
+		k.IterateUnbondingPacketData(ctx, chainID, func(_ string, seq uint64, packetData types.ValidatorSetChangePacketData) (stop bool) {
+			unbondingPackets = append(unbondingPackets, types.UnbondingGenesis{
+				Sequence:         seq,
+				UnbondingChanges: packetData.ValidatorUpdates,
+			})
+			return false
+		})
+
+		status := k.GetChannelStatus(ctx, channelID)
+		cc := types.ChildState{
+			ChainId:          chainID,
+			ChannelId:        channelID,
+			Status:           status,
+			UnbondingPackets: unbondingPackets,
+		}
+		childStates = append(childStates, cc)
+	}
+
+	return types.NewParentGenesisState(childStates)
 }

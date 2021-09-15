@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -144,20 +147,77 @@ func (k Keeper) GetChannelToChain(ctx sdk.Context, channelID string) (string, bo
 	return string(bz), true
 }
 
-// SetUnbondingChanges sets the unbonding changes for a given baby chain and sequence
-func (k Keeper) SetUnbondingChanges(ctx sdk.Context, chainID string, seq uint64, valUpdates []abci.ValidatorUpdate) {
-	// TODO
+// IterateChannelToChain iterates over the channel to chain mappings and calls the provided callback until the iteration ends
+// or the callback returns stop=true
+func (k Keeper) IterateChannelToChain(ctx sdk.Context, cb func(ctx sdk.Context, channelID, chainID string) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ChannelToChainKeyPrefix+"/"))
+	defer iterator.Close()
+
+	if !iterator.Valid() {
+		return
+	}
+
+	for ; iterator.Valid(); iterator.Next() {
+		channelID := string(iterator.Key())
+		chainID := string(iterator.Value())
+
+		if cb(ctx, channelID, chainID) {
+			break
+		}
+	}
 }
 
-// GetUnbondingChanges gets the unbonding changes for a given baby chain and sequence
-func (k Keeper) GetUnbondingChanges(ctx sdk.Context, chainID string, seq uint64) []abci.ValidatorUpdate {
-	// TODO
-	return nil
+// SetUnbondingPacketData sets the unbonding packet data for a given baby chain and sequence
+func (k Keeper) SetUnbondingPacketData(ctx sdk.Context, chainID string, seq uint64, packetData ccv.ValidatorSetChangePacketData) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&packetData)
+	store.Set(types.UnbondingPacketData(chainID, seq), bz)
 }
 
-// DeleteUnbondingChanges deletes the unbonding changes for a given baby chain and sequence
-func (k Keeper) DeleteUnbondingChanges(ctx sdk.Context, chainID string, seq uint64) {
-	// TODO
+// GetUnbondingPacketData gets the unbonding packet for a given baby chain and sequence
+func (k Keeper) GetUnbondingPacketData(ctx sdk.Context, chainID string, seq uint64) []abci.ValidatorUpdate {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.UnbondingPacketData(chainID, seq))
+	if bz != nil {
+		return nil
+	}
+	var packetData ccv.ValidatorSetChangePacketData
+	k.cdc.MustUnmarshal(bz, &packetData)
+	return packetData.ValidatorUpdates
+}
+
+// DeleteUnbondingPacketData deletes the unbonding packet for a given baby chain and sequence
+func (k Keeper) DeleteUnbondingPacketData(ctx sdk.Context, chainID string, seq uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.UnbondingPacketData(chainID, seq))
+}
+
+// IterateUnbondingPacketData iterates over the unbonding packet data for a given chainID
+// and calls the callback provided until the stop boolean returns true.
+func (k Keeper) IterateUnbondingPacketData(ctx sdk.Context, chainID string, cb func(chainID string, seq uint64, packetData ccv.ValidatorSetChangePacketData) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(fmt.Sprintf("%s/%s/", types.UnbondingPacketDataPrefix, chainID)))
+	defer iterator.Close()
+
+	if !iterator.Valid() {
+		return
+	}
+
+	for ; iterator.Valid(); iterator.Next() {
+		seq, err := strconv.Atoi(string(iterator.Key()))
+		if err != nil {
+			panic("sequence is not a number")
+		}
+
+		bz := iterator.Value()
+		var packetData ccv.ValidatorSetChangePacketData
+		k.cdc.MustUnmarshal(bz, &packetData)
+
+		if cb(chainID, uint64(seq), packetData) {
+			break
+		}
+	}
 }
 
 // SetChannelStatus sets the status of a CCV channel with the given status
