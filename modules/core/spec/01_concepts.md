@@ -140,7 +140,7 @@ The IBC interfaces expect an `ibcexported.Height` interface, however all clients
 
 ## Connection Handshake
 
-The connection handshake occurs in 4 steps as defined in [ICS 03](https://github.com/cosmos/ics/tree/master/spec/ics-003-connection-semantics).
+The connection handshake occurs in 4 steps as defined in [ICS 03](https://github.com/cosmos/ibc/blob/master/spec/core/ics-003-connection-semantics).
 
 `ConnOpenInit` is the first attempt to initialize a connection on the executing chain. 
 The handshake is expected to succeed if the version selected is supported. The connection 

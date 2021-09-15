@@ -7,7 +7,7 @@ order: 3
 Learn how to configure your application to use IBC and send data packets to other chains. {synopsis}
 
 This document serves as a guide for developers who want to write their own Inter-blockchain
-Communication Protocol (IBC) applications for custom [use-cases](https://github.com/cosmos/ics/blob/master/ibc/4_IBC_USECASES.md).
+Communication Protocol (IBC) applications for custom use cases.
 
 Due to the modular design of the IBC protocol, IBC
 application developers do not need to concern themselves with the low-level details of clients,
