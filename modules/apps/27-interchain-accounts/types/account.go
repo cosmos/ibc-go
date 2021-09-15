@@ -20,9 +20,9 @@ const (
 	ICAPrefix string = "ics-27"
 )
 
-// GenerateAddress returns a truncated SHA256 hash using the provided port string
-func GenerateAddress(port string) []byte {
-	return tmhash.SumTruncated([]byte(port))
+// GenerateAddress returns an sdk.AccAddress using a truncated SHA256 hash of the provided port identifier
+func GenerateAddress(portID string) sdk.AccAddress {
+	return sdk.AccAddress(tmhash.SumTruncated([]byte(portID)))
 }
 
 // GeneratePortID generates the portID for a specific owner
