@@ -17,4 +17,3 @@ message FungibleTokenPacketData {
   // the recipient address on the destination chain
   string receiver = 4;
 }
-
