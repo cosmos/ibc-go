@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -36,8 +39,9 @@ func (k Keeper) OnChanOpenInit(
 	if counterparty.PortId != types.PortID {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty port-id must be '%s', (%s != %s)", types.PortID, counterparty.PortId, types.PortID)
 	}
-	if version != types.Version {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelVersion, "channel version must be '%s' (%s != %s)", types.Version, version, types.Version)
+
+	if !strings.Contains(version, types.Version) {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid version: %s, expected %s", version, types.Version)
 	}
 
 	existingChannelID, found := k.GetActiveChannel(ctx, portID)
@@ -71,10 +75,12 @@ func (k Keeper) OnChanOpenTry(
 	if order != channeltypes.ORDERED {
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "invalid channel ordering: %s, expected %s", order.String(), channeltypes.ORDERED.String())
 	}
-	if version != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got: %s, expected %s", version, types.Version)
+
+	if !strings.Contains(version, types.Version) {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid version: %s, expected %s", version, types.Version)
 	}
-	if counterpartyVersion != types.Version {
+
+	if !strings.Contains(counterpartyVersion, types.Version) {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
 
@@ -85,21 +91,32 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	// Register interchain account if it does not already exist
-	k.RegisterInterchainAccount(ctx, counterparty.PortId)
+	accAddr := strings.TrimPrefix(version, fmt.Sprintf("%s-", types.Version))
+	if err := k.RegisterInterchainAccount(ctx, accAddr, counterparty.PortId); err != nil {
+		return err
+	}
+
 	return nil
 }
 
+// OnChanOpenAck sets the active channel for the interchain account/owner pair
+// and stores the associated interchain account address in state keyed by it's corresponding port identifier
+//
+// Controller Chain
 func (k Keeper) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != types.Version {
+	if !strings.Contains(counterpartyVersion, types.Version) {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
 
 	k.SetActiveChannel(ctx, portID, channelID)
+
+	accAddr := strings.TrimPrefix(counterpartyVersion, fmt.Sprintf("%s-", types.Version))
+	k.SetInterchainAccountAddress(ctx, portID, accAddr)
 
 	return nil
 }

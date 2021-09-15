@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
@@ -158,7 +160,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
-				Version:        types.Version,
+				Version:        fmt.Sprintf("%s-%s", types.Version, types.GenerateAddress("ics-27-0-0-testing")),
 			}
 
 			chanCap, err = suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
