@@ -1,6 +1,7 @@
 package interchain_accounts_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -36,7 +37,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
+	path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-%s", types.Version, types.GenerateAddress("ics-27-0-0-testing"))
 
 	return path
 }
@@ -50,10 +51,10 @@ func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
+	module, _, err := suite.chainA.GetSimApp().GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
 	suite.Require().NoError(err)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	cbs, ok := suite.chainA.GetSimApp().GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
 	counterpartyPortID, err := types.GeneratePortID("testing", path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
@@ -67,4 +68,5 @@ func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
 	version, err := cbs.NegotiateAppVersion(suite.chainA.GetContext(), channeltypes.ORDERED, path.EndpointA.ConnectionID, types.PortID, *counterparty, types.Version)
 	suite.Require().NoError(err)
 	suite.Require().True(strings.Contains(version, types.Version))
+	suite.Require().True(strings.Contains(version, types.GenerateAddress(counterpartyPortID).String()))
 }
