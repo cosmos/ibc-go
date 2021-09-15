@@ -280,6 +280,8 @@ func ParseIncomingTransferField(receiverData string) (thischainaddr sdk.AccAddre
 		return
 	case len(sep1) >= 2:
 		finaldestination = strings.Join(sep1[:1], ":")
+	default:
+		return nil, "", "", "", fmt.Errorf("unparsable reciever field, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
 	}
 	sep2 := strings.Split(sep1[0], "|")
 	if len(sep2) != 2 {
