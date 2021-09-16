@@ -24,7 +24,7 @@ const (
 	// QuerierRoute is the querier route for IBC interchainaccounts
 	QuerierRoute = ModuleName
 
-	// Delimiter is the delimiter used when parsing the interchainaccounts version string
+	// Delimiter is the delimiter used for the interchainaccounts version string
 	Delimiter = "|"
 )
 
