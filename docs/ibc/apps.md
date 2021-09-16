@@ -255,7 +255,7 @@ to implement callbacks for handling the packet flow through a channel.
 Once a module A and module B are connected to each other, relayers can start relaying packets and
 acknowledgements back and forth on the channel.
 
-![IBC packet flow diagram](https://github.com/cosmos/ibc/blob/old/spec/ics-004-channel-and-packet-semantics/channel-state-machine.png)
+![IBC packet flow diagram](https://media.githubusercontent.com/media/cosmos/ibc/old/spec/ics-004-channel-and-packet-semantics/channel-state-machine.png)
 
 Briefly, a successful packet flow works as follows:
 
