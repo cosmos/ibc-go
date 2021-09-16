@@ -26,7 +26,7 @@ func ValidateVersion(version string) error {
 	}
 
 	if len(s) > 1 {
-		if !IsValidAddr(s[1]) && len(s[1]) <= DefaultMaxAddrLength && len(s[1]) >= DefaultMinAddrLength {
+		if !IsValidAddr(s[1]) || len(s[1]) > DefaultMaxAddrLength || len(s[1]) < DefaultMinAddrLength {
 			return sdkerrors.Wrapf(
 				ErrInvalidAccountAddress,
 				"address must contain strictly alphanumeric characters, %d-%d characters in length",

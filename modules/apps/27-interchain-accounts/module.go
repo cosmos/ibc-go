@@ -268,7 +268,5 @@ func (am AppModule) NegotiateAppVersion(
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.Version, proposedVersion)
 	}
 
-	addr := types.GenerateAddress(counterparty.PortId)
-
-	return fmt.Sprint(types.Version, types.Delimiter, addr), nil
+	return fmt.Sprint(types.Version, types.Delimiter, types.GenerateAddress(counterparty.PortId)), nil
 }
