@@ -149,11 +149,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
-			owner := TestOwnerAddress
 			counterpartyVersion = types.Version
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, owner)
+			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			// default values
