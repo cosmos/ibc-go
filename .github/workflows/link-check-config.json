@@ -5,6 +5,6 @@
     }
   ],
   "retryOn429": true,
-  "retryCount": 5,
-  "fallbackRetryDelay": "15s"
+  "retryCount": 3,
+  "fallbackRetryDelay": "10s"
 }

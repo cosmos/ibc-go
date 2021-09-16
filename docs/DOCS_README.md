@@ -87,16 +87,6 @@ Run `pre` and `post` hooks and start a hot-reloading web-server. See output of t
 
 To build documentation as a static website run `npm run build`. You will find the website in `.vuepress/dist` directory.
 
-## Build RPC Docs
-
-TODO: is this still true?
-
-First, run `make tools` from the root of repo, to install the swagger-ui tool.
-
-Then, edit the `swagger.yaml` manually; it is found [here](https://github.com/cosmos/cosmos-sdk/blob/master/client/lcd/swagger-ui/swagger.yaml)
-
-Finally, run `make update_gaia_lite_docs` from the root of the repo.
-
 ## Search
 
 TODO: update or remove
