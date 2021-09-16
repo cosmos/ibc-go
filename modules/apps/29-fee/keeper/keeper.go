@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
@@ -59,14 +59,28 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, host.PortPath(portID))
 }
 
-// GetPort returns the portID for the transfer module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context) string {
+// // GetPort returns the portID for the transfer module. Used in ExportGenesis
+// func (k Keeper) GetPort(ctx sdk.Context) string {
+// 	store := ctx.KVStore(k.storeKey)
+// 	return string(store.Get(types.PortKey))
+// }
+
+// // SetPort sets the portID for the transfer module. Used in InitGenesis
+// func (k Keeper) SetPort(ctx sdk.Context, portID string) {
+// 	store := ctx.KVStore(k.storeKey)
+// 	store.Set(types.PortKey, []byte(portID))
+// }
+
+// SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
+// identified by channel and port identifiers.
+func (k Keeper) SetFeeEnabled(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	return string(store.Get(types.PortKey))
+	store.Set(types.FeeEnabledKey(portID, channelID), []byte{1})
 }
 
-// SetPort sets the portID for the transfer module. Used in InitGenesis
-func (k Keeper) SetPort(ctx sdk.Context, portID string) {
+// IsFeeEnabled returns whether fee handling logic should be run for the given port by checking the
+// fee enabled flag for the given port and channel identifiers
+func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.PortKey, []byte(portID))
+	return store.Get(types.FeeEnabledKey(portID, channelID)) != nil
 }

@@ -23,3 +23,7 @@ const (
 func AppCapabilityName(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s", KeyAppCapability, channelID, portID)
 }
+
+func FeeEnabledKey(portID, channelID string) []byte {
+	return []byte(fmt.Sprintf("fee_enabled/%s/%s", portID, channelID))
+}
