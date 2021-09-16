@@ -91,7 +91,12 @@ func (k Keeper) createOutgoingPacket(
 		timeoutTimestamp,
 	)
 
-	return k.ComputeVirtualTxHash(packetData.Data, packet.Sequence), k.channelKeeper.SendPacket(ctx, channelCap, packet)
+	// TODO use ics4 wrapper to send packet
+	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
+		return nil, err
+	}
+
+	return k.ComputeVirtualTxHash(packetData.Data, packet.Sequence), nil
 }
 
 func (k Keeper) DeserializeTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
@@ -221,31 +226,4 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	default:
 		return types.ErrUnknownPacketData
 	}
-}
-
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.IBCAccountPacketData, ack channeltypes.Acknowledgement) error {
-	switch ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Error:
-		if k.hook != nil {
-			k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Data, packet.Sequence), data.Data)
-		}
-		return nil
-	case *channeltypes.Acknowledgement_Result:
-		if k.hook != nil {
-			k.hook.OnTxSucceeded(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Data, packet.Sequence), data.Data)
-		}
-		return nil
-	default:
-		// the acknowledgement succeeded on the receiving chain so nothing
-		// needs to be executed and no error needs to be returned
-		return nil
-	}
-}
-
-func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.IBCAccountPacketData) error {
-	if k.hook != nil {
-		k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Data, packet.Sequence), data.Data)
-	}
-
-	return nil
 }

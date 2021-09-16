@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -74,7 +75,9 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper       keeper.Keeper
+	scopedKeeper capabilitykeeper.ScopedKeeper
+	app          porttypes.IBCModule
 }
 
 func NewAppModule(k keeper.Keeper) AppModule {
@@ -136,7 +139,13 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 	return []abci.ValidatorUpdate{}
 }
 
-// Implement IBCModule callbacks
+// OnChanOpenInit implements the IBCModule callbacks. Interchain Accounts is
+// implemented to act as middleware for connected authentication modules on
+// the controller side. The connected modules may not change the portID or
+// version. They will be allowed to perform custom logic without changing
+// the parameters stored within a channel struct.
+//
+// Controller Chain
 func (am AppModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -147,9 +156,24 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	return am.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
+	if err := am.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
+		return err
+	}
+
+	// issue capability for connected authentication module
+	appCap, err := am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(portID, channelID))
+	if err != nil {
+		return sdkerrors.Wrap(err, "could not create capability for underlying application")
+	}
+
+	// call underlying app's OnChanOpenInit callback with the appVersion
+	return am.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+		appCap, counterparty, version)
 }
 
+// OnChanOpenTry implements the IBCModule callbacks.
+//
+// Host Chain
 func (am AppModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -164,15 +188,26 @@ func (am AppModule) OnChanOpenTry(
 	return am.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
 }
 
+// OnChanOpenAck implements the IBCModule callbacks.
+//
+// Controller Chain
 func (am AppModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	return am.keeper.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
+	if err := am.keeper.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion); err != nil {
+		return err
+	}
+
+	// call underlying app's OnChanOpenAck callback with the counterparty app version.
+	return am.app.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
 }
 
+// OnChanOpenAck implements the IBCModule callbacks.
+//
+// Host Chain
 func (am AppModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
@@ -181,6 +216,7 @@ func (am AppModule) OnChanOpenConfirm(
 	return am.keeper.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
+// OnChanCloseInit implements the IBCModule callbacks.
 func (am AppModule) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
@@ -190,6 +226,7 @@ func (am AppModule) OnChanCloseInit(
 	return nil
 }
 
+// OnChanCloseConfirm implements the IBCModule callbacks.
 func (am AppModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
@@ -198,6 +235,7 @@ func (am AppModule) OnChanCloseConfirm(
 	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
+// OnRecvPacket implements the IBCModule callbacks.
 func (am AppModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -223,36 +261,25 @@ func (am AppModule) OnRecvPacket(
 	return ack
 }
 
+// OnAcknowledgementPacket implements the IBCModule callbacks.
 func (am AppModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
-	_ sdk.AccAddress,
+	relayer sdk.AccAddress,
 ) error {
-	var ack channeltypes.Acknowledgement
-
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 interchain account packet acknowledgment: %v", err)
-	}
-	var data types.IBCAccountPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 interchain account packet data: %s", err.Error())
-	}
-
-	if err := am.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
-		return err
-	}
-
-	return nil
+	// call underlying app's OnAcknowledgementPacket callback.
+	return am.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
+// OnTimeoutPacket implements the IBCModule callbacks.
 func (am AppModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	_ sdk.AccAddress,
+	relayer sdk.AccAddress,
 ) error {
-	// TODO
-	return nil
+	// call underlying app's OnTimeoutPacket callback
+	return am.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
 func (am AppModule) NegotiateAppVersion(ctx sdk.Context, order channeltypes.Order, connectionID, portID string, counterparty channeltypes.Counterparty, proposedVersion string) (string, error) {
