@@ -44,18 +44,7 @@ func (k Keeper) createOutgoingPacket(
 		return []byte{}, types.ErrInvalidOutgoingData
 	}
 
-	var msgs []sdk.Msg
-
-	switch data := data.(type) {
-	case []sdk.Msg:
-		msgs = data
-	case sdk.Msg:
-		msgs = []sdk.Msg{data}
-	default:
-		return []byte{}, types.ErrInvalidOutgoingData
-	}
-
-	txBytes, err := k.SerializeCosmosTx(k.cdc, msgs)
+	txBytes, err := k.SerializeCosmosTx(k.cdc, data)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(err, "invalid packet data or codec")
 	}

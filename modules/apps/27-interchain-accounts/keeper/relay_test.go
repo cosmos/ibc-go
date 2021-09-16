@@ -80,13 +80,13 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
-			owner := TestOwnerAddress
 			suite.coordinator.SetupConnections(path)
 
-			err := suite.SetupICAPath(path, owner)
+			err := suite.SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			portID = path.EndpointA.ChannelConfig.PortID
+
 			tc.malleate()
 
 			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), portID, msg)
@@ -106,6 +106,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		msg        sdk.Msg
 		txBytes    []byte
 		packetData []byte
+		sourcePort string
 	)
 
 	testCases := []struct {
@@ -119,6 +120,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+				// build packet data
+				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, msg)
+				suite.Require().NoError(err)
+
 				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
 					Data: txBytes}
 				packetData = data.GetBytes()
@@ -146,16 +151,37 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}, false,
 		},
 		{
-			"Wrong data type", func() {
+			"Invalid packet type", func() {
 				txBytes = []byte{}
+				// Type here is an ENUM
+				// Valid type is types.EXECUTE_TX
 				data := types.IBCAccountPacketData{Type: 100,
 					Data: txBytes}
 				packetData = data.GetBytes()
 			}, false,
 		},
 		{
-			"Cannot unmarshal interchain account packet data", func() {
+			"Cannot unmarshal interchain account packet data into types.IBCAccountPacketData", func() {
 				packetData = []byte{}
+			}, false,
+		},
+		{
+			"Unauthorised: Interchain account not found for given source portID", func() {
+				sourcePort = "invalid-port-id"
+			}, false,
+		},
+		{
+			"Unauthorised: Signer of message is not the interchain account associated with sourcePortID", func() {
+				// build MsgSend
+				amount, _ := sdk.ParseCoinsNormalized("100stake")
+				// Incorrect FromAddress
+				msg = &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+				// build packet data
+				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, msg)
+				suite.Require().NoError(err)
+				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
+					Data: txBytes}
+				packetData = data.GetBytes()
 			}, false,
 		},
 	}
@@ -166,26 +192,27 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			// setup interchain account
-			owner := suite.chainA.SenderAccount.GetAddress().String()
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-			err := suite.SetupICAPath(path, owner)
+			err := suite.SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			// send 100stake to interchain account wallet
 			amount, _ := sdk.ParseCoinsNormalized("100stake")
 			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 			bankMsg := &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: interchainAccountAddr, Amount: amount}
+
 			_, err = suite.chainB.SendMsgs(bankMsg)
+			suite.Require().NoError(err)
 
-			txBytes, err = suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, msg)
-			// Next we need to define the packet/data to pass into OnRecvPacket
-			seq := uint64(1)
+			// valid source port
+			sourcePort = path.EndpointA.ChannelConfig.PortID
 
+			// malleate packetData for test cases
 			tc.malleate()
 
-			packet := channeltypes.NewPacket(packetData, seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			seq := uint64(1)
+			packet := channeltypes.NewPacket(packetData, seq, sourcePort, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
 			// Pass it in here
 			err = suite.chainB.GetSimApp().ICAKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
