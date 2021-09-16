@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,8 +39,8 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty port-id must be '%s', (%s != %s)", types.PortID, counterparty.PortId, types.PortID)
 	}
 
-	if !strings.Contains(version, types.Version) {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid version: %s, expected %s", version, types.Version)
+	if err := types.ValidateVersion(version); err != nil {
+		return err
 	}
 
 	existingChannelID, found := k.GetActiveChannel(ctx, portID)
@@ -76,12 +75,12 @@ func (k Keeper) OnChanOpenTry(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "invalid channel ordering: %s, expected %s", order.String(), channeltypes.ORDERED.String())
 	}
 
-	if !strings.Contains(version, types.Version) {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid version: %s, expected %s", version, types.Version)
+	if err := types.ValidateVersion(version); err != nil {
+		return err
 	}
 
-	if !strings.Contains(counterpartyVersion, types.Version) {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+	if err := types.ValidateVersion(counterpartyVersion); err != nil {
+		return err
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
@@ -90,11 +89,14 @@ func (k Keeper) OnChanOpenTry(
 		return err
 	}
 
-	// Register interchain account if it does not already exist
-	accAddr := strings.TrimPrefix(version, fmt.Sprintf("%s-", types.Version))
-	if err := k.RegisterInterchainAccount(ctx, accAddr, counterparty.PortId); err != nil {
-		return err
+	accAddr := types.GenerateAddress(counterparty.PortId)
+	parsedAddr := types.ParseAddressFromVersion(version)
+	if strings.Compare(parsedAddr, accAddr.String()) != 0 {
+		return sdkerrors.Wrapf(types.ErrInvalidAccountAddress, "invalid account address: %s, expected %s", parsedAddr, accAddr)
 	}
+
+	// Register interchain account if it does not already exist
+	k.RegisterInterchainAccount(ctx, accAddr, counterparty.PortId)
 
 	return nil
 }
@@ -109,13 +111,13 @@ func (k Keeper) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	if !strings.Contains(counterpartyVersion, types.Version) {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+	if err := types.ValidateVersion(counterpartyVersion); err != nil {
+		return err
 	}
 
 	k.SetActiveChannel(ctx, portID, channelID)
 
-	accAddr := strings.TrimPrefix(counterpartyVersion, fmt.Sprintf("%s-", types.Version))
+	accAddr := types.ParseAddressFromVersion(counterpartyVersion)
 	k.SetInterchainAccountAddress(ctx, portID, accAddr)
 
 	return nil

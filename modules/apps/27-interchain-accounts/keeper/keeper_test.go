@@ -12,6 +12,13 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
+var (
+	// TestOwnerAddress defines a reusable bech32 address for testing purposes
+	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	// TestVersion defines a resuable interchainaccounts version string for testing purposes
+	TestVersion = fmt.Sprintf("%s|%s", types.Version, types.GenerateAddress("ics-27-0-0-"+TestOwnerAddress))
+)
+
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -37,7 +44,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-%s", types.Version, types.GenerateAddress("ics-27-0-0-testing"))
+	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
 }
@@ -105,7 +112,7 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	err := SetupICAPath(path, "testing")
+	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
 	counterpartyPortID := path.EndpointA.ChannelConfig.PortID

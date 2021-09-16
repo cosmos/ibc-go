@@ -270,5 +270,5 @@ func (am AppModule) NegotiateAppVersion(
 
 	addr := types.GenerateAddress(counterparty.PortId)
 
-	return fmt.Sprintf("%s-%s", types.Version, addr), nil
+	return fmt.Sprint(types.Version, types.Delimiter, addr), nil
 }

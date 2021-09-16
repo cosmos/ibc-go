@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
@@ -64,7 +62,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
-			portID, err := types.GeneratePortID("owner", path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			portID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			suite.Require().NoError(err)
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
 			suite.chainA.GetSimApp().ICAKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
@@ -138,6 +136,11 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				suite.Require().NoError(err)
 			}, false,
 		},
+		{
+			"invalid account address", func() {
+				channel.Counterparty.PortId = "invalid-port-id"
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -146,7 +149,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
-			owner := "owner"
+			owner := TestOwnerAddress
 			counterpartyVersion = types.Version
 			suite.coordinator.SetupConnections(path)
 
@@ -160,7 +163,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
-				Version:        fmt.Sprintf("%s-%s", types.Version, types.GenerateAddress("ics-27-0-0-testing")),
+				Version:        TestVersion,
 			}
 
 			chanCap, err = suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
@@ -213,11 +216,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
-			owner := "owner"
-			counterpartyVersion = types.Version
+			counterpartyVersion = TestVersion
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, owner)
+			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
@@ -266,10 +268,9 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
-			owner := "owner"
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, owner)
+			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()

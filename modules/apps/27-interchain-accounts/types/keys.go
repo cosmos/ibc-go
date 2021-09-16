@@ -1,6 +1,8 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	// ModuleName defines the Interchain Account module name
@@ -21,13 +23,13 @@ const (
 
 	// QuerierRoute is the querier route for IBC interchainaccounts
 	QuerierRoute = ModuleName
+
+	// Delimiter is the delimiter used when parsing the interchainaccounts version string
+	Delimiter = "|"
 )
 
 var (
-	// ModuleAccountKey defines the key used to construct to the IBC interchainaccounts module account address
-	ModuleAccountKey = []byte(ModuleName)
-
-	// Key to store portID in our store
+	// PortKey defines the key to store the port ID in store
 	PortKey = "portID"
 )
 

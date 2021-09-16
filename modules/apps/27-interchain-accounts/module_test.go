@@ -2,7 +2,6 @@ package interchain_accounts_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -10,6 +9,13 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
+)
+
+var (
+	// TestOwnerAddress defines a reusable bech32 address for testing purposes
+	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	// TestVersion defines a resuable interchainaccounts version string for testing purposes
+	TestVersion = fmt.Sprintf("%s|%s", types.Version, types.GenerateAddress("ics-27-0-0-"+TestOwnerAddress))
 )
 
 type InterchainAccountsTestSuite struct {
@@ -37,7 +43,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-%s", types.Version, types.GenerateAddress("ics-27-0-0-testing"))
+	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
 }
@@ -57,7 +63,7 @@ func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
 	cbs, ok := suite.chainA.GetSimApp().GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	counterpartyPortID, err := types.GeneratePortID("testing", path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+	counterpartyPortID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 	suite.Require().NoError(err)
 
 	counterparty := &channeltypes.Counterparty{
@@ -67,6 +73,5 @@ func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
 
 	version, err := cbs.NegotiateAppVersion(suite.chainA.GetContext(), channeltypes.ORDERED, path.EndpointA.ConnectionID, types.PortID, *counterparty, types.Version)
 	suite.Require().NoError(err)
-	suite.Require().True(strings.Contains(version, types.Version))
-	suite.Require().True(strings.Contains(version, types.GenerateAddress(counterpartyPortID).String()))
+	suite.Require().NoError(types.ValidateVersion(version))
 }

@@ -4,10 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/testing"
+)
+
+var (
+	// TestOwnerAddress defines a reusable bech32 address for testing purposes
+	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 )
 
 type TypesTestSuite struct {
@@ -26,26 +32,22 @@ func (suite *TypesTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
-func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = types.PortID
-	path.EndpointB.ChannelConfig.PortID = types.PortID
-	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = fmt.Sprintf("%s-%s", types.Version, types.GenerateAddress("ics-27-0-0-testing"))
-
-	return path
-}
-
 func TestTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(TypesTestSuite))
+}
+
+func (suite *TypesTestSuite) TestGenerateAddress() {
+	addr := types.GenerateAddress("test-port-id")
+	accAddr, err := sdk.AccAddressFromBech32(addr.String())
+
+	suite.Require().NoError(err, "TestGenerateAddress failed")
+	suite.Require().NotEmpty(accAddr)
 }
 
 func (suite *TypesTestSuite) TestGeneratePortID() {
 	var (
 		path  *ibctesting.Path
-		owner = "testing"
+		owner = TestOwnerAddress
 	)
 
 	testCases := []struct {
@@ -57,7 +59,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 		{
 			"success",
 			func() {},
-			"ics-27-0-0-testing",
+			fmt.Sprintf("ics-27-0-0-%s", TestOwnerAddress),
 			true,
 		},
 		{
@@ -65,7 +67,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 			func() {
 				path.EndpointA.ConnectionID = "connection-1"
 			},
-			"ics-27-1-0-testing",
+			fmt.Sprintf("ics-27-1-0-%s", TestOwnerAddress),
 			true,
 		},
 		{
@@ -98,7 +100,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
 			tc.malleate()
