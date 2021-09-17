@@ -17,7 +17,6 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -31,6 +30,11 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		   			}, false,
 		   		},
 		*/
+		{
+			"fails to generate port-id", func() {
+				owner = ""
+			}, false,
+		},
 		{
 			"MsgChanOpenInit fails - channel is already active", func() {
 				portID, err := types.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)

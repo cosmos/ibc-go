@@ -58,16 +58,3 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portID string) {
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
 	k.SetInterchainAccountAddress(ctx, portID, interchainAccount.Address)
 }
-
-func (k Keeper) GetInterchainAccount(ctx sdk.Context, addr sdk.AccAddress) (types.InterchainAccount, error) {
-	acc := k.accountKeeper.GetAccount(ctx, addr)
-	if acc == nil {
-		return types.InterchainAccount{}, sdkerrors.Wrap(types.ErrInterchainAccountNotFound, "there is no account")
-	}
-
-	interchainAccount, ok := acc.(*types.InterchainAccount)
-	if !ok {
-		return types.InterchainAccount{}, sdkerrors.Wrap(types.ErrInterchainAccountNotFound, "account is not an interchain account")
-	}
-	return *interchainAccount, nil
-}
