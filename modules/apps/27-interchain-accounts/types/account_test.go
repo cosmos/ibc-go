@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -145,25 +146,24 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 
 func (suite *TypesTestSuite) TestInterchainAccountMarshalYAML() {
 	suite.SetupTest() // reset
-	addr, err := sdk.AccAddressFromHex("0000000000000000000000000000000000000000")
-	suite.Require().NoError(err)
+
+	addr := suite.chainA.SenderAccount.GetAddress()
 	ba := authtypes.NewBaseAccountWithAddress(addr)
 
-	interchainAcc := types.NewInterchainAccount(ba, "accountOwner")
+	interchainAcc := types.NewInterchainAccount(ba, suite.chainB.SenderAccount.GetAddress().String())
 
 	bs, err := yaml.Marshal(interchainAcc)
 	suite.Require().NoError(err)
 
-	want := "|\n  address: cosmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a\n  public_key: \"\"\n  account_number: 0\n  sequence: 0\n  account_owner: accountOwner\n"
+	want := fmt.Sprintf("|\n  address: %s\n  public_key: \"\"\n  account_number: 0\n  sequence: 0\n  account_owner: %s\n", addr, interchainAcc.AccountOwner)
 	suite.Require().Equal(want, string(bs))
 }
 
 func (suite *TypesTestSuite) TestInterchainAccountJSON() {
-	pubkey := secp256k1.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address())
-	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
+	addr := suite.chainA.SenderAccount.GetAddress()
+	ba := authtypes.NewBaseAccountWithAddress(addr)
 
-	interchainAcc := types.NewInterchainAccount(baseAcc, "owner-address")
+	interchainAcc := types.NewInterchainAccount(ba, suite.chainB.SenderAccount.GetAddress().String())
 
 	bz, err := json.Marshal(interchainAcc)
 	suite.Require().NoError(err)
