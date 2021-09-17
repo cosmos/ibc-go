@@ -1,8 +1,6 @@
 package types_test
 
 import (
-	"fmt"
-
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 )
 
@@ -14,37 +12,37 @@ func (suite *TypesTestSuite) TestValidateVersion() {
 	}{
 		{
 			"success",
-			fmt.Sprint(types.VersionPrefix, types.Delimiter, TestOwnerAddress),
+			types.NewAppVersion(types.VersionPrefix, types.Delimiter, TestOwnerAddress),
 			true,
 		},
 		{
 			"success - version only",
-			fmt.Sprint(types.VersionPrefix),
+			types.NewAppVersion(types.VersionPrefix, "", ""),
 			true,
 		},
 		{
 			"invalid version",
-			fmt.Sprint("ics27-5", types.Delimiter, TestOwnerAddress),
+			types.NewAppVersion("ics27-5", types.Delimiter, TestOwnerAddress),
 			false,
 		},
 		{
 			"invalid account address - empty",
-			fmt.Sprint(types.VersionPrefix, types.Delimiter, ""),
+			types.NewAppVersion(types.VersionPrefix, types.Delimiter, ""),
 			false,
 		},
 		{
 			"invalid account address - exceeded character length",
-			fmt.Sprint(types.VersionPrefix, types.Delimiter, "ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatltfwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt"),
+			types.NewAppVersion(types.VersionPrefix, types.Delimiter, "ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatltfwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt"),
 			false,
 		},
 		{
 			"invalid account address - non alphanumeric characters",
-			fmt.Sprint(types.VersionPrefix, types.Delimiter, "-_-"),
+			types.NewAppVersion(types.VersionPrefix, types.Delimiter, "-_-"),
 			false,
 		},
 		{
 			"invalid account address - address contains additional delimiter",
-			fmt.Sprint(types.VersionPrefix, types.Delimiter, "cosmos17dtl0mjt3t77kpu|hg2edqzjpszulwhgzuj9ljs"),
+			types.NewAppVersion(types.VersionPrefix, types.Delimiter, "cosmos17dtl0mjt3t77kpu|hg2edqzjpszulwhgzuj9ljs"),
 			false,
 		},
 	}

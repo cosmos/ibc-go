@@ -33,8 +33,8 @@ var (
 )
 
 // NewVersion returns a complete version string in the format: VersionPrefix + Delimter + AccAddress
-func NewAppVersion(addr string) string {
-	return fmt.Sprint(VersionPrefix, Delimiter, addr)
+func NewAppVersion(versionPrefix, delimiter, addr string) string {
+	return fmt.Sprint(versionPrefix, delimiter, addr)
 }
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
