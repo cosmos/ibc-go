@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
-
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+	"gopkg.in/yaml.v2"
 
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 )
@@ -66,20 +65,24 @@ func NewInterchainAccount(ba *authtypes.BaseAccount, accountOwner string) *Inter
 }
 
 // SetPubKey - Implements AccountI
-func (InterchainAccount) SetPubKey(pubKey crypto.PubKey) error {
+func (ia InterchainAccount) SetPubKey(pubKey crypto.PubKey) error {
 	return fmt.Errorf("not supported for interchain accounts")
 }
 
 // SetSequence - Implements AccountI
-func (InterchainAccount) SetSequence(seq uint64) error {
+func (ia InterchainAccount) SetSequence(seq uint64) error {
 	return fmt.Errorf("not supported for interchain accounts")
 }
 
 func (ia InterchainAccount) Validate() error {
+	if strings.TrimSpace(ia.AccountOwner) == "" {
+		return fmt.Errorf("AccountOwner cannot be empty")
+	}
+
 	return ia.BaseAccount.Validate()
 }
 
-type ibcAccountPretty struct {
+type interchainAccountPretty struct {
 	Address       sdk.AccAddress `json:"address" yaml:"address"`
 	PubKey        string         `json:"public_key" yaml:"public_key"`
 	AccountNumber uint64         `json:"account_number" yaml:"account_number"`
@@ -99,7 +102,7 @@ func (ia InterchainAccount) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	bs, err := yaml.Marshal(ibcAccountPretty{
+	bs, err := yaml.Marshal(interchainAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
 		AccountNumber: ia.AccountNumber,
@@ -121,7 +124,7 @@ func (ia InterchainAccount) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return json.Marshal(ibcAccountPretty{
+	return json.Marshal(interchainAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
 		AccountNumber: ia.AccountNumber,
@@ -132,7 +135,7 @@ func (ia InterchainAccount) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON unmarshals raw JSON bytes into a ModuleAccount.
 func (ia *InterchainAccount) UnmarshalJSON(bz []byte) error {
-	var alias ibcAccountPretty
+	var alias interchainAccountPretty
 	if err := json.Unmarshal(bz, &alias); err != nil {
 		return err
 	}
