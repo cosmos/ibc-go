@@ -20,14 +20,14 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/transfer/client/cli"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/client/cli"
+	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
 var (
@@ -433,4 +433,20 @@ func (am AppModule) OnTimeoutPacket(
 	)
 
 	return nil
+}
+
+// NegotiateAppVersion implements the IBCModule interface
+func (am AppModule) NegotiateAppVersion(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionID string,
+	portID string,
+	counterparty channeltypes.Counterparty,
+	proposedVersion string,
+) (string, error) {
+	if proposedVersion != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.Version, proposedVersion)
+	}
+
+	return types.Version, nil
 }
