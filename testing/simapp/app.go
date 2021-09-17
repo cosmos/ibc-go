@@ -331,16 +331,16 @@ func NewSimApp(
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
-	app.ICAKeeper = icakeeper.NewKeeper(
-		appCodec, keys[icatypes.StoreKey],
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(), app,
-	)
-	icaModule := ica.NewAppModule(app.ICAKeeper)
-
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
+
+	app.ICAKeeper = icakeeper.NewKeeper(
+		appCodec, keys[icatypes.StoreKey],
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(),
+	)
+	icaModule := ica.NewAppModule(app.ICAKeeper, scopedICAKeeper, mockModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
@@ -674,11 +674,4 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 
 	return paramsKeeper
-}
-
-// Interchain Accounts code
-func (*SimApp) OnTxSucceeded(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
-}
-
-func (*SimApp) OnTxFailed(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
 }

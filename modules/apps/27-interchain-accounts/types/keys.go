@@ -22,6 +22,8 @@ const (
 
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_capability"
+
+	KeyAppCapabilityPrefix = "appCapabilities"
 )
 
 func KeyActiveChannel(portId string) []byte {
@@ -38,4 +40,9 @@ var (
 
 func GetIdentifier(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/", portID, channelID)
+}
+
+// TODO: remove once generic function is added to 24-host
+func AppCapabilityName(channelID, portID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyAppCapabilityPrefix, channelID, portID)
 }

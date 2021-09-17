@@ -5,16 +5,18 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
-// TODO: implement middleware functionality, this will allow us to use capabilities to
-// manage helper module access to owner addresses they do not have capabilities for
-func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}) ([]byte, error) {
+// TrySendTx takes in a transaction from a base application and attempts to send the packet
+// if the base application has the capability to send on the provided portID
+func (k Keeper) TrySendTx(ctx sdk.Context, appCap *capabilitytypes.Capability, portID string, data interface{}) ([]byte, error) {
 	// Check for the active channel
 	activeChannelId, found := k.GetActiveChannel(ctx, portID)
 	if !found {
@@ -23,7 +25,11 @@ func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}) ([]b
 
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelId)
 	if !found {
-		return []byte{}, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
+		return nil, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
+	}
+
+	if !k.AuthenticateCapability(ctx, appCap, types.AppCapabilityName(portID, activeChannelId)) {
+		return nil, sdkerrors.Wrapf(types.ErrAppCapabilityNotFound, "could not authenticate provided capability for portID %s and channelID %s", portID, activeChannelId)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
@@ -91,7 +97,6 @@ func (k Keeper) createOutgoingPacket(
 		timeoutTimestamp,
 	)
 
-	// TODO use ics4 wrapper to send packet
 	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
 		return nil, err
 	}

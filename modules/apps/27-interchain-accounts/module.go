@@ -80,9 +80,12 @@ type AppModule struct {
 	app          porttypes.IBCModule
 }
 
-func NewAppModule(k keeper.Keeper) AppModule {
+// NewAppModule creates an interchain accounts app module.
+func NewAppModule(k keeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, app porttypes.IBCModule) AppModule {
 	return AppModule{
-		keeper: k,
+		keeper:       k,
+		scopedKeeper: scopedKeeper,
+		app:          app,
 	}
 }
 
