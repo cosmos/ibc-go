@@ -18,23 +18,28 @@ func (suite *TypesTestSuite) TestValidateVersion() {
 			true,
 		},
 		{
+			"success - version only",
+			fmt.Sprint(types.Version),
+			true,
+		},
+		{
 			"invalid version",
-			"ics27-5|abc123",
+			fmt.Sprint("ics27-5", types.Delimiter, TestOwnerAddress),
 			false,
 		},
 		{
 			"invalid account address - 31 chars",
-			"ics27-1|xtignpvthxbwxtmnzyfwhhywobaatlt",
+			fmt.Sprint(types.Version, types.Delimiter, "xtignpvthxbwxtmnzyfwhhywobaatlt"),
 			false,
 		},
 		{
 			"invalid account address - 65 chars",
-			"ics27-1|ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt",
+			fmt.Sprint(types.Version, types.Delimiter, "ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt"),
 			false,
 		},
 		{
 			"invalid account address - non alphanumeric characters",
-			"ics27-1|abc_123",
+			fmt.Sprint(types.Version, types.Delimiter, "-_-"),
 			false,
 		},
 	}

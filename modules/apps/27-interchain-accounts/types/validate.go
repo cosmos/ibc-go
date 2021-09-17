@@ -17,7 +17,8 @@ var DefaultMinAddrLength = 32
 // strictly alphanumeric characters
 var IsValidAddr = regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
 
-// ValidateVersion performs basic validation of the provided interchainaccounts version string
+// ValidateVersion performs basic validation of the provided ics27 version string
+// When no delimiter is present it compares against the expected version
 func ValidateVersion(version string) error {
 	s := strings.Split(version, Delimiter)
 
