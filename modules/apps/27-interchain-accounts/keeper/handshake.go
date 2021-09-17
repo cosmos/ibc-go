@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -91,8 +89,8 @@ func (k Keeper) OnChanOpenTry(
 
 	accAddr := types.GenerateAddress(counterparty.PortId)
 	parsedAddr := types.ParseAddressFromVersion(version)
-	if strings.Compare(parsedAddr, accAddr.String()) != 0 {
-		return sdkerrors.Wrapf(types.ErrInvalidAccountAddress, "invalid account address: %s, expected %s", parsedAddr, accAddr)
+	if parsedAddr != accAddr.String() {
+		return sdkerrors.Wrapf(types.ErrInvalidAccountAddress, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)
 	}
 
 	// Register interchain account if it does not already exist

@@ -14,12 +14,12 @@ func (suite *TypesTestSuite) TestValidateVersion() {
 	}{
 		{
 			"success",
-			fmt.Sprint(types.Version, types.Delimiter, TestOwnerAddress),
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, TestOwnerAddress),
 			true,
 		},
 		{
 			"success - version only",
-			fmt.Sprint(types.Version),
+			fmt.Sprint(types.VersionPrefix),
 			true,
 		},
 		{
@@ -28,18 +28,23 @@ func (suite *TypesTestSuite) TestValidateVersion() {
 			false,
 		},
 		{
-			"invalid account address - 31 chars",
-			fmt.Sprint(types.Version, types.Delimiter, "xtignpvthxbwxtmnzyfwhhywobaatlt"),
+			"invalid account address - empty",
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, ""),
 			false,
 		},
 		{
-			"invalid account address - 65 chars",
-			fmt.Sprint(types.Version, types.Delimiter, "ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt"),
+			"invalid account address - exceeded character length",
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, "ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatltfwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt"),
 			false,
 		},
 		{
 			"invalid account address - non alphanumeric characters",
-			fmt.Sprint(types.Version, types.Delimiter, "-_-"),
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, "-_-"),
+			false,
+		},
+		{
+			"invalid account address - address contains additional delimiter",
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, "cosmos17dtl0mjt3t77kpu|hg2edqzjpszulwhgzuj9ljs"),
 			false,
 		},
 	}

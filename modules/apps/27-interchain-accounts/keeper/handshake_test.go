@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.Version,
+				Version:        types.VersionPrefix,
 			}
 
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(portID, path.EndpointA.ChannelID))
@@ -149,7 +149,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion = types.Version
+			counterpartyVersion = types.VersionPrefix
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)

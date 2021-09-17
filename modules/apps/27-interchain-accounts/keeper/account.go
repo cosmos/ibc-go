@@ -31,7 +31,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, types.Version, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portID, types.VersionPrefix, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
 	handler := k.msgRouter.Handler(msg)
 	if _, err := handler(ctx, msg); err != nil {
 		return err

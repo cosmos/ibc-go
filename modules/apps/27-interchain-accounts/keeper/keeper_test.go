@@ -15,8 +15,10 @@ import (
 var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	// TestPortID defines a resuable port identifier for testing purposes
+	TestPortID = fmt.Sprintf("ics-27-0-0-%s", TestOwnerAddress)
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
-	TestVersion = fmt.Sprintf("%s|%s", types.Version, types.GenerateAddress("ics-27-0-0-"+TestOwnerAddress))
+	TestVersion = fmt.Sprintf("%s|%s", types.VersionPrefix, types.GenerateAddress(TestPortID))
 )
 
 type KeeperTestSuite struct {
@@ -43,7 +45,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.PortID = types.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointA.ChannelConfig.Version = types.Version
+	path.EndpointA.ChannelConfig.Version = types.VersionPrefix
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
