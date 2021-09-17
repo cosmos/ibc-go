@@ -187,7 +187,7 @@ func (am AppModule) OnChanCloseInit(
 	channelID string,
 ) error {
 	// Disallow user-initiated channel closing for interchain account channels
-	return nil
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 func (am AppModule) OnChanCloseConfirm(
@@ -195,7 +195,7 @@ func (am AppModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	return nil
 }
 
 func (am AppModule) OnRecvPacket(
