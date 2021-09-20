@@ -305,7 +305,8 @@ func (am AppModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return nil
+	// TODO: Implement fee specific logic if fee is enabled for the given channel
+	return am.app.OnRecvPacket(ctx, packet, relayer)
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -315,7 +316,8 @@ func (am AppModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	return nil
+	// TODO: Implement fee specific logic if fee is enabled for the given channel
+	return am.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
@@ -324,5 +326,6 @@ func (am AppModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	return nil
+	// TODO: Implement fee specific logic if fee is enabled for the given channel
+	return am.app.OnTimeoutPacket(ctx, packet, relayer)
 }

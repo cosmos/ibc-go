@@ -264,8 +264,13 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			suite.path.EndpointA.ChanOpenInit()
 			suite.path.EndpointB.ChanOpenTry()
 
-			suite.path.EndpointB.ChannelConfig.Version = tc.cpVersion
-			err := suite.path.EndpointA.ChanOpenAck()
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, tc.cpVersion)
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 			} else {
