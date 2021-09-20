@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
 // IBCModule defines an interface that implements all the callbacks
@@ -82,4 +82,16 @@ type IBCModule interface {
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
+
+	// NegotiateAppVersion performs application version negotiation given the provided channel ordering, connectionID, portID, counterparty and proposed version.
+	// An error is returned if version negotiation cannot be performed. For example, an application module implementing this interface
+	// may decide to return an error in the event of the proposed version being incompatible with it's own
+	NegotiateAppVersion(
+		ctx sdk.Context,
+		order channeltypes.Order,
+		connectionID string,
+		portID string,
+		counterparty channeltypes.Counterparty,
+		proposedVersion string,
+	) (version string, err error)
 }

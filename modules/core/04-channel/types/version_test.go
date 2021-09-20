@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 )
 
 func TestSplitVersions(t *testing.T) {
@@ -44,7 +44,7 @@ func TestSplitVersions(t *testing.T) {
 
 func TestMergeVersions(t *testing.T) {
 	testCases := []struct {
-		name
+		name     string
 		versions []string
 		merged   string
 	}{
