@@ -12,37 +12,37 @@ func (suite *TypesTestSuite) TestValidateVersion() {
 	}{
 		{
 			"success",
-			types.NewAppVersion(types.VersionPrefix, types.Delimiter, TestOwnerAddress),
+			types.NewAppVersion(types.VersionPrefix, TestOwnerAddress),
 			true,
 		},
 		{
-			"success - version only",
-			types.NewAppVersion(types.VersionPrefix, "", ""),
+			"success - version prefix only",
+			types.VersionPrefix,
 			true,
 		},
 		{
 			"invalid version",
-			types.NewAppVersion("ics27-5", types.Delimiter, TestOwnerAddress),
+			types.NewAppVersion("ics27-5", TestOwnerAddress),
 			false,
 		},
 		{
 			"invalid account address - empty",
-			types.NewAppVersion(types.VersionPrefix, types.Delimiter, ""),
+			types.NewAppVersion(types.VersionPrefix, ""),
 			false,
 		},
 		{
 			"invalid account address - exceeded character length",
-			types.NewAppVersion(types.VersionPrefix, types.Delimiter, "ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatltfwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt"),
+			types.NewAppVersion(types.VersionPrefix, "ofwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatltfwafxhdmqcdbpzvrccxkidbunrwyyoboyctignpvthxbwxtmnzyfwhhywobaatlt"),
 			false,
 		},
 		{
 			"invalid account address - non alphanumeric characters",
-			types.NewAppVersion(types.VersionPrefix, types.Delimiter, "-_-"),
+			types.NewAppVersion(types.VersionPrefix, "-_-"),
 			false,
 		},
 		{
 			"invalid account address - address contains additional delimiter",
-			types.NewAppVersion(types.VersionPrefix, types.Delimiter, "cosmos17dtl0mjt3t77kpu|hg2edqzjpszulwhgzuj9ljs"),
+			types.NewAppVersion(types.VersionPrefix, "cosmos17dtl0mjt3t77kpu|hg2edqzjpszulwhgzuj9ljs"),
 			false,
 		},
 	}

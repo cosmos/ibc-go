@@ -18,7 +18,7 @@ var (
 	// TestPortID defines a resuable port identifier for testing purposes
 	TestPortID = fmt.Sprintf("ics-27-0-0-%s", TestOwnerAddress)
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
-	TestVersion = types.NewAppVersion(types.VersionPrefix, types.Delimiter, types.GenerateAddress(TestPortID).String())
+	TestVersion = types.NewAppVersion(types.VersionPrefix, types.GenerateAddress(TestPortID).String())
 )
 
 type KeeperTestSuite struct {

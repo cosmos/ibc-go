@@ -38,7 +38,7 @@ func (k Keeper) OnChanOpenInit(
 	}
 
 	if err := types.ValidateVersion(version); err != nil {
-		return err
+		return sdkerrors.Wrap(err, "version validation failed")
 	}
 
 	existingChannelID, found := k.GetActiveChannel(ctx, portID)
@@ -74,11 +74,11 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	if err := types.ValidateVersion(version); err != nil {
-		return err
+		return sdkerrors.Wrap(err, "version validation failed")
 	}
 
 	if err := types.ValidateVersion(counterpartyVersion); err != nil {
-		return err
+		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
@@ -110,7 +110,7 @@ func (k Keeper) OnChanOpenAck(
 	counterpartyVersion string,
 ) error {
 	if err := types.ValidateVersion(counterpartyVersion); err != nil {
-		return err
+		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
 
 	k.SetActiveChannel(ctx, portID, channelID)
