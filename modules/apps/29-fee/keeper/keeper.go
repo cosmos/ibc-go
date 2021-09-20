@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
@@ -21,14 +20,12 @@ type Keeper struct {
 
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
-	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 
 	return Keeper{
@@ -36,19 +33,12 @@ func NewKeeper(
 		storeKey:      key,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
-		scopedKeeper:  scopedKeeper,
 	}
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
-}
-
-// IsBound checks if the transfer module is already bound to the desired port
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
-	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-	return ok
 }
 
 // BindPort defines a wrapper function for the port Keeper's function in
@@ -73,18 +63,6 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (
 func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
 	return k.channelKeeper.SendPacket(ctx, chanCap, packet)
 }
-
-// // GetPort returns the portID for the transfer module. Used in ExportGenesis
-// func (k Keeper) GetPort(ctx sdk.Context) string {
-// 	store := ctx.KVStore(k.storeKey)
-// 	return string(store.Get(types.PortKey))
-// }
-
-// // SetPort sets the portID for the transfer module. Used in InitGenesis
-// func (k Keeper) SetPort(ctx sdk.Context, portID string) {
-// 	store := ctx.KVStore(k.storeKey)
-// 	store.Set(types.PortKey, []byte(portID))
-// }
 
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
 // identified by channel and port identifiers.

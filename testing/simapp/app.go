@@ -264,7 +264,6 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
-	app.ScopedIBCFeeKeeper = app.CapabilityKeeper.ScopeToModule(ibcfeetypes.ModuleName)
 
 	// seal capability keeper after scoping modules
 	app.CapabilityKeeper.Seal()
@@ -325,7 +324,6 @@ func NewSimApp(
 	// Create Transfer Keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.ScopedIBCFeeKeeper,
 	)
 
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -334,13 +332,14 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	feeTransferModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, transferModule)
 
-	feeTransferModule := ibcfee.NewAppModule(app.IBCFeeKeeper, app.ScopedTransferKeeper, transferModule)
+	feeModule := ibcfee.NewAppModule(app.IBCFeeKeeper)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
-	feeMockModule := ibcfee.NewAppModule(app.IBCFeeKeeper, scopedIBCMockKeeper, mockModule)
+	feeMockModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, mockModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
@@ -385,7 +384,7 @@ func NewSimApp(
 		params.NewAppModule(app.ParamsKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		transferModule,
-		feeTransferModule,
+		feeModule,
 		mockModule,
 	)
 

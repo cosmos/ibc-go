@@ -3,7 +3,6 @@ package fee_test
 import (
 	"testing"
 
-	fee "github.com/cosmos/ibc-go/modules/apps/29-fee"
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
@@ -20,8 +19,6 @@ type FeeTestSuite struct {
 	chainB *ibctesting.TestChain
 
 	path *ibctesting.Path
-
-	moduleA fee.AppModule
 }
 
 func (suite *FeeTestSuite) SetupTest() {
