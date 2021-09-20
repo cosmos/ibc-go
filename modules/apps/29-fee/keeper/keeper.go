@@ -1,14 +1,14 @@
 package keeper
 
 import (
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	"github.com/tendermint/tendermint/libs/log"
+
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 )
@@ -89,4 +89,23 @@ func (k Keeper) DeleteFeeEnabled(ctx sdk.Context, portID, channelID string) {
 func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Get(types.FeeEnabledKey(portID, channelID)) != nil
+}
+
+// SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
+// The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyRelayerAddress(address), []byte(counterpartyAddress))
+}
+
+// GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
+func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) (sdk.AccAddress, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyRelayerAddress(address.String())
+
+	if !store.Has(key) {
+		return []byte{}, false
+	}
+
+	return store.Get(key), true
 }
