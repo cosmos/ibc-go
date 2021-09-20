@@ -35,7 +35,6 @@ const (
 	KeyPortPrefix              = "ports"
 	KeySequencePrefix          = "sequences"
 	KeyChannelCapabilityPrefix = "capabilities"
-	KeyAppCapabilityPrefix     = "appCapabilities"
 	KeyNextSeqSendPrefix       = "nextSequenceSend"
 	KeyNextSeqRecvPrefix       = "nextSequenceRecv"
 	KeyNextSeqAckPrefix        = "nextSequenceAck"
@@ -141,15 +140,6 @@ func ChannelKey(portID, channelID string) []byte {
 // with a channel are stored
 func ChannelCapabilityPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, channelPath(portID, channelID))
-}
-
-// AppCapabilityPath defines the path under which application capabilities can be issued by
-// an ICS30 middleware wrapping an ICS26 application.
-// Note the app capability path is only the name the middleware uses to reference a capability it issues
-// to the underlying app. The underlying app will use the channel capability path to claim this capability
-// from middleware just as the original capability issued by IBC is claimed by middleware using channel capability path.
-func AppCapabilityPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyAppCapabilityPrefix, channelPath(portID, channelID))
 }
 
 // NextSequenceSendPath defines the next send sequence counter store path

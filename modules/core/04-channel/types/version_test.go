@@ -41,3 +41,32 @@ func TestSplitVersions(t *testing.T) {
 		require.Equal(t, tc.appVersion, appVersion, "app version is unexpected for case: %s", tc.name)
 	}
 }
+
+func TestMergeVersions(t *testing.T) {
+	testCases := []struct {
+		name
+		versions []string
+		merged   string
+	}{
+		{
+			"single version",
+			[]string{"ics20-1"},
+			"ics20-1",
+		},
+		{
+			"two versions",
+			[]string{"fee29-1", "ics20-1"},
+			"fee29-1:ics20-1",
+		},
+		{
+			"multiple versions",
+			[]string{"fee29-1", "whitelist", "ics20-1"},
+			"fee29-1:whitelist:ics20-1",
+		},
+	}
+
+	for _, tc := range testCases {
+		actual := types.MergeChannelVersions(tc.versions...)
+		require.Equal(t, tc.merged, actual, "merged versions string does not equal expected value")
+	}
+}
