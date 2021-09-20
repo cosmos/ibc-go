@@ -14,8 +14,11 @@ var DefaultMaxAddrLength = 128
 // strictly alphanumeric characters
 var IsValidAddr = regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
 
-// ValidateVersion performs basic validation of the provided ics27 version string
-// When no delimiter is present it compares against the expected version
+// ValidateVersion performs basic validation of the provided ics27 version string.
+// An ics27 version string may include an optional account address as per [TODO: Add spec when available]
+// ValidateVersion first attempts to split the version string using the standard delimiter, then asserts a supported
+// version prefix is included, followed by additional checks which enforce constraints on the optional account address.
+// When no delimiter is present, only the version prefix is validated
 func ValidateVersion(version string) error {
 	s := strings.Split(version, Delimiter)
 
