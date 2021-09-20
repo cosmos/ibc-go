@@ -1,12 +1,16 @@
 package keeper_test
 
 import (
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
@@ -58,6 +62,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			// set middleware function
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
@@ -289,4 +294,56 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestChanOpenAck() {
+	// no middleware case
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	owner := "owner"
+	suite.coordinator.SetupConnections(path)
+
+	err := InitInterchainAccount(path.EndpointA, owner)
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.ChanOpenAck()
+	suite.Require().NoError(err)
+
+	// middleware case
+
+	suite.SetupTest() // reset
+	path = NewICAPath(suite.chainA, suite.chainB)
+	owner = "owner"
+	suite.coordinator.SetupConnections(path)
+
+	err = InitInterchainAccount(path.EndpointA, owner)
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+
+	// add base app
+	mockModule, ok := suite.chainA.GetSimApp().GetModuleManager().Modules["mock"].(mock.AppModule)
+	suite.Require().True(ok)
+	mockModule.Middleware.OnChanOpenAck = func(ctx sdk.Context, portID, channelID, version string) error {
+		if channelID == "channel-0" {
+			return fmt.Errorf("error")
+		}
+		return nil
+	}
+
+	err = path.EndpointA.ChanOpenAck()
+	suite.Require().Error(err)
+
+	// reset with no middleware
+	mockModule, ok = suite.chainA.GetSimApp().GetModuleManager().Modules["mock"].(mock.AppModule)
+	mockModule.Middleware.OnChanOpenAck = nil
+	suite.chainA.GetSimApp().GetModuleManager().Modules["mock"] = mockModule
+
+	err = path.EndpointA.ChanOpenAck()
+	suite.Require().NoError(err)
+
 }
