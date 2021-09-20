@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
-
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+	yaml "gopkg.in/yaml.v2"
 
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 )
@@ -20,9 +19,14 @@ const (
 	ICAPrefix string = "ics-27"
 )
 
-// GenerateAddress returns a truncated SHA256 hash using the provided port string
-func GenerateAddress(port string) []byte {
-	return tmhash.SumTruncated([]byte(port))
+// GenerateAddress returns an sdk.AccAddress using the provided port identifier
+func GenerateAddress(portID string) sdk.AccAddress {
+	return sdk.AccAddress(tmhash.SumTruncated([]byte(portID)))
+}
+
+// ParseAddressFromVersion trims the interchainaccounts version prefix and returns the associated account address
+func ParseAddressFromVersion(version string) string {
+	return strings.TrimPrefix(version, fmt.Sprint(VersionPrefix, Delimiter))
 }
 
 // GeneratePortID generates the portID for a specific owner
@@ -32,21 +36,21 @@ func GenerateAddress(port string) []byte {
 // https://github.com/seantking/ibc/tree/sean/ics-27-updates/spec/app/ics-027-interchain-accounts#registering--controlling-flows
 // TODO: update link to spec
 func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (string, error) {
-	ownerID := strings.TrimSpace(owner)
-	if ownerID == "" {
-		return "", sdkerrors.Wrap(ErrInvalidOwnerAddress, "owner address cannot be empty")
+	if strings.TrimSpace(owner) == "" {
+		return "", sdkerrors.Wrap(ErrInvalidAccountAddress, "owner address cannot be empty")
 	}
+
 	connectionSeq, err := connectiontypes.ParseConnectionSequence(connectionID)
 	if err != nil {
 		return "", sdkerrors.Wrap(err, "invalid connection identifier")
 	}
+
 	counterpartyConnectionSeq, err := connectiontypes.ParseConnectionSequence(counterpartyConnectionID)
 	if err != nil {
 		return "", sdkerrors.Wrap(err, "invalid counterparty connection identifier")
 	}
 
-	portID := fmt.Sprintf("%s-%d-%d-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, ownerID)
-	return portID, nil
+	return fmt.Sprintf("%s-%d-%d-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, owner), nil
 }
 
 type InterchainAccountI interface {
