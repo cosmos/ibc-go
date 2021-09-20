@@ -87,6 +87,7 @@ func (k Keeper) OnChanOpenTry(
 		return err
 	}
 
+        // Check to ensure that the version string contains the expected address generated from the Counterparty portID 
 	accAddr := types.GenerateAddress(counterparty.PortId)
 	parsedAddr := types.ParseAddressFromVersion(version)
 	if parsedAddr != accAddr.String() {
