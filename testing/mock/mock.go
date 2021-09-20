@@ -94,6 +94,7 @@ type AppModule struct {
 	AppModuleBasic
 	scopedKeeper capabilitykeeper.ScopedKeeper
 	portKeeper   PortKeeper
+	middleware   MockMiddleware
 }
 
 // NewAppModule returns a mock AppModule instance.
@@ -178,7 +179,11 @@ func (am AppModule) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface.
-func (am AppModule) OnChanOpenAck(sdk.Context, string, string, string) error {
+func (am AppModule) OnChanOpenAck(ctx sdk.Context, portID string, channelID string, counterpartyVersion string) error {
+	if am.middleware.OnChanOpenAck != nil {
+		return am.middleware.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
+	}
+
 	return nil
 }
 
