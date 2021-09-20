@@ -301,6 +301,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
 	owner := "owner"
+	counterpartyVersion := types.Version
 	suite.coordinator.SetupConnections(path)
 
 	err := InitInterchainAccount(path.EndpointA, owner)
@@ -335,7 +336,13 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 		return nil
 	}
 
-	err = path.EndpointA.ChanOpenAck()
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
 	suite.Require().Error(err)
 
 	// reset with no middleware
@@ -343,7 +350,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 	mockModule.Middleware.OnChanOpenAck = nil
 	suite.chainA.GetSimApp().GetModuleManager().Modules["mock"] = mockModule
 
-	err = path.EndpointA.ChanOpenAck()
+	err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
 	suite.Require().NoError(err)
 
 }
