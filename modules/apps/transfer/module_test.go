@@ -28,18 +28,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			"success", func() {}, true,
 		},
 		{
-			"success with fee port", func() {
-				path.EndpointA.ChannelConfig.PortID = types.FeePortID
-				counterparty.PortId = types.FeePortID
-			}, true,
-		},
-		{
-			"mismatched ports", func() {
-				path.EndpointA.ChannelConfig.PortID = types.PortID
-				counterparty.PortId = types.FeePortID
-			}, false,
-		},
-		{
 			"max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, false,
@@ -127,18 +115,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 
 		{
 			"success", func() {}, true,
-		},
-		{
-			"success with fee port", func() {
-				path.EndpointA.ChannelConfig.PortID = types.FeePortID
-				counterparty.PortId = types.FeePortID
-			}, true,
-		},
-		{
-			"mismatched ports", func() {
-				path.EndpointA.ChannelConfig.PortID = types.PortID
-				counterparty.PortId = types.FeePortID
-			}, false,
 		},
 		{
 			"max channels reached", func() {

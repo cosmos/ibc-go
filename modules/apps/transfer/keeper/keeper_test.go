@@ -54,13 +54,6 @@ func (suite *KeeperTestSuite) TestGetTransferAccount() {
 	suite.Require().Equal(expectedMaccAddr, macc.GetAddress())
 }
 
-func (suite *KeeperTestSuite) TestGetPorts() {
-	expectedPorts := []string{"transfer", "feetransfer", "testport"}
-	suite.chainA.GetSimApp().TransferKeeper.SetPorts(suite.chainA.GetContext(), expectedPorts)
-	gotPorts := suite.chainA.GetSimApp().TransferKeeper.GetPorts(suite.chainA.GetContext())
-	suite.Require().Equal(expectedPorts, gotPorts, "ports set in store is not the same as ports retrieved from store")
-}
-
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

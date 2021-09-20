@@ -40,7 +40,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	transferGenesis := types.GenesisState{
-		PortIds:     []string{portID},
+		PortId:      portID,
 		DenomTraces: types.Traces{},
 		Params:      types.NewParams(sendEnabled, receiveEnabled),
 	}

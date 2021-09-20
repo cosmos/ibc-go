@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	fee "github.com/cosmos/ibc-go/modules/apps/29-fee"
-	"github.com/cosmos/ibc-go/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 	"github.com/stretchr/testify/suite"
 )
@@ -28,14 +29,12 @@ func (suite *FeeTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
-	keeper := suite.chainA.GetSimApp().IBCFeeKeeper
-
-	transferModule := transfer.NewAppModule(suite.chainA.GetSimApp().TransferKeeper)
-	suite.moduleA = fee.NewAppModule(keeper, suite.chainA.GetSimApp().ScopedIBCFeeKeeper, transferModule)
-
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.EndpointA.ChannelConfig.PortID = transfertypes.FeePortID
-	path.EndpointB.ChannelConfig.PortID = transfertypes.FeePortID
+	feeTransferVersion := channeltypes.MergeChannelVersions(types.Version, transfertypes.Version)
+	path.EndpointA.ChannelConfig.Version = feeTransferVersion
+	path.EndpointB.ChannelConfig.Version = feeTransferVersion
+	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 	suite.path = path
 }
 

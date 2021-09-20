@@ -1,12 +1,10 @@
 package fee_test
 
 import (
-	"fmt"
-
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *FeeTestSuite) TestOnChanOpenInit() {
@@ -18,6 +16,11 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		{
 			"valid fee middleware and transfer version",
 			"fee29-1:ics20-1",
+			true,
+		},
+		{
+			"fee version not included, only perform transfer logic",
+			"ics20-1",
 			true,
 		},
 		{
@@ -41,11 +44,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			false,
 		},
 		{
-			"fee version not included",
-			"ics20-1",
-			false,
-		},
-		{
 			"hanging delimiter",
 			"fee29-1:ics20-1:",
 			false,
@@ -58,37 +56,34 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupTest()
+			suite.coordinator.SetupClients(suite.path)
+			suite.coordinator.SetupConnections(suite.path)
 
-			ctx := suite.chainA.GetContext()
-			cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
+			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
+
+			counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+			channel := &channeltypes.Channel{
+				State:          channeltypes.INIT,
+				Ordering:       channeltypes.UNORDERED,
+				Counterparty:   counterparty,
+				ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
+				Version:        tc.version,
+			}
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
-			err = suite.moduleA.OnChanOpenInit(
-				ctx,
-				channeltypes.UNORDERED,
-				[]string{"connection-1"},
-				transfertypes.FeePortID,
-				"channel-1",
-				cap,
-				channeltypes.NewCounterparty(transfertypes.FeePortID, ""),
-				tc.version,
-			)
+
+			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
 
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
-
-				// check that capabilities are properly claimed and issued
-				ctx := suite.chainA.GetContext()
-				ibcCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
-				suite.Require().NotNil(ibcCap, "IBC capability is nil on fee keeper")
-				suite.Require().True(ok)
-
-				appFeeCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, types.AppCapabilityName(transfertypes.FeePortID, "channel-1"))
-				suite.Require().NotNil(appFeeCap, "App capability not created or owned by ibc fee keeper")
-				suite.Require().True(ok)
-				transferCap, ok := suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, "channel-1"))
-				suite.Require().NotNil(transferCap, "App capability not claimed by transfer keeper")
-				suite.Require().True(ok)
-				suite.Require().Equal(appFeeCap, transferCap, "app capabilities not equal")
 			} else {
 				suite.Require().Error(err, "error not returned for version: %s", tc.version)
 			}
@@ -108,6 +103,13 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			"valid fee middleware and transfer version",
 			"fee29-1:ics20-1",
 			"fee29-1:ics20-1",
+			false,
+			true,
+		},
+		{
+			"valid transfer version on try and counterparty",
+			"ics20-1",
+			"ics20-1",
 			false,
 			true,
 		},
@@ -161,7 +163,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			false,
 		},
 		{
-			"fee version not included",
+			"fee version not included on try, but included in counterparty",
 			"ics20-1",
 			"fee29-1:ics20-1",
 			false,
@@ -186,29 +188,42 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			suite.coordinator.SetupConnections(suite.path)
 			suite.path.EndpointB.ChanOpenInit()
 
+			var (
+				chanCap *capabilitytypes.Capability
+				ok      bool
+				err     error
+			)
 			if tc.capExists {
 				suite.path.EndpointA.ChanOpenInit()
+				chanCap, ok = suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
+				suite.Require().True(ok)
+			} else {
+				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
+				suite.Require().NoError(err)
 			}
 
-			fmt.Println("port:", suite.path.EndpointA.ChannelConfig.PortID)
-			err := suite.path.EndpointA.ChanOpenTry()
+			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
+
+			counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+			channel := &channeltypes.Channel{
+				State:          channeltypes.INIT,
+				Ordering:       channeltypes.UNORDERED,
+				Counterparty:   counterparty,
+				ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
+				Version:        tc.version,
+			}
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.version, tc.cpVersion)
 
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
-
-				// check that capabilities are properly claimed and issued
-				ctx := suite.chainA.GetContext()
-				ibcCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NotNil(ibcCap, "IBC capability is nil on fee keeper: %s", host.ChannelCapabilityPath(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
-				suite.Require().True(ok)
-
-				appFeeCap, ok := suite.chainA.GetSimApp().ScopedIBCFeeKeeper.GetCapability(ctx, types.AppCapabilityName(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NotNil(appFeeCap, "App capability not created or owned by ibc fee keeper")
-				suite.Require().True(ok)
-				transferCap, ok := suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(ctx, host.ChannelCapabilityPath(transfertypes.FeePortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NotNil(transferCap, "App capability not claimed by transfer keeper")
-				suite.Require().True(ok)
-				suite.Require().Equal(appFeeCap, transferCap, "app capabilities not equal")
 			} else {
 				suite.Require().Error(err, "error not returned for version: %s", tc.version)
 			}
@@ -240,12 +255,22 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	}
 
 	for _, tc := range testCases {
-		ctx := suite.chainA.GetContext()
-		err := suite.moduleA.OnChanOpenAck(ctx, transfertypes.FeePortID, "channel-1", tc.cpVersion)
-		if tc.expPass {
-			suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
-		} else {
-			suite.Require().Error(err, "%s expected error but returned none", tc.name)
-		}
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.SetupClients(suite.path)
+			suite.coordinator.SetupConnections(suite.path)
+
+			suite.path.EndpointA.ChanOpenInit()
+			suite.path.EndpointB.ChanOpenTry()
+
+			suite.path.EndpointB.ChannelConfig.Version = tc.cpVersion
+			err := suite.path.EndpointA.ChanOpenAck()
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+			}
+		})
 	}
 }

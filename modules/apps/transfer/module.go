@@ -209,16 +209,9 @@ func ValidateTransferChannelParams(
 	}
 
 	// Require portID is the portID transfer module is bound to
-	boundPorts := keeper.GetPorts(ctx)
-	var portOk bool
-	for _, boundPort := range boundPorts {
-		if boundPort == portID {
-			portOk = true
-			break
-		}
-	}
-	if !portOk {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s not bound by transfer module", portID)
+	boundPort := keeper.GetPort(ctx)
+	if boundPort != portID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}
 
 	if portID != counterparty.PortId {

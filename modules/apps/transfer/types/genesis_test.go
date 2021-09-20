@@ -22,14 +22,14 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"valid genesis",
 			&types.GenesisState{
-				PortIds: []string{"portidone", "portidtwo", "portidthree"},
+				PortId: "portidone",
 			},
 			true,
 		},
 		{
 			"invalid client",
 			&types.GenesisState{
-				PortIds: []string{"(INVALIDPORT)"},
+				PortId: "(INVALIDPORT)",
 			},
 			false,
 		},

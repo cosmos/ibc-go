@@ -3,7 +3,6 @@ package fee
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -28,7 +27,6 @@ import (
 	// "github.com/cosmos/ibc-go/modules/apps/29-fee/simulation"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 )
 
@@ -203,22 +201,17 @@ func (am AppModule) OnChanOpenInit(
 	version string,
 ) error {
 	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
-	if feeVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
-	}
-	// Claim channel capability passed back by IBC module
-	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
-	}
+	if feeVersion != "" {
+		if feeVersion != types.Version {
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
+		}
 
-	appCap, err := am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(portID, channelID))
-	if err != nil {
-		return sdkerrors.Wrap(err, "could not create capability for underlying application")
+		am.keeper.SetFeeEnabled(ctx, portID, channelID)
 	}
 
 	// call underlying app's OnChanOpenInit callback with the appVersion
 	return am.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		appCap, counterparty, appVersion)
+		chanCap, counterparty, appVersion)
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -233,48 +226,25 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	fmt.Println("FEE TRANSFER")
 	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
 	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
 
-	if feeVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
-	}
-	if cpFeeVersion != feeVersion {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
-	}
-	var (
-		appCap *capabilitytypes.Capability
-		err    error
-		ok     bool
-	)
-	fmt.Println("why")
-	fmt.Println(host.ChannelCapabilityPath(portID, channelID))
-	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-	// If module can already authenticate the capability then module already owns it so we don't need to claim
-	// Otherwise, module does not have channel capability and we must claim it from IBC
-	if !am.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		fmt.Println("hello")
-		// Only claim channel capability passed back by IBC module if we do not already own it
-		if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return sdkerrors.Wrap(err, "fee middleware could not claim capability from caller")
+	if feeVersion != "" || cpFeeVersion != "" {
+		if feeVersion != types.Version {
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
 		}
-		appCap, err = am.scopedKeeper.NewCapability(ctx, types.AppCapabilityName(portID, channelID))
-		if err != nil {
-			return sdkerrors.Wrap(err, "could not create capability for underlying application")
+		if cpFeeVersion != feeVersion {
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
 		}
-	} else {
-		fmt.Println("bye")
-		appCap, ok = am.scopedKeeper.GetCapability(ctx, types.AppCapabilityName(portID, channelID))
-		if !ok {
-			return sdkerrors.Wrap(capabilitytypes.ErrCapabilityNotFound,
-				"could not find app capability on OnChanOpenTry even after OnChanOpenInit called on this chain first (crossing hellos)")
-		}
+
+		am.keeper.SetFeeEnabled(ctx, portID, channelID)
+	} else if am.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		// return error if a previous ChanInit set fee enabled but subsequent OpenTry does not have fee enabled
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "previous INIT call (crossing hellos) had fee version set but OpenTry call does not set fee version: %s", version)
 	}
 	// call underlying app's OnChanOpenTry callback with the app versions
 	return am.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,
-		appCap, counterparty, appVersion, cpAppVersion)
+		chanCap, counterparty, appVersion, cpAppVersion)
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -284,10 +254,14 @@ func (am AppModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+	cpAppVersion := counterpartyVersion
+	if am.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		var cpFeeVersion string
+		cpFeeVersion, cpAppVersion = channeltypes.SplitChannelVersion(counterpartyVersion)
 
-	if cpFeeVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+		if cpFeeVersion != types.Version {
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+		}
 	}
 	// call underlying app's OnChanOpenAck callback with the counterparty app version.
 	return am.app.OnChanOpenAck(ctx, portID, channelID, cpAppVersion)
@@ -310,6 +284,7 @@ func (am AppModule) OnChanCloseInit(
 	channelID string,
 ) error {
 	// TODO: Unescrow all remaining funds for unprocessed packets
+	am.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 	return am.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
@@ -320,6 +295,7 @@ func (am AppModule) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	// TODO: Unescrow all remaining funds for unprocessed packets
+	am.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 	return am.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 

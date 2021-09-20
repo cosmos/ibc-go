@@ -1048,7 +1048,7 @@ GenesisState defines the ibc-transfer genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `port_ids` | [string](#string) | repeated |  |
+| `port_id` | [string](#string) |  |  |
 | `denom_traces` | [DenomTrace](#ibc.applications.transfer.v1.DenomTrace) | repeated |  |
 | `params` | [Params](#ibc.applications.transfer.v1.Params) |  |  |
 

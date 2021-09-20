@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -95,18 +93,16 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
 }
 
-// GetPorts returns the bound portIDs for the transfer module. Used in ExportGenesis
-func (k Keeper) GetPorts(ctx sdk.Context) []string {
+// GetPort returns the portID for the transfer module. Used in ExportGenesis
+func (k Keeper) GetPort(ctx sdk.Context) string {
 	store := ctx.KVStore(k.storeKey)
-	portsStr := string(store.Get(types.PortKey))
-	return strings.Split(portsStr, "/")
+	return string(store.Get(types.PortKey))
 }
 
-// SetPorts sets the bound portIDs the transfer module. Used in InitGenesis
-func (k Keeper) SetPorts(ctx sdk.Context, portIDs []string) {
+// SetPort sets the portID for the transfer module. Used in InitGenesis
+func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
-	portsStr := strings.Join(portIDs, "/")
-	store.Set(types.PortKey, []byte(portsStr))
+	store.Set(types.PortKey, []byte(portID))
 }
 
 // GetDenomTrace retreives the full identifiers trace and base denomination from the store.
