@@ -56,6 +56,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (24-host) [\#344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters.
 
 ### Improvements
+
 * [\#373](https://github.com/cosmos/ibc-go/pull/375) Added optional field `PacketCommitmentSequences` to `QueryPacketAcknowledgementsRequest` to provide filtering of packet acknowledgements.
 * [\#383](https://github.com/cosmos/ibc-go/pull/383) Adds helper functions for merging and splitting middleware versions from the underlying app version.
 
