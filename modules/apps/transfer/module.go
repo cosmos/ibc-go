@@ -215,7 +215,7 @@ func ValidateTransferChannelParams(
 	}
 
 	if portID != counterparty.PortId {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID: %s do not match counterparty portID: %s", portID, counterparty.PortId)
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID: %s does not match counterparty portID: %s", portID, counterparty.PortId)
 	}
 
 	if version != types.Version {
