@@ -321,27 +321,32 @@ func NewSimApp(
 		&stakingKeeper, govRouter,
 	)
 
-	// Create Transfer Keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 	)
 
+	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
+	// since fee middleware will wrap the IBCKeeper for underlying application.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, &app.IBCFeeKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	// create fee-wrapped transfer module
 	feeTransferModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, transferModule)
 
 	feeModule := ibcfee.NewAppModule(app.IBCFeeKeeper)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
-	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
+	// Pass IBCFeeKeeper for PortKeeper since fee middleware will wrap the IBCKeeper for underlying application.
+	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCFeeKeeper)
+	// create fee wrapped mock module
 	feeMockModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, mockModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
+	// pass in top-level (fully-wrapped) IBCModules to IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, feeTransferModule)
 	ibcRouter.AddRoute(ibcmock.ModuleName, feeMockModule)
