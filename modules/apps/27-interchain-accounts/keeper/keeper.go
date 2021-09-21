@@ -7,11 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
@@ -37,6 +39,12 @@ func NewKeeper(
 	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	accountKeeper types.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter, hook types.IBCAccountHooks,
 ) Keeper {
+
+	// ensure ibc interchain accounts module account is set
+	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+		panic("the IBC interchain accounts module account has not been set")
+	}
+
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
@@ -162,4 +170,23 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (str
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyOwnerAccount(portID), []byte(address))
+}
+
+// NegotiateAppVersion handles application version negotation for the IBC interchain accounts module
+func (k Keeper) NegotiateAppVersion(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionID string,
+	portID string,
+	counterparty channeltypes.Counterparty,
+	proposedVersion string,
+) (string, error) {
+	if proposedVersion != types.VersionPrefix {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
+	}
+
+	moduleAccAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
+	accAddr := types.GenerateAddress(moduleAccAddr, counterparty.PortId)
+
+	return types.NewAppVersion(types.VersionPrefix, accAddr.String()), nil
 }

@@ -87,8 +87,8 @@ func (k Keeper) OnChanOpenTry(
 		return err
 	}
 
-        // Check to ensure that the version string contains the expected address generated from the Counterparty portID 
-	accAddr := types.GenerateAddress(counterparty.PortId)
+	// Check to ensure that the version string contains the expected address generated from the Counterparty portID
+	accAddr := types.GenerateAddress(k.accountKeeper.GetModuleAddress(types.ModuleName), counterparty.PortId)
 	parsedAddr := types.ParseAddressFromVersion(version)
 	if parsedAddr != accAddr.String() {
 		return sdkerrors.Wrapf(types.ErrInvalidAccountAddress, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)

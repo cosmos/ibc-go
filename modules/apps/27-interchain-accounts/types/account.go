@@ -7,9 +7,9 @@ import (
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	yaml "gopkg.in/yaml.v2"
 
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
@@ -19,9 +19,9 @@ const (
 	ICAPrefix string = "ics-27"
 )
 
-// GenerateAddress returns an sdk.AccAddress using the provided port identifier
-func GenerateAddress(portID string) sdk.AccAddress {
-	return sdk.AccAddress(tmhash.SumTruncated([]byte(portID)))
+// GenerateAddress returns an sdk.AccAddress derived using the provided module account address and port identifier
+func GenerateAddress(moduleAccAddr sdk.AccAddress, portID string) sdk.AccAddress {
+	return sdk.AccAddress(address.Derive(moduleAccAddr, []byte(portID)))
 }
 
 // ParseAddressFromVersion trims the interchainaccounts version prefix and returns the associated account address
