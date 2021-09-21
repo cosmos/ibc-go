@@ -54,6 +54,11 @@ func TestMergeVersions(t *testing.T) {
 			"ics20-1",
 		},
 		{
+			"empty version",
+			[]string{},
+			"",
+		},
+		{
 			"two versions",
 			[]string{"fee29-1", "ics20-1"},
 			"fee29-1:ics20-1",
