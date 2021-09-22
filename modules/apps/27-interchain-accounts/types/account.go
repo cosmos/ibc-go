@@ -15,10 +15,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 )
 
-const (
-	ICAPrefix string = "ics-27"
-)
-
 // GenerateAddress returns an sdk.AccAddress using the provided port identifier
 func GenerateAddress(portID string) sdk.AccAddress {
 	return sdk.AccAddress(tmhash.SumTruncated([]byte(portID)))
@@ -50,7 +46,7 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 		return "", sdkerrors.Wrap(err, "invalid counterparty connection identifier")
 	}
 
-	return fmt.Sprintf("%s-%d-%d-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, owner), nil
+	return fmt.Sprintf("%s-%d-%d-%s", VersionPrefix, connectionSeq, counterpartyConnectionSeq, owner), nil
 }
 
 type InterchainAccountI interface {
