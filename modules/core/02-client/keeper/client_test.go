@@ -394,7 +394,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		tc := tc
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupClients(path)
-		upgradedClient = ibctmtypes.NewClientState("newChainId", ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+		upgradedClient = ibctmtypes.NewClientState("newChainId-1", ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 		upgradedClient = upgradedClient.ZeroCustomFields()
 		upgradedClientBz, err = types.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 		suite.Require().NoError(err)
@@ -678,9 +678,8 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 
 	result, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err)
-	// first event type is "message"
-	updateEvent := result.Events[1]
-
+	// first event type is "message", followed by 3 "tx" events in ante
+	updateEvent := result.Events[4]
 	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
 
 	// use a boolean to ensure the update event contains the header
