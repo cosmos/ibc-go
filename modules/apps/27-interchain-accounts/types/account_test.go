@@ -59,7 +59,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 		{
 			"success",
 			func() {},
-			fmt.Sprintf("ics-27-0-0-%s", TestOwnerAddress),
+			fmt.Sprintf("%s-0-0-%s", types.VersionPrefix, TestOwnerAddress),
 			true,
 		},
 		{
@@ -67,7 +67,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 			func() {
 				path.EndpointA.ConnectionID = "connection-1"
 			},
-			fmt.Sprintf("ics-27-1-0-%s", TestOwnerAddress),
+			fmt.Sprintf("%s-1-0-%s", types.VersionPrefix, TestOwnerAddress),
 			true,
 		},
 		{
