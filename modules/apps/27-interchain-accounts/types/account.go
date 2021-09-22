@@ -66,17 +66,17 @@ func NewInterchainAccount(ba *authtypes.BaseAccount, accountOwner string) *Inter
 
 // SetPubKey - Implements AccountI
 func (ia InterchainAccount) SetPubKey(pubKey crypto.PubKey) error {
-	return fmt.Errorf("not supported for interchain accounts")
+	return sdkerrors.Wrap(ErrUnsupported, "cannot set public key for interchain account")
 }
 
 // SetSequence - Implements AccountI
 func (ia InterchainAccount) SetSequence(seq uint64) error {
-	return fmt.Errorf("not supported for interchain accounts")
+	return sdkerrors.Wrap(ErrUnsupported, "cannot set sequence number for interchain account")
 }
 
 func (ia InterchainAccount) Validate() error {
 	if strings.TrimSpace(ia.AccountOwner) == "" {
-		return fmt.Errorf("AccountOwner cannot be empty")
+		return sdkerrors.Wrap(ErrInvalidOwnerAddress, "AccountOwner cannot be empty")
 	}
 
 	return ia.BaseAccount.Validate()

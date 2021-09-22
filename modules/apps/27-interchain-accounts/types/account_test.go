@@ -122,14 +122,14 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 		expPass bool
 	}{
 		{
-			"interchain account with empty AccountOwner field",
-			types.NewInterchainAccount(baseAcc, ""),
-			false,
-		},
-		{
 			"success",
 			types.NewInterchainAccount(baseAcc, ownerAddr.String()),
 			true,
+		},
+		{
+			"interchain account with empty AccountOwner field",
+			types.NewInterchainAccount(baseAcc, ""),
+			false,
 		},
 	}
 
