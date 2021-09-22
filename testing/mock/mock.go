@@ -94,7 +94,7 @@ type AppModule struct {
 	AppModuleBasic
 	scopedKeeper capabilitykeeper.ScopedKeeper
 	portKeeper   PortKeeper
-	middleware   MockMiddleware
+	BaseApp      MockIBCApp // base application of an IBC middleware stack
 }
 
 // NewAppModule returns a mock AppModule instance.
@@ -154,9 +154,14 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // OnChanOpenInit implements the IBCModule interface.
 func (am AppModule) OnChanOpenInit(
-	ctx sdk.Context, _ channeltypes.Order, _ []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, _ channeltypes.Counterparty, _ string,
+	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
+	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
 ) error {
+	if am.BaseApp.OnChanOpenInit != nil {
+		return am.BaseApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
+
+	}
+
 	// Claim channel capability passed back by IBC module
 	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return err
@@ -167,9 +172,13 @@ func (am AppModule) OnChanOpenInit(
 
 // OnChanOpenTry implements the IBCModule interface.
 func (am AppModule) OnChanOpenTry(
-	ctx sdk.Context, _ channeltypes.Order, _ []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, _ channeltypes.Counterparty, _, _ string,
+	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
+	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version, counterpartyVersion string,
 ) error {
+	if am.BaseApp.OnChanOpenTry != nil {
+		return am.BaseApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
+
+	}
 	// Claim channel capability passed back by IBC module
 	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return err
@@ -180,30 +189,46 @@ func (am AppModule) OnChanOpenTry(
 
 // OnChanOpenAck implements the IBCModule interface.
 func (am AppModule) OnChanOpenAck(ctx sdk.Context, portID string, channelID string, counterpartyVersion string) error {
-	if am.middleware.OnChanOpenAck != nil {
-		return am.middleware.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
+	if am.BaseApp.OnChanOpenAck != nil {
+		return am.BaseApp.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
 	}
 
 	return nil
 }
 
 // OnChanOpenConfirm implements the IBCModule interface.
-func (am AppModule) OnChanOpenConfirm(sdk.Context, string, string) error {
+func (am AppModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+	if am.BaseApp.OnChanOpenConfirm != nil {
+		return am.BaseApp.OnChanOpenConfirm(ctx, portID, channelID)
+	}
+
 	return nil
 }
 
 // OnChanCloseInit implements the IBCModule interface.
-func (am AppModule) OnChanCloseInit(sdk.Context, string, string) error {
+func (am AppModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+	if am.BaseApp.OnChanCloseInit != nil {
+		return am.BaseApp.OnChanCloseInit(ctx, portID, channelID)
+	}
+
 	return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface.
-func (am AppModule) OnChanCloseConfirm(sdk.Context, string, string) error {
+func (am AppModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+	if am.BaseApp.OnChanCloseConfirm != nil {
+		return am.BaseApp.OnChanCloseConfirm(ctx, portID, channelID)
+	}
+
 	return nil
 }
 
 // OnRecvPacket implements the IBCModule interface.
 func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+	if am.BaseApp.OnRecvPacket != nil {
+		return am.BaseApp.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	// set state by claiming capability to check if revert happens return
 	_, err := am.scopedKeeper.NewCapability(ctx, MockRecvCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
 	if err != nil {
@@ -221,7 +246,11 @@ func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (am AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
+func (am AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+	if am.BaseApp.OnAcknowledgementPacket != nil {
+		return am.BaseApp.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
 	_, err := am.scopedKeeper.NewCapability(ctx, MockAckCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
 	if err != nil {
 		// application callback called twice on same packet sequence
@@ -233,7 +262,11 @@ func (am AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
-func (am AppModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, _ sdk.AccAddress) error {
+func (am AppModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+	if am.BaseApp.OnTimeoutPacket != nil {
+		return am.BaseApp.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
 	_, err := am.scopedKeeper.NewCapability(ctx, MockTimeoutCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
 	if err != nil {
 		// application callback called twice on same packet sequence
@@ -253,6 +286,10 @@ func (am AppModule) NegotiateAppVersion(
 	counterparty channeltypes.Counterparty,
 	proposedVersion string,
 ) (string, error) {
+	if am.BaseApp.NegotiateAppVersion != nil {
+		return am.BaseApp.NegotiateAppVersion(ctx, order, connectionID, portID, counterparty, proposedVersion)
+	}
+
 	if proposedVersion != Version { // allow testing of error scenarios
 		return "", errors.New("failed to negotiate app version")
 	}
