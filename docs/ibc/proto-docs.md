@@ -5,6 +5,7 @@
 ## Table of Contents
 
 - [ibc/applications/ccv/v1/ccv.proto](#ibc/applications/ccv/v1/ccv.proto)
+    - [CreateChildChainProposal](#ibc.applications.ccv.v1.CreateChildChainProposal)
     - [ValidatorSetChangePacketData](#ibc.applications.ccv.v1.ValidatorSetChangePacketData)
   
     - [Status](#ibc.applications.ccv.v1.Status)
@@ -241,6 +242,26 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/ccv/v1/ccv.proto
+
+
+
+<a name="ibc.applications.ccv.v1.CreateChildChainProposal"></a>
+
+### CreateChildChainProposal
+CreateChildChainProposal is a governance proposal on the parent chain to spawn a new child chain.
+If it passes, then all validators on the parent chain are expected to validate the child chain at spawn time
+or get slashed. It is recommended that spawn time occurs after the proposal end time.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_id` | [string](#string) |  |  |
+| `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `genesis_hash` | [bytes](#bytes) |  | genesis hash with no staking information included. |
+| `spawn_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | spawn time is the time on the parent chain at which the child chain genesis is finalized and all validators will be responsible for starting their child chain validator node. |
+
+
+
 
 
 

@@ -7,6 +7,8 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/ccv/types";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "tendermint/abci/types.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
 
 // This packet is sent from parent chain to baby chain if the validator set for baby chain
 // changes (due to new bonding/unbonding messages or slashing events)
@@ -30,4 +32,17 @@ enum Status {
   STATUS_VALIDATING = 2 [(gogoproto.enumvalue_customname) = "VALIDATING"];
   // channel is invalid and can no longer process packets
   STATUS_INVALID = 3 [(gogoproto.enumvalue_customname) = "INVALID"];
+}
+
+// CreateChildChainProposal is a governance proposal on the parent chain to spawn a new child chain.
+// If it passes, then all validators on the parent chain are expected to validate the child chain at spawn time
+// or get slashed. It is recommended that spawn time occurs after the proposal end time.
+message CreateChildChainProposal {
+  string              chain_id     = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  google.protobuf.Any client_state = 2 [(gogoproto.moretags) = "yaml:\"client_state\""];
+  // genesis hash with no staking information included.
+  bytes genesis_hash = 3 [(gogoproto.moretags) = "yaml:\"genesis_hash\""];
+  // spawn time is the time on the parent chain at which the child chain genesis is finalized and all validators
+  // will be responsible for starting their child chain validator node.
+  google.protobuf.Timestamp spawn_time = 4 [(gogoproto.moretags) = "yaml:\"spawn_time\""];
 }
