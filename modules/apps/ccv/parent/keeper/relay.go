@@ -48,7 +48,6 @@ func (k Keeper) SendPacket(ctx sdk.Context, chainID string, valUpdates []abci.Va
 		return err
 	}
 
-	k.SetUnbondingPacketData(ctx, chainID, sequence, packetData)
 	return nil
 }
 
@@ -61,7 +60,6 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 	k.registryKeeper.UnbondValidators(ctx, chainID, data.ValidatorUpdates)
-	k.DeleteUnbondingPacketData(ctx, chainID, packet.Sequence)
 	return nil
 }
 

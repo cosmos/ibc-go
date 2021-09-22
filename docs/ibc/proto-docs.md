@@ -46,7 +46,6 @@
     - [ChildGenesisState](#ibc.applications.ccv.v1.ChildGenesisState)
     - [ChildState](#ibc.applications.ccv.v1.ChildState)
     - [ParentGenesisState](#ibc.applications.ccv.v1.ParentGenesisState)
-    - [UnbondingGenesis](#ibc.applications.ccv.v1.UnbondingGenesis)
     - [UnbondingSequence](#ibc.applications.ccv.v1.UnbondingSequence)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
@@ -849,7 +848,6 @@ ChildState defines the state that the parent chain stores for each child chain
 | `chain_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
 | `status` | [Status](#ibc.applications.ccv.v1.Status) |  |  |
-| `unbonding_packets` | [UnbondingGenesis](#ibc.applications.ccv.v1.UnbondingGenesis) | repeated |  |
 
 
 
@@ -865,22 +863,6 @@ ParentGenesisState defines the CCV parent chain genesis state
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `child_states` | [ChildState](#ibc.applications.ccv.v1.ChildState) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.applications.ccv.v1.UnbondingGenesis"></a>
-
-### UnbondingGenesis
-UnbondingGenesis defines the genesis state for an unbonding packet
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `sequence` | [uint64](#uint64) |  |  |
-| `unbonding_changes` | [tendermint.abci.ValidatorUpdate](#tendermint.abci.ValidatorUpdate) | repeated |  |
 
 
 
