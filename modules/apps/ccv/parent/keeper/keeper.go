@@ -14,7 +14,6 @@ import (
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -144,20 +143,25 @@ func (k Keeper) GetChannelToChain(ctx sdk.Context, channelID string) (string, bo
 	return string(bz), true
 }
 
-// SetUnbondingChanges sets the unbonding changes for a given baby chain and sequence
-func (k Keeper) SetUnbondingChanges(ctx sdk.Context, chainID string, seq uint64, valUpdates []abci.ValidatorUpdate) {
-	// TODO
-}
+// IterateChannelToChain iterates over the channel to chain mappings and calls the provided callback until the iteration ends
+// or the callback returns stop=true
+func (k Keeper) IterateChannelToChain(ctx sdk.Context, cb func(ctx sdk.Context, channelID, chainID string) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ChannelToChainKeyPrefix+"/"))
+	defer iterator.Close()
 
-// GetUnbondingChanges gets the unbonding changes for a given baby chain and sequence
-func (k Keeper) GetUnbondingChanges(ctx sdk.Context, chainID string, seq uint64) []abci.ValidatorUpdate {
-	// TODO
-	return nil
-}
+	if !iterator.Valid() {
+		return
+	}
 
-// DeleteUnbondingChanges deletes the unbonding changes for a given baby chain and sequence
-func (k Keeper) DeleteUnbondingChanges(ctx sdk.Context, chainID string, seq uint64) {
-	// TODO
+	for ; iterator.Valid(); iterator.Next() {
+		channelID := string(iterator.Key())
+		chainID := string(iterator.Value())
+
+		if cb(ctx, channelID, chainID) {
+			break
+		}
+	}
 }
 
 // SetChannelStatus sets the status of a CCV channel with the given status

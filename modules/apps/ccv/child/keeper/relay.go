@@ -14,7 +14,7 @@ import (
 
 // OnRecvPacket sets the pending validator set changes that will be flushed to ABCI on Endblock
 // and set the unbonding time for the packet so that we can WriteAcknowledgement after unbonding time is over.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data ccv.ValidatorSetChangePacketData) (*channeltypes.Acknowledgement, error) {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data ccv.ValidatorSetChangePacketData) *channeltypes.Acknowledgement {
 	// packet is not sent on parent channel, return error acknowledgement and close channel
 	if parentChannel, ok := k.GetParentChannel(ctx); ok && parentChannel != packet.DestinationChannel {
 		ack := channeltypes.NewErrorAcknowledgement(
@@ -22,7 +22,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data c
 		)
 		chanCap, _ := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))
 		k.channelKeeper.ChanCloseInit(ctx, packet.DestinationPort, packet.DestinationChannel, chanCap)
-		return &ack, nil
+		return &ack
 	}
 	if status := k.GetChannelStatus(ctx, packet.DestinationChannel); status != ccv.VALIDATING {
 		// Set CCV channel status to Validating and set parent channel
@@ -36,7 +36,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data c
 	k.SetUnbondingTime(ctx, packet.Sequence, uint64(unbondingTime.UnixNano()))
 	k.SetUnbondingPacket(ctx, packet.Sequence, packet)
 	// ack will be sent asynchronously
-	return nil, nil
+	return nil
 }
 
 // UnbondMaturePackets will iterate over the unbonding packets in order and write acknowledgements for all

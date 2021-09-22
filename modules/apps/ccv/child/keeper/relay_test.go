@@ -71,15 +71,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		// malleate packet for each case
 		tc.malleatePacket()
 
-		ack, recvErr := suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
+		ack := suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
 
 		if tc.expErrorAck {
 			suite.Require().NotNil(ack, "invalid test case: %s did not return ack", tc.name)
 			suite.Require().False(ack.Success(), "invalid test case: %s did not return an Error Acknowledgment")
-			suite.Require().Nil(recvErr, "returned error unexpectedly. should be nil to commit RecvPacket callback changes")
 		} else {
 			suite.Require().Nil(ack, "successful packet must send ack asynchronously. case: %s", tc.name)
-			suite.Require().NoError(recvErr, "received unexpected error on valid case: %s", tc.name)
 			suite.Require().Equal(ccv.VALIDATING, suite.childChain.GetSimApp().ChildKeeper.GetChannelStatus(suite.ctx, suite.path.EndpointA.ChannelID),
 				"channel status is not valdidating after receive packet for valid test case: %s", tc.name)
 			parentChannel, ok := suite.childChain.GetSimApp().ChildKeeper.GetParentChannel(suite.ctx)
@@ -127,8 +125,7 @@ func (suite *KeeperTestSuite) TestUnbondMaturePackets() {
 	// send first packet
 	packet := channeltypes.NewPacket(pd.GetBytes(), 1, parenttypes.PortID, suite.path.EndpointB.ChannelID, childtypes.PortID, suite.path.EndpointA.ChannelID,
 		clienttypes.NewHeight(1, 0), 0)
-	ack, err := suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
-	suite.Require().Nil(err)
+	ack := suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
 	suite.Require().Nil(ack)
 
 	// update time and send second packet
@@ -136,8 +133,7 @@ func (suite *KeeperTestSuite) TestUnbondMaturePackets() {
 	pd.ValidatorUpdates[0].Power = 15
 	packet.Data = pd.GetBytes()
 	packet.Sequence = 2
-	ack, err = suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
-	suite.Require().Nil(err)
+	ack = suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
 	suite.Require().Nil(ack)
 
 	// update time and send third packet
@@ -145,8 +141,7 @@ func (suite *KeeperTestSuite) TestUnbondMaturePackets() {
 	pd.ValidatorUpdates[1].Power = 40
 	packet.Data = pd.GetBytes()
 	packet.Sequence = 3
-	ack, err = suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
-	suite.Require().Nil(err)
+	ack = suite.childChain.GetSimApp().ChildKeeper.OnRecvPacket(suite.ctx, packet, pd)
 	suite.Require().Nil(ack)
 
 	// move ctx time forward such that first two packets are unbonded but third is not.

@@ -322,24 +322,21 @@ func (am AppModule) OnRecvPacket(
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	var (
-		ack  ibcexported.Acknowledgement
+		ack  *channeltypes.Acknowledgement
 		data ccv.ValidatorSetChangePacketData
 	)
 	if err := ccv.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal CCV packet data: %s", err.Error()))
+		errAck := channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal CCV packet data: %s", err.Error()))
+		ack = &errAck
 	} else {
-		var err error
-		ack, err = am.keeper.OnRecvPacket(ctx, packet, data)
-		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err.Error())
-		}
+		ack = am.keeper.OnRecvPacket(ctx, packet, data)
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			ccv.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(ccv.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+			sdk.NewAttribute(ccv.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack != nil)),
 		),
 	)
 
