@@ -255,6 +255,18 @@ func (am AppModule) OnTimeoutPacket(
 	return nil
 }
 
-func (am AppModule) NegotiateAppVersion(ctx sdk.Context, order channeltypes.Order, connectionID, portID string, counterparty channeltypes.Counterparty, proposedVersion string) (string, error) {
-	return "", nil
+// NegotiateAppVersion implements the IBCModule interface
+func (am AppModule) NegotiateAppVersion(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionID string,
+	portID string,
+	counterparty channeltypes.Counterparty,
+	proposedVersion string,
+) (string, error) {
+	if proposedVersion != types.VersionPrefix {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
+	}
+
+	return types.NewAppVersion(types.VersionPrefix, types.GenerateAddress(counterparty.PortId).String()), nil
 }

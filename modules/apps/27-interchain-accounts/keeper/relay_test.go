@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
-			owner := "owner"
+			owner := TestOwnerAddress
 			suite.coordinator.SetupConnections(path)
 
 			err := suite.SetupICAPath(path, owner)

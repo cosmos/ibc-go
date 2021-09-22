@@ -31,7 +31,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, types.Version, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portID, types.VersionPrefix, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
 	handler := k.msgRouter.Handler(msg)
 	if _, err := handler(ctx, msg); err != nil {
 		return err
@@ -40,17 +40,15 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 	return nil
 }
 
-// Register interchain account if it has not already been created
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portID string) {
-	address := types.GenerateAddress(portID)
-
-	account := k.accountKeeper.GetAccount(ctx, address)
-	if account != nil {
+// RegisterInterchainAccount attempts to create a new account using the provided address and stores it in state keyed by the provided port identifier
+// If an account for the provided address already exists this function returns early (no-op)
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddress, portID string) {
+	if acc := k.accountKeeper.GetAccount(ctx, accAddr); acc != nil {
 		return
 	}
 
 	interchainAccount := types.NewInterchainAccount(
-		authtypes.NewBaseAccountWithAddress(address),
+		authtypes.NewBaseAccountWithAddress(accAddr),
 		portID,
 	)
 

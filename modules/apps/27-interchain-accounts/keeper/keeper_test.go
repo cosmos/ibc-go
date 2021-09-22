@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -9,6 +10,15 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
+)
+
+var (
+	// TestOwnerAddress defines a reusable bech32 address for testing purposes
+	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	// TestPortID defines a resuable port identifier for testing purposes
+	TestPortID = fmt.Sprintf("ics-27-0-0-%s", TestOwnerAddress)
+	// TestVersion defines a resuable interchainaccounts version string for testing purposes
+	TestVersion = types.NewAppVersion(types.VersionPrefix, types.GenerateAddress(TestPortID).String())
 )
 
 type KeeperTestSuite struct {
@@ -35,8 +45,8 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.PortID = types.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
+	path.EndpointA.ChannelConfig.Version = types.VersionPrefix
+	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
 }
@@ -104,7 +114,7 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	err := SetupICAPath(path, "testing")
+	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
 	counterpartyPortID := path.EndpointA.ChannelConfig.PortID
@@ -122,7 +132,7 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 func (suite *KeeperTestSuite) TestIsActiveChannel() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	owner := "owner"
+	owner := TestOwnerAddress
 	suite.coordinator.SetupConnections(path)
 
 	err := suite.SetupICAPath(path, owner)
