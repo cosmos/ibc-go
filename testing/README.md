@@ -294,7 +294,7 @@ When writing IBC applications acting as middleware, it might be desirable to tes
 This can be done by wiring a middleware stack in the app.go file using existing applications as middleware and IBC base applications.
 The mock module may also be leveraged to act as a base application in the instance that such an application is not avaliable for testing or causes dependency concerns. 
 
-The mock module contains a `IBCBaseApp`. This struct contains a function field for every IBC App Module callback. 
+The mock module contains a `MockIBCApp`. This struct contains a function field for every IBC App Module callback. 
 Each of these functions can be individually set to mock expected behaviour of a base application. 
 
 For example, if one wanted to test that the base application cannot affect the outcome of the `OnChanOpenTry` callback, the mock module base application callback could be updated as such:
