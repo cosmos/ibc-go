@@ -126,7 +126,7 @@ func (suite *TypesTestSuite) TestInterchainAccount() {
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
-	interchainAcc := types.NewInterchainAccount(baseAcc, "account-owner-id")
+	interchainAcc := types.NewInterchainAccount(baseAcc, TestOwnerAddress)
 
 	// should fail when trying to set the public key or sequence of an interchain account
 	err := interchainAcc.SetPubKey(pubkey)
@@ -171,18 +171,21 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 }
 
 func (suite *TypesTestSuite) TestInterchainAccountMarshalYAML() {
-	suite.SetupTest() // reset
-
 	addr := suite.chainA.SenderAccount.GetAddress()
 	ba := authtypes.NewBaseAccountWithAddress(addr)
 
 	interchainAcc := types.NewInterchainAccount(ba, suite.chainB.SenderAccount.GetAddress().String())
-
-	bs, err := yaml.Marshal(interchainAcc)
+	bz, err := yaml.Marshal(types.InterchainAccountPretty{
+		Address:       addr,
+		PubKey:        "",
+		AccountNumber: interchainAcc.AccountNumber,
+		Sequence:      interchainAcc.Sequence,
+		AccountOwner:  interchainAcc.AccountOwner,
+	})
 	suite.Require().NoError(err)
 
-	want := fmt.Sprintf("|\n  address: %s\n  public_key: \"\"\n  account_number: 0\n  sequence: 0\n  account_owner: %s\n", addr, interchainAcc.AccountOwner)
-	suite.Require().Equal(want, string(bs))
+	bz1, err := interchainAcc.MarshalYAML()
+	suite.Require().Equal(string(bz), string(bz1))
 }
 
 func (suite *TypesTestSuite) TestInterchainAccountJSON() {
@@ -200,5 +203,5 @@ func (suite *TypesTestSuite) TestInterchainAccountJSON() {
 
 	var a types.InterchainAccount
 	suite.Require().NoError(json.Unmarshal(bz, &a))
-	suite.Require().Equal(interchainAcc.String(), a.String())
+	suite.Require().Equal(a.String(), interchainAcc.String())
 }

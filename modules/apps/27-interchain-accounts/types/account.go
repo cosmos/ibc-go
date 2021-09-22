@@ -87,7 +87,7 @@ func (ia InterchainAccount) Validate() error {
 	return ia.BaseAccount.Validate()
 }
 
-type interchainAccountPretty struct {
+type InterchainAccountPretty struct {
 	Address       sdk.AccAddress `json:"address" yaml:"address"`
 	PubKey        string         `json:"public_key" yaml:"public_key"`
 	AccountNumber uint64         `json:"account_number" yaml:"account_number"`
@@ -97,17 +97,17 @@ type interchainAccountPretty struct {
 
 func (ia InterchainAccount) String() string {
 	out, _ := ia.MarshalYAML()
-	return out.(string)
+	return string(out)
 }
 
-// MarshalYAML returns the YAML representation of a InterchainAccount.
-func (ia InterchainAccount) MarshalYAML() (interface{}, error) {
+// MarshalYAML returns the YAML representation of an InterchainAccount
+func (ia InterchainAccount) MarshalYAML() ([]byte, error) {
 	accAddr, err := sdk.AccAddressFromBech32(ia.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	bs, err := yaml.Marshal(interchainAccountPretty{
+	bz, err := yaml.Marshal(InterchainAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
 		AccountNumber: ia.AccountNumber,
@@ -119,28 +119,34 @@ func (ia InterchainAccount) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	return string(bs), nil
+	return bz, nil
 }
 
-// MarshalJSON returns the JSON representation of a InterchainAccount.
+// MarshalJSON returns the JSON representation of an InterchainAccount.
 func (ia InterchainAccount) MarshalJSON() ([]byte, error) {
 	accAddr, err := sdk.AccAddressFromBech32(ia.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	return json.Marshal(interchainAccountPretty{
+	bz, err := json.Marshal(InterchainAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
 		AccountNumber: ia.AccountNumber,
 		Sequence:      ia.Sequence,
 		AccountOwner:  ia.AccountOwner,
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
 }
 
 // UnmarshalJSON unmarshals raw JSON bytes into a ModuleAccount.
 func (ia *InterchainAccount) UnmarshalJSON(bz []byte) error {
-	var alias interchainAccountPretty
+	var alias InterchainAccountPretty
 	if err := json.Unmarshal(bz, &alias); err != nil {
 		return err
 	}
