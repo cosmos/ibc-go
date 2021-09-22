@@ -1,7 +1,5 @@
 package types
 
-import "fmt"
-
 type Status int
 
 const (
@@ -27,9 +25,6 @@ const (
 	// ChannelToChainKeyPrefix is the key prefix for storing mapping
 	// from the CCV channel ID to the baby chain ID.
 	ChannelToChainKeyPrefix = "channeltochain"
-
-	// UnbondingPacketDataPrefix is the key prefix for storing unbonding PacketData
-	UnbondingPacketDataPrefix = "unbondingPacketData"
 )
 
 var (
@@ -45,9 +40,4 @@ func ChainToChannelKey(chainID string) []byte {
 // ChannelToChainKey returns the key under which the baby chain ID will be stored for the given channelID.
 func ChannelToChainKey(channelID string) []byte {
 	return []byte(ChannelToChainKeyPrefix + "/" + channelID)
-}
-
-// UnbondingPacketData stores the packet data that is still unbonding
-func UnbondingPacketData(chainID string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%d", UnbondingPacketDataPrefix, chainID, sequence))
 }
