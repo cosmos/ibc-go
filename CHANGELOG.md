@@ -135,6 +135,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/light-clients/07-tendermint) [\#125](https://github.com/cosmos/ibc-go/pull/125) Implement efficient iteration of consensus states and pruning of earliest expired consensus state on UpdateClient.
 * (modules/light-clients/07-tendermint) [\#141](https://github.com/cosmos/ibc-go/pull/141) Return early in case there's a duplicate update call to save Gas.
 * (modules/core/ante) [\#235](https://github.com/cosmos/ibc-go/pull/235) Introduces a new IBC Antedecorator that will reject transactions that only contain redundant packet messages (and accompany UpdateClient msgs). This will prevent relayers from wasting fees by submitting messages for packets that have already been processed by previous relayer(s). The Antedecorator is only applied on CheckTx and RecheckTx and is therefore optional for each node.
+* (modules/core/05-port) [\#288](https://github.com/cosmos/ibc-go/issues/288) Making the keeper function IsBound public. The IsBound function checks if the provided portID is already binded to a module.
 
 ### Features
 
