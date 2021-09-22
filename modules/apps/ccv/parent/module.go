@@ -127,7 +127,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // no validator updates.
 // TODO
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	am.keeper.InitGenesis(ctx)
+	var genesisState ccv.ParentGenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	am.keeper.InitGenesis(ctx, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

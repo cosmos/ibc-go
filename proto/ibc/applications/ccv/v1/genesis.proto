@@ -42,8 +42,7 @@ message ParentGenesisState {
 
 // ChildState defines the state that the parent chain stores for each child chain
 message ChildState {
-  string                                    chain_id        = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
-  string                                    channel_id      = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  Status                                    status          = 3;
-  repeated .tendermint.abci.ValidatorUpdate pending_changes = 4 [(gogoproto.moretags) = "yaml:\"pending_changes\""];
+  string chain_id   = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  Status status     = 3;
 }

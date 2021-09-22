@@ -275,22 +275,6 @@ func TestValidateRestartGenesisState(t *testing.T) {
 }
 
 func TestValidateParentGenesisState(t *testing.T) {
-	pk1, err := cryptocodec.ToTmProtoPublicKey(ed25519.GenPrivKey().PubKey())
-	require.NoError(t, err)
-	pk2, err := cryptocodec.ToTmProtoPublicKey(ed25519.GenPrivKey().PubKey())
-	require.NoError(t, err)
-
-	updates := []*abci.ValidatorUpdate{
-		{
-			PubKey: pk1,
-			Power:  30,
-		},
-		{
-			PubKey: pk2,
-			Power:  20,
-		},
-	}
-
 	testCases := []struct {
 		name     string
 		genState types.ParentGenesisState
@@ -299,14 +283,14 @@ func TestValidateParentGenesisState(t *testing.T) {
 		{
 			"valid initializing parent genesis with nil updates",
 			types.NewParentGenesisState(
-				[]types.ChildState{{"chainid-1", "channelid", 1, nil}},
+				[]types.ChildState{{"chainid-1", "channelid", 1}},
 			),
 			true,
 		},
 		{
 			"valid validating parent genesis with nil updates",
 			types.NewParentGenesisState(
-				[]types.ChildState{{"chainid-1", "channelid", 2, nil}},
+				[]types.ChildState{{"chainid-1", "channelid", 2}},
 			),
 			true,
 		},
@@ -314,10 +298,10 @@ func TestValidateParentGenesisState(t *testing.T) {
 			"valid multiple parent genesis with multiple child chains",
 			types.NewParentGenesisState(
 				[]types.ChildState{
-					{"chainid-1", "channelid", 2, updates},
-					{"chainid-2", "channelid2", 1, nil},
-					{"chainid-3", "channelid3", 0, nil},
-					{"chainid-4", "channelid4", 3, nil},
+					{"chainid-1", "channelid", 2},
+					{"chainid-2", "channelid2", 1},
+					{"chainid-3", "channelid3", 0},
+					{"chainid-4", "channelid4", 3},
 				},
 			),
 			true,
@@ -325,14 +309,14 @@ func TestValidateParentGenesisState(t *testing.T) {
 		{
 			"invalid chain id",
 			types.NewParentGenesisState(
-				[]types.ChildState{{"invalidid{}", "channelid", 2, updates}},
+				[]types.ChildState{{"invalidid{}", "channelid", 2}},
 			),
 			false,
 		},
 		{
 			"invalid channel id",
 			types.NewParentGenesisState(
-				[]types.ChildState{{"chainid", "invalidchannel{}", 2, updates}},
+				[]types.ChildState{{"chainid", "invalidchannel{}", 2}},
 			),
 			false,
 		},

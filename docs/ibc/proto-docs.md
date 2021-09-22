@@ -848,7 +848,6 @@ ChildState defines the state that the parent chain stores for each child chain
 | `chain_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
 | `status` | [Status](#ibc.applications.ccv.v1.Status) |  |  |
-| `pending_changes` | [tendermint.abci.ValidatorUpdate](#tendermint.abci.ValidatorUpdate) | repeated |  |
 
 
 

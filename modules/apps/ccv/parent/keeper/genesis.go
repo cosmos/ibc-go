@@ -29,3 +29,30 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.ParentGenesisState) 
 		k.SetChannelStatus(ctx, cc.ChannelId, cc.Status)
 	}
 }
+
+func (k Keeper) ExportGenesis(ctx sdk.Context) types.ParentGenesisState {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(parenttypes.ChannelToChainKeyPrefix+"/"))
+	defer iterator.Close()
+
+	if !iterator.Valid() {
+		return types.DefaultParentGenesisState()
+	}
+
+	var childStates []types.ChildState
+
+	for ; iterator.Valid(); iterator.Next() {
+		channelID := string(iterator.Key())
+		chainID := string(iterator.Value())
+
+		status := k.GetChannelStatus(ctx, channelID)
+		cc := types.ChildState{
+			ChainId:   chainID,
+			ChannelId: channelID,
+			Status:    status,
+		}
+		childStates = append(childStates, cc)
+	}
+
+	return types.NewParentGenesisState(childStates)
+}
