@@ -87,7 +87,7 @@ type interchainAccountPretty struct {
 	PubKey        string         `json:"public_key" yaml:"public_key"`
 	AccountNumber uint64         `json:"account_number" yaml:"account_number"`
 	Sequence      uint64         `json:"sequence" yaml:"sequence"`
-	AccountOwner  string         `json:"address" yaml:"account_owner"`
+	AccountOwner  string         `json:"account_owner" yaml:"account_owner"`
 }
 
 func (ia InterchainAccount) String() string {

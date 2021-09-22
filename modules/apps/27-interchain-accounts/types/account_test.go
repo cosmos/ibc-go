@@ -174,4 +174,5 @@ func (suite *TypesTestSuite) TestInterchainAccountJSON() {
 
 	var a types.InterchainAccount
 	suite.Require().NoError(json.Unmarshal(bz, &a))
+	suite.Require().Equal(interchainAcc.String(), a.String())
 }
