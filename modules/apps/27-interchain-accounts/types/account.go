@@ -12,7 +12,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	yaml "gopkg.in/yaml.v2"
 
-	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 )
 
 // GenerateAddress returns an sdk.AccAddress using the provided port identifier
