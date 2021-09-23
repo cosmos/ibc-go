@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
 var (
