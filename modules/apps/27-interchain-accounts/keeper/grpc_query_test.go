@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccountAddress() {
