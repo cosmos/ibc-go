@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts application state from a provided genesis state
