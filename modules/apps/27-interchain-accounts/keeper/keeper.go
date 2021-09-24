@@ -42,7 +42,7 @@ func NewKeeper(
 
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
-		panic("the IBC interchain accounts module account has not been set")
+		panic("the Interchain Accounts module account has not been set")
 	}
 
 	return Keeper{
