@@ -89,7 +89,7 @@ func (k Keeper) DeleteFeeEnabled(ctx sdk.Context, portID, channelID string) {
 	store.Delete(types.FeeEnabledKey(portID, channelID))
 }
 
-// IsFeeEnabled returns whether fee handling logic should be run for the given port by checking the
+// IsFeeEnabled returns whether fee handling logic should be run for the given port. It will check the
 // fee enabled flag for the given port and channel identifiers
 func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
