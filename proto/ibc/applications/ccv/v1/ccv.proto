@@ -9,6 +9,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "tendermint/abci/types.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
 
 // This packet is sent from parent chain to baby chain if the validator set for baby chain
 // changes (due to new bonding/unbonding messages or slashing events)
@@ -44,5 +45,6 @@ message CreateChildChainProposal {
   bytes genesis_hash = 3 [(gogoproto.moretags) = "yaml:\"genesis_hash\""];
   // spawn time is the time on the parent chain at which the child chain genesis is finalized and all validators
   // will be responsible for starting their child chain validator node.
-  google.protobuf.Timestamp spawn_time = 4 [(gogoproto.moretags) = "yaml:\"spawn_time\""];
+  google.protobuf.Timestamp spawn_time = 4
+      [(gogoproto.moretags) = "yaml:\"spawn_time\"", (gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }

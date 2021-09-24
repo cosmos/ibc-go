@@ -188,11 +188,14 @@ func (k Keeper) VerifyChildChain(ctx sdk.Context, channelID string) error {
 	if status != ccv.INITIALIZING {
 		return sdkerrors.Wrap(ccv.ErrInvalidStatus, "CCV channel status must be in Initializing state")
 	}
-	_, tmClient, err := k.getUnderlyingClient(ctx, channelID)
+	clientID, tmClient, err := k.getUnderlyingClient(ctx, channelID)
 	if err != nil {
 		return err
 	}
-	// TODO: Verify consensus state against initial validator set of the child chain
+	ccvClientId := k.GetChildClient(ctx, tmClient.ChainId)
+	if ccvClientId != clientID {
+		return sdkerrors.Wrapf(ccv.ErrInvalidChildClient, "CCV channel must be built on top of CCV client: %s, got %s", ccvClientId, clientID)
+	}
 
 	// Verify that there isn't already a CCV channel for the child chain
 	if prevChannel, ok := k.GetChainToChannel(ctx, tmClient.ChainId); ok {

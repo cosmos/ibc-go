@@ -18,4 +18,5 @@ var (
 	ErrInvalidUnbondingSequence = sdkerrors.Register(ModuleName, 11, "invalid unbonding sequence")
 	ErrInvalidUnbondingTime     = sdkerrors.Register(ModuleName, 12, "child chain has invalid unbonding time")
 	ErrInvalidChildState        = sdkerrors.Register(ModuleName, 13, "parent chain has invalid state for child chain")
+	ErrInvalidChildClient       = sdkerrors.Register(ModuleName, 14, "ccv channel is not built on correct client")
 )
