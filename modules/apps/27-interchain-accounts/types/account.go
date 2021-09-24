@@ -12,11 +12,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"gopkg.in/yaml.v2"
 
-	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
-)
-
-const (
-	ICAPrefix string = "ics-27"
+	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 )
 
 // GenerateAddress returns an sdk.AccAddress using the provided port identifier
@@ -50,7 +46,7 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 		return "", sdkerrors.Wrap(err, "invalid counterparty connection identifier")
 	}
 
-	return fmt.Sprintf("%s-%d-%d-%s", ICAPrefix, connectionSeq, counterpartyConnectionSeq, owner), nil
+	return fmt.Sprintf("%s-%d-%d-%s", VersionPrefix, connectionSeq, counterpartyConnectionSeq, owner), nil
 }
 
 type InterchainAccountI interface {
