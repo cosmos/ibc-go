@@ -299,7 +299,7 @@ Each of these functions can be individually set to mock expected behaviour of a 
 
 For example, if one wanted to test that the base application cannot affect the outcome of the `OnChanOpenTry` callback, the mock module base application callback could be updated as such:
 ```go
-    mockModule.BaseApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
+    mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
 			return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
 	}
 ```
