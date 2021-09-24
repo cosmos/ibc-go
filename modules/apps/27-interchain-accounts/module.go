@@ -264,9 +264,5 @@ func (am AppModule) NegotiateAppVersion(
 	counterparty channeltypes.Counterparty,
 	proposedVersion string,
 ) (string, error) {
-	if proposedVersion != types.VersionPrefix {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
-	}
-
-	return types.NewAppVersion(types.VersionPrefix, types.GenerateAddress(counterparty.PortId).String()), nil
+	return am.keeper.NegotiateAppVersion(ctx, order, connectionID, portID, counterparty, proposedVersion)
 }

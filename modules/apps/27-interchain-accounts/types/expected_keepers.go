@@ -16,10 +16,12 @@ type Router interface {
 
 // AccountKeeper defines the contract required for account APIs.
 type AccountKeeper interface {
-	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	NewAccount(ctx sdk.Context, acc authtypes.AccountI) authtypes.AccountI
 	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
+	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+	GetModuleAddress(name string) sdk.AccAddress
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
