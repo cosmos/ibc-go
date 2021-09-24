@@ -36,13 +36,17 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
-	if feeVersion != "" {
-		if feeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
-		}
-
+	mwVersion, appVersion := channeltypes.SplitChannelVersion(version)
+	// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
+	// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
+	// application.
+	// If an invalid fee version was passed, we expect the underlying application to fail on its version negotiation.
+	if mwVersion == types.Version {
 		im.keeper.SetFeeEnabled(ctx, portID, channelID)
+	} else {
+		// middleware version is not the expected version for this midddleware. Pass the full version string along,
+		// if it not valid version for any other lower middleware, an error will be returned by base application.
+		appVersion = version
 	}
 
 	// call underlying app's OnChanOpenInit callback with the appVersion
@@ -62,19 +66,26 @@ func (im IBCModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	feeVersion, appVersion := channeltypes.SplitChannelVersion(version)
-	cpFeeVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
+	mwVersion, appVersion := channeltypes.SplitChannelVersion(version)
+	cpMwVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
 
-	if feeVersion != "" || cpFeeVersion != "" {
-		if feeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected: %s, got: %s", types.Version, feeVersion)
-		}
-		if cpFeeVersion != feeVersion {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+	// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
+	// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
+	// application.
+	// If an invalid fee version was passed, we expect the underlying application to fail on its version negotiation.
+	if mwVersion == types.Version || cpMwVersion == types.Version {
+		if cpMwVersion != mwVersion {
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "fee versions do not match. self version: %s, counterparty version: %s", mwVersion, cpMwVersion)
 		}
 
 		im.keeper.SetFeeEnabled(ctx, portID, channelID)
+	} else {
+		// middleware versions are not the expected version for this midddleware. Pass the full version strings along,
+		// if it not valid version for any other lower middleware, an error will be returned by base application.
+		appVersion = version
+		cpAppVersion = counterpartyVersion
 	}
+
 	// call underlying app's OnChanOpenTry callback with the app versions
 	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,
 		chanCap, counterparty, appVersion, cpAppVersion)

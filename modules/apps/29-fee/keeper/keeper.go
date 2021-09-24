@@ -5,12 +5,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	"github.com/tendermint/tendermint/libs/log"
 
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+
+	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -59,14 +61,17 @@ func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap
 	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
+// GetChannel wraps IBC ChannelKeeper's GetChannel function
 func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool) {
 	return k.channelKeeper.GetChannel(ctx, portID, channelID)
 }
 
+// GetNextSequenceSend wraps IBC ChannelKeeper's GetNextSequenceSend function
 func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	return k.channelKeeper.GetNextSequenceSend(ctx, portID, channelID)
 }
 
+// SendPacket wraps IBC ChannelKeeper's SendPacket function
 func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
 	return k.channelKeeper.SendPacket(ctx, chanCap, packet)
 }

@@ -20,12 +20,17 @@ const (
 
 	Version = "fee29-1"
 
+	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
+	FeeEnabledKeyPrefix = "fee_enabled"
+
 	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	RelayerAddressKeyPrefix = "relayerAddress"
 )
 
+// FeeEnabledKey returns the key that stores a flag to determine if fee logic should
+// be enabled for the given port and channel identifiers.
 func FeeEnabledKey(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("fee_enabled/%s/%s", portID, channelID))
+	return []byte(fmt.Sprintf("%s/%s/%s", FeeEnabledKeyPrefix, portID, channelID))
 }
 
 // KeyRelayerAddress returns the key for relayer address -> counteryparty address mapping
