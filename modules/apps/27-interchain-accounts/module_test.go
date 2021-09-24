@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
@@ -13,12 +15,15 @@ import (
 )
 
 var (
+	// TestAccAddress defines a resuable bech32 address for testing purposes
+	// TODO: update crypto.AddressHash() when sdk uses address.Module()
+	TestAccAddress = types.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleName))), TestPortID)
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	// TestPortID defines a resuable port identifier for testing purposes
 	TestPortID = fmt.Sprintf("%s-0-0-%s", types.VersionPrefix, TestOwnerAddress)
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
-	TestVersion = types.NewAppVersion(types.VersionPrefix, types.GenerateAddress(TestPortID).String())
+	TestVersion = types.NewAppVersion(types.VersionPrefix, TestAccAddress.String())
 )
 
 type InterchainAccountsTestSuite struct {

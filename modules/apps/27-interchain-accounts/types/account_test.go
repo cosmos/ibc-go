@@ -1,11 +1,15 @@
 package types_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
+	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
@@ -37,7 +41,7 @@ func TestTypesTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestGenerateAddress() {
-	addr := types.GenerateAddress("test-port-id")
+	addr := types.GenerateAddress([]byte{}, "test-port-id")
 	accAddr, err := sdk.AccAddressFromBech32(addr.String())
 
 	suite.Require().NoError(err, "TestGenerateAddress failed")
@@ -116,4 +120,88 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestInterchainAccount() {
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
+	interchainAcc := types.NewInterchainAccount(baseAcc, TestOwnerAddress)
+
+	// should fail when trying to set the public key or sequence of an interchain account
+	err := interchainAcc.SetPubKey(pubkey)
+	suite.Require().Error(err)
+	err = interchainAcc.SetSequence(1)
+	suite.Require().Error(err)
+}
+
+func (suite *TypesTestSuite) TestGenesisAccountValidate() {
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
+	pubkey = secp256k1.GenPrivKey().PubKey()
+	ownerAddr := sdk.AccAddress(pubkey.Address())
+
+	testCases := []struct {
+		name    string
+		acc     authtypes.GenesisAccount
+		expPass bool
+	}{
+		{
+			"success",
+			types.NewInterchainAccount(baseAcc, ownerAddr.String()),
+			true,
+		},
+		{
+			"interchain account with empty AccountOwner field",
+			types.NewInterchainAccount(baseAcc, ""),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		err := tc.acc.Validate()
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+func (suite *TypesTestSuite) TestInterchainAccountMarshalYAML() {
+	addr := suite.chainA.SenderAccount.GetAddress()
+	ba := authtypes.NewBaseAccountWithAddress(addr)
+
+	interchainAcc := types.NewInterchainAccount(ba, suite.chainB.SenderAccount.GetAddress().String())
+	bz, err := yaml.Marshal(types.InterchainAccountPretty{
+		Address:       addr,
+		PubKey:        "",
+		AccountNumber: interchainAcc.AccountNumber,
+		Sequence:      interchainAcc.Sequence,
+		AccountOwner:  interchainAcc.AccountOwner,
+	})
+	suite.Require().NoError(err)
+
+	bz1, err := interchainAcc.MarshalYAML()
+	suite.Require().Equal(string(bz), string(bz1))
+}
+
+func (suite *TypesTestSuite) TestInterchainAccountJSON() {
+	addr := suite.chainA.SenderAccount.GetAddress()
+	ba := authtypes.NewBaseAccountWithAddress(addr)
+
+	interchainAcc := types.NewInterchainAccount(ba, suite.chainB.SenderAccount.GetAddress().String())
+
+	bz, err := json.Marshal(interchainAcc)
+	suite.Require().NoError(err)
+
+	bz1, err := interchainAcc.MarshalJSON()
+	suite.Require().NoError(err)
+	suite.Require().Equal(string(bz), string(bz1))
+
+	var a types.InterchainAccount
+	suite.Require().NoError(json.Unmarshal(bz, &a))
+	suite.Require().Equal(a.String(), interchainAcc.String())
 }
