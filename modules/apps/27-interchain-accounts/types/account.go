@@ -7,7 +7,7 @@ import (
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
+	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	yaml "gopkg.in/yaml.v2"
@@ -15,9 +15,10 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 )
 
-// GenerateAddress returns an sdk.AccAddress derived using the provided module account address and port identifier
+// GenerateAddress returns an sdk.AccAddress derived using the provided module account address and port identifier.
+// The sdk.AccAddress returned is a sub-address of the module account, using the controller chain's port identifier as the derivation key
 func GenerateAddress(moduleAccAddr sdk.AccAddress, portID string) sdk.AccAddress {
-	return sdk.AccAddress(address.Derive(moduleAccAddr, []byte(portID)))
+	return sdk.AccAddress(sdkaddress.Derive(moduleAccAddr, []byte(portID)))
 }
 
 // ParseAddressFromVersion trims the interchainaccounts version prefix and returns the associated account address
