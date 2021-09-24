@@ -17,15 +17,15 @@ Integrating the IBC module to your SDK-based application is straighforward. The 
 - Add required modules to the `module.BasicManager`
 - Define additional `Keeper` fields for the new modules on the `App` type
 - Add the module's `StoreKeys` and initialize their `Keepers`
-- Set up corresponding routers and routes for the `ibc` and `evidence` modules
+- Set up corresponding routers and routes for the `ibc` module
 - Add the modules to the module `Manager`
 - Add modules to `Begin/EndBlockers` and `InitGenesis`
 - Update the module `SimulationManager` to enable simulations
 
 ### Module `BasicManager` and `ModuleAccount` permissions
 
-The first step is to add the following modules to the `BasicManager`: `x/capability`, `x/ibc`,
-`x/evidence` and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
+The first step is to add the following modules to the `BasicManager`: `x/capability`, `x/ibc`, 
+and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
 the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
 ```go
@@ -36,7 +36,6 @@ var (
     // ...
     capability.AppModuleBasic{},
     ibc.AppModuleBasic{},
-    evidence.AppModuleBasic{},
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
   )
 
@@ -60,7 +59,6 @@ type App struct {
   // other keepers
   // ...
   IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-  EvidenceKeeper   evidencekeeper.Keeper // required to set up the client misbehaviour route
   TransferKeeper   ibctransferkeeper.Keeper // for cross-chain fungible token transfers
 
   // make scoped keepers public for test purposes
@@ -105,11 +103,6 @@ func NewApp(...args) *App {
   )
   transferModule := transfer.NewAppModule(app.TransferKeeper)
 
-  // Create evidence Keeper for to register the IBC light client misbehaviour evidence route
-  evidenceKeeper := evidencekeeper.NewKeeper(
-    appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper, app.SlashingKeeper,
-  )
-
   // .. continues
 }
 ```
@@ -126,12 +119,6 @@ IBC module.
 Adding the module routes allows the IBC handler to call the appropriate callback when processing a
 channel handshake or a packet.
 
-The second `Router` that is required is the evidence module router. This router handles genenal
-evidence submission and routes the business logic to each registered evidence handler. In the case
-of IBC, it is required to submit evidence for [light client
-misbehaviour](https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#misbehaviour)
-in order to freeze a client and prevent further data packets from being sent/received.
-
 Currently, a `Router` is static so it must be initialized and set correctly on app initialization.
 Once the `Router` has been set, no new routes can be added.
 
@@ -147,25 +134,12 @@ func NewApp(...args) *App {
   // No more routes can be added
   app.IBCKeeper.SetRouter(ibcRouter)
 
-  // create static Evidence routers
-
-  evidenceRouter := evidencetypes.NewRouter().
-    // add IBC ClientMisbehaviour evidence handler
-    AddRoute(ibcclient.RouterKey, ibcclient.HandlerClientMisbehaviour(app.IBCKeeper.ClientKeeper))
-
-  // Setting Router will finalize all routes by sealing router
-  // No more routes can be added
-  evidenceKeeper.SetRouter(evidenceRouter)
-
-  // set the evidence keeper from the section above
-  app.EvidenceKeeper = *evidenceKeeper
-
   // .. continues
 ```
 
 ### Module Managers
 
-In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](./../building-modules/simulator.md).
+In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/simulator.md).
 
 ```go
 // app.go
@@ -176,7 +150,6 @@ func NewApp(...args) *App {
     // other modules
     // ...
     capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-    evidence.NewAppModule(app.EvidenceKeeper),
     ibc.NewAppModule(app.IBCKeeper),
     transferModule,
   )
@@ -187,7 +160,6 @@ func NewApp(...args) *App {
     // other modules
     // ...
     capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-    evidence.NewAppModule(app.EvidenceKeeper),
     ibc.NewAppModule(app.IBCKeeper),
     transferModule,
   )
@@ -219,10 +191,10 @@ localhost (_aka_ loopback) client.
 func NewApp(...args) *App {
   // .. continuation from above
 
-  // add evidence, staking and ibc modules to BeginBlockers
+  // add staking and ibc modules to BeginBlockers
   app.mm.SetOrderBeginBlockers(
     // other modules ...
-    evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
+    stakingtypes.ModuleName, ibchost.ModuleName,
   )
 
   // ...
@@ -233,7 +205,7 @@ func NewApp(...args) *App {
   app.mm.SetOrderInitGenesis(
     capabilitytypes.ModuleName,
     // other modules ...
-    ibchost.ModuleName, evidencetypes.ModuleName, ibctransfertypes.ModuleName,
+    ibchost.ModuleName, ibctransfertypes.ModuleName,
   )
 
   // .. continues
@@ -249,4 +221,4 @@ different chains. If you want to have a broader view of the changes take a look 
 
 ## Next {hide}
 
-Learn about how to create [custom IBC modules](./custom.md) for your application {hide}
+Learn about how to create [custom IBC modules](./apps.md) for your application {hide}

@@ -27,6 +27,66 @@ Feel free to use your own method for modifying import names.
 NOTE: Updating to the `v0.43.0` SDK release and then running `go mod tidy` will cause a downgrade to `v0.42.0` in order to support the old IBC import paths.
 Update the import paths before running `go mod tidy`.  
 
+## Chain Upgrades
+
+Chains may choose to upgrade via an upgrade proposal or genesis upgrades. Both in-place store migrations and genesis migrations are supported. 
+
+**WARNING**: Please read at least the quick guide for [IBC client upgrades](../ibc/upgrades/README.md) before upgrading your chain. It is highly recommended you do not change the chain-ID during an upgrade, otherwise you must follow the IBC client upgrade instructions.
+
+Both in-place store migrations and genesis migrations will:
+- migrate the solo machine client state from v1 to v2 protobuf definitions
+- prune all solo machine consensus states
+- prune all expired tendermint consensus states
+
+Chains must set a new connection parameter during either in place store migrations or genesis migration. The new parameter, max expected block time, is used to enforce packet processing delays on the receiving end of an IBC packet flow. Checkout the [docs](https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2) for more information.
+
+### In-Place Store Migrations
+
+The new chain binary will need to run migrations in the upgrade handler. The fromVM (previous module version) for the IBC module should be 1. This will allow migrations to be run for IBC updating the version from 1 to 2.
+
+Ex:
+```go
+app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
+        func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+            // set max expected block time parameter. Replace the default with your expected value
+            // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+            app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+
+            fromVM := map[string]uint64{
+                ... // other modules
+                "ibc":          1,
+                ... 
+            }   
+            return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+        })      
+
+```
+
+### Genesis Migrations
+
+To perform genesis migrations, the following code must be added to your existing migration code.
+
+```go
+// add imports as necessary
+import (
+    ibcv100 "github.com/cosmos/ibc-go/modules/core/legacy/v100"
+    ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
+)
+
+...
+
+// add in migrate cmd function
+// expectedTimePerBlock is a new connection parameter
+// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+newGenState, err = ibcv100.MigrateGenesis(newGenState, clientCtx, *genDoc, expectedTimePerBlock)
+if err != nil {
+    return err 
+}
+```
+
+**NOTE:** The genesis chain-id, time and height MUST be updated before migrating IBC, otherwise the tendermint consensus state will not be pruned.
+
+
 ## IBC Keeper Changes
 
 The IBC Keeper now takes in the Upgrade Keeper. Please add the chains' Upgrade Keeper after the Staking Keeper:
@@ -104,7 +164,7 @@ The solo machine has replaced the FrozenSequence uint64 field with a IsFrozen bo
 
 Application developers need to update their `OnRecvPacket` callback logic. 
 
-The `OnRecvPacket` callback has been modified to only return the acknowledgement. The acknowledgement returned must implement the `Acknowledgement` interface. The acknowledgement should indicate if it represents a successful processing of a packet by returning true on `Success()` and false in all other cases. A return value of false on `Success()` will result in all state changes which occurred in the callback being discarded. More information can be found in the [documentation](https://github.com/cosmos/ibc-go/blob/main/docs/custom.md#receiving-packets).
+The `OnRecvPacket` callback has been modified to only return the acknowledgement. The acknowledgement returned must implement the `Acknowledgement` interface. The acknowledgement should indicate if it represents a successful processing of a packet by returning true on `Success()` and false in all other cases. A return value of false on `Success()` will result in all state changes which occurred in the callback being discarded. More information can be found in the [documentation](https://github.com/cosmos/ibc-go/blob/main/docs/ibc/apps.md#receiving-packets).
 
 The `OnRecvPacket`, `OnAcknowledgementPacket`, and `OnTimeoutPacket` callbacks are now passed the `sdk.AccAddress` of the relayer who relayed the IBC packet. Applications may use or ignore this information. 
 
