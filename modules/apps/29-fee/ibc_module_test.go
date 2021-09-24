@@ -1,7 +1,12 @@
 package fee_test
 
 import (
+	"fmt"
+
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/testing"
@@ -16,37 +21,37 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	}{
 		{
 			"valid fee middleware and transfer version",
-			"fee29-1:ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			true,
 		},
 		{
 			"fee version not included, only perform transfer logic",
-			"ics20-1",
+			transfertypes.Version,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			"otherfee28-1:ics20-1",
+			channeltypes.MergeChannelVersions("otherfee28-1", transfertypes.Version),
 			false,
 		},
 		{
 			"invalid transfer version",
-			"fee29-1:wrongics20-1",
+			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
 			false,
 		},
 		{
 			"incorrect wrapping delimiter",
-			"fee29-1//ics20-1",
+			fmt.Sprintf("%s//%s", types.Version, transfertypes.Version),
 			false,
 		},
 		{
 			"transfer version not wrapped",
-			"fee29-1",
+			types.Version,
 			false,
 		},
 		{
 			"hanging delimiter",
-			"fee29-1:ics20-1:",
+			fmt.Sprintf("%s:%s:", types.Version, transfertypes.Version),
 			false,
 		},
 	}
@@ -103,78 +108,78 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	}{
 		{
 			"valid fee middleware and transfer version",
-			"fee29-1:ics20-1",
-			"fee29-1:ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			false,
 			true,
 		},
 		{
 			"valid transfer version on try and counterparty",
-			"ics20-1",
-			"ics20-1",
+			transfertypes.Version,
+			transfertypes.Version,
 			false,
 			true,
 		},
 		{
 			"valid fee middleware and transfer version, crossing hellos",
-			"fee29-1:ics20-1",
-			"fee29-1:ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			true,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			"otherfee28-1:ics20-1",
-			"fee29-1:ics20-1",
+			channeltypes.MergeChannelVersions("otherfee28-1", transfertypes.Version),
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			false,
 			false,
 		},
 		{
 			"invalid counterparty fee middleware version",
-			"fee29-1:ics20-1",
-			"wrongfee29-1:ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			channeltypes.MergeChannelVersions("wrongfee29-1", transfertypes.Version),
 			false,
 			false,
 		},
 		{
 			"invalid transfer version",
-			"fee29-1:wrongics20-1",
-			"fee29-1:ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			false,
 			false,
 		},
 		{
 			"invalid counterparty transfer version",
-			"fee29-1:ics20-1",
-			"fee29-1:wrongics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
 			false,
 			false,
 		},
 		{
 			"transfer version not wrapped",
-			"fee29-1",
-			"fee29-1:ics20-1",
+			types.Version,
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			false,
 			false,
 		},
 		{
 			"counterparty transfer version not wrapped",
-			"fee29-1:ics20-1",
-			"fee29-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			types.Version,
 			false,
 			false,
 		},
 		{
 			"fee version not included on try, but included in counterparty",
-			"ics20-1",
-			"fee29-1:ics20-1",
+			transfertypes.Version,
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			false,
 			false,
 		},
 		{
 			"fee version not included",
-			"fee29-1:ics20-1",
-			"ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			transfertypes.Version,
 			false,
 			false,
 		},
@@ -242,30 +247,29 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	}{
 		{
 			"success",
-			"fee29-1:ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			func(suite *FeeTestSuite) {},
 			true,
 		},
 		{
 			"invalid fee version",
-			"fee29-3:ics20-1",
+			channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
 			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"invalid transfer version",
-			"fee29-1:ics20-4",
+			channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
 			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"previous INIT set without fee, however counterparty set fee version", // note this can only happen with incompetent or malicious counterparty chain
-			"fee29-1:ics20-1",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			func(suite *FeeTestSuite) {
-				// do the first steps without fee version, then pass the fee version as counterparty version
-				// in ChanOpenACK
-				suite.path.EndpointA.ChannelConfig.Version = "ics20-1"
-				suite.path.EndpointB.ChannelConfig.Version = "ics20-1"
+				// do the first steps without fee version, then pass the fee version as counterparty version in ChanOpenACK
+				suite.path.EndpointA.ChannelConfig.Version = transfertypes.Version
+				suite.path.EndpointB.ChannelConfig.Version = transfertypes.Version
 			},
 			false,
 		},
