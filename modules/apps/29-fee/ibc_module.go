@@ -74,9 +74,6 @@ func (im IBCModule) OnChanOpenTry(
 		}
 
 		im.keeper.SetFeeEnabled(ctx, portID, channelID)
-	} else if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		// return error if a previous ChanInit set fee enabled but subsequent OpenTry does not have fee enabled
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "previous INIT call (crossing hellos) had fee version set but OpenTry call does not set fee version: %s", version)
 	}
 	// call underlying app's OnChanOpenTry callback with the app versions
 	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,

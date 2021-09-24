@@ -92,88 +92,87 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 }
 
 func (suite *FeeTestSuite) TestOnChanOpenTry() {
+	var (
+		chanCap *capabilitytypes.Capability
+		ok      bool
+		err     error
+	)
+
 	testCases := []struct {
 		name      string
 		version   string
 		cpVersion string
-		capExists bool
+		malleate  func(suite *FeeTestSuite)
 		expPass   bool
 	}{
 		{
 			"valid fee middleware and transfer version",
 			"fee29-1:ics20-1",
 			"fee29-1:ics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			true,
 		},
 		{
 			"valid transfer version on try and counterparty",
 			"ics20-1",
 			"ics20-1",
-			false,
-			true,
-		},
-		{
-			"valid fee middleware and transfer version, crossing hellos",
-			"fee29-1:ics20-1",
-			"fee29-1:ics20-1",
-			true,
+			func(suite *FeeTestSuite) {},
 			true,
 		},
 		{
 			"invalid fee middleware version",
 			"otherfee28-1:ics20-1",
 			"fee29-1:ics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"invalid counterparty fee middleware version",
 			"fee29-1:ics20-1",
 			"wrongfee29-1:ics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"invalid transfer version",
 			"fee29-1:wrongics20-1",
 			"fee29-1:ics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"invalid counterparty transfer version",
 			"fee29-1:ics20-1",
 			"fee29-1:wrongics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"transfer version not wrapped",
 			"fee29-1",
 			"fee29-1:ics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"counterparty transfer version not wrapped",
 			"fee29-1:ics20-1",
 			"fee29-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"fee version not included on try, but included in counterparty",
 			"ics20-1",
 			"fee29-1:ics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"transfer version not included",
 			"fee29-1:ics20-1",
 			"ics20-1",
-			false,
+			func(suite *FeeTestSuite) {},
 			false,
 		},
 	}
@@ -188,19 +187,11 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			suite.coordinator.SetupConnections(suite.path)
 			suite.path.EndpointB.ChanOpenInit()
 
-			var (
-				chanCap *capabilitytypes.Capability
-				ok      bool
-				err     error
-			)
-			if tc.capExists {
-				suite.path.EndpointA.ChanOpenInit()
-				chanCap, ok = suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
-				suite.Require().True(ok)
-			} else {
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-			}
+			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
+			suite.Require().NoError(err)
+
+			// malleate test case
+			tc.malleate(suite)
 
 			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
