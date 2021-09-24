@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 )
 
 func GetQueryCmd() *cobra.Command {
