@@ -5,10 +5,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.
@@ -36,8 +36,9 @@ func (k Keeper) OnChanOpenInit(
 	if counterparty.PortId != types.PortID {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty port-id must be '%s', (%s != %s)", types.PortID, counterparty.PortId, types.PortID)
 	}
-	if version != types.Version {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelVersion, "channel version must be '%s' (%s != %s)", types.Version, version, types.Version)
+
+	if err := types.ValidateVersion(version); err != nil {
+		return sdkerrors.Wrap(err, "version validation failed")
 	}
 
 	existingChannelID, found := k.GetActiveChannel(ctx, portID)
@@ -71,11 +72,13 @@ func (k Keeper) OnChanOpenTry(
 	if order != channeltypes.ORDERED {
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "invalid channel ordering: %s, expected %s", order.String(), channeltypes.ORDERED.String())
 	}
-	if version != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got: %s, expected %s", version, types.Version)
+
+	if err := types.ValidateVersion(version); err != nil {
+		return sdkerrors.Wrap(err, "version validation failed")
 	}
-	if counterpartyVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+
+	if err := types.ValidateVersion(counterpartyVersion); err != nil {
+		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
@@ -84,22 +87,37 @@ func (k Keeper) OnChanOpenTry(
 		return err
 	}
 
+	// Check to ensure that the version string contains the expected address generated from the Counterparty portID
+	accAddr := types.GenerateAddress(counterparty.PortId)
+	parsedAddr := types.ParseAddressFromVersion(version)
+	if parsedAddr != accAddr.String() {
+		return sdkerrors.Wrapf(types.ErrInvalidAccountAddress, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)
+	}
+
 	// Register interchain account if it does not already exist
-	k.RegisterInterchainAccount(ctx, counterparty.PortId)
+	k.RegisterInterchainAccount(ctx, accAddr, counterparty.PortId)
+
 	return nil
 }
 
+// OnChanOpenAck sets the active channel for the interchain account/owner pair
+// and stores the associated interchain account address in state keyed by it's corresponding port identifier
+//
+// Controller Chain
 func (k Keeper) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+	if err := types.ValidateVersion(counterpartyVersion); err != nil {
+		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
 
 	k.SetActiveChannel(ctx, portID, channelID)
+
+	accAddr := types.ParseAddressFromVersion(counterpartyVersion)
+	k.SetInterchainAccountAddress(ctx, portID, accAddr)
 
 	return nil
 }

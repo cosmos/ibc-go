@@ -1,12 +1,19 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v2/testing"
+)
+
+var (
+	// TestOwnerAddress defines a reusable bech32 address for testing purposes
+	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 )
 
 type TypesTestSuite struct {
@@ -25,59 +32,81 @@ func (suite *TypesTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
-func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = types.PortID
-	path.EndpointB.ChannelConfig.PortID = types.PortID
-	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
-
-	return path
-}
-
 func TestTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(TypesTestSuite))
+}
+
+func (suite *TypesTestSuite) TestGenerateAddress() {
+	addr := types.GenerateAddress("test-port-id")
+	accAddr, err := sdk.AccAddressFromBech32(addr.String())
+
+	suite.Require().NoError(err, "TestGenerateAddress failed")
+	suite.Require().NotEmpty(accAddr)
 }
 
 func (suite *TypesTestSuite) TestGeneratePortID() {
 	var (
 		path  *ibctesting.Path
-		owner string
+		owner = TestOwnerAddress
 	)
-	var testCases = []struct {
+
+	testCases := []struct {
 		name     string
 		malleate func()
 		expValue string
 		expPass  bool
 	}{
-		{"success", func() {}, "ics-27-0-0-owner123", true},
-		{"success with non matching connection sequences", func() {
-			path.EndpointA.ConnectionID = "connection-1"
-		}, "ics-27-1-0-owner123", true},
-		{"invalid owner address", func() {
-			owner = "    "
-		}, "", false},
-		{"invalid connectionID", func() {
-			path.EndpointA.ConnectionID = "connection"
-		}, "", false},
-		{"invalid counterparty connectionID", func() {
-			path.EndpointB.ConnectionID = "connection"
-		}, "", false},
+		{
+			"success",
+			func() {},
+			fmt.Sprintf("%s-0-0-%s", types.VersionPrefix, TestOwnerAddress),
+			true,
+		},
+		{
+			"success with non matching connection sequences",
+			func() {
+				path.EndpointA.ConnectionID = "connection-1"
+			},
+			fmt.Sprintf("%s-1-0-%s", types.VersionPrefix, TestOwnerAddress),
+			true,
+		},
+		{
+			"invalid owner address",
+			func() {
+				owner = "    "
+			},
+			"",
+			false,
+		},
+		{
+			"invalid connectionID",
+			func() {
+				path.EndpointA.ConnectionID = "connection"
+			},
+			"",
+			false,
+		},
+		{
+			"invalid counterparty connectionID",
+			func() {
+				path.EndpointB.ConnectionID = "connection"
+			},
+			"",
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			owner = "owner123" // must be explicitly changed
 
 			tc.malleate()
 
 			portID, err := types.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 				suite.Require().Equal(tc.expValue, portID)

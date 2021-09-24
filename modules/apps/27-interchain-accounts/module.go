@@ -17,12 +17,12 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/client/cli"
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/client/cli"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
 var (
@@ -255,6 +255,18 @@ func (am AppModule) OnTimeoutPacket(
 	return nil
 }
 
-func (am AppModule) NegotiateAppVersion(ctx sdk.Context, order channeltypes.Order, connectionID, portID string, counterparty channeltypes.Counterparty, proposedVersion string) (string, error) {
-	return "", nil
+// NegotiateAppVersion implements the IBCModule interface
+func (am AppModule) NegotiateAppVersion(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionID string,
+	portID string,
+	counterparty channeltypes.Counterparty,
+	proposedVersion string,
+) (string, error) {
+	if proposedVersion != types.VersionPrefix {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
+	}
+
+	return types.NewAppVersion(types.VersionPrefix, types.GenerateAddress(counterparty.PortId).String()), nil
 }

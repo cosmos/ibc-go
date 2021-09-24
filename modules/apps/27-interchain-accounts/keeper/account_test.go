@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitInterchainAccount() {
@@ -44,8 +44,8 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			owner = "owner"   // must be explicitly changed
+			suite.SetupTest()        // reset
+			owner = TestOwnerAddress // must be explicitly changed
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 

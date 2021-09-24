@@ -5,9 +5,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // InitInterchainAccount is the entry point to registering an interchain account.
@@ -31,7 +31,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, types.Version, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portID, types.VersionPrefix, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
 	handler := k.msgRouter.Handler(msg)
 	if _, err := handler(ctx, msg); err != nil {
 		return err
@@ -40,17 +40,15 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 	return nil
 }
 
-// Register interchain account if it has not already been created
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, portID string) {
-	address := types.GenerateAddress(portID)
-
-	account := k.accountKeeper.GetAccount(ctx, address)
-	if account != nil {
+// RegisterInterchainAccount attempts to create a new account using the provided address and stores it in state keyed by the provided port identifier
+// If an account for the provided address already exists this function returns early (no-op)
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddress, portID string) {
+	if acc := k.accountKeeper.GetAccount(ctx, accAddr); acc != nil {
 		return
 	}
 
 	interchainAccount := types.NewInterchainAccount(
-		authtypes.NewBaseAccountWithAddress(address),
+		authtypes.NewBaseAccountWithAddress(accAddr),
 		portID,
 	)
 
