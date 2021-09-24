@@ -20,27 +20,28 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		{
 			"success", func() {}, true,
 		},
-		/*
-		   // TODO: https://github.com/cosmos/ibc-go/issues/288
-		   {
-		   			"port is already bound", func() {
-		   				// mock init interchain account
-		   				portID := suite.chainA.GetSimApp().ICAKeeper.GeneratePortId(owner, path.EndpointA.ConnectionID)
-		   				suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-		   			}, false,
-		   		},
-		*/
 		{
-			"fails to generate port-id", func() {
-				owner = ""
-			}, false,
+			"port is already bound",
+			func() {
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+			},
+			false,
 		},
 		{
-			"MsgChanOpenInit fails - channel is already active", func() {
+			"fails to generate port-id",
+			func() {
+				owner = ""
+			},
+			false,
+		},
+		{
+			"MsgChanOpenInit fails - channel is already active",
+			func() {
 				portID, err := types.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 				suite.Require().NoError(err)
 				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)
-			}, false,
+			},
+			false,
 		},
 	}
 

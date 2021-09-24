@@ -38,11 +38,11 @@ func NewAppVersion(versionPrefix, accAddr string) string {
 }
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
-func KeyActiveChannel(portId string) []byte {
-	return []byte(fmt.Sprintf("activeChannel/%s", portId))
+func KeyActiveChannel(portID string) []byte {
+	return []byte(fmt.Sprintf("activeChannel/%s", portID))
 }
 
 // KeyOwnerAccount creates and returns a new key used for owner account store operations
-func KeyOwnerAccount(portId string) []byte {
-	return []byte(fmt.Sprintf("owner/%s", portId))
+func KeyOwnerAccount(portID string) []byte {
+	return []byte(fmt.Sprintf("owner/%s", portID))
 }

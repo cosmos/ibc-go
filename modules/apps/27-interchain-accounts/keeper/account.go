@@ -22,7 +22,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 		return err
 	}
 
-	if k.IsBound(ctx, portID) {
+	if k.portKeeper.IsBound(ctx, portID) {
 		return sdkerrors.Wrap(types.ErrPortAlreadyBound, portID)
 	}
 

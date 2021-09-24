@@ -6,6 +6,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
+var (
+	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+)
+
 // RegisterLegacyAminoCodec registers the account interfaces and concrete types on the
 // provided LegacyAmino codec. These types are used for Amino JSON serialization
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -18,7 +22,3 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
 }
-
-var (
-	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-)
