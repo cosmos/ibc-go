@@ -129,6 +129,20 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.Require().Empty(retrievedAddr)
 }
 
+func (suite *KeeperTestSuite) TestIsActiveChannel() {
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	owner := TestOwnerAddress
+	suite.coordinator.SetupConnections(path)
+
+	err := suite.SetupICAPath(path, owner)
+	suite.Require().NoError(err)
+	portID := path.EndpointA.ChannelConfig.PortID
+
+	isActive := suite.chainA.GetSimApp().ICAKeeper.IsActiveChannel(suite.chainA.GetContext(), portID)
+	suite.Require().Equal(isActive, true)
+}
+
 func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	expectedAddr, portID := "address", "port"
 	suite.chainA.GetSimApp().ICAKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), portID, expectedAddr)

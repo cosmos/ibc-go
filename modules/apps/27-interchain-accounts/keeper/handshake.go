@@ -130,23 +130,3 @@ func (k Keeper) OnChanOpenConfirm(
 ) error {
 	return nil
 }
-
-// May want to use these for re-opening a channel when it is closed
-//// OnChanCloseInit implements the IBCModule interface
-//func (am AppModule) OnChanCloseInit(
-//	ctx sdk.Context,
-//	portID,
-//	channelID string,
-//) error {
-//	// Disallow user-initiated channel closing for transfer channels
-//	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
-//}
-
-//// OnChanCloseConfirm implements the IBCModule interface
-//func (am AppModule) OnChanCloseConfirm(
-//	ctx sdk.Context,
-//	portID,
-//	channelID string,
-//) error {
-//	return nil
-//}
