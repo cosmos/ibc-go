@@ -40,13 +40,13 @@ a substitute client *after* the subject has become frozen to avoid the substitut
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry 
 once the proposal passes. 
 
-# How to revive an expired client with a governance proposal
+# How to recover an expired client with a governance proposal
 
 See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](../architecture/adr-026-ibc-client-recovery-mechanisms.md)
 
 ### Preconditions 
 - The chain is updated with ibc-go >= v1.1.0.
-- Recovery parameters are set to `true` for the Tendermint light client (this determines if a governance proposal can be used). If the recovery parameters are set to `false`, recovery will require modifying the migration code. In this case the easiest thing to do is probably just to mint back the tokens during migration in the next hub upgrade. 
+- Recovery parameters are set to `true` for the Tendermint light client (this determines if a governance proposal can be used). If the recovery parameters are set to `false`, recovery will require custom migration code.
 - The client identifier of an active client for the same connection.
 - The governance deposit.
 
@@ -54,7 +54,7 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](.
 
 ### Step 1
 
-Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client on the Akash chain the client state looks like this on querying the client state:
+Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
 ```
 {
   client_id: 07-tendermint-146
@@ -75,7 +75,7 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
 <binary> tx gov submit-proposal update-client <client_id> <active-counterparty-client in connection>
 ```
 
-The `<active-counterparty-client in connection>` should be the client identifier of a currently active client which is relaying from the chain containing the expired client you are trying to revive. This means: whichever recommended/relayed channel is used right now could be reused to update the client.
+The `<active-counterparty-client in connection>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. This means: whichever recommended/relayed channel is used right now could be reused to update the client.
 
 After this, it is just a question of who funds the governance deposit and if the chain in question votes yes.
 
