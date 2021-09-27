@@ -62,9 +62,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupTest()
-			suite.coordinator.SetupClients(suite.path)
 			suite.coordinator.SetupConnections(suite.path)
-
 			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
@@ -279,7 +277,6 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.SetupClients(suite.path)
 			suite.coordinator.SetupConnections(suite.path)
 
 			// malleate test case
