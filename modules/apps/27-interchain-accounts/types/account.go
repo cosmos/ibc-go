@@ -84,7 +84,7 @@ func (ia InterchainAccount) Validate() error {
 	return ia.BaseAccount.Validate()
 }
 
-type InterchainAccountPretty struct {
+type interchainAccountPretty struct {
 	Address       sdk.AccAddress `json:"address" yaml:"address"`
 	PubKey        string         `json:"public_key" yaml:"public_key"`
 	AccountNumber uint64         `json:"account_number" yaml:"account_number"`
@@ -104,7 +104,7 @@ func (ia InterchainAccount) MarshalYAML() ([]byte, error) {
 		return nil, err
 	}
 
-	bz, err := yaml.Marshal(InterchainAccountPretty{
+	bz, err := yaml.Marshal(interchainAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
 		AccountNumber: ia.AccountNumber,
@@ -126,7 +126,7 @@ func (ia InterchainAccount) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	bz, err := json.Marshal(InterchainAccountPretty{
+	bz, err := json.Marshal(interchainAccountPretty{
 		Address:       accAddr,
 		PubKey:        "",
 		AccountNumber: ia.AccountNumber,
@@ -143,7 +143,7 @@ func (ia InterchainAccount) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON unmarshals raw JSON bytes into a ModuleAccount.
 func (ia *InterchainAccount) UnmarshalJSON(bz []byte) error {
-	var alias InterchainAccountPretty
+	var alias interchainAccountPretty
 	if err := json.Unmarshal(bz, &alias); err != nil {
 		return err
 	}

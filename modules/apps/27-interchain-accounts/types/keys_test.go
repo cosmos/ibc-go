@@ -1,14 +1,15 @@
 package types_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 )
 
-func TestKeyActiveChannel(t *testing.T) {
-	key := types.KeyActiveChannel("owner")
-	require.Equal(t, string(key), "activeChannel/owner")
+func (suite *TypesTestSuite) TestKeyActiveChannel() {
+	key := types.KeyActiveChannel("port-id")
+	suite.Require().Equal("activeChannel/port-id", string(key))
+}
+
+func (suite *TypesTestSuite) TestKeyOwnerAccount() {
+	key := types.KeyOwnerAccount("port-id")
+	suite.Require().Equal("owner/port-id", string(key))
 }

@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
@@ -48,6 +47,13 @@ func (suite *TypesTestSuite) TestGenerateAddress() {
 	suite.Require().NotEmpty(accAddr)
 }
 
+func (suite *TypesTestSuite) TestParseAddressFromVersion() {
+	version := types.NewAppVersion(types.VersionPrefix, TestOwnerAddress)
+
+	addr := types.ParseAddressFromVersion(version)
+	suite.Require().Equal(TestOwnerAddress, addr)
+}
+
 func (suite *TypesTestSuite) TestGeneratePortID() {
 	var (
 		path  *ibctesting.Path
@@ -75,14 +81,6 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 			true,
 		},
 		{
-			"invalid owner address",
-			func() {
-				owner = "    "
-			},
-			"",
-			false,
-		},
-		{
 			"invalid connectionID",
 			func() {
 				path.EndpointA.ConnectionID = "connection"
@@ -94,6 +92,14 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 			"invalid counterparty connectionID",
 			func() {
 				path.EndpointB.ConnectionID = "connection"
+			},
+			"",
+			false,
+		},
+		{
+			"invalid owner address",
+			func() {
+				owner = "    "
 			},
 			"",
 			false,
@@ -172,20 +178,14 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 
 func (suite *TypesTestSuite) TestInterchainAccountMarshalYAML() {
 	addr := suite.chainA.SenderAccount.GetAddress()
-	ba := authtypes.NewBaseAccountWithAddress(addr)
+	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
 
-	interchainAcc := types.NewInterchainAccount(ba, suite.chainB.SenderAccount.GetAddress().String())
-	bz, err := yaml.Marshal(types.InterchainAccountPretty{
-		Address:       addr,
-		PubKey:        "",
-		AccountNumber: interchainAcc.AccountNumber,
-		Sequence:      interchainAcc.Sequence,
-		AccountOwner:  interchainAcc.AccountOwner,
-	})
+	interchainAcc := types.NewInterchainAccount(baseAcc, suite.chainB.SenderAccount.GetAddress().String())
+	bz, err := interchainAcc.MarshalYAML()
 	suite.Require().NoError(err)
 
-	bz1, err := interchainAcc.MarshalYAML()
-	suite.Require().Equal(string(bz), string(bz1))
+	expected := fmt.Sprintf("address: %s\npublic_key: \"\"\naccount_number: 0\nsequence: 0\naccount_owner: %s\n", suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress())
+	suite.Require().Equal(expected, string(bz))
 }
 
 func (suite *TypesTestSuite) TestInterchainAccountJSON() {
