@@ -6,13 +6,12 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
-
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces

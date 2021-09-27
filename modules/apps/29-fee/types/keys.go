@@ -21,7 +21,7 @@ const (
 	Version = "fee29-1"
 
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
-	FeeEnabledKeyPrefix = "fee_enabled"
+	FeeEnabledKeyPrefix = "feeEnabled"
 
 	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	RelayerAddressKeyPrefix = "relayerAddress"
