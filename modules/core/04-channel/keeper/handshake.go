@@ -127,7 +127,8 @@ func (k Keeper) ChanOpenTry(
 
 	channelID := previousChannelID
 
-	// empty channel identifier indicates continuing a previous channel handshake
+	// non-empty channel identifier indicates continuing a previous channel handshake
+	// where ChanOpenINIT has already been called on the executing chain.
 	if previousChannelID != "" {
 		// channel identifier and connection hop length checked on msg.ValidateBasic()
 		// ensure that the previous channel exists

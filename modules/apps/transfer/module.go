@@ -190,6 +190,7 @@ func ValidateTransferChannelParams(
 	ctx sdk.Context,
 	keeper keeper.Keeper,
 	order channeltypes.Order,
+	counterparty channeltypes.Counterparty,
 	portID string,
 	channelID string,
 	version string,
@@ -213,6 +214,10 @@ func ValidateTransferChannelParams(
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}
 
+	if portID != counterparty.PortId {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID: %s does not match counterparty portID: %s", portID, counterparty.PortId)
+	}
+
 	if version != types.Version {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
 	}
@@ -230,7 +235,7 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
+	if err := ValidateTransferChannelParams(ctx, am.keeper, order, counterparty, portID, channelID, version); err != nil {
 		return err
 	}
 
@@ -254,7 +259,7 @@ func (am AppModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	if err := ValidateTransferChannelParams(ctx, am.keeper, order, portID, channelID, version); err != nil {
+	if err := ValidateTransferChannelParams(ctx, am.keeper, order, counterparty, portID, channelID, version); err != nil {
 		return err
 	}
 
