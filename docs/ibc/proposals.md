@@ -47,7 +47,7 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](.
 ### Preconditions 
 - The chain is updated with ibc-go >= v1.1.0.
 - Recovery parameters are set to `true` for the Tendermint light client (this determines if a governance proposal can be used). If the recovery parameters are set to `false`, recovery will require custom migration code.
-- The client identifier of an active client for the same connection.
+- The client identifier of an active client for the same counterparty chain.
 - The governance deposit.
 
 ## Steps
@@ -55,6 +55,7 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](.
 ### Step 1
 
 Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
+
 ```
 {
   client_id: 07-tendermint-146
@@ -65,6 +66,7 @@ Check if the client is attached to the expected `chain-id`. For example, for an 
   chain_id: akashnet-2
 }
 ```
+
 The client is attached to the expected Akash `chain-id` and the recovery parameters (`allow_update_after_expiry` and `allow_update_after_misbehaviour`) are set to `true`.
 
 ### Step 2
@@ -72,10 +74,10 @@ The client is attached to the expected Akash `chain-id` and the recovery paramet
 If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governance proposal to recover the client by executing this via cli:
 
 ```
-<binary> tx gov submit-proposal update-client <client_id> <active-counterparty-client in connection>
+<binary> tx gov submit-proposal update-client <client_id> <active-counterparty-client>
 ```
 
-The `<active-counterparty-client in connection>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. This means: whichever recommended/relayed channel is used right now could be reused to update the client.
+The `<active-counterparty-client>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. This means: whichever recommended/relayed channel is actively used right now could be reused to update the client.
 
 After this, it is just a question of who funds the governance deposit and if the chain in question votes yes.
 
