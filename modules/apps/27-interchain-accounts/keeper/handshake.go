@@ -1,11 +1,15 @@
 package keeper
 
 import (
+	"strconv"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
@@ -31,14 +35,48 @@ func (k Keeper) OnChanOpenInit(
 	version string,
 ) error {
 	if order != channeltypes.ORDERED {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "invalid channel ordering: %s, expected %s", order.String(), channeltypes.ORDERED.String())
+		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
+
 	if counterparty.PortId != types.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty port-id must be '%s', (%s != %s)", types.PortID, counterparty.PortId, types.PortID)
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, portID)
 	}
 
 	if err := types.ValidateVersion(version); err != nil {
 		return sdkerrors.Wrap(err, "version validation failed")
+	}
+
+	s := strings.Split(portID, types.Delimiter)
+	if len(s) != 4 {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "unexpected format in port ID (%s)", portID)
+	}
+
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	counterpartyHops, found := k.channelKeeper.CounterpartyHops(ctx, channel)
+	if !found {
+		return sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+	}
+
+	connSeq, err := connectiontypes.ParseConnectionSequence(connectionHops[0])
+	if err != nil {
+		return sdkerrors.Wrap(connectiontypes.ErrInvalidConnection, "failed to parse connection sequence")
+	}
+
+	counterpartyConnSeq, err := connectiontypes.ParseConnectionSequence(counterpartyHops[0])
+	if err != nil {
+		return sdkerrors.Wrap(connectiontypes.ErrInvalidConnection, "failed to parse counterparty connection sequence")
+	}
+
+	if strconv.FormatUint(connSeq, 10) != s[1] {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid connection sequence in port (%s)", s[1])
+	}
+
+	if strconv.FormatUint(counterpartyConnSeq, 10) != s[2] {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid connection sequence in port (%s)", s[2])
 	}
 
 	existingChannelID, found := k.GetActiveChannel(ctx, portID)
@@ -70,7 +108,7 @@ func (k Keeper) OnChanOpenTry(
 	counterpartyVersion string,
 ) error {
 	if order != channeltypes.ORDERED {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "invalid channel ordering: %s, expected %s", order.String(), channeltypes.ORDERED.String())
+		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
 	if err := types.ValidateVersion(version); err != nil {
@@ -79,6 +117,43 @@ func (k Keeper) OnChanOpenTry(
 
 	if err := types.ValidateVersion(counterpartyVersion); err != nil {
 		return sdkerrors.Wrap(err, "counterparty version validation failed")
+	}
+
+	if portID != types.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, portID)
+	}
+
+	s := strings.Split(counterparty.PortId, types.Delimiter)
+	if len(s) != 4 {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "unexpected format in port ID (%s)", counterparty.PortId)
+	}
+
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	counterpartyHops, found := k.channelKeeper.CounterpartyHops(ctx, channel)
+	if !found {
+		return sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+	}
+
+	connSeq, err := connectiontypes.ParseConnectionSequence(connectionHops[0])
+	if err != nil {
+		return sdkerrors.Wrap(connectiontypes.ErrInvalidConnection, "failed to parse connection sequence")
+	}
+
+	counterpartyConnSeq, err := connectiontypes.ParseConnectionSequence(counterpartyHops[0])
+	if err != nil {
+		return sdkerrors.Wrap(connectiontypes.ErrInvalidConnection, "failed to parse counterparty connection sequence")
+	}
+
+	if strconv.FormatUint(connSeq, 10) != s[2] {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid connection sequence in port (%s)", s[2])
+	}
+
+	if strconv.FormatUint(counterpartyConnSeq, 10) != s[1] {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid connection sequence in port (%s)", s[1])
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
