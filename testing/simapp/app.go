@@ -338,6 +338,7 @@ func NewSimApp(
 		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(), app,
 	)
 	icaModule := ica.NewAppModule(app.ICAKeeper)
+	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, nil)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
@@ -346,7 +347,7 @@ func NewSimApp(
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
-	ibcRouter.AddRoute(icatypes.ModuleName, icaModule)
+	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule)
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
