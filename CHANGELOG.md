@@ -43,14 +43,45 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (24-host) [#\344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters. 
-
 ### Improvements
-* [\#373](https://github.com/cosmos/ibc-go/pull/375) Added optional field `PacketCommitmentSequences` to `QueryPacketAcknowledgementsRequest` to provide filtering of packet acknowledgements
+
+* [\#383](https://github.com/cosmos/ibc-go/pull/383) Adds helper functions for merging and splitting middleware versions from the underlying app version.
+* (modules/core/05-port) [\#288](https://github.com/cosmos/ibc-go/issues/288) Making the 05-port keeper function IsBound public. The IsBound function checks if the provided portID is already binded to a module.
 
 ### Features
-* [\#372](https://github.com/cosmos/ibc-go/pull/372) New CLI command `query ibc client status <client id>` to get the current activity status of a client
+
 * [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
+* [\#432](https://github.com/cosmos/ibc-go/pull/432) Introduce `MockIBCApp` struct to the mock module. Allows the mock module to be reused to perform custom logic on each IBC App interface function. This might be useful when testing out IBC applications written as middleware. 
+
+## [v1.2.0](https://github.com/cosmos/ibc-go/releases/tag/v1.2.0) - 2021-09-10
+
+### State Machine Breaking
+
+* (24-host) [\#344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters.
+
+### Improvements
+
+* [\#373](https://github.com/cosmos/ibc-go/pull/375) Added optional field `PacketCommitmentSequences` to `QueryPacketAcknowledgementsRequest` to provide filtering of packet acknowledgements.
+
+### Features
+
+* [\#372](https://github.com/cosmos/ibc-go/pull/372) New CLI command `query ibc client status <client id>` to get the current activity status of a client.
+
+### Dependencies
+
+* [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](https://github.com/tendermint/tendermint) from 0.34.12 to 0.34.13.
+
+## [v1.1.0](https://github.com/cosmos/ibc-go/releases/tag/v1.1.0) - 2021-09-03
+
+### Dependencies
+
+* [\#367](https://github.com/cosmos/ibc-go/pull/367) Bump [cosmos-sdk](https://github.com/cosmos/cosmos-sdk) from 0.43 to 0.44.
+
+## [v1.0.1](https://github.com/cosmos/ibc-go/releases/tag/v1.0.1) - 2021-08-25
+
+### Improvements
+
+* [\#343](https://github.com/cosmos/ibc-go/pull/343) Create helper functions for publishing of packet sent and acknowledgement sent events.
 
 ## [v1.0.0](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0) - 2021-08-10
 
@@ -66,6 +97,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/light-clients/06-solomachine) [\#153](https://github.com/cosmos/ibc-go/pull/153) Fix solo machine proof height sequence mismatch bug.
 * (modules/light-clients/06-solomachine) [\#122](https://github.com/cosmos/ibc-go/pull/122) Fix solo machine merkle prefix casting bug. 
 * (modules/light-clients/06-solomachine) [\#120](https://github.com/cosmos/ibc-go/pull/120) Fix solo machine handshake verification bug. 
+* (modules/light-clients/06-solomachine) [\#153](https://github.com/cosmos/ibc-go/pull/153) fix solo machine connection handshake failure at `ConnectionOpenAck`.
 
 ### API Breaking
 
@@ -120,7 +152,7 @@ The IBC module was originally released in [v0.40.0](https://github.com/cosmos/co
 Please see the [Release Notes](https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/RELEASE_NOTES.md).
 
 The IBC module is also contained in the releases for [v0.41.x](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.41.0) and [v0.42.x](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.42.0).
-Please see the Release Notes for [v0.41.x](https://github.com/cosmos/cosmos-sdk/blob/release/v0.41.x/RELEASE_NOTES.md) and [v0.42.x](https://github.com/cosmos/cosmos-sdk/blob/release/v0.42.x/RELEASE_NOTES.md).
+Please see the Release Notes for [v0.41.x](https://github.com/cosmos/cosmos-sdk/blob/v0.41.0/RELEASE_NOTES.md) and [v0.42.x](https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/RELEASE_NOTES.md).
 
 The IBC module was removed in the commit hash [da064e13d56add466548135739c5860a9f7ed842](https://github.com/cosmos/cosmos-sdk/commit/da064e13d56add466548135739c5860a9f7ed842) on the SDK. The release for SDK v0.43.0 will be the first release without the IBC module.
 
