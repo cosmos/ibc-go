@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 	"strings"
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"

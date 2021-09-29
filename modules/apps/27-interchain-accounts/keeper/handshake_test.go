@@ -75,7 +75,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid connection sequence",
 			func() {
-				path.EndpointA.ChannelConfig.PortID, _ = types.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
+				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.PortID = portID
 				path.EndpointA.SetChannel(*channel)
 			},
 			false,
@@ -83,7 +86,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid counterparty connection sequence",
 			func() {
-				path.EndpointA.ChannelConfig.PortID, _ = types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.PortID = portID
 				path.EndpointA.SetChannel(*channel)
 			},
 			false,
@@ -210,7 +216,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid connection sequence",
 			func() {
-				channel.Counterparty.PortId, _ = types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+				suite.Require().NoError(err)
+
+				channel.Counterparty.PortId = portID
 				path.EndpointB.SetChannel(*channel)
 			},
 			false,
@@ -218,7 +227,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid counterparty connection sequence",
 			func() {
-				channel.Counterparty.PortId, _ = types.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
+				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
+				suite.Require().NoError(err)
+
+				channel.Counterparty.PortId = portID
 				path.EndpointB.SetChannel(*channel)
 			},
 			false,
@@ -249,8 +261,11 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid account address",
 			func() {
+				portID, err := types.GeneratePortID("invalid-owner-addr", "connection-0", "connection-0")
+				suite.Require().NoError(err)
+
+				channel.Counterparty.PortId = portID
 				path.EndpointB.SetChannel(*channel)
-				channel.Counterparty.PortId, _ = types.GeneratePortID("invalid-port-id", "connection-0", "connection-0")
 			},
 			false,
 		},
