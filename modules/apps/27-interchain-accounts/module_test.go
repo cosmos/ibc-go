@@ -21,7 +21,7 @@ var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID = fmt.Sprintf("%s-0-0-%s", types.VersionPrefix, TestOwnerAddress)
+	TestPortID = fmt.Sprintf("%s|0|0|%s", types.VersionPrefix, TestOwnerAddress)
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
 	TestVersion = types.NewAppVersion(types.VersionPrefix, TestAccAddress.String())
 )
@@ -124,6 +124,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		Version:        types.VersionPrefix,
 	}
 
+	// set channel
+	path.EndpointA.SetChannel(*channel)
+
 	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
 	suite.Require().NoError(err)
 
@@ -142,7 +145,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	counterpartyVersion := types.VersionPrefix
 	suite.coordinator.SetupConnections(path)
 
 	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -158,24 +160,29 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		Version:        types.VersionPrefix,
 	}
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
+	// set channel
+	channelSequence := path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(path.EndpointB.Chain.GetContext())
+	path.EndpointB.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
+	path.EndpointB.SetChannel(*channel)
+
+	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
 	suite.Require().NoError(err)
 
-	chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
+	chanCap, err := suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointB.ChannelID))
 	suite.Require().NoError(err)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+	err = cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+		path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, TestVersion, types.VersionPrefix,
 	)
+	suite.Require().NoError(err)
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	counterpartyVersion := types.VersionPrefix
 	suite.coordinator.SetupConnections(path)
 
 	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -190,7 +197,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
+	err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, TestVersion)
 	suite.Require().NoError(err)
 }
 
