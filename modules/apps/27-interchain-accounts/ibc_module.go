@@ -14,8 +14,8 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
-// IBCModule implements the ICS26 callbacks for interchain accounts given
-// the interchain account keeper and the underlying application.
+// IBCModule implements the ICS26 callbacks for interchain accounts given the
+// interchain account keeper and underlying application.
 type IBCModule struct {
 	keeper keeper.Keeper
 	app    porttypes.IBCModule

@@ -11,7 +11,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -23,13 +22,13 @@ import (
 
 var (
 	_ module.AppModule      = AppModule{}
-	_ porttypes.IBCModule   = AppModule{}
+	_ porttypes.IBCModule   = IBCModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 
 	// Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
 	// so that it can wrap IBC channel and port logic for underlying application.
-	_ types.ChannelKeeper = Keeper{}
-	_ types.PortKeeper    = Keeper{}
+//	_ types.ChannelKeeper = Keeper{}
+//	_ types.PortKeeper    = Keeper{}
 )
 
 type AppModuleBasic struct{}
@@ -75,17 +74,13 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 type AppModule struct {
 	AppModuleBasic
-	keeper       keeper.Keeper
-	scopedKeeper capabilitykeeper.ScopedKeeper
-	app          porttypes.IBCModule
+	keeper keeper.Keeper
 }
 
 // NewAppModule creates an interchain accounts app module.
-func NewAppModule(k keeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, app porttypes.IBCModule) AppModule {
+func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
-		keeper:       k,
-		scopedKeeper: scopedKeeper,
-		app:          app,
+		keeper: k,
 	}
 }
 

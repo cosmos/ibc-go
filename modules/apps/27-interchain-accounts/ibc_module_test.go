@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
@@ -34,7 +35,6 @@ type InterchainAccountsTestSuite struct {
 	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
 }
 
 func TestICATestSuite(t *testing.T) {
@@ -45,7 +45,20 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+
+	// modify mock module (ica authentication module) to no-op on OpenChanInit
+	// instead of attempting to claim channel capability
+	mockModuleA := suite.chainA.GetSimApp().GetMockModule()
+	mockModuleB := suite.chainB.GetSimApp().GetMockModule()
+	onChanOpenInit := func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+		portID, channelID string, chanCap *capabilitytypes.Capability,
+		counterparty channeltypes.Counterparty, version string,
+	) error {
+		// do not claim channel capability
+		return nil
+	}
+	mockModuleA.IBCApp.OnChanOpenInit = onChanOpenInit
+	mockModuleB.IBCApp.OnChanOpenInit = onChanOpenInit
 }
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -195,7 +208,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
-	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 

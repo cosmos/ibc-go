@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
@@ -18,7 +17,6 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		path   *ibctesting.Path
 		msg    interface{}
 		portID string
-		appCap *capabilitytypes.Capability
 	)
 
 	testCases := []struct {
@@ -63,15 +61,14 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, "channel-100")
 			}, false,
 		},
-		{
+		/*	{
 			"could not authenticate app capability", func() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				appCap = nil
 			}, false,
-		},
-
+		},*/
 		{
 			"data is nil", func() {
 				msg = nil
@@ -96,11 +93,10 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			suite.Require().NoError(err)
 
 			portID = path.EndpointA.ChannelConfig.PortID
-			appCap, _ = suite.chainA.GetSimApp().ScopedICAKeeper.GetCapability(suite.chainA.GetContext(), types.AppCapabilityName(portID, path.EndpointA.ChannelID))
 
 			tc.malleate()
 
-			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), appCap, portID, msg)
+			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), nil, portID, msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

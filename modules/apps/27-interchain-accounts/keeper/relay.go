@@ -28,9 +28,9 @@ func (k Keeper) TrySendTx(ctx sdk.Context, appCap *capabilitytypes.Capability, p
 		return nil, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
 	}
 
-	if !k.AuthenticateCapability(ctx, appCap, types.AppCapabilityName(portID, activeChannelId)) {
-		return nil, sdkerrors.Wrapf(types.ErrAppCapabilityNotFound, "could not authenticate provided capability for portID %s and channelID %s", portID, activeChannelId)
-	}
+	//	if !k.AuthenticateCapability(ctx, appCap, types.AppCapabilityName(portID, activeChannelId)) {
+	//		return nil, sdkerrors.Wrapf(types.ErrAppCapabilityNotFound, "could not authenticate provided capability for portID %s and channelID %s", portID, activeChannelId)
+	//	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()

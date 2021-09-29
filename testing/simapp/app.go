@@ -341,12 +341,13 @@ func NewSimApp(
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(),
 	)
-	icaModule := ica.NewAppModule(app.ICAKeeper, scopedICAKeeper, mockModule)
+	icaModule := ica.NewAppModule(app.ICAKeeper)
+	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, mockModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
-	ibcRouter.AddRoute(icatypes.ModuleName, icaModule)
+	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule)
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 

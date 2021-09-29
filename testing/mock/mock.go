@@ -94,7 +94,7 @@ type AppModule struct {
 	AppModuleBasic
 	scopedKeeper capabilitykeeper.ScopedKeeper
 	portKeeper   PortKeeper
-	IBCApp       MockIBCApp // base application of an IBC middleware stack
+	IBCApp       *MockIBCApp // base application of an IBC middleware stack
 }
 
 // NewAppModule returns a mock AppModule instance.
@@ -102,6 +102,7 @@ func NewAppModule(sk capabilitykeeper.ScopedKeeper, pk PortKeeper) AppModule {
 	return AppModule{
 		scopedKeeper: sk,
 		portKeeper:   pk,
+		IBCApp:       &MockIBCApp{},
 	}
 }
 
@@ -163,6 +164,7 @@ func (am AppModule) OnChanOpenInit(
 	}
 
 	// Claim channel capability passed back by IBC module
+
 	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return err
 	}
