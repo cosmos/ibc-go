@@ -275,8 +275,10 @@ or get slashed. It is recommended that spawn time occurs after the proposal end 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  |  |
-| `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `title` | [string](#string) |  | the title of the proposal |
+| `description` | [string](#string) |  | the description of the proposal |
+| `chain_id` | [string](#string) |  | the proposed chain-id of the new child chain, must be different from all other child chain ids of the executing parent chain. |
+| `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | the proposed client state of new child chain. Since it contains no consensus information, this may be created before child chain is created. |
 | `genesis_hash` | [bytes](#bytes) |  | genesis hash with no staking information included. |
 | `spawn_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | spawn time is the time on the parent chain at which the child chain genesis is finalized and all validators will be responsible for starting their child chain validator node. |
 

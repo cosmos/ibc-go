@@ -10,6 +10,8 @@ const (
 
 	// ChannelStatusKeyPrefix is the key prefix for storing the validation status of the CCV channel
 	ChannelStatusKeyPrefix = "channelstatus"
+
+	RouterKey = "ccv"
 )
 
 // ChannelStatusKey returns the key under which the Status of a baby chain is stored.

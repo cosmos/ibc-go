@@ -39,12 +39,23 @@ enum Status {
 // If it passes, then all validators on the parent chain are expected to validate the child chain at spawn time
 // or get slashed. It is recommended that spawn time occurs after the proposal end time.
 message CreateChildChainProposal {
-  string              chain_id     = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
-  google.protobuf.Any client_state = 2 [(gogoproto.moretags) = "yaml:\"client_state\""];
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  // the title of the proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the proposed chain-id of the new child chain, must be different from all other child chain ids of the executing
+  // parent chain.
+  string chain_id = 3 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  // the proposed client state of new child chain.
+  // Since it contains no consensus information, this may be created before child chain is created.
+  google.protobuf.Any client_state = 4 [(gogoproto.moretags) = "yaml:\"client_state\""];
   // genesis hash with no staking information included.
-  bytes genesis_hash = 3 [(gogoproto.moretags) = "yaml:\"genesis_hash\""];
+  bytes genesis_hash = 5 [(gogoproto.moretags) = "yaml:\"genesis_hash\""];
   // spawn time is the time on the parent chain at which the child chain genesis is finalized and all validators
   // will be responsible for starting their child chain validator node.
-  google.protobuf.Timestamp spawn_time = 4
+  google.protobuf.Timestamp spawn_time = 6
       [(gogoproto.moretags) = "yaml:\"spawn_time\"", (gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }

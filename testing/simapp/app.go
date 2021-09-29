@@ -86,6 +86,7 @@ import (
 	ibcparent "github.com/cosmos/ibc-go/modules/apps/ccv/parent"
 	ibcparentkeeper "github.com/cosmos/ibc-go/modules/apps/ccv/parent/keeper"
 	ibcparenttypes "github.com/cosmos/ibc-go/modules/apps/ccv/parent/types"
+	ccv "github.com/cosmos/ibc-go/modules/apps/ccv/types"
 	transfer "github.com/cosmos/ibc-go/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
@@ -317,13 +318,23 @@ func NewSimApp(
 
 	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter())
 
+	// Create CCV child and parent keepers and modules
+	app.ChildKeeper = ibcchildkeeper.NewKeeper(appCodec, keys[ibcchildtypes.StoreKey], scopedIBCChildKeeper,
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper,
+	)
+	childModule := ibcchild.NewAppModule(app.ChildKeeper)
+	app.ParentKeeper = ibcparentkeeper.NewKeeper(appCodec, keys[ibcparenttypes.StoreKey], scopedIBCParentKeeper,
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, nil)
+	parentModule := ibcparent.NewAppModule(app.ParentKeeper)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(ccv.RouterKey, ibcparent.NewCreateChildChainHandler(app.ParentKeeper))
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
 		&stakingKeeper, govRouter,
@@ -340,15 +351,6 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
-
-	// Create CCV child and parent keepers and modules
-	app.ChildKeeper = ibcchildkeeper.NewKeeper(appCodec, keys[ibcchildtypes.StoreKey], scopedIBCChildKeeper,
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper,
-	)
-	childModule := ibcchild.NewAppModule(app.ChildKeeper)
-	app.ParentKeeper = ibcparentkeeper.NewKeeper(appCodec, keys[ibcparenttypes.StoreKey], scopedIBCParentKeeper,
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, nil)
-	parentModule := ibcparent.NewAppModule(app.ParentKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
