@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
+	fmt "fmt"
 	"strings"
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -23,7 +23,7 @@ func GenerateAddress(moduleAccAddr sdk.AccAddress, portID string) sdk.AccAddress
 
 // ParseAddressFromVersion trims the interchainaccounts version prefix and returns the associated account address
 func ParseAddressFromVersion(version string) string {
-	return strings.TrimPrefix(version, fmt.Sprint(VersionPrefix, Delimiter))
+	return strings.Split(version, Delimiter)[1]
 }
 
 // GeneratePortID generates the portID for a specific owner
@@ -47,7 +47,7 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 		return "", sdkerrors.Wrap(err, "invalid counterparty connection identifier")
 	}
 
-	return fmt.Sprintf("%s-%d-%d-%s", VersionPrefix, connectionSeq, counterpartyConnectionSeq, owner), nil
+	return fmt.Sprint(VersionPrefix, Delimiter, connectionSeq, Delimiter, counterpartyConnectionSeq, Delimiter, owner), nil
 }
 
 type InterchainAccountI interface {
