@@ -1,48 +1,48 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
-	// ModuleName defines the Interchain Account module name
+	// ModuleName defines the interchain accounts module name
 	ModuleName = "interchainaccounts"
 
-	// Version defines the current version the IBC tranfer
-	// module supports
-	Version = "ics27-1"
+	// VersionPrefix defines the current version for interchain accounts
+	VersionPrefix = "ics27-1"
 
+	// PortID is the default port id that the interchain accounts module binds to
 	PortID = "ibcaccount"
 
-	StoreKey  = ModuleName
+	// StoreKey is the store key string for interchain accounts
+	StoreKey = ModuleName
+
+	// RouterKey is the message route for interchain accounts
 	RouterKey = ModuleName
 
-	// Key to store portID in our store
-	PortKey = "portID"
-
+	// QuerierRoute is the querier route for interchain accounts
 	QuerierRoute = ModuleName
 
-	// MemStoreKey defines the in-memory store key
-	MemStoreKey = "mem_capability"
-
-	KeyAppCapabilityPrefix = "appCapabilities"
+	// Delimiter is the delimiter used for the interchain accounts version string
+	Delimiter = "|"
 )
-
-func KeyActiveChannel(portId string) []byte {
-	return []byte(fmt.Sprintf("activeChannel/%s", portId))
-}
-
-func KeyOwnerAccount(portId string) []byte {
-	return []byte(fmt.Sprintf("owner/%s", portId))
-}
 
 var (
-	KeyPrefixRegisteredAccount = []byte("register")
+	// PortKey defines the key to store the port ID in store
+	PortKey = []byte{0x01}
 )
 
-func GetIdentifier(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/", portID, channelID)
+// NewVersion returns a complete version string in the format: VersionPrefix + Delimter + AccAddress
+func NewAppVersion(versionPrefix, accAddr string) string {
+	return fmt.Sprint(versionPrefix, Delimiter, accAddr)
 }
 
-// TODO: remove once generic function is added to 24-host
-func AppCapabilityName(channelID, portID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyAppCapabilityPrefix, channelID, portID)
+// KeyActiveChannel creates and returns a new key used for active channels store operations
+func KeyActiveChannel(portID string) []byte {
+	return []byte(fmt.Sprintf("activeChannel/%s", portID))
+}
+
+// KeyOwnerAccount creates and returns a new key used for owner account store operations
+func KeyOwnerAccount(portID string) []byte {
+	return []byte(fmt.Sprintf("owner/%s", portID))
 }

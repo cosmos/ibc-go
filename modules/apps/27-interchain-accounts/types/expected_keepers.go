@@ -5,9 +5,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
 type Router interface {
@@ -16,10 +16,12 @@ type Router interface {
 
 // AccountKeeper defines the contract required for account APIs.
 type AccountKeeper interface {
-	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	NewAccount(ctx sdk.Context, acc authtypes.AccountI) authtypes.AccountI
 	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
+	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+	GetModuleAddress(name string) sdk.AccAddress
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
@@ -43,5 +45,6 @@ type ConnectionKeeper interface {
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+	IsBound(ctx sdk.Context, portID string) bool
 	LookupModuleByPort(ctx sdk.Context, portID string) (string, *capabilitytypes.Capability, error)
 }

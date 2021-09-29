@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccountAddress() {
@@ -48,12 +48,12 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccountAddress() {
 		{
 			"success",
 			func() {
-				expAddr = authtypes.NewBaseAccountWithAddress(types.GenerateAddress("ics-27")).GetAddress().String()
+				expAddr = authtypes.NewBaseAccountWithAddress(types.GenerateAddress(TestAccAddress, TestPortID)).GetAddress().String()
 				req = &types.QueryInterchainAccountAddressRequest{
-					CounterpartyPortId: "ics-27",
+					CounterpartyPortId: TestPortID,
 				}
 
-				suite.chainA.GetSimApp().ICAKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), "ics-27", expAddr)
+				suite.chainA.GetSimApp().ICAKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID, expAddr)
 			},
 			true,
 		},

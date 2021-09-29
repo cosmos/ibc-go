@@ -8,10 +8,10 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // TrySendTx takes in a transaction from a base application and attempts to send the packet
@@ -50,18 +50,7 @@ func (k Keeper) createOutgoingPacket(
 		return []byte{}, types.ErrInvalidOutgoingData
 	}
 
-	var msgs []sdk.Msg
-
-	switch data := data.(type) {
-	case []sdk.Msg:
-		msgs = data
-	case sdk.Msg:
-		msgs = []sdk.Msg{data}
-	default:
-		return []byte{}, types.ErrInvalidOutgoingData
-	}
-
-	txBytes, err := k.SerializeCosmosTx(k.cdc, msgs)
+	txBytes, err := k.SerializeCosmosTx(k.cdc, data)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(err, "invalid packet data or codec")
 	}
@@ -212,7 +201,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	var data types.IBCAccountPacketData
 
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal interchain account packet data: %s", err.Error())
+		return sdkerrors.Wrapf(types.ErrUnknownPacketData, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
 	switch data.Type {

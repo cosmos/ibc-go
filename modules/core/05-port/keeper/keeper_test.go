@@ -8,8 +8,8 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/modules/core/05-port/keeper"
-	"github.com/cosmos/ibc-go/testing/simapp"
+	"github.com/cosmos/ibc-go/v2/modules/core/05-port/keeper"
+	"github.com/cosmos/ibc-go/v2/testing/simapp"
 )
 
 var (
@@ -43,6 +43,12 @@ func (suite *KeeperTestSuite) TestBind() {
 	// Test that valid BindPort returns capability key
 	capKey := suite.keeper.BindPort(suite.ctx, validPort)
 	require.NotNil(suite.T(), capKey, "capabilityKey is nil on valid BindPort")
+
+	isBound := suite.keeper.IsBound(suite.ctx, validPort)
+	require.True(suite.T(), isBound, "port is bound successfully")
+
+	isNotBound := suite.keeper.IsBound(suite.ctx, "not-a-port")
+	require.False(suite.T(), isNotBound, "port is not bound")
 
 	// Test that rebinding the same portid causes panic
 	require.Panics(suite.T(), func() { suite.keeper.BindPort(suite.ctx, validPort) }, "did not panic on re-binding the same port")

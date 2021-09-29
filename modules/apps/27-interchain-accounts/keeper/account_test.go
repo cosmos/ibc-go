@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitInterchainAccount() {
@@ -17,26 +17,31 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
-		/*
-		   // TODO: https://github.com/cosmos/ibc-go/issues/288
-		   {
-		   			"port is already bound", func() {
-		   				// mock init interchain account
-		   				portID := suite.chainA.GetSimApp().ICAKeeper.GeneratePortId(owner, path.EndpointA.ConnectionID)
-		   				suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-		   			}, false,
-		   		},
-		*/
 		{
-			"MsgChanOpenInit fails - channel is already active", func() {
+			"port is already bound",
+			func() {
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+			},
+			false,
+		},
+		{
+			"fails to generate port-id",
+			func() {
+				owner = ""
+			},
+			false,
+		},
+		{
+			"MsgChanOpenInit fails - channel is already active",
+			func() {
 				portID, err := types.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 				suite.Require().NoError(err)
 				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)
-			}, false,
+			},
+			false,
 		},
 	}
 
@@ -44,8 +49,8 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			owner = "owner"   // must be explicitly changed
+			suite.SetupTest()        // reset
+			owner = TestOwnerAddress // must be explicitly changed
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 

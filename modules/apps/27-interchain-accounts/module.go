@@ -18,12 +18,12 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/client/cli"
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/client/cli"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
 var (
@@ -226,7 +226,7 @@ func (am AppModule) OnChanCloseInit(
 	channelID string,
 ) error {
 	// Disallow user-initiated channel closing for interchain account channels
-	return nil
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 // OnChanCloseConfirm implements the IBCModule callbacks.
@@ -235,7 +235,7 @@ func (am AppModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	return nil
 }
 
 // OnRecvPacket implements the IBCModule callbacks.
@@ -285,6 +285,14 @@ func (am AppModule) OnTimeoutPacket(
 	return am.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
-func (am AppModule) NegotiateAppVersion(ctx sdk.Context, order channeltypes.Order, connectionID, portID string, counterparty channeltypes.Counterparty, proposedVersion string) (string, error) {
-	return "", nil
+// NegotiateAppVersion implements the IBCModule interface
+func (am AppModule) NegotiateAppVersion(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionID string,
+	portID string,
+	counterparty channeltypes.Counterparty,
+	proposedVersion string,
+) (string, error) {
+	return am.keeper.NegotiateAppVersion(ctx, order, connectionID, portID, counterparty, proposedVersion)
 }
