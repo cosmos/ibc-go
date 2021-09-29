@@ -45,20 +45,6 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-
-	// modify mock module (ica authentication module) to no-op on OpenChanInit
-	// instead of attempting to claim channel capability
-	mockModuleA := suite.chainA.GetSimApp().GetMockModule()
-	mockModuleB := suite.chainB.GetSimApp().GetMockModule()
-	onChanOpenInit := func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-		portID, channelID string, chanCap *capabilitytypes.Capability,
-		counterparty channeltypes.Counterparty, version string,
-	) error {
-		// do not claim channel capability
-		return nil
-	}
-	mockModuleA.IBCApp.OnChanOpenInit = onChanOpenInit
-	mockModuleB.IBCApp.OnChanOpenInit = onChanOpenInit
 }
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -116,118 +102,294 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
-	suite.SetupTest() // reset
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	var (
+		channel *channeltypes.Channel
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success", func() {}, true,
+		},
+		{
+			"ICA OnChanOpenInit fails - UNORDERED channel", func() {
+				channel.Ordering = channeltypes.UNORDERED
+			}, false,
+		},
+		{
+			"ICA auth module callback fails", func() {
+				mockModule := suite.chainA.GetSimApp().GetMockModule()
+				mockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) error {
+					return fmt.Errorf("mock ica auth fails")
+				}
 
-	// mock init interchain account
-	portID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-	suite.Require().NoError(err)
-	portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-	suite.chainA.GetSimApp().ICAKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
-	path.EndpointA.ChannelConfig.PortID = portID
-
-	// default values
-	counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-	channel := &channeltypes.Channel{
-		State:          channeltypes.INIT,
-		Ordering:       channeltypes.ORDERED,
-		Counterparty:   counterparty,
-		ConnectionHops: []string{path.EndpointA.ConnectionID},
-		Version:        types.VersionPrefix,
+			}, false,
+		},
 	}
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-	suite.Require().NoError(err)
+	for _, tc := range testCases {
+		tc := tc
 
-	chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
-	suite.Require().NoError(err)
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
+			// mock init interchain account
+			portID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			suite.Require().NoError(err)
+			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
+			suite.chainA.GetSimApp().ICAKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
+			path.EndpointA.ChannelConfig.PortID = portID
 
-	err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
-	)
-	suite.Require().NoError(err)
+			// default values
+			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			channel = &channeltypes.Channel{
+				State:          channeltypes.INIT,
+				Ordering:       channeltypes.ORDERED,
+				Counterparty:   counterparty,
+				ConnectionHops: []string{path.EndpointA.ConnectionID},
+				Version:        types.VersionPrefix,
+			}
+
+			tc.malleate()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+
+		})
+	}
+
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
-	suite.SetupTest() // reset
-	path := NewICAPath(suite.chainA, suite.chainB)
-	counterpartyVersion := types.VersionPrefix
-	suite.coordinator.SetupConnections(path)
+	var (
+		channel *channeltypes.Channel
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
 
-	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
-	suite.Require().NoError(err)
+		{
+			"success", func() {}, true,
+		},
+		{
+			"success: ICA auth module callback returns error", func() {
+				// mock module callback should not be called on host side
+				mockModule := suite.chainB.GetSimApp().GetMockModule()
+				mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version, counterpartyVersion string,
+				) error {
+					return fmt.Errorf("mock ica auth fails")
+				}
 
-	// default values
-	counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	channel := &channeltypes.Channel{
-		State:          channeltypes.TRYOPEN,
-		Ordering:       channeltypes.ORDERED,
-		Counterparty:   counterparty,
-		ConnectionHops: []string{path.EndpointB.ConnectionID},
-		Version:        types.VersionPrefix,
+			}, true,
+		},
+		{
+			"ICA callback fails - invalid version", func() {
+				channel.Version = types.VersionPrefix
+			}, false,
+		},
 	}
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-	suite.Require().NoError(err)
+	for _, tc := range testCases {
+		tc := tc
 
-	chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
-	suite.Require().NoError(err)
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path := NewICAPath(suite.chainA, suite.chainB)
+			counterpartyVersion := TestVersion
+			suite.coordinator.SetupConnections(path)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
+			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			suite.Require().NoError(err)
 
-	err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
-	)
+			// default values
+			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			channel = &channeltypes.Channel{
+				State:          channeltypes.TRYOPEN,
+				Ordering:       channeltypes.ORDERED,
+				Counterparty:   counterparty,
+				ConnectionHops: []string{path.EndpointB.ConnectionID},
+				Version:        TestVersion,
+			}
+
+			tc.malleate()
+
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			chanCap, err := suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+
+		})
+	}
+
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
-	suite.SetupTest() // reset
-	path := NewICAPath(suite.chainA, suite.chainB)
-	counterpartyVersion := types.VersionPrefix
-	suite.coordinator.SetupConnections(path)
+	var (
+		counterpartyVersion string
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success", func() {}, true,
+		},
+		{
+			"ICA OnChanOpenACK fails - invalid version", func() {
+				counterpartyVersion = "invalid|version"
+			}, false,
+		},
+		{
+			"ICA auth module callback fails", func() {
+				mockModule := suite.chainA.GetSimApp().GetMockModule()
+				mockModule.IBCApp.OnChanOpenAck = func(
+					ctx sdk.Context, portID, channelID string, counterpartyVersion string,
+				) error {
+					return fmt.Errorf("mock ica auth fails")
+				}
+			}, false,
+		},
+	}
 
-	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
-	suite.Require().NoError(err)
+	for _, tc := range testCases {
+		tc := tc
 
-	err = path.EndpointB.ChanOpenTry()
-	suite.Require().NoError(err)
+		suite.Run(tc.name, func() {
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-	suite.Require().NoError(err)
+			suite.SetupTest() // reset
+			path := NewICAPath(suite.chainA, suite.chainB)
+			counterpartyVersion = types.VersionPrefix
+			suite.coordinator.SetupConnections(path)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
+			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			suite.Require().NoError(err)
 
-	err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
-	suite.Require().NoError(err)
+			err = path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+
+		})
+	}
+
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
 
-	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
-	suite.Require().NoError(err)
+		{
+			"success", func() {}, true,
+		},
+		{
+			"success: ICA auth module callback returns error", func() {
+				// mock module callback should not be called on host side
+				mockModule := suite.chainB.GetSimApp().GetMockModule()
+				mockModule.IBCApp.OnChanOpenConfirm = func(
+					ctx sdk.Context, portID, channelID string,
+				) error {
+					return fmt.Errorf("mock ica auth fails")
+				}
 
-	err = path.EndpointB.ChanOpenTry()
-	suite.Require().NoError(err)
+			}, true,
+		},
+	}
 
-	err = path.EndpointA.ChanOpenAck()
-	suite.Require().NoError(err)
+	for _, tc := range testCases {
+		tc := tc
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-	suite.Require().NoError(err)
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
+			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			suite.Require().NoError(err)
 
-	err = cbs.OnChanOpenConfirm(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.Require().NoError(err)
+			err = path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanOpenAck()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanOpenConfirm(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+
+		})
+	}
+
 }
 
 func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {

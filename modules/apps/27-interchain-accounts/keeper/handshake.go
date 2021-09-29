@@ -46,11 +46,6 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel (%s) for portID (%s)", existingChannelID, portID)
 	}
 
-	// Claim channel capability passed back by IBC module
-	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return sdkerrors.Wrap(err, "interchain accounts moudle could not claim capability passed back by the IBC module")
-	}
-
 	return nil
 }
 
