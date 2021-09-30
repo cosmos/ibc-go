@@ -74,15 +74,15 @@ The client is attached to the expected Akash `chain-id` and the recovery paramet
 If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governance proposal to recover the client by executing this via cli:
 
 ```
-<binary> tx gov submit-proposal update-client <client_id> <active-counterparty-client>
+<binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
 ```
 
-The `<active-counterparty-client>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. This means: whichever recommended/relayed channel is actively used right now could be reused to update the client.
+The `<active-client-id>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. This means: use the active client that is currently being used to relay packets between the two chains as the replacement client.
 
 After this, it is just a question of who funds the governance deposit and if the chain in question votes yes.
 
 ## Important considerations 
 
-Please note that v1.0.0 of ibc-go will not allow transactions to go to expired clients anymore, so please update to at least this version to prevent similar issues in the future.
+Please note that from v1.0.0 of ibc-go it will not be allowed for transactions to go to expired clients anymore, so please update to at least this version to prevent similar issues in the future.
 
 Please also note that if the client on the other end of the transaction is also expired, that client will also need to update. This process updates only one client.
