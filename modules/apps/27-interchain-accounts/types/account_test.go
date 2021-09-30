@@ -52,6 +52,9 @@ func (suite *TypesTestSuite) TestParseAddressFromVersion() {
 
 	addr := types.ParseAddressFromVersion(version)
 	suite.Require().Equal(TestOwnerAddress, addr)
+
+	addr = types.ParseAddressFromVersion("test-version-string")
+	suite.Require().Empty(addr)
 }
 
 func (suite *TypesTestSuite) TestGeneratePortID() {

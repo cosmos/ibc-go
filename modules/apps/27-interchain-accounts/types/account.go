@@ -23,7 +23,12 @@ func GenerateAddress(moduleAccAddr sdk.AccAddress, portID string) sdk.AccAddress
 
 // ParseAddressFromVersion trims the interchainaccounts version prefix and returns the associated account address
 func ParseAddressFromVersion(version string) string {
-	return strings.Split(version, Delimiter)[1]
+	s := strings.Split(version, Delimiter)
+	if len(s) == 1 {
+		return ""
+	}
+
+	return s[1]
 }
 
 // GeneratePortID generates the portID for a specific owner
