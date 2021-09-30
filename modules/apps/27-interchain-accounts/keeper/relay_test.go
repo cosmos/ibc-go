@@ -29,11 +29,11 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			"success", func() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+				msg = []sdk.Msg{&banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}}
 			}, true,
 		},
 		{
-			"success with []sdk.Message", func() {
+			"success with multiple sdk.Msg", func() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg1 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
@@ -44,6 +44,13 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"incorrect outgoing data", func() {
 				msg = []byte{}
+			}, false,
+		},
+		{
+			"incorrect outgoing data - []sdk.Msg is not used", func() {
+				amount, _ := sdk.ParseCoinsNormalized("100stake")
+				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 			}, false,
 		},
 		{
@@ -121,7 +128,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, msg)
+				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 
 				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
@@ -177,7 +184,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// Incorrect FromAddress
 				msg = &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, msg)
+				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
 					Data: txBytes}
