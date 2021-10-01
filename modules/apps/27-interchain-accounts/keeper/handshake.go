@@ -173,11 +173,11 @@ func (k Keeper) validateConnectionParams(ctx sdk.Context, channelID, portID, con
 	}
 
 	if strconv.FormatUint(connSeq, 10) != connectionSeq {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "invalid connection sequence (%s)", connectionSeq)
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "sequence mismatch, expected (%d), got (%s)", connSeq, connectionSeq)
 	}
 
 	if strconv.FormatUint(counterpartyConnSeq, 10) != counterpartyConnectionSeq {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "invalid connection sequence (%s)", counterpartyConnectionSeq)
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "sequence mismatch, expected (%d), got (%s)", counterpartyConnSeq, counterpartyConnectionSeq)
 	}
 
 	return nil
