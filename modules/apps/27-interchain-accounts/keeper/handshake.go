@@ -43,7 +43,7 @@ func (k Keeper) OnChanOpenInit(
 	}
 
 	if counterparty.PortId != types.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, portID)
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, counterparty.PortId)
 	}
 
 	if err := types.ValidateVersion(version); err != nil {
