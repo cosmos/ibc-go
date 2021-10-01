@@ -2,7 +2,6 @@ package interchain_accounts
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -11,23 +10,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/client/cli"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/keeper"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
-	_ porttypes.IBCModule   = AppModule{}
+	_ porttypes.IBCModule   = IBCModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
@@ -134,135 +129,4 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock implements the AppModule interface
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
-}
-
-// Implement IBCModule callbacks
-func (am AppModule) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version string,
-) error {
-	return am.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
-}
-
-func (am AppModule) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version,
-	counterpartyVersion string,
-) error {
-	return am.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
-}
-
-func (am AppModule) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyVersion string,
-) error {
-	return am.keeper.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
-}
-
-func (am AppModule) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	return am.keeper.OnChanOpenConfirm(ctx, portID, channelID)
-}
-
-func (am AppModule) OnChanCloseInit(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	// Disallow user-initiated channel closing for interchain account channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
-}
-
-func (am AppModule) OnChanCloseConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	return nil
-}
-
-func (am AppModule) OnRecvPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	_ sdk.AccAddress,
-) ibcexported.Acknowledgement {
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-
-	var data types.IBCAccountPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal ICS-27 interchain account packet data: %s", err.Error()))
-	}
-
-	// only attempt the application logic if the packet data
-	// was successfully decoded
-	if ack.Success() {
-		err := am.keeper.OnRecvPacket(ctx, packet)
-		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err.Error())
-		}
-	}
-
-	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ack
-}
-
-func (am AppModule) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	_ sdk.AccAddress,
-) error {
-	var ack channeltypes.Acknowledgement
-
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 interchain account packet acknowledgment: %v", err)
-	}
-	var data types.IBCAccountPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 interchain account packet data: %s", err.Error())
-	}
-
-	if err := am.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (am AppModule) OnTimeoutPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	_ sdk.AccAddress,
-) error {
-	// TODO
-	return nil
-}
-
-// NegotiateAppVersion implements the IBCModule interface
-func (am AppModule) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
-) (string, error) {
-	return am.keeper.NegotiateAppVersion(ctx, order, connectionID, portID, counterparty, proposedVersion)
 }
