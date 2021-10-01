@@ -55,9 +55,9 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 	return fmt.Sprint(VersionPrefix, Delimiter, connectionSeq, Delimiter, counterpartyConnectionSeq, Delimiter, owner), nil
 }
 
-// ParseCtrlConnSequence attempts to parse the controller connection sequence from the provided port identifier
+// ParseControllerConnSequence attempts to parse the controller connection sequence from the provided port identifier
 // The port identifier must match the controller chain format outlined in (TODO: link spec), otherwise an empty string is returned
-func ParseCtrlConnSequence(portID string) string {
+func ParseControllerConnSequence(portID string) string {
 	s := strings.Split(portID, Delimiter)
 	if len(s) != 4 {
 		return ""

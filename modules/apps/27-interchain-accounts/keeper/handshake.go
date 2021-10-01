@@ -37,7 +37,7 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s, got %s", channeltypes.ORDERED, order)
 	}
 
-	connSequence, counterpartyConnSequence := types.ParseCtrlConnSequence(portID), types.ParseHostConnSequence(portID)
+	connSequence, counterpartyConnSequence := types.ParseControllerConnSequence(portID), types.ParseHostConnSequence(portID)
 	if err := k.validateConnectionParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
 		return sdkerrors.Wrapf(err, "failed to validate controller port (%s)", portID)
 	}
@@ -86,7 +86,7 @@ func (k Keeper) OnChanOpenTry(
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, portID)
 	}
 
-	connSequence, counterpartyConnSequence := types.ParseHostConnSequence(counterparty.PortId), types.ParseCtrlConnSequence(counterparty.PortId)
+	connSequence, counterpartyConnSequence := types.ParseHostConnSequence(counterparty.PortId), types.ParseControllerConnSequence(counterparty.PortId)
 	if err := k.validateConnectionParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
 		return sdkerrors.Wrapf(err, "failed to validate controller port (%s)", counterparty.PortId)
 	}

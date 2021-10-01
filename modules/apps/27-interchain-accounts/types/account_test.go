@@ -61,9 +61,9 @@ func (suite *TypesTestSuite) TestParseCtrlConnSequence() {
 	portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
 	suite.Require().NoError(err)
 
-	connSeq := types.ParseCtrlConnSequence(portID)
+	connSeq := types.ParseControllerConnSequence(portID)
 	suite.Require().Equal("0", connSeq)
-	suite.Require().Empty(types.ParseCtrlConnSequence(types.PortID))
+	suite.Require().Empty(types.ParseControllerConnSequence(types.PortID))
 }
 
 func (suite *TypesTestSuite) TestParseHostConnSequence() {
