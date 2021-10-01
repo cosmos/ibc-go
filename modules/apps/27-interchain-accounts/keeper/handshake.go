@@ -34,7 +34,7 @@ func (k Keeper) OnChanOpenInit(
 	version string,
 ) error {
 	if order != channeltypes.ORDERED {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
+		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s, got %s", channeltypes.ORDERED, order)
 	}
 
 	connSequence, counterpartyConnSequence := types.ParseCtrlConnSequence(portID), types.ParseHostConnSequence(portID)
@@ -79,7 +79,7 @@ func (k Keeper) OnChanOpenTry(
 	counterpartyVersion string,
 ) error {
 	if order != channeltypes.ORDERED {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
+		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s, got %s", channeltypes.ORDERED, order)
 	}
 
 	if portID != types.PortID {

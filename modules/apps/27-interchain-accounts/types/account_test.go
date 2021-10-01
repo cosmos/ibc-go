@@ -57,6 +57,24 @@ func (suite *TypesTestSuite) TestParseAddressFromVersion() {
 	suite.Require().Empty(addr)
 }
 
+func (suite *TypesTestSuite) TestParseCtrlConnSequence() {
+	portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+	suite.Require().NoError(err)
+
+	connSeq := types.ParseCtrlConnSequence(portID)
+	suite.Require().Equal("0", connSeq)
+	suite.Require().Empty(types.ParseCtrlConnSequence(types.PortID))
+}
+
+func (suite *TypesTestSuite) TestParseHostConnSequence() {
+	portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+	suite.Require().NoError(err)
+
+	connSeq := types.ParseHostConnSequence(portID)
+	suite.Require().Equal("1", connSeq)
+	suite.Require().Empty(types.ParseHostConnSequence(types.PortID))
+}
+
 func (suite *TypesTestSuite) TestGeneratePortID() {
 	var (
 		path  *ibctesting.Path
