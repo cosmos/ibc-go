@@ -52,7 +52,12 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 		return "", sdkerrors.Wrap(err, "invalid counterparty connection identifier")
 	}
 
-	return fmt.Sprint(VersionPrefix, Delimiter, connectionSeq, Delimiter, counterpartyConnectionSeq, Delimiter, owner), nil
+	return fmt.Sprint(
+	VersionPrefix, Delimiter, 
+	connectionSeq, Delimiter, 
+	counterpartyConnectionSeq, Delimiter, 
+	owner,
+	), nil
 }
 
 // ParseControllerConnSequence attempts to parse the controller connection sequence from the provided port identifier
