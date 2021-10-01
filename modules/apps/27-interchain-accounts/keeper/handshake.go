@@ -164,7 +164,7 @@ func (k Keeper) validateConnectionParams(ctx sdk.Context, channelID, portID, con
 
 	connSeq, err := connectiontypes.ParseConnectionSequence(channel.ConnectionHops[0])
 	if err != nil {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnectionIdentifier, "failed to parse connection sequence (%s)", channel.ConnectionHops[0])
+		return sdkerrors.Wrapf(err, "failed to parse connection sequence (%s)", channel.ConnectionHops[0])
 	}
 
 	counterpartyConnSeq, err := connectiontypes.ParseConnectionSequence(counterpartyHops[0])
