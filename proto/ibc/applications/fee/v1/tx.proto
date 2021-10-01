@@ -15,10 +15,14 @@ service Msg {
   // destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
   // may be called more than once by a relayer, in which case, latest counterparty address is always used.
   rpc RegisterCounterpartyAddress(MsgRegisterCounterpartyAddress) returns (MsgRegisterCounterpartyAddressResponse);
-  // EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee
-  // EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
+  // PayPacketFee defines a rpc handler method for MsgPayPacketFee
+  // PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
   // incentivize the relaying of the given packet.
-  rpc EscrowPacketFee(MsgEscrowPacketFee) returns (MsgEscrowPacketFeeResponse);
+  rpc PayPacketFee(MsgPayPacketFee) returns (MsgPayPacketFeeResponse);
+  // PayPacketFee defines a rpc handler method for MsgPayPacketFee
+  // PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
+  // incentivize the relaying of the given packet.
+  rpc PayPacketFeeAsync(MsgPayPacketFeeAsync) returns (MsgPayPacketFeeAsyncResponse);
 }
 
 // MsgRegisterCounterpartyAddress is the request type for registering the counter party address
@@ -34,14 +38,30 @@ message MsgRegisterCounterpartyAddress {
 message MsgRegisterCounterpartyAddressResponse {}
 
 // MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
-message MsgEscrowPacketFee {
+message MsgPayPacketFee {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packet = 1
-      [(gogoproto.moretags) = "yaml:\"incentivized_packet\""];
-  repeated string relayers = 2;
+  ibc.applications.fee.v1.Fee fee = 1;
+  // source channel port identifier
+  string source_port_id = 2 [(gogoproto.moretags) = "yaml:\"source_port_id\""];
+  // source channel unique identifier
+  string          source_channel_id = 3 [(gogoproto.moretags) = "yaml:\"source_channel_id\""];
+  repeated string relayers          = 4;
 }
 
 // MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
-message MsgEscrowPacketFeeResponse {}
+message MsgPayPacketFeeResponse {}
+
+// MsgEscrowPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
+message MsgPayPacketFeeAsync {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.applications.fee.v1.Fee  fee       = 1;
+  ibc.core.channel.v1.PacketId packet_id = 2 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  repeated string              relayers  = 3;
+}
+
+// MsgEscrowPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
+message MsgPayPacketFeeAsyncResponse {}

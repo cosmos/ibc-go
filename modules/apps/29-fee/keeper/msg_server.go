@@ -28,6 +28,21 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 // EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee
 // EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
 // incentivize the relaying of the given packet.
-func (k Keeper) EscrowPacketFee(goCtx context.Context, msg *types.MsgEscrowPacketFee) (*types.MsgEscrowPacketFeeResponse, error) {
-	return &types.MsgEscrowPacketFeeResponse{}, nil
+func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) (*types.MsgPayPacketFeeResponse, error) {
+	// get the next sequence
+	/*
+		sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
+		if !found {
+			return []byte{}, channeltypes.ErrSequenceSendNotFound
+		}
+	*/
+
+	return &types.MsgPayPacketFeeResponse{}, nil
+}
+
+// PayPacketFee defines a rpc handler method for MsgEscrowPacketFee
+// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
+// incentivize the relaying of the given packet.
+func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
+	return &types.MsgPayPacketFeeAsyncResponse{}, nil
 }

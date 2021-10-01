@@ -5,7 +5,6 @@ package types
 
 import (
 	fmt "fmt"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -30,7 +29,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // See Fee Payment Middleware spec:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
 type Fee struct {
-	Amount github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
+	ReceiveFee []*types.Coin `protobuf:"bytes,1,rep,name=receive_fee,json=receiveFee,proto3" json:"receive_fee,omitempty" yaml:"receive_fee"`
+	AckFee     []*types.Coin `protobuf:"bytes,2,rep,name=ack_fee,json=ackFee,proto3" json:"ack_fee,omitempty" yaml:"ack_fee"`
+	TimeoutFee []*types.Coin `protobuf:"bytes,3,rep,name=timeout_fee,json=timeoutFee,proto3" json:"timeout_fee,omitempty" yaml:"timeout_fee"`
 }
 
 func (m *Fee) Reset()         { *m = Fee{} }
@@ -66,20 +67,31 @@ func (m *Fee) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Fee proto.InternalMessageInfo
 
-func (m *Fee) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
+func (m *Fee) GetReceiveFee() []*types.Coin {
 	if m != nil {
-		return m.Amount
+		return m.ReceiveFee
+	}
+	return nil
+}
+
+func (m *Fee) GetAckFee() []*types.Coin {
+	if m != nil {
+		return m.AckFee
+	}
+	return nil
+}
+
+func (m *Fee) GetTimeoutFee() []*types.Coin {
+	if m != nil {
+		return m.TimeoutFee
 	}
 	return nil
 }
 
 // Fee associated with a packet_id
 type IdentifiedPacketFee struct {
-	PacketId   *types1.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"packet_id"`
-	ReceiveFee *Fee             `protobuf:"bytes,2,opt,name=receive_fee,json=receiveFee,proto3" json:"receive_fee,omitempty" yaml:"receive_fee"`
-	AckFee     *Fee             `protobuf:"bytes,3,opt,name=ack_fee,json=ackFee,proto3" json:"ack_fee,omitempty" yaml:"ack_fee"`
-	TimeoutFee *Fee             `protobuf:"bytes,4,opt,name=timeout_fee,json=timeoutFee,proto3" json:"timeout_fee,omitempty" yaml:"timeout_fee"`
-	Relayers   []string         `protobuf:"bytes,5,rep,name=relayers,proto3" json:"relayers,omitempty"`
+	PacketId *types1.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty" yaml:"packet_id"`
+	Fee      *Fee             `protobuf:"bytes,2,opt,name=fee,proto3" json:"fee,omitempty"`
 }
 
 func (m *IdentifiedPacketFee) Reset()         { *m = IdentifiedPacketFee{} }
@@ -122,30 +134,9 @@ func (m *IdentifiedPacketFee) GetPacketId() *types1.PacketId {
 	return nil
 }
 
-func (m *IdentifiedPacketFee) GetReceiveFee() *Fee {
+func (m *IdentifiedPacketFee) GetFee() *Fee {
 	if m != nil {
-		return m.ReceiveFee
-	}
-	return nil
-}
-
-func (m *IdentifiedPacketFee) GetAckFee() *Fee {
-	if m != nil {
-		return m.AckFee
-	}
-	return nil
-}
-
-func (m *IdentifiedPacketFee) GetTimeoutFee() *Fee {
-	if m != nil {
-		return m.TimeoutFee
-	}
-	return nil
-}
-
-func (m *IdentifiedPacketFee) GetRelayers() []string {
-	if m != nil {
-		return m.Relayers
+		return m.Fee
 	}
 	return nil
 }
@@ -158,35 +149,32 @@ func init() {
 func init() { proto.RegisterFile("ibc/applications/fee/v1/fee.proto", fileDescriptor_cb3319f1af2a53e5) }
 
 var fileDescriptor_cb3319f1af2a53e5 = []byte{
-	// 443 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0x3f, 0x8f, 0xd3, 0x30,
-	0x18, 0xc6, 0x9b, 0x2b, 0x94, 0x3b, 0x57, 0x42, 0x28, 0x9c, 0xa0, 0x54, 0x90, 0x94, 0x4c, 0x5d,
-	0x6a, 0xd3, 0x32, 0xc1, 0x18, 0xa4, 0x93, 0x2a, 0x31, 0x9c, 0x22, 0xdd, 0xc2, 0x72, 0x72, 0x9c,
-	0xb7, 0x39, 0x93, 0x3f, 0x8e, 0x62, 0x27, 0x52, 0xbf, 0x05, 0x9f, 0x83, 0x4f, 0x72, 0xe3, 0x8d,
-	0x4c, 0x01, 0xb5, 0xdf, 0xa0, 0x33, 0x03, 0xb2, 0x63, 0x4e, 0x95, 0x10, 0x12, 0x4c, 0x7e, 0x5f,
-	0xdb, 0xcf, 0xef, 0x79, 0x64, 0xbf, 0xe8, 0x35, 0x8f, 0x19, 0xa1, 0x55, 0x95, 0x73, 0x46, 0x15,
-	0x17, 0xa5, 0x24, 0x1b, 0x00, 0xd2, 0x2e, 0xf5, 0x82, 0xab, 0x5a, 0x28, 0xe1, 0x3e, 0xe7, 0x31,
-	0xc3, 0xc7, 0x57, 0xb0, 0x3e, 0x6b, 0x97, 0x53, 0x8f, 0x09, 0x59, 0x08, 0x49, 0x62, 0x2a, 0xb5,
-	0x24, 0x06, 0x45, 0x97, 0x84, 0x09, 0x5e, 0xf6, 0xc2, 0xe9, 0x79, 0x2a, 0x52, 0x61, 0x4a, 0xa2,
-	0x2b, 0xbb, 0x6b, 0x1c, 0x99, 0xa8, 0x81, 0xb0, 0x1b, 0x5a, 0x96, 0x90, 0x6b, 0x37, 0x5b, 0xf6,
-	0x57, 0x82, 0xcf, 0x68, 0x78, 0x01, 0xe0, 0x32, 0x34, 0xa2, 0x85, 0x68, 0x4a, 0x35, 0x71, 0x66,
-	0xc3, 0xf9, 0x78, 0xf5, 0x02, 0xf7, 0x86, 0x58, 0x1b, 0x62, 0x6b, 0x88, 0x3f, 0x08, 0x5e, 0x86,
-	0x6f, 0x6e, 0x3b, 0x7f, 0xf0, 0xf5, 0xbb, 0x3f, 0x4f, 0xb9, 0xba, 0x69, 0x62, 0xcc, 0x44, 0x41,
-	0x6c, 0xba, 0x7e, 0x59, 0xc8, 0x24, 0x23, 0x6a, 0x5b, 0x81, 0x34, 0x02, 0x19, 0x59, 0x74, 0xf0,
-	0xf3, 0x04, 0x3d, 0x5d, 0x27, 0x50, 0x2a, 0xbe, 0xe1, 0x90, 0x5c, 0x52, 0x96, 0x81, 0xd2, 0xe6,
-	0x97, 0xe8, 0xac, 0x32, 0xcd, 0x35, 0x4f, 0x26, 0xce, 0xcc, 0x99, 0x8f, 0x57, 0xaf, 0xb0, 0x7e,
-	0x09, 0x1d, 0x1d, 0xff, 0xce, 0xdb, 0x2e, 0x71, 0x2f, 0x59, 0x27, 0xe1, 0xf9, 0xa1, 0xf3, 0x9f,
-	0x6c, 0x69, 0x91, 0xbf, 0x0f, 0xee, 0x95, 0x41, 0x74, 0x5a, 0xd9, 0x73, 0xf7, 0x0a, 0x8d, 0x6b,
-	0x60, 0xc0, 0x5b, 0xb8, 0xde, 0x00, 0x4c, 0x4e, 0x0c, 0xf3, 0x25, 0xfe, 0xcb, 0xeb, 0xe2, 0x0b,
-	0x80, 0xf0, 0xd9, 0xa1, 0xf3, 0xdd, 0x1e, 0x79, 0x24, 0x0d, 0x22, 0x64, 0x3b, 0x1d, 0x74, 0x8d,
-	0x1e, 0x51, 0x96, 0x19, 0xe4, 0xf0, 0x1f, 0x90, 0xee, 0xa1, 0xf3, 0x1f, 0xf7, 0x48, 0x2b, 0x0b,
-	0xa2, 0x11, 0x65, 0x99, 0x46, 0x5d, 0xa1, 0xb1, 0xe2, 0x05, 0x88, 0x46, 0x19, 0xdc, 0x83, 0xff,
-	0x4b, 0x78, 0x24, 0x0d, 0x22, 0x64, 0x3b, 0x8d, 0x9d, 0xa2, 0xd3, 0x1a, 0x72, 0xba, 0x85, 0x5a,
-	0x4e, 0x1e, 0xce, 0x86, 0xf3, 0xb3, 0xe8, 0xbe, 0x0f, 0x3f, 0xde, 0xee, 0x3c, 0xe7, 0x6e, 0xe7,
-	0x39, 0x3f, 0x76, 0x9e, 0xf3, 0x65, 0xef, 0x0d, 0xee, 0xf6, 0xde, 0xe0, 0xdb, 0xde, 0x1b, 0x7c,
-	0x5a, 0xfd, 0xf9, 0x95, 0x3c, 0x66, 0x8b, 0x54, 0x90, 0x42, 0x24, 0x4d, 0x0e, 0x52, 0x8f, 0xad,
-	0x24, 0xab, 0x77, 0x0b, 0x3d, 0xb1, 0xe6, 0x6b, 0xe3, 0x91, 0x99, 0x9f, 0xb7, 0xbf, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0x94, 0x57, 0xcf, 0x1b, 0xd6, 0x02, 0x00, 0x00,
+	// 396 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0x31, 0x6b, 0xe3, 0x30,
+	0x14, 0xc7, 0xa3, 0x33, 0xe4, 0xee, 0x14, 0x38, 0x0e, 0x5f, 0xb8, 0xcb, 0x85, 0x3b, 0x27, 0xe7,
+	0x29, 0x4b, 0x24, 0xec, 0x9b, 0xda, 0x31, 0x05, 0x43, 0xa0, 0x43, 0xf0, 0xd8, 0x25, 0xc8, 0xf2,
+	0x8b, 0x23, 0x62, 0x5b, 0x26, 0x56, 0x0c, 0xf9, 0x16, 0xdd, 0xfa, 0x95, 0x3a, 0x66, 0xec, 0x14,
+	0x4a, 0xf2, 0x0d, 0x02, 0xdd, 0x8b, 0x6c, 0xb5, 0x64, 0x29, 0xa5, 0x93, 0xde, 0x93, 0xde, 0xef,
+	0xff, 0x17, 0xef, 0x3d, 0xfc, 0x4f, 0x44, 0x9c, 0xb2, 0xa2, 0x48, 0x05, 0x67, 0x4a, 0xc8, 0xbc,
+	0xa4, 0x0b, 0x00, 0x5a, 0x79, 0xfa, 0x20, 0xc5, 0x5a, 0x2a, 0x69, 0xff, 0x12, 0x11, 0x27, 0xe7,
+	0x25, 0x44, 0xbf, 0x55, 0x5e, 0xdf, 0xe1, 0xb2, 0xcc, 0x64, 0x49, 0x23, 0x56, 0x6a, 0x24, 0x02,
+	0xc5, 0x3c, 0xca, 0xa5, 0xc8, 0x1b, 0xb0, 0xdf, 0x4d, 0x64, 0x22, 0xeb, 0x90, 0xea, 0xc8, 0xdc,
+	0xd6, 0x8e, 0x5c, 0xae, 0x81, 0xf2, 0x25, 0xcb, 0x73, 0x48, 0xb5, 0x9b, 0x09, 0x9b, 0x12, 0xf7,
+	0x09, 0x61, 0x2b, 0x00, 0xb0, 0x43, 0xdc, 0x59, 0x03, 0x07, 0x51, 0xc1, 0x7c, 0x01, 0xd0, 0x43,
+	0x43, 0x6b, 0xd4, 0xf1, 0x7f, 0x93, 0xc6, 0x96, 0x68, 0x5b, 0x62, 0x6c, 0xc9, 0x95, 0x14, 0xf9,
+	0xe4, 0xe7, 0x69, 0x3f, 0xb0, 0xb7, 0x2c, 0x4b, 0x2f, 0xdd, 0x33, 0xce, 0x0d, 0xb1, 0xc9, 0xb4,
+	0x66, 0x80, 0x3f, 0x33, 0xbe, 0xaa, 0xf5, 0x3e, 0xbd, 0xa7, 0x67, 0x9f, 0xf6, 0x83, 0x6f, 0x8d,
+	0x9e, 0x61, 0xdc, 0xb0, 0xcd, 0xf8, 0xca, 0xfc, 0x4d, 0x89, 0x0c, 0xe4, 0x46, 0xd5, 0x5a, 0xd6,
+	0x07, 0xfe, 0x76, 0xc6, 0xb9, 0x21, 0x36, 0x59, 0x00, 0xe0, 0xde, 0x21, 0xfc, 0x63, 0x1a, 0x43,
+	0xae, 0xc4, 0x42, 0x40, 0x3c, 0x63, 0x7c, 0x05, 0xfa, 0xde, 0x9e, 0xe1, 0xaf, 0x45, 0x9d, 0xcc,
+	0x45, 0xdc, 0x43, 0x43, 0x34, 0xea, 0xf8, 0x7f, 0x89, 0x9e, 0x8a, 0x6e, 0x23, 0x79, 0xe9, 0x5d,
+	0xe5, 0x91, 0x06, 0x99, 0xc6, 0x93, 0xee, 0x69, 0x3f, 0xf8, 0xde, 0xb8, 0xbd, 0x92, 0x6e, 0xf8,
+	0xa5, 0x30, 0xef, 0x36, 0xc1, 0x56, 0xd3, 0x01, 0xad, 0xf5, 0x87, 0xbc, 0x31, 0x61, 0x12, 0x00,
+	0x84, 0xba, 0x70, 0x72, 0x7d, 0x7f, 0x70, 0xd0, 0xee, 0xe0, 0xa0, 0xc7, 0x83, 0x83, 0x6e, 0x8f,
+	0x4e, 0x6b, 0x77, 0x74, 0x5a, 0x0f, 0x47, 0xa7, 0x75, 0xe3, 0x27, 0x42, 0x2d, 0x37, 0x11, 0xe1,
+	0x32, 0xa3, 0x66, 0x1f, 0x44, 0xc4, 0xc7, 0x89, 0xa4, 0x99, 0x8c, 0x37, 0x29, 0x94, 0x7a, 0xbb,
+	0x4a, 0xea, 0x5f, 0x8c, 0xf5, 0x62, 0xa9, 0x6d, 0x01, 0x65, 0xd4, 0xae, 0xc7, 0xfc, 0xff, 0x39,
+	0x00, 0x00, 0xff, 0xff, 0x15, 0xa1, 0x8a, 0x94, 0x7d, 0x02, 0x00, 0x00,
 }
 
 func (m *Fee) Marshal() (dAtA []byte, err error) {
@@ -209,10 +197,38 @@ func (m *Fee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Amount) > 0 {
-		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.TimeoutFee) > 0 {
+		for iNdEx := len(m.TimeoutFee) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.TimeoutFee[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintFee(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.AckFee) > 0 {
+		for iNdEx := len(m.AckFee) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.AckFee[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintFee(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.ReceiveFee) > 0 {
+		for iNdEx := len(m.ReceiveFee) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.ReceiveFee[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -246,42 +262,9 @@ func (m *IdentifiedPacketFee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Relayers) > 0 {
-		for iNdEx := len(m.Relayers) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Relayers[iNdEx])
-			copy(dAtA[i:], m.Relayers[iNdEx])
-			i = encodeVarintFee(dAtA, i, uint64(len(m.Relayers[iNdEx])))
-			i--
-			dAtA[i] = 0x2a
-		}
-	}
-	if m.TimeoutFee != nil {
+	if m.Fee != nil {
 		{
-			size, err := m.TimeoutFee.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFee(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	if m.AckFee != nil {
-		{
-			size, err := m.AckFee.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFee(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.ReceiveFee != nil {
-		{
-			size, err := m.ReceiveFee.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.Fee.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -323,8 +306,20 @@ func (m *Fee) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Amount) > 0 {
-		for _, e := range m.Amount {
+	if len(m.ReceiveFee) > 0 {
+		for _, e := range m.ReceiveFee {
+			l = e.Size()
+			n += 1 + l + sovFee(uint64(l))
+		}
+	}
+	if len(m.AckFee) > 0 {
+		for _, e := range m.AckFee {
+			l = e.Size()
+			n += 1 + l + sovFee(uint64(l))
+		}
+	}
+	if len(m.TimeoutFee) > 0 {
+		for _, e := range m.TimeoutFee {
 			l = e.Size()
 			n += 1 + l + sovFee(uint64(l))
 		}
@@ -342,23 +337,9 @@ func (m *IdentifiedPacketFee) Size() (n int) {
 		l = m.PacketId.Size()
 		n += 1 + l + sovFee(uint64(l))
 	}
-	if m.ReceiveFee != nil {
-		l = m.ReceiveFee.Size()
+	if m.Fee != nil {
+		l = m.Fee.Size()
 		n += 1 + l + sovFee(uint64(l))
-	}
-	if m.AckFee != nil {
-		l = m.AckFee.Size()
-		n += 1 + l + sovFee(uint64(l))
-	}
-	if m.TimeoutFee != nil {
-		l = m.TimeoutFee.Size()
-		n += 1 + l + sovFee(uint64(l))
-	}
-	if len(m.Relayers) > 0 {
-		for _, s := range m.Relayers {
-			l = len(s)
-			n += 1 + l + sovFee(uint64(l))
-		}
 	}
 	return n
 }
@@ -400,7 +381,7 @@ func (m *Fee) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ReceiveFee", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -427,8 +408,76 @@ func (m *Fee) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amount = append(m.Amount, types.Coin{})
-			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.ReceiveFee = append(m.ReceiveFee, &types.Coin{})
+			if err := m.ReceiveFee[len(m.ReceiveFee)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AckFee", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFee
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFee
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFee
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AckFee = append(m.AckFee, &types.Coin{})
+			if err := m.AckFee[len(m.AckFee)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutFee", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFee
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFee
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFee
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TimeoutFee = append(m.TimeoutFee, &types.Coin{})
+			if err := m.TimeoutFee[len(m.TimeoutFee)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -520,7 +569,7 @@ func (m *IdentifiedPacketFee) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReceiveFee", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Fee", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -547,116 +596,12 @@ func (m *IdentifiedPacketFee) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.ReceiveFee == nil {
-				m.ReceiveFee = &Fee{}
+			if m.Fee == nil {
+				m.Fee = &Fee{}
 			}
-			if err := m.ReceiveFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Fee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AckFee", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFee
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFee
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFee
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.AckFee == nil {
-				m.AckFee = &Fee{}
-			}
-			if err := m.AckFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutFee", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFee
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFee
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFee
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.TimeoutFee == nil {
-				m.TimeoutFee = &Fee{}
-			}
-			if err := m.TimeoutFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Relayers", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFee
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthFee
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthFee
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Relayers = append(m.Relayers, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

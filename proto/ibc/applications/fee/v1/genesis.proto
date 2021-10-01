@@ -7,7 +7,5 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // GenesisState defines the fee middleware genesis state
 message GenesisState {
-  // A mapping of packets -> escrowed fees
-  repeated ibc.applications.fee.v1.IdentifiedPacketFee packets_fees = 1
-      [(gogoproto.moretags) = "yaml:\"packets_fees\""];
+  // TODO
 }

@@ -10,15 +10,13 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 // See Fee Payment Middleware spec:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
 message Fee {
-  repeated cosmos.base.v1beta1.Coin amount = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin receive_fee = 1 [(gogoproto.moretags) = "yaml:\"receive_fee\""];
+  repeated cosmos.base.v1beta1.Coin ack_fee     = 2 [(gogoproto.moretags) = "yaml:\"ack_fee\""];
+  repeated cosmos.base.v1beta1.Coin timeout_fee = 3 [(gogoproto.moretags) = "yaml:\"timeout_fee\""];
 }
 
 // Fee associated with a packet_id
 message IdentifiedPacketFee {
-  ibc.core.channel.v1.PacketId packet_id   = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
-  Fee                          receive_fee = 2 [(gogoproto.moretags) = "yaml:\"receive_fee\""];
-  Fee                          ack_fee     = 3 [(gogoproto.moretags) = "yaml:\"ack_fee\""];
-  Fee                          timeout_fee = 4 [(gogoproto.moretags) = "yaml:\"timeout_fee\""];
-  repeated string              relayers    = 5;
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  Fee                          fee       = 2;
 }

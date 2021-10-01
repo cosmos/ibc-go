@@ -47,8 +47,10 @@
     - [Query](#ibc.applications.fee.v1.Query)
   
 - [ibc/applications/fee/v1/tx.proto](#ibc/applications/fee/v1/tx.proto)
-    - [MsgEscrowPacketFee](#ibc.applications.fee.v1.MsgEscrowPacketFee)
-    - [MsgEscrowPacketFeeResponse](#ibc.applications.fee.v1.MsgEscrowPacketFeeResponse)
+    - [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee)
+    - [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync)
+    - [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse)
+    - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
     - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
     - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
   
@@ -628,7 +630,9 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `receive_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 
@@ -644,10 +648,7 @@ Fee associated with a packet_id
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
-| `receive_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `ack_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `timeout_fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `relayers` | [string](#string) | repeated |  |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 
 
 
@@ -674,11 +675,6 @@ Fee associated with a packet_id
 
 ### GenesisState
 GenesisState defines the fee middleware genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `packets_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated | A mapping of packets -> escrowed fees |
 
 
 
@@ -889,15 +885,17 @@ Query provides defines the gRPC querier service.
 
 
 
-<a name="ibc.applications.fee.v1.MsgEscrowPacketFee"></a>
+<a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
 
-### MsgEscrowPacketFee
+### MsgPayPacketFee
 MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packet` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  |  |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `source_port_id` | [string](#string) |  | source channel port identifier |
+| `source_channel_id` | [string](#string) |  | source channel unique identifier |
 | `relayers` | [string](#string) | repeated |  |
 
 
@@ -905,9 +903,36 @@ MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
 
 
 
-<a name="ibc.applications.fee.v1.MsgEscrowPacketFeeResponse"></a>
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
 
-### MsgEscrowPacketFeeResponse
+### MsgPayPacketFeeAsync
+MsgEscrowPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
+| `relayers` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
+
+### MsgPayPacketFeeAsyncResponse
+MsgEscrowPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeResponse"></a>
+
+### MsgPayPacketFeeResponse
 MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
 
 
@@ -955,7 +980,8 @@ Msg defines the ibc/fee Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
-| `EscrowPacketFee` | [MsgEscrowPacketFee](#ibc.applications.fee.v1.MsgEscrowPacketFee) | [MsgEscrowPacketFeeResponse](#ibc.applications.fee.v1.MsgEscrowPacketFeeResponse) | EscrowPacketFee defines a rpc handler method for MsgEscrowPacketFee EscrowPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
+| `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
+| `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
 
  <!-- end services -->
 
