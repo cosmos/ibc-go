@@ -21,16 +21,6 @@ func GenerateAddress(moduleAccAddr sdk.AccAddress, portID string) sdk.AccAddress
 	return sdk.AccAddress(sdkaddress.Derive(moduleAccAddr, []byte(portID)))
 }
 
-// ParseAddressFromVersion attempts to extract the associated account address from the provided version string
-func ParseAddressFromVersion(version string) string {
-	s := strings.Split(version, Delimiter)
-	if len(s) == 1 {
-		return ""
-	}
-
-	return s[1]
-}
-
 // GeneratePortID generates the portID for a specific owner
 // on the controller chain in the format:
 //
@@ -53,33 +43,11 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 	}
 
 	return fmt.Sprint(
-	VersionPrefix, Delimiter, 
-	connectionSeq, Delimiter, 
-	counterpartyConnectionSeq, Delimiter, 
-	owner,
+		VersionPrefix, Delimiter,
+		connectionSeq, Delimiter,
+		counterpartyConnectionSeq, Delimiter,
+		owner,
 	), nil
-}
-
-// ParseControllerConnSequence attempts to parse the controller connection sequence from the provided port identifier
-// The port identifier must match the controller chain format outlined in (TODO: link spec), otherwise an empty string is returned
-func ParseControllerConnSequence(portID string) string {
-	s := strings.Split(portID, Delimiter)
-	if len(s) != 4 {
-		return ""
-	}
-
-	return s[1]
-}
-
-// ParseHostConnSequence attempts to parse the host connection sequence from the provided port identifier
-// The port identifier must match the controller chain format outlined in (TODO: link spec), otherwise an empty string is returned
-func ParseHostConnSequence(portID string) string {
-	s := strings.Split(portID, Delimiter)
-	if len(s) != 4 {
-		return ""
-	}
-
-	return s[2]
 }
 
 type InterchainAccountI interface {

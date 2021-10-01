@@ -17,6 +17,8 @@ import (
 var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	// TestPortID defines a resuable port identifier for testing purposes
+	TestPortID, _ = types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-0")
 )
 
 type TypesTestSuite struct {
@@ -47,34 +49,6 @@ func (suite *TypesTestSuite) TestGenerateAddress() {
 	suite.Require().NotEmpty(accAddr)
 }
 
-func (suite *TypesTestSuite) TestParseAddressFromVersion() {
-	version := types.NewAppVersion(types.VersionPrefix, TestOwnerAddress)
-
-	addr := types.ParseAddressFromVersion(version)
-	suite.Require().Equal(TestOwnerAddress, addr)
-
-	addr = types.ParseAddressFromVersion("test-version-string")
-	suite.Require().Empty(addr)
-}
-
-func (suite *TypesTestSuite) TestParseCtrlConnSequence() {
-	portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
-	suite.Require().NoError(err)
-
-	connSeq := types.ParseControllerConnSequence(portID)
-	suite.Require().Equal("0", connSeq)
-	suite.Require().Empty(types.ParseControllerConnSequence(types.PortID))
-}
-
-func (suite *TypesTestSuite) TestParseHostConnSequence() {
-	portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
-	suite.Require().NoError(err)
-
-	connSeq := types.ParseHostConnSequence(portID)
-	suite.Require().Equal("1", connSeq)
-	suite.Require().Empty(types.ParseHostConnSequence(types.PortID))
-}
-
 func (suite *TypesTestSuite) TestGeneratePortID() {
 	var (
 		path  *ibctesting.Path
@@ -90,7 +64,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 		{
 			"success",
 			func() {},
-			fmt.Sprintf("%s|0|0|%s", types.VersionPrefix, TestOwnerAddress),
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, "0", types.Delimiter, "0", types.Delimiter, TestOwnerAddress),
 			true,
 		},
 		{
@@ -98,7 +72,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 			func() {
 				path.EndpointA.ConnectionID = "connection-1"
 			},
-			fmt.Sprintf("%s|1|0|%s", types.VersionPrefix, TestOwnerAddress),
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, "1", types.Delimiter, "0", types.Delimiter, TestOwnerAddress),
 			true,
 		},
 		{
