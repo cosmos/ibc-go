@@ -25,6 +25,9 @@ const (
 
 	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	RelayerAddressKeyPrefix = "relayerAddress"
+
+	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
+	FeeInEscrowPrefix = "feeInEscrow"
 )
 
 // FeeEnabledKey returns the key that stores a flag to determine if fee logic should
@@ -36,4 +39,9 @@ func FeeEnabledKey(portID, channelID string) []byte {
 // KeyRelayerAddress returns the key for relayer address -> counteryparty address mapping
 func KeyRelayerAddress(address string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", RelayerAddressKeyPrefix, address))
+}
+
+// KeyFeeInEscrow returns the key for escrowed fees
+func KeyFeeInEscrow(account, channelId, sequenceId string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/packet/%s", FeeInEscrowPrefix, account, channelId, sequenceId))
 }

@@ -10,6 +10,9 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 )
@@ -26,14 +29,16 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
 
+	authKeeper    types.AccountKeeper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
+	bankKeeper    types.BankKeeper
 }
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 
 	return Keeper{
@@ -41,6 +46,8 @@ func NewKeeper(
 		storeKey:      key,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
+		authKeeper:    authKeeper,
+		bankKeeper:    bankKeeper,
 	}
 }
 
@@ -68,6 +75,15 @@ func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channelty
 // GetNextSequenceSend wraps IBC ChannelKeeper's GetNextSequenceSend function
 func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	return k.channelKeeper.GetNextSequenceSend(ctx, portID, channelID)
+}
+
+// GetFeeAccount returns the ICS29 - fee ModuleAccount
+func (k Keeper) GetFeeAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.authKeeper.GetModuleAccount(ctx, types.ModuleName)
+}
+
+func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
+	return k.authKeeper.GetModuleAddress(types.ModuleName)
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function

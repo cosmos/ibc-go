@@ -649,6 +649,7 @@ Fee associated with a packet_id
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
 | `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `refund_account` | [string](#string) |  |  |
 
 
 
