@@ -46,6 +46,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid counterparty port ID",
 			func() {
+				path.EndpointA.SetChannel(*channel)
 				channel.Counterparty.PortId = "invalid-port-id"
 			},
 			false,
@@ -53,6 +54,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid version",
 			func() {
+				path.EndpointA.SetChannel(*channel)
 				channel.Version = "version"
 			},
 			false,
@@ -239,6 +241,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			"invalid version",
 			func() {
 				channel.Version = "version"
+				path.EndpointB.SetChannel(*channel)
 			},
 			false,
 		},
@@ -246,6 +249,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			"invalid counterparty version",
 			func() {
 				counterpartyVersion = "version"
+				path.EndpointB.SetChannel(*channel)
 			},
 			false,
 		},
