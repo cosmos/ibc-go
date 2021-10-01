@@ -25,7 +25,7 @@ var DefaultMaxPortCharacterLength = 128
 // - Alphanumeric
 // - `.`, `_`, `+`, `-`, `#`
 // - `[`, `]`, `<`, `>`
-var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\|\[\]\<\>]+$`).MatchString
+var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\[\]\<\>]+$`).MatchString
 
 // ICS 024 Identifier and Path Validation Implementation
 //
