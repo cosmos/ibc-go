@@ -79,7 +79,7 @@ func ParseHostConnSequence(portID string) (uint64, error) {
 
 	seq, err := strconv.ParseUint(s[2], 10, 64)
 	if err != nil {
-		return 0, sdkerrors.Wrapf(err, "failed to parse connection sequence (%s)", s[1])
+		return 0, sdkerrors.Wrapf(err, "failed to parse connection sequence (%s)", s[2])
 	}
 
 	return seq, nil
