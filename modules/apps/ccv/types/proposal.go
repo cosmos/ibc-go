@@ -94,9 +94,10 @@ func (cccp *CreateChildChainProposal) String() string {
 	return fmt.Sprintf(`CreateChildChain Proposal
 	Title: %s
 	Description: %s
+	ChainID: %s
 	ClientState: %s
 	GenesisHash: %s
-	SpawnTime: %s`, cccp.Title, cccp.Description, childClientStr, cccp.GenesisHash, cccp.SpawnTime)
+	SpawnTime: %s`, cccp.Title, cccp.Description, cccp.ChainId, childClientStr, cccp.GenesisHash, cccp.SpawnTime)
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
