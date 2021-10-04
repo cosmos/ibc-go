@@ -42,7 +42,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.ParentGenesisState {
 	var childStates []types.ChildState
 
 	for ; iterator.Valid(); iterator.Next() {
-		channelID := string(iterator.Key())
+		channelID := string(iterator.Key()[len(parenttypes.ChannelToChainKeyPrefix+"/"):])
 		chainID := string(iterator.Value())
 
 		status := k.GetChannelStatus(ctx, channelID)

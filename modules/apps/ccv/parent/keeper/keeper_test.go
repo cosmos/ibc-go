@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	childtypes "github.com/cosmos/ibc-go/modules/apps/ccv/child/types"
 	parenttypes "github.com/cosmos/ibc-go/modules/apps/ccv/parent/types"
@@ -68,4 +70,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 	// set child endpoint's clientID
 	suite.path.EndpointA.ClientID = parentClient
+}
+
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
 }

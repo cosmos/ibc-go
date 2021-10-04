@@ -49,7 +49,7 @@ func (k Keeper) CreateChildClient(ctx sdk.Context, chainID string, clientState i
 }
 
 // SetChildClient sets the clientID for the given chainID
-func (k Keeper) SetChildClient(ctx sdk.Context, clientID, chainID string) {
+func (k Keeper) SetChildClient(ctx sdk.Context, chainID, clientID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.ChainToClientKey(chainID), []byte(clientID))
 }
@@ -72,12 +72,13 @@ func (k Keeper) SetPendingClient(ctx sdk.Context, timestamp time.Time, chainID s
 }
 
 // GetPendingClient gets an IdentifiedClient for the given timestamp
-func (k Keeper) GetPendingClient(ctx sdk.Context, timestamp time.Time, chainID string) clienttypes.IdentifiedClientState {
+func (k Keeper) GetPendingClient(ctx sdk.Context, timestamp time.Time, chainID string) ibcexported.ClientState {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.PendingClientKey(timestamp, chainID))
-	var ic clienttypes.IdentifiedClientState
-	k.cdc.MustUnmarshal(bz, &ic)
-	return ic
+	if bz == nil {
+		return nil
+	}
+	return clienttypes.MustUnmarshalClientState(k.cdc, bz)
 }
 
 // IteratePendingClients iterates over the pending clients in order and sets the child client if the spawn time has passed,

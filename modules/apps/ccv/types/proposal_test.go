@@ -57,6 +57,7 @@ func TestValidateBasic(t *testing.T) {
 				proposal = &types.CreateChildChainProposal{
 					Title:       "title",
 					Description: "description",
+					ChainId:     "chainID",
 					ClientState: nil,
 					GenesisHash: []byte("gen_hash"),
 					SpawnTime:   time.Now(),
@@ -71,6 +72,7 @@ func TestValidateBasic(t *testing.T) {
 				proposal = &types.CreateChildChainProposal{
 					Title:       "title",
 					Description: "description",
+					ChainId:     "chainID",
 					ClientState: any,
 					GenesisHash: []byte("gen_hash"),
 					SpawnTime:   time.Now(),
