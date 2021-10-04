@@ -12,6 +12,7 @@ import (
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) types.ModuleAccountI
+	GetAccount(sdk.Context, sdk.AccAddress) types.AccountI
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
@@ -29,6 +30,7 @@ type PortKeeper interface {
 
 // BankKeeper defines the expected bank keeper
 type BankKeeper interface {
+	HasBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coin) bool
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }

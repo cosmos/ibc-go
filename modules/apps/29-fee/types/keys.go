@@ -42,6 +42,6 @@ func KeyRelayerAddress(address string) []byte {
 }
 
 // KeyFeeInEscrow returns the key for escrowed fees
-func KeyFeeInEscrow(account, channelId, sequenceId string) []byte {
+func KeyFeeInEscrow(account, channelId string, sequenceId uint64) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s/packet/%s", FeeInEscrowPrefix, account, channelId, sequenceId))
 }

@@ -129,3 +129,38 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) 
 
 	return store.Get(key), true
 }
+
+// Stores a Fee for a given packet in state
+func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee types.Fee, account, channelId string, sequenceId uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.MustMarshalFee(fee)
+	store.Set(types.KeyFeeInEscrow(account, channelId, sequenceId), bz)
+}
+
+// Gets a Fee for a given packet
+func (k Keeper) GetFeeInEscrow(ctx sdk.Context, account, channelId string, sequenceId uint64) (types.Fee, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyFeeInEscrow(account, channelId, sequenceId)
+	bz := store.Get(key)
+	if bz == nil {
+		return types.Fee{}, false
+	}
+
+	fee := k.MustUnmarshalFee(bz)
+
+	return fee, true
+}
+
+// MustMarshalFee attempts to encode a Fee object and returns the
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustMarshalFee(fee types.Fee) []byte {
+	return k.cdc.MustMarshal(&fee)
+}
+
+// MustUnmarshalFee attempts to decode and return a Fee object from
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustUnmarshalFee(bz []byte) types.Fee {
+	var fee types.Fee
+	k.cdc.MustUnmarshal(bz, &fee)
+	return fee
+}

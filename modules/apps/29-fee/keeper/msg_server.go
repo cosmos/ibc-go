@@ -28,7 +28,7 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 }
 
 // PayPacketFee defines a rpc handler method for MsgPayPacketFee
-// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to relay a packet
+// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to relay the packet with the next sequence
 func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) (*types.MsgPayPacketFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -38,13 +38,18 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetId := &channeltypes.PacketId{
+	packetId := channeltypes.PacketId{
 		PortId:    msg.SourcePortId,
 		ChannelId: msg.SourceChannelId,
 		Sequence:  sequence,
 	}
 
-	err := k.escrowPacketFee(ctx, msg.Fee, packetId)
+	refundAccAddr, err := sdk.AccAddressFromBech32(msg.RefundAccount)
+	if err != nil {
+		return &types.MsgPayPacketFeeResponse{}, err
+	}
+
+	err = k.escrowPacketFee(ctx, refundAccAddr, *msg.Fee, packetId)
 	if err != nil {
 		return nil, err
 	}
@@ -54,37 +59,19 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 
 // PayPacketFee defines a rpc handler method for MsgPayPacketFee
 // PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
-// incentivize the relaying of the given packet.
+// incentivize the relaying of a known packet
 func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := k.escrowPacketFee(ctx, msg.Fee, msg.PacketId)
+	refundAccAddr, err := sdk.AccAddressFromBech32(msg.RefundAccount)
+	if err != nil {
+		return &types.MsgPayPacketFeeAsyncResponse{}, err
+	}
+
+	err = k.escrowPacketFee(ctx, refundAccAddr, *msg.Fee, *msg.PacketId)
 	if err != nil {
 		return nil, err
 	}
 
 	return &types.MsgPayPacketFeeAsyncResponse{}, nil
-}
-
-func (k Keeper) escrowPacketFee(ctx sdk.Ctx, fee *types.Fee, packetID *channeltypes.PacketId) error {
-	// TODO: check if there is a packet that needs to be relayed with packetId if not return err
-	// TODO: check if there is an account that exists for fee.refundAccount. Return err if not
-
-	// Get the fee module account address
-	feeEscrowAccAddr := k.GetFeeModuleAddress()
-
-	// TODO: get max(timeoutFee, ackFee, onRecvFee)
-	totalFee := sdk.Coin{Denom: "stake", Amount: sdk.NewInt(100)}
-
-	// escrow tokens for fee. It fails if balance insufficient.
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(
-		ctx, fee.RefundAccount, types.ModuleName, totalFee,
-	); err != nil {
-		return err
-	}
-
-	// Store fee in state for reference later
-
-	// refund-account/channel-id/packet/sequence-id/ -> Fee (timeout, ack, onrecv)
-	return nil
 }

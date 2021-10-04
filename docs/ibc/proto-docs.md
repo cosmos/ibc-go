@@ -630,9 +630,9 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `receive_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `receive_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 
 
 
@@ -897,6 +897,7 @@ MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
 | `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 | `source_port_id` | [string](#string) |  | source channel port identifier |
 | `source_channel_id` | [string](#string) |  | source channel unique identifier |
+| `refund_account` | [string](#string) |  | account address to refund fee if necessary |
 | `relayers` | [string](#string) | repeated |  |
 
 
@@ -912,8 +913,9 @@ MsgEscrowPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  | source channel port identifier |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | source channel unique identifier |
+| `refund_account` | [string](#string) |  | account address to refund fee if necessary |
 | `relayers` | [string](#string) | repeated |  |
 
 
