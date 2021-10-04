@@ -54,6 +54,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#372](https://github.com/cosmos/ibc-go/pull/372) New CLI command `query ibc client status <client id>` to get the current activity status of a client.
 
+### Dependencies
+
+* [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](github.com/tendermint/tendermint) from 0.34.12 to 0.34.13.
+
 ## [v1.1.1](https://github.com/cosmos/ibc-go/releases/tag/v1.1.1) - 2021-10-04
 
 ### Dependencies
