@@ -122,11 +122,28 @@ func (k Keeper) OnChanOpenAck(
 	return nil
 }
 
-// Set active channel
+// OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain
+//
+// Host Chain
 func (k Keeper) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+
+	k.SetActiveChannel(ctx, portID, channelID)
+
+	return nil
+}
+
+// OnChanCloseConfirm removes the active channel stored in state
+func (k Keeper) OnChanCloseConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
+
+	k.DeleteActiveChannel(ctx, portID)
+
 	return nil
 }
