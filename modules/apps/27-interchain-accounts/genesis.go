@@ -22,6 +22,8 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState
 
 // ExportGenesis exports transfer module's portID into its geneis state
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
+	// TODO: Using a range query with KVStorePrefixIterator export all port IDs
+	// See https://github.com/cosmos/ibc-go/issues/448
 	portID := keeper.GetPort(ctx, types.PortID)
 
 	return &types.GenesisState{
