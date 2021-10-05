@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestIsBound() {
 
 func (suite *KeeperTestSuite) TestGetPort() {
 	port := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext(), types.PortID)
-	suite.Require().Equal(types.PortID, port)
+	suite.Require().Equal(string([]byte{0x01}), port)
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
