@@ -110,7 +110,7 @@ func (suite *KeeperTestSuite) TestIsBound() {
 }
 
 func (suite *KeeperTestSuite) TestGetPort() {
-	port := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext())
+	port := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext(), types.PortID)
 	suite.Require().Equal(types.PortID, port)
 }
 

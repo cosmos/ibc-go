@@ -97,15 +97,15 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // GetPort returns the portID for the interchain accounts module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context) string {
+func (k Keeper) GetPort(ctx sdk.Context, portID string) string {
 	store := ctx.KVStore(k.storeKey)
-	return string(store.Get([]byte(types.PortKey)))
+	return string(store.Get(types.KeyPort(portID)))
 }
 
 // BindPort stores the provided portID and binds to it, returning the associated capability
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	store := ctx.KVStore(k.storeKey)
-	store.Set([]byte(types.PortKey), []byte(portID))
+	store.Set(types.KeyPort(portID), []byte(portID))
 
 	return k.portKeeper.BindPort(ctx, portID)
 }

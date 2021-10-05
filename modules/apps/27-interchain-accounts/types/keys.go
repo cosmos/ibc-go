@@ -28,8 +28,14 @@ const (
 )
 
 var (
-	// PortKey defines the key to store the port ID in store
-	PortKey = []byte{0x01}
+	// ActiveChannelKeyPrefix defines the key prefix used to store active channels
+	ActiveChannelKeyPrefix = "activeChannel"
+
+	// OwnerKeyPrefix defines the key prefix used to store interchain accounts
+	OwnerKeyPrefix = "owner"
+
+	// PortKeyPrefix defines the key prefix used to store ports
+	PortKeyPrefix = "port"
 )
 
 // NewVersion returns a complete version string in the format: VersionPrefix + Delimter + AccAddress
@@ -39,10 +45,15 @@ func NewAppVersion(versionPrefix, accAddr string) string {
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
 func KeyActiveChannel(portID string) []byte {
-	return []byte(fmt.Sprintf("activeChannel/%s", portID))
+	return []byte(fmt.Sprintf("%s/%s", ActiveChannelKeyPrefix, portID))
 }
 
 // KeyOwnerAccount creates and returns a new key used for owner account store operations
 func KeyOwnerAccount(portID string) []byte {
-	return []byte(fmt.Sprintf("owner/%s", portID))
+	return []byte(fmt.Sprintf("%s/%s", OwnerKeyPrefix, portID))
+}
+
+// KeyPort creates and returns a new key used for port store operations
+func KeyPort(portID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s", PortKeyPrefix, portID))
 }
