@@ -77,6 +77,10 @@ func (suite *ChildTestSuite) SetupTest() {
 	// create child client on parent chain
 	path.EndpointB.CreateClient()
 
+	// create child client on parent chain and set as child client for child chainID in parent keeper.
+	path.EndpointB.CreateClient()
+	suite.parentChain.GetSimApp().ParentKeeper.SetChildClient(suite.parentChain.GetContext(), suite.childChain.ChainID, path.EndpointB.ClientID)
+
 	suite.coordinator.CreateConnections(path)
 
 	suite.ctx = suite.childChain.GetContext()
