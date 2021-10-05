@@ -8,13 +8,15 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/modules/apps/ccv/child/types"
 	ccv "github.com/cosmos/ibc-go/modules/apps/ccv/types"
+	utils "github.com/cosmos/ibc-go/modules/apps/ccv/utils"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // OnRecvPacket sets the pending validator set changes that will be flushed to ABCI on Endblock
 // and set the unbonding time for the packet so that we can WriteAcknowledgement after unbonding time is over.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data ccv.ValidatorSetChangePacketData) *channeltypes.Acknowledgement {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, newChanges ccv.ValidatorSetChangePacketData) *channeltypes.Acknowledgement {
 	// packet is not sent on parent channel, return error acknowledgement and close channel
 	if parentChannel, ok := k.GetParentChannel(ctx); ok && parentChannel != packet.DestinationChannel {
 		ack := channeltypes.NewErrorAcknowledgement(
@@ -30,8 +32,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data c
 		k.SetParentChannel(ctx, packet.DestinationChannel)
 	}
 	// Set PendingChanges to be flushed and the unbonding time and unbonding packet.
-	// TODO: Get PendingChanges and update the pending changes if they already exist
-	k.SetPendingChanges(ctx, data)
+	currentChanges, exists := k.GetPendingChanges(ctx)
+	if !exists {
+		currentChanges = &ccv.ValidatorSetChangePacketData{ValidatorUpdates: []abci.ValidatorUpdate{}}
+	}
+	k.SetPendingChanges(ctx, ccv.ValidatorSetChangePacketData{
+		ValidatorUpdates: utils.AccumulateChanges(currentChanges.ValidatorUpdates, newChanges.ValidatorUpdates),
+	})
+
 	unbondingTime := ctx.BlockTime().Add(types.UnbondingTime)
 	k.SetUnbondingTime(ctx, packet.Sequence, uint64(unbondingTime.UnixNano()))
 	k.SetUnbondingPacket(ctx, packet.Sequence, packet)
