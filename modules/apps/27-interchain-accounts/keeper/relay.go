@@ -11,12 +11,11 @@ import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // TrySendTx takes in a transaction from a base application and attempts to send the packet
 // if the base application has the capability to send on the provided portID
-func (k Keeper) TrySendTx(ctx sdk.Context, appCap *capabilitytypes.Capability, portID string, data interface{}) ([]byte, error) {
+func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, data interface{}) ([]byte, error) {
 	// Check for the active channel
 	activeChannelId, found := k.GetActiveChannel(ctx, portID)
 	if !found {
@@ -28,14 +27,10 @@ func (k Keeper) TrySendTx(ctx sdk.Context, appCap *capabilitytypes.Capability, p
 		return nil, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
 	}
 
-	//	if !k.AuthenticateCapability(ctx, appCap, types.AppCapabilityName(portID, activeChannelId)) {
-	//		return nil, sdkerrors.Wrapf(types.ErrAppCapabilityNotFound, "could not authenticate provided capability for portID %s and channelID %s", portID, activeChannelId)
-	//	}
-
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, data)
+	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, chanCap, data)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -44,6 +39,7 @@ func (k Keeper) createOutgoingPacket(
 	sourceChannel,
 	destinationPort,
 	destinationChannel string,
+	chanCap *capabilitytypes.Capability,
 	data interface{},
 ) ([]byte, error) {
 	if data == nil {
@@ -53,11 +49,6 @@ func (k Keeper) createOutgoingPacket(
 	txBytes, err := k.SerializeCosmosTx(k.cdc, data)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(err, "invalid packet data or codec")
-	}
-
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return []byte{}, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// get the next sequence
@@ -86,7 +77,7 @@ func (k Keeper) createOutgoingPacket(
 		timeoutTimestamp,
 	)
 
-	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
+	if err := k.channelKeeper.SendPacket(ctx, chanCap, packet); err != nil {
 		return nil, err
 	}
 

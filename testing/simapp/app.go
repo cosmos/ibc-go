@@ -196,6 +196,7 @@ type SimApp struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAKeeper      capabilitykeeper.ScopedKeeper
 	ScopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
+	ScopedICAMockKeeper  capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
@@ -267,6 +268,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icatypes.ModuleName)
 
 	// seal capability keeper after scoping modules
 	app.CapabilityKeeper.Seal()
@@ -335,6 +337,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
+	icaMockModule := ibcmock.NewAppModule(scopedICAMockKeeper, &app.IBCKeeper.PortKeeper)
 
 	app.ICAKeeper = icakeeper.NewKeeper(
 		appCodec, keys[icatypes.StoreKey],
@@ -342,12 +345,13 @@ func NewSimApp(
 		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(),
 	)
 	icaModule := ica.NewAppModule(app.ICAKeeper)
-	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, mockModule)
+	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, icaMockModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule)
+	ibcRouter.AddRoute(ibcmock.ModuleName+icatypes.ModuleName, icaIBCModule) // ica + mock stack route to ica
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -484,6 +488,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
+	app.ScopedICAMockKeeper = scopedICAMockKeeper
 
 	return app
 }

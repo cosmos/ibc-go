@@ -5,18 +5,21 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
 func (suite *KeeperTestSuite) TestTrySendTx() {
 	var (
-		path   *ibctesting.Path
-		msg    interface{}
-		portID string
+		path    *ibctesting.Path
+		msg     interface{}
+		portID  string
+		chanCap *capabilitytypes.Capability
 	)
 
 	testCases := []struct {
@@ -26,9 +29,6 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 	}{
 		{
 			"success", func() {
-				amount, _ := sdk.ParseCoinsNormalized("100stake")
-				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 			}, true,
 		},
 		{
@@ -47,28 +47,14 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		},
 		{
 			"active channel not found", func() {
-				amount, _ := sdk.ParseCoinsNormalized("100stake")
-				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				portID = "incorrect portID"
 			}, false,
 		},
 		{
 			"channel does not exist", func() {
-				amount, _ := sdk.ParseCoinsNormalized("100stake")
-				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, "channel-100")
 			}, false,
 		},
-		/*	{
-			"could not authenticate app capability", func() {
-				amount, _ := sdk.ParseCoinsNormalized("100stake")
-				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
-				appCap = nil
-			}, false,
-		},*/
 		{
 			"data is nil", func() {
 				msg = nil
@@ -77,6 +63,11 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"data is not an SDK message", func() {
 				msg = "not an sdk message"
+			}, false,
+		},
+		{
+			"invalid channel capability provided", func() {
+				chanCap = nil
 			}, false,
 		},
 	}
@@ -92,11 +83,20 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			err := suite.SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
+			// default setup
 			portID = path.EndpointA.ChannelConfig.PortID
+
+			amount, _ := sdk.ParseCoinsNormalized("100stake")
+			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+
+			var ok bool
+			chanCap, ok = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(portID, path.EndpointA.ChannelID))
+			suite.Require().True(ok)
 
 			tc.malleate()
 
-			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), nil, portID, msg)
+			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, portID, msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
