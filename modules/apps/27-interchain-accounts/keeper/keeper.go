@@ -105,7 +105,7 @@ func (k Keeper) GetPort(ctx sdk.Context, portID string) string {
 // BindPort stores the provided portID and binds to it, returning the associated capability
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyPort(portID), []byte(portID))
+	store.Set(types.KeyPort(portID), []byte{0x01})
 
 	return k.portKeeper.BindPort(ctx, portID)
 }
