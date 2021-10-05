@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -21,7 +20,5 @@ func AccumulateChanges(currentChanges []abci.ValidatorUpdate, newChanges []abci.
 	for _, update := range m {
 		out = append(out, update)
 	}
-
-	spew.Dump(out)
 	return out
 }
