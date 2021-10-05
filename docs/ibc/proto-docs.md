@@ -649,7 +649,6 @@ Fee associated with a packet_id
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
 | `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `refund_account` | [string](#string) |  |  |
 
 
 
@@ -983,8 +982,8 @@ Msg defines the ibc/fee Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
-| `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
-| `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the given packet. | |
+| `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence | |
+| `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet | |
 
  <!-- end services -->
 

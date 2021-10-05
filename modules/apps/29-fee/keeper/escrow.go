@@ -43,6 +43,6 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee t
 }
 
 //TODO: implement
-func (k Keeper) PayFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee types.fee, packetID channeltypes.PacketId) error {
+func (k Keeper) PayFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee types.Fee, packetID channeltypes.PacketId) error {
 	return nil
 }
