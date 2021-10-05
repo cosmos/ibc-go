@@ -31,6 +31,10 @@ const (
 
 	// Delimiter is the delimiter used for the interchain accounts version string
 	Delimiter = "."
+
+	// ControllerPortFormat is the expected port identifier format to which controller chains must conform
+	// See (TODO: Link to spec when updated)
+	ControllerPortFormat = "<app-version>.<controller-conn-seq>.<host-conn-seq>.<owner>"
 )
 
 var (
