@@ -83,11 +83,7 @@ func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, data interface{}) ([]by
 		Messages: msgAnys,
 	}
 
-	txRaw := &types.IBCTxRaw{
-		BodyBytes: cdc.MustMarshal(txBody),
-	}
-
-	bz, err := cdc.Marshal(txRaw)
+	bz, err := cdc.Marshal(txBody)
 	if err != nil {
 		return nil, err
 	}

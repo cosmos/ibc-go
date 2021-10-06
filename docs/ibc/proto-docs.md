@@ -17,9 +17,8 @@
     - [Query](#ibc.applications.interchain_accounts.v1.Query)
   
 - [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
-    - [IBCAccountPacketData](#ibc.applications.interchain_accounts.v1.IBCAccountPacketData)
     - [IBCTxBody](#ibc.applications.interchain_accounts.v1.IBCTxBody)
-    - [IBCTxRaw](#ibc.applications.interchain_accounts.v1.IBCTxRaw)
+    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
   
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
@@ -399,22 +398,6 @@ Query defines the gRPC querier service.
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.IBCAccountPacketData"></a>
-
-### IBCAccountPacketData
-Packet data is comprised of raw transaction & type of transaction
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
-| `data` | [bytes](#bytes) |  |  |
-
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.v1.IBCTxBody"></a>
 
 ### IBCTxBody
@@ -430,15 +413,17 @@ Body of a tx for an ics27 IBC packet
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.IBCTxRaw"></a>
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
 
-### IBCTxRaw
-Raw tx body
+### InterchainAccountPacketData
+InterchainAccountPacketData is comprised of araw transaction,type of transaction and optional memo field.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `body_bytes` | [bytes](#bytes) |  |  |
+| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `memo` | [string](#string) |  |  |
 
 
 

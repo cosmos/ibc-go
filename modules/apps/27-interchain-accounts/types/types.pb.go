@@ -50,51 +50,6 @@ func (Type) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_39bab93e18d89799, []int{0}
 }
 
-// Raw tx body
-type IBCTxRaw struct {
-	BodyBytes []byte `protobuf:"bytes,1,opt,name=body_bytes,json=bodyBytes,proto3" json:"body_bytes,omitempty" yaml:"body_bytes"`
-}
-
-func (m *IBCTxRaw) Reset()         { *m = IBCTxRaw{} }
-func (m *IBCTxRaw) String() string { return proto.CompactTextString(m) }
-func (*IBCTxRaw) ProtoMessage()    {}
-func (*IBCTxRaw) Descriptor() ([]byte, []int) {
-	return fileDescriptor_39bab93e18d89799, []int{0}
-}
-func (m *IBCTxRaw) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *IBCTxRaw) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_IBCTxRaw.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *IBCTxRaw) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IBCTxRaw.Merge(m, src)
-}
-func (m *IBCTxRaw) XXX_Size() int {
-	return m.Size()
-}
-func (m *IBCTxRaw) XXX_DiscardUnknown() {
-	xxx_messageInfo_IBCTxRaw.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IBCTxRaw proto.InternalMessageInfo
-
-func (m *IBCTxRaw) GetBodyBytes() []byte {
-	if m != nil {
-		return m.BodyBytes
-	}
-	return nil
-}
-
 // Body of a tx for an ics27 IBC packet
 type IBCTxBody struct {
 	Messages []*types.Any `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
@@ -104,7 +59,7 @@ func (m *IBCTxBody) Reset()         { *m = IBCTxBody{} }
 func (m *IBCTxBody) String() string { return proto.CompactTextString(m) }
 func (*IBCTxBody) ProtoMessage()    {}
 func (*IBCTxBody) Descriptor() ([]byte, []int) {
-	return fileDescriptor_39bab93e18d89799, []int{1}
+	return fileDescriptor_39bab93e18d89799, []int{0}
 }
 func (m *IBCTxBody) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -140,24 +95,25 @@ func (m *IBCTxBody) GetMessages() []*types.Any {
 	return nil
 }
 
-// Packet data is comprised of raw transaction & type of transaction
-type IBCAccountPacketData struct {
+// InterchainAccountPacketData is comprised of araw transaction,type of transaction and optional memo field.
+type InterchainAccountPacketData struct {
 	Type Type   `protobuf:"varint,1,opt,name=type,proto3,enum=ibc.applications.interchain_accounts.v1.Type" json:"type,omitempty"`
 	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Memo string `protobuf:"bytes,3,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
-func (m *IBCAccountPacketData) Reset()         { *m = IBCAccountPacketData{} }
-func (m *IBCAccountPacketData) String() string { return proto.CompactTextString(m) }
-func (*IBCAccountPacketData) ProtoMessage()    {}
-func (*IBCAccountPacketData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_39bab93e18d89799, []int{2}
+func (m *InterchainAccountPacketData) Reset()         { *m = InterchainAccountPacketData{} }
+func (m *InterchainAccountPacketData) String() string { return proto.CompactTextString(m) }
+func (*InterchainAccountPacketData) ProtoMessage()    {}
+func (*InterchainAccountPacketData) Descriptor() ([]byte, []int) {
+	return fileDescriptor_39bab93e18d89799, []int{1}
 }
-func (m *IBCAccountPacketData) XXX_Unmarshal(b []byte) error {
+func (m *InterchainAccountPacketData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *IBCAccountPacketData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *InterchainAccountPacketData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_IBCAccountPacketData.Marshal(b, m, deterministic)
+		return xxx_messageInfo_InterchainAccountPacketData.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -167,37 +123,43 @@ func (m *IBCAccountPacketData) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *IBCAccountPacketData) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IBCAccountPacketData.Merge(m, src)
+func (m *InterchainAccountPacketData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InterchainAccountPacketData.Merge(m, src)
 }
-func (m *IBCAccountPacketData) XXX_Size() int {
+func (m *InterchainAccountPacketData) XXX_Size() int {
 	return m.Size()
 }
-func (m *IBCAccountPacketData) XXX_DiscardUnknown() {
-	xxx_messageInfo_IBCAccountPacketData.DiscardUnknown(m)
+func (m *InterchainAccountPacketData) XXX_DiscardUnknown() {
+	xxx_messageInfo_InterchainAccountPacketData.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_IBCAccountPacketData proto.InternalMessageInfo
+var xxx_messageInfo_InterchainAccountPacketData proto.InternalMessageInfo
 
-func (m *IBCAccountPacketData) GetType() Type {
+func (m *InterchainAccountPacketData) GetType() Type {
 	if m != nil {
 		return m.Type
 	}
 	return EXECUTE_TX
 }
 
-func (m *IBCAccountPacketData) GetData() []byte {
+func (m *InterchainAccountPacketData) GetData() []byte {
 	if m != nil {
 		return m.Data
 	}
 	return nil
 }
 
+func (m *InterchainAccountPacketData) GetMemo() string {
+	if m != nil {
+		return m.Memo
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterEnum("ibc.applications.interchain_accounts.v1.Type", Type_name, Type_value)
-	proto.RegisterType((*IBCTxRaw)(nil), "ibc.applications.interchain_accounts.v1.IBCTxRaw")
 	proto.RegisterType((*IBCTxBody)(nil), "ibc.applications.interchain_accounts.v1.IBCTxBody")
-	proto.RegisterType((*IBCAccountPacketData)(nil), "ibc.applications.interchain_accounts.v1.IBCAccountPacketData")
+	proto.RegisterType((*InterchainAccountPacketData)(nil), "ibc.applications.interchain_accounts.v1.InterchainAccountPacketData")
 }
 
 func init() {
@@ -205,63 +167,31 @@ func init() {
 }
 
 var fileDescriptor_39bab93e18d89799 = []byte{
-	// 407 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x51, 0x41, 0x6b, 0xd4, 0x40,
-	0x18, 0x4d, 0x34, 0x48, 0x3b, 0x4a, 0xd1, 0xb0, 0x42, 0x8d, 0x10, 0x4b, 0x2e, 0x16, 0x21, 0x33,
-	0x36, 0x15, 0x04, 0xa1, 0xe0, 0x26, 0x8d, 0x90, 0x8b, 0x2c, 0x31, 0x85, 0xea, 0x25, 0xcc, 0x4c,
-	0xc6, 0x74, 0x30, 0xc9, 0x84, 0xce, 0x64, 0x75, 0xfe, 0x81, 0x78, 0xf2, 0x0f, 0x78, 0xf2, 0xcf,
-	0x78, 0xec, 0xd1, 0x93, 0xc8, 0xee, 0x3f, 0xf0, 0x17, 0x48, 0x26, 0xb8, 0xeb, 0xc1, 0x83, 0xb7,
-	0x37, 0xf3, 0x7d, 0xef, 0xf1, 0xbe, 0xf7, 0xc0, 0x31, 0x27, 0x14, 0xe1, 0xbe, 0x6f, 0x38, 0xc5,
-	0x8a, 0x8b, 0x4e, 0x22, 0xde, 0x29, 0x76, 0x49, 0x2f, 0x30, 0xef, 0x4a, 0x4c, 0xa9, 0x18, 0x3a,
-	0x25, 0xd1, 0xf2, 0x08, 0x29, 0xdd, 0x33, 0x09, 0xfb, 0x4b, 0xa1, 0x84, 0xfb, 0x90, 0x13, 0x0a,
-	0xff, 0x26, 0xc1, 0x7f, 0x90, 0xe0, 0xf2, 0xc8, 0xbb, 0x57, 0x0b, 0x51, 0x37, 0x0c, 0x19, 0x1a,
-	0x19, 0xde, 0x22, 0xdc, 0xe9, 0x49, 0xc3, 0x9b, 0xd5, 0xa2, 0x16, 0x06, 0xa2, 0x11, 0x4d, 0xbf,
-	0xc1, 0x73, 0xb0, 0x93, 0xc5, 0x49, 0xf1, 0x21, 0xc7, 0xef, 0xdd, 0x27, 0x00, 0x10, 0x51, 0xe9,
-	0x92, 0x68, 0xc5, 0xe4, 0xbe, 0x7d, 0x60, 0x1f, 0xde, 0x8a, 0xef, 0xfe, 0xfa, 0xf1, 0xe0, 0x8e,
-	0xc6, 0x6d, 0xf3, 0x2c, 0xd8, 0xce, 0x82, 0x7c, 0x77, 0x7c, 0xc4, 0x06, 0x9f, 0x80, 0x5d, 0xa3,
-	0x10, 0x8b, 0x4a, 0xbb, 0x8f, 0xc1, 0x4e, 0xcb, 0xa4, 0xc4, 0xb5, 0x11, 0xb8, 0x7e, 0x78, 0x33,
-	0x9a, 0xc1, 0xc9, 0x12, 0xfc, 0x63, 0x09, 0xce, 0x3b, 0x9d, 0x6f, 0xb6, 0x82, 0x16, 0xcc, 0xb2,
-	0x38, 0x99, 0x4f, 0x37, 0x2c, 0x30, 0x7d, 0xc7, 0xd4, 0x29, 0x56, 0xd8, 0x9d, 0x03, 0x67, 0x4c,
-	0xc0, 0xd8, 0xd8, 0x8b, 0x42, 0xf8, 0x9f, 0x09, 0xc0, 0x42, 0xf7, 0x2c, 0x37, 0x54, 0xd7, 0x05,
-	0x4e, 0x85, 0x15, 0xde, 0xbf, 0x36, 0x5e, 0x92, 0x1b, 0xfc, 0xe8, 0x04, 0x38, 0xe3, 0x86, 0x8b,
-	0xc0, 0xfd, 0xe2, 0xf5, 0x22, 0x2d, 0xd3, 0xf3, 0x34, 0x39, 0x2b, 0xd2, 0xb2, 0x38, 0x2f, 0xcf,
-	0x5e, 0xbe, 0x5a, 0xa4, 0x49, 0xf6, 0x22, 0x4b, 0x4f, 0x6f, 0x5b, 0xde, 0xde, 0xa7, 0x2f, 0x07,
-	0x60, 0x3b, 0xf5, 0x9c, 0x8f, 0x5f, 0x7d, 0x2b, 0x2e, 0xbf, 0xad, 0x7c, 0xfb, 0x6a, 0xe5, 0xdb,
-	0x3f, 0x57, 0xbe, 0xfd, 0x79, 0xed, 0x5b, 0x57, 0x6b, 0xdf, 0xfa, 0xbe, 0xf6, 0xad, 0x37, 0x69,
-	0xcd, 0xd5, 0xc5, 0x40, 0x20, 0x15, 0x2d, 0xa2, 0x42, 0xb6, 0x42, 0x22, 0x4e, 0x68, 0x58, 0x0b,
-	0xb4, 0x8c, 0x50, 0x2b, 0xaa, 0xa1, 0x61, 0x72, 0xec, 0x5d, 0xa2, 0xe8, 0x69, 0xb8, 0xf5, 0x1e,
-	0x6e, 0x2a, 0x37, 0x7d, 0x93, 0x1b, 0x26, 0xa6, 0xe3, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x3e,
-	0xd3, 0x1d, 0x0c, 0x27, 0x02, 0x00, 0x00,
-}
-
-func (m *IBCTxRaw) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *IBCTxRaw) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *IBCTxRaw) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.BodyBytes) > 0 {
-		i -= len(m.BodyBytes)
-		copy(dAtA[i:], m.BodyBytes)
-		i = encodeVarintTypes(dAtA, i, uint64(len(m.BodyBytes)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
+	// 380 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0xcf, 0xaa, 0xd3, 0x40,
+	0x18, 0xc5, 0x33, 0xde, 0x20, 0xde, 0x51, 0x8a, 0x84, 0x2e, 0x62, 0x0a, 0x21, 0x74, 0x63, 0x10,
+	0x32, 0x63, 0xd3, 0x85, 0xab, 0x2e, 0xfa, 0x27, 0x42, 0x36, 0x52, 0x62, 0x0a, 0xd5, 0x4d, 0x98,
+	0x4c, 0xc7, 0x74, 0xb0, 0xc9, 0x84, 0xce, 0xa4, 0x98, 0x37, 0x28, 0xae, 0x7c, 0x01, 0x57, 0xbe,
+	0x8c, 0xcb, 0x2e, 0x5d, 0x4a, 0xfb, 0x22, 0x92, 0x04, 0x5b, 0x17, 0x2e, 0xee, 0xee, 0xf0, 0xcd,
+	0xfc, 0x0e, 0xdf, 0xf9, 0x0e, 0x1c, 0xf3, 0x94, 0x62, 0x52, 0x96, 0x3b, 0x4e, 0x89, 0xe2, 0xa2,
+	0x90, 0x98, 0x17, 0x8a, 0xed, 0xe9, 0x96, 0xf0, 0x22, 0x21, 0x94, 0x8a, 0xaa, 0x50, 0x12, 0x1f,
+	0x46, 0x58, 0xd5, 0x25, 0x93, 0xa8, 0xdc, 0x0b, 0x25, 0x8c, 0x97, 0x3c, 0xa5, 0xe8, 0x5f, 0x08,
+	0xfd, 0x07, 0x42, 0x87, 0x91, 0xf5, 0x22, 0x13, 0x22, 0xdb, 0x31, 0xdc, 0x62, 0x69, 0xf5, 0x09,
+	0x93, 0xa2, 0xee, 0x3c, 0xac, 0x7e, 0x26, 0x32, 0xd1, 0x4a, 0xdc, 0xa8, 0x6e, 0x3a, 0x9c, 0xc0,
+	0xfb, 0x70, 0x36, 0x8f, 0xbf, 0xcc, 0xc4, 0xa6, 0x36, 0x5e, 0xc3, 0x27, 0x39, 0x93, 0x92, 0x64,
+	0x4c, 0x9a, 0xc0, 0xb9, 0x73, 0x9f, 0xfa, 0x7d, 0xd4, 0x19, 0xa2, 0xbf, 0x86, 0x68, 0x5a, 0xd4,
+	0xd1, 0xf5, 0xd7, 0xf0, 0x08, 0xe0, 0x20, 0xbc, 0xae, 0x32, 0xed, 0x36, 0x59, 0x12, 0xfa, 0x99,
+	0xa9, 0x05, 0x51, 0xc4, 0x98, 0x42, 0xbd, 0xc9, 0x61, 0x02, 0x07, 0xb8, 0x3d, 0xdf, 0x43, 0x0f,
+	0xcc, 0x81, 0xe2, 0xba, 0x64, 0x51, 0x8b, 0x1a, 0x06, 0xd4, 0x37, 0x44, 0x11, 0xf3, 0x91, 0x03,
+	0xdc, 0x67, 0x51, 0xab, 0x9b, 0x59, 0xce, 0x72, 0x61, 0xde, 0x39, 0xc0, 0xbd, 0x8f, 0x5a, 0xfd,
+	0x6a, 0x02, 0xf5, 0x86, 0x32, 0x30, 0x1c, 0xc4, 0x1f, 0x96, 0x41, 0x12, 0xac, 0x83, 0xf9, 0x2a,
+	0x0e, 0x92, 0x78, 0x9d, 0xac, 0xde, 0xbd, 0x5f, 0x06, 0xf3, 0xf0, 0x6d, 0x18, 0x2c, 0x9e, 0x6b,
+	0x56, 0xef, 0xeb, 0x77, 0x07, 0xde, 0x5e, 0x2d, 0xfd, 0xf8, 0xc3, 0xd6, 0x66, 0xc9, 0xcf, 0xb3,
+	0x0d, 0x4e, 0x67, 0x1b, 0xfc, 0x3e, 0xdb, 0xe0, 0xdb, 0xc5, 0xd6, 0x4e, 0x17, 0x5b, 0xfb, 0x75,
+	0xb1, 0xb5, 0x8f, 0x41, 0xc6, 0xd5, 0xb6, 0x4a, 0x11, 0x15, 0x39, 0xa6, 0x42, 0xe6, 0x42, 0x62,
+	0x9e, 0x52, 0x2f, 0x13, 0xf8, 0xe0, 0xe3, 0x5c, 0x6c, 0xaa, 0x1d, 0x93, 0x4d, 0xa3, 0x12, 0xfb,
+	0x6f, 0xbc, 0x5b, 0x1e, 0xef, 0x5a, 0x66, 0xdb, 0x64, 0xfa, 0xb8, 0x3d, 0xe1, 0xf8, 0x4f, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x69, 0x0c, 0xd9, 0x88, 0x01, 0x02, 0x00, 0x00,
 }
 
 func (m *IBCTxBody) Marshal() (dAtA []byte, err error) {
@@ -301,7 +231,7 @@ func (m *IBCTxBody) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *IBCAccountPacketData) Marshal() (dAtA []byte, err error) {
+func (m *InterchainAccountPacketData) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -311,16 +241,23 @@ func (m *IBCAccountPacketData) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *IBCAccountPacketData) MarshalTo(dAtA []byte) (int, error) {
+func (m *InterchainAccountPacketData) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *IBCAccountPacketData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *InterchainAccountPacketData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if len(m.Memo) > 0 {
+		i -= len(m.Memo)
+		copy(dAtA[i:], m.Memo)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.Memo)))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.Data) > 0 {
 		i -= len(m.Data)
 		copy(dAtA[i:], m.Data)
@@ -347,19 +284,6 @@ func encodeVarintTypes(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *IBCTxRaw) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.BodyBytes)
-	if l > 0 {
-		n += 1 + l + sovTypes(uint64(l))
-	}
-	return n
-}
-
 func (m *IBCTxBody) Size() (n int) {
 	if m == nil {
 		return 0
@@ -375,7 +299,7 @@ func (m *IBCTxBody) Size() (n int) {
 	return n
 }
 
-func (m *IBCAccountPacketData) Size() (n int) {
+func (m *InterchainAccountPacketData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -388,6 +312,10 @@ func (m *IBCAccountPacketData) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
+	l = len(m.Memo)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
 	return n
 }
 
@@ -396,90 +324,6 @@ func sovTypes(x uint64) (n int) {
 }
 func sozTypes(x uint64) (n int) {
 	return sovTypes(uint64((x << 1) ^ uint64((int64(x) >> 63))))
-}
-func (m *IBCTxRaw) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTypes
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: IBCTxRaw: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: IBCTxRaw: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BodyBytes", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.BodyBytes = append(m.BodyBytes[:0], dAtA[iNdEx:postIndex]...)
-			if m.BodyBytes == nil {
-				m.BodyBytes = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTypes(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
 }
 func (m *IBCTxBody) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -565,7 +409,7 @@ func (m *IBCTxBody) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *IBCAccountPacketData) Unmarshal(dAtA []byte) error {
+func (m *InterchainAccountPacketData) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -588,10 +432,10 @@ func (m *IBCAccountPacketData) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: IBCAccountPacketData: wiretype end group for non-group")
+			return fmt.Errorf("proto: InterchainAccountPacketData: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: IBCAccountPacketData: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: InterchainAccountPacketData: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -646,6 +490,38 @@ func (m *IBCAccountPacketData) Unmarshal(dAtA []byte) error {
 			if m.Data == nil {
 				m.Data = []byte{}
 			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Memo", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Memo = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
