@@ -4,7 +4,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-func AccumulateChanges(currentChanges []abci.ValidatorUpdate, newChanges []abci.ValidatorUpdate) []abci.ValidatorUpdate {
+func AccumulateChanges(currentChanges, newChanges []abci.ValidatorUpdate) []abci.ValidatorUpdate {
 	m := make(map[string]abci.ValidatorUpdate)
 
 	for i := 0; i < len(currentChanges); i++ {

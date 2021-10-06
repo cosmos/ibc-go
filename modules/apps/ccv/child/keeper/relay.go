@@ -31,18 +31,22 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, newCha
 		k.SetChannelStatus(ctx, packet.DestinationChannel, ccv.VALIDATING)
 		k.SetParentChannel(ctx, packet.DestinationChannel)
 	}
-	// Set PendingChanges to be flushed and the unbonding time and unbonding packet.
+
+	// Set pending changes by accumulating changes from this packet with all prior changes
+	var pendingChanges []abci.ValidatorUpdate
 	currentChanges, exists := k.GetPendingChanges(ctx)
 	if !exists {
-		currentChanges = &ccv.ValidatorSetChangePacketData{ValidatorUpdates: []abci.ValidatorUpdate{}}
+		pendingChanges = newChanges.ValidatorUpdates
+	} else {
+		pendingChanges = utils.AccumulateChanges(currentChanges.ValidatorUpdates, newChanges.ValidatorUpdates)
 	}
-	k.SetPendingChanges(ctx, ccv.ValidatorSetChangePacketData{
-		ValidatorUpdates: utils.AccumulateChanges(currentChanges.ValidatorUpdates, newChanges.ValidatorUpdates),
-	})
+	k.SetPendingChanges(ctx, ccv.ValidatorSetChangePacketData{ValidatorUpdates: pendingChanges})
 
+	// Save unbonding time and packet
 	unbondingTime := ctx.BlockTime().Add(types.UnbondingTime)
 	k.SetUnbondingTime(ctx, packet.Sequence, uint64(unbondingTime.UnixNano()))
 	k.SetUnbondingPacket(ctx, packet.Sequence, packet)
+
 	// ack will be sent asynchronously
 	return nil
 }

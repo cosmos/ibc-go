@@ -57,11 +57,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	)
 
 	testCases := []struct {
-		name           string
-		packet         channeltypes.Packet
-		newChanges     types.ValidatorSetChangePacketData
-		pendingChanges types.ValidatorSetChangePacketData
-		expErrorAck    bool
+		name                   string
+		packet                 channeltypes.Packet
+		newChanges             types.ValidatorSetChangePacketData
+		expectedPendingChanges types.ValidatorSetChangePacketData
+		expErrorAck            bool
 	}{
 		{
 			"success on first packet",
@@ -78,14 +78,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			types.ValidatorSetChangePacketData{ValidatorUpdates: changes1},
 			types.ValidatorSetChangePacketData{ValidatorUpdates: changes1},
 			false,
-		},
-		{
-			"invalid packet: different destination channel than parent channel",
-			channeltypes.NewPacket(pd.GetBytes(), 1, parenttypes.PortID, suite.path.EndpointB.ChannelID, childtypes.PortID, "InvalidChannel",
-				clienttypes.NewHeight(1, 0), 0),
-			types.ValidatorSetChangePacketData{ValidatorUpdates: []abci.ValidatorUpdate{}},
-			types.ValidatorSetChangePacketData{ValidatorUpdates: []abci.ValidatorUpdate{}},
-			true,
 		},
 		{
 			"success on packet with more changes",
@@ -107,6 +99,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				},
 			}},
 			false,
+		},
+		{
+			"invalid packet: different destination channel than parent channel",
+			channeltypes.NewPacket(pd.GetBytes(), 1, parenttypes.PortID, suite.path.EndpointB.ChannelID, childtypes.PortID, "InvalidChannel",
+				clienttypes.NewHeight(1, 0), 0),
+			types.ValidatorSetChangePacketData{ValidatorUpdates: []abci.ValidatorUpdate{}},
+			types.ValidatorSetChangePacketData{ValidatorUpdates: []abci.ValidatorUpdate{}},
+			true,
 		},
 	}
 
@@ -132,10 +132,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			sort.SliceStable(actualPendingChanges.ValidatorUpdates, func(i, j int) bool {
 				return actualPendingChanges.ValidatorUpdates[i].PubKey.Compare(actualPendingChanges.ValidatorUpdates[j].PubKey) == -1
 			})
-			sort.SliceStable(tc.pendingChanges.ValidatorUpdates, func(i, j int) bool {
-				return tc.pendingChanges.ValidatorUpdates[i].PubKey.Compare(tc.pendingChanges.ValidatorUpdates[j].PubKey) == -1
+			sort.SliceStable(tc.expectedPendingChanges.ValidatorUpdates, func(i, j int) bool {
+				return tc.expectedPendingChanges.ValidatorUpdates[i].PubKey.Compare(tc.expectedPendingChanges.ValidatorUpdates[j].PubKey) == -1
 			})
-			suite.Require().Equal(tc.pendingChanges, *actualPendingChanges, "pending changes not equal to expected changes after successful packet receive. case: %s", tc.name)
+			suite.Require().Equal(tc.expectedPendingChanges, *actualPendingChanges, "pending changes not equal to expected changes after successful packet receive. case: %s", tc.name)
 
 			expectedTime := uint64(suite.ctx.BlockTime().Add(childtypes.UnbondingTime).UnixNano())
 			unbondingTime := suite.childChain.GetSimApp().ChildKeeper.GetUnbondingTime(suite.ctx, tc.packet.Sequence)
