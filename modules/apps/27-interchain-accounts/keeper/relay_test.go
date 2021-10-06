@@ -88,6 +88,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			suite.SetupTest() // reset
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
+			memo := "memo"
 
 			err := suite.SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -96,7 +97,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 
 			tc.malleate()
 
-			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), portID, msg)
+			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), portID, msg, memo)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -131,7 +132,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 
-				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
+				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
 					Data: txBytes}
 				packetData = data.GetBytes()
 			}, true,
@@ -139,20 +140,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"Cannot deserialize txBytes", func() {
 				txBytes = []byte("invalid tx bytes")
-				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
-					Data: txBytes}
-				packetData = data.GetBytes()
-			}, false,
-		},
-		{
-			"Cannot deserialize txBytes: invalid IBCTxRaw", func() {
-				txBody := []byte("invalid tx body")
-				txRaw := &types.IBCTxRaw{
-					BodyBytes: txBody,
-				}
-
-				txBytes = suite.chainB.Codec.MustMarshal(txRaw)
-				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
+				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
 					Data: txBytes}
 				packetData = data.GetBytes()
 			}, false,
@@ -162,13 +150,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				txBytes = []byte{}
 				// Type here is an ENUM
 				// Valid type is types.EXECUTE_TX
-				data := types.IBCAccountPacketData{Type: 100,
+				data := types.InterchainAccountPacketData{Type: 100,
 					Data: txBytes}
 				packetData = data.GetBytes()
 			}, false,
 		},
 		{
-			"Cannot unmarshal interchain account packet data into types.IBCAccountPacketData", func() {
+			"Cannot unmarshal interchain account packet data into types.InterchainAccountPacketData", func() {
 				packetData = []byte{}
 			}, false,
 		},
@@ -186,7 +174,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// build packet data
 				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
-				data := types.IBCAccountPacketData{Type: types.EXECUTE_TX,
+				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
 					Data: txBytes}
 				packetData = data.GetBytes()
 			}, false,

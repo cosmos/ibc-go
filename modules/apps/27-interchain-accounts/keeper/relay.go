@@ -15,7 +15,7 @@ import (
 
 // TODO: implement middleware functionality, this will allow us to use capabilities to
 // manage helper module access to owner addresses they do not have capabilities for
-func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}) ([]byte, error) {
+func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}, memo string) ([]byte, error) {
 	// Check for the active channel
 	activeChannelId, found := k.GetActiveChannel(ctx, portID)
 	if !found {
@@ -30,7 +30,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}) ([]b
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, data)
+	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, data, memo)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -40,6 +40,7 @@ func (k Keeper) createOutgoingPacket(
 	destinationPort,
 	destinationChannel string,
 	data interface{},
+	memo string,
 ) ([]byte, error) {
 	if data == nil {
 		return []byte{}, types.ErrInvalidOutgoingData
@@ -72,9 +73,10 @@ func (k Keeper) createOutgoingPacket(
 		return []byte{}, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetData := types.IBCAccountPacketData{
+	packetData := types.InterchainAccountPacketData{
 		Type: types.EXECUTE_TX,
 		Data: txBytes,
+		Memo: memo,
 	}
 
 	// timeoutTimestamp is set to be a max number here so that we never recieve a timeout
@@ -98,17 +100,9 @@ func (k Keeper) createOutgoingPacket(
 // DeserializeCosmosTx will unmarshal and unpack a slice of transaction bytes
 // into a slice of sdk.Msg's.
 func (k Keeper) DeserializeCosmosTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
-	var txRaw types.IBCTxRaw
-
-	err := k.cdc.Unmarshal(txBytes, &txRaw)
-	if err != nil {
-		return nil, err
-	}
-
 	var txBody types.IBCTxBody
 
-	err = k.cdc.Unmarshal(txRaw.BodyBytes, &txBody)
-	if err != nil {
+	if err := k.cdc.Unmarshal(txBytes, &txBody); err != nil {
 		return nil, err
 	}
 
@@ -202,7 +196,7 @@ func (k Keeper) ComputeVirtualTxHash(txBytes []byte, seq uint64) []byte {
 }
 
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error {
-	var data types.IBCAccountPacketData
+	var data types.InterchainAccountPacketData
 
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return sdkerrors.Wrapf(types.ErrUnknownPacketData, "cannot unmarshal ICS-27 interchain account packet data")
@@ -226,7 +220,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	}
 }
 
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.IBCAccountPacketData, ack channeltypes.Acknowledgement) error {
+func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.InterchainAccountPacketData, ack channeltypes.Acknowledgement) error {
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
 		if k.hook != nil {
@@ -245,7 +239,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 }
 
-func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.IBCAccountPacketData) error {
+func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.InterchainAccountPacketData) error {
 	if k.hook != nil {
 		k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Data, packet.Sequence), data.Data)
 	}
