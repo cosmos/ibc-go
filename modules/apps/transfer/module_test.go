@@ -12,9 +12,10 @@ import (
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	var (
-		channel *channeltypes.Channel
-		path    *ibctesting.Path
-		chanCap *capabilitytypes.Capability
+		channel      *channeltypes.Channel
+		path         *ibctesting.Path
+		chanCap      *capabilitytypes.Capability
+		counterparty channeltypes.Counterparty
 	)
 
 	testCases := []struct {
@@ -63,7 +64,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
-			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.INIT,
 				Ordering:       channeltypes.UNORDERED,
@@ -84,7 +85,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.GetVersion(),
 			)
 
 			if tc.expPass {
@@ -102,6 +103,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		channel             *channeltypes.Channel
 		chanCap             *capabilitytypes.Capability
 		path                *ibctesting.Path
+		counterparty        channeltypes.Counterparty
 		counterpartyVersion string
 	)
 
@@ -157,7 +159,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
-			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
 				Ordering:       channeltypes.UNORDERED,
@@ -179,7 +181,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.GetVersion(), counterpartyVersion,
 			)
 
 			if tc.expPass {
