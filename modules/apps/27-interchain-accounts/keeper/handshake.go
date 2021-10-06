@@ -45,7 +45,7 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, portID)
 	}
 
-	if err := k.validateControllerPort(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
+	if err := k.validateControllerPortParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
 		return sdkerrors.Wrapf(err, "failed to validate controller port %s", portID)
 	}
 
@@ -103,8 +103,8 @@ func (k Keeper) OnChanOpenTry(
 		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, counterparty.PortId)
 	}
 
-	if err := k.validateControllerPort(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
-		return sdkerrors.Wrapf(err, "failed to validate controller port connection parameters %s", counterparty.PortId)
+	if err := k.validateControllerPortParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
+		return sdkerrors.Wrapf(err, "failed to validate controller port %s", counterparty.PortId)
 	}
 
 	if err := types.ValidateVersion(version); err != nil {
@@ -173,9 +173,9 @@ func (k Keeper) OnChanOpenConfirm(
 	return nil
 }
 
-// validateControllerPort asserts the provided connection sequence and counterparty connection sequence
+// validateControllerPortParams asserts the provided connection sequence and counterparty connection sequence
 // match that of the associated connection stored in state
-func (k Keeper) validateControllerPort(ctx sdk.Context, channelID, portID string, connectionSeq, counterpartyConnectionSeq uint64) error {
+func (k Keeper) validateControllerPortParams(ctx sdk.Context, channelID, portID string, connectionSeq, counterpartyConnectionSeq uint64) error {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID %s channel ID %s", portID, channelID)
