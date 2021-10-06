@@ -46,9 +46,20 @@ func (k Keeper) createOutgoingPacket(
 		return []byte{}, types.ErrInvalidOutgoingData
 	}
 
-	txBytes, err := k.SerializeCosmosTx(k.cdc, data)
+	var (
+		txBytes []byte
+		err     error
+	)
+
+	switch data := data.(type) {
+	case []sdk.Msg:
+		txBytes, err = k.SerializeCosmosTx(k.cdc, data)
+	default:
+		return nil, sdkerrors.Wrapf(types.ErrInvalidOutgoingData, "message type %T is not supported", data)
+	}
+
 	if err != nil {
-		return []byte{}, sdkerrors.Wrap(err, "invalid packet data or codec")
+		return nil, sdkerrors.Wrap(err, "serialization of transaction data failed")
 	}
 
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
@@ -86,7 +97,9 @@ func (k Keeper) createOutgoingPacket(
 	return k.ComputeVirtualTxHash(packetData.Data, packet.Sequence), k.channelKeeper.SendPacket(ctx, channelCap, packet)
 }
 
-func (k Keeper) DeserializeTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
+// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
+// into a slice of sdk.Msg's.
+func (k Keeper) DeserializeCosmosTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
 	var txBody types.IBCTxBody
 
 	if err := k.cdc.Unmarshal(txBytes, &txBody); err != nil {
@@ -191,7 +204,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 
 	switch data.Type {
 	case types.EXECUTE_TX:
-		msgs, err := k.DeserializeTx(ctx, data.Data)
+		msgs, err := k.DeserializeCosmosTx(ctx, data.Data)
 		if err != nil {
 			return err
 		}
