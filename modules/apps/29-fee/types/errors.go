@@ -9,4 +9,5 @@ var (
 	ErrInvalidVersion    = sdkerrors.Register(ModuleName, 1, "invalid ICS29 middleware version")
 	ErrRefundAccNotFound = sdkerrors.Register(ModuleName, 2, "No account found for given refund address")
 	ErrBalanceNotFound   = sdkerrors.Register(ModuleName, 3, "Balance not found for given account address")
+	ErrFeeNotFound       = sdkerrors.Register(ModuleName, 4, "There is no fee escrowed for the given packetId")
 )
