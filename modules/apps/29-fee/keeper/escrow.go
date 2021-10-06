@@ -30,11 +30,13 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee t
 		}
 	}
 
-	// escrow each fee with account module
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(
-		ctx, refundAcc, types.ModuleName, fees,
-	); err != nil {
-		return err
+	for _, coin := range fees {
+		// escrow each fee with account module
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(
+			ctx, refundAcc, types.ModuleName, sdk.Coins{coin},
+		); err != nil {
+			return err
+		}
 	}
 
 	// Store fee in state for reference later
