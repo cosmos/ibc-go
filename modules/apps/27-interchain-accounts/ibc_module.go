@@ -152,8 +152,7 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) error {
-	// TODO
-	return nil
+	return im.keeper.OnTimeoutPacket(ctx, packet)
 }
 
 // NegotiateAppVersion implements the IBCModule interface
