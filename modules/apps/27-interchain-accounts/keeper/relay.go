@@ -97,7 +97,7 @@ func (k Keeper) createOutgoingPacket(
 	return k.ComputeVirtualTxHash(packetData.Data, packet.Sequence), k.channelKeeper.SendPacket(ctx, channelCap, packet)
 }
 
-// DeserializeCosmosTx will unmarshal and unpack a slice of transaction bytes
+// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
 // into a slice of sdk.Msg's.
 func (k Keeper) DeserializeCosmosTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
 	var txBody types.IBCTxBody
