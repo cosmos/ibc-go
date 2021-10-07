@@ -108,9 +108,17 @@ func (suite *KeeperTestSuite) TestIsBound() {
 	suite.Require().True(isBound)
 }
 
-func (suite *KeeperTestSuite) TestGetPort() {
-	port := suite.chainA.GetSimApp().ICAKeeper.GetPort(suite.chainA.GetContext(), types.PortID)
-	suite.Require().Equal(string([]byte{0x01}), port)
+func (suite *KeeperTestSuite) TestGetAllPorts() {
+	suite.SetupTest()
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	ports := suite.chainA.GetSimApp().ICAKeeper.GetAllPorts(suite.chainA.GetContext())
+	suite.Require().Contains(ports, types.PortID)
+	suite.Require().Contains(ports, TestPortID)
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {

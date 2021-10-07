@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	baseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -86,10 +87,20 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
 }
 
-// GetPort returns the portID for the interchain accounts module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context, portID string) string {
+// GetAllPorts returns all ports to which the interchain accounts module is bound. Used in ExportGenesis
+func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 	store := ctx.KVStore(k.storeKey)
-	return string(store.Get(types.KeyPort(portID)))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PortKeyPrefix))
+	defer iterator.Close()
+
+	var ports []string
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		ports = append(ports, keySplit[1])
+	}
+
+	return ports
 }
 
 // BindPort stores the provided portID and binds to it, returning the associated capability
