@@ -45,7 +45,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee t
 	return nil
 }
 
-// PayFee pays the acknowledgement fee & recieve fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
+// PayFee pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
 func (k Keeper) payFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer sdk.AccAddress, packetID channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, refundAcc.String(), packetID.ChannelId, packetID.Sequence)
@@ -56,17 +56,17 @@ func (k Keeper) payFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelaye
 	// get module accAddr
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
-	// send ack fee to forward relayer
+	// send ack fee to reverse relayer
 	if feeInEscrow.AckFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, sdk.Coins{*feeInEscrow.AckFee})
+		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.AckFee})
 		if err != nil {
 			return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.AckFee.Denom, feeInEscrow.AckFee.Amount))
 		}
 	}
 
-	// send ack fee to forward relayer
+	// send receive fee to forward relayer
 	if feeInEscrow.ReceiveFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.ReceiveFee})
+		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, sdk.Coins{*feeInEscrow.ReceiveFee})
 		if err != nil {
 			return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.ReceiveFee.Denom, feeInEscrow.ReceiveFee.Amount))
 		}
@@ -86,7 +86,7 @@ func (k Keeper) payFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelaye
 	return nil
 }
 
-// PayFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & recieve fee to the refund account associated with the Fee
+// PayFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
 func (k Keeper) payFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.AccAddress, packetID channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, refundAcc.String(), packetID.ChannelId, packetID.Sequence)
@@ -105,7 +105,7 @@ func (k Keeper) payFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.Acc
 		}
 	}
 
-	// refund the recieve fee
+	// refund the receive fee
 	if feeInEscrow.ReceiveFee != nil {
 		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.ReceiveFee})
 		if err != nil {

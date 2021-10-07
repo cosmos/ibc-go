@@ -30,9 +30,9 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			// setup
 			refundAcc := suite.chainA.SenderAccount.GetAddress()
 			ackFee := &sdk.Coin{Denom: "stake", Amount: sdk.NewInt(100)}
-			recieveFee := &sdk.Coin{Denom: "stake", Amount: sdk.NewInt(100)}
+			receiveFee := &sdk.Coin{Denom: "stake", Amount: sdk.NewInt(100)}
 			timeoutFee := &sdk.Coin{Denom: "stake", Amount: sdk.NewInt(100)}
-			fee := types.Fee{ackFee, recieveFee, timeoutFee}
+			fee := types.Fee{ackFee, receiveFee, timeoutFee}
 			packetId := channeltypes.PacketId{ChannelId: "channel-0", PortId: "fee", Sequence: uint64(1)}
 
 			tc.malleate()
