@@ -29,11 +29,11 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			"success", func() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
+				msg = []sdk.Msg{&banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}}
 			}, true,
 		},
 		{
-			"success with []sdk.Message", func() {
+			"success with multiple sdk.Msg", func() {
 				amount, _ := sdk.ParseCoinsNormalized("100stake")
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg1 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
@@ -44,6 +44,13 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"incorrect outgoing data", func() {
 				msg = []byte{}
+			}, false,
+		},
+		{
+			"incorrect outgoing data - []sdk.Msg is not used", func() {
+				amount, _ := sdk.ParseCoinsNormalized("100stake")
+				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 			}, false,
 		},
 		{
@@ -122,7 +129,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, msg)
+				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 
 				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
@@ -165,7 +172,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// Incorrect FromAddress
 				msg = &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, msg)
+				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
 					Data: txBytes}
@@ -207,6 +214,48 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success", func() {}, true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := suite.SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			tc.malleate() // malleate mutates test data
+
+			packet := channeltypes.NewPacket([]byte{}, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			err = suite.chainA.GetSimApp().ICAKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)
+
+			channel, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Empty(channel)
+				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
 			}

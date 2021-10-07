@@ -29,7 +29,7 @@ func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
 	}
 }
 
-// Implement IBCModule callbacks
+// OnChanOpenInit implements the IBCModule interface
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -43,6 +43,7 @@ func (im IBCModule) OnChanOpenInit(
 	return im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 }
 
+// OnChanOpenTry implements the IBCModule interface
 func (im IBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -57,6 +58,7 @@ func (im IBCModule) OnChanOpenTry(
 	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
 }
 
+// OnChanOpenAck implements the IBCModule interface
 func (im IBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
@@ -66,6 +68,7 @@ func (im IBCModule) OnChanOpenAck(
 	return im.keeper.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
 }
 
+// OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
@@ -74,6 +77,7 @@ func (im IBCModule) OnChanOpenConfirm(
 	return im.keeper.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
+// OnChanCloseInit implements the IBCModule interface
 func (im IBCModule) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
@@ -83,14 +87,16 @@ func (im IBCModule) OnChanCloseInit(
 	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
+// OnChanCloseConfirm implements the IBCModule interface
 func (im IBCModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
-	return nil
+	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
+// OnRecvPacket implements the IBCModule interface
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -116,6 +122,7 @@ func (im IBCModule) OnRecvPacket(
 	return ack
 }
 
+// OnAcknowledgementPacket implements the IBCModule interface
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -139,13 +146,13 @@ func (im IBCModule) OnAcknowledgementPacket(
 	return nil
 }
 
+// OnTimeoutPacket implements the IBCModule interface
 func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) error {
-	// TODO
-	return nil
+	return im.keeper.OnTimeoutPacket(ctx, packet)
 }
 
 // NegotiateAppVersion implements the IBCModule interface
