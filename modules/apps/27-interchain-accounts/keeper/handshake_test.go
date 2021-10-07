@@ -428,3 +428,47 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+
+		{
+			"success", func() {}, true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			tc.malleate() // explicitly change fields in channel and testChannel
+
+			err = suite.chainB.GetSimApp().ICAKeeper.OnChanCloseConfirm(suite.chainB.GetContext(),
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+			activeChannel, found := suite.chainB.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().False(found)
+				suite.Require().Empty(activeChannel)
+			} else {
+				suite.Require().Error(err)
+			}
+
+		})
+	}
+}

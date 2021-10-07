@@ -233,10 +233,10 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 }
 
-func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.InterchainAccountPacketData) error {
-	if k.hook != nil {
-		k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, packet.Data, data.Data)
-	}
+// OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
+// due to the semantics of ORDERED channels
+func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+	k.DeleteActiveChannel(ctx, packet.SourcePort)
 
 	return nil
 }

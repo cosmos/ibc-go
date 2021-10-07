@@ -220,3 +220,45 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success", func() {}, true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := suite.SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			tc.malleate() // malleate mutates test data
+
+			packet := channeltypes.NewPacket([]byte{}, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			err = suite.chainA.GetSimApp().ICAKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)
+
+			channel, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Empty(channel)
+				suite.Require().False(found)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

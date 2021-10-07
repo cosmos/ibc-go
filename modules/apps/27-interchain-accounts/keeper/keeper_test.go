@@ -169,8 +169,7 @@ func (suite *KeeperTestSuite) SetupICAPath(path *ibctesting.Path, owner string) 
 		return err
 	}
 
-	if err := suite.chainB.GetSimApp().ICAKeeper.OnChanOpenConfirm(suite.chainA.GetContext(),
-		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID); err != nil {
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
 		return err
 	}
 
