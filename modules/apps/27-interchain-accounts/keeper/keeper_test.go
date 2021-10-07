@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,7 +20,7 @@ var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID = fmt.Sprintf("%s-0-0-%s", types.VersionPrefix, TestOwnerAddress)
+	TestPortID, _ = types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-0")
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
 	TestVersion = types.NewAppVersion(types.VersionPrefix, TestAccAddress.String())
 )
