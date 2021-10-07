@@ -17,7 +17,6 @@
     - [Query](#ibc.applications.interchain_accounts.v1.Query)
   
 - [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
-    - [IBCTxBody](#ibc.applications.interchain_accounts.v1.IBCTxBody)
     - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
   
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
@@ -398,31 +397,16 @@ Query defines the gRPC querier service.
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.IBCTxBody"></a>
-
-### IBCTxBody
-Body of a tx for an ics27 IBC packet
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
-
-
-
-
-
-
 <a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
 
 ### InterchainAccountPacketData
-InterchainAccountPacketData is comprised of araw transaction,type of transaction and optional memo field.
+InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
-| `data` | [bytes](#bytes) |  |  |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
 | `memo` | [string](#string) |  |  |
 
 

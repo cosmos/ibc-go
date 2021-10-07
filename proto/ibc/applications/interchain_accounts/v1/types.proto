@@ -5,10 +5,6 @@ import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
-// Body of a tx for an ics27 IBC packet
-message IBCTxBody {
-  repeated google.protobuf.Any messages = 1;
-}
 
 // The different types of interchain account transactions
 // EXECUTE_TX is used when sending a TX from the controller side to the host side. The host side will execute the tx on
@@ -22,6 +18,6 @@ enum Type {
 // InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 message InterchainAccountPacketData {
   Type  type = 1;
-  bytes data = 2;
+ repeated google.protobuf.Any messages = 2;
   string memo = 3;
 }

@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -47,13 +48,13 @@ func (k Keeper) createOutgoingPacket(
 	}
 
 	var (
-		txBytes []byte
-		err     error
+		msgs []*codectypes.Any
+		err  error
 	)
 
 	switch data := data.(type) {
 	case []sdk.Msg:
-		txBytes, err = k.SerializeCosmosTx(k.cdc, data)
+		msgs, err = k.SerializeCosmosTx(k.cdc, data)
 	default:
 		return nil, sdkerrors.Wrapf(types.ErrInvalidOutgoingData, "message type %T is not supported", data)
 	}
@@ -74,9 +75,9 @@ func (k Keeper) createOutgoingPacket(
 	}
 
 	packetData := types.InterchainAccountPacketData{
-		Type: types.EXECUTE_TX,
-		Data: txBytes,
-		Memo: memo,
+		Type:     types.EXECUTE_TX,
+		Messages: msgs,
+		Memo:     memo,
 	}
 
 	// timeoutTimestamp is set to be a max number here so that we never recieve a timeout
@@ -94,30 +95,26 @@ func (k Keeper) createOutgoingPacket(
 		timeoutTimestamp,
 	)
 
-	return k.ComputeVirtualTxHash(packetData.Data, packet.Sequence), k.channelKeeper.SendPacket(ctx, channelCap, packet)
+	return k.ComputeVirtualTxHash(packetData.Messages, packet.Sequence), k.channelKeeper.SendPacket(ctx, channelCap, packet)
 }
 
 // DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
 // into a slice of sdk.Msg's.
-func (k Keeper) DeserializeCosmosTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
-	var txBody types.IBCTxBody
+func (k Keeper) DeserializeCosmosTx(_ sdk.Context, anys []*codectypes.Any) ([]sdk.Msg, error) {
+	msgs := make([]sdk.Msg, len(anys))
 
-	if err := k.cdc.Unmarshal(txBytes, &txBody); err != nil {
-		return nil, err
-	}
-
-	anys := txBody.Messages
-	res := make([]sdk.Msg, len(anys))
 	for i, any := range anys {
 		var msg sdk.Msg
+
 		err := k.cdc.UnpackAny(any, &msg)
 		if err != nil {
 			return nil, err
 		}
-		res[i] = msg
+
+		msgs[i] = msg
 	}
 
-	return res, nil
+	return msgs, nil
 }
 
 func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) error {
@@ -204,7 +201,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 
 	switch data.Type {
 	case types.EXECUTE_TX:
-		msgs, err := k.DeserializeCosmosTx(ctx, data.Data)
+		msgs, err := k.DeserializeCosmosTx(ctx, data.Messages)
 		if err != nil {
 			return err
 		}
@@ -224,12 +221,12 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
 		if k.hook != nil {
-			k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Data, packet.Sequence), data.Data)
+			k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Messages, packet.Sequence), data.Messages)
 		}
 		return nil
 	case *channeltypes.Acknowledgement_Result:
 		if k.hook != nil {
-			k.hook.OnTxSucceeded(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Data, packet.Sequence), data.Data)
+			k.hook.OnTxSucceeded(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Messages, packet.Sequence), data.Messages)
 		}
 		return nil
 	default:
@@ -241,7 +238,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.InterchainAccountPacketData) error {
 	if k.hook != nil {
-		k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Data, packet.Sequence), data.Data)
+		k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, k.ComputeVirtualTxHash(data.Messages, packet.Sequence), data.Messages)
 	}
 
 	return nil
