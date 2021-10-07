@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			fee := types.Fee{ackFee, recieveFee, timeoutFee}
 			packetId := channeltypes.PacketId{ChannelId: "channel-0", PortId: "fee", Sequence: uint64(1)}
 
-			tc.malleate() // explicitly change fields in channel and testChannel
+			tc.malleate()
 
 			// escrow the packet fee
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, fee, packetId)
