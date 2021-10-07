@@ -17,6 +17,7 @@
     - [Query](#ibc.applications.interchain_accounts.v1.Query)
   
 - [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
+    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
     - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
   
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
@@ -397,6 +398,21 @@ Query defines the gRPC querier service.
 
 
 
+<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
+
+### CosmosTx
+CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
 <a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
 
 ### InterchainAccountPacketData
@@ -406,7 +422,7 @@ InterchainAccountPacketData is comprised of a raw transaction, type of transacti
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
-| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `data` | [bytes](#bytes) |  |  |
 | `memo` | [string](#string) |  |  |
 
 

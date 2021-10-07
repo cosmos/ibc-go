@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -112,7 +113,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
 		path       *ibctesting.Path
 		msg        sdk.Msg
-		txBytes    []byte
 		packetData []byte
 		sourcePort string
 	)
@@ -129,29 +129,36 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
+				msgs, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 
 				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
-					Data: txBytes}
+					Messages: msgs,
+				}
 				packetData = data.GetBytes()
 			}, true,
 		},
 		{
-			"Cannot deserialize txBytes", func() {
-				txBytes = []byte("invalid tx bytes")
+			"Cannot deserialize packet data messages", func() {
+				// DeserializeCosmosTx expects Any's unpacked into sdk.MSg
+				any, err := codectypes.NewAnyWithValue(&types.InterchainAccountPacketData{})
+				suite.Require().NoError(err)
+				msgs := []*codectypes.Any{any}
+
 				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
-					Data: txBytes}
+					Messages: msgs,
+				}
 				packetData = data.GetBytes()
 			}, false,
 		},
 		{
 			"Invalid packet type", func() {
-				txBytes = []byte{}
+				msgs := []*codectypes.Any{}
 				// Type here is an ENUM
 				// Valid type is types.EXECUTE_TX
 				data := types.InterchainAccountPacketData{Type: 100,
-					Data: txBytes}
+					Messages: msgs,
+				}
 				packetData = data.GetBytes()
 			}, false,
 		},
@@ -172,10 +179,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// Incorrect FromAddress
 				msg = &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				txBytes, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
+				msgs, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 				data := types.InterchainAccountPacketData{Type: types.EXECUTE_TX,
-					Data: txBytes}
+					Messages: msgs,
+				}
 				packetData = data.GetBytes()
 			}, false,
 		},
