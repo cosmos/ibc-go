@@ -1,0 +1,172 @@
+<!--
+order: 6
+-->
+
+# IBC Middleware
+
+Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks {synopsis}.
+
+This document serves as a guide for middleware developers who want to write their own middleware and for chain developers who want to use IBC middleware on their chains.
+
+IBC applications are designed to be self-contained modules that implement their own application-specific logic through a set of interfaces with the core IBC handlers. These core IBC handlers, in turn, are designed to enforce the correctness properties of IBC (transport, authentication, ordering) while delegating all application-specific handling to the IBC application modules. However, there are cases where some functionality may be desired by many applications, yet not appropriate to place in core IBC.
+
+Middleware allows developers to define the extensions as seperate modules that can wrap over the base application. This middleware can thus perform its own custom logic, and pass data into the application so that it may run its logic without being aware of the middleware's existence. This allows both the application and the middleware to implement its own isolated logic while still being able to run as part of a single packet flow.
+
+## Pre-requisite Readings
+
+- [IBC Overview](./overview.md)) {prereq}
+- [IBC default integration](./integration.md) {prereq}
+- [IBC Application Developer Guide](./apps.md) {prereq}
+
+## Definitions
+
+`Middleware`: A self-contained module that sits between core IBC and an underlying IBC application during packet execution. All messages between core IBC and underlying application must flow through middleware, which may perform its own custom logic.
+
+`Underlying Application`: An underlying application is the application that is directly connected to the middleware in question. This underlying application may itself be middleware that is chained to a base application.
+
+`Base Application`: A base application is an IBC application that does not contain any middleware. It may be nested by 0 or multiple middleware to form an application stack.
+
+`Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) +  base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
+
+## Create a custom IBC Middleware
+
+IBC Middleware will wrap over an underlying IBC application and sits between core IBC and the application. It has complete control in modifying any message coming from IBC to the application, and any message coming from the application to core IBC. Thus, middleware must be completely trusted by chain developers who wish to integrate them, however this gives them complete flexibility in modifying the application(s) they wrap.
+
+Since 
+
+#### Interfaces
+
+```typescript
+// Middleware implements the ICS26 Module interface
+interface Middleware extends ICS26Module {
+    app: ICS26Module // middleware has acccess to an underlying application which may be wrapped by more middleware
+    ics4Wrapper: ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
+}
+```
+
+```typescript
+// This is implemented by ICS4 and all middleware that are wrapping base application.
+// The base application will call `sendPacket` or `writeAcknowledgement` of the middleware directly above them
+// which will call the next middleware until it reaches the core IBC handler.
+interface ICS4Wrapper {
+    sendPacket(packet: Packet)
+    writeAcknowledgement(packet: Packet, ack: Acknowledgement)
+}
+```
+
+### Implement `IBCModule` interface and callbacks
+
+The middleware must have access to the underlying application, and be called before during all ICS-26 callbacks. It may execute custom logic during these callbacks, and then call the underlying application's callback. Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
+
+In the case where the IBC middleware expects to speak to a compatible IBC middleware on the counterparty chain; they must use the channel handshake to negotiate the middleware version without interfering in the version negotiation of the underlying application.
+
+Middleware accomplishes this by formatting the version in the following format: `{mw-version}:{app-version}`.
+
+During the handshake callbacks, the middleware can split the version into: `mw-version`, `app-version`. It can do its negotiation logic on `mw-version`, and pass the `app-version` to the underlying application.
+
+### Handshake Callbacks:
+
+
+```go
+func OnChanOpenInit(ctx sdk.Context,
+    order channeltypes.Order,
+    connectionHops []string,
+    portID string,
+    channelID string,
+    channelCap *capabilitytypes.Capability,
+    counterparty channeltypes.Counterparty,
+    version string,
+) error {
+    middlewareVersion, appVersion = splitMiddlewareVersion(version)
+    doCustomLogic()
+    app.OnChanOpenInit(
+        ctx,
+        order,
+        connectionHops,
+        portID,
+        channelID,
+        channelCap,
+        counterparty,
+        appVersion, // note we only pass app version here
+    )
+}
+
+func OnChanOpenTry(
+    ctx sdk.Context,
+    order channeltypes.Order,
+    connectionHops []string,
+    portID,
+    channelID string,
+    channelCap *capabilitytypes.Capability,
+    counterparty channeltypes.Counterparty,
+    version,
+    counterpartyVersion string,
+) error {
+      cpMiddlewareVersion, cpAppVersion = splitMiddlewareVersion(counterpartyVersion)
+      middlewareVersion, appVersion = splitMiddlewareVersion(version)
+      if !isCompatible(cpMiddlewareVersion, middlewareVersion) {
+          return error
+      }
+      doCustomLogic()
+
+      // call the underlying applications OnChanOpenTry callback
+      app.OnChanOpenTry(
+          ctx,
+          order,
+          connectionHops,
+          portID,
+          channelID,
+          channelCap,
+          counterparty,
+          cpAppVersion, // note we only pass counterparty app version here
+          appVersion, // only pass app version
+      )
+}
+
+func OnChanOpenAck(
+    ctx sdk.Context,
+    portID,
+    channelID string,
+    counterpartyVersion string,
+) error {
+      middlewareVersion, appVersion = splitMiddlewareVersion(version)
+      if !isCompatible(middlewareVersion) {
+          return error
+      }
+      doCustomLogic()
+      
+      // call the underlying applications OnChanOpenTry callback
+      app.OnChanOpenAck(ctx, portID, channelID, appVersion)
+}
+
+func OnChanOpenConfirm(
+    ctx sdk.Context,
+    portID,
+    channelID string,
+) error {
+    doCustomLogic()
+
+    app.OnChanOpenConfirm(ctx, portID, channelID)
+}
+
+OnChanCloseInit(
+    ctx sdk.Context,
+    portID,
+    channelID string,
+) error {
+    doCustomLogic()
+
+    app.OnChanCloseInit(ctx, portID, channelID)
+}
+
+OnChanCloseConfirm(
+    ctx sdk.Context,
+    portID,
+    channelID string,
+) error {
+    doCustomLogic()
+
+    app.OnChanCloseConfirm(ctx, portID, channelID)
+}
+```
+
