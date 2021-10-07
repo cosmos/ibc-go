@@ -1,6 +1,6 @@
 # Migrating to ibc-go
 
-This file contains information on how to migrate from the IBC module contained in the SDK 0.41.x and 0..42.x lines to the IBC module in the ibc-go repository based on the 0.44 SDK version. 
+This file contains information on how to migrate from the IBC module contained in the SDK 0.41.x and 0.42.x lines to the IBC module in the ibc-go repository based on the 0.44 SDK version. 
 
 ## Import Changes
 
