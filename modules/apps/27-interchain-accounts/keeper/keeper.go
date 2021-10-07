@@ -58,17 +58,7 @@ func NewKeeper(
 }
 
 // SerializeCosmosTx marshals data to bytes using the provided codec
-func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, data interface{}) ([]byte, error) {
-	msgs := make([]sdk.Msg, 0)
-	switch data := data.(type) {
-	case sdk.Msg:
-		msgs = append(msgs, data)
-	case []sdk.Msg:
-		msgs = append(msgs, data...)
-	default:
-		return nil, types.ErrInvalidOutgoingData
-	}
-
+func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) ([]byte, error) {
 	msgAnys := make([]*codectypes.Any, len(msgs))
 
 	for i, msg := range msgs {
