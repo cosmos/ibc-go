@@ -215,22 +215,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 }
 
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.InterchainAccountPacketData, ack channeltypes.Acknowledgement) error {
-	switch ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Error:
-		if k.hook != nil {
-			k.hook.OnTxFailed(ctx, packet.SourcePort, packet.SourceChannel, packet.Data, data.Data)
-		}
-		return nil
-	case *channeltypes.Acknowledgement_Result:
-		if k.hook != nil {
-			k.hook.OnTxSucceeded(ctx, packet.SourcePort, packet.SourceChannel, packet.Data, data.Data)
-		}
-		return nil
-	default:
-		// the acknowledgement succeeded on the receiving chain so nothing
-		// needs to be executed and no error needs to be returned
-		return nil
-	}
+	return nil
 }
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
