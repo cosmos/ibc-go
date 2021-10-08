@@ -95,7 +95,7 @@ func (m *IBCTxBody) GetMessages() []*types.Any {
 	return nil
 }
 
-// InterchainAccountPacketData is comprised of araw transaction,type of transaction and optional memo field.
+// InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 type InterchainAccountPacketData struct {
 	Type Type   `protobuf:"varint,1,opt,name=type,proto3,enum=ibc.applications.interchain_accounts.v1.Type" json:"type,omitempty"`
 	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`

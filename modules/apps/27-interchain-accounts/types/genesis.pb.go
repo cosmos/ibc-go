@@ -25,7 +25,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the interchain_account genesis state
 type GenesisState struct {
-	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
+	ActiveChannels     []*IdentifiedActiveChannel     `protobuf:"bytes,1,rep,name=active_channels,json=activeChannels,proto3" json:"active_channels,omitempty"`
+	InterchainAccounts []*IdentifiedInterchainAccount `protobuf:"bytes,2,rep,name=interchain_accounts,json=interchainAccounts,proto3" json:"interchain_accounts,omitempty"`
+	Ports              []string                       `protobuf:"bytes,3,rep,name=ports,proto3" json:"ports,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -61,15 +63,137 @@ func (m *GenesisState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 
-func (m *GenesisState) GetPortId() string {
+func (m *GenesisState) GetActiveChannels() []*IdentifiedActiveChannel {
+	if m != nil {
+		return m.ActiveChannels
+	}
+	return nil
+}
+
+func (m *GenesisState) GetInterchainAccounts() []*IdentifiedInterchainAccount {
+	if m != nil {
+		return m.InterchainAccounts
+	}
+	return nil
+}
+
+func (m *GenesisState) GetPorts() []string {
+	if m != nil {
+		return m.Ports
+	}
+	return nil
+}
+
+// IdentifiedActiveChannel
+type IdentifiedActiveChannel struct {
+	PortId    string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+}
+
+func (m *IdentifiedActiveChannel) Reset()         { *m = IdentifiedActiveChannel{} }
+func (m *IdentifiedActiveChannel) String() string { return proto.CompactTextString(m) }
+func (*IdentifiedActiveChannel) ProtoMessage()    {}
+func (*IdentifiedActiveChannel) Descriptor() ([]byte, []int) {
+	return fileDescriptor_629b3ced0911516b, []int{1}
+}
+func (m *IdentifiedActiveChannel) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *IdentifiedActiveChannel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_IdentifiedActiveChannel.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *IdentifiedActiveChannel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IdentifiedActiveChannel.Merge(m, src)
+}
+func (m *IdentifiedActiveChannel) XXX_Size() int {
+	return m.Size()
+}
+func (m *IdentifiedActiveChannel) XXX_DiscardUnknown() {
+	xxx_messageInfo_IdentifiedActiveChannel.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IdentifiedActiveChannel proto.InternalMessageInfo
+
+func (m *IdentifiedActiveChannel) GetPortId() string {
 	if m != nil {
 		return m.PortId
 	}
 	return ""
 }
 
+func (m *IdentifiedActiveChannel) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+// IdentifiedInterchainAccount
+type IdentifiedInterchainAccount struct {
+	PortId         string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	AccountAddress string `protobuf:"bytes,2,opt,name=account_address,json=accountAddress,proto3" json:"account_address,omitempty"`
+}
+
+func (m *IdentifiedInterchainAccount) Reset()         { *m = IdentifiedInterchainAccount{} }
+func (m *IdentifiedInterchainAccount) String() string { return proto.CompactTextString(m) }
+func (*IdentifiedInterchainAccount) ProtoMessage()    {}
+func (*IdentifiedInterchainAccount) Descriptor() ([]byte, []int) {
+	return fileDescriptor_629b3ced0911516b, []int{2}
+}
+func (m *IdentifiedInterchainAccount) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *IdentifiedInterchainAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_IdentifiedInterchainAccount.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *IdentifiedInterchainAccount) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IdentifiedInterchainAccount.Merge(m, src)
+}
+func (m *IdentifiedInterchainAccount) XXX_Size() int {
+	return m.Size()
+}
+func (m *IdentifiedInterchainAccount) XXX_DiscardUnknown() {
+	xxx_messageInfo_IdentifiedInterchainAccount.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IdentifiedInterchainAccount proto.InternalMessageInfo
+
+func (m *IdentifiedInterchainAccount) GetPortId() string {
+	if m != nil {
+		return m.PortId
+	}
+	return ""
+}
+
+func (m *IdentifiedInterchainAccount) GetAccountAddress() string {
+	if m != nil {
+		return m.AccountAddress
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "ibc.applications.interchain_accounts.v1.GenesisState")
+	proto.RegisterType((*IdentifiedActiveChannel)(nil), "ibc.applications.interchain_accounts.v1.IdentifiedActiveChannel")
+	proto.RegisterType((*IdentifiedInterchainAccount)(nil), "ibc.applications.interchain_accounts.v1.IdentifiedInterchainAccount")
 }
 
 func init() {
@@ -77,23 +201,30 @@ func init() {
 }
 
 var fileDescriptor_629b3ced0911516b = []byte{
-	// 244 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x32, 0xcd, 0x4c, 0x4a, 0xd6,
-	0x4f, 0x2c, 0x28, 0xc8, 0xc9, 0x4c, 0x4e, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0xd6, 0xcf, 0xcc, 0x2b,
-	0x49, 0x2d, 0x4a, 0xce, 0x48, 0xcc, 0xcc, 0x8b, 0x4f, 0x4c, 0x4e, 0xce, 0x2f, 0xcd, 0x2b, 0x29,
-	0xd6, 0x2f, 0x33, 0xd4, 0x4f, 0x4f, 0xcd, 0x4b, 0x2d, 0xce, 0x2c, 0xd6, 0x2b, 0x28, 0xca, 0x2f,
-	0xc9, 0x17, 0x52, 0xcf, 0x4c, 0x4a, 0xd6, 0x43, 0xd6, 0xa6, 0x87, 0x45, 0x9b, 0x5e, 0x99, 0xa1,
-	0x94, 0x48, 0x7a, 0x7e, 0x7a, 0x3e, 0x58, 0x8f, 0x3e, 0x88, 0x05, 0xd1, 0xae, 0x64, 0xcd, 0xc5,
-	0xe3, 0x0e, 0x31, 0x2f, 0xb8, 0x24, 0xb1, 0x24, 0x55, 0x48, 0x9b, 0x8b, 0xbd, 0x20, 0xbf, 0xa8,
-	0x24, 0x3e, 0x33, 0x45, 0x82, 0x51, 0x81, 0x51, 0x83, 0xd3, 0x49, 0xe8, 0xd3, 0x3d, 0x79, 0xbe,
-	0xca, 0xc4, 0xdc, 0x1c, 0x2b, 0x25, 0xa8, 0x84, 0x52, 0x10, 0x1b, 0x88, 0xe5, 0x99, 0xe2, 0x14,
-	0x7f, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c,
-	0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0xae, 0xe9, 0x99, 0x25, 0x19,
-	0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0xc9, 0xf9, 0xc5, 0xb9, 0xf9, 0xc5, 0xfa, 0x99, 0x49,
-	0xc9, 0xba, 0xe9, 0xf9, 0xfa, 0x65, 0x46, 0xfa, 0xb9, 0xf9, 0x29, 0xa5, 0x39, 0xa9, 0xc5, 0x20,
-	0xcf, 0x16, 0xeb, 0x1b, 0x99, 0xeb, 0x22, 0x1c, 0xac, 0x0b, 0xf7, 0x67, 0x49, 0x65, 0x41, 0x6a,
-	0x71, 0x12, 0x1b, 0xd8, 0x91, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0xdc, 0xe5, 0x36, 0xd4,
-	0x1c, 0x01, 0x00, 0x00,
+	// 367 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xcd, 0x6a, 0xdb, 0x40,
+	0x10, 0xc7, 0x2d, 0x9b, 0xba, 0x78, 0x5b, 0x5c, 0x50, 0x0d, 0x16, 0x2d, 0x15, 0xc6, 0x17, 0xfb,
+	0x62, 0x2d, 0x76, 0x29, 0xbd, 0xc6, 0xf9, 0x20, 0xe8, 0x18, 0xe5, 0x96, 0x8b, 0x58, 0xed, 0x6e,
+	0xe4, 0x01, 0x7b, 0x57, 0x68, 0x56, 0x82, 0xbc, 0x40, 0xce, 0x79, 0xac, 0x1c, 0x7d, 0xcc, 0x31,
+	0xd8, 0x2f, 0x12, 0xf4, 0x81, 0x63, 0x82, 0x1d, 0x42, 0x6e, 0x3b, 0xff, 0x99, 0xff, 0x6f, 0x86,
+	0xd9, 0x21, 0xff, 0x20, 0xe2, 0x94, 0x25, 0xc9, 0x12, 0x38, 0x33, 0xa0, 0x15, 0x52, 0x50, 0x46,
+	0xa6, 0x7c, 0xc1, 0x40, 0x85, 0x8c, 0x73, 0x9d, 0x29, 0x83, 0x34, 0x9f, 0xd2, 0x58, 0x2a, 0x89,
+	0x80, 0x5e, 0x92, 0x6a, 0xa3, 0xed, 0x11, 0x44, 0xdc, 0xdb, 0xb7, 0x79, 0x07, 0x6c, 0x5e, 0x3e,
+	0xfd, 0xd5, 0x8b, 0x75, 0xac, 0x4b, 0x0f, 0x2d, 0x5e, 0x95, 0x7d, 0x78, 0xdf, 0x24, 0xdf, 0x2f,
+	0x2b, 0xe0, 0xb5, 0x61, 0x46, 0xda, 0x40, 0x7e, 0x30, 0x6e, 0x20, 0x97, 0x21, 0x5f, 0x30, 0xa5,
+	0xe4, 0x12, 0x1d, 0x6b, 0xd0, 0x1a, 0x7f, 0x9b, 0x9d, 0x78, 0x1f, 0xec, 0xe4, 0xf9, 0x42, 0x2a,
+	0x03, 0xb7, 0x20, 0xc5, 0xbc, 0x24, 0x9d, 0x55, 0xa0, 0xa0, 0xcb, 0xf6, 0x43, 0xb4, 0x33, 0xf2,
+	0xf3, 0x00, 0xc1, 0x69, 0x96, 0xed, 0xce, 0x3f, 0xd1, 0xce, 0xdf, 0x15, 0xcc, 0xab, 0x7c, 0x60,
+	0xc3, 0x5b, 0x09, 0xed, 0x1e, 0xf9, 0x92, 0xe8, 0xd4, 0xa0, 0xd3, 0x1a, 0xb4, 0xc6, 0x9d, 0xa0,
+	0x0a, 0x86, 0x57, 0xa4, 0x7f, 0x64, 0x6e, 0xbb, 0x4f, 0xbe, 0x16, 0x35, 0x21, 0x08, 0xc7, 0x1a,
+	0x58, 0xe3, 0x4e, 0xd0, 0x2e, 0x42, 0x5f, 0xd8, 0x7f, 0x08, 0xa9, 0x97, 0x54, 0xe4, 0x9a, 0x65,
+	0xae, 0x53, 0x2b, 0xbe, 0x18, 0x86, 0xe4, 0xf7, 0x3b, 0xb3, 0x1d, 0xc7, 0x8e, 0x8a, 0x2f, 0x28,
+	0x6b, 0x42, 0x26, 0x44, 0x2a, 0x11, 0x6b, 0x76, 0xb7, 0x96, 0xe7, 0x95, 0x7a, 0x1a, 0x3e, 0x6e,
+	0x5c, 0x6b, 0xbd, 0x71, 0xad, 0xe7, 0x8d, 0x6b, 0x3d, 0x6c, 0xdd, 0xc6, 0x7a, 0xeb, 0x36, 0x9e,
+	0xb6, 0x6e, 0xe3, 0xe6, 0x22, 0x06, 0xb3, 0xc8, 0x22, 0x8f, 0xeb, 0x15, 0xe5, 0x1a, 0x57, 0x1a,
+	0x29, 0x44, 0x7c, 0x12, 0x6b, 0x9a, 0xcf, 0xe8, 0x4a, 0x8b, 0x6c, 0x29, 0xb1, 0x38, 0x36, 0xa4,
+	0xb3, 0xff, 0x93, 0xd7, 0x1d, 0x4d, 0x76, 0x77, 0x66, 0xee, 0x12, 0x89, 0x51, 0xbb, 0x3c, 0x92,
+	0xbf, 0x2f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x26, 0xbc, 0xdb, 0x6f, 0x9c, 0x02, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -116,6 +247,110 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Ports) > 0 {
+		for iNdEx := len(m.Ports) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Ports[iNdEx])
+			copy(dAtA[i:], m.Ports[iNdEx])
+			i = encodeVarintGenesis(dAtA, i, uint64(len(m.Ports[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.InterchainAccounts) > 0 {
+		for iNdEx := len(m.InterchainAccounts) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.InterchainAccounts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.ActiveChannels) > 0 {
+		for iNdEx := len(m.ActiveChannels) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.ActiveChannels[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *IdentifiedActiveChannel) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *IdentifiedActiveChannel) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *IdentifiedActiveChannel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.PortId) > 0 {
+		i -= len(m.PortId)
+		copy(dAtA[i:], m.PortId)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.PortId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *IdentifiedInterchainAccount) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *IdentifiedInterchainAccount) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *IdentifiedInterchainAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AccountAddress) > 0 {
+		i -= len(m.AccountAddress)
+		copy(dAtA[i:], m.AccountAddress)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.AccountAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.PortId) > 0 {
 		i -= len(m.PortId)
 		copy(dAtA[i:], m.PortId)
@@ -143,7 +378,55 @@ func (m *GenesisState) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if len(m.ActiveChannels) > 0 {
+		for _, e := range m.ActiveChannels {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.InterchainAccounts) > 0 {
+		for _, e := range m.InterchainAccounts {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.Ports) > 0 {
+		for _, s := range m.Ports {
+			l = len(s)
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *IdentifiedActiveChannel) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	l = len(m.PortId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	return n
+}
+
+func (m *IdentifiedInterchainAccount) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PortId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.AccountAddress)
 	if l > 0 {
 		n += 1 + l + sovGenesis(uint64(l))
 	}
@@ -187,6 +470,156 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ActiveChannels", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ActiveChannels = append(m.ActiveChannels, &IdentifiedActiveChannel{})
+			if err := m.ActiveChannels[len(m.ActiveChannels)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InterchainAccounts", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InterchainAccounts = append(m.InterchainAccounts, &IdentifiedInterchainAccount{})
+			if err := m.InterchainAccounts[len(m.InterchainAccounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ports", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Ports = append(m.Ports, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *IdentifiedActiveChannel) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: IdentifiedActiveChannel: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: IdentifiedActiveChannel: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
 			}
 			var stringLen uint64
@@ -216,6 +649,152 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.PortId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *IdentifiedInterchainAccount) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: IdentifiedInterchainAccount: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: IdentifiedInterchainAccount: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PortId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AccountAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

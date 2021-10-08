@@ -7,5 +7,19 @@ import "gogoproto/gogo.proto";
 
 // GenesisState defines the interchain_account genesis state
 message GenesisState {
-  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  repeated IdentifiedActiveChannel     active_channels     = 1;
+  repeated IdentifiedInterchainAccount interchain_accounts = 2;
+  repeated string                      ports               = 3;
+}
+
+// IdentifiedActiveChannel
+message IdentifiedActiveChannel {
+  string port_id    = 1;
+  string channel_id = 2;
+}
+
+// IdentifiedInterchainAccount
+message IdentifiedInterchainAccount {
+  string port_id         = 1;
+  string account_address = 2;
 }

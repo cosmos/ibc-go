@@ -12,19 +12,51 @@ import (
 
 // InitGenesis initializes the interchain accounts application state from a provided genesis state
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState) {
-	if !keeper.IsBound(ctx, state.PortId) {
-		cap := keeper.BindPort(ctx, state.PortId)
-		if err := keeper.ClaimCapability(ctx, cap, host.PortPath(state.PortId)); err != nil {
-			panic(fmt.Sprintf("could not claim port capability: %v", err))
+	for _, portID := range state.Ports {
+		if !keeper.IsBound(ctx, portID) {
+			cap := keeper.BindPort(ctx, portID)
+			if err := keeper.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
+				panic(fmt.Sprintf("could not claim port capability: %v", err))
+			}
 		}
+	}
+
+	for _, ch := range state.ActiveChannels {
+		keeper.SetActiveChannel(ctx, ch.PortId, ch.ChannelId)
+	}
+
+	for _, acc := range state.InterchainAccounts {
+		keeper.SetInterchainAccountAddress(ctx, acc.PortId, acc.AccountAddress)
 	}
 }
 
-// ExportGenesis exports transfer module's portID into its geneis state
+// ExportGenesis returns the interchain accounts exported genesis
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-	portID := keeper.GetPort(ctx)
+	var (
+		activeChannels     []*types.IdentifiedActiveChannel
+		interchainAccounts []*types.IdentifiedInterchainAccount
+	)
 
-	return &types.GenesisState{
-		PortId: portID,
+	ports := keeper.GetAllPorts(ctx)
+	for _, portID := range ports {
+		if channelID, found := keeper.GetActiveChannel(ctx, portID); found {
+			activeChan := &types.IdentifiedActiveChannel{
+				PortId:    portID,
+				ChannelId: channelID,
+			}
+
+			activeChannels = append(activeChannels, activeChan)
+		}
+
+		if accountAddr, found := keeper.GetInterchainAccountAddress(ctx, portID); found {
+			interchainAcc := &types.IdentifiedInterchainAccount{
+				PortId:         portID,
+				AccountAddress: accountAddr,
+			}
+
+			interchainAccounts = append(interchainAccounts, interchainAcc)
+		}
 	}
+
+	return types.NewGenesisState(ports, activeChannels, interchainAccounts)
 }

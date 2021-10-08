@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	baseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -86,16 +87,32 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
 }
 
-// GetPort returns the portID for the interchain accounts module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context) string {
+// GetAllPorts returns all bound ports for the interchain accounts module. Used in ExportGenesis
+func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 	store := ctx.KVStore(k.storeKey)
-	return string(store.Get([]byte(types.PortKey)))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PortKeyPrefix))
+	defer iterator.Close()
+
+	var ports []string
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		ports = append(ports, keySplit[1])
+	}
+
+	return ports
+}
+
+// HasPort returns true if the provided portID is found in state, otherwise false
+func (k Keeper) HasPort(ctx sdk.Context, portID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.KeyPort(portID))
 }
 
 // BindPort stores the provided portID and binds to it, returning the associated capability
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	store := ctx.KVStore(k.storeKey)
-	store.Set([]byte(types.PortKey), []byte(portID))
+	store.Set(types.KeyPort(portID), []byte{0x01})
 
 	return k.portKeeper.BindPort(ctx, portID)
 }
@@ -117,9 +134,9 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 }
 
 // GetActiveChannel retrieves the active channelID from the store keyed by the provided portID
-func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, bool) {
+func (k Keeper) GetActiveChannel(ctx sdk.Context, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyActiveChannel(portId)
+	key := types.KeyActiveChannel(portID)
 
 	if !store.Has(key) {
 		return "", false

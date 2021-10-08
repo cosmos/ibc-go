@@ -9,6 +9,8 @@
   
 - [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
     - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
+    - [IdentifiedActiveChannel](#ibc.applications.interchain_accounts.v1.IdentifiedActiveChannel)
+    - [IdentifiedInterchainAccount](#ibc.applications.interchain_accounts.v1.IdentifiedInterchainAccount)
   
 - [ibc/applications/interchain_accounts/v1/query.proto](#ibc/applications/interchain_accounts/v1/query.proto)
     - [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest)
@@ -319,7 +321,41 @@ GenesisState defines the interchain_account genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `active_channels` | [IdentifiedActiveChannel](#ibc.applications.interchain_accounts.v1.IdentifiedActiveChannel) | repeated |  |
+| `interchain_accounts` | [IdentifiedInterchainAccount](#ibc.applications.interchain_accounts.v1.IdentifiedInterchainAccount) | repeated |  |
+| `ports` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.IdentifiedActiveChannel"></a>
+
+### IdentifiedActiveChannel
+IdentifiedActiveChannel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.IdentifiedInterchainAccount"></a>
+
+### IdentifiedInterchainAccount
+IdentifiedInterchainAccount
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `account_address` | [string](#string) |  |  |
 
 
 
@@ -416,7 +452,7 @@ Body of a tx for an ics27 IBC packet
 <a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
 
 ### InterchainAccountPacketData
-InterchainAccountPacketData is comprised of araw transaction,type of transaction and optional memo field.
+InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 
 
 | Field | Type | Label | Description |

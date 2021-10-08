@@ -21,7 +21,7 @@ enum Type {
 
 // InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 message InterchainAccountPacketData {
-  Type  type = 1;
-  bytes data = 2;
+  Type   type = 1;
+  bytes  data = 2;
   string memo = 3;
 }
