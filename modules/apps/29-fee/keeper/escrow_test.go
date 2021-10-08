@@ -72,9 +72,13 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 
 			if tc.expPass {
 				feeInEscrow, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeInEscrow(suite.chainA.GetContext(), refundAcc.String(), packetId.ChannelId, packetId.Sequence)
+				// check if the escrowed fee is set in state
 				suite.Require().Equal(fee.AckFee, feeInEscrow.AckFee)
 				suite.Require().Equal(fee.ReceiveFee, feeInEscrow.ReceiveFee)
 				suite.Require().Equal(fee.TimeoutFee, feeInEscrow.TimeoutFee)
+				// check if the balance for the module account is correct and the fee is correctly escrowed
+				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)})
+				suite.Require().True(hasBalance)
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)

@@ -26,7 +26,6 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee t
 	for _, f := range fees {
 		fmt.Print(f)
 		hasBalance := k.bankKeeper.HasBalance(ctx, refundAcc, f)
-		fmt.Print(hasBalance)
 		if !hasBalance {
 			return sdkerrors.Wrap(types.ErrBalanceNotFound, fmt.Sprintf("%s", refundAcc.String()))
 		}
