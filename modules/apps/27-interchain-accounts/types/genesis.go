@@ -9,7 +9,7 @@ func DefaultGenesis() *GenesisState {
 }
 
 // NewGenesisState creates a returns a new GenesisState instance
-func NewGenesisState(ports []string, channels []*IdentifiedActiveChannel, accounts []*IdentifiedInterchainAccount) *GenesisState {
+func NewGenesisState(ports []string, channels []*ActiveChannel, accounts []*RegisteredInterchainAccount) *GenesisState {
 	return &GenesisState{
 		ActiveChannels:     channels,
 		InterchainAccounts: accounts,

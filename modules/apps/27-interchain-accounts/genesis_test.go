@@ -5,6 +5,36 @@ import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 )
 
+func (suite *InterchainAccountsTestSuite) TestInitGenesis() {
+	suite.SetupTest()
+
+	genesisState := types.GenesisState{
+		Ports: []string{types.PortID, TestPortID},
+		ActiveChannels: []*types.ActiveChannel{
+			{
+				PortId:    TestPortID,
+				ChannelId: "channel-0",
+			},
+		},
+		InterchainAccounts: []*types.RegisteredInterchainAccount{
+			{
+				PortId:         TestPortID,
+				AccountAddress: TestAccAddress.String(),
+			},
+		},
+	}
+
+	ica.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAKeeper, genesisState)
+
+	channelID, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), TestPortID)
+	suite.Require().True(found)
+	suite.Require().Equal("channel-0", channelID)
+
+	accountAdrr, found := suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID)
+	suite.Require().True(found)
+	suite.Require().Equal(TestAccAddress.String(), accountAdrr)
+}
+
 func (suite *InterchainAccountsTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 	path := NewICAPath(suite.chainA, suite.chainB)

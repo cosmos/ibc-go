@@ -5,21 +5,21 @@ option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 
-// GenesisState defines the interchain_account genesis state
+// GenesisState defines the interchain accounts genesis state
 message GenesisState {
-  repeated IdentifiedActiveChannel     active_channels     = 1;
-  repeated IdentifiedInterchainAccount interchain_accounts = 2;
+  repeated ActiveChannel               active_channels     = 1;
+  repeated RegisteredInterchainAccount interchain_accounts = 2;
   repeated string                      ports               = 3;
 }
 
-// IdentifiedActiveChannel
-message IdentifiedActiveChannel {
+// ActiveChannel contains a pairing of port ID and channel ID for an active interchain accounts channel
+message ActiveChannel {
   string port_id    = 1;
   string channel_id = 2;
 }
 
-// IdentifiedInterchainAccount
-message IdentifiedInterchainAccount {
+// RegisteredInterchainAccount contains a pairing of controller port ID and associated interchain account address
+message RegisteredInterchainAccount {
   string port_id         = 1;
   string account_address = 2;
 }
