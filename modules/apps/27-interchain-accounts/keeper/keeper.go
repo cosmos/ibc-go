@@ -22,8 +22,6 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
 
-	hook types.IBCAccountHooks
-
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	accountKeeper types.AccountKeeper
@@ -37,7 +35,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey,
 	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
-	accountKeeper types.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter, hook types.IBCAccountHooks,
+	accountKeeper types.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 
 	// ensure ibc interchain accounts module account is set
@@ -53,7 +51,6 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		scopedKeeper:  scopedKeeper,
 		msgRouter:     msgRouter,
-		hook:          hook,
 	}
 }
 
