@@ -64,7 +64,7 @@ func (k Keeper) OnChanOpenInit(
 
 	// Claim channel capability passed back by IBC module
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return sdkerrors.Wrap(err, "failed to claim capability")
+		return sdkerrors.Wrapf(err, "failed to claim capability for port %s on channel %s", portID, channelID)
 	}
 
 	return nil
@@ -118,7 +118,7 @@ func (k Keeper) OnChanOpenTry(
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
 	// The capability being claimed in OpenInit is for a controller chain (the port is different)
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return sdkerrors.Wrap(err, "failed to claim capability")
+		return sdkerrors.Wrapf(err, "failed to claim capability for port %s on channel %s", portID, channelID)
 	}
 
 	// Check to ensure that the version string contains the expected address generated from the Counterparty portID

@@ -49,10 +49,10 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddres
 
 	interchainAccount := types.NewInterchainAccount(
 		authtypes.NewBaseAccountWithAddress(accAddr),
-		counterpartyPortID,
+		controllerPortID,
 	)
 
 	k.accountKeeper.NewAccount(ctx, interchainAccount)
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
-	k.SetInterchainAccountAddress(ctx, counterpartyPortID, interchainAccount.Address)
+	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
 }
