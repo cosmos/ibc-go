@@ -21,11 +21,6 @@ func GenerateAddress(moduleAccAddr sdk.AccAddress, portID string) sdk.AccAddress
 	return sdk.AccAddress(sdkaddress.Derive(moduleAccAddr, []byte(portID)))
 }
 
-// ParseAddressFromVersion trims the interchainaccounts version prefix and returns the associated account address
-func ParseAddressFromVersion(version string) string {
-	return strings.TrimPrefix(version, fmt.Sprint(VersionPrefix, Delimiter))
-}
-
 // GeneratePortID generates the portID for a specific owner
 // on the controller chain in the format:
 //
@@ -47,7 +42,12 @@ func GeneratePortID(owner, connectionID, counterpartyConnectionID string) (strin
 		return "", sdkerrors.Wrap(err, "invalid counterparty connection identifier")
 	}
 
-	return fmt.Sprintf("%s-%d-%d-%s", VersionPrefix, connectionSeq, counterpartyConnectionSeq, owner), nil
+	return fmt.Sprint(
+		VersionPrefix, Delimiter,
+		connectionSeq, Delimiter,
+		counterpartyConnectionSeq, Delimiter,
+		owner,
+	), nil
 }
 
 type InterchainAccountI interface {

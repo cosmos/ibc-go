@@ -17,6 +17,8 @@ import (
 var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	// TestPortID defines a resuable port identifier for testing purposes
+	TestPortID, _ = types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-0")
 )
 
 type TypesTestSuite struct {
@@ -47,13 +49,6 @@ func (suite *TypesTestSuite) TestGenerateAddress() {
 	suite.Require().NotEmpty(accAddr)
 }
 
-func (suite *TypesTestSuite) TestParseAddressFromVersion() {
-	version := types.NewAppVersion(types.VersionPrefix, TestOwnerAddress)
-
-	addr := types.ParseAddressFromVersion(version)
-	suite.Require().Equal(TestOwnerAddress, addr)
-}
-
 func (suite *TypesTestSuite) TestGeneratePortID() {
 	var (
 		path  *ibctesting.Path
@@ -69,7 +64,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 		{
 			"success",
 			func() {},
-			fmt.Sprintf("%s-0-0-%s", types.VersionPrefix, TestOwnerAddress),
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, "0", types.Delimiter, "0", types.Delimiter, TestOwnerAddress),
 			true,
 		},
 		{
@@ -77,7 +72,7 @@ func (suite *TypesTestSuite) TestGeneratePortID() {
 			func() {
 				path.EndpointA.ConnectionID = "connection-1"
 			},
-			fmt.Sprintf("%s-1-0-%s", types.VersionPrefix, TestOwnerAddress),
+			fmt.Sprint(types.VersionPrefix, types.Delimiter, "1", types.Delimiter, "0", types.Delimiter, TestOwnerAddress),
 			true,
 		},
 		{

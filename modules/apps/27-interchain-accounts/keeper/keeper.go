@@ -135,6 +135,12 @@ func (k Keeper) SetActiveChannel(ctx sdk.Context, portID, channelID string) {
 	store.Set(types.KeyActiveChannel(portID), []byte(channelID))
 }
 
+// DeleteActiveChannel removes the active channel keyed by the provided portID stored in state
+func (k Keeper) DeleteActiveChannel(ctx sdk.Context, portID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.KeyActiveChannel(portID))
+}
+
 // IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
 func (k Keeper) IsActiveChannel(ctx sdk.Context, portID string) bool {
 	_, ok := k.GetActiveChannel(ctx, portID)
