@@ -30,6 +30,7 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
 	ChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, portCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, *capabilitytypes.Capability, error)
+	CounterpartyHops(ctx sdk.Context, channel channeltypes.Channel) ([]string, bool)
 }
 
 // ClientKeeper defines the expected IBC client keeper

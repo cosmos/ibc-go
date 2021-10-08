@@ -5,11 +5,6 @@ import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
-// Raw tx body
-message IBCTxRaw {
-  bytes body_bytes = 1 [(gogoproto.moretags) = "yaml:\"body_bytes\""];
-}
-
 // Body of a tx for an ics27 IBC packet
 message IBCTxBody {
   repeated google.protobuf.Any messages = 1;
@@ -24,8 +19,9 @@ enum Type {
   TYPE_EXECUTE_TX_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "EXECUTE_TX"];
 }
 
-// Packet data is comprised of raw transaction & type of transaction
-message IBCAccountPacketData {
+// InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
+message InterchainAccountPacketData {
   Type  type = 1;
   bytes data = 2;
+  string memo = 3;
 }

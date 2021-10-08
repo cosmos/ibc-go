@@ -1,12 +1,9 @@
 package keeper
 
 import (
-	"encoding/binary"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
@@ -15,22 +12,22 @@ import (
 
 // TrySendTx takes in a transaction from a base application and attempts to send the packet
 // if the base application has the capability to send on the provided portID
-func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, data interface{}) ([]byte, error) {
+func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, data interface{}, memo string) (uint64, error) {
 	// Check for the active channel
 	activeChannelId, found := k.GetActiveChannel(ctx, portID)
 	if !found {
-		return nil, types.ErrActiveChannelNotFound
+		return 0, types.ErrActiveChannelNotFound
 	}
 
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelId)
 	if !found {
-		return nil, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, chanCap, data)
+	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, chanCap, data, memo)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -41,25 +38,38 @@ func (k Keeper) createOutgoingPacket(
 	destinationChannel string,
 	chanCap *capabilitytypes.Capability,
 	data interface{},
-) ([]byte, error) {
+	memo string,
+) (uint64, error) {
 	if data == nil {
-		return []byte{}, types.ErrInvalidOutgoingData
+		return 0, types.ErrInvalidOutgoingData
 	}
 
-	txBytes, err := k.SerializeCosmosTx(k.cdc, data)
+	var (
+		txBytes []byte
+		err     error
+	)
+
+	switch data := data.(type) {
+	case []sdk.Msg:
+		txBytes, err = k.SerializeCosmosTx(k.cdc, data)
+	default:
+		return 0, sdkerrors.Wrapf(types.ErrInvalidOutgoingData, "message type %T is not supported", data)
+	}
+
 	if err != nil {
-		return []byte{}, sdkerrors.Wrap(err, "invalid packet data or codec")
+		return 0, sdkerrors.Wrap(err, "serialization of transaction data failed")
 	}
 
 	// get the next sequence
 	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return []byte{}, channeltypes.ErrSequenceSendNotFound
+		return 0, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetData := types.IBCAccountPacketData{
+	packetData := types.InterchainAccountPacketData{
 		Type: types.EXECUTE_TX,
 		Data: txBytes,
+		Memo: memo,
 	}
 
 	// timeoutTimestamp is set to be a max number here so that we never recieve a timeout
@@ -78,24 +88,18 @@ func (k Keeper) createOutgoingPacket(
 	)
 
 	if err := k.channelKeeper.SendPacket(ctx, chanCap, packet); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return k.ComputeVirtualTxHash(packetData.Data, packet.Sequence), nil
+	return packet.Sequence, nil
 }
 
-func (k Keeper) DeserializeTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
-	var txRaw types.IBCTxRaw
-
-	err := k.cdc.Unmarshal(txBytes, &txRaw)
-	if err != nil {
-		return nil, err
-	}
-
+// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
+// into a slice of sdk.Msg's.
+func (k Keeper) DeserializeCosmosTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
 	var txBody types.IBCTxBody
 
-	err = k.cdc.Unmarshal(txRaw.BodyBytes, &txBody)
-	if err != nil {
+	if err := k.cdc.Unmarshal(txBytes, &txBody); err != nil {
 		return nil, err
 	}
 
@@ -181,15 +185,8 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 	return handler(ctx, msg)
 }
 
-// Compute the virtual tx hash that is used only internally.
-func (k Keeper) ComputeVirtualTxHash(txBytes []byte, seq uint64) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, seq)
-	return tmhash.SumTruncated(append(txBytes, bz...))
-}
-
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error {
-	var data types.IBCAccountPacketData
+	var data types.InterchainAccountPacketData
 
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return sdkerrors.Wrapf(types.ErrUnknownPacketData, "cannot unmarshal ICS-27 interchain account packet data")
@@ -197,7 +194,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 
 	switch data.Type {
 	case types.EXECUTE_TX:
-		msgs, err := k.DeserializeTx(ctx, data.Data)
+		msgs, err := k.DeserializeCosmosTx(ctx, data.Data)
 		if err != nil {
 			return err
 		}
@@ -211,4 +208,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	default:
 		return types.ErrUnknownPacketData
 	}
+}
+
+// OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
+// due to the semantics of ORDERED channels
+func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+	k.DeleteActiveChannel(ctx, packet.SourcePort)
+
+	return nil
 }

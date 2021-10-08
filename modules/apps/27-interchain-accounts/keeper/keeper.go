@@ -55,17 +55,7 @@ func NewKeeper(
 }
 
 // SerializeCosmosTx marshals data to bytes using the provided codec
-func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, data interface{}) ([]byte, error) {
-	msgs := make([]sdk.Msg, 0)
-	switch data := data.(type) {
-	case sdk.Msg:
-		msgs = append(msgs, data)
-	case []sdk.Msg:
-		msgs = append(msgs, data...)
-	default:
-		return nil, types.ErrInvalidOutgoingData
-	}
-
+func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) ([]byte, error) {
 	msgAnys := make([]*codectypes.Any, len(msgs))
 
 	for i, msg := range msgs {
@@ -80,11 +70,7 @@ func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, data interface{}) ([]by
 		Messages: msgAnys,
 	}
 
-	txRaw := &types.IBCTxRaw{
-		BodyBytes: cdc.MustMarshal(txBody),
-	}
-
-	bz, err := cdc.Marshal(txRaw)
+	bz, err := cdc.Marshal(txBody)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +129,12 @@ func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, bool) 
 func (k Keeper) SetActiveChannel(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyActiveChannel(portID), []byte(channelID))
+}
+
+// DeleteActiveChannel removes the active channel keyed by the provided portID stored in state
+func (k Keeper) DeleteActiveChannel(ctx sdk.Context, portID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.KeyActiveChannel(portID))
 }
 
 // IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
