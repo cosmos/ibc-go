@@ -1,11 +1,12 @@
 syntax = "proto3";
+
 package ibc.applications.interchain_accounts.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "ibc/applications/interchain_accounts/v1/account.proto";
-
-option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
 // Query defines the gRPC querier service.
 service Query {

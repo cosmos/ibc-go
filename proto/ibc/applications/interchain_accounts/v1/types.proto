@@ -1,9 +1,11 @@
 syntax = "proto3";
+
 package ibc.applications.interchain_accounts.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
-option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
 // Body of a tx for an ics27 IBC packet
 message IBCTxBody {
