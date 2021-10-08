@@ -42,7 +42,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 
 // RegisterInterchainAccount attempts to create a new account using the provided address and stores it in state keyed by the provided port identifier
 // If an account for the provided address already exists this function returns early (no-op)
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddress, counterpartyPortID string) {
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddress, controllerPortID string) {
 	if acc := k.accountKeeper.GetAccount(ctx, accAddr); acc != nil {
 		return
 	}
