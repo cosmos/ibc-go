@@ -57,9 +57,11 @@ func NewKeeper(
 	}
 }
 
-// SerializeCosmosTx packs a slice of sdk.Msg into a slice of Any's.
-func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) (msgAnys []*codectypes.Any, err error) {
-	msgAnys = make([]*codectypes.Any, len(msgs))
+// SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
+// packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
+// bytes are returned.
+func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) (bz []byte, err error) {
+	msgAnys := make([]*codectypes.Any, len(msgs))
 
 	for i, msg := range msgs {
 		msgAnys[i], err = codectypes.NewAnyWithValue(msg)
@@ -68,7 +70,16 @@ func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) (msgAny
 		}
 	}
 
-	return msgAnys, nil
+	cosmosTx := &types.CosmosTx{
+		Messages: msgAnys,
+	}
+
+	bz, err = cdc.Marshal(cosmosTx)
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
 }
 
 // Logger returns the application logger, scoped to the associated module
