@@ -12,7 +12,7 @@ import (
 
 // TODO: implement middleware functionality, this will allow us to use capabilities to
 // manage helper module access to owner addresses they do not have capabilities for
-func (k Keeper) TrySendTx(ctx sdk.Context, portID string, packetData types.InterchainAccountPacketData) (uint64, error) {
+func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
 	activeChannelId, found := k.GetActiveChannel(ctx, portID)
 	if !found {
@@ -27,7 +27,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, portID string, packetData types.Inter
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, packetData)
+	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, icaPacketData)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -36,9 +36,9 @@ func (k Keeper) createOutgoingPacket(
 	sourceChannel,
 	destinationPort,
 	destinationChannel string,
-	packetData types.InterchainAccountPacketData,
+	icaPacketData types.InterchainAccountPacketData,
 ) (uint64, error) {
-	if err := packetData.ValidateBasic(); err != nil {
+	if err := icaPacketData.ValidateBasic(); err != nil {
 		return 0, sdkerrors.Wrap(err, "invalid interchain account packet data")
 	}
 
@@ -58,7 +58,7 @@ func (k Keeper) createOutgoingPacket(
 	const timeoutTimestamp = ^uint64(0) >> 1 // Shift the unsigned bit to satisfy hermes relayer timestamp conversion
 
 	packet := channeltypes.NewPacket(
-		packetData.GetBytes(),
+		icaPacketData.GetBytes(),
 		sequence,
 		sourcePort,
 		sourceChannel,
