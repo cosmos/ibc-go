@@ -14,9 +14,9 @@ Middleware allows developers to define the extensions as seperate modules that c
 
 ## Pre-requisite Readings
 
-- [IBC Overview](./overview.md)) {prereq}
-- [IBC default integration](./integration.md) {prereq}
-- [IBC Application Developer Guide](./apps.md) {prereq}
+- [IBC Overview](../overview.md) {prereq}
+- [IBC default integration](../integration.md) {prereq}
+- [IBC Application Developer Guide](../apps.md) {prereq}
 
 ## Definitions
 
