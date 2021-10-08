@@ -47,7 +47,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee t
 }
 
 // PayFee pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
-func (k Keeper) payFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer sdk.AccAddress, packetID channeltypes.PacketId) error {
+func (k Keeper) PayFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer sdk.AccAddress, packetID channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, refundAcc.String(), packetID.ChannelId, packetID.Sequence)
 	if !hasFee {
@@ -88,7 +88,7 @@ func (k Keeper) payFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelaye
 }
 
 // PayFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) payFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.AccAddress, packetID channeltypes.PacketId) error {
+func (k Keeper) PayFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.AccAddress, packetID channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, refundAcc.String(), packetID.ChannelId, packetID.Sequence)
 	if !hasFee {
