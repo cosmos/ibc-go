@@ -1,5 +1,5 @@
 <!--
-order: 6
+order: 1
 -->
 
 # IBC Middleware
@@ -170,3 +170,63 @@ OnChanCloseConfirm(
 }
 ```
 
+NOTE: Middleware that does not need to negotiate with a counterparty middleware on the remote stack will not implement the version splitting and negotiation, and will simply perform its own custom logic on the callbacks without relying on the counterparty behaving similarly.
+
+### Packet callbacks
+
+The packet callbacks just like the handshake callbacks wrap the application's packet callbacks. The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware.
+
+```go
+OnRecvPacket(
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+) ibcexported.Acknowledgement {
+    doCustomLogic(packet)
+
+    ack := app.OnRecvPacket(ctx, packet)
+
+    doCustomLogic(ack) // middleware may modify outgoing ack
+    return ack
+}
+
+OnAcknowledgementPacket(
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    acknowledgement []byte,
+) (*sdk.Result, error) {
+    doCustomLogic(packet, ack)
+
+    app.OnAcknowledgementPacket(ctx, packet, ack)
+}
+
+OnTimeoutPacket(
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+) (*sdk.Result, error) {
+    doCustomLogic(packet)
+
+    app.OnTimeoutPacket(ctx, packet)
+}
+```
+
+### ICS-4 Wrappers
+
+Middleware must also wrap ICS-4 so that any communication from the application to the channelKeeper goes through the middleware first. Similar to the packet callbacks, the middleware may modify outgoing acknowledgements and packets in any way it wishes.
+
+```go
+// only called for async acks
+func WriteAcknowledgement(
+  packet channeltypes.Packet,
+  acknowledgement []bytes) {
+    // middleware may modify acknowledgement
+    ack_bytes = doCustomLogic(acknowledgement)
+
+    return ics4Keeper.WriteAcknowledgement(packet, ack_bytes)
+}
+func SendPacket(appPacket channeltypes.Packet) {
+    // middleware may modify packet
+    packet = doCustomLogic(app_packet)
+
+    return ics4Keeper.SendPacket(packet)
+}
+```
