@@ -335,7 +335,7 @@ func NewSimApp(
 	app.ICAKeeper = icakeeper.NewKeeper(
 		appCodec, keys[icatypes.StoreKey],
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(), app,
+		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(),
 	)
 	icaModule := ica.NewAppModule(app.ICAKeeper)
 	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, nil)
@@ -681,11 +681,4 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 
 	return paramsKeeper
-}
-
-// Interchain Accounts code
-func (*SimApp) OnTxSucceeded(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
-}
-
-func (*SimApp) OnTxFailed(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
 }
