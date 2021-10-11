@@ -17,27 +17,24 @@ var IsValidAddr = regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
 // ValidateVersion performs basic validation of the provided ics27 version string.
 // An ics27 version string may include an optional account address as per [TODO: Add spec when available]
 // ValidateVersion first attempts to split the version string using the standard delimiter, then asserts a supported
-// version prefix is included, followed by additional checks which enforce constraints on the optional account address.
-// When no delimiter is present, only the version prefix is validated
+// version prefix is included, followed by additional checks which enforce constraints on the account address.
 func ValidateVersion(version string) error {
 	s := strings.Split(version, Delimiter)
+
+	if len(s) != 2 {
+		return sdkerrors.Wrap(ErrInvalidVersion, "unexpected address format")
+	}
 
 	if s[0] != VersionPrefix {
 		return sdkerrors.Wrapf(ErrInvalidVersion, "expected %s, got %s", VersionPrefix, s[0])
 	}
 
-	if len(s) > 1 {
-		if len(s) != 2 {
-			return sdkerrors.Wrap(ErrInvalidAccountAddress, "unexpected address format")
-		}
-
-		if !IsValidAddr(s[1]) || len(s[1]) == 0 || len(s[1]) > DefaultMaxAddrLength {
-			return sdkerrors.Wrapf(
-				ErrInvalidAccountAddress,
-				"address must contain strictly alphanumeric characters, not exceeding %d characters in length",
-				DefaultMaxAddrLength,
-			)
-		}
+	if !IsValidAddr(s[1]) || len(s[1]) == 0 || len(s[1]) > DefaultMaxAddrLength {
+		return sdkerrors.Wrapf(
+			ErrInvalidAccountAddress,
+			"address must contain strictly alphanumeric characters, not exceeding %d characters in length",
+			DefaultMaxAddrLength,
+		)
 	}
 
 	return nil
