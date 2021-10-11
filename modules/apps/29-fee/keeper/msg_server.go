@@ -38,7 +38,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetId := channeltypes.PacketId{
+	packetId := &channeltypes.PacketId{
 		PortId:    msg.SourcePortId,
 		ChannelId: msg.SourceChannelId,
 		Sequence:  sequence,
@@ -49,7 +49,8 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return &types.MsgPayPacketFeeResponse{}, err
 	}
 
-	err = k.EscrowPacketFee(ctx, refundAccAddr, *msg.Fee, packetId)
+	identifiedPacket := types.IdentifiedPacketFee{PacketId: packetId, Fee: msg.Fee, Relayers: msg.Relayers}
+	err = k.EscrowPacketFee(ctx, refundAccAddr, identifiedPacket)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,8 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 		return &types.MsgPayPacketFeeAsyncResponse{}, err
 	}
 
-	err = k.EscrowPacketFee(ctx, refundAccAddr, *msg.Fee, *msg.PacketId)
+	identifiedPacket := types.IdentifiedPacketFee{PacketId: msg.PacketId, Fee: msg.Fee, Relayers: msg.Relayers}
+	err = k.EscrowPacketFee(ctx, refundAccAddr, identifiedPacket)
 	if err != nil {
 		return nil, err
 	}

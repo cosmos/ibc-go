@@ -125,19 +125,19 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) 
 }
 
 // Stores a Fee for a given packet in state
-func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee types.Fee, channelId string, sequenceId uint64) {
+func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee types.IdentifiedPacketFee) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalFee(fee)
-	store.Set(types.KeyFeeInEscrow(channelId, sequenceId), bz)
+	store.Set(types.KeyFeeInEscrow(fee.PacketId.ChannelId, fee.PacketId.Sequence), bz)
 }
 
 // Gets a Fee for a given packet
-func (k Keeper) GetFeeInEscrow(ctx sdk.Context, account, channelId string, sequenceId uint64) (types.Fee, bool) {
+func (k Keeper) GetFeeInEscrow(ctx sdk.Context, channelId string, sequenceId uint64) (types.IdentifiedPacketFee, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(channelId, sequenceId)
 	bz := store.Get(key)
 	if bz == nil {
-		return types.Fee{}, false
+		return types.IdentifiedPacketFee{}, false
 	}
 
 	fee := k.MustUnmarshalFee(bz)
@@ -146,7 +146,7 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, account, channelId string, seque
 }
 
 // GetFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
-func (k Keeper) HasFeeInEscrow(ctx sdk.Context, account, channelId string, sequenceId uint64) bool {
+func (k Keeper) HasFeeInEscrow(ctx sdk.Context, channelId string, sequenceId uint64) bool {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(channelId, sequenceId)
 	bz := store.Get(key)
@@ -157,7 +157,7 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, account, channelId string, seque
 	fee := k.MustUnmarshalFee(bz)
 
 	// if the returned Fee is empty return false
-	if (types.Fee{}) == fee {
+	if (types.Fee{}) == *fee.Fee {
 		return false
 	}
 
@@ -166,14 +166,14 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, account, channelId string, seque
 
 // MustMarshalFee attempts to encode a Fee object and returns the
 // raw encoded bytes. It panics on error.
-func (k Keeper) MustMarshalFee(fee types.Fee) []byte {
+func (k Keeper) MustMarshalFee(fee types.IdentifiedPacketFee) []byte {
 	return k.cdc.MustMarshal(&fee)
 }
 
 // MustUnmarshalFee attempts to decode and return a Fee object from
 // raw encoded bytes. It panics on error.
-func (k Keeper) MustUnmarshalFee(bz []byte) types.Fee {
-	var fee types.Fee
+func (k Keeper) MustUnmarshalFee(bz []byte) types.IdentifiedPacketFee {
+	var fee types.IdentifiedPacketFee
 	k.cdc.MustUnmarshal(bz, &fee)
 	return fee
 }
