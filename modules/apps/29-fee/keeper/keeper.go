@@ -145,6 +145,25 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, account, channelId string, seque
 	return fee, true
 }
 
+// GetFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
+func (k Keeper) HasFeeInEscrow(ctx sdk.Context, account, channelId string, sequenceId uint64) bool {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyFeeInEscrow(account, channelId, sequenceId)
+	bz := store.Get(key)
+	if bz == nil {
+		return false
+	}
+
+	fee := k.MustUnmarshalFee(bz)
+
+	// if the returned Fee is empty return false
+	if (types.Fee{}) == fee {
+		return false
+	}
+
+	return true
+}
+
 // MustMarshalFee attempts to encode a Fee object and returns the
 // raw encoded bytes. It panics on error.
 func (k Keeper) MustMarshalFee(fee types.Fee) []byte {
