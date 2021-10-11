@@ -32,8 +32,6 @@ Middleware allows developers to define the extensions as seperate modules that c
 
 IBC Middleware will wrap over an underlying IBC application and sits between core IBC and the application. It has complete control in modifying any message coming from IBC to the application, and any message coming from the application to core IBC. Thus, middleware must be completely trusted by chain developers who wish to integrate them, however this gives them complete flexibility in modifying the application(s) they wrap.
 
-Since 
-
 #### Interfaces
 
 ```typescript
