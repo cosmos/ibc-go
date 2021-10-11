@@ -116,9 +116,11 @@ func (suite *KeeperTestSuite) TestGetAllPorts() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
+	expectedPorts := []string{types.PortID, TestPortID}
+
 	ports := suite.chainA.GetSimApp().ICAKeeper.GetAllPorts(suite.chainA.GetContext())
-	suite.Require().Contains(ports, types.PortID)
-	suite.Require().Contains(ports, TestPortID)
+	suite.Require().Len(ports, len(expectedPorts))
+	suite.Require().Equal(expectedPorts, ports)
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
