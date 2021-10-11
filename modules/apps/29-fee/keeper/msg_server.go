@@ -18,8 +18,13 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.MsgRegisterCounterpartyAddress) (*types.MsgRegisterCounterpartyAddressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	counterpartyAddress, err := sdk.AccAddressFromBech32(msg.CounterpartyAddress)
+	if err != nil {
+		return &types.MsgRegisterCounterpartyAddressResponse{}, err
+	}
+
 	k.SetCounterpartyAddress(
-		ctx, msg.Address, msg.CounterpartyAddress,
+		ctx, msg.Address, counterpartyAddress,
 	)
 
 	k.Logger(ctx).Info("Registering counterparty address for relayer.", "Address:", msg.Address, "Counterparty Address:", msg.CounterpartyAddress)
