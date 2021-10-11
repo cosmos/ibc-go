@@ -40,8 +40,8 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, fee t
 	}
 
 	// Store fee in state for reference later
-	// feeInEscrow/<refund-account>/<channel-id>/packet/<sequence-id>/ -> Fee (timeout, ack, onrecv)
-	k.SetFeeInEscrow(ctx, fee, refundAcc.String(), packetID.ChannelId, packetID.Sequence)
+	// feeInEscrow/<channel-id>/packet/<sequence-id>/ -> Fee (timeout, ack, onrecv)
+	k.SetFeeInEscrow(ctx, fee, packetID.ChannelId, packetID.Sequence)
 	return nil
 }
 
@@ -81,7 +81,7 @@ func (k Keeper) PayFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelaye
 	}
 
 	// set fee as an empty struct (if we reach this point Fee is paid in full)
-	k.SetFeeInEscrow(ctx, types.Fee{}, refundAcc.String(), packetID.ChannelId, packetID.Sequence)
+	k.SetFeeInEscrow(ctx, types.Fee{}, packetID.ChannelId, packetID.Sequence)
 
 	return nil
 }
@@ -122,7 +122,7 @@ func (k Keeper) PayFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.Acc
 	}
 
 	// set fee as an empty struct (if we reach this point Fee is paid in full)
-	k.SetFeeInEscrow(ctx, types.Fee{}, refundAcc.String(), packetID.ChannelId, packetID.Sequence)
+	k.SetFeeInEscrow(ctx, types.Fee{}, packetID.ChannelId, packetID.Sequence)
 
 	return nil
 }
