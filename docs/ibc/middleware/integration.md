@@ -4,7 +4,7 @@ order: 2
 
 # Integrating IBC Middleware into a Chain
 
-Learn how to integrate IBC middleware(s) with a base application to your chain. The following document only applies for SDK chains.
+Learn how to integrate IBC middleware(s) with a base application to your chain. The following document only applies for Cosmos SDK chains.
 
 If the middleware is maintaining its own state and/or processing SDK messages, then it should create and register its SDK module **only once** with the module manager in `app.go`.
 
