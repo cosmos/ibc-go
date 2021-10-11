@@ -141,6 +141,58 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.Require().Empty(retrievedAddr)
 }
 
+func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
+	suite.SetupTest()
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), "testing-port", "testing-channel")
+
+	expectedChannels := []*types.ActiveChannel{
+		{
+			PortId:    TestPortID,
+			ChannelId: path.EndpointA.ChannelID,
+		},
+		{
+			PortId:    "testing-port",
+			ChannelId: "testing-channel",
+		},
+	}
+
+	activeChannels := suite.chainA.GetSimApp().ICAKeeper.GetAllActiveChannels(suite.chainA.GetContext())
+	suite.Require().Len(activeChannels, len(expectedChannels))
+	suite.Require().Equal(expectedChannels, activeChannels)
+}
+
+func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
+	suite.SetupTest()
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	suite.chainA.GetSimApp().ICAKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), "testing-port", "testing-acc-addr")
+
+	expectedAccounts := []*types.RegisteredInterchainAccount{
+		{
+			PortId:         TestPortID,
+			AccountAddress: TestAccAddress.String(),
+		},
+		{
+			PortId:         "testing-port",
+			AccountAddress: "testing-acc-addr",
+		},
+	}
+
+	interchainAccounts := suite.chainA.GetSimApp().ICAKeeper.GetAllInterchainAccounts(suite.chainA.GetContext())
+	suite.Require().Len(interchainAccounts, len(expectedAccounts))
+	suite.Require().Equal(expectedAccounts, interchainAccounts)
+}
+
 func (suite *KeeperTestSuite) TestIsActiveChannel() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)

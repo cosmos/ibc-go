@@ -32,31 +32,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState
 
 // ExportGenesis returns the interchain accounts exported genesis
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-	var (
-		activeChannels     []*types.ActiveChannel
-		interchainAccounts []*types.RegisteredInterchainAccount
+	return types.NewGenesisState(
+		keeper.GetAllPorts(ctx),
+		keeper.GetAllActiveChannels(ctx),
+		keeper.GetAllInterchainAccounts(ctx),
 	)
-
-	ports := keeper.GetAllPorts(ctx)
-	for _, portID := range ports {
-		if channelID, found := keeper.GetActiveChannel(ctx, portID); found {
-			activeChan := &types.ActiveChannel{
-				PortId:    portID,
-				ChannelId: channelID,
-			}
-
-			activeChannels = append(activeChannels, activeChan)
-		}
-
-		if accountAddr, found := keeper.GetInterchainAccountAddress(ctx, portID); found {
-			interchainAcc := &types.RegisteredInterchainAccount{
-				PortId:         portID,
-				AccountAddress: accountAddr,
-			}
-
-			interchainAccounts = append(interchainAccounts, interchainAcc)
-		}
-	}
-
-	return types.NewGenesisState(ports, activeChannels, interchainAccounts)
 }

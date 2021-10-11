@@ -100,12 +100,6 @@ func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 	return ports
 }
 
-// HasPort returns true if the provided portID is found in state, otherwise false
-func (k Keeper) HasPort(ctx sdk.Context, portID string) bool {
-	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.KeyPort(portID))
-}
-
 // BindPort stores the provided portID and binds to it, returning the associated capability
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	store := ctx.KVStore(k.storeKey)
@@ -142,6 +136,27 @@ func (k Keeper) GetActiveChannel(ctx sdk.Context, portID string) (string, bool) 
 	return string(store.Get(key)), true
 }
 
+// GetAllActiveChannels returns a list of all active interchain accounts channels and their associated port identifiers
+func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []*types.ActiveChannel {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ActiveChannelKeyPrefix))
+	defer iterator.Close()
+
+	var activeChannels []*types.ActiveChannel
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		ch := &types.ActiveChannel{
+			PortId:    keySplit[1],
+			ChannelId: string(iterator.Value()),
+		}
+
+		activeChannels = append(activeChannels, ch)
+	}
+
+	return activeChannels
+}
+
 // SetActiveChannel stores the active channelID, keyed by the provided portID
 func (k Keeper) SetActiveChannel(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
@@ -170,6 +185,26 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (str
 	}
 
 	return string(store.Get(key)), true
+}
+
+// GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated controller port identifiers
+func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []*types.RegisteredInterchainAccount {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.OwnerKeyPrefix))
+
+	var interchainAccounts []*types.RegisteredInterchainAccount
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		acc := &types.RegisteredInterchainAccount{
+			PortId:         keySplit[1],
+			AccountAddress: string(iterator.Value()),
+		}
+
+		interchainAccounts = append(interchainAccounts, acc)
+	}
+
+	return interchainAccounts
 }
 
 // SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated portID
