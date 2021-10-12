@@ -38,7 +38,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+<<<<<<< HEAD
 * [\#1247](https://github.com/cosmos/ibc-go/pull/1247) Bump SDK version to v0.45.3 and Tendermint to version 0.34.19
+=======
+* [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
+* [\#455](https://github.com/cosmos/ibc-go/pull/455) Bump SDK version to v0.44.1
+* [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
+>>>>>>> 60ca492 (deps: bump Go to 1.17 (#404))
 
 ### API Breaking
 
