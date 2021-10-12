@@ -6,11 +6,17 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const MaxMemoCharLength = 256
+
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
 func (iapd InterchainAccountPacketData) ValidateBasic() error {
 	if iapd.Data == nil {
 		return sdkerrors.Wrap(ErrInvalidOutgoingData, "packet data cannot be empty")
+	}
+
+	if len(iapd.Memo) > MaxMemoCharLength {
+		return sdkerrors.Wrapf(ErrInvalidOutgoingData, "packet data memo cannot be greater than %d characters", MaxMemoCharLength)
 	}
 	// TODO: add type validation when data type enum supports unspecified type
 
