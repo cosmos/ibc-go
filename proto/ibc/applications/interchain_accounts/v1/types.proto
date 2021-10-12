@@ -5,11 +5,6 @@ import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
-// Body of a tx for an ics27 IBC packet
-message IBCTxBody {
-  repeated google.protobuf.Any messages = 1;
-}
-
 // The different types of interchain account transactions
 // EXECUTE_TX is used when sending a TX from the controller side to the host side. The host side will execute the tx on
 // behalf of the interchain account.
@@ -25,3 +20,9 @@ message InterchainAccountPacketData {
   bytes data = 2;
   string memo = 3;
 }
+
+// CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
+message CosmosTx {
+  repeated google.protobuf.Any messages = 1;
+}
+
