@@ -70,7 +70,7 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
-func NewMsgPayPacketAsync(fee *Fee, packetId *channeltypes.PacketId, refundAccount string, relayers []string) *MsgPayPacketFeeAsync {
+func NewMsgPayPacketFeeAsync(fee *Fee, packetId *channeltypes.PacketId, refundAccount string, relayers []string) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
 		Fee:           fee,
 		PacketId:      packetId,
