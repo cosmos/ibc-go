@@ -22,7 +22,7 @@ func ValidateVersion(version string) error {
 	s := strings.Split(version, Delimiter)
 
 	if len(s) != 2 {
-		return sdkerrors.Wrap(ErrInvalidVersion, "unexpected address format")
+		return sdkerrors.Wrapf(ErrInvalidVersion, "expected format <app-version%saccount-address>, got %s", Delimiter, version)
 	}
 
 	if s[0] != VersionPrefix {
