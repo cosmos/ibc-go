@@ -72,7 +72,11 @@ func (im IBCModule) OnChanOpenTry(
 	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
 }
 
-// OnChanOpenAck implements the IBCModule interface
+// OnChanOpenAck implements the IBCModule interface. Interchain Accounts is
+// implemented to act as middleware for connected authentication modules on
+// the controller side. The connected modules may not change the portID or
+// version. They will be allowed to perform custom logic without changing
+// the parameters stored within a channel struct.
 //
 // Controller Chain
 func (im IBCModule) OnChanOpenAck(
@@ -120,6 +124,8 @@ func (im IBCModule) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCModule interface
+//
+// Host Chain
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -145,7 +151,9 @@ func (im IBCModule) OnRecvPacket(
 	return ack
 }
 
-// OnAcknowledgementPacket implements the IBCModule interface.
+// OnAcknowledgementPacket implements the IBCModule interface
+//
+// Controller Chain
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -157,6 +165,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
+//
+// Controller Chain
 func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
