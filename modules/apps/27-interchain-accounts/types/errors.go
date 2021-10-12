@@ -17,5 +17,4 @@ var (
 	ErrInvalidVersion              = sdkerrors.Register(ModuleName, 11, "invalid interchain accounts version")
 	ErrInvalidAccountAddress       = sdkerrors.Register(ModuleName, 12, "invalid account address")
 	ErrUnsupported                 = sdkerrors.Register(ModuleName, 13, "interchain account does not support this action")
-	ErrAppCapabilityNotFound       = sdkerrors.Register(ModuleName, 14, "app capability not found")
 )
