@@ -129,7 +129,7 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	if parsedAddr != accAddr.String() {
-		return sdkerrors.Wrapf(types.ErrInvalidAccountAddress, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)
 	}
 
 	// Register interchain account if it does not already exist
