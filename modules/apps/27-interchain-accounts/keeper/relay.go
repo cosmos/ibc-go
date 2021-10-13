@@ -14,20 +14,20 @@ import (
 // manage helper module access to owner addresses they do not have capabilities for
 func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
-	activeChannelId, found := k.GetActiveChannel(ctx, portID)
+	activeChannelID, found := k.GetActiveChannel(ctx, portID)
 	if !found {
-		return 0, types.ErrActiveChannelNotFound
+		return 0, sdkerrors.Wrapf(types.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
 
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelId)
+	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
 	if !found {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelID)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, icaPacketData)
+	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, icaPacketData)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -50,7 +50,7 @@ func (k Keeper) createOutgoingPacket(
 	// get the next sequence
 	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, channeltypes.ErrSequenceSendNotFound
+		return 0, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "failed to retrieve next sequence send for channel %s on port %s", sourceChannel, sourcePort)
 	}
 
 	// timeoutTimestamp is set to be a max number here so that we never recieve a timeout
@@ -171,7 +171,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	var data types.InterchainAccountPacketData
 
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(types.ErrUnknownPacketData, "cannot unmarshal ICS-27 interchain account packet data")
+		return sdkerrors.Wrapf(types.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
 	switch data.Type {
@@ -188,7 +188,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 
 		return nil
 	default:
-		return types.ErrUnknownPacketData
+		return types.ErrUnknownDataType
 	}
 }
 
