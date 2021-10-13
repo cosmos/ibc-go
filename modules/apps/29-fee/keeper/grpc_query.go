@@ -13,16 +13,22 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// ReceiveFee implements the ReceiveFee gRPC method
+// Fees implements the Fees gRPC method
 func (q Keeper) Fees(c context.Context, req *types.QueryFeesRequest) (*types.QueryFeesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = ctx.WithBlockHeight(int64(req.QueryHeight))
-	
 
-	return &types.QueryFeesResponse{}, nil
+	identifiedFee, exists := q.GetFeeInEscrow(ctx, req.PacketId.ChannelId, req.PacketId.Sequence)
+	if !exists {
+		return nil, status.Error(codes.NotFound, "no fees exist for this packetID")
+	}
+
+	return &types.QueryFeesResponse{
+		Fee: identifiedFee.Fee,
+	}, nil
 }
 
 // IncentivizedPackets implements the IncentivizedPackets gRPC method
@@ -59,7 +65,7 @@ func (q Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 	// update ctx to use QueryHeight
 	fee, exists := q.GetFeeInEscrow(ctx, req.PacketId.ChannelId, req.PacketId.Sequence)
 	if !exists {
-		return nil, status.Error(codes.NotFound, "no fee exists for this packetID")
+		return nil, status.Error(codes.NotFound, "no incentivized packet exists for this packetID")
 	}
 
 	return &types.QueryIncentivizedPacketResponse{
