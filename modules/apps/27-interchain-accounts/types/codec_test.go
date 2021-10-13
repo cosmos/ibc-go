@@ -1,0 +1,91 @@
+package types_test
+
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/testing/simapp"
+)
+
+type caseRawBytes struct {
+	name    string
+	bz      []byte
+	expPass bool
+}
+
+func (suite *TypesTestSuite) TestSerializeCosmosTx() {
+
+	testCases := []struct {
+		name    string
+		msgs    []sdk.Msg
+		expPass bool
+	}{
+		{
+			"single msg",
+			[]sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+				},
+			},
+			true,
+		},
+		{
+			"multiple msgs, same types",
+			[]sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+				},
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(200))),
+				},
+			},
+			true,
+		},
+		{
+			"multiple msgs, different types",
+			[]sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: TestOwnerAddress,
+					ToAddress:   TestOwnerAddress,
+					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+				},
+				&govtypes.MsgSubmitProposal{
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
+					Proposer:       TestOwnerAddress,
+				},
+			},
+			true,
+		},
+	}
+
+	testCasesAny := []caseRawBytes{}
+
+	for _, tc := range testCases {
+		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
+		if tc.expPass {
+			suite.Require().NoError(err, tc.name)
+		} else {
+			suite.Require().Error(err, tc.name)
+		}
+
+		testCasesAny = append(testCasesAny, caseRawBytes{tc.name, bz, tc.expPass})
+	}
+
+	for i, tc := range testCasesAny {
+		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.bz)
+		if tc.expPass {
+			suite.Require().NoError(err, tc.name)
+			suite.Require().Equal(testCases[i].msgs, msgs, tc.name)
+		} else {
+			suite.Require().Error(err, tc.name)
+		}
+	}
+}
