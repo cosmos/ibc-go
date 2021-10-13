@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestPayFee() {
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.PayFee(suite.chainA.GetContext(), refundAcc, forwardRelayer, reverseRelayer, packetId)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFee(suite.chainA.GetContext(), refundAcc, forwardRelayer, reverseRelayer, packetId)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -218,7 +218,7 @@ func (suite *KeeperTestSuite) TestPayTimeoutFee() {
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.PayFeeTimeout(suite.chainA.GetContext(), refundAcc, reverseRelayer, packetId)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFeeTimeout(suite.chainA.GetContext(), refundAcc, reverseRelayer, packetId)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

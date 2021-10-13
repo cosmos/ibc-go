@@ -37,7 +37,7 @@ message MsgRegisterCounterpartyAddress {
 // MsgRegisterCounterpartyAddressResponse defines the Msg/RegisterCounterypartyAddress response type
 message MsgRegisterCounterpartyAddressResponse {}
 
-// MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
+// MsgPayPacketFee defines the request type EscrowPacketFee RPC
 message MsgPayPacketFee {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -52,10 +52,10 @@ message MsgPayPacketFee {
   repeated string relayers       = 5;
 }
 
-// MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
+// MsgPayPacketFeeResponse defines the response type for Msg/EscrowPacketFee
 message MsgPayPacketFeeResponse {}
 
-// MsgEscrowPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
+// MsgPayPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
 message MsgPayPacketFeeAsync {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -69,5 +69,5 @@ message MsgPayPacketFeeAsync {
   repeated string relayers       = 4;
 }
 
-// MsgEscrowPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
+// MsgPayPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
 message MsgPayPacketFeeAsyncResponse {}

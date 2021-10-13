@@ -10,7 +10,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 )
 
-// TODO: add logic for optional relayers arr
+// EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
 func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, identifiedFee types.IdentifiedPacketFee) error {
 	// check if the refund account exists
 	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
@@ -45,8 +45,8 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, ident
 	return nil
 }
 
-// PayFee pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
-func (k Keeper) PayFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
+// DistributeFee pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
+func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID.ChannelId, packetID.Sequence)
 	if !hasFee {
@@ -87,8 +87,8 @@ func (k Keeper) PayFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelaye
 	return nil
 }
 
-// PayFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) PayFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
+// DistributeFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
+func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID.ChannelId, packetID.Sequence)
 	if !hasFee {
