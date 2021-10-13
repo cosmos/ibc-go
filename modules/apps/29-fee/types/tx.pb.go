@@ -107,7 +107,7 @@ func (m *MsgRegisterCounterpartyAddressResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRegisterCounterpartyAddressResponse proto.InternalMessageInfo
 
-// MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
+// MsgPayPacketFee defines the request type EscrowPacketFee RPC
 type MsgPayPacketFee struct {
 	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty"`
 	// source channel port identifier
@@ -152,7 +152,7 @@ func (m *MsgPayPacketFee) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgPayPacketFee proto.InternalMessageInfo
 
-// MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
+// MsgPayPacketFeeResponse defines the response type for Msg/EscrowPacketFee
 type MsgPayPacketFeeResponse struct {
 }
 
@@ -189,7 +189,7 @@ func (m *MsgPayPacketFeeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgPayPacketFeeResponse proto.InternalMessageInfo
 
-// MsgEscrowPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
+// MsgPayPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
 type MsgPayPacketFeeAsync struct {
 	// source channel port identifier
 	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty"`
@@ -233,7 +233,7 @@ func (m *MsgPayPacketFeeAsync) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgPayPacketFeeAsync proto.InternalMessageInfo
 
-// MsgEscrowPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
+// MsgPayPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
 type MsgPayPacketFeeAsyncResponse struct {
 }
 

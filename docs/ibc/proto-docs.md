@@ -820,7 +820,7 @@ Query provides defines the gRPC querier service.
 <a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
 
 ### MsgPayPacketFee
-MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
+MsgPayPacketFee defines the request type EscrowPacketFee RPC
 
 
 | Field | Type | Label | Description |
@@ -839,7 +839,7 @@ MsgEscrowPacketFee defines the request type EscrowPacketFee RPC
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
 
 ### MsgPayPacketFeeAsync
-MsgEscrowPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
+MsgPayPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
 
 
 | Field | Type | Label | Description |
@@ -857,7 +857,7 @@ MsgEscrowPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
 
 ### MsgPayPacketFeeAsyncResponse
-MsgEscrowPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
+MsgPayPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
 
 
 
@@ -867,7 +867,7 @@ MsgEscrowPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFe
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeResponse"></a>
 
 ### MsgPayPacketFeeResponse
-MsgEscrowPacketFeeResponse defines the response type for Msg/EscrowPacketFee
+MsgPayPacketFeeResponse defines the response type for Msg/EscrowPacketFee
 
 
 
