@@ -33,7 +33,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 			"type unspecified",
 			types.InterchainAccountPacketData{
 				Type: types.UNSPECIFIED,
-				Data: nil,
+				Data: []byte("data"), 
 				Memo: "memo",
 			},
 			false,
