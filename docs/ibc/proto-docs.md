@@ -19,7 +19,7 @@
     - [Query](#ibc.applications.interchain_accounts.v1.Query)
   
 - [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
-    - [IBCTxBody](#ibc.applications.interchain_accounts.v1.IBCTxBody)
+    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
     - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
   
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
@@ -434,10 +434,10 @@ Query defines the gRPC querier service.
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.IBCTxBody"></a>
+<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
 
-### IBCTxBody
-Body of a tx for an ics27 IBC packet
+### CosmosTx
+CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
 
 
 | Field | Type | Label | Description |

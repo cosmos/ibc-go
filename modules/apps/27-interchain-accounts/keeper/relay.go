@@ -12,7 +12,7 @@ import (
 
 // TODO: implement middleware functionality, this will allow us to use capabilities to
 // manage helper module access to owner addresses they do not have capabilities for
-func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}, memo string) (uint64, error) {
+func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
 	activeChannelId, found := k.GetActiveChannel(ctx, portID)
 	if !found {
@@ -27,7 +27,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, portID string, data interface{}, memo
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, data, memo)
+	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, icaPacketData)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -36,27 +36,10 @@ func (k Keeper) createOutgoingPacket(
 	sourceChannel,
 	destinationPort,
 	destinationChannel string,
-	data interface{},
-	memo string,
+	icaPacketData types.InterchainAccountPacketData,
 ) (uint64, error) {
-	if data == nil {
-		return 0, types.ErrInvalidOutgoingData
-	}
-
-	var (
-		txBytes []byte
-		err     error
-	)
-
-	switch data := data.(type) {
-	case []sdk.Msg:
-		txBytes, err = k.SerializeCosmosTx(k.cdc, data)
-	default:
-		return 0, sdkerrors.Wrapf(types.ErrInvalidOutgoingData, "message type %T is not supported", data)
-	}
-
-	if err != nil {
-		return 0, sdkerrors.Wrap(err, "serialization of transaction data failed")
+	if err := icaPacketData.ValidateBasic(); err != nil {
+		return 0, sdkerrors.Wrap(err, "invalid interchain account packet data")
 	}
 
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
@@ -70,18 +53,12 @@ func (k Keeper) createOutgoingPacket(
 		return 0, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetData := types.InterchainAccountPacketData{
-		Type: types.EXECUTE_TX,
-		Data: txBytes,
-		Memo: memo,
-	}
-
 	// timeoutTimestamp is set to be a max number here so that we never recieve a timeout
 	// ics-27-1 uses ordered channels which can close upon recieving a timeout, which is an undesired effect
 	const timeoutTimestamp = ^uint64(0) >> 1 // Shift the unsigned bit to satisfy hermes relayer timestamp conversion
 
 	packet := channeltypes.NewPacket(
-		packetData.GetBytes(),
+		icaPacketData.GetBytes(),
 		sequence,
 		sourcePort,
 		sourceChannel,
@@ -100,25 +77,26 @@ func (k Keeper) createOutgoingPacket(
 
 // DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
 // into a slice of sdk.Msg's.
-func (k Keeper) DeserializeCosmosTx(_ sdk.Context, txBytes []byte) ([]sdk.Msg, error) {
-	var txBody types.IBCTxBody
-
-	if err := k.cdc.Unmarshal(txBytes, &txBody); err != nil {
+func (k Keeper) DeserializeCosmosTx(_ sdk.Context, data []byte) ([]sdk.Msg, error) {
+	var cosmosTx types.CosmosTx
+	if err := k.cdc.Unmarshal(data, &cosmosTx); err != nil {
 		return nil, err
 	}
 
-	anys := txBody.Messages
-	res := make([]sdk.Msg, len(anys))
-	for i, any := range anys {
+	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
+
+	for i, any := range cosmosTx.Messages {
 		var msg sdk.Msg
+
 		err := k.cdc.UnpackAny(any, &msg)
 		if err != nil {
 			return nil, err
 		}
-		res[i] = msg
+
+		msgs[i] = msg
 	}
 
-	return res, nil
+	return msgs, nil
 }
 
 func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) error {
