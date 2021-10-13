@@ -11,6 +11,10 @@ const MaxMemoCharLength = 256
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
 func (iapd InterchainAccountPacketData) ValidateBasic() error {
+	if iapd.Type == UNSPECIFIED {
+		return sdkerrors.Wrap(ErrInvalidOutgoingData, "packet data type cannot be unspecified")
+	}
+
 	if iapd.Data == nil {
 		return sdkerrors.Wrap(ErrInvalidOutgoingData, "packet data cannot be empty")
 	}
