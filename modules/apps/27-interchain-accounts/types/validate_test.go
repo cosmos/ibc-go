@@ -16,9 +16,14 @@ func (suite *TypesTestSuite) TestValidateVersion() {
 			true,
 		},
 		{
-			"success - version prefix only",
-			types.VersionPrefix,
-			true,
+			"unexpected version string format",
+			"invalid-version-string-format",
+			false,
+		},
+		{
+			"unexpected version string format, additional delimiter",
+			types.NewAppVersion(types.VersionPrefix, "cosmos17dtl0mjt3t77kpu.hg2edqzjpszulwhgzuj9ljs"),
+			false,
 		},
 		{
 			"invalid version",
@@ -38,11 +43,6 @@ func (suite *TypesTestSuite) TestValidateVersion() {
 		{
 			"invalid account address - non alphanumeric characters",
 			types.NewAppVersion(types.VersionPrefix, "-_-"),
-			false,
-		},
-		{
-			"invalid account address - address contains additional delimiter",
-			types.NewAppVersion(types.VersionPrefix, "cosmos17dtl0mjt3t77kpu|hg2edqzjpszulwhgzuj9ljs"),
 			false,
 		},
 	}

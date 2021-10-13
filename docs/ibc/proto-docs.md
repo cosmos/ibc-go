@@ -471,13 +471,13 @@ InterchainAccountPacketData is comprised of a raw transaction, type of transacti
 <a name="ibc.applications.interchain_accounts.v1.Type"></a>
 
 ### Type
-The different types of interchain account transactions
-EXECUTE_TX is used when sending a TX from the controller side to the host side. The host side will execute the tx on
-behalf of the interchain account.
+Type defines a classification of message issued from a controller chain to its associated interchain accounts
+host
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| TYPE_EXECUTE_TX_UNSPECIFIED | 0 | Execute message type |
+| TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
+| TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
 
 
  <!-- end enums -->
