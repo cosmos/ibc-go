@@ -145,6 +145,13 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	return fee, true
 }
 
+// Deletes the fee associated with the given packetId
+func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyFeeInEscrow(packetId)
+	store.Delete(key)
+}
+
 // GetFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
 func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) bool {
 	store := ctx.KVStore(k.storeKey)

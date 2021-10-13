@@ -74,9 +74,8 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 		return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
 	}
 
-	// set fee as an empty struct (if we reach this point Fee is paid in full)
-	identifiedPacket := types.IdentifiedPacketFee{PacketId: packetID, Fee: &types.Fee{}, Relayers: []string{}}
-	k.SetFeeInEscrow(ctx, identifiedPacket)
+	// removes the fee from the store as fee is now paid
+	k.DeleteFeeInEscrow(ctx, packetID)
 
 	return nil
 }
@@ -110,9 +109,8 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer 
 		return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
 	}
 
-	// set fee as an empty struct (if we reach this point Fee is paid in full)
-	identifiedPacket := types.IdentifiedPacketFee{PacketId: packetID, Fee: &types.Fee{}, Relayers: []string{}}
-	k.SetFeeInEscrow(ctx, identifiedPacket)
+	// removes the fee from the store as fee is now paid
+	k.DeleteFeeInEscrow(ctx, packetID)
 
 	return nil
 }
