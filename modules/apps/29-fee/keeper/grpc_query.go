@@ -37,10 +37,9 @@ func (q Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivi
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	// update ctx to use QueryHeight
+	ctx = ctx.WithBlockHeight(int64(req.QueryHeight))
 	packets := []*types.IdentifiedPacketFee{}
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), types.KeyFeeInEscrow())
-
+	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(types.FeeInEscrowPrefix))
 	_, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		result := q.MustUnmarshalFee(value)
 		packets = append(packets, &result)
@@ -62,7 +61,7 @@ func (q Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	// update ctx to use QueryHeight
+	ctx = ctx.WithBlockHeight(int64(req.QueryHeight))
 	fee, exists := q.GetFeeInEscrow(ctx, req.PacketId.ChannelId, req.PacketId.Sequence)
 	if !exists {
 		return nil, status.Error(codes.NotFound, "no incentivized packet exists for this packetID")
