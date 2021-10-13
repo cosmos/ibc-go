@@ -12,4 +12,6 @@ var (
 	ErrFeeNotFound       = sdkerrors.Register(ModuleName, 4, "there is no fee escrowed for the given packetId")
 	ErrPayingFee         = sdkerrors.Register(ModuleName, 5, "error while paying fee")
 	ErrRefundingFee      = sdkerrors.Register(ModuleName, 6, "error while refunding fee")
+	ErrFeeEmpty          = sdkerrors.Register(ModuleName, 7, "fee struct cannot be empty")
+	ErrRelayersNotNil    = sdkerrors.Register(ModuleName, 8, "relayers must be nil. This feature is not supported")
 )

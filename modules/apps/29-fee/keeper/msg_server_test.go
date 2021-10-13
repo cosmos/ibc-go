@@ -104,7 +104,8 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		ctxA := suite.chainA.GetContext()
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: suite.path.EndpointA.ChannelConfig.PortID, Sequence: seq}
-		msg := types.NewMsgPayPacketFeeAsync(fee, packetId, refundAcc.String(), []string{})
+		identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee, refundAcc.String())
 
 		tc.malleate()
 		_, err := suite.chainA.SendMsgs(msg)

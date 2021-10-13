@@ -125,7 +125,7 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) 
 }
 
 // Stores a Fee for a given packet in state
-func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee types.IdentifiedPacketFee) {
+func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee *types.IdentifiedPacketFee) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalFee(fee)
 	store.Set(types.KeyFeeInEscrow(fee.PacketId), bz)
@@ -173,8 +173,8 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 
 // MustMarshalFee attempts to encode a Fee object and returns the
 // raw encoded bytes. It panics on error.
-func (k Keeper) MustMarshalFee(fee types.IdentifiedPacketFee) []byte {
-	return k.cdc.MustMarshal(&fee)
+func (k Keeper) MustMarshalFee(fee *types.IdentifiedPacketFee) []byte {
+	return k.cdc.MustMarshal(fee)
 }
 
 // MustUnmarshalFee attempts to decode and return a Fee object from

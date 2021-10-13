@@ -897,7 +897,7 @@ MsgPayPacketFee defines the request type EscrowPacketFee RPC
 | `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 | `source_port_id` | [string](#string) |  | source channel port identifier |
 | `source_channel_id` | [string](#string) |  | source channel unique identifier |
-| `refund_account` | [string](#string) |  | account address to refund fee if necessary |
+| `signer` | [string](#string) |  | account address to refund fee if necessary |
 | `relayers` | [string](#string) | repeated |  |
 
 
@@ -908,15 +908,13 @@ MsgPayPacketFee defines the request type EscrowPacketFee RPC
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
 
 ### MsgPayPacketFeeAsync
-MsgPayPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
+MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  | source channel port identifier |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | source channel unique identifier |
-| `refund_account` | [string](#string) |  | account address to refund fee if necessary |
-| `relayers` | [string](#string) | repeated |  |
+| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | packet to pay fee for |
+| `signer` | [string](#string) |  | account address to refund fee if necessary |
 
 
 
@@ -926,7 +924,7 @@ MsgPayPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
 
 ### MsgPayPacketFeeAsyncResponse
-MsgPayPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
+MsgPayPacketFeeAsyncResponse defines the response type for Msg/PayPacketFeeAsync
 
 
 
@@ -936,7 +934,7 @@ MsgPayPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAs
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeResponse"></a>
 
 ### MsgPayPacketFeeResponse
-MsgPayPacketFeeResponse defines the response type for Msg/EscrowPacketFee
+MsgPayPacketFeeResponse defines the response type for Msg/PayPacketFee
 
 
 

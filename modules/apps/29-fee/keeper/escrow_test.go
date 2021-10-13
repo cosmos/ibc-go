@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 
 			tc.malleate()
 			fee := &types.Fee{ackFee, receiveFee, timeoutFee}
-			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 
 			// escrow the packet fee
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestPayFee() {
 			fee := &types.Fee{ackFee, receiveFee, timeoutFee}
 
 			// escrow the packet fee & store the fee in state
-			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
 			suite.Require().NoError(err)
@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) TestPayTimeoutFee() {
 			fee := &types.Fee{ackFee, receiveFee, timeoutFee}
 
 			// escrow the packet fee & store the fee in state
-			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
 			suite.Require().NoError(err)
 
