@@ -13,24 +13,11 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
-  // Gets the fee expected for submitting ReceivePacket msg for the given packet
-  rpc ReceiveFee(QueryReceiveFeeRequest) returns (QueryReceiveFeeResponse) {
+  // Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the
+  // given packet
+  rpc Fees(QueryFeesRequest) returns (QueryFeesResponse) {
     option (google.api.http).get =
-        "/ibc/apps/fee/v1/receive_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}";
-  }
-
-  // Gets the fee expected for submitting AcknowledgePacket msg for the given packet
-  rpc AckFee(QueryAckFeeRequest) returns (QueryAckFeeResponse) {
-    option (google.api.http).get =
-        "/ibc/apps/fee/v1/ack_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}";
-  }
-
-  // Gets the fee expected for submitting TimeoutPacket msg for the given packet
-  rpc TimeoutFee(QueryTimeoutFeeRequest) returns (QueryTimeoutFeeResponse) {
-    option (google.api.http).get =
-        "/ibc/apps/fee/v1/timeout_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
+        "/ibc/apps/fee/v1/fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
         "{packet_id.sequence}";
   }
 
@@ -47,8 +34,9 @@ service Query {
   }
 }
 
-// QueryReceiveFeeRequest is the request type for querying the receive fee
-message QueryReceiveFeeRequest {
+// QueryFeesRequest is the request type for querying the fees associated with submitting the ReceivePacket,
+// AcknowledgementPacket, and TimeoutPacket messages of the given packet
+message QueryFeesRequest {
   // PacketID
   ibc.core.channel.v1.PacketId packet_id = 1;
   // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
@@ -57,38 +45,8 @@ message QueryReceiveFeeRequest {
   uint64 query_height = 3;
 }
 
-// QueryReceiveFeeResponse is the response type for the ReceiveFee RPC
-message QueryReceiveFeeResponse {
-  ibc.applications.fee.v1.Fee fee = 1;
-}
-
-// QueryAckFeeRequest is the request type for querying the acknowledgement fee
-message QueryAckFeeRequest {
-  // PacketID
-  ibc.core.channel.v1.PacketId packet_id = 1;
-  // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-  string relayer_address = 2;
-  // Height to query at
-  uint64 query_height = 3;
-}
-
-// QueryAckFeeResponse is the response type for the AckFee RPC
-message QueryAckFeeResponse {
-  ibc.applications.fee.v1.Fee fee = 1;
-}
-
-// QueryTimeoutFeeRequest is the request type for querying the timeout fee
-message QueryTimeoutFeeRequest {
-  // PacketID
-  ibc.core.channel.v1.PacketId packet_id = 1;
-  // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-  string relayer_address = 2;
-  // Height to query at
-  uint64 query_height = 3;
-}
-
-// QueryTimeoutFeeResponse is the response type for the timeout RPC
-message QueryTimeoutFeeResponse {
+// QueryFeeResponse is the response type for the ReceiveFee RPC
+message QueryFeesResponse {
   ibc.applications.fee.v1.Fee fee = 1;
 }
 

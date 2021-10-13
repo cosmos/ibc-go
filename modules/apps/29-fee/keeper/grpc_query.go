@@ -3,7 +3,9 @@ package keeper
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,33 +14,15 @@ import (
 var _ types.QueryServer = Keeper{}
 
 // ReceiveFee implements the ReceiveFee gRPC method
-func (q Keeper) ReceiveFee(c context.Context, req *types.QueryReceiveFeeRequest) (*types.QueryReceiveFeeResponse, error) {
+func (q Keeper) Fees(c context.Context, req *types.QueryFeesRequest) (*types.QueryFeesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	q.GetFeeInEscrow(ctx, req.)
-	return &types.QueryReceiveFeeResponse{}, nil
-}
+	ctx = ctx.WithBlockHeight(int64(req.QueryHeight))
+	
 
-// AckFee implements the AckFee gRPC method
-func (q Keeper) AckFee(c context.Context, req *types.QueryAckFeeRequest) (*types.QueryAckFeeResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryAckFeeResponse{}, nil
-}
-
-// TimeoutFee implements the TimeoutFee gRPC method
-func (q Keeper) TimeoutFee(c context.Context, req *types.QueryTimeoutFeeRequest) (*types.QueryTimeoutFeeResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryTimeoutFeeResponse{}, nil
+	return &types.QueryFeesResponse{}, nil
 }
 
 // IncentivizedPackets implements the IncentivizedPackets gRPC method
@@ -47,8 +31,23 @@ func (q Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivi
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
+	// update ctx to use QueryHeight
+	packets := []*types.IdentifiedPacketFee{}
+	store := prefix.NewStore(ctx.KVStore(q.storeKey), types.KeyFeeInEscrow())
 
-	return &types.QueryIncentivizedPacketsResponse{}, nil
+	_, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
+		result := q.MustUnmarshalFee(value)
+		packets = append(packets, &result)
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryIncentivizedPacketsResponse{
+		IncentivizedPackets: packets,
+	}, nil
 }
 
 // IncentivizedPacket implements the IncentivizedPacket gRPC method
@@ -57,6 +56,13 @@ func (q Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
+	// update ctx to use QueryHeight
+	fee, exists := q.GetFeeInEscrow(ctx, req.PacketId.ChannelId, req.PacketId.Sequence)
+	if !exists {
+		return nil, status.Error(codes.NotFound, "no fee exists for this packetID")
+	}
 
-	return &types.QueryIncentivizedPacketResponse{}, nil
+	return &types.QueryIncentivizedPacketResponse{
+		IncentivizedPacket: &fee,
+	}, nil
 }
