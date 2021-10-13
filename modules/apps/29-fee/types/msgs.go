@@ -3,13 +3,13 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
 
 // msg types
 const (
 	TypeMsgRegisterCounterpartyAddress = "registerCounterpartyAddress"
-	TypePayPacketFee                   = "payPacketFee"
 )
 
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
@@ -150,4 +150,12 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
+}
+
+func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee *Fee, relayers []string) *IdentifiedPacketFee {
+	return &IdentifiedPacketFee{
+		PacketId: packetId,
+		Fee:      fee,
+		Relayers: relayers,
+	}
 }

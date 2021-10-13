@@ -137,7 +137,7 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	key := types.KeyFeeInEscrow(packetId)
 	bz := store.Get(key)
 	if bz == nil {
-		return types.IdentifiedPacketFee{}, false
+		return nil, false
 	}
 
 	fee := k.MustUnmarshalFee(bz)
