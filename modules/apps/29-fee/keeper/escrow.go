@@ -57,27 +57,21 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
 	// send ack fee to reverse relayer
-	if feeInEscrow.Fee.AckFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.Fee.AckFee})
-		if err != nil {
-			return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.AckFee.Denom, feeInEscrow.Fee.AckFee.Amount))
-		}
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.Fee.AckFee})
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.AckFee.Denom, feeInEscrow.Fee.AckFee.Amount))
 	}
 
 	// send receive fee to forward relayer
-	if feeInEscrow.Fee.ReceiveFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, sdk.Coins{*feeInEscrow.Fee.ReceiveFee})
-		if err != nil {
-			return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.ReceiveFee.Denom, feeInEscrow.Fee.ReceiveFee.Amount))
-		}
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, sdk.Coins{*feeInEscrow.Fee.ReceiveFee})
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.ReceiveFee.Denom, feeInEscrow.Fee.ReceiveFee.Amount))
 	}
 
 	// refund timeout fee to refundAddr
-	if feeInEscrow.Fee.TimeoutFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.TimeoutFee})
-		if err != nil {
-			return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
-		}
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.TimeoutFee})
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
 	}
 
 	// set fee as an empty struct (if we reach this point Fee is paid in full)
@@ -99,27 +93,21 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer 
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
 	// refund the ack fee
-	if feeInEscrow.Fee.AckFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.AckFee})
-		if err != nil {
-			return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.AckFee.Denom, feeInEscrow.Fee.AckFee.Amount))
-		}
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.AckFee})
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.AckFee.Denom, feeInEscrow.Fee.AckFee.Amount))
 	}
 
 	// refund the receive fee
-	if feeInEscrow.Fee.ReceiveFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.ReceiveFee})
-		if err != nil {
-			return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.ReceiveFee.Denom, feeInEscrow.Fee.ReceiveFee.Amount))
-		}
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.ReceiveFee})
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.ReceiveFee.Denom, feeInEscrow.Fee.ReceiveFee.Amount))
 	}
 
 	// pay the timeout fee to the reverse relayer
-	if feeInEscrow.Fee.TimeoutFee != nil {
-		err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.Fee.TimeoutFee})
-		if err != nil {
-			return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
-		}
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.Fee.TimeoutFee})
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
 	}
 
 	// set fee as an empty struct (if we reach this point Fee is paid in full)
