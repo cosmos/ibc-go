@@ -1,6 +1,10 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+)
 
 const (
 	// ModuleName defines the 29-fee name
@@ -42,6 +46,6 @@ func KeyRelayerAddress(address string) []byte {
 }
 
 // KeyFeeInEscrow returns the key for escrowed fees
-func KeyFeeInEscrow(channelId string, sequenceId uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/packet/%d", FeeInEscrowPrefix, channelId, sequenceId))
+func KeyFeeInEscrow(packetId *channeltypes.PacketId) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/packet/%d", FeeInEscrowPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
 }

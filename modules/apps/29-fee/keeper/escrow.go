@@ -48,8 +48,8 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, ident
 // DistributeFee pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
 func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID.ChannelId, packetID.Sequence)
-	if !hasFee {
+	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
+	if !found {
 		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("%s", refundAcc.String()))
 	}
 
@@ -84,7 +84,7 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 // DistributeFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
 func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID.ChannelId, packetID.Sequence)
+	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID)
 	if !hasFee {
 		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("%s", refundAcc.String()))
 	}

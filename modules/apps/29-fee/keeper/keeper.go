@@ -128,13 +128,13 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) 
 func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee types.IdentifiedPacketFee) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalFee(fee)
-	store.Set(types.KeyFeeInEscrow(fee.PacketId.ChannelId, fee.PacketId.Sequence), bz)
+	store.Set(types.KeyFeeInEscrow(fee.PacketId), bz)
 }
 
 // Gets a Fee for a given packet
-func (k Keeper) GetFeeInEscrow(ctx sdk.Context, channelId string, sequenceId uint64) (types.IdentifiedPacketFee, bool) {
+func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) (types.IdentifiedPacketFee, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyFeeInEscrow(channelId, sequenceId)
+	key := types.KeyFeeInEscrow(packetId)
 	bz := store.Get(key)
 	if bz == nil {
 		return types.IdentifiedPacketFee{}, false
@@ -146,9 +146,9 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, channelId string, sequenceId uin
 }
 
 // GetFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
-func (k Keeper) HasFeeInEscrow(ctx sdk.Context, channelId string, sequenceId uint64) bool {
+func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) bool {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyFeeInEscrow(channelId, sequenceId)
+	key := types.KeyFeeInEscrow(packetId)
 	bz := store.Get(key)
 	if bz == nil {
 		return false

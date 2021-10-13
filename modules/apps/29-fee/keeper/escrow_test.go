@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
 
 			if tc.expPass {
-				feeInEscrow, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeInEscrow(suite.chainA.GetContext(), packetId.ChannelId, packetId.Sequence)
+				feeInEscrow, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeInEscrow(suite.chainA.GetContext(), packetId)
 				// check if the escrowed fee is set in state
 				suite.Require().Equal(fee.AckFee, feeInEscrow.Fee.AckFee)
 				suite.Require().Equal(fee.ReceiveFee, feeInEscrow.Fee.ReceiveFee)
@@ -150,12 +150,13 @@ func (suite *KeeperTestSuite) TestPayFee() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId.ChannelId, packetId.Sequence)
+				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId)
 				// there should no longer be a fee in escrow for this packet
 				suite.Require().False(hasFeeInEscrow)
 			} else {
 				suite.Require().Error(err)
-				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId.ChannelId, 1)
+				invalidPacketID := &channeltypes.PacketId{PortId: types.PortKey, ChannelId: validChannelId, Sequence: 1}
+				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), invalidPacketID)
 				// there should still be a fee in escrow for this packet
 				suite.Require().True(hasFeeInEscrow)
 			}
@@ -222,12 +223,13 @@ func (suite *KeeperTestSuite) TestPayTimeoutFee() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId.ChannelId, packetId.Sequence)
+				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId)
 				// there should no longer be a fee in escrow for this packet
 				suite.Require().False(hasFeeInEscrow)
 			} else {
 				suite.Require().Error(err)
-				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId.ChannelId, 1)
+				invalidPacketID := &channeltypes.PacketId{PortId: types.PortKey, ChannelId: validChannelId, Sequence: 1}
+				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), invalidPacketID)
 				// there should still be a fee in escrow for this packet
 				suite.Require().True(hasFeeInEscrow)
 			}
