@@ -37,7 +37,7 @@ IBC Middleware will wrap over an underlying IBC application and sits between cor
 ```go
 // Middleware implements the ICS26 Module interface
 type Middleware interface {
-    porttypes.Module // middleware has acccess to an underlying application which may be wrapped by more middleware
+    porttypes.IBCModule // middleware has acccess to an underlying application which may be wrapped by more middleware
     ics4Wrapper: ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
 }
 ```
@@ -54,7 +54,7 @@ type ICS4Wrapper interface {
 
 ### Implement `IBCModule` interface and callbacks
 
-The IBCModule is struct that implements the ICS26Interface (`porttypes.Module`). It is recommended to separate these callbacks into a separate file `ibc_module.go`. As will be mentioned in the [integration doc](./integration.md), this struct should be different than the struct that implements `AppModule` in case the middleware maintains its own internal state and processes separate SDK messages.
+The IBCModule is struct that implements the ICS26Interface (`porttypes.IBCModule`). It is recommended to separate these callbacks into a separate file `ibc_module.go`. As will be mentioned in the [integration doc](./integration.md), this struct should be different than the struct that implements `AppModule` in case the middleware maintains its own internal state and processes separate SDK messages.
 
 The middleware must have access to the underlying application, and be called before during all ICS-26 callbacks. It may execute custom logic during these callbacks, and then call the underlying application's callback. Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
 
