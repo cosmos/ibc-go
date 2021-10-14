@@ -10,7 +10,7 @@ This document serves as a guide for middleware developers who want to write thei
 
 IBC applications are designed to be self-contained modules that implement their own application-specific logic through a set of interfaces with the core IBC handlers. These core IBC handlers, in turn, are designed to enforce the correctness properties of IBC (transport, authentication, ordering) while delegating all application-specific handling to the IBC application modules. However, there are cases where some functionality may be desired by many applications, yet not appropriate to place in core IBC.
 
-Middleware allows developers to define the extensions as seperate modules that can wrap over the base application. This middleware can thus perform its own custom logic, and pass data into the application so that it may run its logic without being aware of the middleware's existence. This allows both the application and the middleware to implement its own isolated logic while still being able to run as part of a single packet flow.
+Middleware allows developers to define the extensions as separate modules that can wrap over the base application. This middleware can thus perform its own custom logic, and pass data into the application so that it may run its logic without being aware of the middleware's existence. This allows both the application and the middleware to implement its own isolated logic while still being able to run as part of a single packet flow.
 
 ## Pre-requisite Readings
 
@@ -34,10 +34,10 @@ IBC Middleware will wrap over an underlying IBC application and sits between cor
 
 #### Interfaces
 
-```typescript
+```go
 // Middleware implements the ICS26 Module interface
-interface Middleware extends ICS26Module {
-    app: ICS26Module // middleware has acccess to an underlying application which may be wrapped by more middleware
+type Middleware interface {
+    porttypes.Module // middleware has acccess to an underlying application which may be wrapped by more middleware
     ics4Wrapper: ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
 }
 ```
@@ -46,13 +46,15 @@ interface Middleware extends ICS26Module {
 // This is implemented by ICS4 and all middleware that are wrapping base application.
 // The base application will call `sendPacket` or `writeAcknowledgement` of the middleware directly above them
 // which will call the next middleware until it reaches the core IBC handler.
-interface ICS4Wrapper {
-    sendPacket(packet: Packet)
-    writeAcknowledgement(packet: Packet, ack: Acknowledgement)
+type ICS4Wrapper interface {
+    SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet) error
+    WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet, ack []byte) error
 }
 ```
 
 ### Implement `IBCModule` interface and callbacks
+
+The IBCModule is struct that implements the ICS26Interface (`porttypes.Module`). It is recommended to separate these callbacks into a separate file `ibc_module.go`. As will be mentioned in the [integration doc](./integration.md), this struct should be different than the struct that implements `AppModule` in case the middleware maintains its own internal state and processes separate SDK messages.
 
 The middleware must have access to the underlying application, and be called before during all ICS-26 callbacks. It may execute custom logic during these callbacks, and then call the underlying application's callback. Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
 
@@ -75,7 +77,8 @@ func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
     counterparty channeltypes.Counterparty,
     version string,
 ) error {
-    middlewareVersion, appVersion = splitMiddlewareVersion(version)
+    // core/04-channel/types contains a helper function to split middleware and underlying app version
+    middlewareVersion, appVersion = channeltypes.SplitChannelVersion(version)
     doCustomLogic()
     im.app.OnChanOpenInit(
         ctx,
@@ -100,8 +103,9 @@ func OnChanOpenTry(
     version,
     counterpartyVersion string,
 ) error {
-      cpMiddlewareVersion, cpAppVersion = splitMiddlewareVersion(counterpartyVersion)
-      middlewareVersion, appVersion = splitMiddlewareVersion(version)
+      // core/04-channel/types contains a helper function to split middleware and underlying app version
+      cpMiddlewareVersion, cpAppVersion = channeltypes.SplitChannelVersion(counterpartyVersion)
+      middlewareVersion, appVersion = channeltypes.SplitChannelVersion(version)
       if !isCompatible(cpMiddlewareVersion, middlewareVersion) {
           return error
       }
@@ -127,7 +131,8 @@ func OnChanOpenAck(
     channelID string,
     counterpartyVersion string,
 ) error {
-      middlewareVersion, appVersion = splitMiddlewareVersion(version)
+      // core/04-channel/types contains a helper function to split middleware and underlying app version
+      middlewareVersion, appVersion = channeltypes.SplitChannelVersion(version)
       if !isCompatible(middlewareVersion) {
           return error
       }
@@ -221,6 +226,7 @@ func WriteAcknowledgement(
 
     return ics4Keeper.WriteAcknowledgement(packet, ack_bytes)
 }
+
 func SendPacket(appPacket channeltypes.Packet) {
     // middleware may modify packet
     packet = doCustomLogic(app_packet)
