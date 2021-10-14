@@ -71,6 +71,9 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			fee := &types.Fee{ackFee, receiveFee, timeoutFee}
 			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 
+			// refundAcc balance before escrow
+			originalBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
+
 			// escrow the packet fee
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
 
@@ -82,6 +85,10 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 				suite.Require().True(feeInEscrow.Fee.TimeoutFee.IsEqual(fee.TimeoutFee))
 				// check if the fee is escrowed correctly
 				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)})
+				suite.Require().True(hasBalance)
+				expectedBal := originalBal.Amount.Sub(sdk.NewInt(300))
+				// check if the refund acc has sent the fee
+				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), refundAcc, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: expectedBal})
 				suite.Require().True(hasBalance)
 				suite.Require().NoError(err)
 			} else {
