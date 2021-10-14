@@ -107,21 +107,22 @@ func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address string, counterpartyAddress sdk.AccAddress) {
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyRelayerAddress(address), counterpartyAddress)
+	store.Set(types.KeyRelayerAddress(address), []byte(counterpartyAddress))
 }
 
 // GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
-func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) (sdk.AccAddress, bool) {
+func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyRelayerAddress(address.String())
+	key := types.KeyRelayerAddress(address)
 
 	if !store.Has(key) {
-		return []byte{}, false
+		return "", false
 	}
 
-	return store.Get(key), true
+	addr := string(store.Get(key))
+	return addr, true
 }
 
 // Stores a Fee for a given packet in state
@@ -137,7 +138,7 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	key := types.KeyFeeInEscrow(packetId)
 	bz := store.Get(key)
 	if bz == nil {
-		return nil, false
+		return types.IdentifiedPacketFee{}, false
 	}
 
 	fee := k.MustUnmarshalFee(bz)

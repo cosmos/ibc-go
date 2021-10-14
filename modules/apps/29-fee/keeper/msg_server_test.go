@@ -38,8 +38,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
 
-			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress())
-			suite.Require().Equal(addr2, counterpartyAddress.String())
+			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String())
+			suite.Require().Equal(addr2, counterpartyAddress)
 		} else {
 			suite.Require().Error(err)
 		}

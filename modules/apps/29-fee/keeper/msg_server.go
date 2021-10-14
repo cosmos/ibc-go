@@ -24,7 +24,7 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 	}
 
 	k.SetCounterpartyAddress(
-		ctx, msg.Address, counterpartyAddress,
+		ctx, msg.Address, counterpartyAddress.String(),
 	)
 
 	k.Logger(ctx).Info("Registering counterparty address for relayer.", "Address:", msg.Address, "Counterparty Address:", msg.CounterpartyAddress)
@@ -54,7 +54,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return &types.MsgPayPacketFeeResponse{}, err
 	}
 
-	identifiedPacket := types.NewIdentifiedPacketFee{packetId, msg.Fee, msg.Relayers}
+	identifiedPacket := types.NewIdentifiedPacketFee(packetId, msg.Fee, msg.Relayers)
 	err = k.EscrowPacketFee(ctx, refundAccAddr, identifiedPacket)
 	if err != nil {
 		return nil, err
