@@ -24,7 +24,7 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 	}
 
 	k.SetCounterpartyAddress(
-		ctx, msg.Address, counterpartyAddress,
+		ctx, msg.Address, counterpartyAddress.String(),
 	)
 
 	k.Logger(ctx).Info("Registering counterparty address for relayer.", "Address:", msg.Address, "Counterparty Address:", msg.CounterpartyAddress)
@@ -49,12 +49,12 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		Sequence:  sequence,
 	}
 
-	refundAccAddr, err := sdk.AccAddressFromBech32(msg.RefundAccount)
+	refundAccAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return &types.MsgPayPacketFeeResponse{}, err
 	}
 
-	identifiedPacket := types.IdentifiedPacketFee{PacketId: packetId, Fee: msg.Fee, Relayers: msg.Relayers}
+	identifiedPacket := types.NewIdentifiedPacketFee(packetId, msg.Fee, msg.Relayers)
 	err = k.EscrowPacketFee(ctx, refundAccAddr, identifiedPacket)
 	if err != nil {
 		return nil, err
@@ -69,13 +69,12 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	refundAccAddr, err := sdk.AccAddressFromBech32(msg.RefundAccount)
+	refundAccAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return &types.MsgPayPacketFeeAsyncResponse{}, err
 	}
 
-	identifiedPacket := types.IdentifiedPacketFee{PacketId: msg.PacketId, Fee: msg.Fee, Relayers: msg.Relayers}
-	err = k.EscrowPacketFee(ctx, refundAccAddr, identifiedPacket)
+	err = k.EscrowPacketFee(ctx, refundAccAddr, msg.IdentifiedPacketFee)
 	if err != nil {
 		return nil, err
 	}

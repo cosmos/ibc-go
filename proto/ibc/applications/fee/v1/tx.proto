@@ -48,26 +48,23 @@ message MsgPayPacketFee {
   // source channel unique identifier
   string source_channel_id = 3 [(gogoproto.moretags) = "yaml:\"source_channel_id\""];
   // account address to refund fee if necessary
-  string          refund_account = 4 [(gogoproto.moretags) = "yaml:\"refund_account\""];
-  repeated string relayers       = 5;
+  string          signer   = 4;
+  repeated string relayers = 5;
 }
 
-// MsgPayPacketFeeResponse defines the response type for Msg/EscrowPacketFee
+// MsgPayPacketFeeResponse defines the response type for Msg/PayPacketFee
 message MsgPayPacketFeeResponse {}
 
-// MsgPayPacketFeeAsync defines the request type EscrowPacketFeeAsync RPC
+// MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
 message MsgPayPacketFeeAsync {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // source channel port identifier
-  ibc.applications.fee.v1.Fee fee = 1;
-  // source channel unique identifier
-  ibc.core.channel.v1.PacketId packet_id = 2 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  // packet to pay fee for
+  ibc.applications.fee.v1.IdentifiedPacketFee identified_packet_fee = 1;
   // account address to refund fee if necessary
-  string          refund_account = 3 [(gogoproto.moretags) = "yaml:\"refund_account\""];
-  repeated string relayers       = 4;
+  string signer = 2;
 }
 
-// MsgPayPacketFeeAsyncResponse defines the response type for Msg/EscrowPacketFeeAsync
+// MsgPayPacketFeeAsyncResponse defines the response type for Msg/PayPacketFeeAsync
 message MsgPayPacketFeeAsyncResponse {}

@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 )
@@ -38,8 +37,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
 
-			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress())
-			suite.Require().Equal(addr2, counterpartyAddress.String())
+			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String())
+			suite.Require().Equal(addr2, counterpartyAddress)
 		} else {
 			suite.Require().Error(err)
 		}
@@ -64,9 +63,8 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		suite.coordinator.SetupConnections(suite.path)
 		SetupFeePath(suite.path)
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
-		validCoin := &sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}
 		channelID := suite.path.EndpointA.ChannelID
-		fee := &types.Fee{validCoin, validCoin, validCoin}
+		fee := &types.Fee{validCoins, validCoins, validCoins}
 		msg := types.NewMsgPayPacketFee(fee, suite.path.EndpointA.ChannelConfig.PortID, channelID, refundAcc.String(), []string{})
 
 		tc.malleate()
@@ -97,16 +95,22 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		suite.SetupTest()
 		suite.coordinator.SetupConnections(suite.path)
 		SetupFeePath(suite.path)
-		refundAcc := suite.chainA.SenderAccount.GetAddress()
-		validCoin := &sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}
-		channelID := suite.path.EndpointA.ChannelID
-		fee := &types.Fee{validCoin, validCoin, validCoin}
 		ctxA := suite.chainA.GetContext()
+
+		refundAcc := suite.chainA.SenderAccount.GetAddress()
+
+		// build packetId
+		channelID := suite.path.EndpointA.ChannelID
+		fee := &types.Fee{validCoins, validCoins, validCoins}
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+
+		// build fee
 		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: suite.path.EndpointA.ChannelConfig.PortID, Sequence: seq}
-		msg := types.NewMsgPayPacketFeeAsync(fee, packetId, refundAcc.String(), []string{})
+		identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 
 		tc.malleate()
+
+		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee, refundAcc.String())
 		_, err := suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
