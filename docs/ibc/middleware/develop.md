@@ -64,6 +64,10 @@ Middleware accomplishes this by formatting the version in the following format: 
 
 During the handshake callbacks, the middleware can split the version into: `mw-version`, `app-version`. It can do its negotiation logic on `mw-version`, and pass the `app-version` to the underlying application.
 
+The middleware should simply pass the capability in the callback arguments along to the underlying application so that it may be claimed by the base application. The base application will then pass the capability up the stack in order to authenticate an outgoing packet/acknowledgement.
+
+In the case where the middleware wishes to send a packet or acknowledgment without the involvement of the underlying application, it should be given access to the same `scopedKeeper` as the base application so that it can retrieve the capabilities by itself.
+
 ### Handshake Callbacks:
 
 
