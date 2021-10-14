@@ -15,7 +15,7 @@ Middleware allows developers to define the extensions as seperate modules that c
 ## Pre-requisite Readings
 
 - [IBC Overview](../overview.md) {prereq}
-- [IBC default integration](../integration.md) {prereq}
+- [IBC Integration](../integration.md) {prereq}
 - [IBC Application Developer Guide](../apps.md) {prereq}
 
 ## Definitions
@@ -66,7 +66,7 @@ During the handshake callbacks, the middleware can split the version into: `mw-v
 
 
 ```go
-func OnChanOpenInit(ctx sdk.Context,
+func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
     order channeltypes.Order,
     connectionHops []string,
     portID string,
@@ -77,7 +77,7 @@ func OnChanOpenInit(ctx sdk.Context,
 ) error {
     middlewareVersion, appVersion = splitMiddlewareVersion(version)
     doCustomLogic()
-    app.OnChanOpenInit(
+    im.app.OnChanOpenInit(
         ctx,
         order,
         connectionHops,
