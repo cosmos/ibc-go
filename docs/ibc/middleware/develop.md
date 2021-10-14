@@ -68,8 +68,7 @@ The middleware should simply pass the capability in the callback arguments along
 
 In the case where the middleware wishes to send a packet or acknowledgment without the involvement of the underlying application, it should be given access to the same `scopedKeeper` as the base application so that it can retrieve the capabilities by itself.
 
-### Handshake Callbacks:
-
+### Handshake callbacks
 
 ```go
 func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
