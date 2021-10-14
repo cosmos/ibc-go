@@ -157,15 +157,8 @@ func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId *channeltypes.Packet
 func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) bool {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(packetId)
-	bz := store.Get(key)
-	if bz == nil {
-		return false
-	}
 
-	fee := k.MustUnmarshalFee(bz)
-
-	// if the returned Fee is empty return false
-	if (types.Fee{}) == *fee.Fee {
+	if !store.Has(key) {
 		return false
 	}
 

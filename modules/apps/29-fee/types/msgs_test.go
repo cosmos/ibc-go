@@ -13,7 +13,7 @@ var (
 	validChannelID = "channel-1"
 	validPortID    = "validPortId"
 	invalidID      = "this identifier is too long to be used as a valid identifier"
-	validCoin      = &sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}
+	validCoins     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
 	validAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	invalidAddr    = "invalid_address"
 )
@@ -73,13 +73,6 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 			true,
 		},
 		{
-			"fee is empty",
-			func() {
-				fee = &Fee{}
-			},
-			false,
-		},
-		{
 			"invalid channelID",
 			func() {
 				channelID = invalidID
@@ -114,7 +107,7 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		signer = validAddr
 		channelID = validChannelID
 		portID = validPortID
-		fee = &Fee{validCoin, validCoin, validCoin}
+		fee = &Fee{validCoins, validCoins, validCoins}
 		relayers = nil
 
 		// malleate
@@ -138,7 +131,7 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	signer := addr.String()
 	channelID := validChannelID
 	portID := validPortID
-	fee := &Fee{validCoin, validCoin, validCoin}
+	fee := &Fee{validCoins, validCoins, validCoins}
 	msg := NewMsgPayPacketFee(fee, portID, channelID, signer, nil)
 
 	// GetSigners
@@ -167,13 +160,6 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 			"success",
 			func() {},
 			true,
-		},
-		{
-			"fee is empty",
-			func() {
-				fee = &Fee{}
-			},
-			false,
 		},
 		{
 			"invalid channelID",
@@ -217,7 +203,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		signer = validAddr
 		channelID = validChannelID
 		portID = validPortID
-		fee = &Fee{validCoin, validCoin, validCoin}
+		fee = &Fee{validCoins, validCoins, validCoins}
 		relayers = nil
 		seq = 1
 
@@ -244,7 +230,7 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	// build message
 	channelID := validChannelID
 	portID := validPortID
-	fee := &Fee{validCoin, validCoin, validCoin}
+	fee := &Fee{validCoins, validCoins, validCoins}
 	seq := uint64(1)
 	packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
 	identifiedPacketFee := &IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: nil}

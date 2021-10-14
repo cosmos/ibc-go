@@ -57,11 +57,6 @@ func NewMsgPayPacketFee(fee *Fee, sourcePortId, sourceChannelId, signer string, 
 
 // ValidateBasic performs a basic check of the MsgPayPacketFee fields
 func (msg MsgPayPacketFee) ValidateBasic() error {
-	// fee cannot be empty
-	if (Fee{}) == *msg.Fee {
-		return ErrFeeEmpty
-	}
-
 	// validate channelId
 	err := host.ChannelIdentifierValidator(msg.SourceChannelId)
 	if err != nil {
@@ -107,11 +102,6 @@ func NewMsgPayPacketFeeAsync(identifiedPacketFee *IdentifiedPacketFee, signer st
 
 // ValidateBasic performs a basic check of the MsgPayPacketFeeAsync fields
 func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
-	// fee cannot be empty
-	if (Fee{}) == *msg.IdentifiedPacketFee.Fee {
-		return ErrFeeEmpty
-	}
-
 	// validate channelId
 	err := host.ChannelIdentifierValidator(msg.IdentifiedPacketFee.PacketId.ChannelId)
 	if err != nil {

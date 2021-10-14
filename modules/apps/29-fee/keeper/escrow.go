@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
@@ -18,25 +19,14 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, ident
 		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc.String()))
 	}
 
-	fees := sdk.Coins{
-		*identifiedFee.Fee.AckFee, *identifiedFee.Fee.ReceiveFee, *identifiedFee.Fee.TimeoutFee,
-	}
+	coins := identifiedFee.Fee.AckFee
+	coins = coins.Add(identifiedFee.Fee.ReceiveFee...)
+	coins = coins.Add(identifiedFee.Fee.TimeoutFee...)
 
-	// check if refundAcc has balance for each fee
-	for _, f := range fees {
-		hasBalance := k.bankKeeper.HasBalance(ctx, refundAcc, f)
-		if !hasBalance {
-			return sdkerrors.Wrap(types.ErrBalanceNotFound, fmt.Sprintf("%s", refundAcc.String()))
-		}
-	}
-
-	for _, coin := range fees {
-		// escrow each fee with account module
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(
-			ctx, refundAcc, types.ModuleName, sdk.Coins{coin},
-		); err != nil {
-			return err
-		}
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(
+		ctx, refundAcc, types.ModuleName, coins,
+	); err != nil {
+		return err
 	}
 
 	// Store fee in state for reference later
@@ -57,21 +47,21 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
 	// send ack fee to reverse relayer
-	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.Fee.AckFee})
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.AckFee.Denom, feeInEscrow.Fee.AckFee.Amount))
+		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to reverse relayer"))
 	}
 
 	// send receive fee to forward relayer
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, sdk.Coins{*feeInEscrow.Fee.ReceiveFee})
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.ReceiveFee.Denom, feeInEscrow.Fee.ReceiveFee.Amount))
+		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to forward relayer"))
 	}
 
 	// refund timeout fee to refundAddr
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.TimeoutFee})
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.TimeoutFee)
 	if err != nil {
-		return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
+		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding timeout fee"))
 	}
 
 	// removes the fee from the store as fee is now paid
@@ -92,21 +82,21 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer 
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
 	// refund the ack fee
-	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.AckFee})
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.AckFee.Denom, feeInEscrow.Fee.AckFee.Amount))
+		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding ack fee"))
 	}
 
 	// refund the receive fee
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, sdk.Coins{*feeInEscrow.Fee.ReceiveFee})
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(types.ErrRefundingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.ReceiveFee.Denom, feeInEscrow.Fee.ReceiveFee.Amount))
+		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding receive fee"))
 	}
 
 	// pay the timeout fee to the reverse relayer
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, sdk.Coins{*feeInEscrow.Fee.TimeoutFee})
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.TimeoutFee)
 	if err != nil {
-		return sdkerrors.Wrap(types.ErrPayingFee, fmt.Sprintf("Error sending coin with Denom: %s for Amount: %d", feeInEscrow.Fee.TimeoutFee.Denom, feeInEscrow.Fee.TimeoutFee.Amount))
+		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to timeout relayer"))
 	}
 
 	// removes the fee from the store as fee is now paid
