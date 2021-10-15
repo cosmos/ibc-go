@@ -34,29 +34,31 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v2.0.0](https://github.com/cosmos/ibc-go/releases/tag/v2.0.0) - 2021-11-09
 
 ### Dependencies
 
-* [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
-* [\#455](https://github.com/cosmos/ibc-go/pull/455) Bump SDK version to v0.44.1
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to 0.34.14
 
 ### API Breaking
 
 * (core) [\#227](https://github.com/cosmos/ibc-go/pull/227) Remove sdk.Result from application callbacks
 * (transfer) [\#350](https://github.com/cosmos/ibc-go/pull/350) Change FungibleTokenPacketData to use a string for the Amount field. This enables token transfers with amounts previously restricted by uint64. Up to the maximum uint256 value is supported. 
 
-### State Machine Breaking
-
-### Improvements
-
 ### Features
 
 * [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
 
+## [v1.2.3](https://github.com/cosmos/ibc-go/releases/tag/v1.2.3) - 2021-11-09
+
+### Dependencies
+
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to 0.34.14
+* [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
+
 ## [v1.2.2](https://github.com/cosmos/ibc-go/releases/tag/v1.2.2) - 2021-10-15
 
- * [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
+* [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
 
 ## [v1.2.1](https://github.com/cosmos/ibc-go/releases/tag/v1.2.1) - 2021-10-04
 
@@ -82,9 +84,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](https://github.com/tendermint/tendermint) from 0.34.12 to 0.34.13.
 
+## [v1.1.3](https://github.com/cosmos/ibc-go/releases/tag/v1.1.3) - 2021-11-09
+
+### Dependencies
+
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to 0.34.14
+* [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
+
 ## [v1.1.2](https://github.com/cosmos/ibc-go/releases/tag/v1.1.2) - 2021-10-15
 
- * [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
+* [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
  
 ## [v1.1.1](https://github.com/cosmos/ibc-go/releases/tag/v1.1.1) - 2021-10-04
 
