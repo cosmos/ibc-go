@@ -13,41 +13,18 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
-  // Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the
-  // given packet
-  rpc Fees(QueryFeesRequest) returns (QueryFeesResponse) {
-    option (google.api.http).get =
-        "/ibc/apps/fee/v1/fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}";
-  }
-
   // Gets all incentivized packets
   rpc IncentivizedPackets(QueryIncentivizedPacketsRequest) returns (QueryIncentivizedPacketsResponse) {
     option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets";
   }
 
-  // Gets the specified incentivized packet
+  // Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the
+  // given packet
   rpc IncentivizedPacket(QueryIncentivizedPacketRequest) returns (QueryIncentivizedPacketResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
         "{packet_id.sequence}";
   }
-}
-
-// QueryFeesRequest is the request type for querying the fees associated with submitting the ReceivePacket,
-// AcknowledgementPacket, and TimeoutPacket messages of the given packet
-message QueryFeesRequest {
-  // PacketID
-  ibc.core.channel.v1.PacketId packet_id = 1;
-  // Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s).
-  string relayer_address = 2;
-  // Height to query at
-  uint64 query_height = 3;
-}
-
-// QueryFeeResponse is the response type for the ReceiveFee RPC
-message QueryFeesResponse {
-  ibc.applications.fee.v1.Fee fee = 1;
 }
 
 // QueryIncentivizedPacketsRequest is the request type for querying for all incentivized packets
