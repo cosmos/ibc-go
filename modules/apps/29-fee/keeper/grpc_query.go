@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,13 +22,9 @@ func (q Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivi
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = ctx.WithBlockHeight(int64(req.QueryHeight))
 	packets := []*types.IdentifiedPacketFee{}
-	fmt.Println("Inside method", packets)
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(types.FeeInEscrowPrefix))
-	fmt.Println("store", store)
 	_, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
-		fmt.Println("insidePaginate query", value)
 		result := q.MustUnmarshalFee(value)
-		fmt.Println("insidePaginate query2", result)
 		packets = append(packets, &result)
 		return nil
 	})
