@@ -13,13 +13,13 @@ import (
 	"github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
-// IBCModule ...
+// IBCModule implements the ICS26 callbacks for testing/mock.
 type IBCModule struct {
 	IBCApp       *MockIBCApp // base application of an IBC middleware stack
 	scopedKeeper capabilitykeeper.ScopedKeeper
 }
 
-// NewIBCModule ...
+// NewIBCModule creates a new IBCModule given the underlying mock IBC application and scopedKeeper.
 func NewIBCModule(app *MockIBCApp, scopedKeeper capabilitykeeper.ScopedKeeper) IBCModule {
 	return IBCModule{
 		IBCApp:       app,
