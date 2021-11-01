@@ -10,7 +10,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 )
 
-// TrySendTx takes in a transaction from a base application and attempts to send the packet
+// TrySendTx takes in a transaction from a authentication module and attempts to send the packet
 // if the base application has the capability to send on the provided portID
 func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
