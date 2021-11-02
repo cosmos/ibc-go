@@ -17,7 +17,7 @@ import (
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// Keeper defines the IBC transfer keeper
+// Keeper defines the IBC interchain account keeper
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
