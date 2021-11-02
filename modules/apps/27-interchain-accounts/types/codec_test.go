@@ -9,10 +9,37 @@ import (
 	"github.com/cosmos/ibc-go/v2/testing/simapp"
 )
 
+// caseRawBytes defines a helper struct, used for testing codec operations
 type caseRawBytes struct {
 	name    string
 	bz      []byte
 	expPass bool
+}
+
+// mockSdkMsg defines a mock struct for testing codec error scenarios
+type mockSdkMsg struct{}
+
+// Reset implements sdk.Msg
+func (mockSdkMsg) Reset() {
+}
+
+// String implements sdk.Msg
+func (mockSdkMsg) String() string {
+	return ""
+}
+
+// ProtoMessage implements sdk.Msg
+func (mockSdkMsg) ProtoMessage() {
+}
+
+// ValidateBasic implements sdk.Msg
+func (mockSdkMsg) ValidateBasic() error {
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (mockSdkMsg) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
 }
 
 func (suite *TypesTestSuite) TestSerializeCosmosTx() {
@@ -64,17 +91,29 @@ func (suite *TypesTestSuite) TestSerializeCosmosTx() {
 			},
 			true,
 		},
+		{
+			"unregistered msg type",
+			[]sdk.Msg{
+				&mockSdkMsg{},
+			},
+			false,
+		},
+		{
+			"multiple unregistered msg types",
+			[]sdk.Msg{
+				&mockSdkMsg{},
+				&mockSdkMsg{},
+				&mockSdkMsg{},
+			},
+			false,
+		},
 	}
 
 	testCasesAny := []caseRawBytes{}
 
 	for _, tc := range testCases {
 		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		suite.Require().NoError(err, tc.name)
 
 		testCasesAny = append(testCasesAny, caseRawBytes{tc.name, bz, tc.expPass})
 	}
