@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -21,4 +22,53 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // and creates a registry of it's concrete implementations
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
+}
+
+// SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
+// packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
+// bytes are returned.
+func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) (bz []byte, err error) {
+	msgAnys := make([]*codectypes.Any, len(msgs))
+
+	for i, msg := range msgs {
+		msgAnys[i], err = codectypes.NewAnyWithValue(msg)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cosmosTx := &CosmosTx{
+		Messages: msgAnys,
+	}
+
+	bz, err = cdc.Marshal(cosmosTx)
+	if err != nil {
+		return nil, err
+	}
+
+	return bz, nil
+}
+
+// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
+// into a slice of sdk.Msg's.
+func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
+	var cosmosTx CosmosTx
+	if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
+		return nil, err
+	}
+
+	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
+
+	for i, any := range cosmosTx.Messages {
+		var msg sdk.Msg
+
+		err := cdc.UnpackAny(any, &msg)
+		if err != nil {
+			return nil, err
+		}
+
+		msgs[i] = msg
+	}
+
+	return msgs, nil
 }

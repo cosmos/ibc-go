@@ -5,19 +5,13 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
-type Router interface {
-	Route(ctx sdk.Context, path string) sdk.Handler
-}
-
-// AccountKeeper defines the contract required for account APIs.
+// AccountKeeper defines the expected account keeper
 type AccountKeeper interface {
 	NewAccount(ctx sdk.Context, acc authtypes.AccountI) authtypes.AccountI
-	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
@@ -29,23 +23,11 @@ type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
-	ChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, portCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, *capabilitytypes.Capability, error)
 	CounterpartyHops(ctx sdk.Context, channel channeltypes.Channel) ([]string, bool)
-}
-
-// ClientKeeper defines the expected IBC client keeper
-type ClientKeeper interface {
-	GetClientState(ctx sdk.Context, clientID string) (ibcexported.ClientState, bool)
-}
-
-// ConnectionKeeper defines the expected IBC connection keeper
-type ConnectionKeeper interface {
-	GetConnection(ctx sdk.Context, connectionID string) (connection connectiontypes.ConnectionEnd, found bool)
 }
 
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 	IsBound(ctx sdk.Context, portID string) bool
-	LookupModuleByPort(ctx sdk.Context, portID string) (string, *capabilitytypes.Capability, error)
 }
