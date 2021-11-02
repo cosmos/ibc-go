@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v2/modules/core/exported"
