@@ -16,7 +16,7 @@ type caseRawBytes struct {
 	expPass bool
 }
 
-// mockSdkMsg defines a mock struct for testing codec error scenarios
+// mockSdkMsg defines a mock struct, used for testing codec error scenarios
 type mockSdkMsg struct{}
 
 // Reset implements sdk.Msg
