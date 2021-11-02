@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.0.1](https://github.com/cosmos/ibc-go/releases/tag/v2.0.1) - 2021-12-02
+
+### Bug Fixes
+
+* (02-client) [\#500](https://github.com/cosmos/ibc-go/pull/500) Fix IBC `update-client proposal` cli command to expect correct number of args.
+
 ## [v2.0.0](https://github.com/cosmos/ibc-go/releases/tag/v2.0.0) - 2021-11-09
 
 ### Dependencies
@@ -58,6 +64,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
 
 ## [v1.2.2](https://github.com/cosmos/ibc-go/releases/tag/v1.2.2) - 2021-10-15
+
+### Dependencies
 
 * [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
 
