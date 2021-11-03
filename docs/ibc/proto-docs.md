@@ -890,6 +890,8 @@ Query provides defines the gRPC querier service.
 
 ### MsgPayPacketFee
 MsgPayPacketFee defines the request type EscrowPacketFee RPC
+This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
+paid for
 
 
 | Field | Type | Label | Description |
@@ -909,6 +911,7 @@ MsgPayPacketFee defines the request type EscrowPacketFee RPC
 
 ### MsgPayPacketFeeAsync
 MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
+This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 
 
 | Field | Type | Label | Description |

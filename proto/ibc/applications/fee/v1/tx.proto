@@ -38,6 +38,8 @@ message MsgRegisterCounterpartyAddress {
 message MsgRegisterCounterpartyAddressResponse {}
 
 // MsgPayPacketFee defines the request type EscrowPacketFee RPC
+// This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
+// paid for
 message MsgPayPacketFee {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -56,6 +58,7 @@ message MsgPayPacketFee {
 message MsgPayPacketFeeResponse {}
 
 // MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
+// This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 message MsgPayPacketFeeAsync {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;

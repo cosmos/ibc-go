@@ -108,6 +108,8 @@ func (m *MsgRegisterCounterpartyAddressResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgRegisterCounterpartyAddressResponse proto.InternalMessageInfo
 
 // MsgPayPacketFee defines the request type EscrowPacketFee RPC
+// This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
+// paid for
 type MsgPayPacketFee struct {
 	Fee *Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee,omitempty"`
 	// source channel port identifier
@@ -190,6 +192,7 @@ func (m *MsgPayPacketFeeResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgPayPacketFeeResponse proto.InternalMessageInfo
 
 // MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
+// This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 type MsgPayPacketFeeAsync struct {
 	// packet to pay fee for
 	IdentifiedPacketFee *IdentifiedPacketFee `protobuf:"bytes,1,opt,name=identified_packet_fee,json=identifiedPacketFee,proto3" json:"identified_packet_fee,omitempty" yaml:"identified_packet_fee"`
