@@ -61,7 +61,8 @@ message MsgPayPacketFeeAsync {
   option (gogoproto.goproto_getters) = false;
 
   // packet to pay fee for
-  ibc.applications.fee.v1.IdentifiedPacketFee identified_packet_fee = 1;
+  ibc.applications.fee.v1.IdentifiedPacketFee identified_packet_fee = 1
+      [(gogoproto.moretags) = "yaml:\"identified_packet_fee\""];
   // account address to refund fee if necessary
   string signer = 2;
 }

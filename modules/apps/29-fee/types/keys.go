@@ -30,7 +30,7 @@ const (
 	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	RelayerAddressKeyPrefix = "relayerAddress"
 
-	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
+	// FeeInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeeInEscrowPrefix = "feeInEscrow"
 )
 

@@ -46,22 +46,22 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	// get module accAddr
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
-	// send ack fee to reverse relayer
-	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.AckFee)
+	// send receive fee to forward relayer
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to reverse relayer"))
+		return sdkerrors.Wrap(err, "error sending fee to forward relayer")
 	}
 
-	// send receive fee to forward relayer
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
+	// send ack fee to reverse relayer
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to forward relayer"))
+		return sdkerrors.Wrap(err, "error sending fee to reverse relayer")
 	}
 
 	// refund timeout fee to refundAddr
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.TimeoutFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding timeout fee"))
+		return sdkerrors.Wrap(err, "error refunding timeout fee")
 	}
 
 	// removes the fee from the store as fee is now paid
@@ -84,19 +84,19 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer 
 	// refund the ack fee
 	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding ack fee"))
+		return sdkerrors.Wrap(err, "error refunding ack fee")
 	}
 
 	// refund the receive fee
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding receive fee"))
+		return sdkerrors.Wrap(err, "error refunding receive fee")
 	}
 
 	// pay the timeout fee to the reverse relayer
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.TimeoutFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to timeout relayer"))
+		return sdkerrors.Wrap(err, "error sending fee to timeout relayer")
 	}
 
 	// removes the fee from the store as fee is now paid
