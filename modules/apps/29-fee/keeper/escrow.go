@@ -16,7 +16,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, ident
 	// check if the refund account exists
 	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
 	if hasRefundAcc == nil {
-		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc.String()))
+		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))
 	}
 
 	coins := identifiedFee.Fee.AckFee
@@ -40,7 +40,7 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
 	if !found {
-		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("%s", refundAcc.String()))
+		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("with channelID: %s, sequenceId %d", packetID.ChannelId, packetID.Sequence))
 	}
 
 	// get module accAddr

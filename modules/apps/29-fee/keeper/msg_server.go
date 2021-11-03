@@ -5,9 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -51,7 +50,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 
 	refundAccAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return &types.MsgPayPacketFeeResponse{}, err
+		return nil, err
 	}
 
 	identifiedPacket := types.NewIdentifiedPacketFee(packetId, msg.Fee, msg.Relayers)
@@ -71,7 +70,7 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 
 	refundAccAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return &types.MsgPayPacketFeeAsyncResponse{}, err
+		return nil, err
 	}
 
 	err = k.EscrowPacketFee(ctx, refundAccAddr, &msg.IdentifiedPacketFee)
