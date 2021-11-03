@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestPayFee() {
+func (suite *KeeperTestSuite) TestDistributeFee() {
 	var (
 		err            error
 		ackFee         sdk.Coins
@@ -186,15 +186,14 @@ func (suite *KeeperTestSuite) TestPayFee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestPayTimeoutFee() {
+func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 	var (
-		err            error
-		ackFee         sdk.Coins
-		receiveFee     sdk.Coins
-		timeoutFee     sdk.Coins
-		packetId       *channeltypes.PacketId
-		reverseRelayer sdk.AccAddress
-		refundAcc      sdk.AccAddress
+		err        error
+		ackFee     sdk.Coins
+		receiveFee sdk.Coins
+		timeoutFee sdk.Coins
+		packetId   *channeltypes.PacketId
+		refundAcc  sdk.AccAddress
 	)
 
 	// refundAcc does not have balance for the following Coin
@@ -225,7 +224,7 @@ func (suite *KeeperTestSuite) TestPayTimeoutFee() {
 
 			// setup
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
-			reverseRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+			timeoutRelayer := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
 			ackFee = validCoins
 			receiveFee = validCoins
@@ -240,7 +239,7 @@ func (suite *KeeperTestSuite) TestPayTimeoutFee() {
 
 			tc.malleate()
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFeeTimeout(suite.chainA.GetContext(), refundAcc, reverseRelayer, packetId)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFeeTimeout(suite.chainA.GetContext(), refundAcc, timeoutRelayer, packetId)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -248,7 +247,7 @@ func (suite *KeeperTestSuite) TestPayTimeoutFee() {
 				// there should no longer be a fee in escrow for this packet
 				suite.Require().False(hasFeeInEscrow)
 				// check if the refund acc has been refunded
-				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), reverseRelayer, validCoins[0])
+				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), timeoutRelayer, validCoins[0])
 				suite.Require().True(hasBalance)
 				// check the module acc wallet is now empty
 				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), refundAcc, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
