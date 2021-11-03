@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg1 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				msg2 := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
-				data, err := suite.chainB.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg1, msg2})
+				data, err := types.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg1, msg2})
 				suite.Require().NoError(err)
 				icaPacketData.Data = data
 			}, true,
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			amount, _ := sdk.ParseCoinsNormalized("100stake")
 			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 			msg := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
-			data, err := suite.chainB.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
+			data, err := types.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
 			suite.Require().NoError(err)
 
 			// default packet data, must be modified in malleate for test cases expected to fail
@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				msg = &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				data, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
+				data, err := types.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 
 				icaPacketData := types.InterchainAccountPacketData{
@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"Invalid packet type", func() {
 				// build packet data
-				data, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{&banktypes.MsgSend{}})
+				data, err := types.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{&banktypes.MsgSend{}})
 				suite.Require().NoError(err)
 
 				// Type here is an ENUM
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// Incorrect FromAddress
 				msg = &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 				// build packet data
-				data, err := suite.chainA.GetSimApp().ICAKeeper.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
+				data, err := types.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
 				suite.Require().NoError(err)
 				icaPacketData := types.InterchainAccountPacketData{
 					Type: types.EXECUTE_TX,
