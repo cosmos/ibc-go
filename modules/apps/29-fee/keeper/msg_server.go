@@ -74,7 +74,7 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 		return &types.MsgPayPacketFeeAsyncResponse{}, err
 	}
 
-	err = k.EscrowPacketFee(ctx, refundAccAddr, msg.IdentifiedPacketFee)
+	err = k.EscrowPacketFee(ctx, refundAccAddr, &msg.IdentifiedPacketFee)
 	if err != nil {
 		return nil, err
 	}

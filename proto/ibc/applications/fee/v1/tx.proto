@@ -44,7 +44,7 @@ message MsgPayPacketFee {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  ibc.applications.fee.v1.Fee fee = 1;
+  ibc.applications.fee.v1.Fee fee = 1 [(gogoproto.nullable) = false];
   // source channel port identifier
   string source_port_id = 2 [(gogoproto.moretags) = "yaml:\"source_port_id\""];
   // source channel unique identifier
@@ -65,7 +65,7 @@ message MsgPayPacketFeeAsync {
 
   // packet to pay fee for
   ibc.applications.fee.v1.IdentifiedPacketFee identified_packet_fee = 1
-      [(gogoproto.moretags) = "yaml:\"identified_packet_fee\""];
+      [(gogoproto.moretags) = "yaml:\"identified_packet_fee\"", (gogoproto.nullable) = false];
   // account address to refund fee if necessary
   string signer = 2;
 }

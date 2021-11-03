@@ -58,7 +58,7 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		signer    string
 		channelID string
 		portID    string
-		fee       *Fee
+		fee       Fee
 		relayers  []string
 	)
 
@@ -107,7 +107,7 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		signer = validAddr
 		channelID = validChannelID
 		portID = validPortID
-		fee = &Fee{validCoins, validCoins, validCoins}
+		fee = Fee{validCoins, validCoins, validCoins}
 		relayers = nil
 
 		// malleate
@@ -131,7 +131,7 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	signer := addr.String()
 	channelID := validChannelID
 	portID := validPortID
-	fee := &Fee{validCoins, validCoins, validCoins}
+	fee := Fee{validCoins, validCoins, validCoins}
 	msg := NewMsgPayPacketFee(fee, portID, channelID, signer, nil)
 
 	// GetSigners
@@ -146,7 +146,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		signer    string
 		channelID string
 		portID    string
-		fee       *Fee
+		fee       Fee
 		relayers  []string
 		seq       uint64
 	)
@@ -203,7 +203,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		signer = validAddr
 		channelID = validChannelID
 		portID = validPortID
-		fee = &Fee{validCoins, validCoins, validCoins}
+		fee = Fee{validCoins, validCoins, validCoins}
 		relayers = nil
 		seq = 1
 
@@ -211,7 +211,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		tc.malleate()
 
 		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
-		identifiedPacketFee := &IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: relayers}
+		identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: relayers}
 		msg := NewMsgPayPacketFeeAsync(identifiedPacketFee, signer)
 
 		err := msg.ValidateBasic()
@@ -230,10 +230,10 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	// build message
 	channelID := validChannelID
 	portID := validPortID
-	fee := &Fee{validCoins, validCoins, validCoins}
+	fee := Fee{validCoins, validCoins, validCoins}
 	seq := uint64(1)
 	packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
-	identifiedPacketFee := &IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: nil}
+	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: nil}
 	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee, addr.String())
 
 	// GetSigners

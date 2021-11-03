@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			packetId := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
 
 			tc.malleate()
-			fee := &types.Fee{ackFee, receiveFee, timeoutFee}
+			fee := types.Fee{ackFee, receiveFee, timeoutFee}
 			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 
 			// refundAcc balance before escrow
@@ -146,12 +146,12 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			receiveFee = validCoins
 			timeoutFee = validCoins
 			packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: validSeq}
-			fee := &types.Fee{ackFee, receiveFee, timeoutFee}
+			fee := types.Fee{ackFee, receiveFee, timeoutFee}
 
 			// escrow the packet fee & store the fee in state
-			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, &identifiedPacketFee)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -230,11 +230,11 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 			receiveFee = validCoins
 			timeoutFee = validCoins
 			packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: validSeq}
-			fee := &types.Fee{ackFee, receiveFee, timeoutFee}
+			fee := types.Fee{ackFee, receiveFee, timeoutFee}
 
 			// escrow the packet fee & store the fee in state
-			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
+			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, &identifiedPacketFee)
 			suite.Require().NoError(err)
 
 			tc.malleate()
