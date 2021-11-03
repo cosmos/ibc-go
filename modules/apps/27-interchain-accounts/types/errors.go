@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrUnknownPacketData           = sdkerrors.Register(ModuleName, 2, "unknown packet data")
+	ErrUnknownDataType             = sdkerrors.Register(ModuleName, 2, "unknown data type")
 	ErrAccountAlreadyExist         = sdkerrors.Register(ModuleName, 3, "account already exist")
 	ErrPortAlreadyBound            = sdkerrors.Register(ModuleName, 4, "port is already bound")
 	ErrUnsupportedChain            = sdkerrors.Register(ModuleName, 5, "unsupported chain")
