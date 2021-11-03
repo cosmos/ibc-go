@@ -14,7 +14,7 @@ import (
 // manage helper module access to owner addresses they do not have capabilities for
 func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
-	activeChannelID, found := k.GetActiveChannel(ctx, portID)
+	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
 	if !found {
 		return 0, sdkerrors.Wrapf(types.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
@@ -171,6 +171,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	var data types.InterchainAccountPacketData
 
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
 		return sdkerrors.Wrapf(types.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
