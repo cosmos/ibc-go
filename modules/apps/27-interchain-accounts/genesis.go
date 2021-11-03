@@ -22,7 +22,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState
 	}
 
 	for _, ch := range state.ActiveChannels {
-		keeper.SetActiveChannel(ctx, ch.PortId, ch.ChannelId)
+		keeper.SetActiveChannelID(ctx, ch.PortId, ch.ChannelId)
 	}
 
 	for _, acc := range state.InterchainAccounts {

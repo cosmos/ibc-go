@@ -156,7 +156,7 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), expectedPortID, expectedChannelID)
+	suite.chainA.GetSimApp().ICAKeeper.SetActiveChannelID(suite.chainA.GetContext(), expectedPortID, expectedChannelID)
 
 	expectedChannels := []*types.ActiveChannel{
 		{

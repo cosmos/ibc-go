@@ -6,7 +6,6 @@ import (
 
 	baseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -18,7 +17,7 @@ import (
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// Keeper defines the IBC transfer keeper
+// Keeper defines the IBC interchain account keeper
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
@@ -53,31 +52,6 @@ func NewKeeper(
 		scopedKeeper:  scopedKeeper,
 		msgRouter:     msgRouter,
 	}
-}
-
-// SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
-// packed into Any's and inserted into the Messages field of a CosmosTx. The proto marshaled CosmosTx
-// bytes are returned.
-func (k Keeper) SerializeCosmosTx(cdc codec.BinaryCodec, msgs []sdk.Msg) (bz []byte, err error) {
-	msgAnys := make([]*codectypes.Any, len(msgs))
-
-	for i, msg := range msgs {
-		msgAnys[i], err = codectypes.NewAnyWithValue(msg)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	cosmosTx := &types.CosmosTx{
-		Messages: msgAnys,
-	}
-
-	bz, err = cdc.Marshal(cosmosTx)
-	if err != nil {
-		return nil, err
-	}
-
-	return bz, nil
 }
 
 // Logger returns the application logger, scoped to the associated module
@@ -125,8 +99,8 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetActiveChannel retrieves the active channelID from the store keyed by the provided portID
-func (k Keeper) GetActiveChannel(ctx sdk.Context, portID string) (string, bool) {
+// GetActiveChannelID retrieves the active channelID from the store keyed by the provided portID
+func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyActiveChannel(portID)
 
@@ -158,21 +132,21 @@ func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []*types.ActiveChannel {
 	return activeChannels
 }
 
-// SetActiveChannel stores the active channelID, keyed by the provided portID
-func (k Keeper) SetActiveChannel(ctx sdk.Context, portID, channelID string) {
+// SetActiveChannelID stores the active channelID, keyed by the provided portID
+func (k Keeper) SetActiveChannelID(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyActiveChannel(portID), []byte(channelID))
 }
 
-// DeleteActiveChannel removes the active channel keyed by the provided portID stored in state
-func (k Keeper) DeleteActiveChannel(ctx sdk.Context, portID string) {
+// DeleteActiveChannelID removes the active channel keyed by the provided portID stored in state
+func (k Keeper) DeleteActiveChannelID(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.KeyActiveChannel(portID))
 }
 
 // IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
 func (k Keeper) IsActiveChannel(ctx sdk.Context, portID string) bool {
-	_, ok := k.GetActiveChannel(ctx, portID)
+	_, ok := k.GetActiveChannelID(ctx, portID)
 	return ok
 }
 

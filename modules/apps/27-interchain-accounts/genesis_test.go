@@ -30,7 +30,7 @@ func (suite *InterchainAccountsTestSuite) TestInitGenesis() {
 
 	ica.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAKeeper, genesisState)
 
-	channelID, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), TestPortID)
+	channelID, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannelID(suite.chainA.GetContext(), TestPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedChannelID, channelID)
 

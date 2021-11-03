@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 			func() {
 				portID, err := types.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 				suite.Require().NoError(err)
-				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannelID(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)
 			},
 			false,
 		},
