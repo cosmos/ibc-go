@@ -6,6 +6,10 @@ import (
 )
 
 func (suite *InterchainAccountsTestSuite) TestInitGenesis() {
+	var (
+		expectedChannelID string = "channel-0"
+	)
+
 	suite.SetupTest()
 
 	genesisState := types.GenesisState{
@@ -13,7 +17,7 @@ func (suite *InterchainAccountsTestSuite) TestInitGenesis() {
 		ActiveChannels: []*types.ActiveChannel{
 			{
 				PortId:    TestPortID,
-				ChannelId: "channel-0",
+				ChannelId: expectedChannelID,
 			},
 		},
 		InterchainAccounts: []*types.RegisteredInterchainAccount{
@@ -28,7 +32,7 @@ func (suite *InterchainAccountsTestSuite) TestInitGenesis() {
 
 	channelID, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), TestPortID)
 	suite.Require().True(found)
-	suite.Require().Equal("channel-0", channelID)
+	suite.Require().Equal(expectedChannelID, channelID)
 
 	accountAdrr, found := suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID)
 	suite.Require().True(found)
