@@ -75,30 +75,6 @@ func (k Keeper) createOutgoingPacket(
 	return packet.Sequence, nil
 }
 
-// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes
-// into a slice of sdk.Msg's.
-func (k Keeper) DeserializeCosmosTx(_ sdk.Context, data []byte) ([]sdk.Msg, error) {
-	var cosmosTx types.CosmosTx
-	if err := k.cdc.Unmarshal(data, &cosmosTx); err != nil {
-		return nil, err
-	}
-
-	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
-
-	for i, any := range cosmosTx.Messages {
-		var msg sdk.Msg
-
-		err := k.cdc.UnpackAny(any, &msg)
-		if err != nil {
-			return nil, err
-		}
-
-		msgs[i] = msg
-	}
-
-	return msgs, nil
-}
-
 func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) error {
 	seen := map[string]bool{}
 	var signers []sdk.AccAddress
@@ -177,7 +153,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 
 	switch data.Type {
 	case types.EXECUTE_TX:
-		msgs, err := k.DeserializeCosmosTx(ctx, data.Data)
+		msgs, err := types.DeserializeCosmosTx(k.cdc, data.Data)
 		if err != nil {
 			return err
 		}
