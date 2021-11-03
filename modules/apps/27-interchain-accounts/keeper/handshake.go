@@ -185,7 +185,7 @@ func (k Keeper) OnChanCloseConfirm(
 	channelID string,
 ) error {
 
-	k.DeleteActiveChannel(ctx, portID)
+	k.DeleteActiveChannelID(ctx, portID)
 
 	return nil
 }
