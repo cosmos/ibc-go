@@ -80,13 +80,13 @@ func (k Keeper) createOutgoingPacket(
 func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
 	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portID)
 	if !found {
-		return sdkerrors.ErrUnauthorized
+		return sdkerrors.Wrapf(types.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
 
 	for _, msg := range msgs {
 		for _, signer := range msg.GetSigners() {
 			if interchainAccountAddr != signer.String() {
-				return sdkerrors.ErrUnauthorized
+				return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "failed to authenticate interchain account transaction")
 			}
 		}
 	}
@@ -143,8 +143,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 			return err
 		}
 
-		err = k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
-		if err != nil {
+		if err = k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs); err != nil {
 			return err
 		}
 
