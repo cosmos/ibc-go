@@ -86,7 +86,7 @@ func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) e
 	for _, msg := range msgs {
 		for _, signer := range msg.GetSigners() {
 			if interchainAccountAddr != signer.String() {
-				return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "failed to authenticate interchain account transaction")
+				return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, signer.String())
 			}
 		}
 	}
