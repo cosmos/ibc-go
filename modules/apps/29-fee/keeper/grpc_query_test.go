@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 		ReceiveFee: receiveFee,
 		TimeoutFee: timeoutFee,
 	}
-	identifiedPacketFee := types.IdentifiedPacketFee{PacketId: validPacketId, Fee: fee, Relayers: []string(nil)}
+	identifiedPacketFee := types.IdentifiedPacketFee{PacketId: validPacketId, Fee: *fee, Relayers: []string(nil)}
 
 	testCases := []struct {
 		name     string
@@ -121,9 +121,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 				id1 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
 				id2 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(2)}
 				id3 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(3)}
-				fee1 := types.IdentifiedPacketFee{PacketId: id1, Fee: fee, Relayers: []string(nil)}
-				fee2 := types.IdentifiedPacketFee{PacketId: id2, Fee: fee, Relayers: []string(nil)}
-				fee3 := types.IdentifiedPacketFee{PacketId: id3, Fee: fee, Relayers: []string(nil)}
+				fee1 := types.IdentifiedPacketFee{PacketId: id1, Fee: *fee, Relayers: []string(nil)}
+				fee2 := types.IdentifiedPacketFee{PacketId: id2, Fee: *fee, Relayers: []string(nil)}
+				fee3 := types.IdentifiedPacketFee{PacketId: id3, Fee: *fee, Relayers: []string(nil)}
 
 				expPackets = append(expPackets, &fee1)
 				expPackets = append(expPackets, &fee2)

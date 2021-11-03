@@ -30,7 +30,7 @@ const (
 	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	RelayerAddressKeyPrefix = "relayerAddress"
 
-	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
+	// FeeInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeeInEscrowPrefix = "feeInEscrow"
 )
 
@@ -46,6 +46,6 @@ func KeyRelayerAddress(address string) []byte {
 }
 
 // KeyFeeInEscrow returns the key for escrowed fees
-func KeyFeeInEscrow(packetId *channeltypes.PacketId) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/packet/%d", FeeInEscrowPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
+func KeyFeeInEscrow(packetID *channeltypes.PacketId) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/packet/%d", FeeInEscrowPrefix, packetID.PortId, packetID.ChannelId, packetID.Sequence))
 }

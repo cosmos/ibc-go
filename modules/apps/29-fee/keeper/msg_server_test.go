@@ -7,8 +7,8 @@ import (
 
 func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 	var (
-		addr  string
-		addr2 string
+		sender       string
+		counterparty string
 	)
 
 	testCases := []struct {
@@ -27,9 +27,9 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 		suite.SetupTest()
 		ctx := suite.chainA.GetContext()
 
-		addr = suite.chainA.SenderAccount.GetAddress().String()
-		addr2 = suite.chainB.SenderAccount.GetAddress().String()
-		msg := types.NewMsgRegisterCounterpartyAddress(addr, addr2)
+		sender = suite.chainA.SenderAccount.GetAddress().String()
+		counterparty = suite.chainB.SenderAccount.GetAddress().String()
+		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty)
 		tc.malleate()
 
 		_, err := suite.chainA.SendMsgs(msg)
@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 			suite.Require().NoError(err) // message committed
 
 			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String())
-			suite.Require().Equal(addr2, counterpartyAddress)
+			suite.Require().Equal(counterparty, counterpartyAddress)
 		} else {
 			suite.Require().Error(err)
 		}
@@ -61,14 +61,16 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.coordinator.SetupConnections(suite.path)
-		SetupFeePath(suite.path)
+		err := SetupFeePath(suite.path)
+		suite.Require().NoError(err)
+
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
 		channelID := suite.path.EndpointA.ChannelID
-		fee := &types.Fee{validCoins, validCoins, validCoins}
+		fee := types.Fee{validCoins, validCoins, validCoins}
 		msg := types.NewMsgPayPacketFee(fee, suite.path.EndpointA.ChannelConfig.PortID, channelID, refundAcc.String(), []string{})
 
 		tc.malleate()
-		_, err := suite.chainA.SendMsgs(msg)
+		_, err = suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
@@ -94,24 +96,26 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.coordinator.SetupConnections(suite.path)
-		SetupFeePath(suite.path)
+		err := SetupFeePath(suite.path)
+		suite.Require().NoError(err)
+
 		ctxA := suite.chainA.GetContext()
 
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
 
 		// build packetId
 		channelID := suite.path.EndpointA.ChannelID
-		fee := &types.Fee{validCoins, validCoins, validCoins}
+		fee := types.Fee{validCoins, validCoins, validCoins}
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
 		// build fee
 		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: suite.path.EndpointA.ChannelConfig.PortID, Sequence: seq}
-		identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+		identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
 
 		tc.malleate()
 
 		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee, refundAcc.String())
-		_, err := suite.chainA.SendMsgs(msg)
+		_, err = suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed

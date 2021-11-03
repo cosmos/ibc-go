@@ -16,7 +16,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, ident
 	// check if the refund account exists
 	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
 	if hasRefundAcc == nil {
-		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc.String()))
+		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))
 	}
 
 	coins := identifiedFee.Fee.AckFee
@@ -40,28 +40,28 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
 	if !found {
-		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("%s", refundAcc.String()))
+		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("with channelID: %s, sequenceId %d", packetID.ChannelId, packetID.Sequence))
 	}
 
 	// get module accAddr
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
-	// send ack fee to reverse relayer
-	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.AckFee)
+	// send receive fee to forward relayer
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to reverse relayer"))
+		return sdkerrors.Wrap(err, "error sending fee to forward relayer")
 	}
 
-	// send receive fee to forward relayer
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
+	// send ack fee to reverse relayer
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to forward relayer"))
+		return sdkerrors.Wrap(err, "error sending fee to reverse relayer")
 	}
 
 	// refund timeout fee to refundAddr
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.TimeoutFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding timeout fee"))
+		return sdkerrors.Wrap(err, "error refunding timeout fee")
 	}
 
 	// removes the fee from the store as fee is now paid
@@ -71,7 +71,7 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 }
 
 // DistributeFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
+func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID)
 	if !hasFee {
@@ -84,19 +84,19 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, reverseRelayer 
 	// refund the ack fee
 	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding ack fee"))
+		return sdkerrors.Wrap(err, "error refunding ack fee")
 	}
 
 	// refund the receive fee
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error refunding receive fee"))
+		return sdkerrors.Wrap(err, "error refunding receive fee")
 	}
 
 	// pay the timeout fee to the reverse relayer
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.TimeoutFee)
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, timeoutRelayer, feeInEscrow.Fee.TimeoutFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, fmt.Sprintf("error sending fee to timeout relayer"))
+		return sdkerrors.Wrap(err, "error sending fee to timeout relayer")
 	}
 
 	// removes the fee from the store as fee is now paid

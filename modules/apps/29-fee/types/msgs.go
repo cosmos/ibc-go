@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 )
@@ -45,7 +46,7 @@ func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgPayPacketFee creates a new instance of MsgPayPacketFee
-func NewMsgPayPacketFee(fee *Fee, sourcePortId, sourceChannelId, signer string, relayers []string) *MsgPayPacketFee {
+func NewMsgPayPacketFee(fee Fee, sourcePortId, sourceChannelId, signer string, relayers []string) *MsgPayPacketFee {
 	return &MsgPayPacketFee{
 		Fee:             fee,
 		SourcePortId:    sourcePortId,
@@ -93,7 +94,7 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
-func NewMsgPayPacketFeeAsync(identifiedPacketFee *IdentifiedPacketFee, signer string) *MsgPayPacketFeeAsync {
+func NewMsgPayPacketFeeAsync(identifiedPacketFee IdentifiedPacketFee, signer string) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
 		IdentifiedPacketFee: identifiedPacketFee,
 		Signer:              signer,
@@ -142,7 +143,7 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee *Fee, relayers []string) *IdentifiedPacketFee {
+func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, relayers []string) *IdentifiedPacketFee {
 	return &IdentifiedPacketFee{
 		PacketId: packetId,
 		Fee:      fee,

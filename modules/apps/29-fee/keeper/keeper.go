@@ -75,7 +75,7 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (
 	return k.channelKeeper.GetNextSequenceSend(ctx, portID, channelID)
 }
 
-// GetFeeAccount returns the ICS29 - fee ModuleAccount address
+// GetFeeAccount returns the ICS29 Fee ModuleAccount address
 func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 	return k.authKeeper.GetModuleAddress(types.ModuleName)
 }
@@ -140,7 +140,6 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	if bz == nil {
 		return types.IdentifiedPacketFee{}, false
 	}
-
 	fee := k.MustUnmarshalFee(bz)
 
 	return fee, true
