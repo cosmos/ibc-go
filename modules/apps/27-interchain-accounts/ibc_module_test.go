@@ -120,16 +120,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"ICA auth module callback fails", func() {
-				icaAuthModule, found := suite.chainA.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
-				suite.Require().True(found)
-
-				icaAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, version string,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-
 			}, false,
 		},
 	}
@@ -147,7 +143,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.Require().NoError(err)
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
 			suite.chainA.GetSimApp().ICAKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
+
 			path.EndpointA.ChannelConfig.PortID = portID
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			// default values
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -160,6 +158,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			}
 
 			tc.malleate()
+
+			// ensure channel on chainA is set in state
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *channel)
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
 			suite.Require().NoError(err)
@@ -201,10 +202,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
-				mockModule, found := suite.chainB.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
-				suite.Require().True(found)
-
-				mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, version, counterpartyVersion string,
 				) error {
@@ -226,11 +224,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path := NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion := TestVersion
+			counterpartyVersion := types.VersionPrefix
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
+			path.EndpointB.ChannelID = ibctesting.FirstChannelID
 
 			// default values
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -243,6 +242,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			}
 
 			tc.malleate()
+
+			// ensure channel on chainB is set in state
+			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *channel)
 
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 			suite.Require().NoError(err)
@@ -287,10 +289,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"ICA auth module callback fails", func() {
-				mockModule, found := suite.chainA.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
-				suite.Require().True(found)
-
-				mockModule.IBCApp.OnChanOpenAck = func(
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
 					ctx sdk.Context, portID, channelID string, counterpartyVersion string,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
@@ -303,10 +302,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-
 			suite.SetupTest() // reset
 			path := NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion = types.VersionPrefix
+			counterpartyVersion = TestVersion
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -349,10 +347,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
-				mockModule, found := suite.chainB.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
-				suite.Require().True(found)
-
-				mockModule.IBCApp.OnChanOpenConfirm = func(
+				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenConfirm = func(
 					ctx sdk.Context, portID, channelID string,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
