@@ -24,11 +24,6 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ porttypes.IBCModule   = IBCModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-
-	// Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
-	// so that it can wrap IBC channel and port logic for underlying application.
-//	_ types.ChannelKeeper = Keeper{}
-//	_ types.PortKeeper    = Keeper{}
 )
 
 type AppModuleBasic struct{}
