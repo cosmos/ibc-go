@@ -16,6 +16,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v2/modules/core/23-commitment/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v2/modules/light-clients/07-tendermint/types"
 	"github.com/cosmos/ibc-go/v2/testing/mock"
+	"github.com/cosmos/ibc-go/v2/testing/simapp"
 )
 
 const (
@@ -58,6 +59,8 @@ var (
 	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
+
+	ICAAuthModuleName = simapp.ICAAuthModuleName
 )
 
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {

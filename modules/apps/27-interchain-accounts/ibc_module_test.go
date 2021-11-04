@@ -120,8 +120,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"ICA auth module callback fails", func() {
-				mockModule := suite.chainA.GetSimApp().GetMockModule()
-				mockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+				icaAuthModule, found := suite.chainA.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
+				suite.Require().True(found)
+
+				icaAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, version string,
 				) error {
@@ -199,7 +201,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
-				mockModule := suite.chainB.GetSimApp().GetMockModule()
+				mockModule, found := suite.chainB.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
+				suite.Require().True(found)
+
 				mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, version, counterpartyVersion string,
@@ -283,7 +287,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"ICA auth module callback fails", func() {
-				mockModule := suite.chainA.GetSimApp().GetMockModule()
+				mockModule, found := suite.chainA.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
+				suite.Require().True(found)
+
 				mockModule.IBCApp.OnChanOpenAck = func(
 					ctx sdk.Context, portID, channelID string, counterpartyVersion string,
 				) error {
@@ -343,7 +349,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
-				mockModule := suite.chainB.GetSimApp().GetMockModule()
+				mockModule, found := suite.chainB.GetSimApp().GetMockModule(ibctesting.ICAAuthModuleName)
+				suite.Require().True(found)
+
 				mockModule.IBCApp.OnChanOpenConfirm = func(
 					ctx sdk.Context, portID, channelID string,
 				) error {

@@ -109,6 +109,9 @@ var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
+	// ICAAuthModuleName is the module name used in routing to the ICA Auth Module
+	ICAAuthModuleName = ibcmock.ModuleName + icatypes.ModuleName
+
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
 	// and genesis verification.
@@ -354,7 +357,7 @@ func NewSimApp(
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule).
-		AddRoute(ibcmock.ModuleName+icatypes.ModuleName, icaIBCModule). // ica + mock stack route to ica
+		AddRoute(ICAAuthModuleName, icaIBCModule). // ica + mock stack route to ica
 		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
 		AddRoute(ibcmock.ModuleName, mockIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
@@ -608,8 +611,18 @@ func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 }
 
 // GetMockModule returns the mock module in the testing application
-func (app *SimApp) GetMockModule() ibcmock.AppModule {
-	return app.mm.Modules[ibcmock.ModuleName].(ibcmock.AppModule)
+func (app *SimApp) GetMockModule(moduleName string) (ibcmock.IBCModule, bool) {
+	ibcModule, found := app.IBCKeeper.Router.GetRoute(moduleName)
+	if !found {
+		return ibcmock.IBCModule{}, false
+	}
+
+	mockModule, ok := ibcModule.(ibcmock.IBCModule)
+	if !ok {
+		return ibcmock.IBCModule{}, false
+	}
+
+	return mockModule, true
 }
 
 // GetTxConfig implements the TestingApp interface.
