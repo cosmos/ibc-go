@@ -19,7 +19,7 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 
 
 	k.SetCounterpartyAddress(
-		ctx, msg.Address, counterpartyAddress.String(),
+		ctx, msg.Address, msg.CounterpartyAddress,
 	)
 
 	k.Logger(ctx).Info("Registering counterparty address for relayer.", "Address:", msg.Address, "Counterparty Address:", msg.CounterpartyAddress)
