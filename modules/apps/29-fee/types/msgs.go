@@ -126,7 +126,7 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 		return ErrRelayersNotNil
 	}
 
-	// enforce relayer is nil
+	// ensure sequence is not 0
 	if msg.IdentifiedPacketFee.PacketId.Sequence == 0 {
 		return sdkerrors.ErrInvalidSequence
 	}
