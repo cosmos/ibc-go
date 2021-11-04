@@ -107,7 +107,7 @@ func (m *MsgRegisterCounterpartyAddressResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRegisterCounterpartyAddressResponse proto.InternalMessageInfo
 
-// MsgPayPacketFee defines the request type EscrowPacketFee RPC
+// MsgPayPacketFee defines the request type PayPacketFee RPC
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 // paid for
 type MsgPayPacketFee struct {

@@ -889,7 +889,7 @@ Query provides defines the gRPC querier service.
 <a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
 
 ### MsgPayPacketFee
-MsgPayPacketFee defines the request type EscrowPacketFee RPC
+MsgPayPacketFee defines the request type PayPacketFee RPC
 This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 paid for
 
