@@ -157,11 +157,7 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(packetId)
 
-	if !store.Has(key) {
-		return false
-	}
-
-	return true
+	return store.Has(key)
 }
 
 // MustMarshalFee attempts to encode a Fee object and returns the
