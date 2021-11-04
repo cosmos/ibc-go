@@ -57,9 +57,9 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.VersionPrefix, version)
 	}
 
-	existingChannelID, found := k.GetActiveChannel(ctx, portID)
+	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
 	if found {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", existingChannelID, portID)
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
 
 	return nil
@@ -147,7 +147,7 @@ func (k Keeper) OnChanOpenAck(
 		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
 
-	k.SetActiveChannel(ctx, portID, channelID)
+	k.SetActiveChannelID(ctx, portID, channelID)
 
 	accAddr, err := types.ParseAddressFromVersion(counterpartyVersion)
 	if err != nil {
@@ -168,7 +168,7 @@ func (k Keeper) OnChanOpenConfirm(
 	channelID string,
 ) error {
 
-	k.SetActiveChannel(ctx, portID, channelID)
+	k.SetActiveChannelID(ctx, portID, channelID)
 
 	return nil
 }
@@ -180,7 +180,7 @@ func (k Keeper) OnChanCloseConfirm(
 	channelID string,
 ) error {
 
-	k.DeleteActiveChannel(ctx, portID)
+	k.DeleteActiveChannelID(ctx, portID)
 
 	return nil
 }

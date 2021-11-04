@@ -14,20 +14,20 @@ import (
 // if the base application has the capability to send on the provided portID
 func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
-	activeChannelId, found := k.GetActiveChannel(ctx, portID)
+	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
 	if !found {
-		return 0, types.ErrActiveChannelNotFound
+		return 0, sdkerrors.Wrapf(types.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
 
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelId)
+	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
 	if !found {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelId)
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelID)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelId, destinationPort, destinationChannel, chanCap, icaPacketData)
+	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, chanCap, icaPacketData)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -46,7 +46,7 @@ func (k Keeper) createOutgoingPacket(
 	// get the next sequence
 	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, channeltypes.ErrSequenceSendNotFound
+		return 0, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "failed to retrieve next sequence send for channel %s on port %s", sourceChannel, sourcePort)
 	}
 
 	// timeoutTimestamp is set to be a max number here so that we never recieve a timeout
@@ -71,26 +71,19 @@ func (k Keeper) createOutgoingPacket(
 	return packet.Sequence, nil
 }
 
-func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) error {
-	seen := map[string]bool{}
-	var signers []sdk.AccAddress
-	for _, msg := range msgs {
-		for _, addr := range msg.GetSigners() {
-			if !seen[addr.String()] {
-				signers = append(signers, addr)
-				seen[addr.String()] = true
-			}
-		}
-	}
-
-	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portId)
+// AuthenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
+// from state using the provided controller port identifier
+func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
+	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portID)
 	if !found {
-		return sdkerrors.ErrUnauthorized
+		return sdkerrors.Wrapf(types.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
 
-	for _, signer := range signers {
-		if interchainAccountAddr != signer.String() {
-			return sdkerrors.ErrUnauthorized
+	for _, msg := range msgs {
+		for _, signer := range msg.GetSigners() {
+			if interchainAccountAddr != signer.String() {
+				return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, signer.String())
+			}
 		}
 	}
 
@@ -98,33 +91,26 @@ func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) e
 }
 
 func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) error {
-	err := k.AuthenticateTx(ctx, msgs, sourcePort)
-	if err != nil {
+	if err := k.AuthenticateTx(ctx, msgs, sourcePort); err != nil {
 		return err
 	}
 
 	for _, msg := range msgs {
-		err := msg.ValidateBasic()
-		if err != nil {
+		if err := msg.ValidateBasic(); err != nil {
 			return err
 		}
 	}
 
-	cacheContext, writeFn := ctx.CacheContext()
+	// CacheContext returns a new context with the multi-store branched into a cached storage object
+	// writeCache is called only if all msgs succeed, performing state transitions atomically
+	cacheCtx, writeCache := ctx.CacheContext()
 	for _, msg := range msgs {
-		_, msgErr := k.executeMsg(cacheContext, msg)
-		if msgErr != nil {
-			err = msgErr
-			break
+		if _, err := k.executeMsg(cacheCtx, msg); err != nil {
+			return err
 		}
 	}
 
-	if err != nil {
-		return err
-	}
-
-	// Write the state transitions if all handlers succeed.
-	writeFn()
+	writeCache()
 
 	return nil
 }
@@ -143,7 +129,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	var data types.InterchainAccountPacketData
 
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(types.ErrUnknownPacketData, "cannot unmarshal ICS-27 interchain account packet data")
+		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
+		return sdkerrors.Wrapf(types.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
 	switch data.Type {
@@ -153,21 +140,20 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 			return err
 		}
 
-		err = k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
-		if err != nil {
+		if err = k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs); err != nil {
 			return err
 		}
 
 		return nil
 	default:
-		return types.ErrUnknownPacketData
+		return types.ErrUnknownDataType
 	}
 }
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
 // due to the semantics of ORDERED channels
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
-	k.DeleteActiveChannel(ctx, packet.SourcePort)
+	k.DeleteActiveChannelID(ctx, packet.SourcePort)
 
 	return nil
 }

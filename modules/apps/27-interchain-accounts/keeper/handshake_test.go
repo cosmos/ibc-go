@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"channel is already active",
 			func() {
-				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
 			false,
 		},
@@ -316,7 +316,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 	var (
 		path                *ibctesting.Path
-		expectedChannel     string
+		expectedChannelID   string
 		counterpartyVersion string
 	)
 
@@ -330,7 +330,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"invalid counterparty version", func() {
-				expectedChannel = ""
+				expectedChannelID = ""
 				counterpartyVersion = "version"
 			}, false,
 		},
@@ -350,7 +350,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
-			expectedChannel = path.EndpointA.ChannelID
+			expectedChannelID = path.EndpointA.ChannelID
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
@@ -358,9 +358,9 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion,
 			)
 
-			activeChannel, _ := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			activeChannelID, _ := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
 
-			suite.Require().Equal(activeChannel, expectedChannel)
+			suite.Require().Equal(activeChannelID, expectedChannelID)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -450,12 +450,12 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 			err = suite.chainB.GetSimApp().ICAKeeper.OnChanCloseConfirm(suite.chainB.GetContext(),
 				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			activeChannel, found := suite.chainB.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			activeChannelID, found := suite.chainB.GetSimApp().ICAKeeper.GetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().False(found)
-				suite.Require().Empty(activeChannel)
+				suite.Require().Empty(activeChannelID)
 			} else {
 				suite.Require().Error(err)
 			}

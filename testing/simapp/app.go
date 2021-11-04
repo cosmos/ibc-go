@@ -333,11 +333,12 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
-	icaMockModule := ibcmock.NewAppModule(scopedICAMockKeeper, &app.IBCKeeper.PortKeeper)
+	mockIBCModule := ibcmock.NewIBCModule(&ibcmock.MockIBCApp{}, scopedIBCMockKeeper)
 
 	app.ICAKeeper = icakeeper.NewKeeper(
 		appCodec, keys[icatypes.StoreKey],
@@ -345,14 +346,17 @@ func NewSimApp(
 		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(),
 	)
 	icaModule := ica.NewAppModule(app.ICAKeeper)
-	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, icaMockModule)
+
+	// initialize ICA module with mock module as the authentication module on the controller side
+	icaAuthModule := ibcmock.NewIBCModule(&ibcmock.MockIBCApp{}, scopedIBCMockKeeper)
+	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, icaAuthModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
-	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule)
-	ibcRouter.AddRoute(ibcmock.ModuleName+icatypes.ModuleName, icaIBCModule) // ica + mock stack route to ica
-	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
+	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule).
+		AddRoute(ibcmock.ModuleName+icatypes.ModuleName, icaIBCModule). // ica + mock stack route to ica
+		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
+		AddRoute(ibcmock.ModuleName, mockIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router

@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		},
 		{
 			"channel does not exist", func() {
-				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannel(suite.chainA.GetContext(), portID, "channel-100")
+				suite.chainA.GetSimApp().ICAKeeper.SetActiveChannelID(suite.chainA.GetContext(), portID, "channel-100")
 			}, false,
 		},
 		{
@@ -268,11 +268,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			packet := channeltypes.NewPacket([]byte{}, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 			err = suite.chainA.GetSimApp().ICAKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)
 
-			channel, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			activeChannelID, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Empty(channel)
+				suite.Require().Empty(activeChannelID)
 				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)

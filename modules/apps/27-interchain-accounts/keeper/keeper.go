@@ -99,10 +99,10 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetActiveChannel retrieves the active channelID from the store keyed by the provided portID
-func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, bool) {
+// GetActiveChannelID retrieves the active channelID from the store keyed by the provided portID
+func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyActiveChannel(portId)
+	key := types.KeyActiveChannel(portID)
 
 	if !store.Has(key) {
 		return "", false
@@ -111,21 +111,21 @@ func (k Keeper) GetActiveChannel(ctx sdk.Context, portId string) (string, bool) 
 	return string(store.Get(key)), true
 }
 
-// SetActiveChannel stores the active channelID, keyed by the provided portID
-func (k Keeper) SetActiveChannel(ctx sdk.Context, portID, channelID string) {
+// SetActiveChannelID stores the active channelID, keyed by the provided portID
+func (k Keeper) SetActiveChannelID(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyActiveChannel(portID), []byte(channelID))
 }
 
-// DeleteActiveChannel removes the active channel keyed by the provided portID stored in state
-func (k Keeper) DeleteActiveChannel(ctx sdk.Context, portID string) {
+// DeleteActiveChannelID removes the active channel keyed by the provided portID stored in state
+func (k Keeper) DeleteActiveChannelID(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.KeyActiveChannel(portID))
 }
 
 // IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
 func (k Keeper) IsActiveChannel(ctx sdk.Context, portID string) bool {
-	_, ok := k.GetActiveChannel(ctx, portID)
+	_, ok := k.GetActiveChannelID(ctx, portID)
 	return ok
 }
 
