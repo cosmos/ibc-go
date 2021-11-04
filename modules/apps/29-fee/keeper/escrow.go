@@ -81,16 +81,16 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer 
 	// get module accAddr
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
-	// refund the ack fee
-	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.AckFee)
-	if err != nil {
-		return sdkerrors.Wrap(err, "error refunding ack fee")
-	}
-
 	// refund the receive fee
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
 		return sdkerrors.Wrap(err, "error refunding receive fee")
+	}
+	
+	// refund the ack fee
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.AckFee)
+	if err != nil {
+		return sdkerrors.Wrap(err, "error refunding ack fee")
 	}
 
 	// pay the timeout fee to the reverse relayer
