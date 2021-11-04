@@ -345,6 +345,7 @@ func NewSimApp(
 
 	app.ICAKeeper = icakeeper.NewKeeper(
 		appCodec, keys[icatypes.StoreKey],
+		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(),
 	)
