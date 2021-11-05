@@ -105,25 +105,28 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 			false,
 		},
 		{
-			"invalid ack fee",
+			"should fail when all fees are invalid",
 			func() {
 				ackFee = invalidCoins
-			},
-			false,
-		},
-		{
-			"invalid recieve fee",
-			func() {
 				receiveFee = invalidCoins
-			},
-			false,
-		},
-		{
-			"invalid timeout fee",
-			func() {
 				timeoutFee = invalidCoins
 			},
 			false,
+		},
+		{
+			"should pass with single invalid fee",
+			func() {
+				ackFee = invalidCoins
+			},
+			true,
+		},
+		{
+			"should pass with two invalid fees",
+			func() {
+				timeoutFee = invalidCoins
+				ackFee = invalidCoins
+			},
+			true,
 		},
 	}
 
@@ -228,25 +231,28 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 			false,
 		},
 		{
-			"invalid ack fee",
+			"should fail with three invalid fees",
 			func() {
 				ackFee = invalidCoins
-			},
-			false,
-		},
-		{
-			"invalid recieve fee",
-			func() {
 				receiveFee = invalidCoins
-			},
-			false,
-		},
-		{
-			"invalid timeout fee",
-			func() {
 				timeoutFee = invalidCoins
 			},
 			false,
+		},
+		{
+			"should pass with two invalid fees",
+			func() {
+				receiveFee = invalidCoins
+				timeoutFee = invalidCoins
+			},
+			true,
+		},
+		{
+			"should pass with single invalid fee",
+			func() {
+				timeoutFee = invalidCoins
+			},
+			true,
 		},
 	}
 
