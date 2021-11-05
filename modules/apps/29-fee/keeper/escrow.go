@@ -75,7 +75,7 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer 
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
 	if !found {
-		return sdkerrors.Wrap(types.ErrFeeNotFound, refundAcc)
+		return sdkerrors.Wrap(types.ErrFeeNotFound, refundAcc.String())
 	}
 
 	// get module accAddr
