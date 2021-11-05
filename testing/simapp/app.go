@@ -196,6 +196,11 @@ type SimApp struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAKeeper      capabilitykeeper.ScopedKeeper
 	ScopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
+	ScopedICAMockKeeper  capabilitykeeper.ScopedKeeper
+
+	// make IBC modules public for test purposes
+	// these modules are never directly routed to by the IBC Router
+	ICAAuthModule ibcmock.IBCModule
 
 	// the module manager
 	mm *module.Manager
@@ -265,8 +270,9 @@ func NewSimApp(
 	scopedICAKeeper := app.CapabilityKeeper.ScopeToModule(icatypes.ModuleName)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
+	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icatypes.ModuleName)
 
 	// seal capability keeper after scoping modules
 	app.CapabilityKeeper.Seal()
@@ -331,24 +337,33 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// not replicate if you do not need to test core IBC or light clients.
+	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
+	mockIBCModule := ibcmock.NewIBCModule(&ibcmock.MockIBCApp{}, scopedIBCMockKeeper)
 
 	app.ICAKeeper = icakeeper.NewKeeper(
 		appCodec, keys[icatypes.StoreKey],
+		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAKeeper, app.MsgServiceRouter(),
 	)
 	icaModule := ica.NewAppModule(app.ICAKeeper)
-	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, nil)
 
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
-	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
+	// initialize ICA module with mock module as the authentication module on the controller side
+	icaAuthModule := ibcmock.NewIBCModule(&ibcmock.MockIBCApp{}, scopedICAMockKeeper)
+	app.ICAAuthModule = icaAuthModule
+
+	icaIBCModule := ica.NewIBCModule(app.ICAKeeper, icaAuthModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
-	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule)
-	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
+	ibcRouter.AddRoute(icatypes.ModuleName, icaIBCModule).
+		AddRoute(ibcmock.ModuleName+icatypes.ModuleName, icaIBCModule). // ica with mock auth module stack route to ica (top level of middleware stack)
+		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
+		AddRoute(ibcmock.ModuleName, mockIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
@@ -484,6 +499,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
+	app.ScopedICAMockKeeper = scopedICAMockKeeper
 
 	return app
 }
@@ -596,11 +612,6 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 // GetScopedIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 	return app.ScopedIBCKeeper
-}
-
-// GetMockModule returns the mock module in the testing application
-func (app *SimApp) GetMockModule() ibcmock.AppModule {
-	return app.mm.Modules[ibcmock.ModuleName].(ibcmock.AppModule)
 }
 
 // GetTxConfig implements the TestingApp interface.

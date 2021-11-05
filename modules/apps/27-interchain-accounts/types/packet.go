@@ -22,7 +22,6 @@ func (iapd InterchainAccountPacketData) ValidateBasic() error {
 	if len(iapd.Memo) > MaxMemoCharLength {
 		return sdkerrors.Wrapf(ErrInvalidOutgoingData, "packet data memo cannot be greater than %d characters", MaxMemoCharLength)
 	}
-	// TODO: add type validation when data type enum supports unspecified type
 
 	return nil
 }

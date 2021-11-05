@@ -5,10 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
@@ -17,6 +19,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		path          *ibctesting.Path
 		icaPacketData types.InterchainAccountPacketData
 		portID        string
+		chanCap       *capabilitytypes.Capability
 	)
 
 	testCases := []struct {
@@ -60,6 +63,11 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				suite.Require().NoError(err)
 			}, false,
 		},
+		{
+			"invalid channel capability provided", func() {
+				chanCap = nil
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -73,10 +81,12 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 			err := suite.SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
+			// default setup
 			portID = path.EndpointA.ChannelConfig.PortID
 
 			amount, _ := sdk.ParseCoinsNormalized("100stake")
 			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+
 			msg := &banktypes.MsgSend{FromAddress: interchainAccountAddr, ToAddress: suite.chainB.SenderAccount.GetAddress().String(), Amount: amount}
 			data, err := types.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
 			suite.Require().NoError(err)
@@ -88,9 +98,13 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				Memo: "memo",
 			}
 
+			var ok bool
+			chanCap, ok = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(portID, path.EndpointA.ChannelID))
+			suite.Require().True(ok)
+
 			tc.malleate()
 
-			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), portID, icaPacketData)
+			_, err = suite.chainA.GetSimApp().ICAKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, portID, icaPacketData)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

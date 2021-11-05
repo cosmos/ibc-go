@@ -3,16 +3,16 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// TODO: implement middleware functionality, this will allow us to use capabilities to
-// manage helper module access to owner addresses they do not have capabilities for
-func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
+// TrySendTx takes in a transaction from an authentication module and attempts to send the packet
+// if the base application has the capability to send on the provided portID
+func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
 	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
 	if !found {
@@ -27,7 +27,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.In
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, icaPacketData)
+	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, chanCap, icaPacketData)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -36,15 +36,11 @@ func (k Keeper) createOutgoingPacket(
 	sourceChannel,
 	destinationPort,
 	destinationChannel string,
+	chanCap *capabilitytypes.Capability,
 	icaPacketData types.InterchainAccountPacketData,
 ) (uint64, error) {
 	if err := icaPacketData.ValidateBasic(); err != nil {
 		return 0, sdkerrors.Wrap(err, "invalid interchain account packet data")
-	}
-
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// get the next sequence
@@ -68,33 +64,26 @@ func (k Keeper) createOutgoingPacket(
 		timeoutTimestamp,
 	)
 
-	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
+	if err := k.ics4Wrapper.SendPacket(ctx, chanCap, packet); err != nil {
 		return 0, err
 	}
 
 	return packet.Sequence, nil
 }
 
-func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) error {
-	seen := map[string]bool{}
-	var signers []sdk.AccAddress
-	for _, msg := range msgs {
-		for _, addr := range msg.GetSigners() {
-			if !seen[addr.String()] {
-				signers = append(signers, addr)
-				seen[addr.String()] = true
-			}
-		}
-	}
-
-	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portId)
+// AuthenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
+// from state using the provided controller port identifier
+func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
+	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portID)
 	if !found {
-		return sdkerrors.ErrUnauthorized
+		return sdkerrors.Wrapf(types.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
 
-	for _, signer := range signers {
-		if interchainAccountAddr != signer.String() {
-			return sdkerrors.ErrUnauthorized
+	for _, msg := range msgs {
+		for _, signer := range msg.GetSigners() {
+			if interchainAccountAddr != signer.String() {
+				return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, signer.String())
+			}
 		}
 	}
 
@@ -102,33 +91,26 @@ func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portId string) e
 }
 
 func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) error {
-	err := k.AuthenticateTx(ctx, msgs, sourcePort)
-	if err != nil {
+	if err := k.AuthenticateTx(ctx, msgs, sourcePort); err != nil {
 		return err
 	}
 
 	for _, msg := range msgs {
-		err := msg.ValidateBasic()
-		if err != nil {
+		if err := msg.ValidateBasic(); err != nil {
 			return err
 		}
 	}
 
-	cacheContext, writeFn := ctx.CacheContext()
+	// CacheContext returns a new context with the multi-store branched into a cached storage object
+	// writeCache is called only if all msgs succeed, performing state transitions atomically
+	cacheCtx, writeCache := ctx.CacheContext()
 	for _, msg := range msgs {
-		_, msgErr := k.executeMsg(cacheContext, msg)
-		if msgErr != nil {
-			err = msgErr
-			break
+		if _, err := k.executeMsg(cacheCtx, msg); err != nil {
+			return err
 		}
 	}
 
-	if err != nil {
-		return err
-	}
-
-	// Write the state transitions if all handlers succeed.
-	writeFn()
+	writeCache()
 
 	return nil
 }
@@ -158,8 +140,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 			return err
 		}
 
-		err = k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
-		if err != nil {
+		if err = k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs); err != nil {
 			return err
 		}
 
@@ -167,10 +148,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	default:
 		return types.ErrUnknownDataType
 	}
-}
-
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.InterchainAccountPacketData, ack channeltypes.Acknowledgement) error {
-	return nil
 }
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed

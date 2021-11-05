@@ -72,6 +72,7 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
+// NewAppModule creates an interchain accounts app module.
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
