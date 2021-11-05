@@ -21,6 +21,11 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 			true,
 			func() {},
 		},
+		{
+			"success",
+			true,
+			func() { counterparty = "arbitrary-string" },
+		},
 	}
 
 	for _, tc := range testCases {
@@ -29,8 +34,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 
 		sender = suite.chainA.SenderAccount.GetAddress().String()
 		counterparty = suite.chainB.SenderAccount.GetAddress().String()
-		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty)
 		tc.malleate()
+		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty)
 
 		_, err := suite.chainA.SendMsgs(msg)
 

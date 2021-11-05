@@ -28,7 +28,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 	}{
 		{"validate with correct sdk.AccAddress", NewMsgRegisterCounterpartyAddress(validAddr, validAddr), true},
 		{"validate with incorrect destination relayer address", NewMsgRegisterCounterpartyAddress(invalidAddr, validAddr), false},
-		{"validate with incorrect counterparty relayer address", NewMsgRegisterCounterpartyAddress(validAddr, invalidAddr), false},
+		{"invalid counterparty address", NewMsgRegisterCounterpartyAddress(validAddr, ""), false},
 	}
 
 	for i, tc := range testCases {
@@ -45,7 +45,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	// build message
-	msg := NewMsgRegisterCounterpartyAddress(addr.String(), addr.String())
+	msg := NewMsgRegisterCounterpartyAddress(addr.String(), "counterparty")
 
 	// GetSigners
 	res := msg.GetSigners()

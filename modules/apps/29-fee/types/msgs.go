@@ -28,9 +28,8 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
 	}
 
-	_, err = sdk.AccAddressFromBech32(msg.CounterpartyAddress)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to convert msg.CounterpartyAddress into sdk.AccAddress")
+	if msg.CounterpartyAddress == "" {
+		return ErrCounterpartyAddressEmpty
 	}
 
 	return nil
