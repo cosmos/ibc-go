@@ -3,16 +3,16 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// TODO: implement middleware functionality, this will allow us to use capabilities to
-// manage helper module access to owner addresses they do not have capabilities for
-func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
+// TrySendTx takes in a transaction from an authentication module and attempts to send the packet
+// if the base application has the capability to send on the provided portID
+func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
 	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
 	if !found {
@@ -27,7 +27,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, portID string, icaPacketData types.In
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, icaPacketData)
+	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, chanCap, icaPacketData)
 }
 
 func (k Keeper) createOutgoingPacket(
@@ -36,15 +36,11 @@ func (k Keeper) createOutgoingPacket(
 	sourceChannel,
 	destinationPort,
 	destinationChannel string,
+	chanCap *capabilitytypes.Capability,
 	icaPacketData types.InterchainAccountPacketData,
 ) (uint64, error) {
 	if err := icaPacketData.ValidateBasic(); err != nil {
 		return 0, sdkerrors.Wrap(err, "invalid interchain account packet data")
-	}
-
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// get the next sequence
@@ -68,7 +64,7 @@ func (k Keeper) createOutgoingPacket(
 		timeoutTimestamp,
 	)
 
-	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
+	if err := k.ics4Wrapper.SendPacket(ctx, chanCap, packet); err != nil {
 		return 0, err
 	}
 
@@ -152,10 +148,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 	default:
 		return types.ErrUnknownDataType
 	}
-}
-
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.InterchainAccountPacketData, ack channeltypes.Acknowledgement) error {
-	return nil
 }
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed

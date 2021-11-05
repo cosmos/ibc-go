@@ -103,15 +103,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			},
 			false,
 		},
-		{
-			"capability already claimed",
-			func() {
-				path.EndpointA.SetChannel(*channel)
-				err := suite.chainA.GetSimApp().ScopedICAKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {

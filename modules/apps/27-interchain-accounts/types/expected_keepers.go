@@ -18,11 +18,15 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 }
 
+// ICS4Wrapper defines the expected ICS4Wrapper for middleware
+type ICS4Wrapper interface {
+	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
+}
+
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
 	CounterpartyHops(ctx sdk.Context, channel channeltypes.Channel) ([]string, bool)
 }
 
