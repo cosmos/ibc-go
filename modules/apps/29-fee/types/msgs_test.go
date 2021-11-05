@@ -114,19 +114,43 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 			false,
 		},
 		{
-			"should pass with single invalid fee",
+			"should fail with single invalid fee",
 			func() {
 				ackFee = invalidCoins
 			},
-			true,
+			false,
 		},
 		{
-			"should pass with two invalid fees",
+			"should fail with two invalid fees",
 			func() {
 				timeoutFee = invalidCoins
 				ackFee = invalidCoins
 			},
+			false,
+		},
+		{
+			"should pass with two empty fees",
+			func() {
+				timeoutFee = sdk.Coins{}
+				ackFee = sdk.Coins{}
+			},
 			true,
+		},
+		{
+			"should pass with one empty fee",
+			func() {
+				timeoutFee = sdk.Coins{}
+			},
+			true,
+		},
+		{
+			"should fail if all fees are empty",
+			func() {
+				ackFee = sdk.Coins{}
+				receiveFee = sdk.Coins{}
+				timeoutFee = sdk.Coins{}
+			},
+			false,
 		},
 	}
 
@@ -231,7 +255,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 			false,
 		},
 		{
-			"should fail with three invalid fees",
+			"should fail when all fees are invalid",
 			func() {
 				ackFee = invalidCoins
 				receiveFee = invalidCoins
@@ -240,19 +264,43 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 			false,
 		},
 		{
-			"should pass with two invalid fees",
+			"should fail with single invalid fee",
 			func() {
-				receiveFee = invalidCoins
+				ackFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"should fail with two invalid fees",
+			func() {
 				timeoutFee = invalidCoins
+				ackFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"should pass with two empty fees",
+			func() {
+				timeoutFee = sdk.Coins{}
+				ackFee = sdk.Coins{}
 			},
 			true,
 		},
 		{
-			"should pass with single invalid fee",
+			"should pass with one empty fee",
 			func() {
-				timeoutFee = invalidCoins
+				timeoutFee = sdk.Coins{}
 			},
 			true,
+		},
+		{
+			"should fail if all fees are empty",
+			func() {
+				ackFee = sdk.Coins{}
+				receiveFee = sdk.Coins{}
+				timeoutFee = sdk.Coins{}
+			},
+			false,
 		},
 	}
 
