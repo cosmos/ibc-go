@@ -81,6 +81,19 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return ErrRelayersNotNil
 	}
 
+	// ensure fee's are valid amounts
+	if !msg.Fee.AckFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
+	if !msg.Fee.ReceiveFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
+	if !msg.Fee.TimeoutFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
 	return nil
 }
 
@@ -129,6 +142,19 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 	// ensure sequence is not 0
 	if msg.IdentifiedPacketFee.PacketId.Sequence == 0 {
 		return sdkerrors.ErrInvalidSequence
+	}
+
+	// ensure fee's are valid amounts
+	if !msg.IdentifiedPacketFee.Fee.AckFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
+	if !msg.IdentifiedPacketFee.Fee.ReceiveFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
+	if !msg.IdentifiedPacketFee.Fee.TimeoutFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
 	}
 
 	return nil

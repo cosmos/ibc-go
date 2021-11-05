@@ -17,7 +17,6 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.MsgRegisterCounterpartyAddress) (*types.MsgRegisterCounterpartyAddressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-
 	k.SetCounterpartyAddress(
 		ctx, msg.Address, msg.CounterpartyAddress,
 	)

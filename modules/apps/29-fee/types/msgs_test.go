@@ -14,6 +14,7 @@ var (
 	validPortID    = "validPortId"
 	invalidID      = "this identifier is too long to be used as a valid identifier"
 	validCoins     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	invalidCoins   = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdk.NewInt(-2)}}
 	validAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	invalidAddr    = "invalid_address"
 )
@@ -55,11 +56,14 @@ func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 // TestMsgPayPacketFeeValidation tests ValidateBasic
 func TestMsgPayPacketFeeValidation(t *testing.T) {
 	var (
-		signer    string
-		channelID string
-		portID    string
-		fee       Fee
-		relayers  []string
+		signer     string
+		channelID  string
+		portID     string
+		fee        Fee
+		relayers   []string
+		ackFee     sdk.Coins
+		receiveFee sdk.Coins
+		timeoutFee sdk.Coins
 	)
 
 	testCases := []struct {
@@ -100,6 +104,27 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"invalid ack fee",
+			func() {
+				ackFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"invalid recieve fee",
+			func() {
+				receiveFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"invalid timeout fee",
+			func() {
+				timeoutFee = invalidCoins
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -107,11 +132,14 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		signer = validAddr
 		channelID = validChannelID
 		portID = validPortID
-		fee = Fee{validCoins, validCoins, validCoins}
+		ackFee = validCoins
+		receiveFee = validCoins
+		timeoutFee = validCoins
 		relayers = nil
 
 		// malleate
 		tc.malleate()
+		fee = Fee{receiveFee, ackFee, timeoutFee}
 		msg := NewMsgPayPacketFee(fee, portID, channelID, signer, relayers)
 
 		err := msg.ValidateBasic()
@@ -143,12 +171,15 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 // TestMsgPayPacketFeeAsyncValidation tests ValidateBasic
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	var (
-		signer    string
-		channelID string
-		portID    string
-		fee       Fee
-		relayers  []string
-		seq       uint64
+		signer     string
+		channelID  string
+		portID     string
+		fee        Fee
+		relayers   []string
+		seq        uint64
+		ackFee     sdk.Coins
+		receiveFee sdk.Coins
+		timeoutFee sdk.Coins
 	)
 
 	testCases := []struct {
@@ -196,6 +227,27 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"invalid ack fee",
+			func() {
+				ackFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"invalid recieve fee",
+			func() {
+				receiveFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"invalid timeout fee",
+			func() {
+				timeoutFee = invalidCoins
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -203,12 +255,15 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		signer = validAddr
 		channelID = validChannelID
 		portID = validPortID
-		fee = Fee{validCoins, validCoins, validCoins}
+		ackFee = validCoins
+		receiveFee = validCoins
+		timeoutFee = validCoins
 		relayers = nil
 		seq = 1
 
 		// malleate
 		tc.malleate()
+		fee = Fee{receiveFee, ackFee, timeoutFee}
 
 		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
 		identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: relayers}
