@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), forwardRelayer, validCoins[0])
 				suite.Require().True(hasBalance)
 				// check the module acc wallet is now empty
-				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), refundAcc, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
+				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
 				suite.Require().True(hasBalance)
 
 				suite.Require().NoError(err)
@@ -246,11 +246,11 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId)
 				// there should no longer be a fee in escrow for this packet
 				suite.Require().False(hasFeeInEscrow)
-				// check if the refund acc has been refunded
+				// check if the timeoutRelayer has been paid
 				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), timeoutRelayer, validCoins[0])
 				suite.Require().True(hasBalance)
 				// check the module acc wallet is now empty
-				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), refundAcc, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
+				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
 				suite.Require().True(hasBalance)
 
 			} else {
