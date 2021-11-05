@@ -5,13 +5,16 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v2/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
@@ -389,6 +392,90 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
+
+		})
+	}
+
+}
+
+func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
+	var (
+		packetData []byte
+	)
+	testCases := []struct {
+		name          string
+		malleate      func()
+		expAckSuccess bool
+	}{
+		{
+			"success", func() {}, true,
+		},
+		{
+			"success with ICA auth module callback failure", func() {
+				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					return channeltypes.NewErrorAcknowledgement("failed OnRecvPacket mock callback")
+				}
+			}, true,
+		},
+		{
+			"ICA OnRecvPacket fails - cannot unmarshal packet data", func() {
+				packetData = []byte("invalid data")
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			// send 100stake to interchain account wallet
+			amount, _ := sdk.ParseCoinsNormalized("100stake")
+			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			bankMsg := &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: interchainAccountAddr, Amount: amount}
+
+			_, err = suite.chainB.SendMsgs(bankMsg)
+			suite.Require().NoError(err)
+
+			// build packet data
+			msg := &banktypes.MsgSend{
+				FromAddress: interchainAccountAddr,
+				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+				Amount:      amount,
+			}
+			data, err := types.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{msg})
+			suite.Require().NoError(err)
+
+			icaPacketData := types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: data,
+			}
+			packetData = icaPacketData.GetBytes()
+
+			// malleate packetData for test cases
+			tc.malleate()
+
+			seq := uint64(1)
+			packet := channeltypes.NewPacket(packetData, seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+
+			tc.malleate()
+
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			ack := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, nil)
+			suite.Require().Equal(tc.expAckSuccess, ack.Success())
 
 		})
 	}
