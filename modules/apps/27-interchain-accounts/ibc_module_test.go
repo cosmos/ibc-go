@@ -183,10 +183,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
-
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
@@ -483,26 +481,59 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
-	suite.SetupTest()
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-
-	module, _, err := suite.chainA.GetSimApp().GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-	suite.Require().NoError(err)
-
-	cbs, ok := suite.chainA.GetSimApp().GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
-
-	counterpartyPortID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-	suite.Require().NoError(err)
-
-	counterparty := &channeltypes.Counterparty{
-		PortId:    counterpartyPortID,
-		ChannelId: path.EndpointB.ChannelID,
+	var (
+		proposedVersion string
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success", func() {}, true,
+		},
+		{
+			"invalid proposed version", func() {
+				proposedVersion = "invalid version"
+			}, false,
+		},
 	}
 
-	version, err := cbs.NegotiateAppVersion(suite.chainA.GetContext(), channeltypes.ORDERED, path.EndpointA.ConnectionID, types.PortID, *counterparty, types.VersionPrefix)
-	suite.Require().NoError(err)
-	suite.Require().NoError(types.ValidateVersion(version))
-	suite.Require().Equal(TestVersion, version)
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			module, _, err := suite.chainA.GetSimApp().GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.GetSimApp().GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			counterpartyPortID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			suite.Require().NoError(err)
+
+			counterparty := &channeltypes.Counterparty{
+				PortId:    counterpartyPortID,
+				ChannelId: path.EndpointB.ChannelID,
+			}
+
+			proposedVersion = types.VersionPrefix
+
+			tc.malleate()
+
+			version, err := cbs.NegotiateAppVersion(suite.chainA.GetContext(), channeltypes.ORDERED, path.EndpointA.ConnectionID, types.PortID, *counterparty, proposedVersion)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NoError(types.ValidateVersion(version))
+				suite.Require().Equal(TestVersion, version)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Empty(version)
+			}
+		})
+	}
 }
