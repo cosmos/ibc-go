@@ -28,7 +28,7 @@ func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
 
 // OnChanOpenInit implements the IBCModule interface. Interchain Accounts is
 // implemented to act as middleware for connected authentication modules on
-// the controller side. The connected modules may not change the portID or
+// the controller side. The connected modules may not change the controller side portID or
 // version. They will be allowed to perform custom logic without changing
 // the parameters stored within a channel struct.
 //
