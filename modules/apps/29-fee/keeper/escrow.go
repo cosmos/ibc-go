@@ -73,9 +73,9 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 // DistributeFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
 func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID)
-	if !hasFee {
-		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("%s", refundAcc.String()))
+	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
+	if !found {
+		return sdkerrors.Wrap(types.ErrFeeNotFound, refundAcc)
 	}
 
 	// get module accAddr
