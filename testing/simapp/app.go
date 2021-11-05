@@ -270,7 +270,7 @@ func NewSimApp(
 	scopedICAKeeper := app.CapabilityKeeper.ScopeToModule(icatypes.ModuleName)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
+	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icatypes.ModuleName)
 
@@ -340,7 +340,7 @@ func NewSimApp(
 	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
+	// not replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
 	mockIBCModule := ibcmock.NewIBCModule(&ibcmock.MockIBCApp{}, scopedIBCMockKeeper)
 
