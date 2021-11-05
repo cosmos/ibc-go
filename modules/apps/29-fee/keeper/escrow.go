@@ -49,7 +49,7 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	// send receive fee to forward relayer
 	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, "error sending fee to forward relayer")
+		return sdkerrors.Wrap(err, "failed to send fee to forward relayer")
 	}
 
 	// send ack fee to reverse relayer
