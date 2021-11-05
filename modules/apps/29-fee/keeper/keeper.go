@@ -26,14 +26,16 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
 
+	authKeeper    types.AccountKeeper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
+	bankKeeper    types.BankKeeper
 }
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 
 	return Keeper{
@@ -41,6 +43,8 @@ func NewKeeper(
 		storeKey:      key,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
+		authKeeper:    authKeeper,
+		bankKeeper:    bankKeeper,
 	}
 }
 
@@ -68,6 +72,11 @@ func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channelty
 // GetNextSequenceSend wraps IBC ChannelKeeper's GetNextSequenceSend function
 func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	return k.channelKeeper.GetNextSequenceSend(ctx, portID, channelID)
+}
+
+// GetFeeAccount returns the ICS29 Fee ModuleAccount address
+func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
+	return k.authKeeper.GetModuleAddress(types.ModuleName)
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
@@ -103,13 +112,63 @@ func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAdd
 }
 
 // GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
-func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address sdk.AccAddress) (sdk.AccAddress, bool) {
+func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyRelayerAddress(address.String())
+	key := types.KeyRelayerAddress(address)
 
 	if !store.Has(key) {
-		return []byte{}, false
+		return "", false
 	}
 
-	return store.Get(key), true
+	addr := string(store.Get(key))
+	return addr, true
+}
+
+// Stores a Fee for a given packet in state
+func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee *types.IdentifiedPacketFee) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.MustMarshalFee(fee)
+	store.Set(types.KeyFeeInEscrow(fee.PacketId), bz)
+}
+
+// Gets a Fee for a given packet
+func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) (types.IdentifiedPacketFee, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyFeeInEscrow(packetId)
+	bz := store.Get(key)
+	if bz == nil {
+		return types.IdentifiedPacketFee{}, false
+	}
+	fee := k.MustUnmarshalFee(bz)
+
+	return fee, true
+}
+
+// Deletes the fee associated with the given packetId
+func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyFeeInEscrow(packetId)
+	store.Delete(key)
+}
+
+// GetFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
+func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) bool {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyFeeInEscrow(packetId)
+
+	return store.Has(key)
+}
+
+// MustMarshalFee attempts to encode a Fee object and returns the
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustMarshalFee(fee *types.IdentifiedPacketFee) []byte {
+	return k.cdc.MustMarshal(fee)
+}
+
+// MustUnmarshalFee attempts to decode and return a Fee object from
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustUnmarshalFee(bz []byte) types.IdentifiedPacketFee {
+	var fee types.IdentifiedPacketFee
+	k.cdc.MustUnmarshal(bz, &fee)
+	return fee
 }

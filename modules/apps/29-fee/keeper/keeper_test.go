@@ -5,6 +5,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -16,14 +19,42 @@ type KeeperTestSuite struct {
 	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
+
+	path *ibctesting.Path
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	feeTransferVersion := channeltypes.MergeChannelVersions(types.Version, transfertypes.Version)
+	path.EndpointA.ChannelConfig.Version = feeTransferVersion
+	path.EndpointB.ChannelConfig.Version = feeTransferVersion
+	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+	suite.path = path
+}
+
+func SetupFeePath(path *ibctesting.Path) error {
+	if err := path.EndpointA.ChanOpenInit(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenTry(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointA.ChanOpenAck(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func TestKeeperTestSuite(t *testing.T) {
