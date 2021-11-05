@@ -8,7 +8,9 @@
     - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
   
 - [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
+    - [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel)
     - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
+    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
   
 - [ibc/applications/interchain_accounts/v1/query.proto](#ibc/applications/interchain_accounts/v1/query.proto)
     - [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest)
@@ -311,15 +313,49 @@ An InterchainAccount is defined as a BaseAccount & the address of the account ow
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
+<a name="ibc.applications.interchain_accounts.v1.ActiveChannel"></a>
 
-### GenesisState
-GenesisState defines the interchain_account genesis state
+### ActiveChannel
+ActiveChannel contains a pairing of port ID and channel ID for an active interchain accounts channel
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain accounts genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
+| `ports` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
+
+### RegisteredInterchainAccount
+RegisteredInterchainAccount contains a pairing of controller port ID and associated interchain account address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `account_address` | [string](#string) |  |  |
 
 
 

@@ -12,20 +12,29 @@ import (
 
 // InitGenesis initializes the interchain accounts application state from a provided genesis state
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState) {
-	if !keeper.IsBound(ctx, state.PortId) {
-		cap := keeper.BindPort(ctx, state.PortId)
-		if err := keeper.ClaimCapability(ctx, cap, host.PortPath(state.PortId)); err != nil {
-			panic(fmt.Sprintf("could not claim port capability: %v", err))
+	for _, portID := range state.Ports {
+		if !keeper.IsBound(ctx, portID) {
+			cap := keeper.BindPort(ctx, portID)
+			if err := keeper.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
+				panic(fmt.Sprintf("could not claim port capability: %v", err))
+			}
 		}
+	}
+
+	for _, ch := range state.ActiveChannels {
+		keeper.SetActiveChannelID(ctx, ch.PortId, ch.ChannelId)
+	}
+
+	for _, acc := range state.InterchainAccounts {
+		keeper.SetInterchainAccountAddress(ctx, acc.PortId, acc.AccountAddress)
 	}
 }
 
-// ExportGenesis exports transfer module's portID into its geneis state
+// ExportGenesis returns the interchain accounts exported genesis
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-	// TODO: Using a range query with KVStorePrefixIterator export all port IDs
-	// See https://github.com/cosmos/ibc-go/issues/448
-
-	return &types.GenesisState{
-		PortId: types.PortID,
-	}
+	return types.NewGenesisState(
+		keeper.GetAllPorts(ctx),
+		keeper.GetAllActiveChannels(ctx),
+		keeper.GetAllInterchainAccounts(ctx),
+	)
 }

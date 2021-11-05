@@ -1,9 +1,11 @@
 syntax = "proto3";
+
 package ibc.applications.interchain_accounts.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
-option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
 // Type defines a classification of message issued from a controller chain to its associated interchain accounts
 // host
