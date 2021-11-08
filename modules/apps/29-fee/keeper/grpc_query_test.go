@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 			suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, &identifiedPacketFee)
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacket(ctx, req)
+			res, err := suite.queryClient.IncentivizedPacket(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPackets(ctx, req)
+			res, err := suite.queryClient.IncentivizedPackets(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
