@@ -5,16 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-)
-
-var (
-	expPackets []*types.IdentifiedPacketFee
-	refundAcc  sdk.AccAddress
-	ackFee     sdk.Coins
-	receiveFee sdk.Coins
-	timeoutFee sdk.Coins
 )
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
@@ -24,13 +17,13 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 	)
 
 	// setup
-	validChannelId := "channel-0"
-	validPacketId := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
-	invalidPacketId := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(2)}
-	validCoins = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	ackFee = validCoins
-	receiveFee = validCoins
-	timeoutFee = validCoins
+	channelId := "channel-0"
+	validPacketId := &channeltypes.PacketId{ChannelId: channelId, PortId: types.PortKey, Sequence: uint64(1)}
+	invalidPacketId := &channeltypes.PacketId{ChannelId: channelId, PortId: types.PortKey, Sequence: uint64(2)}
+	coins := sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	ackFee := coins
+	receiveFee := coins
+	timeoutFee := coins
 	fee := &types.Fee{
 		AckFee:     ackFee,
 		ReceiveFee: receiveFee,
@@ -69,12 +62,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			refundAcc = suite.chainA.SenderAccount.GetAddress()
+			refundAcc := suite.chainA.SenderAccount.GetAddress()
 
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 			suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, &identifiedPacketFee)
-			res, err := suite.queryClient.IncentivizedPacket(ctx, req)
+			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacket(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -92,15 +85,27 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 		req *types.QueryIncentivizedPacketsRequest
 	)
 	validChannelId := "channel-0"
-	validCoins = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	ackFee = validCoins
-	receiveFee = validCoins
-	timeoutFee = validCoins
+	coins := sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	ackFee := coins
+	receiveFee := coins
+	timeoutFee := coins
 	fee := &types.Fee{
 		AckFee:     ackFee,
 		ReceiveFee: receiveFee,
 		TimeoutFee: timeoutFee,
 	}
+
+	id1 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
+	id2 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(2)}
+	id3 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(3)}
+	fee1 := types.IdentifiedPacketFee{PacketId: id1, Fee: *fee, Relayers: []string(nil)}
+	fee2 := types.IdentifiedPacketFee{PacketId: id2, Fee: *fee, Relayers: []string(nil)}
+	fee3 := types.IdentifiedPacketFee{PacketId: id3, Fee: *fee, Relayers: []string(nil)}
+
+	expPackets := []*types.IdentifiedPacketFee(nil)
+	expPackets = append(expPackets, &fee1)
+	expPackets = append(expPackets, &fee2)
+	expPackets = append(expPackets, &fee3)
 
 	testCases := []struct {
 		msg      string
@@ -117,17 +122,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 		{
 			"success",
 			func() {
-				refundAcc = suite.chainA.SenderAccount.GetAddress()
-				id1 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
-				id2 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(2)}
-				id3 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(3)}
-				fee1 := types.IdentifiedPacketFee{PacketId: id1, Fee: *fee, Relayers: []string(nil)}
-				fee2 := types.IdentifiedPacketFee{PacketId: id2, Fee: *fee, Relayers: []string(nil)}
-				fee3 := types.IdentifiedPacketFee{PacketId: id3, Fee: *fee, Relayers: []string(nil)}
-
-				expPackets = append(expPackets, &fee1)
-				expPackets = append(expPackets, &fee2)
-				expPackets = append(expPackets, &fee3)
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
 
 				for _, p := range expPackets {
 					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, p)
@@ -151,7 +146,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := suite.queryClient.IncentivizedPackets(ctx, req)
+			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPackets(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
