@@ -19,8 +19,8 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, ident
 		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))
 	}
 
-	coins := identifiedFee.Fee.AckFee
-	coins = coins.Add(identifiedFee.Fee.ReceiveFee...)
+	coins := identifiedFee.Fee.ReceiveFee
+	coins = coins.Add(identifiedFee.Fee.AckFee...)
 	coins = coins.Add(identifiedFee.Fee.TimeoutFee...)
 
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(
@@ -40,7 +40,7 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
 	if !found {
-		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("with channelID: %s, sequenceId %d", packetID.ChannelId, packetID.Sequence))
+		return sdkerrors.Wrapf(types.ErrFeeNotFound, "with channelID %s, sequence %d", packetID.ChannelId, packetID.Sequence)
 	}
 
 	// get module accAddr
@@ -49,7 +49,7 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	// send receive fee to forward relayer
 	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, "error sending fee to forward relayer")
+		return sdkerrors.Wrap(err, "failed to send fee to forward relayer")
 	}
 
 	// send ack fee to reverse relayer
@@ -73,24 +73,24 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 // DistributeFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
 func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
 	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, hasFee := k.GetFeeInEscrow(ctx, packetID)
-	if !hasFee {
-		return sdkerrors.Wrap(types.ErrFeeNotFound, fmt.Sprintf("%s", refundAcc.String()))
+	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
+	if !found {
+		return sdkerrors.Wrap(types.ErrFeeNotFound, refundAcc.String())
 	}
 
 	// get module accAddr
 	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 
-	// refund the ack fee
-	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.AckFee)
-	if err != nil {
-		return sdkerrors.Wrap(err, "error refunding ack fee")
-	}
-
 	// refund the receive fee
-	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.ReceiveFee)
+	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
 		return sdkerrors.Wrap(err, "error refunding receive fee")
+	}
+
+	// refund the ack fee
+	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAcc, feeInEscrow.Fee.AckFee)
+	if err != nil {
+		return sdkerrors.Wrap(err, "error refunding ack fee")
 	}
 
 	// pay the timeout fee to the reverse relayer

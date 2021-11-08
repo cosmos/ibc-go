@@ -28,9 +28,8 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
 	}
 
-	_, err = sdk.AccAddressFromBech32(msg.CounterpartyAddress)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to convert msg.CounterpartyAddress into sdk.AccAddress")
+	if msg.CounterpartyAddress == "" {
+		return ErrCounterpartyAddressEmpty
 	}
 
 	return nil
@@ -81,6 +80,16 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return ErrRelayersNotNil
 	}
 
+	// if any of the fee's are invalid return an error
+	if !msg.Fee.AckFee.IsValid() || !msg.Fee.ReceiveFee.IsValid() || !msg.Fee.TimeoutFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
+	// if all three fee's are zero or empty return an error
+	if msg.Fee.AckFee.IsZero() && msg.Fee.ReceiveFee.IsZero() && msg.Fee.TimeoutFee.IsZero() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
 	return nil
 }
 
@@ -126,9 +135,19 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 		return ErrRelayersNotNil
 	}
 
-	// enforce relayer is nil
+	// ensure sequence is not 0
 	if msg.IdentifiedPacketFee.PacketId.Sequence == 0 {
 		return sdkerrors.ErrInvalidSequence
+	}
+
+	// if any of the fee's are invalid return an error
+	if !msg.IdentifiedPacketFee.Fee.AckFee.IsValid() || !msg.IdentifiedPacketFee.Fee.ReceiveFee.IsValid() || !msg.IdentifiedPacketFee.Fee.TimeoutFee.IsValid() {
+		return sdkerrors.ErrInvalidCoins
+	}
+
+	// if all three fee's are zero or empty return an error
+	if msg.IdentifiedPacketFee.Fee.AckFee.IsZero() && msg.IdentifiedPacketFee.Fee.ReceiveFee.IsZero() && msg.IdentifiedPacketFee.Fee.TimeoutFee.IsZero() {
+		return sdkerrors.ErrInvalidCoins
 	}
 
 	return nil
