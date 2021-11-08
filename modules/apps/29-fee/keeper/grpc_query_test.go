@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
@@ -17,9 +16,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 	)
 
 	// setup
-	channelId := "channel-0"
-	validPacketId := &channeltypes.PacketId{ChannelId: channelId, PortId: types.PortKey, Sequence: uint64(1)}
-	invalidPacketId := &channeltypes.PacketId{ChannelId: channelId, PortId: types.PortKey, Sequence: uint64(2)}
+	validPacketId := suite.NewPacketId(uint64(1))
+	invalidPacketId := suite.NewPacketId(uint64(2))
 	coins := sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
 	ackFee := coins
 	receiveFee := coins
@@ -29,7 +27,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 		ReceiveFee: receiveFee,
 		TimeoutFee: timeoutFee,
 	}
-	identifiedPacketFee := types.IdentifiedPacketFee{PacketId: validPacketId, Fee: *fee, Relayers: []string(nil)}
+
+	identifiedPacketFee := suite.NewIdentifiedPacketFee(validPacketId, *fee)
 
 	testCases := []struct {
 		name     string
@@ -40,7 +39,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			"success",
 			func() {
 				req = &types.QueryIncentivizedPacketRequest{
-					PacketId:    validPacketId,
+					PacketId:    &validPacketId,
 					QueryHeight: 0,
 				}
 			},
@@ -50,7 +49,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			"packetId not found",
 			func() {
 				req = &types.QueryIncentivizedPacketRequest{
-					PacketId:    invalidPacketId,
+					PacketId:    &invalidPacketId,
 					QueryHeight: 0,
 				}
 			},
@@ -82,9 +81,10 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 	var (
-		req *types.QueryIncentivizedPacketsRequest
+		req        *types.QueryIncentivizedPacketsRequest
+		expPackets []*types.IdentifiedPacketFee
 	)
-	validChannelId := "channel-0"
+
 	coins := sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
 	ackFee := coins
 	receiveFee := coins
@@ -94,18 +94,6 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 		ReceiveFee: receiveFee,
 		TimeoutFee: timeoutFee,
 	}
-
-	id1 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
-	id2 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(2)}
-	id3 := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(3)}
-	fee1 := types.IdentifiedPacketFee{PacketId: id1, Fee: *fee, Relayers: []string(nil)}
-	fee2 := types.IdentifiedPacketFee{PacketId: id2, Fee: *fee, Relayers: []string(nil)}
-	fee3 := types.IdentifiedPacketFee{PacketId: id3, Fee: *fee, Relayers: []string(nil)}
-
-	expPackets := []*types.IdentifiedPacketFee(nil)
-	expPackets = append(expPackets, &fee1)
-	expPackets = append(expPackets, &fee2)
-	expPackets = append(expPackets, &fee3)
 
 	testCases := []struct {
 		msg      string
@@ -123,6 +111,18 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			"success",
 			func() {
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
+
+				id1 := suite.NewPacketId(uint64(1))
+				id2 := suite.NewPacketId(uint64(2))
+				id3 := suite.NewPacketId(uint64(3))
+				fee1 := suite.NewIdentifiedPacketFee(id1, *fee)
+				fee2 := suite.NewIdentifiedPacketFee(id2, *fee)
+				fee3 := suite.NewIdentifiedPacketFee(id3, *fee)
+
+				expPackets = []*types.IdentifiedPacketFee{}
+				expPackets = append(expPackets, &fee1)
+				expPackets = append(expPackets, &fee2)
+				expPackets = append(expPackets, &fee3)
 
 				for _, p := range expPackets {
 					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, p)
