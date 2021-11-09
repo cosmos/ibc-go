@@ -13,6 +13,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	transfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
@@ -368,6 +369,40 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &disttypes.MsgSetWithdrawAddress{
 					DelegatorAddress: interchainAccountAddr,
 					WithdrawAddress:  suite.chainB.SenderAccount.GetAddress().String(),
+				}
+
+				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
+				suite.Require().NoError(err)
+
+				icaPacketData := types.InterchainAccountPacketData{
+					Type: types.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"interchain account successfully executes transfertypes.MsgTransfer",
+			func() {
+				transferPath := ibctesting.NewPath(suite.chainB, suite.chainC)
+				transferPath.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+				transferPath.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+
+				suite.coordinator.Setup(transferPath)
+
+				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				msg := &transfertypes.MsgTransfer{
+					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
+					SourceChannel:    transferPath.EndpointA.ChannelID,
+					Token:            sdk.NewCoin("stake", sdk.NewInt(100)),
+					Sender:           interchainAccountAddr,
+					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
+					TimeoutHeight:    clienttypes.NewHeight(0, 100),
+					TimeoutTimestamp: uint64(0),
 				}
 
 				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
