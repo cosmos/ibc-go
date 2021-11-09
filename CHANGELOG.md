@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to 0.34.14
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to v0.34.14
 * [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
  
 ## [v1.2.2](https://github.com/cosmos/ibc-go/releases/tag/v1.2.2) - 2021-10-15
@@ -69,13 +69,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](github.com/tendermint/tendermint) from 0.34.12 to 0.34.13.
+* [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](github.com/tendermint/tendermint) from v0.34.12 to v0.34.13.
 
 ## [v1.1.3](https://github.com/cosmos/ibc-go/releases/tag/v1.1.3) - 2021-11-09
 
 ### Dependencies
 
-* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to 0.34.14
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to v0.34.14
 * [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
 
 ## [v1.1.2](https://github.com/cosmos/ibc-go/releases/tag/v1.1.2) - 2021-10-15
