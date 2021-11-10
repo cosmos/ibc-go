@@ -33,16 +33,10 @@
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
   
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
-    - [QueryAckFeeRequest](#ibc.applications.fee.v1.QueryAckFeeRequest)
-    - [QueryAckFeeResponse](#ibc.applications.fee.v1.QueryAckFeeResponse)
     - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
     - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
     - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
     - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
-    - [QueryReceiveFeeRequest](#ibc.applications.fee.v1.QueryReceiveFeeRequest)
-    - [QueryReceiveFeeResponse](#ibc.applications.fee.v1.QueryReceiveFeeResponse)
-    - [QueryTimeoutFeeRequest](#ibc.applications.fee.v1.QueryTimeoutFeeRequest)
-    - [QueryTimeoutFeeResponse](#ibc.applications.fee.v1.QueryTimeoutFeeResponse)
   
     - [Query](#ibc.applications.fee.v1.Query)
   
@@ -698,38 +692,6 @@ GenesisState defines the fee middleware genesis state
 
 
 
-<a name="ibc.applications.fee.v1.QueryAckFeeRequest"></a>
-
-### QueryAckFeeRequest
-QueryAckFeeRequest is the request type for querying the acknowledgement fee
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | PacketID |
-| `relayer_address` | [string](#string) |  | Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s). |
-| `query_height` | [uint64](#uint64) |  | Height to query at |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.QueryAckFeeResponse"></a>
-
-### QueryAckFeeResponse
-QueryAckFeeResponse is the response type for the AckFee RPC
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketRequest"></a>
 
 ### QueryIncentivizedPacketRequest
@@ -791,75 +753,73 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 
 
 
-
-<a name="ibc.applications.fee.v1.QueryReceiveFeeRequest"></a>
-
-### QueryReceiveFeeRequest
-QueryReceiveFeeRequest is the request type for querying the receive fee
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | PacketID |
-| `relayer_address` | [string](#string) |  | Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s). |
-| `query_height` | [uint64](#uint64) |  | Height to query at |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.QueryReceiveFeeResponse"></a>
-
-### QueryReceiveFeeResponse
-QueryReceiveFeeResponse is the response type for the ReceiveFee RPC
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.QueryTimeoutFeeRequest"></a>
-
-### QueryTimeoutFeeRequest
-QueryTimeoutFeeRequest is the request type for querying the timeout fee
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | PacketID |
-| `relayer_address` | [string](#string) |  | Caller should provide the intended relayer address in case the fee is dependent on specific relayer(s). |
-| `query_height` | [uint64](#uint64) |  | Height to query at |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.QueryTimeoutFeeResponse"></a>
-
-### QueryTimeoutFeeResponse
-QueryTimeoutFeeResponse is the response type for the timeout RPC
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.fee.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packets|
+| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the given packet | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/fee/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/tx.proto
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
+
+### MsgPayPacketFee
+MsgPayPacketFee defines the request type EscrowPacketFee RPC
+This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
+paid for
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `source_port_id` | [string](#string) |  | source channel port identifier |
+| `source_channel_id` | [string](#string) |  | source channel unique identifier |
+| `signer` | [string](#string) |  | account address to refund fee if necessary |
+| `relayers` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
+
+### MsgPayPacketFeeAsync
+MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
+This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | packet to pay fee for |
+| `signer` | [string](#string) |  | account address to refund fee if necessary |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
 
 
 <a name="ibc.applications.fee.v1.Query"></a>
