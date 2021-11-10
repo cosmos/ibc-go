@@ -9,7 +9,8 @@
   
 - [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
     - [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel)
-    - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
+    - [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState)
+    - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
     - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
   
 - [ibc/applications/interchain_accounts/v1/query.proto](#ibc/applications/interchain_accounts/v1/query.proto)
@@ -329,10 +330,10 @@ ActiveChannel contains a pairing of port ID and channel ID for an active interch
 
 
 
-<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
+<a name="ibc.applications.interchain_accounts.v1.ControllerGenesisState"></a>
 
-### GenesisState
-GenesisState defines the interchain accounts genesis state
+### ControllerGenesisState
+ControllerGenesisState defines the interchain accounts controller genesis state
 
 
 | Field | Type | Label | Description |
@@ -340,6 +341,23 @@ GenesisState defines the interchain accounts genesis state
 | `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
 | `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
 | `ports` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.HostGenesisState"></a>
+
+### HostGenesisState
+HostGenesisState defines the interchain accounts host genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
+| `port` | [string](#string) |  |  |
 
 
 
