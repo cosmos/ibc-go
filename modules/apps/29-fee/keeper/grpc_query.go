@@ -24,7 +24,7 @@ func (k Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivi
 
 	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
 
-	packets := []*types.IdentifiedPacketFee{}
+	var packets []*types.IdentifiedPacketFee
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeInEscrowPrefix))
 	_, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		result := k.MustUnmarshalFee(value)

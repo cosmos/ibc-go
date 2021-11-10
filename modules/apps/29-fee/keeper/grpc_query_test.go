@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
@@ -16,19 +17,17 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 	)
 
 	// setup
-	validPacketId := suite.NewPacketId(uint64(1))
-	invalidPacketId := suite.NewPacketId(uint64(2))
-	coins := sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	ackFee := coins
-	receiveFee := coins
-	timeoutFee := coins
-	fee := &types.Fee{
-		AckFee:     ackFee,
-		ReceiveFee: receiveFee,
-		TimeoutFee: timeoutFee,
-	}
-
-	identifiedPacketFee := suite.NewIdentifiedPacketFee(validPacketId, *fee)
+	validPacketId := types.NewPacketId(ibctesting.FirstChannelID, 1)
+	invalidPacketId := types.NewPacketId(ibctesting.FirstChannelID, 2)
+	identifiedPacketFee := types.NewIdentifiedPacketFee(
+		validPacketId,
+		types.Fee{
+			AckFee:     sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
+			ReceiveFee: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
+			TimeoutFee: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
+		},
+		[]string(nil),
+	)
 
 	testCases := []struct {
 		name     string
@@ -39,7 +38,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			"success",
 			func() {
 				req = &types.QueryIncentivizedPacketRequest{
-					PacketId:    &validPacketId,
+					PacketId:    validPacketId,
 					QueryHeight: 0,
 				}
 			},
@@ -49,7 +48,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			"packetId not found",
 			func() {
 				req = &types.QueryIncentivizedPacketRequest{
-					PacketId:    &invalidPacketId,
+					PacketId:    invalidPacketId,
 					QueryHeight: 0,
 				}
 			},
@@ -65,13 +64,13 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, &identifiedPacketFee)
+			suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, identifiedPacketFee)
 			res, err := suite.queryClient.IncentivizedPacket(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(&identifiedPacketFee, res.IncentivizedPacket)
+				suite.Require().Equal(identifiedPacketFee, res.IncentivizedPacket)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -85,14 +84,10 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 		expPackets []*types.IdentifiedPacketFee
 	)
 
-	coins := sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	ackFee := coins
-	receiveFee := coins
-	timeoutFee := coins
-	fee := &types.Fee{
-		AckFee:     ackFee,
-		ReceiveFee: receiveFee,
-		TimeoutFee: timeoutFee,
+	fee := types.Fee{
+		AckFee:     sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
+		ReceiveFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
+		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
 	}
 
 	testCases := []struct {
@@ -112,17 +107,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			func() {
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 
-				id1 := suite.NewPacketId(uint64(1))
-				id2 := suite.NewPacketId(uint64(2))
-				id3 := suite.NewPacketId(uint64(3))
-				fee1 := suite.NewIdentifiedPacketFee(id1, *fee)
-				fee2 := suite.NewIdentifiedPacketFee(id2, *fee)
-				fee3 := suite.NewIdentifiedPacketFee(id3, *fee)
+				fee1 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 1), fee, []string(nil))
+				fee2 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 2), fee, []string(nil))
+				fee3 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 3), fee, []string(nil))
 
 				expPackets = []*types.IdentifiedPacketFee{}
-				expPackets = append(expPackets, &fee1)
-				expPackets = append(expPackets, &fee2)
-				expPackets = append(expPackets, &fee3)
+				expPackets = append(expPackets, fee1, fee2, fee3)
 
 				for _, p := range expPackets {
 					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), refundAcc, p)
@@ -151,6 +141,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+				fmt.Println(expPackets)
 				suite.Require().Equal(expPackets, res.IncentivizedPackets)
 			} else {
 				suite.Require().Error(err)

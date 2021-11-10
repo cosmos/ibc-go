@@ -63,14 +63,6 @@ func SetupFeePath(path *ibctesting.Path) error {
 	return nil
 }
 
-func (suite *KeeperTestSuite) NewPacketId(id uint64) channeltypes.PacketId {
-	return channeltypes.PacketId{ChannelId: ibctesting.FirstChannelID, PortId: types.PortKey, Sequence: id}
-}
-
-func (suite *KeeperTestSuite) NewIdentifiedPacketFee(id channeltypes.PacketId, fee types.Fee) types.IdentifiedPacketFee {
-	return types.IdentifiedPacketFee{PacketId: &id, Fee: fee, Relayers: []string(nil)}
-}
-
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
