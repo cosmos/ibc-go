@@ -89,12 +89,14 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	keeper keeper.Keeper
+	app    porttypes.IBCModule
 }
 
 // NewAppModule creates a new 29-fee module
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, app porttypes.IBCModule) AppModule {
 	return AppModule{
 		keeper: k,
+		app:    app,
 	}
 }
 
