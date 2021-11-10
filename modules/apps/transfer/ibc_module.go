@@ -19,6 +19,7 @@ import (
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
 	keeper keeper.Keeper
+	app    porttypes.IBCModule
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
@@ -64,6 +65,11 @@ func ValidateTransferChannelParams(
 	return nil
 }
 
+// SetMiddleware sets ICS30 middleware
+func (im IBCModule) SetMiddleware(app porttypes.IBCModule) {
+	im.app = app
+}
+
 // OnChanOpenInit implements the IBCModule interface
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
@@ -84,7 +90,13 @@ func (im IBCModule) OnChanOpenInit(
 		return err
 	}
 
-	return nil
+	if im.app == nil {
+		return nil
+	}
+
+	// call underlying app's OnChanOpenInit callback with the appVersion
+	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+		chanCap, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -131,7 +143,12 @@ func (im IBCModule) OnChanOpenAck(
 	if counterpartyVersion != types.Version {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
-	return nil
+
+	if im.app == nil {
+		return nil
+	}
+	// call underlying app's OnChanOpenAck callback with the counterparty app version.
+	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
@@ -249,7 +266,12 @@ func (im IBCModule) OnAcknowledgementPacket(
 		)
 	}
 
-	return nil
+	if im.app == nil {
+		return nil
+	}
+
+	// call underlying app's OnAcknowledgementPacket callback.
+	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
@@ -277,7 +299,11 @@ func (im IBCModule) OnTimeoutPacket(
 		),
 	)
 
-	return nil
+	if im.app == nil {
+		return nil
+	}
+
+	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
 // NegotiateAppVersion implements the IBCModule interface

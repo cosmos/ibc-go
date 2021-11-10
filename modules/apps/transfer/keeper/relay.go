@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -12,7 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	coretypes "github.com/cosmos/ibc-go/v2/modules/core/types"
 )
 
@@ -50,6 +50,7 @@ import (
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
 func (k Keeper) SendTransfer(
 	ctx sdk.Context,
+    chanCap *capabilitytypes.Capability,
 	sourcePort,
 	sourceChannel string,
 	token sdk.Coin,
@@ -82,11 +83,6 @@ func (k Keeper) SendTransfer(
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
 
@@ -158,10 +154,6 @@ func (k Keeper) SendTransfer(
 		timeoutTimestamp,
 	)
 
-	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
-		return err
-	}
-
 	defer func() {
 		if token.Amount.IsInt64() {
 			telemetry.SetGaugeWithLabels(
@@ -178,7 +170,7 @@ func (k Keeper) SendTransfer(
 		)
 	}()
 
-	return nil
+	return k.ics4Wrapper.SendPacket(ctx, chanCap, packet)
 }
 
 // OnRecvPacket processes a cross chain fungible token transfer. If the
