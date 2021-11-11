@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -28,7 +27,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 	)
 
 	testCases := []struct {
-		name     string
+		msg      string
 		malleate func()
 		expPass  bool
 	}{
@@ -41,7 +40,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
 				data, err := types.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
@@ -64,12 +63,12 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 					&banktypes.MsgSend{
 						FromAddress: interchainAccountAddr,
 						ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-						Amount:      sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(100))),
+						Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 					},
 					&banktypes.MsgSend{
 						FromAddress: interchainAccountAddr,
 						ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-						Amount:      sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(100))),
+						Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 					},
 				}
 
@@ -127,7 +126,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
+		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
@@ -173,7 +172,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
 				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
@@ -198,7 +197,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &stakingtypes.MsgDelegate{
 					DelegatorAddress: interchainAccountAddr,
 					ValidatorAddress: validatorAddr.String(),
-					Amount:           sdk.NewCoin("stake", sdk.NewInt(5000)),
+					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
 				}
 
 				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
@@ -223,7 +222,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &stakingtypes.MsgDelegate{
 					DelegatorAddress: interchainAccountAddr,
 					ValidatorAddress: validatorAddr.String(),
-					Amount:           sdk.NewCoin("stake", sdk.NewInt(50000)), // Increase the amount so it triggers insufficient funds
+					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50000)), // Increase the amount so it triggers insufficient funds
 				}
 
 				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
@@ -248,13 +247,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msgDelegate := &stakingtypes.MsgDelegate{
 					DelegatorAddress: interchainAccountAddr,
 					ValidatorAddress: validatorAddr.String(),
-					Amount:           sdk.NewCoin("stake", sdk.NewInt(5000)),
+					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
 				}
 
 				msgUndelegate := &stakingtypes.MsgUndelegate{
 					DelegatorAddress: interchainAccountAddr,
 					ValidatorAddress: validatorAddr.String(),
-					Amount:           sdk.NewCoin("stake", sdk.NewInt(5000)),
+					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
 				}
 
 				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msgDelegate, msgUndelegate})
@@ -285,7 +284,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				msg := &govtypes.MsgSubmitProposal{
 					Content:        any,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(5000))),
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
 					Proposer:       interchainAccountAddr,
 				}
 
@@ -344,7 +343,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().True(found)
 
 				msg := &disttypes.MsgFundCommunityPool{
-					Amount:    sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(5000))),
+					Amount:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
 					Depositor: interchainAccountAddr,
 				}
 
@@ -398,7 +397,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &transfertypes.MsgTransfer{
 					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
 					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin("stake", sdk.NewInt(100)),
+					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
 					Sender:           interchainAccountAddr,
 					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
 					TimeoutHeight:    clienttypes.NewHeight(0, 100),
@@ -476,7 +475,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &banktypes.MsgSend{
 					FromAddress: suite.chainB.SenderAccount.GetAddress().String(), // unexpected signer
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(100))),
+					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
 				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
@@ -496,7 +495,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
@@ -505,7 +504,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			err := suite.SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(10000))))
+			suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000))))
 
 			tc.malleate() // malleate mutates test data
 
@@ -537,7 +536,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	)
 
 	testCases := []struct {
-		name     string
+		msg      string
 		malleate func()
 		expPass  bool
 	}{
@@ -549,7 +548,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
