@@ -1,26 +1,24 @@
 package controller
 
 import (
-	"errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
 
-// IBCModule implements the ICS26 interface for interchain accounts given the
-// interchain account keeper and underlying application.
+// IBCModule implements the ICS26 interface for interchain accounts controller chains
 type IBCModule struct {
 	keeper keeper.Keeper
 	app    porttypes.IBCModule
 }
 
-// NewIBCModule creates a new IBCModule given the keeper and underlying application
+// NewIBCModule creates a new IBCModule given the associated keeper and underlying application
 func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
 	return IBCModule{
 		keeper: k,
@@ -28,13 +26,12 @@ func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface. Interchain Accounts is
-// implemented to act as middleware for connected authentication modules on
+// OnChanOpenInit implements the IBCModule interface
+//
+// Interchain Accounts is implemented to act as middleware for connected authentication modules on
 // the controller side. The connected modules may not change the controller side portID or
 // version. They will be allowed to perform custom logic without changing
 // the parameters stored within a channel struct.
-//
-// Controller Chain
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -55,8 +52,6 @@ func (im IBCModule) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCModule interface
-//
-// Host Chain
 func (im IBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -68,17 +63,15 @@ func (im IBCModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	return errors.New("")
-	// return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
+	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-// OnChanOpenAck implements the IBCModule interface. Interchain Accounts is
-// implemented to act as middleware for connected authentication modules on
+// OnChanOpenAck implements the IBCModule interface
+//
+// Interchain Accounts is implemented to act as middleware for connected authentication modules on
 // the controller side. The connected modules may not change the portID or
 // version. They will be allowed to perform custom logic without changing
 // the parameters stored within a channel struct.
-//
-// Controller Chain
 func (im IBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
@@ -94,15 +87,12 @@ func (im IBCModule) OnChanOpenAck(
 }
 
 // OnChanOpenAck implements the IBCModule interface
-//
-// Host Chain
 func (im IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
-	return errors.New("")
-	// return im.keeper.OnChanOpenConfirm(ctx, portID, channelID)
+	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
 // OnChanCloseInit implements the IBCModule interface
@@ -125,32 +115,15 @@ func (im IBCModule) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCModule interface
-//
-// Host Chain
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	return channeltypes.NewErrorAcknowledgement("cannot receive packet on host controller chain")
-	// ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-
-	// // only attempt the application logic if the packet data
-	// // was successfully decoded
-	// if ack.Success() {
-	// 	err := im.keeper.OnRecvPacket(ctx, packet)
-	// 	if err != nil {
-	// 		ack = channeltypes.NewErrorAcknowledgement(err.Error())
-	// 	}
-	// }
-
-	// // NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	// return ack
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-//
-// Controller Chain
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -162,8 +135,6 @@ func (im IBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-//
-// Controller Chain
 func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
