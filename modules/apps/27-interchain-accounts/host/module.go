@@ -46,11 +46,9 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
-	// noop
 }
 
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	// noop
 	return nil
 }
 
@@ -80,7 +78,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 }
 
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO
 }
 
 func (AppModule) Route() sdk.Route {
@@ -103,7 +100,6 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	// types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
@@ -125,7 +121,6 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-
 }
 
 // EndBlock implements the AppModule interface
