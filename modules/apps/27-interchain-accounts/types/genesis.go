@@ -1,18 +1,31 @@
 package types
 
 // DefaultGenesis creates and returns the default interchain accounts GenesisState
-// The default GenesisState includes the standard port identifier to which all host chains must bind
-func DefaultGenesis() *GenesisState {
-	return &GenesisState{
-		Ports: []string{PortID},
-	}
+func DefaultControllerGenesis() *ControllerGenesisState {
+	return &ControllerGenesisState{}
 }
 
-// NewGenesisState creates a returns a new GenesisState instance
-func NewGenesisState(ports []string, channels []*ActiveChannel, accounts []*RegisteredInterchainAccount) *GenesisState {
-	return &GenesisState{
+// NewControllerGenesisState creates a returns a new ControllerGenesisState instance
+func NewControllerGenesisState(channels []*ActiveChannel, accounts []*RegisteredInterchainAccount, ports []string) *ControllerGenesisState {
+	return &ControllerGenesisState{
 		ActiveChannels:     channels,
 		InterchainAccounts: accounts,
 		Ports:              ports,
+	}
+}
+
+// DefaultHostGenesis creates and returns the default interchain accounts GenesisState
+func DefaultHostGenesis() *HostGenesisState {
+	return &HostGenesisState{
+		Port: PortID,
+	}
+}
+
+// NewHostGenesisState creates a returns a new ControllerGenesisState instance
+func NewHostGenesisState(channels []*ActiveChannel, accounts []*RegisteredInterchainAccount, port string) *HostGenesisState {
+	return &HostGenesisState{
+		ActiveChannels:     channels,
+		InterchainAccounts: accounts,
+		Port:               port,
 	}
 }
