@@ -56,3 +56,16 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddres
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
 	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
 }
+
+// Opens a new channel on a particular port given a connection
+// This is a helper function to open a new channel
+// in case of a channel closing and the controller chain needs to regain access to an interchain account on the host chain
+func (k Keeper) InitChannel(ctx sdk.Context, portID, connectionID string) error {
+	msg := channeltypes.NewMsgChannelOpenInit(portID, types.VersionPrefix, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
+	handler := k.msgRouter.Handler(msg)
+	if _, err := handler(ctx, msg); err != nil {
+		return err
+	}
+
+	return nil
+}
