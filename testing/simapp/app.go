@@ -373,7 +373,7 @@ func NewSimApp(
 	app.ICAAuthModule = icaAuthModule
 
 	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, icaAuthModule)
-	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper, nil)
+	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// Create static IBC router, add app routes, then set and seal it
 	// TODO: As comment above, remove hardcoded strings below
