@@ -23,7 +23,6 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
 
-	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	accountKeeper types.AccountKeeper
@@ -35,8 +34,7 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain account Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey,
-	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	cdc codec.BinaryCodec, key sdk.StoreKey, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	accountKeeper types.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 
@@ -48,7 +46,6 @@ func NewKeeper(
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
-		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		accountKeeper: accountKeeper,
