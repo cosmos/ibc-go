@@ -110,12 +110,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
 			portID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			suite.Require().NoError(err)
+
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
 			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
 			path.EndpointA.ChannelConfig.PortID = portID
@@ -130,10 +132,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				Version:        types.VersionPrefix,
 			}
 
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(portID, path.EndpointA.ChannelID))
+			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
-			tc.malleate() // explicitly change fields in channel and testChannel
+			tc.malleate() // malleate mutates test data
 
 			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
@@ -148,169 +150,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		})
 	}
 }
-
-// func (suite *KeeperTestSuite) TestOnChanOpenTry() {
-// 	var (
-// 		channel             *channeltypes.Channel
-// 		path                *ibctesting.Path
-// 		chanCap             *capabilitytypes.Capability
-// 		counterpartyVersion string
-// 	)
-
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-
-// 		{
-// 			"success",
-// 			func() {
-// 				path.EndpointB.SetChannel(*channel)
-// 			},
-// 			true,
-// 		},
-// 		{
-// 			"invalid order - UNORDERED",
-// 			func() {
-// 				channel.Ordering = channeltypes.UNORDERED
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"invalid port",
-// 			func() {
-// 				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"invalid counterparty port",
-// 			func() {
-// 				channel.Counterparty.PortId = "invalid-port-id"
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"channel not found",
-// 			func() {
-// 				path.EndpointB.ChannelID = "invalid-channel-id"
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"connection not found",
-// 			func() {
-// 				channel.ConnectionHops = []string{"invalid-connnection-id"}
-// 				path.EndpointB.SetChannel(*channel)
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"invalid connection sequence",
-// 			func() {
-// 				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
-// 				suite.Require().NoError(err)
-
-// 				channel.Counterparty.PortId = portID
-// 				path.EndpointB.SetChannel(*channel)
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"invalid counterparty connection sequence",
-// 			func() {
-// 				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
-// 				suite.Require().NoError(err)
-
-// 				channel.Counterparty.PortId = portID
-// 				path.EndpointB.SetChannel(*channel)
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"invalid version",
-// 			func() {
-// 				channel.Version = "version"
-// 				path.EndpointB.SetChannel(*channel)
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"invalid counterparty version",
-// 			func() {
-// 				counterpartyVersion = "version"
-// 				path.EndpointB.SetChannel(*channel)
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"capability already claimed",
-// 			func() {
-// 				path.EndpointB.SetChannel(*channel)
-// 				err := suite.chainB.GetSimApp().ScopedICAKeeper.ClaimCapability(suite.chainB.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-// 				suite.Require().NoError(err)
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"invalid account address",
-// 			func() {
-// 				portID, err := types.GeneratePortID("invalid-owner-addr", "connection-0", "connection-0")
-// 				suite.Require().NoError(err)
-
-// 				channel.Counterparty.PortId = portID
-// 				path.EndpointB.SetChannel(*channel)
-// 			},
-// 			false,
-// 		},
-// 	}
-
-// 	for _, tc := range testCases {
-// 		tc := tc
-
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest() // reset
-// 			path = NewICAPath(suite.chainA, suite.chainB)
-// 			counterpartyVersion = types.VersionPrefix
-// 			suite.coordinator.SetupConnections(path)
-
-// 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
-// 			suite.Require().NoError(err)
-
-// 			// set the channel id on host
-// 			channelSequence := path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(path.EndpointB.Chain.GetContext())
-// 			path.EndpointB.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
-
-// 			// default values
-// 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-// 			channel = &channeltypes.Channel{
-// 				State:          channeltypes.TRYOPEN,
-// 				Ordering:       channeltypes.ORDERED,
-// 				Counterparty:   counterparty,
-// 				ConnectionHops: []string{path.EndpointB.ConnectionID},
-// 				Version:        TestVersion,
-// 			}
-
-// 			chanCap, err = suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-// 			suite.Require().NoError(err)
-
-// 			tc.malleate() // explicitly change fields in channel and testChannel
-
-// 			err = suite.chainB.GetSimApp().ICAKeeper.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-// 				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
-// 				counterpartyVersion,
-// 			)
-
-// 			if tc.expPass {
-// 				suite.Require().NoError(err)
-// 			} else {
-// 				suite.Require().Error(err)
-// 			}
-
-// 		})
-// 	}
-// }
 
 func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 	var (
@@ -328,10 +167,12 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			"success", func() {}, true,
 		},
 		{
-			"invalid counterparty version", func() {
+			"invalid counterparty version",
+			func() {
 				expectedChannelID = ""
 				counterpartyVersion = "version"
-			}, false,
+			},
+			false,
 		},
 	}
 
@@ -339,7 +180,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			counterpartyVersion = TestVersion
@@ -371,55 +212,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 	}
 }
 
-// // ChainA is controller, ChainB is host chain
-// func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
-// 	var (
-// 		path *ibctesting.Path
-// 	)
-
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-
-// 		{
-// 			"success", func() {}, true,
-// 		},
-// 	}
-
-// 	for _, tc := range testCases {
-// 		tc := tc
-
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest() // reset
-// 			path = NewICAPath(suite.chainA, suite.chainB)
-// 			suite.coordinator.SetupConnections(path)
-
-// 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
-// 			suite.Require().NoError(err)
-
-// 			err = path.EndpointB.ChanOpenTry()
-// 			suite.Require().NoError(err)
-
-// 			err = path.EndpointA.ChanOpenAck()
-// 			suite.Require().NoError(err)
-
-// 			tc.malleate() // explicitly change fields in channel and testChannel
-
-// 			err = suite.chainB.GetSimApp().ICAKeeper.OnChanOpenConfirm(suite.chainB.GetContext(),
-// 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-// 			if tc.expPass {
-// 				suite.Require().NoError(err)
-// 			} else {
-// 				suite.Require().Error(err)
-// 			}
-
-// 		})
-// 	}
-// }
-
 func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 	var (
 		path *ibctesting.Path
@@ -439,6 +231,7 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
