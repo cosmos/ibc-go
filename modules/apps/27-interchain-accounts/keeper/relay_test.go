@@ -213,31 +213,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			true,
 		},
 		{
-			"interchain account fails to execute stakingtypes.MsgDelegate - insufficient funds",
-			func() {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
-
-				validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
-				msg := &stakingtypes.MsgDelegate{
-					DelegatorAddress: interchainAccountAddr,
-					ValidatorAddress: validatorAddr.String(),
-					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50000)), // Increase the amount so it triggers insufficient funds
-				}
-
-				data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
-				suite.Require().NoError(err)
-
-				icaPacketData := types.InterchainAccountPacketData{
-					Type: types.EXECUTE_TX,
-					Data: data,
-				}
-
-				packetData = icaPacketData.GetBytes()
-			},
-			false,
-		},
-		{
 			"interchain account successfully executes stakingtypes.MsgDelegate and stakingtypes.MsgUndelegate sequentially",
 			func() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
