@@ -249,11 +249,11 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 	// check that height revision matches chainID revision
 	revision := types.ParseChainID(ctx.ChainID())
 	if revision != height.GetRevisionNumber() {
-		return nil, sdkerrors.ErrInvalidHeight.Wrapf("height revision %d does not match chainID revision %d", revision, height.GetRevisionNumber())
+		return nil, sdkerrors.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
 	}
 	histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
 	if !found {
-		return nil, sdkerrors.ErrNotFound.Wrapf("no historical info found at height %d", selfHeight.RevisionHeight)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "no historical info found at height %d", selfHeight.RevisionHeight)
 	}
 
 	consensusState := &ibctmtypes.ConsensusState{
