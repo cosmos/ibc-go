@@ -470,7 +470,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			false,
 		},
 		{
-			"unauthorised: unexpected signer address",
+			"unauthorised: signer address is not the interchain account associated with the controller portID",
 			func() {
 				msg := &banktypes.MsgSend{
 					FromAddress: suite.chainB.SenderAccount.GetAddress().String(), // unexpected signer
