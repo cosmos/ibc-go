@@ -4,9 +4,6 @@ const (
 	// ModuleName defines the interchain accounts controller module name
 	ModuleName = "icacontroller"
 
-	// PortID is the default port id that the interchain accounts module binds to
-	// PortID = "ibcaccount"
-
 	// StoreKey is the store key string for interchain accounts
 	StoreKey = ModuleName
 
