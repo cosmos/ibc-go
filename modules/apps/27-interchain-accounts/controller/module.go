@@ -29,7 +29,7 @@ var (
 type AppModuleBasic struct{}
 
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return controllertypes.ModuleName
 }
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface

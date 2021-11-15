@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
+	hosttypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
@@ -16,7 +17,7 @@ import (
 var (
 	// TestAccAddress defines a resuable bech32 address for testing purposes
 	// TODO: update crypto.AddressHash() when sdk uses address.Module()
-	TestAccAddress = types.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte("icahost"))), TestPortID)
+	TestAccAddress = types.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(hosttypes.ModuleName))), TestPortID)
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	// TestPortID defines a resuable port identifier for testing purposes
