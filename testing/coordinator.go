@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -40,8 +41,8 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 
 		// Gross... this is due to pkg initialisation happening once and only once.
 		// Maybe we can get around this by moving all assertions on "chainB" in host submodule to "chainA" (treat chainA as host)
-		// types.IsRegistered = false
-		// types.IsRegisteredLegacy = false
+		types.IsRegistered = false
+		types.IsRegisteredLegacy = false
 	}
 	coord.Chains = chains
 

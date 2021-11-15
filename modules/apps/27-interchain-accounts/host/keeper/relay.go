@@ -62,6 +62,7 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 	return handler(ctx, msg)
 }
 
+// OnRecvPacket handles a given interchain accounts packet on a destination host chain
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	var data types.InterchainAccountPacketData
 
