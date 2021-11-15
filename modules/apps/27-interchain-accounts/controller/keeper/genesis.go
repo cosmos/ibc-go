@@ -9,7 +9,7 @@ import (
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// InitGenesis initializes the interchain accounts application state from a provided genesis state
+// InitGenesis initializes the interchain accounts controller application state from a provided genesis state
 func InitGenesis(ctx sdk.Context, keeper Keeper, state types.ControllerGenesisState) {
 	for _, portID := range state.Ports {
 		if !keeper.IsBound(ctx, portID) {
@@ -29,7 +29,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state types.ControllerGenesisSt
 	}
 }
 
-// ExportGenesis returns the interchain accounts exported genesis
+// ExportGenesis returns the interchain accounts controller exported genesis
 func ExportGenesis(ctx sdk.Context, keeper Keeper) *types.ControllerGenesisState {
 	return types.NewControllerGenesisState(
 		keeper.GetAllActiveChannels(ctx),

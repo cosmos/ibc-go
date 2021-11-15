@@ -59,7 +59,37 @@ func NewKeeper(
 
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, controllertypes.ModuleName))
+}
+
+// InitInterchainAccount is the entry point to registering an interchain account.
+// It generates a new port identifier using the owner address, connection identifier,
+// and counterparty connection identifier. It will bind to the port identifier and
+// call 04-channel 'ChanOpenInit'. An error is returned if the port identifier is
+// already in use. Gaining access to interchain accounts whose channels have closed
+// cannot be done with this function. A regular MsgChanOpenInit must be used.
+func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpartyConnectionID, owner string) error {
+	portID, err := types.GeneratePortID(owner, connectionID, counterpartyConnectionID)
+	if err != nil {
+		return err
+	}
+
+	if k.portKeeper.IsBound(ctx, portID) {
+		return sdkerrors.Wrap(types.ErrPortAlreadyBound, portID)
+	}
+
+	cap := k.BindPort(ctx, portID)
+	if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
+		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
+	}
+
+	msg := channeltypes.NewMsgChannelOpenInit(portID, types.VersionPrefix, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
+	handler := k.msgRouter.Handler(msg)
+	if _, err := handler(ctx, msg); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetAllPorts returns all ports to which the interchain accounts module is bound. Used in ExportGenesis
@@ -189,34 +219,4 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []*types.RegisteredInt
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyOwnerAccount(portID), []byte(address))
-}
-
-// InitInterchainAccount is the entry point to registering an interchain account.
-// It generates a new port identifier using the owner address, connection identifier,
-// and counterparty connection identifier. It will bind to the port identifier and
-// call 04-channel 'ChanOpenInit'. An error is returned if the port identifier is
-// already in use. Gaining access to interchain accounts whose channels have closed
-// cannot be done with this function. A regular MsgChanOpenInit must be used.
-func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpartyConnectionID, owner string) error {
-	portID, err := types.GeneratePortID(owner, connectionID, counterpartyConnectionID)
-	if err != nil {
-		return err
-	}
-
-	if k.portKeeper.IsBound(ctx, portID) {
-		return sdkerrors.Wrap(types.ErrPortAlreadyBound, portID)
-	}
-
-	cap := k.BindPort(ctx, portID)
-	if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
-		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
-	}
-
-	msg := channeltypes.NewMsgChannelOpenInit(portID, types.VersionPrefix, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
-	handler := k.msgRouter.Handler(msg)
-	if _, err := handler(ctx, msg); err != nil {
-		return err
-	}
-
-	return nil
 }

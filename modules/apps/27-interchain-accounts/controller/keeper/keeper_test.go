@@ -83,6 +83,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	if err != nil {
 		return err
 	}
+
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
 	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
@@ -96,6 +97,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	// update port/channel ids
 	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 	endpoint.ChannelConfig.PortID = portID
+
 	return nil
 }
 

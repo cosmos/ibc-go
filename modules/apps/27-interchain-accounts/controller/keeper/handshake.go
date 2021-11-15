@@ -18,8 +18,6 @@ import (
 // there must not be an active channel for the specfied port identifier,
 // and the interchain accounts module must be able to claim the channel
 // capability.
-//
-// Controller Chain
 func (k Keeper) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -66,8 +64,6 @@ func (k Keeper) OnChanOpenInit(
 
 // OnChanOpenAck sets the active channel for the interchain account/owner pair
 // and stores the associated interchain account address in state keyed by it's corresponding port identifier
-//
-// Controller Chain
 func (k Keeper) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,

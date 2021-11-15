@@ -57,7 +57,24 @@ func NewKeeper(
 
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, hosttypes.ModuleName))
+}
+
+// RegisterInterchainAccount attempts to create a new account using the provided address and stores it in state keyed by the provided port identifier
+// If an account for the provided address already exists this function returns early (no-op)
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddress, controllerPortID string) {
+	if acc := k.accountKeeper.GetAccount(ctx, accAddr); acc != nil {
+		return
+	}
+
+	interchainAccount := types.NewInterchainAccount(
+		authtypes.NewBaseAccountWithAddress(accAddr),
+		controllerPortID,
+	)
+
+	k.accountKeeper.NewAccount(ctx, interchainAccount)
+	k.accountKeeper.SetAccount(ctx, interchainAccount)
+	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
 }
 
 // GetAllPorts returns all ports to which the interchain accounts module is bound. Used in ExportGenesis
@@ -206,21 +223,4 @@ func (k Keeper) NegotiateAppVersion(
 	accAddr := types.GenerateAddress(moduleAccAddr, counterparty.PortId)
 
 	return types.NewAppVersion(types.VersionPrefix, accAddr.String()), nil
-}
-
-// RegisterInterchainAccount attempts to create a new account using the provided address and stores it in state keyed by the provided port identifier
-// If an account for the provided address already exists this function returns early (no-op)
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddress, controllerPortID string) {
-	if acc := k.accountKeeper.GetAccount(ctx, accAddr); acc != nil {
-		return
-	}
-
-	interchainAccount := types.NewInterchainAccount(
-		authtypes.NewBaseAccountWithAddress(accAddr),
-		controllerPortID,
-	)
-
-	k.accountKeeper.NewAccount(ctx, interchainAccount)
-	k.accountKeeper.SetAccount(ctx, interchainAccount)
-	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
 }

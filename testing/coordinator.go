@@ -39,8 +39,7 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 		chainID := GetChainID(i)
 		chains[chainID] = NewTestChain(t, coord, chainID)
 
-		// Gross... this is due to pkg initialisation happening once and only once.
-		// Maybe we can get around this by moving all assertions on "chainB" in host submodule to "chainA" (treat chainA as host)
+		// TODO: This is gross... this is due to pkg initialisation happening once and only once.
 		types.IsRegistered = false
 		types.IsRegisteredLegacy = false
 	}

@@ -68,6 +68,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	if err != nil {
 		return err
 	}
+
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
 	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
@@ -81,6 +82,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	// update port/channel ids
 	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 	endpoint.ChannelConfig.PortID = portID
+
 	return nil
 }
 
@@ -107,8 +109,10 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 	var (
+		path    *ibctesting.Path
 		channel *channeltypes.Channel
 	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -142,8 +146,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path := NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion := types.VersionPrefix
+
+			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -175,7 +179,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			suite.Require().True(ok)
 
 			err = cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), path.EndpointA.ChannelConfig.Version,
 			)
 
 			if tc.expPass {

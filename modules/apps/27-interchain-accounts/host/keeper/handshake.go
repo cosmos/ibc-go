@@ -15,8 +15,6 @@ import (
 
 // OnChanOpenTry performs basic validation of the ICA channel
 // and registers a new interchain account (if it doesn't exist).
-//
-// Host Chain
 func (k Keeper) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -82,8 +80,6 @@ func (k Keeper) OnChanOpenTry(
 }
 
 // OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain
-//
-// Host Chain
 func (k Keeper) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,

@@ -10,7 +10,9 @@ import (
 var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 var (
-	// TODO: Should be unexported vars
+	// TODO: The following package level variables should be unexported
+	// Exposing them is purely a workaround for how package initialisation works in Go, and the instantiation of multiple testchains in coordinator.go
+	// See: testing/coordinator.go:42
 	IsRegistered       bool
 	IsRegisteredLegacy bool
 )

@@ -65,6 +65,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	if err != nil {
 		return err
 	}
+
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
 	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
@@ -78,6 +79,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	// update port/channel ids
 	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 	endpoint.ChannelConfig.PortID = portID
+
 	return nil
 }
 
@@ -106,6 +108,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	var (
 		channel *channeltypes.Channel
 	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -160,7 +163,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				Version:        types.VersionPrefix,
 			}
 
-			tc.malleate()
+			tc.malleate() // malleate mutates test data
 
 			// ensure channel on chainA is set in state
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *channel)
@@ -189,8 +192,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	var (
-		counterpartyVersion string
+		path *ibctesting.Path
 	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -201,7 +205,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"ICA OnChanOpenACK fails - invalid version", func() {
-				counterpartyVersion = "invalid|version"
+				path.EndpointB.ChannelConfig.Version = "invalid|version"
 			}, false,
 		},
 		{
@@ -220,8 +224,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path := NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion = TestVersion
+
+			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -230,7 +234,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
 
-			tc.malleate()
+			tc.malleate() // malleate mutates test data
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
 			suite.Require().NoError(err)
@@ -238,7 +242,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
+			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
