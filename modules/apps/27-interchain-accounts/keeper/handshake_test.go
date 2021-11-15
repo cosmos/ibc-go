@@ -334,6 +334,12 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 				counterpartyVersion = "version"
 			}, false,
 		},
+		{
+			"invalid portID", func() {
+				path.EndpointA.ChannelConfig.PortID = types.PortID
+				expectedChannelID = ""
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
