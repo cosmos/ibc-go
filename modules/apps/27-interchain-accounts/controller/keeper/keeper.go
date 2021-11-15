@@ -191,25 +191,6 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, addr
 	store.Set(types.KeyOwnerAccount(portID), []byte(address))
 }
 
-// NegotiateAppVersion handles application version negotation for the IBC interchain accounts module
-func (k Keeper) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
-) (string, error) {
-	if proposedVersion != types.VersionPrefix {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
-	}
-
-	moduleAccAddr := k.accountKeeper.GetModuleAddress(controllertypes.ModuleName)
-	accAddr := types.GenerateAddress(moduleAccAddr, counterparty.PortId)
-
-	return types.NewAppVersion(types.VersionPrefix, accAddr.String()), nil
-}
-
 // InitInterchainAccount is the entry point to registering an interchain account.
 // It generates a new port identifier using the owner address, connection identifier,
 // and counterparty connection identifier. It will bind to the port identifier and

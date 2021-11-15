@@ -156,5 +156,5 @@ func (im IBCModule) NegotiateAppVersion(
 	counterparty channeltypes.Counterparty,
 	proposedVersion string,
 ) (string, error) {
-	return im.keeper.NegotiateAppVersion(ctx, order, connectionID, portID, counterparty, proposedVersion)
+	return "", sdkerrors.Wrap(types.ErrInvalidChannelFlow, "ICS-27 app version negotiation is unsupported on controller chains")
 }
