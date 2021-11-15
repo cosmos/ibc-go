@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	//	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
 // Test initiating a ChanOpenInit using the host chain instead of the controller chain
