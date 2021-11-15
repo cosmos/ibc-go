@@ -13,6 +13,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
+	hosttypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
@@ -39,7 +40,7 @@ func NewKeeper(
 ) Keeper {
 
 	// ensure ibc interchain accounts module account is set
-	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+	if addr := accountKeeper.GetModuleAddress(hosttypes.ModuleName); addr == nil {
 		panic("the Interchain Accounts module account has not been set")
 	}
 
@@ -201,7 +202,7 @@ func (k Keeper) NegotiateAppVersion(
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
 	}
 
-	moduleAccAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
+	moduleAccAddr := k.accountKeeper.GetModuleAddress(hosttypes.ModuleName)
 	accAddr := types.GenerateAddress(moduleAccAddr, counterparty.PortId)
 
 	return types.NewAppVersion(types.VersionPrefix, accAddr.String()), nil

@@ -14,8 +14,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/client/cli"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
 )
@@ -29,7 +29,7 @@ var (
 type AppModuleBasic struct{}
 
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return hosttypes.ModuleName
 }
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface
@@ -53,7 +53,7 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 }
 
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return nil
 }
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
@@ -81,7 +81,7 @@ func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 func (AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, nil)
+	return sdk.NewRoute(hosttypes.RouterKey, nil)
 }
 
 func (AppModule) NewHandler() sdk.Handler {
@@ -89,7 +89,7 @@ func (AppModule) NewHandler() sdk.Handler {
 }
 
 func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
+	return hosttypes.QuerierRoute
 }
 
 // LegacyQuerierHandler implements the AppModule interface

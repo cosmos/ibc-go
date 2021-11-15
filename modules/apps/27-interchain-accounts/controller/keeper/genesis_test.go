@@ -58,5 +58,5 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	// If a Genesis here (controller) is exported and then a chain attempts to restart with genesis from both controller + host, it will panic with
 	// port already bound for the default types.PortID
 	// Can we avoid this by using a controller port key and host port key explicitly in the store?
-	suite.Require().Equal([]string{types.PortID, TestPortID}, genesisState.GetPorts())
+	suite.Require().Equal([]string{TestPortID}, genesisState.GetPorts())
 }

@@ -2,7 +2,9 @@ package types
 
 // DefaultGenesis creates and returns the default interchain accounts GenesisState
 func DefaultControllerGenesis() *ControllerGenesisState {
-	return &ControllerGenesisState{}
+	return &ControllerGenesisState{
+		// Ports: []string{"ica-controller"},
+	}
 }
 
 // NewControllerGenesisState creates a returns a new ControllerGenesisState instance

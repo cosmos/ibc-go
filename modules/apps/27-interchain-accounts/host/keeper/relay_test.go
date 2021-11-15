@@ -105,7 +105,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := suite.SetupICAPath(path, TestOwnerAddress)
+			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			// send 100stake to interchain account wallet

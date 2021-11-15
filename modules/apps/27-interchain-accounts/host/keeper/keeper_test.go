@@ -16,7 +16,7 @@ import (
 var (
 	// TestAccAddress defines a resuable bech32 address for testing purposes
 	// TODO: update crypto.AddressHash() when sdk uses address.Module()
-	TestAccAddress = types.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleName))), TestPortID)
+	TestAccAddress = types.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte("icahost"))), TestPortID)
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	// TestPortID defines a resuable port identifier for testing purposes
@@ -220,10 +220,10 @@ func (suite *KeeperTestSuite) TestIsActiveChannel() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
-	owner := TestOwnerAddress
+	// owner := TestOwnerAddress
 	suite.coordinator.SetupConnections(path)
 
-	err := suite.SetupICAPath(path, owner)
+	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 	portID := path.EndpointA.ChannelConfig.PortID
 
@@ -244,22 +244,22 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
 
-func (suite *KeeperTestSuite) SetupICAPath(path *ibctesting.Path, owner string) error {
-	if err := InitInterchainAccount(path.EndpointA, owner); err != nil {
-		return err
-	}
+// func (suite *KeeperTestSuite) SetupICAPath(path *ibctesting.Path, owner string) error {
+// 	if err := InitInterchainAccount(path.EndpointA, owner); err != nil {
+// 		return err
+// 	}
 
-	if err := path.EndpointB.ChanOpenTry(); err != nil {
-		return err
-	}
+// 	if err := path.EndpointB.ChanOpenTry(); err != nil {
+// 		return err
+// 	}
 
-	if err := path.EndpointA.ChanOpenAck(); err != nil {
-		return err
-	}
+// 	if err := path.EndpointA.ChanOpenAck(); err != nil {
+// 		return err
+// 	}
 
-	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
-		return err
-	}
+// 	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

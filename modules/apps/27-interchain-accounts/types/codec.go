@@ -7,21 +7,33 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
+var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+
 var (
-	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+	// TODO: Should be unexported vars
+	IsRegistered       bool
+	IsRegisteredLegacy bool
 )
 
 // RegisterLegacyAminoCodec registers the account interfaces and concrete types on the
 // provided LegacyAmino codec. These types are used for Amino JSON serialization
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterInterface((*InterchainAccountI)(nil), nil)
-	cdc.RegisterConcrete(&InterchainAccount{}, "27-interchain-accounts/InterchainAccount", nil)
+	if !IsRegisteredLegacy {
+		cdc.RegisterInterface((*InterchainAccountI)(nil), nil)
+		cdc.RegisterConcrete(&InterchainAccount{}, "27-interchain-accounts/InterchainAccount", nil)
+
+		IsRegisteredLegacy = true
+	}
 }
 
 // RegisterInterface associates protoName with AccountI interface
 // and creates a registry of it's concrete implementations
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
+	if !IsRegistered {
+		registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
+
+		IsRegistered = true
+	}
 }
 
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
