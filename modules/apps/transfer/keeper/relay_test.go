@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v2/testing/simapp"
 
@@ -116,10 +117,16 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.Require().NoError(err) // message committed
 			}
 
-			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
-				suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
-			)
+			channelCap, ok := suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(
+				suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			if !ok {
+				err = sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+			} else {
+				err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
+					suite.chainA.GetContext(), channelCap, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
+					suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
+				)
+			}
 
 			if tc.expPass {
 				suite.Require().NoError(err)

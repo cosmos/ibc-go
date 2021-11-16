@@ -7,6 +7,7 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
+	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -337,16 +338,25 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						if !ok {
 							panic("MBT failed to parse amount from string")
 						}
-						err = suite.chainB.GetSimApp().TransferKeeper.SendTransfer(
-							suite.chainB.GetContext(),
-							tc.packet.SourcePort,
-							tc.packet.SourceChannel,
-							sdk.NewCoin(denom, amount),
-							sender,
-							tc.packet.Data.Receiver,
-							clienttypes.NewHeight(0, 110),
-							0)
+
+						channelCap, ok := suite.chainB.GetSimApp().ScopedTransferKeeper.GetCapability(
+							suite.chainB.GetContext(), host.ChannelCapabilityPath(tc.packet.SourcePort, tc.packet.SourceChannel))
+						if !ok {
+							err = sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+						} else {
+							err = suite.chainB.GetSimApp().TransferKeeper.SendTransfer(
+								suite.chainB.GetContext(),
+								channelCap,
+								tc.packet.SourcePort,
+								tc.packet.SourceChannel,
+								sdk.NewCoin(denom, amount),
+								sender,
+								tc.packet.Data.Receiver,
+								clienttypes.NewHeight(0, 110),
+								0)
+						}
 					}
+
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnTimeoutPacket":
