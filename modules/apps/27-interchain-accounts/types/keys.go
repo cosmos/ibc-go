@@ -21,13 +21,13 @@ const (
 	PortID = "ibcaccount"
 
 	// StoreKey is the store key string for interchain accounts
-	// StoreKey = ModuleName
+	StoreKey = ModuleName
 
 	// RouterKey is the message route for interchain accounts
-	// RouterKey = ModuleName
+	RouterKey = ModuleName
 
 	// QuerierRoute is the querier route for interchain accounts
-	// QuerierRoute = ModuleName
+	QuerierRoute = ModuleName
 
 	// Delimiter is the delimiter used for the interchain accounts version string
 	Delimiter = "."

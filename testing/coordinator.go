@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -38,10 +37,6 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 	for i := 0; i < n; i++ {
 		chainID := GetChainID(i)
 		chains[chainID] = NewTestChain(t, coord, chainID)
-
-		// TODO: This is gross... this is due to pkg initialisation happening once and only once.
-		types.IsRegistered = false
-		types.IsRegisteredLegacy = false
 	}
 	coord.Chains = chains
 

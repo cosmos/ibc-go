@@ -10,6 +10,7 @@
 - [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
     - [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel)
     - [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState)
+    - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
     - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
     - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
   
@@ -341,6 +342,22 @@ ControllerGenesisState defines the interchain accounts controller genesis state
 | `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
 | `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
 | `ports` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain accounts genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState) |  |  |
+| `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState) |  |  |
 
 
 

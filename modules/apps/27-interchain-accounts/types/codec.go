@@ -7,35 +7,22 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-
 var (
-	// TODO: The following package level variables should be unexported
-	// Exposing them is purely a workaround for how package initialisation works in Go, and the instantiation of multiple testchains in coordinator.go
-	// See: testing/coordinator.go:42
-	IsRegistered       bool
-	IsRegisteredLegacy bool
+	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 )
 
 // RegisterLegacyAminoCodec registers the account interfaces and concrete types on the
 // provided LegacyAmino codec. These types are used for Amino JSON serialization
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	if !IsRegisteredLegacy {
-		cdc.RegisterInterface((*InterchainAccountI)(nil), nil)
-		cdc.RegisterConcrete(&InterchainAccount{}, "27-interchain-accounts/InterchainAccount", nil)
+	cdc.RegisterInterface((*InterchainAccountI)(nil), nil)
+	cdc.RegisterConcrete(&InterchainAccount{}, "27-interchain-accounts/InterchainAccount", nil)
 
-		IsRegisteredLegacy = true
-	}
 }
 
 // RegisterInterface associates protoName with AccountI interface
 // and creates a registry of it's concrete implementations
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	if !IsRegistered {
-		registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
-
-		IsRegistered = true
-	}
+	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
 }
 
 // SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are

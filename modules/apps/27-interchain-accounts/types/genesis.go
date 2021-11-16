@@ -1,10 +1,24 @@
 package types
 
-// DefaultGenesis creates and returns the default interchain accounts GenesisState
-func DefaultControllerGenesis() *ControllerGenesisState {
-	return &ControllerGenesisState{
-		// Ports: []string{"ica-controller"},
+// DefaultGenesis creates and returns the interchain accounts GenesisState
+func DefaultGenesis() *GenesisState {
+	return &GenesisState{
+		ControllerGenesisState: DefaultControllerGenesis(),
+		HostGenesisState:       DefaultHostGenesis(),
 	}
+}
+
+// NewGenesisState creates an returns a new GenesisState instance from the provided controller and host genesis state types
+func NewGenesisState(controllerGenesisState *ControllerGenesisState, hostGenesisState *HostGenesisState) *GenesisState {
+	return &GenesisState{
+		ControllerGenesisState: controllerGenesisState,
+		HostGenesisState:       hostGenesisState,
+	}
+}
+
+// DefaultGenesis creates and returns the default interchain accounts ControllerGenesisState
+func DefaultControllerGenesis() *ControllerGenesisState {
+	return &ControllerGenesisState{}
 }
 
 // NewControllerGenesisState creates a returns a new ControllerGenesisState instance
@@ -16,14 +30,14 @@ func NewControllerGenesisState(channels []*ActiveChannel, accounts []*Registered
 	}
 }
 
-// DefaultHostGenesis creates and returns the default interchain accounts GenesisState
+// DefaultHostGenesis creates and returns the default interchain accounts HostGenesisState
 func DefaultHostGenesis() *HostGenesisState {
 	return &HostGenesisState{
 		Port: PortID,
 	}
 }
 
-// NewHostGenesisState creates a returns a new ControllerGenesisState instance
+// NewHostGenesisState creates a returns a new HostGenesisState instance
 func NewHostGenesisState(channels []*ActiveChannel, accounts []*RegisteredInterchainAccount, port string) *HostGenesisState {
 	return &HostGenesisState{
 		ActiveChannels:     channels,

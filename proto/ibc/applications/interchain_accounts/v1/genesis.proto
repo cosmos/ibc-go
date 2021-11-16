@@ -6,6 +6,12 @@ option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 
+// GenesisState defines the interchain accounts genesis state
+message GenesisState {
+  ControllerGenesisState controller_genesis_state = 1 [(gogoproto.moretags) = "yaml:\"controller_genesis_state\""];
+  HostGenesisState       host_genesis_state       = 2 [(gogoproto.moretags) = "yaml:\"host_genesis_state\""];
+}
+
 // ControllerGenesisState defines the interchain accounts controller genesis state
 message ControllerGenesisState {
   repeated ActiveChannel               active_channels     = 1 [(gogoproto.moretags) = "yaml:\"active_channels\""];
