@@ -170,6 +170,6 @@ func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, relayers [
 	}
 }
 
-func NewPacketId(channelId string, id uint64) *channeltypes.PacketId {
-	return &channeltypes.PacketId{ChannelId: channelId, PortId: PortKey, Sequence: id}
+func NewPacketId(channelId string, sequence uint64) *channeltypes.PacketId {
+	return &channeltypes.PacketId{ChannelId: channelId, PortId: PortKey, Sequence: sequence}
 }

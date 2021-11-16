@@ -152,8 +152,8 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	// TODO: Implement fee specific logic if fee is enabled for the given channel
-	return im.app.OnRecvPacket(ctx, packet, relayer)
+	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+	return ack
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -163,7 +163,16 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	// TODO: Implement fee specific logic if fee is enabled for the given channel
+	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+		sourceRelayer, exists := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
+		if !exists {
+			return sdkerrors.Wrapf(types.ErrCounterpartyAddressEmpty, "source address for dest relayer address %s not found", relayer.String())
+		}
+		packetId := types.NewPacketId(packet.SourceChannel, packet.Sequence)
+		if err := im.keeper.DistributeFee(ctx, refundAcc, relayer, sdk.AccAddress(sourceRelayer), packetId); err != nil {
+			return err
+		}
+	}
 	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
@@ -173,6 +182,10 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	// TODO: Implement fee specific logic if fee is enabled for the given channel
+	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+		if err := im.keeper.DistributeFeeTimeout(ctx, refundAcc, relayer, types.NewPacketId(packet.SourceChannel, packet.Sequence)); err != nil {
+			return err
+		}
+	}
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }

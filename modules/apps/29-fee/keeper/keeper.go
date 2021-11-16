@@ -5,11 +5,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -80,6 +81,20 @@ func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
 func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
 	return k.channelKeeper.SendPacket(ctx, chanCap, packet)
+}
+
+func (k Keeper) WriteAcknowledgement(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet ibcexported.PacketI,
+	acknowledgement []byte,
+) error {
+	// TODO:
+	// retrieve the forward relayer that was stored in `onRecvPacket`
+	// relayer = privateStore.get(forwardRelayerPath(packet))
+	// ack = constructIncentivizedAck(acknowledgment, relayer)
+	// ack_bytes marshal(ack)
+	return k.channelKeeper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 }
 
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
