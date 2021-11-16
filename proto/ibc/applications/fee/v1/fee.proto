@@ -28,7 +28,8 @@ message Fee {
 }
 // Fee associated with a packet_id
 message IdentifiedPacketFee {
-  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
-  Fee                          fee       = 2 [(gogoproto.nullable) = false];
-  repeated string              relayers  = 3;
+  ibc.core.channel.v1.PacketId packet_id  = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  Fee                          fee        = 2 [(gogoproto.nullable) = false];
+  string                       refund_acc = 3 [(gogoproto.moretags) = "yaml:\"refund_acc\""];
+  repeated string              relayers   = 4;
 }
