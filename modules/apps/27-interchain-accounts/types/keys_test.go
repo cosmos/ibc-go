@@ -1,8 +1,6 @@
 package types_test
 
 import (
-	"fmt"
-
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 )
 
@@ -96,49 +94,6 @@ func (suite *TypesTestSuite) TestParseHostConnSequence() {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Zero(connSeq)
-				suite.Require().Error(err, tc.name)
-			}
-		})
-	}
-}
-
-func (suite *TypesTestSuite) TestParseAddressFromVersion() {
-
-	testCases := []struct {
-		name     string
-		version  string
-		expValue string
-		expPass  bool
-	}{
-		{
-			"success",
-			types.NewAppVersion(types.VersionPrefix, TestOwnerAddress),
-			TestOwnerAddress,
-			true,
-		},
-		{
-			"failed to parse address from version",
-			"invalid-version-string",
-			"",
-			false,
-		},
-		{
-			"failure with multiple delimiters",
-			fmt.Sprint(types.NewAppVersion(types.VersionPrefix, TestOwnerAddress), types.Delimiter, types.NewAppVersion(types.VersionPrefix, TestOwnerAddress)),
-			"",
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			addr, err := types.ParseAddressFromVersion(tc.version)
-
-			if tc.expPass {
-				suite.Require().Equal(tc.expValue, addr)
-				suite.Require().NoError(err, tc.name)
-			} else {
-				suite.Require().Empty(addr)
 				suite.Require().Error(err, tc.name)
 			}
 		})

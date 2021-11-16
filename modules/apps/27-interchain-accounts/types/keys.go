@@ -48,11 +48,6 @@ var (
 	PortKeyPrefix = "port"
 )
 
-// NewVersion returns a complete version string in the format: VersionPrefix + Delimter + AccAddress
-func NewAppVersion(versionPrefix, accAddr string) string {
-	return fmt.Sprint(versionPrefix, Delimiter, accAddr)
-}
-
 // KeyActiveChannel creates and returns a new key used for active channels store operations
 func KeyActiveChannel(portID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", ActiveChannelKeyPrefix, portID))
@@ -98,14 +93,4 @@ func ParseHostConnSequence(portID string) (uint64, error) {
 	}
 
 	return seq, nil
-}
-
-// ParseAddressFromVersion attempts to extract the associated account address from the provided version string
-func ParseAddressFromVersion(version string) (string, error) {
-	s := strings.Split(version, Delimiter)
-	if len(s) != 2 {
-		return "", sdkerrors.Wrap(ErrInvalidVersion, "failed to parse version")
-	}
-
-	return s[1], nil
 }

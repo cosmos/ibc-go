@@ -14,12 +14,6 @@
     - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
     - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
   
-- [ibc/applications/interchain_accounts/v1/query.proto](#ibc/applications/interchain_accounts/v1/query.proto)
-    - [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest)
-    - [QueryInterchainAccountAddressResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse)
-  
-    - [Query](#ibc.applications.interchain_accounts.v1.Query)
-  
 - [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
     - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
     - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
@@ -401,62 +395,6 @@ RegisteredInterchainAccount contains a pairing of controller port ID and associa
  <!-- end enums -->
 
  <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/interchain_accounts/v1/query.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/interchain_accounts/v1/query.proto
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest"></a>
-
-### QueryInterchainAccountAddressRequest
-Query request for an interchain account address
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `counterparty_port_id` | [string](#string) |  | Counterparty PortID is the portID on the controller chain |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse"></a>
-
-### QueryInterchainAccountAddressResponse
-Query response for an interchain account address
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `interchain_account_address` | [string](#string) |  | The corresponding interchain account address on the host chain |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="ibc.applications.interchain_accounts.v1.Query"></a>
-
-### Query
-Query defines the gRPC querier service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `InterchainAccountAddress` | [QueryInterchainAccountAddressRequest](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressRequest) | [QueryInterchainAccountAddressResponse](#ibc.applications.interchain_accounts.v1.QueryInterchainAccountAddressResponse) | Query to get the address of an interchain account | |
 
  <!-- end services -->
 

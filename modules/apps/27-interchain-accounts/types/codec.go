@@ -19,7 +19,6 @@ var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*InterchainAccountI)(nil), nil)
 	cdc.RegisterConcrete(&InterchainAccount{}, "27-interchain-accounts/InterchainAccount", nil)
-
 }
 
 // RegisterInterface associates protoName with AccountI interface

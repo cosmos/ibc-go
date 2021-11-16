@@ -8,7 +8,7 @@ func DefaultGenesis() *GenesisState {
 	}
 }
 
-// NewGenesisState creates an returns a new GenesisState instance from the provided controller and host genesis state types
+// NewGenesisState creates and returns a new GenesisState instance from the provided controller and host genesis state types
 func NewGenesisState(controllerGenesisState *ControllerGenesisState, hostGenesisState *HostGenesisState) *GenesisState {
 	return &GenesisState{
 		ControllerGenesisState: controllerGenesisState,
