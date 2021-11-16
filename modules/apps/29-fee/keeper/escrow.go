@@ -19,6 +19,8 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, ident
 		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))
 	}
 
+	identifiedFee.RefundAcc = refundAcc.String()
+
 	coins := identifiedFee.Fee.ReceiveFee
 	coins = coins.Add(identifiedFee.Fee.AckFee...)
 	coins = coins.Add(identifiedFee.Fee.TimeoutFee...)
