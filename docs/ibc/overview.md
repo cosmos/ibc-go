@@ -27,8 +27,8 @@ To have your module interact over IBC you must:
 
 - Bind to a port or ports
 - Define your own packet data
-- Define optional acknowledgement structs
-- Know how to encode and decode the packet data
+- Use the default acknowledgment struct provided by core IBC, or optionally define your own custom acknowledgment struct
+- Standardize an encoding of the packet data
 - Implement the `IBCModule` interface
 
 Read on for a detailed explanation of how to write an IBC application
