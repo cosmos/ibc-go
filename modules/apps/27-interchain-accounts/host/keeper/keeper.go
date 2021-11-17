@@ -40,7 +40,7 @@ func NewKeeper(
 ) Keeper {
 
 	// ensure ibc interchain accounts module account is set
-	if addr := accountKeeper.GetModuleAddress(hosttypes.ModuleName); addr == nil {
+	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic("the Interchain Accounts host module account has not been set")
 	}
 
@@ -77,7 +77,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddres
 	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
 }
 
-// GetAllPorts returns all ports to which the interchain accounts module is bound. Used in ExportGenesis
+// GetAllPorts returns all ports to which the interchain accounts host module is bound. Used in ExportGenesis
 func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PortKeyPrefix))
@@ -101,7 +101,7 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capabi
 	return k.portKeeper.BindPort(ctx, portID)
 }
 
-// IsBound checks if the interchain account module is already bound to the desired port
+// IsBound checks if the interchain account host module is already bound to the desired port
 func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
@@ -129,7 +129,7 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 	return string(store.Get(key)), true
 }
 
-// GetAllActiveChannels returns a list of all active interchain accounts channels and their associated port identifiers
+// GetAllActiveChannels returns a list of all active interchain accounts host channels and their associated port identifiers
 func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []*types.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ActiveChannelKeyPrefix))
@@ -219,7 +219,7 @@ func (k Keeper) NegotiateAppVersion(
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
 	}
 
-	moduleAccAddr := k.accountKeeper.GetModuleAddress(hosttypes.ModuleName)
+	moduleAccAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
 	accAddr := types.GenerateAddress(moduleAccAddr, counterparty.PortId)
 
 	return types.NewAppVersion(types.VersionPrefix, accAddr.String()), nil

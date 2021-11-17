@@ -5,7 +5,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	hosttypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
@@ -63,7 +62,7 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	// Check to ensure that the version string contains the expected address generated from the Counterparty portID
-	accAddr := types.GenerateAddress(k.accountKeeper.GetModuleAddress(hosttypes.ModuleName), counterparty.PortId)
+	accAddr := types.GenerateAddress(k.accountKeeper.GetModuleAddress(types.ModuleName), counterparty.PortId)
 	parsedAddr, err := types.ParseAddressFromVersion(version)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "expected format <app-version%saccount-address>, got %s", types.Delimiter, version)

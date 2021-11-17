@@ -152,8 +152,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		icacontrollertypes.ModuleName:  nil,
-		icahosttypes.ModuleName:        nil,
+		icatypes.ModuleName:            nil,
 	}
 )
 
