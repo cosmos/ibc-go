@@ -98,13 +98,8 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	// only attempt the application logic if the packet data
-	// was successfully decoded
-	if ack.Success() {
-		err := im.keeper.OnRecvPacket(ctx, packet)
-		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err.Error())
-		}
+	if err := im.keeper.OnRecvPacket(ctx, packet); err != nil {
+		ack = channeltypes.NewErrorAcknowledgement(err.Error())
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
