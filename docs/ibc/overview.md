@@ -79,7 +79,7 @@ other. Thus, IBC must authenticate module actions on ports and channels so that 
 appropriate permissions can use them. This module action authentication is accomplished using a [dynamic
 capability store](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-003-dynamic-capability-store.md). Upon binding to a port or
 creating a channel for a module, IBC returns a dynamic capability that the module must claim in
-order to use that port or channel. This dynamic capability store prevents other modules from using that port or channel since
+order to use that port or channel. The dynamic capability module prevents other modules from using that port or channel since
 they do not own the appropriate capability.
 
 While this background information is useful, IBC modules do not need to interact at all with
