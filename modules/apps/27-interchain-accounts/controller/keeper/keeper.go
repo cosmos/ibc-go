@@ -18,7 +18,7 @@ import (
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// Keeper defines the IBC interchain account keeper
+// Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
@@ -33,7 +33,7 @@ type Keeper struct {
 	msgRouter *baseapp.MsgServiceRouter
 }
 
-// NewKeeper creates a new interchain account Keeper instance
+// NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,

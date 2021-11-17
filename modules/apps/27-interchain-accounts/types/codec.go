@@ -7,12 +7,14 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-// ModuleCdc references the global interchain accounts module codec. Note, the codec
-// should ONLY be used in certain instances of tests and for JSON encoding.
-//
-// The actual codec used for serialization should be provided to interchain accounts and
-// defined at the application level.
-var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+var (
+	// ModuleCdc references the global interchain accounts module codec. Note, the codec
+	// should ONLY be used in certain instances of tests and for JSON encoding.
+	//
+	// The actual codec used for serialization should be provided to interchain accounts and
+	// defined at the application level.
+	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+)
 
 // RegisterLegacyAminoCodec registers the account interfaces and concrete types on the
 // provided LegacyAmino codec. These types are used for Amino JSON serialization
