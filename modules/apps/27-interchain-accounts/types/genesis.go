@@ -16,7 +16,7 @@ func NewGenesisState(controllerGenesisState *ControllerGenesisState, hostGenesis
 	}
 }
 
-// DefaultGenesis creates and returns the default interchain accounts ControllerGenesisState
+// DefaultControllerGenesis creates and returns the default interchain accounts ControllerGenesisState
 func DefaultControllerGenesis() *ControllerGenesisState {
 	return &ControllerGenesisState{}
 }
