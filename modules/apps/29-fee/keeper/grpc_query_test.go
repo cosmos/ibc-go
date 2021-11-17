@@ -26,6 +26,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			ReceiveFee: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 			TimeoutFee: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 		},
+		suite.chainA.SenderAccount.GetAddress().String(),
 		[]string(nil),
 	)
 
@@ -107,9 +108,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			func() {
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 
-				fee1 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 1), fee, []string(nil))
-				fee2 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 2), fee, []string(nil))
-				fee3 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 3), fee, []string(nil))
+				fee1 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 1), fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
+				fee2 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 2), fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
+				fee3 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 3), fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
 				expPackets = []*types.IdentifiedPacketFee{}
 				expPackets = append(expPackets, fee1, fee2, fee3)

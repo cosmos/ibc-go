@@ -48,7 +48,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, err
 	}
 
-	identifiedPacket := types.NewIdentifiedPacketFee(packetId, msg.Fee, msg.Relayers)
+	identifiedPacket := types.NewIdentifiedPacketFee(packetId, msg.Fee, refundAccAddr.String(), msg.Relayers)
 	err = k.EscrowPacketFee(ctx, refundAccAddr, identifiedPacket)
 	if err != nil {
 		return nil, err
