@@ -244,7 +244,7 @@ func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) 
 func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 	selfHeight, ok := height.(types.Height)
 	if !ok {
-		return nil, sdkerrors.ErrInvalidType.Wrapf("unable cast %T to %T", height, types.Height{})
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", types.Height{}, height)
 	}
 	// check that height revision matches chainID revision
 	revision := types.ParseChainID(ctx.ChainID())
