@@ -120,7 +120,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return channeltypes.NewErrorAcknowledgement("cannot receive packet on host controller chain")
+	return channeltypes.NewErrorAcknowledgement("cannot receive packet on controller chain")
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
