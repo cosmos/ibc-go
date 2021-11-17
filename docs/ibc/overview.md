@@ -6,7 +6,7 @@ parent:
 
 # Overview
 
-Learn what IBC is, its components and use cases. {synopsis}
+Learn what IBC is, its components, and IBC use cases. {synopsis}
 
 ## What is the Interblockchain Communication Protocol (IBC)?
 
@@ -25,11 +25,11 @@ developers (channels and ports) and describe how to define custom packets and
 
 To have your module interact over IBC you must: 
 
-- Bind to a port or ports
-- Define your own packet data
-- Use the default acknowledgment struct provided by core IBC, or optionally define your own custom acknowledgment struct
-- Standardize an encoding of the packet data
-- Implement the `IBCModule` interface
+- Bind to a port or ports.
+- Define your own packet data.
+- Use the default acknowledgment struct provided by core IBC or optionally define a custom acknowledgment struct.
+- Standardize an encoding of the packet data.
+- Implement the `IBCModule` interface.
 
 Read on for a detailed explanation of how to write an IBC application
 module correctly.
@@ -56,7 +56,7 @@ Connections encapsulate two `ConnectionEnd` objects on two separate blockchains.
 `ConnectionEnd` is associated with a client of the other blockchain (for example, the counterparty blockchain).
 The connection handshake is responsible for verifying that the light clients on each chain are
 correct for their respective counterparties. Connections, once established, are responsible for
-facilitation all cross-chain verification of IBC state. A connection can be associated with any
+facilitating all cross-chain verifications of IBC state. A connection can be associated with any
 number of channels.
 
 ### [Proofs](https://github.com/cosmos/ibc-go/blob/main/modules/core/23-commitment) and [Paths](https://github.com/cosmos/ibc-go/blob/main/modules/core/24-host)
