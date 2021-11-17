@@ -574,3 +574,119 @@ func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amou
 	suite.Require().NotEmpty(res)
 	suite.Require().NoError(err)
 }
+
+// constructs a send from chainA to chainB on the established channel/connection
+// and sends the same coin back from chainB to chainA.
+func (suite *KeeperTestSuite) TestHandleMsgTransfer() {
+	icaPath := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(icaPath)
+
+	err := suite.SetupICAPath(icaPath, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), icaPath.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(found)
+
+	// setup between chainA and chainB
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+
+	suite.coordinator.Setup(path)
+
+	//	originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+	timeoutHeight := clienttypes.NewHeight(0, 110)
+
+	amount, ok := sdk.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
+	suite.Require().True(ok)
+	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+
+	// send from chainA to chainB
+	msg := transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.chainA.SenderAccount.GetAddress().String(), interchainAccountAddr, timeoutHeight, 0)
+
+	_, err = suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	// relay send
+	fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(coinToSendToB.Denom, coinToSendToB.Amount.String(), suite.chainA.SenderAccount.GetAddress().String(), interchainAccountAddr)
+	packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
+	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = path.RelayPacket(packet, ack.Acknowledgement())
+	suite.Require().NoError(err) // relay committed
+
+	// check that voucher exists on chain B
+	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
+	icaAcc, _ := sdk.AccAddressFromBech32(interchainAccountAddr)
+	balance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), icaAcc, voucherDenomTrace.IBCDenom())
+	coinSentFromAToB := transfertypes.GetTransferCoin(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom, amount)
+	suite.Require().Equal(coinSentFromAToB, balance)
+
+	// send from chainB back to chainA
+	msg = transfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinSentFromAToB, interchainAccountAddr, suite.chainA.SenderAccount.GetAddress().String(), timeoutHeight, 0)
+
+	_, err = suite.chainB.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	// relay send
+	// NOTE: fungible token is prefixed with the full trace in order to verify the packet commitment
+	fullDenomPath := transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, voucherDenomTrace.GetFullDenomPath())
+	fungibleTokenPacket = transfertypes.NewFungibleTokenPacketData(fullDenomPath, coinSentFromAToB.Amount.String(), interchainAccountAddr, suite.chainA.SenderAccount.GetAddress().String())
+	packet = channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, 0)
+	err = path.RelayPacket(packet, ack.Acknowledgement())
+	suite.Require().NoError(err) // relay committed
+}
+
+/*
+func (suite *KeeperTestSuite) TestHandleMsgTransfer() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := suite.SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000))))
+
+	transferPath := ibctesting.NewPath(suite.chainB, suite.chainC)
+	transferPath.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	transferPath.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+
+	suite.coordinator.Setup(transferPath)
+
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(found)
+
+	msg := &transfertypes.MsgTransfer{
+		SourcePort:       transferPath.EndpointB.ChannelConfig.PortID,
+		SourceChannel:    transferPath.EndpointB.ChannelID,
+		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
+		Sender:           interchainAccountAddr,
+		Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
+		TimeoutHeight:    clienttypes.NewHeight(0, 100),
+		TimeoutTimestamp: uint64(0),
+	}
+
+	data, err := types.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
+	suite.Require().NoError(err)
+
+	icaPacketData := types.InterchainAccountPacketData{
+		Type: types.EXECUTE_TX,
+		Data: data,
+	}
+
+	packetData := icaPacketData.GetBytes()
+
+	packet := channeltypes.NewPacket(
+		packetData,
+		suite.chainA.SenderAccount.GetSequence(),
+		path.EndpointA.ChannelConfig.PortID,
+		path.EndpointA.ChannelID,
+		path.EndpointB.ChannelConfig.PortID,
+		path.EndpointB.ChannelID,
+		clienttypes.NewHeight(0, 100),
+		0,
+	)
+
+	err = suite.chainB.GetSimApp().ICAKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
+	path.EndpointA.UpdateClient()
+}
+*/
