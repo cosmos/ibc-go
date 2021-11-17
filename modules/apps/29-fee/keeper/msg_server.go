@@ -43,13 +43,8 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		Sequence:  sequence,
 	}
 
-	refundAccAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return nil, err
-	}
-
-	identifiedPacket := types.NewIdentifiedPacketFee(packetId, msg.Fee, msg.Relayers)
-	err = k.EscrowPacketFee(ctx, refundAccAddr, identifiedPacket)
+	identifiedPacket := types.NewIdentifiedPacketFee(packetId, msg.Fee, msg.Signer, msg.Relayers)
+	err := k.EscrowPacketFee(ctx, identifiedPacket)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +58,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	refundAccAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.EscrowPacketFee(ctx, refundAccAddr, &msg.IdentifiedPacketFee)
+	err := k.EscrowPacketFee(ctx, &msg.IdentifiedPacketFee)
 	if err != nil {
 		return nil, err
 	}

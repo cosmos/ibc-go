@@ -63,11 +63,10 @@ message MsgPayPacketFeeAsync {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // packet to pay fee for
+  // identified packet to pay fee for
+  // identified fee must contain the refund address which is also signer of this message
   ibc.applications.fee.v1.IdentifiedPacketFee identified_packet_fee = 1
       [(gogoproto.moretags) = "yaml:\"identified_packet_fee\"", (gogoproto.nullable) = false];
-  // account address to refund fee if necessary
-  string signer = 2;
 }
 
 // MsgPayPacketFeeAsyncResponse defines the response type for Msg/PayPacketFeeAsync
