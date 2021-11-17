@@ -83,17 +83,13 @@ func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability,
 	return k.channelKeeper.SendPacket(ctx, chanCap, packet)
 }
 
+// WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	acknowledgement []byte,
 ) error {
-	// TODO:
-	// retrieve the forward relayer that was stored in `onRecvPacket`
-	// relayer = privateStore.get(forwardRelayerPath(packet))
-	// ack = constructIncentivizedAck(acknowledgment, relayer)
-	// ack_bytes marshal(ack)
 	return k.channelKeeper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 }
 

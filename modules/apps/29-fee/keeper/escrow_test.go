@@ -150,7 +150,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			receiveFee = validCoins2
 			timeoutFee = validCoins3
 			packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: validSeq}
-			fee := types.Fee{receiveFee, ackFee, timeoutFee}
+			fee := types.Fee{ReceiveFee: receiveFee, AckFee: ackFee, TimeoutFee: timeoutFee}
 
 			// escrow the packet fee & store the fee in state
 			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
