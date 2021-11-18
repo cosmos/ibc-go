@@ -104,3 +104,7 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer 
 
 	return nil
 }
+
+func (k Keeper) RefundAllFees(ctx sdk.Context) {
+	// TODO
+}
