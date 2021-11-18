@@ -30,7 +30,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state types.ControllerGenesisSt
 }
 
 // ExportGenesis returns the interchain accounts controller exported genesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) *types.ControllerGenesisState {
+func ExportGenesis(ctx sdk.Context, keeper Keeper) types.ControllerGenesisState {
 	return types.NewControllerGenesisState(
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),

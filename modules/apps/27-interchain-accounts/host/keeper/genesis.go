@@ -28,7 +28,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state types.HostGenesisState) {
 }
 
 // ExportGenesis returns the interchain accounts host exported genesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) *types.HostGenesisState {
+func ExportGenesis(ctx sdk.Context, keeper Keeper) types.HostGenesisState {
 	return types.NewHostGenesisState(
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),

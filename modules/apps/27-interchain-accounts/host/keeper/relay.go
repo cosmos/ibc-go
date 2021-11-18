@@ -32,16 +32,14 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 		return err
 	}
 
-	for _, msg := range msgs {
-		if err := msg.ValidateBasic(); err != nil {
-			return err
-		}
-	}
-
 	// CacheContext returns a new context with the multi-store branched into a cached storage object
 	// writeCache is called only if all msgs succeed, performing state transitions atomically
 	cacheCtx, writeCache := ctx.CacheContext()
 	for _, msg := range msgs {
+		if err := msg.ValidateBasic(); err != nil {
+			return err
+		}
+
 		if _, err := k.executeMsg(cacheCtx, msg); err != nil {
 			return err
 		}
