@@ -1,4 +1,4 @@
-package interchain_accounts_test
+package host_test
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID, _ = types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-0")
+	TestPortID, _ = types.GeneratePortID(TestOwnerAddress, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
 	TestVersion = types.NewAppVersion(types.VersionPrefix, TestAccAddress.String())
 )
@@ -67,9 +67,10 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	if err != nil {
 		return err
 	}
+
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
 		return err
 	}
 
@@ -80,6 +81,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	// update port/channel ids
 	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 	endpoint.ChannelConfig.PortID = portID
+
 	return nil
 }
 
@@ -104,93 +106,12 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return nil
 }
 
-func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
-	var (
-		channel *channeltypes.Channel
-	)
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"success", func() {}, true,
-		},
-		{
-			"ICA OnChanOpenInit fails - UNORDERED channel", func() {
-				channel.Ordering = channeltypes.UNORDERED
-			}, false,
-		},
-		{
-			"ICA auth module callback fails", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
-					counterparty channeltypes.Counterparty, version string,
-				) error {
-					return fmt.Errorf("mock ica auth fails")
-				}
-			}, false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
-
-			// mock init interchain account
-			portID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-			suite.Require().NoError(err)
-			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-			suite.chainA.GetSimApp().ICAKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
-
-			path.EndpointA.ChannelConfig.PortID = portID
-			path.EndpointA.ChannelID = ibctesting.FirstChannelID
-
-			// default values
-			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			channel = &channeltypes.Channel{
-				State:          channeltypes.INIT,
-				Ordering:       channeltypes.ORDERED,
-				Counterparty:   counterparty,
-				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.VersionPrefix,
-			}
-
-			tc.malleate()
-
-			// ensure channel on chainA is set in state
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *channel)
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-			suite.Require().True(ok)
-
-			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
-			)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 	var (
+		path    *ibctesting.Path
 		channel *channeltypes.Channel
 	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -224,8 +145,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path := NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion := types.VersionPrefix
+
+			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -257,72 +178,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			suite.Require().True(ok)
 
 			err = cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), path.EndpointA.ChannelConfig.Version,
 			)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-
-		})
-	}
-
-}
-
-func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
-	var (
-		counterpartyVersion string
-	)
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"success", func() {}, true,
-		},
-		{
-			"ICA OnChanOpenACK fails - invalid version", func() {
-				counterpartyVersion = "invalid|version"
-			}, false,
-		},
-		{
-			"ICA auth module callback fails", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
-					ctx sdk.Context, portID, channelID string, counterpartyVersion string,
-				) error {
-					return fmt.Errorf("mock ica auth fails")
-				}
-			}, false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			path := NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion = TestVersion
-			suite.coordinator.SetupConnections(path)
-
-			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-			suite.Require().True(ok)
-
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyVersion)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -437,7 +294,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 			// send 100stake to interchain account wallet
 			amount, _ := sdk.ParseCoinsNormalized("100stake")
-			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
 			bankMsg := &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: interchainAccountAddr, Amount: amount}
 
 			_, err = suite.chainB.SendMsgs(bankMsg)

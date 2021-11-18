@@ -17,7 +17,7 @@ import (
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// Keeper defines the IBC interchain account keeper
+// Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
@@ -32,18 +32,12 @@ type Keeper struct {
 	msgRouter *baseapp.MsgServiceRouter
 }
 
-// NewKeeper creates a new interchain account Keeper instance
+// NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	accountKeeper types.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
-
-	// ensure ibc interchain accounts module account is set
-	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
-		panic("the Interchain Accounts module account has not been set")
-	}
-
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
@@ -61,7 +55,37 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
 }
 
-// GetAllPorts returns all ports to which the interchain accounts module is bound. Used in ExportGenesis
+// InitInterchainAccount is the entry point to registering an interchain account.
+// It generates a new port identifier using the owner address, connection identifier,
+// and counterparty connection identifier. It will bind to the port identifier and
+// call 04-channel 'ChanOpenInit'. An error is returned if the port identifier is
+// already in use. Gaining access to interchain accounts whose channels have closed
+// cannot be done with this function. A regular MsgChanOpenInit must be used.
+func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpartyConnectionID, owner string) error {
+	portID, err := types.GeneratePortID(owner, connectionID, counterpartyConnectionID)
+	if err != nil {
+		return err
+	}
+
+	if k.portKeeper.IsBound(ctx, portID) {
+		return sdkerrors.Wrap(types.ErrPortAlreadyBound, portID)
+	}
+
+	cap := k.BindPort(ctx, portID)
+	if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
+		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
+	}
+
+	msg := channeltypes.NewMsgChannelOpenInit(portID, types.VersionPrefix, channeltypes.ORDERED, []string{connectionID}, types.PortID, types.ModuleName)
+	handler := k.msgRouter.Handler(msg)
+	if _, err := handler(ctx, msg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetAllPorts returns all ports to which the interchain accounts controller module is bound. Used in ExportGenesis
 func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PortKeyPrefix))
@@ -85,7 +109,7 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capabi
 	return k.portKeeper.BindPort(ctx, portID)
 }
 
-// IsBound checks if the interchain account module is already bound to the desired port
+// IsBound checks if the interchain account controller module is already bound to the desired port
 func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
@@ -113,7 +137,7 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 	return string(store.Get(key)), true
 }
 
-// GetAllActiveChannels returns a list of all active interchain accounts channels and their associated port identifiers
+// GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated port identifiers
 func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []*types.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ActiveChannelKeyPrefix))
@@ -188,23 +212,4 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []*types.RegisteredInt
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyOwnerAccount(portID), []byte(address))
-}
-
-// NegotiateAppVersion handles application version negotation for the IBC interchain accounts module
-func (k Keeper) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
-) (string, error) {
-	if proposedVersion != types.VersionPrefix {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to negotiate app version: expected %s, got %s", types.VersionPrefix, proposedVersion)
-	}
-
-	moduleAccAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
-	accAddr := types.GenerateAddress(moduleAccAddr, counterparty.PortId)
-
-	return types.NewAppVersion(types.VersionPrefix, accAddr.String()), nil
 }
