@@ -617,7 +617,7 @@ CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 <a name="ibc.applications.fee.v1.Fee"></a>
 
 ### Fee
-Fee interface
+Fee implements the ics29 Fee interface
 See Fee Payment Middleware spec:
 https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
 
@@ -636,14 +636,17 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 <a name="ibc.applications.fee.v1.IdentifiedPacketFee"></a>
 
 ### IdentifiedPacketFee
-Fee associated with a packet_id
+IdentifiedPacketFee contains the relayer fee along with the associated metadata needed to process it.
+This includes the PacketId identifying the packet the fee is paying for,
+the refund address to which any unused funds are refunded,
+and an optional list of relayers that are permitted to receive the fee.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
 | `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `refund_acc` | [string](#string) |  |  |
+| `refund_address` | [string](#string) |  |  |
 | `relayers` | [string](#string) | repeated |  |
 
 
@@ -812,8 +815,7 @@ This Msg can be used to pay for a packet at a specified sequence (instead of the
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | packet to pay fee for |
-| `signer` | [string](#string) |  | account address to refund fee if necessary |
+| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | identified packet to pay fee for identified fee must contain the refund address which is also signer of this message |
 
 
 

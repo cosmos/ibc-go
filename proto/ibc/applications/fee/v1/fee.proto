@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto";
 option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
-// Fee interface
+// Fee implements the ics29 Fee interface
 // See Fee Payment Middleware spec:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
 message Fee {
@@ -26,10 +26,14 @@ message Fee {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
-// Fee associated with a packet_id
+
+// IdentifiedPacketFee contains the relayer fee along with the associated metadata needed to process it.
+// This includes the PacketId identifying the packet the fee is paying for,
+// the refund address to which any unused funds are refunded,
+// and an optional list of relayers that are permitted to receive the fee.
 message IdentifiedPacketFee {
-  ibc.core.channel.v1.PacketId packet_id  = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
-  Fee                          fee        = 2 [(gogoproto.nullable) = false];
-  string                       refund_acc = 3 [(gogoproto.moretags) = "yaml:\"refund_acc\""];
-  repeated string              relayers   = 4;
+  ibc.core.channel.v1.PacketId packet_id      = 1 [(gogoproto.moretags) = "yaml:\"packet_id\""];
+  Fee                          fee            = 2 [(gogoproto.nullable) = false];
+  string                       refund_address = 3 [(gogoproto.moretags) = "yaml:\"refund_address\""];
+  repeated string              relayers       = 4;
 }
