@@ -12,8 +12,12 @@ import (
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
-func (k Keeper) EscrowPacketFee(ctx sdk.Context, refundAcc sdk.AccAddress, identifiedFee *types.IdentifiedPacketFee) error {
+func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.IdentifiedPacketFee) error {
 	// check if the refund account exists
+	refundAcc, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
+	if err != nil {
+		return err
+	}
 	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
 	if hasRefundAcc == nil {
 		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))

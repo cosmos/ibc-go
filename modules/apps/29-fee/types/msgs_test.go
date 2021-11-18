@@ -320,8 +320,8 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		fee = Fee{receiveFee, ackFee, timeoutFee}
 
 		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
-		identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: relayers}
-		msg := NewMsgPayPacketFeeAsync(identifiedPacketFee, signer)
+		identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: signer, Relayers: relayers}
+		msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
 
 		err := msg.ValidateBasic()
 
@@ -342,8 +342,8 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	fee := Fee{validCoins, validCoins, validCoins}
 	seq := uint64(1)
 	packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
-	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: nil}
-	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee, addr.String())
+	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
+	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
 
 	// GetSigners
 	res := msg.GetSigners()

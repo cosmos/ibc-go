@@ -115,11 +115,11 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 		// build fee
 		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: suite.path.EndpointA.ChannelConfig.PortID, Sequence: seq}
-		identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, Relayers: []string{}}
+		identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 
 		tc.malleate()
 
-		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee, refundAcc.String())
+		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee)
 		_, err = suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {

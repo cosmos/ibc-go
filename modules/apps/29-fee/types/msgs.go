@@ -103,10 +103,9 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
-func NewMsgPayPacketFeeAsync(identifiedPacketFee IdentifiedPacketFee, signer string) *MsgPayPacketFeeAsync {
+func NewMsgPayPacketFeeAsync(identifiedPacketFee IdentifiedPacketFee) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
 		IdentifiedPacketFee: identifiedPacketFee,
-		Signer:              signer,
 	}
 }
 
@@ -125,7 +124,7 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 	}
 
 	// signer check
-	_, err = sdk.AccAddressFromBech32(msg.Signer)
+	_, err = sdk.AccAddressFromBech32(msg.IdentifiedPacketFee.RefundAddress)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
@@ -154,19 +153,21 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 }
 
 // GetSigners implements sdk.Msg
+// The signer of the fee message must be the refund address
 func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	signer, err := sdk.AccAddressFromBech32(msg.IdentifiedPacketFee.RefundAddress)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
 }
 
-func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, relayers []string) *IdentifiedPacketFee {
+func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) *IdentifiedPacketFee {
 	return &IdentifiedPacketFee{
-		PacketId: packetId,
-		Fee:      fee,
-		Relayers: relayers,
+		PacketId:      packetId,
+		Fee:           fee,
+		RefundAddress: refundAddr,
+		Relayers:      relayers,
 	}
 }
 
