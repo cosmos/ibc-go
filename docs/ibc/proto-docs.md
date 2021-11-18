@@ -617,7 +617,7 @@ CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 <a name="ibc.applications.fee.v1.Fee"></a>
 
 ### Fee
-Fee interface
+Fee implements the ics29 Fee interface
 See Fee Payment Middleware spec:
 https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
 
@@ -636,13 +636,17 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 <a name="ibc.applications.fee.v1.IdentifiedPacketFee"></a>
 
 ### IdentifiedPacketFee
-Fee associated with a packet_id
+IdentifiedPacketFee contains the relayer fee along with the associated metadata needed to process it.
+This includes the PacketId identifying the packet the fee is paying for,
+the refund address to which any unused funds are refunded,
+and an optional list of relayers that are permitted to receive the fee.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
 | `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `refund_address` | [string](#string) |  |  |
 | `relayers` | [string](#string) | repeated |  |
 
 
@@ -784,71 +788,6 @@ Query provides defines the gRPC querier service.
 <a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
 
 ### MsgPayPacketFee
-MsgPayPacketFee defines the request type EscrowPacketFee RPC
-This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
-paid for
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `source_port_id` | [string](#string) |  | source channel port identifier |
-| `source_channel_id` | [string](#string) |  | source channel unique identifier |
-| `signer` | [string](#string) |  | account address to refund fee if necessary |
-| `relayers` | [string](#string) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
-
-### MsgPayPacketFeeAsync
-MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
-This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | packet to pay fee for |
-| `signer` | [string](#string) |  | account address to refund fee if necessary |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
-
-
-<a name="ibc.applications.fee.v1.Query"></a>
-
-### Query
-Query provides defines the gRPC querier service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `ReceiveFee` | [QueryReceiveFeeRequest](#ibc.applications.fee.v1.QueryReceiveFeeRequest) | [QueryReceiveFeeResponse](#ibc.applications.fee.v1.QueryReceiveFeeResponse) | Gets the fee expected for submitting ReceivePacket msg for the given packet | GET|/ibc/apps/fee/v1/receive_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `AckFee` | [QueryAckFeeRequest](#ibc.applications.fee.v1.QueryAckFeeRequest) | [QueryAckFeeResponse](#ibc.applications.fee.v1.QueryAckFeeResponse) | Gets the fee expected for submitting AcknowledgePacket msg for the given packet | GET|/ibc/apps/fee/v1/ack_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `TimeoutFee` | [QueryTimeoutFeeRequest](#ibc.applications.fee.v1.QueryTimeoutFeeRequest) | [QueryTimeoutFeeResponse](#ibc.applications.fee.v1.QueryTimeoutFeeResponse) | Gets the fee expected for submitting TimeoutPacket msg for the given packet | GET|/ibc/apps/fee/v1/timeout_fee/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packets|
-| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets the specified incentivized packet | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/fee/v1/tx.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/fee/v1/tx.proto
-
-
-
-<a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
-
-### MsgPayPacketFee
 MsgPayPacketFee defines the request type PayPacketFee RPC
 This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 paid for
@@ -876,8 +815,7 @@ This Msg can be used to pay for a packet at a specified sequence (instead of the
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | packet to pay fee for |
-| `signer` | [string](#string) |  | account address to refund fee if necessary |
+| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | identified packet to pay fee for identified fee must contain the refund address which is also signer of this message |
 
 
 
