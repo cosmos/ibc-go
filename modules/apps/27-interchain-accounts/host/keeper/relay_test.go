@@ -344,6 +344,20 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
+			portID, err := types.GeneratePortID(TestOwnerAddress, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+			suite.Require().NoError(err)
+
+			// Get the address of the interchain account stored in state during handshake step
+			storedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), portID)
+			suite.Require().True(found)
+
+			icaAddr, err := sdk.AccAddressFromBech32(storedAddr)
+			suite.Require().NoError(err)
+
+			// Check if account is created
+			interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
+			suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
+
 			suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000))))
 
 			tc.malleate() // malleate mutates test data
