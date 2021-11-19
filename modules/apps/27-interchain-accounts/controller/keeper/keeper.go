@@ -138,16 +138,16 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated port identifiers
-func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []*types.ActiveChannel {
+func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []types.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ActiveChannelKeyPrefix))
 	defer iterator.Close()
 
-	var activeChannels []*types.ActiveChannel
+	var activeChannels []types.ActiveChannel
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		ch := &types.ActiveChannel{
+		ch := types.ActiveChannel{
 			PortId:    keySplit[1],
 			ChannelId: string(iterator.Value()),
 		}
@@ -189,15 +189,15 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (str
 }
 
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated controller port identifiers
-func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []*types.RegisteredInterchainAccount {
+func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []types.RegisteredInterchainAccount {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.OwnerKeyPrefix))
 
-	var interchainAccounts []*types.RegisteredInterchainAccount
+	var interchainAccounts []types.RegisteredInterchainAccount
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		acc := &types.RegisteredInterchainAccount{
+		acc := types.RegisteredInterchainAccount{
 			PortId:         keySplit[1],
 			AccountAddress: string(iterator.Value()),
 		}
