@@ -189,6 +189,54 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	}
 }
 
+// Test initiating a ChanOpenTry using the controller chain instead of the host chain
+// ChainA is the controller chain. ChainB creates a controller port as well,
+// attempting to trick chainA.
+// Sending a MsgChanOpenTry will never reach the application callback due to
+// core IBC checks not passing, so a call to the application callback is also
+// done directly.
+func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	// chainB also creates a controller port
+	err = InitInterchainAccount(path.EndpointB, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	path.EndpointA.UpdateClient()
+	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+	proofInit, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
+
+	// use chainA (controller) for ChanOpenTry
+	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, types.VersionPrefix, proofInit, proofHeight, types.ModuleName)
+	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
+	_, err = handler(suite.chainA.GetContext(), msg)
+
+	suite.Require().Error(err)
+
+	// call application callback directly
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+	chanCap, found := suite.chainA.App.GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+	suite.Require().True(found)
+
+	err = cbs.OnChanOpenTry(
+		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
+		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap,
+		counterparty, path.EndpointA.ChannelConfig.Version, path.EndpointB.ChannelConfig.Version,
+	)
+	suite.Require().Error(err)
+}
+
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	var (
 		path *ibctesting.Path
@@ -251,5 +299,56 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 
 		})
 	}
+
+}
+
+// Test initiating a ChanOpenConfirm using the controller chain instead of the host chain
+// ChainA is the controller chain. ChainB is the host chain
+// Sending a MsgChanOpenConfirm will never reach the application callback due to
+// core IBC checks not passing, so a call to the application callback is also
+// done directly.
+func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+
+	// chainB maliciously sets channel to OPEN
+	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, TestVersion)
+	suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+
+	// commit state changes so proof can be created
+	suite.chainB.App.Commit()
+	suite.chainB.NextBlock()
+
+	path.EndpointA.UpdateClient()
+
+	// query proof from ChainB
+	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+	proofAck, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
+
+	// use chainA (controller) for ChanOpenConfirm
+	msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proofAck, proofHeight, types.ModuleName)
+	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
+	_, err = handler(suite.chainA.GetContext(), msg)
+
+	suite.Require().Error(err)
+
+	// call application callback directly
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	err = cbs.OnChanOpenConfirm(
+		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+	)
+	suite.Require().Error(err)
 
 }

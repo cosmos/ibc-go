@@ -106,6 +106,21 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return nil
 }
 
+// Test initiating a ChanOpenInit using the host chain instead of the controller chain
+// ChainA is the controller chain. ChainB is the host chain
+func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	// use chainB (host) for ChanOpenInit
+	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, types.VersionPrefix, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, types.ModuleName)
+	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
+	_, err := handler(suite.chainB.GetContext(), msg)
+
+	suite.Require().Error(err)
+}
+
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 	var (
 		path    *ibctesting.Path
@@ -190,6 +205,41 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		})
 	}
 
+}
+
+// Test initiating a ChanOpenAck using the host chain instead of the controller chain
+// ChainA is the controller chain. ChainB is the host chain
+func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+
+	// chainA maliciously sets channel to TRYOPEN
+	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
+	suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+
+	// commit state changes so proof can be created
+	suite.chainA.App.Commit()
+	suite.chainA.NextBlock()
+
+	path.EndpointB.UpdateClient()
+
+	// query proof from ChainA
+	channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	proofTry, proofHeight := path.EndpointA.Chain.QueryProof(channelKey)
+
+	// use chainB (host) for ChanOpenAck
+	msg := channeltypes.NewMsgChannelOpenAck(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelID, TestVersion, proofTry, proofHeight, types.ModuleName)
+	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
+	_, err = handler(suite.chainB.GetContext(), msg)
+
+	suite.Require().Error(err)
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
