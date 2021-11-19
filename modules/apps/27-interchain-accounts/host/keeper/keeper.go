@@ -76,22 +76,6 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddres
 	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
 }
 
-// GetAllPorts returns all ports to which the interchain accounts host module is bound. Used in ExportGenesis
-func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PortKeyPrefix))
-	defer iterator.Close()
-
-	var ports []string
-	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-
-		ports = append(ports, keySplit[1])
-	}
-
-	return ports
-}
-
 // BindPort stores the provided portID and binds to it, returning the associated capability
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	store := ctx.KVStore(k.storeKey)
@@ -129,16 +113,16 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts host channels and their associated port identifiers
-func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []*types.ActiveChannel {
+func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []types.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ActiveChannelKeyPrefix))
 	defer iterator.Close()
 
-	var activeChannels []*types.ActiveChannel
+	var activeChannels []types.ActiveChannel
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		ch := &types.ActiveChannel{
+		ch := types.ActiveChannel{
 			PortId:    keySplit[1],
 			ChannelId: string(iterator.Value()),
 		}
@@ -180,15 +164,15 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (str
 }
 
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated controller port identifiers
-func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []*types.RegisteredInterchainAccount {
+func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []types.RegisteredInterchainAccount {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.OwnerKeyPrefix))
 
-	var interchainAccounts []*types.RegisteredInterchainAccount
+	var interchainAccounts []types.RegisteredInterchainAccount
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		acc := &types.RegisteredInterchainAccount{
+		acc := types.RegisteredInterchainAccount{
 			PortId:         keySplit[1],
 			AccountAddress: string(iterator.Value()),
 		}

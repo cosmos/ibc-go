@@ -56,7 +56,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 
 // ValidateGenesis performs genesis state validation for the IBC interchain acounts module
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	return nil
+	return nil // TODO: https://github.com/cosmos/ibc-go/issues/535
 }
 
 // RegisterRESTRoutes implements AppModuleBasic interface
@@ -127,11 +127,11 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	if am.controllerKeeper != nil {
-		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, *genesisState.ControllerGenesisState)
+		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, genesisState.ControllerGenesisState)
 	}
 
 	if am.hostKeeper != nil {
-		hostkeeper.InitGenesis(ctx, *am.hostKeeper, *genesisState.HostGenesisState)
+		hostkeeper.InitGenesis(ctx, *am.hostKeeper, genesisState.HostGenesisState)
 	}
 
 	return []abci.ValidatorUpdate{}
@@ -140,8 +140,8 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // ExportGenesis returns the exported genesis state as raw bytes for the interchain accounts module
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	var (
-		controllerGenesisState *types.ControllerGenesisState
-		hostGenesisState       *types.HostGenesisState
+		controllerGenesisState = types.DefaultControllerGenesis()
+		hostGenesisState       = types.DefaultHostGenesis()
 	)
 
 	if am.controllerKeeper != nil {

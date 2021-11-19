@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 
 	suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), expectedPortID, expectedChannelID)
 
-	expectedChannels := []*types.ActiveChannel{
+	expectedChannels := []types.ActiveChannel{
 		{
 			PortId:    TestPortID,
 			ChannelId: path.EndpointA.ChannelID,
@@ -202,7 +202,7 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 
 	suite.chainA.GetSimApp().ICAControllerKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), expectedPortID, expectedAccAddr)
 
-	expectedAccounts := []*types.RegisteredInterchainAccount{
+	expectedAccounts := []types.RegisteredInterchainAccount{
 		{
 			PortId:         TestPortID,
 			AccountAddress: TestAccAddress.String(),

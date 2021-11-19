@@ -10,13 +10,13 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
 	genesisState := types.ControllerGenesisState{
-		ActiveChannels: []*types.ActiveChannel{
+		ActiveChannels: []types.ActiveChannel{
 			{
 				PortId:    TestPortID,
 				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
-		InterchainAccounts: []*types.RegisteredInterchainAccount{
+		InterchainAccounts: []types.RegisteredInterchainAccount{
 			{
 				PortId:         TestPortID,
 				AccountAddress: TestAccAddress.String(),
