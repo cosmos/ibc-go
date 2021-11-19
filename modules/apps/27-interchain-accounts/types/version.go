@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -13,6 +14,21 @@ var DefaultMaxAddrLength = 128
 // IsValidAddr defines a regular expression to check if the provided string consists of
 // strictly alphanumeric characters
 var IsValidAddr = regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
+
+// NewVersion returns a complete version string in the format: VersionPrefix + Delimter + AccAddress
+func NewAppVersion(versionPrefix, accAddr string) string {
+	return fmt.Sprint(versionPrefix, Delimiter, accAddr)
+}
+
+// ParseAddressFromVersion attempts to extract the associated account address from the provided version string
+func ParseAddressFromVersion(version string) (string, error) {
+	s := strings.Split(version, Delimiter)
+	if len(s) != 2 {
+		return "", sdkerrors.Wrap(ErrInvalidVersion, "failed to parse version")
+	}
+
+	return s[1], nil
+}
 
 // ValidateVersion performs basic validation of the provided ics27 version string.
 // An ics27 version string may include an optional account address as per [TODO: Add spec when available]

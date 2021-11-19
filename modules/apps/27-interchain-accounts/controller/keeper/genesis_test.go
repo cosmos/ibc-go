@@ -1,23 +1,19 @@
-package interchain_accounts_test
+package keeper_test
 
 import (
-	ica "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
-func (suite *InterchainAccountsTestSuite) TestInitGenesis() {
-	var (
-		expectedChannelID string = "channel-0"
-	)
-
+func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
-	genesisState := types.GenesisState{
-		Ports: []string{types.PortID, TestPortID},
+	genesisState := types.ControllerGenesisState{
 		ActiveChannels: []*types.ActiveChannel{
 			{
 				PortId:    TestPortID,
-				ChannelId: expectedChannelID,
+				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
 		InterchainAccounts: []*types.RegisteredInterchainAccount{
@@ -26,34 +22,36 @@ func (suite *InterchainAccountsTestSuite) TestInitGenesis() {
 				AccountAddress: TestAccAddress.String(),
 			},
 		},
+		Ports: []string{TestPortID},
 	}
 
-	ica.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAKeeper, genesisState)
+	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAControllerKeeper, genesisState)
 
-	channelID, found := suite.chainA.GetSimApp().ICAKeeper.GetActiveChannelID(suite.chainA.GetContext(), TestPortID)
+	channelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), TestPortID)
 	suite.Require().True(found)
-	suite.Require().Equal(expectedChannelID, channelID)
+	suite.Require().Equal(ibctesting.FirstChannelID, channelID)
 
-	accountAdrr, found := suite.chainA.GetSimApp().ICAKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID)
+	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(TestAccAddress.String(), accountAdrr)
 }
 
-func (suite *InterchainAccountsTestSuite) TestExportGenesis() {
+func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
+
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	genesisState := ica.ExportGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAKeeper)
-
-	suite.Require().Equal([]string{types.PortID, TestPortID}, genesisState.GetPorts())
+	genesisState := keeper.ExportGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAControllerKeeper)
 
 	suite.Require().Equal(path.EndpointA.ChannelID, genesisState.ActiveChannels[0].ChannelId)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)
 
 	suite.Require().Equal(TestAccAddress.String(), genesisState.InterchainAccounts[0].AccountAddress)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
+
+	suite.Require().Equal([]string{TestPortID}, genesisState.GetPorts())
 }

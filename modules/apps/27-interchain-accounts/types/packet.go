@@ -6,6 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+// MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
 const MaxMemoCharLength = 256
 
 // ValidateBasic performs basic validation of the interchain account packet data.

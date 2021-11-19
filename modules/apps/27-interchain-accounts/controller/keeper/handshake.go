@@ -9,7 +9,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.
@@ -19,8 +18,6 @@ import (
 // there must not be an active channel for the specfied port identifier,
 // and the interchain accounts module must be able to claim the channel
 // capability.
-//
-// Controller Chain
 func (k Keeper) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -65,88 +62,14 @@ func (k Keeper) OnChanOpenInit(
 	return nil
 }
 
-// OnChanOpenTry performs basic validation of the ICA channel
-// and registers a new interchain account (if it doesn't exist).
-//
-// Host Chain
-func (k Keeper) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version,
-	counterpartyVersion string,
-) error {
-	if order != channeltypes.ORDERED {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
-	if portID != types.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, portID)
-	}
-
-	connSequence, err := types.ParseHostConnSequence(counterparty.PortId)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, counterparty.PortId)
-	}
-
-	counterpartyConnSequence, err := types.ParseControllerConnSequence(counterparty.PortId)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, counterparty.PortId)
-	}
-
-	if err := k.validateControllerPortParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
-		return sdkerrors.Wrapf(err, "failed to validate controller port %s", counterparty.PortId)
-	}
-
-	if err := types.ValidateVersion(version); err != nil {
-		return sdkerrors.Wrap(err, "version validation failed")
-	}
-
-	if counterpartyVersion != types.VersionPrefix {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.VersionPrefix, version)
-	}
-
-	// On the host chain the capability may only be claimed during the OnChanOpenTry
-	// The capability being claimed in OpenInit is for a controller chain (the port is different)
-	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return sdkerrors.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
-	}
-
-	// Check to ensure that the version string contains the expected address generated from the Counterparty portID
-	accAddr := types.GenerateAddress(k.accountKeeper.GetModuleAddress(types.ModuleName), counterparty.PortId)
-	parsedAddr, err := types.ParseAddressFromVersion(version)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format <app-version%saccount-address>, got %s", types.Delimiter, version)
-	}
-
-	if parsedAddr != accAddr.String() {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)
-	}
-
-	// Register interchain account if it does not already exist
-	k.RegisterInterchainAccount(ctx, accAddr, counterparty.PortId)
-
-	return nil
-}
-
 // OnChanOpenAck sets the active channel for the interchain account/owner pair
 // and stores the associated interchain account address in state keyed by it's corresponding port identifier
-//
-// Controller Chain
 func (k Keeper) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	if portID == types.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID cannot be host chain port ID: %s", types.PortID)
-	}
-
 	if err := types.ValidateVersion(counterpartyVersion); err != nil {
 		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
@@ -159,20 +82,6 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	k.SetInterchainAccountAddress(ctx, portID, accAddr)
-
-	return nil
-}
-
-// OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain
-//
-// Host Chain
-func (k Keeper) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-
-	k.SetActiveChannelID(ctx, portID, channelID)
 
 	return nil
 }

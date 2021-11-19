@@ -1,4 +1,4 @@
-package interchain_accounts
+package ica
 
 import (
 	"encoding/json"
@@ -14,20 +14,26 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/client/cli"
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller"
+	controllerkeeper "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host"
+	hostkeeper "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
-	_ porttypes.IBCModule   = IBCModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	_ porttypes.IBCModule = controller.IBCModule{}
+	_ porttypes.IBCModule = host.IBCModule{}
 )
 
+// AppModuleBasic is the IBC interchain accounts AppModuleBasic
 type AppModuleBasic struct{}
 
+// Name implements AppModuleBasic interface
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
@@ -37,60 +43,70 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
 
+// RegisterInterfaces registers module concrete types into protobuf Any
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
+}
+
+// DefaultGenesis returns default genesis state as raw bytes for the IBC
+// interchain accounts module
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesis())
 }
 
+// ValidateGenesis performs genesis state validation for the IBC interchain acounts module
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return nil
 }
 
+// RegisterRESTRoutes implements AppModuleBasic interface
 func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
-	// noop
-}
-
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	// noop
-	return nil
-}
-
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
-}
-
-// RegisterInterfaces registers module concrete types into protobuf Any.
-func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the interchain accounts module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 }
 
-type AppModule struct {
-	AppModuleBasic
-	keeper keeper.Keeper
+// GetTxCmd implements AppModuleBasic interface
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return nil
 }
 
-// NewAppModule creates an interchain accounts app module.
-func NewAppModule(k keeper.Keeper) AppModule {
+// GetQueryCmd implements AppModuleBasic interface
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return nil
+}
+
+// AppModule is the application module for the IBC interchain accounts module
+type AppModule struct {
+	AppModuleBasic
+	controllerKeeper *controllerkeeper.Keeper
+	hostKeeper       *hostkeeper.Keeper
+}
+
+// NewAppModule creates a new IBC interchain accounts module
+func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
 	return AppModule{
-		keeper: k,
+		controllerKeeper: controllerKeeper,
+		hostKeeper:       hostKeeper,
 	}
 }
 
+// RegisterInvariants implements the AppModule interface
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO
 }
 
+// Route implements the AppModule interface
 func (AppModule) Route() sdk.Route {
 	return sdk.NewRoute(types.RouterKey, nil)
 }
 
+// NewHandler implements the AppModule interface
 func (AppModule) NewHandler() sdk.Handler {
 	return nil
 }
 
+// QuerierRoute implements the AppModule interface
 func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
@@ -100,22 +116,44 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 	return nil
 }
 
-// RegisterServices registers a GRPC query service to respond to the
-// module-specific GRPC queries.
+// RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
+// InitGenesis performs genesis initialization for the interchain accounts module.
+// It returns no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
-	InitGenesis(ctx, am.keeper, genesisState)
+	if am.controllerKeeper != nil {
+		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, *genesisState.ControllerGenesisState)
+	}
+
+	if am.hostKeeper != nil {
+		hostkeeper.InitGenesis(ctx, *am.hostKeeper, *genesisState.HostGenesisState)
+	}
+
 	return []abci.ValidatorUpdate{}
 }
 
+// ExportGenesis returns the exported genesis state as raw bytes for the interchain accounts module
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper)
+	var (
+		controllerGenesisState *types.ControllerGenesisState
+		hostGenesisState       *types.HostGenesisState
+	)
+
+	if am.controllerKeeper != nil {
+		controllerGenesisState = controllerkeeper.ExportGenesis(ctx, *am.controllerKeeper)
+	}
+
+	if am.hostKeeper != nil {
+		hostGenesisState = hostkeeper.ExportGenesis(ctx, *am.hostKeeper)
+	}
+
+	gs := types.NewGenesisState(controllerGenesisState, hostGenesisState)
+
 	return cdc.MustMarshalJSON(gs)
 }
 
@@ -124,7 +162,6 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-
 }
 
 // EndBlock implements the AppModule interface
