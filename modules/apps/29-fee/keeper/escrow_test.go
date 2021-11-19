@@ -282,3 +282,53 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
+	// setup
+	refundAcc := suite.chainA.SenderAccount.GetAddress()
+
+	// refundAcc balance before escrow
+	prevBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
+
+	ackFee := validCoins
+	receiveFee := validCoins2
+	timeoutFee := validCoins3
+
+	for i := 0; i < 5; i++ {
+		packetId := &channeltypes.PacketId{ChannelId: "channel-0", PortId: types.PortKey, Sequence: uint64(i)}
+		fee := types.Fee{receiveFee, ackFee, timeoutFee}
+
+		identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+		err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), &identifiedPacketFee)
+		suite.Require().NoError(err)
+	}
+
+	// send a packet over a different channel to ensure this fee is not refunded
+	packetId := &channeltypes.PacketId{ChannelId: "channel-1", PortId: types.PortKey, Sequence: 1}
+	fee := types.Fee{receiveFee, ackFee, timeoutFee}
+
+	identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), &identifiedPacketFee)
+	suite.Require().NoError(err)
+
+	// check that refunding all fees on channel-0 refunds all fees except for fee on channel-1
+	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), types.PortKey, "channel-0")
+	suite.Require().NoError(err, "refund fees returned unexpected error")
+
+	// add fee sent to channel-1 to after balance to recover original balance
+	afterBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
+	suite.Require().Equal(prevBal, afterBal.Add(validCoins...).Add(validCoins2...).Add(validCoins3...), "refund account not back to original balance after refunding all tokens")
+
+	// create escrow and then change module account balance to cause error on refund
+	packetId = &channeltypes.PacketId{ChannelId: "channel-0", PortId: types.PortKey, Sequence: uint64(6)}
+	fee = types.Fee{receiveFee, ackFee, timeoutFee}
+
+	identifiedPacketFee = types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+	err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), &identifiedPacketFee)
+	suite.Require().NoError(err)
+
+	suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
+
+	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), types.PortKey, "channel-0")
+	suite.Require().Error(err, "refund fees returned no error with insufficient balance on module account")
+}

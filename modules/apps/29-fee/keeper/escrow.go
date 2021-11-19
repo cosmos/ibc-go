@@ -109,6 +109,39 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer 
 	return nil
 }
 
-func (k Keeper) RefundAllFees(ctx sdk.Context) {
-	// TODO
+func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) error {
+	// get module accAddr
+	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+
+	var refundErr error
+
+	k.IterateChannelFeesInEscrow(ctx, portID, channelID, func(identifiedFee types.IdentifiedPacketFee) (stop bool) {
+		refundAccAddr, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+
+		// refund all fees to refund address
+		// Use SendCoins rather than the module account send functions since refund address may be a user account or module address.
+		// if any `SendCoins` call returns an error, we return error and stop iteration
+		err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAccAddr, identifiedFee.Fee.ReceiveFee)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+		err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAccAddr, identifiedFee.Fee.AckFee)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+		err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAccAddr, identifiedFee.Fee.TimeoutFee)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+		return false
+	})
+
+	return refundErr
 }

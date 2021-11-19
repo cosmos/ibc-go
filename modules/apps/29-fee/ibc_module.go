@@ -130,8 +130,13 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// TODO: Unescrow all remaining funds for unprocessed packets
+	// delete fee enabled on channel
+	// and refund any remaining fees escrowed on channel
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
+	if err != nil {
+		panic(err)
+	}
 	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
@@ -141,8 +146,13 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	// TODO: Unescrow all remaining funds for unprocessed packets
+	// delete fee enabled on channel
+	// and refund any remaining fees escrowed on channel
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
+	if err != nil {
+		panic(err)
+	}
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 

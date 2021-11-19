@@ -144,11 +144,11 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	return fee, true
 }
 
-// IterateFeeInEscrow iterates over all the fees currently escrowed and calls the provided callback
+// IterateChannelFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
 // if the callback returns true, then iteration is stopped.
-func (k Keeper) IterateFeeInEscrow(ctx sdk.Context, cb func(identifiedFee types.IdentifiedPacketFee) (stop bool)) {
+func (k Keeper) IterateChannelFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(identifiedFee types.IdentifiedPacketFee) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeInEscrowPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeeInEscrowChannelPrefix(portID, channelID))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -166,7 +166,7 @@ func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId *channeltypes.Packet
 	store.Delete(key)
 }
 
-// GetFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
+// HasFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
 func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) bool {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(packetId)

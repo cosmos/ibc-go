@@ -3,6 +3,7 @@ package fee_test
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
@@ -10,6 +11,13 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/testing"
+)
+
+var (
+	validCoins   = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	validCoins2  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
+	validCoins3  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
+	invalidCoins = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -296,6 +304,146 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 			} else {
 				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+			}
+		})
+	}
+}
+
+// Tests OnChanCloseInit on chainA
+func (suite *FeeTestSuite) TestOnChanCloseInit() {
+	testCases := []struct {
+		name   string
+		setup  func(suite *FeeTestSuite)
+		panics bool
+	}{
+		{
+			"success",
+			func(suite *FeeTestSuite) {
+				packetId := channeltypes.PacketId{
+					PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+					ChannelId: suite.path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
+				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
+			},
+			false,
+		},
+		{
+			"module account balance insufficient",
+			func(suite *FeeTestSuite) {
+				packetId := channeltypes.PacketId{
+					PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+					ChannelId: suite.path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
+				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
+
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.Setup(suite.path)
+
+			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
+
+			tc.setup(suite)
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			if tc.panics {
+				suite.Require().Panics(func() {
+					cbs.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				}, "did not panic as expected on refund fees")
+			} else {
+				cbs.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				afterBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
+				suite.Require().Equal(origBal, afterBal, "balances of refund account not equal after all fees refunded")
+			}
+		})
+	}
+}
+
+// Tests OnChanCloseConfirm on chainA
+func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
+	testCases := []struct {
+		name   string
+		setup  func(suite *FeeTestSuite)
+		panics bool
+	}{
+		{
+			"success",
+			func(suite *FeeTestSuite) {
+				packetId := channeltypes.PacketId{
+					PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+					ChannelId: suite.path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
+				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
+			},
+			false,
+		},
+		{
+			"module account balance insufficient",
+			func(suite *FeeTestSuite) {
+				packetId := channeltypes.PacketId{
+					PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+					ChannelId: suite.path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
+				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
+
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.Setup(suite.path)
+
+			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
+
+			tc.setup(suite)
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			if tc.panics {
+				suite.Require().Panics(func() {
+					cbs.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				}, "did not panic as expected on refund fees")
+			} else {
+				cbs.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				afterBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
+				suite.Require().Equal(origBal, afterBal, "balances of refund account not equal after all fees refunded")
 			}
 		})
 	}
