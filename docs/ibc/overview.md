@@ -6,22 +6,22 @@ parent:
 
 # Overview
 
-Learn what IBC is, its components, and IBC use cases. {synopsis}
+Learn about IBC, its components, and IBC use cases. {synopsis}
 
 ## What is the Interblockchain Communication Protocol (IBC)?
 
 This document serves as a guide for developers who want to write their own Inter-Blockchain
 Communication protocol (IBC) applications for custom use cases.
 
+> IBC applications must be written as self-contained modules. 
+
 Due to the modular design of the IBC protocol, IBC
 application developers do not need to be concerned with the low-level details of clients,
 connections, and proof verification. 
 
 This brief explanation of the lower levels of the
-stack gives application developers a high-level understanding of the IBC
-protocol. Details on the abstraction layer are most relevant for application
-developers (channels and ports) and describe how to define custom packets and
-`IBCModule` callbacks.
+stack gives application developers a broad understanding of the IBC
+protocol. Abstraction layer details for channels and ports are most relevant for application developers and describe how to define custom packets and `IBCModule` callbacks.
 
 The requirements to have your module interact over IBC are: 
 
@@ -31,8 +31,7 @@ The requirements to have your module interact over IBC are:
 - Standardize an encoding of the packet data.
 - Implement the `IBCModule` interface.
 
-IBC applications must be written as self-contained modules. Read on for a detailed explanation of how to write an IBC application
-module.
+Read on for a detailed explanation of how to write a self-contained IBC application module.
 
 ## Components Overview
 
@@ -76,7 +75,9 @@ under the path and a proof to the counterparty chain.
 
 IBC is intended to work in execution environments where modules do not necessarily trust each
 other. Thus, IBC must authenticate module actions on ports and channels so that only modules with the
-appropriate permissions can use them. This module authentication is accomplished using a [dynamic
+appropriate permissions can use them. 
+
+This module authentication is accomplished using a [dynamic
 capability store](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-003-dynamic-capability-store.md). Upon binding to a port or
 creating a channel for a module, IBC returns a dynamic capability that the module must claim in
 order to use that port or channel. The dynamic capability module prevents other modules from using that port or channel since
@@ -86,7 +87,7 @@ While this background information is useful, IBC modules do not need to interact
 these lower-level abstractions. The relevant abstraction layer for IBC application developers is
 that of channels and ports. IBC applications must be written as self-contained **modules**. 
 
-A module on one blockchain can thus communicate with other modules on other blockchains by sending,
+A module on one blockchain can communicate with other modules on other blockchains by sending,
 receiving, and acknowledging packets through channels that are uniquely identified by the
 `(channelID, portID)` tuple. 
 
@@ -116,8 +117,8 @@ the destination portID and channelID, and the source portID and channelID. This 
 correctly route packets to the destination module while allowing modules receiving packets to
 know the sender module.
 
-A channel can be `ORDERED`, in which case, packets from a sending module must be processed by the
-receiving module in the order they were sent. Or a channel can be `UNORDERED`, in which case packets
+A channel can be `ORDERED`, where packets from a sending module must be processed by the
+receiving module in the order they were sent. Or a channel can be `UNORDERED`, where packets
 from a sending module are processed in the order they arrive (might be in a different order than they were sent).
 
 Modules can choose which channels they wish to communicate over with, thus IBC expects modules to
@@ -144,48 +145,66 @@ handshake; either `OnChanOpenInit` on the initializing chain or `OnChanOpenTry` 
 
 ### [Packets](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
-Modules communicate with each other by sending packets over IBC channels. As previously mentioned, all
+Modules communicate with each other by sending packets over IBC channels. All
 IBC packets contain the destination `portID` and `channelID` along with the source `portID` and
 `channelID`. This packet structure allows modules to know the sender module of a given packet. IBC packets 
 contain a sequence to optionally enforce ordering. 
 
-IBC packets also contain a `TimeoutTimestamp` and
-`TimeoutHeight`, which, when non-zero, determines the deadline before the receiving module
-must process a packet. If the timeout passes without the packet being successfully received, the
-sending module can timeout the packet and take appropriate actions.
+IBC packets also contain a `TimeoutHeight` and a `TimeoutTimestamp` that determine the deadline before the receiving module must process a packet. 
 
 Modules send custom application data to each other inside the `Data []byte` field of the IBC packet.
-Thus, packet data is completely opaque to IBC handlers. It is incumbent on a sender module to encode
+Thus, packet data is opaque to IBC handlers. It is incumbent on a sender module to encode
 their application-specific packet information into the `Data` field of packets. The receiver
 module must decode that `Data` back to the original application data.
 
 ### [Receipts and Timeouts](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
 Since IBC works over a distributed network and relies on potentially faulty relayers to relay messages between ledgers, 
-IBC must handle the case where a packet does not get sent to its destination in a timely manner or at all. Thus, packets must 
-specify a timeout height or timeout timestamp, after which a packet can no longer be successfully received on the destination chain.
+IBC must handle the case where a packet does not get sent to its destination in a timely manner or at all. Packets must 
+specify a non-zero value for timeout height (`TimeoutHeight`) or timeout timestamp (`TimeoutTimestamp` ) after which a packet can no longer be successfully received on the destination chain.
 
-If the timeout does get reached, then a proof of packet timeout can be submitted to the original chain, which can then perform 
+- The `timeoutHeight` indicates a consensus height on the destination chain after which the packet is no longer be processed, and instead counts as having timed-out.
+- The `timeoutTimestamp` indicates a timestamp on the destination chain after which the packet is no longer be processed, and instead counts as having timed-out.
+
+If the timeout passes without the packet being successfully received, the
+sending module can timeout the packet and take appropriate actions.
+
+If the timeout is reached, then a proof of packet timeout can be submitted to the original chain. The original chain can then perform 
 application-specific logic to timeout the packet, perhaps by rolling back the packet send changes (refunding senders any locked funds, etc.).
 
-- In ORDERED channels, a timeout of a single packet in the channel causes the channel to close. If packet sequence `n` times out, 
-then no packet at sequence `k > n` can be successfully received without violating the contract of ORDERED channels that packets are processed in the order that they are sent. Since ORDERED channels enforce this invariant, a proof that sequence `n` hasn't been received on the destination chain by the specified timeout of packet `n` is sufficient to timeout packet `n` and close the channel.
+- In ORDERED channels, a timeout of a single packet in the channel causes the channel to close. 
 
-- In UNORDERED channels, packets can be received in any order. Thus, IBC writes a packet receipt for each sequence it has received in the UNORDERED channel. This receipt contains no information; it is simply a marker intended to signify that the UNORDERED channel has received a packet at the specified sequence. To timeout a packet on an UNORDERED channel, one must provide a proof that a packet receipt does not exist for the packet's sequence by the specified timeout. Of course, timing out a packet on an UNORDERED channel simply triggers the application-specific timeout logic for that packet, and does not close the channel.
+    - If packet sequence `n` times out, then a packet at sequence `k > n` cannot be received without violating the contract of ORDERED channels that packets are processed in the order that they are sent. 
+    - Since ORDERED channels enforce this invariant, a proof that sequence `n` has not been received on the destination chain by the specified timeout of packet `n` is sufficient to timeout packet `n` and close the channel.
 
-For this reason, most modules should use UNORDERED channels as they require less liveness guarantees to function effectively for users of that channel.
+- In UNORDERED channels, the application-specific timeout logic for that packet is applied and the channel is not closed.
+
+    - Packets can be received in any order. 
+
+    - IBC writes a packet receipt for each sequence receives in the UNORDERED channel. This receipt does not contain information; it is simply a marker intended to signify that the UNORDERED channel has received a packet at the specified sequence. 
+
+    - To timeout a packet on an UNORDERED channel, a proof is required that a packet receipt **does not exist** for the packet's sequence by the specified timeout.  
+
+For this reason, most modules should use UNORDERED channels as they require fewer liveness guarantees to function effectively for users of that channel.
 
 ### [Acknowledgments](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
-Modules can also choose to write application-specific acknowledgments upon processing a packet. This acknowledgment can be done synchronously on `OnRecvPacket` if the module processes packets as soon as they are received from IBC module. Or acknowledgments can be done asynchronously if module processes packets at some later point after receiving the packet.
+Modules can also choose to write application-specific acknowledgments upon processing a packet. Acknowledgments can be done:
 
-Regardless, this acknowledgment data is opaque to IBC much like the packet `Data` and is treated by IBC as a simple byte string `[]byte`. It is incumbent on receiver modules to encode their acknowledgment so that the sender module can decode it correctly. This should be decided through version negotiation during the channel handshake.
+- Synchronously on `OnRecvPacket` if the module processes packets as soon as they are received from IBC module. 
+- Asynchronously if module processes packets at some later point after receiving the packet.
+
+This acknowledgment data is opaque to IBC much like the packet `Data` and is treated by IBC as a simple byte string `[]byte`. Receiver modules must encode their acknowledgment so that the sender module can decode it correctly. The encoding must be negotiated between the two parties during version negotiation in the channel handshake. 
 
 The acknowledgment can encode whether the packet processing succeeded or failed, along with additional information that allows the sender module to take appropriate action.
 
-After the acknowledgment has been written by the receiving chain, a relayer relays the acknowledgment back to the original sender module which  then executes application-specific acknowledgment logic using the contents of the acknowledgment. This can involve rolling back packet-send changes in the case of a failed acknowledgment (refunding senders).
+After the acknowledgment has been written by the receiving chain, a relayer relays the acknowledgment back to the original sender module.
 
-After an acknowledgment is received successfully on the original sender the chain, the IBC module deletes the corresponding packet commitment as it is no longer needed.
+The original sender module then executes application-specific acknowledgment logic using the contents of the acknowledgment. 
+
+- After an acknowledgement fails, packet-send changes can be rolled back (for example, refunding senders in ICS20).
+
+- After an acknowledgment is received successfully on the original sender on the chain, the corresponding packet commitment is deleted since it is no longer needed.
 
 ## Further Readings and Specs
 
