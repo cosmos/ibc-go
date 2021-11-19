@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	portId, err := types.GeneratePortID(TestOwnerAddress, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	portID, err := types.GeneratePortID(TestOwnerAddress, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 	suite.Require().NoError(err)
 
 	// Get the address of the interchain account stored in state during handshake step
