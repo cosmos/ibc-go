@@ -166,8 +166,8 @@ specify a non-zero value for timeout height (`TimeoutHeight`) or timeout timesta
 - The `timeoutHeight` indicates a consensus height on the destination chain after which the packet is no longer be processed, and instead counts as having timed-out.
 - The `timeoutTimestamp` indicates a timestamp on the destination chain after which the packet is no longer be processed, and instead counts as having timed-out.
 
-If the timeout passes without the packet being successfully received, the
-sending module can timeout the packet and take appropriate actions.
+If the timeout passes without the packet being successfully received, the packet can no longer be
+received on the destination chain. The sending module can timeout the packet and take appropriate actions.
 
 If the timeout is reached, then a proof of packet timeout can be submitted to the original chain. The original chain can then perform 
 application-specific logic to timeout the packet, perhaps by rolling back the packet send changes (refunding senders any locked funds, etc.).
