@@ -348,7 +348,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			suite.Require().NoError(err)
 
 			// Get the address of the interchain account stored in state during handshake step
-			storedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), portId)
+			storedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), portID)
 			suite.Require().True(found)
 
 			icaAddr, err := sdk.AccAddressFromBech32(storedAddr)
