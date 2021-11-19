@@ -134,6 +134,9 @@ func (im IBCModule) OnChanCloseInit(
 	// and refund any remaining fees escrowed on channel
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
+	// error should only be non-nil if there is a bug in the code
+	// that causes module account to have insufficient funds to refund
+	// all escrowed fees on the channel.
 	if err != nil {
 		panic(err)
 	}
@@ -150,6 +153,9 @@ func (im IBCModule) OnChanCloseConfirm(
 	// and refund any remaining fees escrowed on channel
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
+	// error should only be non-nil if there is a bug in the code
+	// that causes module account to have insufficient funds to refund
+	// all escrowed fees on the channel.
 	if err != nil {
 		panic(err)
 	}
