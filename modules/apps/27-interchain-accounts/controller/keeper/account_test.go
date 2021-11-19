@@ -52,7 +52,6 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			// TODO: Get rid of this?
 			owner = TestOwnerAddress // must be explicitly changed
 
 			path = NewICAPath(suite.chainA, suite.chainB)
