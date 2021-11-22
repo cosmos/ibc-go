@@ -172,5 +172,5 @@ func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr
 }
 
 func NewPacketId(channelId string, id uint64) *channeltypes.PacketId {
-	return &channeltypes.PacketId{ChannelId: channelId, PortId: PortKey, Sequence: id}
+	return &channeltypes.PacketId{ChannelId: channelId, PortId: PortID, Sequence: id}
 }

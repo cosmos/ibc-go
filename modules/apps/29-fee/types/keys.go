@@ -14,7 +14,7 @@ const (
 	StoreKey = ModuleName
 
 	// PortKey is the port id that is wrapped by fee middleware
-	PortKey = "feetransfer"
+	PortID = "feetransfer"
 
 	// RouterKey is the message route for IBC fee module
 	RouterKey = ModuleName
@@ -32,6 +32,11 @@ const (
 
 	// FeeInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeeInEscrowPrefix = "feeInEscrow"
+)
+
+var (
+	// PortKey defines the key to store the port ID in store
+	PortKey = []byte{0x01}
 )
 
 // FeeEnabledKey returns the key that stores a flag to determine if fee logic should

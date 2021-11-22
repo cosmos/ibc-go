@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 	ackFee := validCoins
 	receiveFee := validCoins2
 	timeoutFee := validCoins3
-	packetId := &channeltypes.PacketId{ChannelId: ibctesting.FirstChannelID, PortId: types.PortKey, Sequence: uint64(1)}
+	packetId := &channeltypes.PacketId{ChannelId: ibctesting.FirstChannelID, PortId: types.PortID, Sequence: uint64(1)}
 	fee := types.Fee{ackFee, receiveFee, timeoutFee}
 	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 
