@@ -159,6 +159,21 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	return store.Has(key)
 }
 
+// GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
+func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []*types.IdentifiedPacketFee {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeInEscrowPrefix))
+	defer iterator.Close()
+
+	var identifiedFees []*types.IdentifiedPacketFee
+	for ; iterator.Valid(); iterator.Next() {
+		fee := k.MustUnmarshalFee(iterator.Value())
+		identifiedFees = append(identifiedFees, &fee)
+	}
+
+	return identifiedFees
+}
+
 // MustMarshalFee attempts to encode a Fee object and returns the
 // raw encoded bytes. It panics on error.
 func (k Keeper) MustMarshalFee(fee *types.IdentifiedPacketFee) []byte {

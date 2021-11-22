@@ -66,3 +66,31 @@ func SetupFeePath(path *ibctesting.Path) error {
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
+
+func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
+	// escrow a fee
+	refundAcc := suite.chainA.SenderAccount.GetAddress()
+	ackFee := validCoins
+	receiveFee := validCoins2
+	timeoutFee := validCoins3
+	packetId := &channeltypes.PacketId{ChannelId: ibctesting.FirstChannelID, PortId: types.PortKey, Sequence: uint64(1)}
+	fee := types.Fee{ackFee, receiveFee, timeoutFee}
+	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+
+	// escrow the packet fee
+	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
+	suite.Require().NoError(err)
+
+	expectedFees := []*types.IdentifiedPacketFee{
+		{
+			PacketId:      packetId,
+			Fee:           fee,
+			RefundAddress: refundAcc.String(),
+			Relayers:      nil,
+		},
+	}
+
+	fees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext())
+	suite.Require().Len(fees, len(expectedFees))
+	suite.Require().Equal(fees, expectedFees)
+}
