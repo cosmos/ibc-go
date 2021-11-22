@@ -676,6 +676,11 @@ and an optional list of relayers that are permitted to receive the fee.
 GenesisState defines the fee middleware genesis state
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `identified_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
+
+
 
 
 
