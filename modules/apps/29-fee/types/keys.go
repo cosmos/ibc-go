@@ -34,11 +34,6 @@ const (
 	FeeInEscrowPrefix = "feeInEscrow"
 )
 
-var (
-	// PortKey defines the key to store the port ID in store
-	PortKey = []byte{0x01}
-)
-
 // FeeEnabledKey returns the key that stores a flag to determine if fee logic should
 // be enabled for the given port and channel identifiers.
 func FeeEnabledKey(portID, channelID string) []byte {
