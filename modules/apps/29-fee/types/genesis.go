@@ -1,16 +1,20 @@
 package types
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []*IdentifiedPacketFee) *GenesisState {
+func NewGenesisState(identifiedFees []*IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress) *GenesisState {
 	return &GenesisState{
-		IdentifiedFees: identifiedFees,
+		IdentifiedFees:     identifiedFees,
+		FeeEnabledChannels: feeEnabledChannels,
+		RegisteredRelayers: registeredRelayers,
 	}
 }
 
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		IdentifiedFees: []*IdentifiedPacketFee{},
+		IdentifiedFees:     []*IdentifiedPacketFee{},
+		FeeEnabledChannels: []*FeeEnabledChannel{},
+		RegisteredRelayers: []*RegisteredRelayerAddress{},
 	}
 }
 
