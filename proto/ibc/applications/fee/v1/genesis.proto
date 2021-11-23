@@ -7,6 +7,5 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // GenesisState defines the fee middleware genesis state
 message GenesisState {
-  string                       port_id         = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  repeated IdentifiedPacketFee identified_fees = 2 [(gogoproto.moretags) = "yaml:\"identified_fees\""];
+  repeated IdentifiedPacketFee identified_fees = 1 [(gogoproto.moretags) = "yaml:\"identified_fees\""];
 }

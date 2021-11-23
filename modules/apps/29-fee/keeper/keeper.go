@@ -56,33 +56,15 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
 }
 
+// ChanCloseInit wraps the channel keeper's function in order to expose it to underlying app.
+func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error {
+	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
+}
+
 // BindPort defines a wrapper function for the port Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	return k.portKeeper.BindPort(ctx, portID)
-}
-
-// IsBound checks if the fee29 module is already bound to the desired port
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
-	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-	return ok
-}
-
-// GetPort returns the portID for the fee29 module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context) string {
-	store := ctx.KVStore(k.storeKey)
-	return string(store.Get(types.PortKey))
-}
-
-// SetPort sets the portID for the fee29 module. Used in InitGenesis
-func (k Keeper) SetPort(ctx sdk.Context, portID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.PortKey, []byte(portID))
-}
-
-// ChanCloseInit wraps the channel keeper's function in order to expose it to underlying app.
-func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error {
-	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // GetChannel wraps IBC ChannelKeeper's GetChannel function

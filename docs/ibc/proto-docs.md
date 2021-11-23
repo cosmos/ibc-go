@@ -678,7 +678,6 @@ GenesisState defines the fee middleware genesis state
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  |  |
 | `identified_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
 
 
