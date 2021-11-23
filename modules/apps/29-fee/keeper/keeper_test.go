@@ -94,3 +94,53 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 	suite.Require().Len(fees, len(expectedFees))
 	suite.Require().Equal(fees, expectedFees)
 }
+
+func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
+	suite.SetupTest() // reset
+
+	validPortId := "ibcmoduleport"
+	// set two channels enabled
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortId, ibctesting.FirstChannelID)
+
+	expectedCh := []*types.FeeEnabledChannel{
+		{
+			PortId:    validPortId,
+			ChannelId: ibctesting.FirstChannelID,
+		},
+		{
+			PortId:    transfertypes.PortID,
+			ChannelId: ibctesting.FirstChannelID,
+		},
+	}
+
+	ch := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllFeeEnabledChannels(suite.chainA.GetContext())
+	suite.Require().Len(ch, len(expectedCh))
+	suite.Require().Equal(ch, expectedCh)
+}
+
+func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
+	suite.SetupTest() // reset
+
+	sender := suite.chainA.SenderAccount.GetAddress().String()
+	counterparty := suite.chainB.SenderAccount.GetAddress().String()
+
+	// register two address/counterparty address
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), counterparty, sender)
+
+	expectedAddr := []*types.RegisteredRelayerAddress{
+		{
+			Address:             counterparty,
+			CounterpartyAddress: sender,
+		},
+		{
+			Address:             sender,
+			CounterpartyAddress: counterparty,
+		},
+	}
+
+	addr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllRelayerAddresses(suite.chainA.GetContext())
+	suite.Require().Len(addr, len(expectedAddr))
+	suite.Require().Equal(addr, expectedAddr)
+}

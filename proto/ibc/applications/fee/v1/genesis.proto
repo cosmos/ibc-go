@@ -7,5 +7,19 @@ option go_package = "github.com/cosmos/ibc-go/modules/apps/29-fee/types";
 
 // GenesisState defines the fee middleware genesis state
 message GenesisState {
-  repeated IdentifiedPacketFee identified_fees = 1 [(gogoproto.moretags) = "yaml:\"identified_fees\""];
+  repeated IdentifiedPacketFee      identified_fees      = 1 [(gogoproto.moretags) = "yaml:\"identified_fees\""];
+  repeated FeeEnabledChannel        fee_enabled_channels = 2 [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\""];
+  repeated RegisteredRelayerAddress registered_relayers  = 3 [(gogoproto.moretags) = "yaml:\"registered_relayers\""];
+}
+
+// Contains the PortID & ChannelID for a fee enabled channel
+message FeeEnabledChannel {
+  string port_id    = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+}
+
+// Contains the address and counterparty address for a specific relayer (for distributing fees)
+message RegisteredRelayerAddress {
+  string address              = 1;
+  string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
 }
