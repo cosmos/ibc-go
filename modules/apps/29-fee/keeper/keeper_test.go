@@ -125,15 +125,9 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 	sender := suite.chainA.SenderAccount.GetAddress().String()
 	counterparty := suite.chainB.SenderAccount.GetAddress().String()
 
-	// register two address/counterparty address
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), counterparty, sender)
 
 	expectedAddr := []*types.RegisteredRelayerAddress{
-		{
-			Address:             counterparty,
-			CounterpartyAddress: sender,
-		},
 		{
 			Address:             sender,
 			CounterpartyAddress: counterparty,
