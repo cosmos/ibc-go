@@ -312,9 +312,9 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 // Tests OnChanCloseInit on chainA
 func (suite *FeeTestSuite) TestOnChanCloseInit() {
 	testCases := []struct {
-		name   string
-		setup  func(suite *FeeTestSuite)
-		panics bool
+		name     string
+		setup    func(suite *FeeTestSuite)
+		disabled bool
 	}{
 		{
 			"success",
@@ -345,6 +345,9 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 				suite.Require().NoError(err)
 
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
+
+				// set fee enabled on different channel
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), "portID7", "channel-7")
 			},
 			true,
 		},
@@ -366,10 +369,17 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			if tc.panics {
-				suite.Require().Panics(func() {
-					cbs.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-				}, "did not panic as expected on refund fees")
+			if tc.disabled {
+				suite.Require().True(
+					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID),
+
+					"fee is not disabled on original channel: %s", suite.path.EndpointA.ChannelID,
+				)
+				suite.Require().True(
+					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), "portID7", "channel-7"),
+
+					"fee is not disabled on other channel: %s", "channel-7",
+				)
 			} else {
 				cbs.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 				afterBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
@@ -382,9 +392,9 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 // Tests OnChanCloseConfirm on chainA
 func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	testCases := []struct {
-		name   string
-		setup  func(suite *FeeTestSuite)
-		panics bool
+		name     string
+		setup    func(suite *FeeTestSuite)
+		disabled bool
 	}{
 		{
 			"success",
@@ -415,6 +425,9 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				suite.Require().NoError(err)
 
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
+
+				// set fee enabled on different channel
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), "portID7", "channel-7")
 			},
 			true,
 		},
@@ -436,10 +449,17 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			if tc.panics {
-				suite.Require().Panics(func() {
-					cbs.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-				}, "did not panic as expected on refund fees")
+			if tc.disabled {
+				suite.Require().True(
+					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID),
+
+					"fee is not disabled on original channel: %s", suite.path.EndpointA.ChannelID,
+				)
+				suite.Require().True(
+					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), "portID7", "channel-7"),
+
+					"fee is not disabled on other channel: %s", "channel-7",
+				)
 			} else {
 				cbs.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 				afterBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())

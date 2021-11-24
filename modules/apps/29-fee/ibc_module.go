@@ -137,8 +137,10 @@ func (im IBCModule) OnChanCloseInit(
 	// error should only be non-nil if there is a bug in the code
 	// that causes module account to have insufficient funds to refund
 	// all escrowed fees on the channel.
+	// Disable all channels to allow for coordinated fix to the issue
+	// and mitigate damage.
 	if err != nil {
-		panic(err)
+		im.keeper.DisableAllChannels(ctx)
 	}
 	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
@@ -156,8 +158,10 @@ func (im IBCModule) OnChanCloseConfirm(
 	// error should only be non-nil if there is a bug in the code
 	// that causes module account to have insufficient funds to refund
 	// all escrowed fees on the channel.
+	// Disable all channels to allow for coordinated fix to the issue
+	// and mitigate damage.
 	if err != nil {
-		panic(err)
+		im.keeper.DisableAllChannels(ctx)
 	}
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }

@@ -174,6 +174,21 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	return store.Has(key)
 }
 
+// DisableAllChannels will disable the fee module for all channels.
+// Only called if the module enters into an invalid state
+// e.g. ModuleAccount has insufficient balance to refund users.
+// In this case, chain developers should investigate the issue, fix it,
+// and then re-enable the fee module in a coordinated upgrade.
+func (k Keeper) DisableAllChannels(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
+}
+
 // MustMarshalFee attempts to encode a Fee object and returns the
 // raw encoded bytes. It panics on error.
 func (k Keeper) MustMarshalFee(fee *types.IdentifiedPacketFee) []byte {

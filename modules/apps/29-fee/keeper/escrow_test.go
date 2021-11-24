@@ -9,13 +9,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 )
 
-var (
-	validCoins   = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	validCoins2  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	validCoins3  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-	invalidCoins = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
-)
-
 func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 	var (
 		err        error
