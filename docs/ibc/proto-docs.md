@@ -30,7 +30,9 @@
     - [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee)
   
 - [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
+    - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
+    - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
   
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
     - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
@@ -670,10 +672,49 @@ and an optional list of relayers that are permitted to receive the fee.
 
 
 
+<a name="ibc.applications.fee.v1.FeeEnabledChannel"></a>
+
+### FeeEnabledChannel
+Contains the PortID & ChannelID for a fee enabled channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="ibc.applications.fee.v1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines the fee middleware genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `identified_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
+| `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated |  |
+| `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.RegisteredRelayerAddress"></a>
+
+### RegisteredRelayerAddress
+Contains the address and counterparty address for a specific relayer (for distributing fees)
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+| `counterparty_address` | [string](#string) |  |  |
 
 
 

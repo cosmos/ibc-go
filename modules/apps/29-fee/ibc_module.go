@@ -138,7 +138,9 @@ func (im IBCModule) OnChanCloseInit(
 	// that causes module account to have insufficient funds to refund
 	// all escrowed fees on the channel.
 	// Disable all channels to allow for coordinated fix to the issue
-	// and mitigate damage.
+	// and mitigate/reverse damage.
+	// NOTE: Underlying application's packets will still go through, but
+	// fee module will be disabled for all channels
 	if err != nil {
 		im.keeper.DisableAllChannels(ctx)
 	}
@@ -159,7 +161,9 @@ func (im IBCModule) OnChanCloseConfirm(
 	// that causes module account to have insufficient funds to refund
 	// all escrowed fees on the channel.
 	// Disable all channels to allow for coordinated fix to the issue
-	// and mitigate damage.
+	// and mitigate/reverse damage.
+	// NOTE: Underlying application's packets will still go through, but
+	// fee module will be disabled for all channels
 	if err != nil {
 		im.keeper.DisableAllChannels(ctx)
 	}

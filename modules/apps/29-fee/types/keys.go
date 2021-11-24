@@ -13,9 +13,6 @@ const (
 	// StoreKey is the store key string for IBC fee module
 	StoreKey = ModuleName
 
-	// PortKey is the port id that is wrapped by fee middleware
-	PortKey = "feetransfer"
-
 	// RouterKey is the message route for IBC fee module
 	RouterKey = ModuleName
 

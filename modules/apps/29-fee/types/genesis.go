@@ -1,29 +1,25 @@
 package types
 
-/*
-import (
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
-)
-
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(portID string, denomTraces Traces, params Params) *GenesisState {
+func NewGenesisState(identifiedFees []*IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress) *GenesisState {
 	return &GenesisState{
-		Params:      params,
+		IdentifiedFees:     identifiedFees,
+		FeeEnabledChannels: feeEnabledChannels,
+		RegisteredRelayers: registeredRelayers,
 	}
 }
 
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
+		IdentifiedFees:     []*IdentifiedPacketFee{},
+		FeeEnabledChannels: []*FeeEnabledChannel{},
+		RegisteredRelayers: []*RegisteredRelayerAddress{},
 	}
 }
 
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	if err := host.PortIdentifierValidator(gs.PortId); err != nil {
-		return err
-	}
 	return nil
 }
-*/

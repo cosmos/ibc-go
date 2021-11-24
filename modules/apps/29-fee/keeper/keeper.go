@@ -1,11 +1,12 @@
 package keeper
 
 import (
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
@@ -53,15 +54,15 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
 }
 
+// ChanCloseInit wraps the channel keeper's function in order to expose it to underlying app.
+func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error {
+	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
+}
+
 // BindPort defines a wrapper function for the port Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	return k.portKeeper.BindPort(ctx, portID)
-}
-
-// ChanCloseInit wraps the channel keeper's function in order to expose it to underlying app.
-func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error {
-	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // GetChannel wraps IBC ChannelKeeper's GetChannel function
@@ -104,6 +105,42 @@ func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 	return store.Get(types.FeeEnabledKey(portID, channelID)) != nil
 }
 
+// GetAllFeeEnabledChannels returns a list of all ics29 enabled channels containing portID & channelID that are stored in state
+func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []*types.FeeEnabledChannel {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
+	defer iterator.Close()
+
+	var enabledChArr []*types.FeeEnabledChannel
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		ch := &types.FeeEnabledChannel{
+			PortId:    keySplit[1],
+			ChannelId: keySplit[2],
+		}
+
+		enabledChArr = append(enabledChArr, ch)
+	}
+
+	return enabledChArr
+}
+
+// DisableAllChannels will disable the fee module for all channels.
+// Only called if the module enters into an invalid state
+// e.g. ModuleAccount has insufficient balance to refund users.
+// In this case, chain developers should investigate the issue, fix it,
+// and then re-enable the fee module in a coordinated upgrade.
+func (k Keeper) DisableAllChannels(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
+}
+
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
 func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
@@ -122,6 +159,26 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string,
 
 	addr := string(store.Get(key))
 	return addr, true
+}
+
+func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelayerAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.RelayerAddressKeyPrefix))
+	defer iterator.Close()
+
+	var registeredAddrArr []*types.RegisteredRelayerAddress
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		addr := &types.RegisteredRelayerAddress{
+			Address:             keySplit[1],
+			CounterpartyAddress: string(iterator.Value()),
+		}
+
+		registeredAddrArr = append(registeredAddrArr, addr)
+	}
+
+	return registeredAddrArr
 }
 
 // Stores a Fee for a given packet in state
@@ -174,19 +231,19 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	return store.Has(key)
 }
 
-// DisableAllChannels will disable the fee module for all channels.
-// Only called if the module enters into an invalid state
-// e.g. ModuleAccount has insufficient balance to refund users.
-// In this case, chain developers should investigate the issue, fix it,
-// and then re-enable the fee module in a coordinated upgrade.
-func (k Keeper) DisableAllChannels(ctx sdk.Context) {
+// GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
+func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []*types.IdentifiedPacketFee {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
-
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeInEscrowPrefix))
 	defer iterator.Close()
+
+	var identifiedFees []*types.IdentifiedPacketFee
 	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
+		fee := k.MustUnmarshalFee(iterator.Value())
+		identifiedFees = append(identifiedFees, &fee)
 	}
+
+	return identifiedFees
 }
 
 // MustMarshalFee attempts to encode a Fee object and returns the
