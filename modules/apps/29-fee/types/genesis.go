@@ -50,7 +50,7 @@ func (gs GenesisState) Validate() error {
 	for _, rel := range gs.RegisteredRelayers {
 		_, err := sdk.AccAddressFromBech32(rel.Address)
 		if err != nil {
-			return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
+			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
 		}
 
 		if rel.CounterpartyAddress == "" {
