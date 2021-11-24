@@ -50,7 +50,6 @@ func TestValidateGenesis(t *testing.T) {
 					portID,
 					seq,
 				)
-
 			},
 			false,
 		},
