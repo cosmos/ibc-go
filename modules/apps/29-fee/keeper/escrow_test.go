@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			ackFee = validCoins
 			receiveFee = validCoins2
 			timeoutFee = validCoins3
-			packetId := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
+			packetId := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortID, Sequence: uint64(1)}
 
 			tc.malleate()
 			fee := types.Fee{ackFee, receiveFee, timeoutFee}
@@ -130,7 +130,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		{
 			"fee not found for packet", func() {
 				// setting packetId with an invalid sequence of 2
-				packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(2)}
+				packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortID, Sequence: uint64(2)}
 			}, false,
 		},
 	}
@@ -149,7 +149,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			ackFee = validCoins
 			receiveFee = validCoins2
 			timeoutFee = validCoins3
-			packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: validSeq}
+			packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortID, Sequence: validSeq}
 			fee := types.Fee{receiveFee, ackFee, timeoutFee}
 
 			// escrow the packet fee & store the fee in state
@@ -188,7 +188,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 
 			} else {
 				suite.Require().Error(err)
-				invalidPacketID := &channeltypes.PacketId{PortId: types.PortKey, ChannelId: validChannelId, Sequence: 1}
+				invalidPacketID := &channeltypes.PacketId{PortId: types.PortID, ChannelId: validChannelId, Sequence: 1}
 				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), invalidPacketID)
 				// there should still be a fee in escrow for this packet
 				suite.Require().True(hasFeeInEscrow)
@@ -222,7 +222,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 		{
 			"fee not found for packet", func() {
 				// setting packetId with an invalid sequence of 2
-				packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(2)}
+				packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortID, Sequence: uint64(2)}
 			}, false,
 		},
 	}
@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 			ackFee = validCoins
 			receiveFee = validCoins2
 			timeoutFee = validCoins3
-			packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: validSeq}
+			packetId = &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortID, Sequence: validSeq}
 			fee := types.Fee{receiveFee, ackFee, timeoutFee}
 
 			// escrow the packet fee & store the fee in state
@@ -274,7 +274,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 
 			} else {
 				suite.Require().Error(err)
-				invalidPacketID := &channeltypes.PacketId{PortId: types.PortKey, ChannelId: validChannelId, Sequence: 1}
+				invalidPacketID := &channeltypes.PacketId{PortId: types.PortID, ChannelId: validChannelId, Sequence: 1}
 				hasFeeInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), invalidPacketID)
 				// there should still be a fee in escrow for this packet
 				suite.Require().True(hasFeeInEscrow)
