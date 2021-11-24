@@ -3,22 +3,21 @@ package types_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 var (
-	addr1        = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	addr2        = sdk.AccAddress("testaddr2").String()
-	validCoins   = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	validCoins2  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	validCoins3  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-	invalidCoins = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
+	addr1       = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	addr2       = sdk.AccAddress("testaddr2").String()
+	validCoins  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	validCoins2 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
+	validCoins3 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
 )
 
 func TestValidateGenesis(t *testing.T) {
@@ -31,7 +30,6 @@ func TestValidateGenesis(t *testing.T) {
 		portID       = types.PortID
 		channelID    = ibctesting.FirstChannelID
 		seq          = uint64(1)
-		genState     types.GenesisState
 	)
 
 	testCases := []struct {
@@ -151,7 +149,7 @@ func TestValidateGenesis(t *testing.T) {
 
 		tc.malleate()
 
-		genState = types.GenesisState{
+		genState := types.GenesisState{
 			IdentifiedFees: []*types.IdentifiedPacketFee{
 				{
 					PacketId:      packetId,
