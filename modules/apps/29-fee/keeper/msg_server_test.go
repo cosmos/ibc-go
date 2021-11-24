@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		suite.coordinator.Setup(suite.path)
+		suite.coordinator.Setup(suite.path) // setup channel
 
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
 		channelID := suite.path.EndpointA.ChannelID
@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		suite.coordinator.Setup(suite.path)
+		suite.coordinator.Setup(suite.path) // setup channel
 
 		ctxA := suite.chainA.GetContext()
 

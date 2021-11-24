@@ -357,7 +357,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path)
+			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
 
@@ -437,7 +437,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path)
+			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -19,8 +20,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketI() {
 
 	// setup
 	suite.coordinator.Setup(suite.path) // setup channel
-	validPacketId := types.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 1)
-	invalidPacketId := types.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 2)
+	validPacketId := channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 1)
+	invalidPacketId := channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 2)
 	identifiedPacketFee := types.NewIdentifiedPacketFee(
 		validPacketId,
 		types.Fee{
@@ -114,9 +115,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			func() {
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 
-				fee1 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 1), fee, refundAcc.String(), []string(nil))
-				fee2 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 2), fee, refundAcc.String(), []string(nil))
-				fee3 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 3), fee, refundAcc.String(), []string(nil))
+				fee1 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 1), fee, refundAcc.String(), []string(nil))
+				fee2 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 2), fee, refundAcc.String(), []string(nil))
+				fee3 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 3), fee, refundAcc.String(), []string(nil))
 
 				expPackets = []*types.IdentifiedPacketFee{}
 				expPackets = append(expPackets, fee1, fee2, fee3)

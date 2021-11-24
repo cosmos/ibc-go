@@ -17,6 +17,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 		ackFee     sdk.Coins
 		receiveFee sdk.Coins
 		timeoutFee sdk.Coins
+		packetId   *channeltypes.PacketId
 	)
 
 	testCases := []struct {
@@ -26,6 +27,11 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 	}{
 		{
 			"success", func() {}, true,
+		},
+		{
+			"fee not enabled on this channel", func() {
+				packetId.ChannelId = "disabled_channel"
+			}, false,
 		},
 		{
 			"refundAcc does not exist", func() {
@@ -54,15 +60,15 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			suite.coordinator.Setup(suite.path)
+			suite.SetupTest()                   // reset
+			suite.coordinator.Setup(suite.path) // setup channel
 
 			// setup
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
 			ackFee = validCoins
 			receiveFee = validCoins2
 			timeoutFee = validCoins3
-			packetId := &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: uint64(1)}
+			packetId = &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: uint64(1)}
 
 			tc.malleate()
 			fee := types.Fee{ackFee, receiveFee, timeoutFee}
@@ -129,8 +135,8 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			suite.coordinator.Setup(suite.path)
+			suite.SetupTest()                   // reset
+			suite.coordinator.Setup(suite.path) // setup channel
 
 			// setup
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
@@ -220,8 +226,8 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			suite.coordinator.Setup(suite.path)
+			suite.SetupTest()                   // reset
+			suite.coordinator.Setup(suite.path) // setup channel
 
 			// setup
 			refundAcc = suite.chainA.SenderAccount.GetAddress()

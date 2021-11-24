@@ -64,13 +64,13 @@ func (suite *KeeperTestSuite) TestFeeInEscrow() {
 
 	// set some fees
 	for i := 1; i < 6; i++ {
-		packetId := types.NewPacketId(fmt.Sprintf("channel-1"), transfertypes.PortID, uint64(i))
+		packetId := channeltypes.NewPacketId(fmt.Sprintf("channel-1"), transfertypes.PortID, uint64(i))
 		fee := types.NewIdentifiedPacketFee(packetId, fee, suite.chainA.SenderAccount.GetAddress().String(), []string{})
 		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), fee)
 	}
 
 	// delete 1 fee
-	packetId := types.NewPacketId("channel-1", transfertypes.PortID, 3)
+	packetId := channeltypes.NewPacketId("channel-1", transfertypes.PortID, 3)
 	suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
 
 	// iterate over remaining fees
