@@ -92,6 +92,11 @@ module.exports = {
               directory: false,
               path: "/ibc/proto-docs.html"
             },
+            {
+              title: "Roadmap",
+              directory: false,
+              path: "/roadmap/roadmap.html"
+            },
           ]
         },
         {
