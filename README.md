@@ -59,6 +59,10 @@ Interblockchain communication protocol (IBC) implementation in Golang built as a
 
 Note: The localhost client is currently non-functional. 
 
+## Roadmap
+
+For an overview of upcoming changes to ibc-go take a look at the [roadmap](./ROADMAP.md).
+
 ## Resources
 
 - [IBC Website](https://ibcprotocol.org/)
