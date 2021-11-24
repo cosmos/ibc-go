@@ -171,6 +171,8 @@ func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr
 	}
 }
 
-func NewPacketId(channelId string, id uint64) *channeltypes.PacketId {
-	return &channeltypes.PacketId{ChannelId: channelId, PortId: PortID, Sequence: id}
+// NewPacketId returns a new instance of PacketId
+// TODO: move to channeltypes
+func NewPacketId(channelId, portId string, seq uint64) *channeltypes.PacketId {
+	return &channeltypes.PacketId{ChannelId: channelId, PortId: portId, Sequence: seq}
 }

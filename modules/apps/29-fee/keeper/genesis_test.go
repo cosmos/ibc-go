@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -12,11 +11,16 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 
 	// build PacketId & Fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	ackFee := validCoins
-	receiveFee := validCoins2
-	timeoutFee := validCoins3
-	packetId := &channeltypes.PacketId{ChannelId: ibctesting.FirstChannelID, PortId: types.PortID, Sequence: uint64(1)}
-	fee := types.Fee{ackFee, receiveFee, timeoutFee}
+	packetId := types.NewPacketId(
+		ibctesting.FirstChannelID,
+		types.PortID,
+		uint64(1),
+	)
+	fee := types.Fee{
+		validCoins,
+		validCoins2,
+		validCoins3,
+	}
 
 	// relayer addresses
 	sender := suite.chainA.SenderAccount.GetAddress().String()
@@ -69,11 +73,16 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	// setup & escrow the packet fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	ackFee := validCoins
-	receiveFee := validCoins2
-	timeoutFee := validCoins3
-	packetId := &channeltypes.PacketId{ChannelId: ibctesting.FirstChannelID, PortId: types.PortID, Sequence: uint64(1)}
-	fee := types.Fee{ackFee, receiveFee, timeoutFee}
+	packetId := types.NewPacketId(
+		ibctesting.FirstChannelID,
+		types.PortID,
+		uint64(1),
+	)
+	fee := types.Fee{
+		validCoins,
+		validCoins2,
+		validCoins3,
+	}
 	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 	suite.Require().NoError(err)
