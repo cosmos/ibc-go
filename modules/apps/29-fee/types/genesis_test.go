@@ -181,25 +181,6 @@ func TestValidateGenesis(t *testing.T) {
 }
 
 func TestValidateDefaultGenesis(t *testing.T) {
-	testCases := []struct {
-		name     string
-		genState *types.GenesisState
-		expPass  bool
-	}{
-		{
-			name:     "default",
-			genState: types.DefaultGenesisState(),
-			expPass:  true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		err := tc.genState.Validate()
-		if tc.expPass {
-			require.NoError(t, err, tc.name)
-		} else {
-			require.Error(t, err, tc.name)
-		}
-	}
+	err := types.DefaultGenesisState().Validate()
+	require.NoError(t, err)
 }
