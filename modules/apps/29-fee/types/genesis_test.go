@@ -45,7 +45,7 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid packetId: invalid channel",
 			func() {
-				packetId = types.NewPacketId(
+				packetId = channeltypes.NewPacketId(
 					"",
 					portID,
 					seq,
@@ -56,7 +56,7 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid packetId: invalid port",
 			func() {
-				packetId = types.NewPacketId(
+				packetId = channeltypes.NewPacketId(
 					channelID,
 					"",
 					seq,
@@ -67,7 +67,7 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid packetId: invalid sequence",
 			func() {
-				packetId = types.NewPacketId(
+				packetId = channeltypes.NewPacketId(
 					channelID,
 					portID,
 					0,
@@ -129,7 +129,7 @@ func TestValidateGenesis(t *testing.T) {
 		seq = uint64(1)
 
 		// build PacketId & Fee
-		packetId = types.NewPacketId(
+		packetId = channeltypes.NewPacketId(
 			portID,
 			channelID,
 			seq,

@@ -145,19 +145,13 @@ func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr
 }
 
 func (fee IdentifiedPacketFee) Validate() error {
-	if err := host.PortIdentifierValidator(fee.PacketId.PortId); err != nil {
-		return sdkerrors.Wrap(err, "invalid source port ID")
+	// validate PacketId
+	err := fee.PacketId.Validate()
+	if err != nil {
+		return sdkerrors.Wrap(err, "Invalid PacketId")
 	}
 
-	if err := host.ChannelIdentifierValidator(fee.PacketId.ChannelId); err != nil {
-		return sdkerrors.Wrap(err, "invalid source channel ID")
-	}
-
-	if fee.PacketId.Sequence == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidSequence, "packet sequence cannot be 0")
-	}
-
-	_, err := sdk.AccAddressFromBech32(fee.RefundAddress)
+	_, err = sdk.AccAddressFromBech32(fee.RefundAddress)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
 	}
@@ -179,25 +173,3 @@ func (fee IdentifiedPacketFee) Validate() error {
 
 	return nil
 }
-
-// NewPacketId returns a new instance of PacketId
-// TODO: move to channeltypes
-func NewPacketId(channelId, portId string, seq uint64) *channeltypes.PacketId {
-	return &channeltypes.PacketId{ChannelId: channelId, PortId: portId, Sequence: seq}
-}
-
-// Validates a PacketId
-// TODO: move to channeltypes
-/*
-func (p channeltypes.PacketId) Validate() error {
-	if err := host.PortIdentifierValidator(p.PortId); err != nil {
-		return sdkerrors.Wrap(err, "invalid source port ID")
-	}
-	if err := host.ChannelIdentifierValidator(p.ChannelId); err != nil {
-		return sdkerrors.Wrap(err, "invalid source channel ID")
-	}
-	if p.Sequence == 0 {
-		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
-	}
-}
-*/
