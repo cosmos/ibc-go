@@ -27,9 +27,9 @@ func TestValidateGenesis(t *testing.T) {
 		refundAcc    string
 		sender       string
 		counterparty string
-		portID       = types.PortID
-		channelID    = ibctesting.FirstChannelID
-		seq          = uint64(1)
+		portID       string
+		channelID    string
+		seq          uint64
 	)
 
 	testCases := []struct {
