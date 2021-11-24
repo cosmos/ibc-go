@@ -66,3 +66,75 @@ func SetupFeePath(path *ibctesting.Path) error {
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
+
+func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
+	// escrow a fee
+	refundAcc := suite.chainA.SenderAccount.GetAddress()
+	ackFee := validCoins
+	receiveFee := validCoins2
+	timeoutFee := validCoins3
+	packetId := &channeltypes.PacketId{ChannelId: ibctesting.FirstChannelID, PortId: types.PortID, Sequence: uint64(1)}
+	fee := types.Fee{ackFee, receiveFee, timeoutFee}
+	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+
+	// escrow the packet fee
+	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
+	suite.Require().NoError(err)
+
+	expectedFees := []*types.IdentifiedPacketFee{
+		{
+			PacketId:      packetId,
+			Fee:           fee,
+			RefundAddress: refundAcc.String(),
+			Relayers:      nil,
+		},
+	}
+
+	fees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext())
+	suite.Require().Len(fees, len(expectedFees))
+	suite.Require().Equal(fees, expectedFees)
+}
+
+func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
+	suite.SetupTest() // reset
+
+	validPortId := "ibcmoduleport"
+	// set two channels enabled
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortId, ibctesting.FirstChannelID)
+
+	expectedCh := []*types.FeeEnabledChannel{
+		{
+			PortId:    validPortId,
+			ChannelId: ibctesting.FirstChannelID,
+		},
+		{
+			PortId:    transfertypes.PortID,
+			ChannelId: ibctesting.FirstChannelID,
+		},
+	}
+
+	ch := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllFeeEnabledChannels(suite.chainA.GetContext())
+	suite.Require().Len(ch, len(expectedCh))
+	suite.Require().Equal(ch, expectedCh)
+}
+
+func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
+	suite.SetupTest() // reset
+
+	sender := suite.chainA.SenderAccount.GetAddress().String()
+	counterparty := suite.chainB.SenderAccount.GetAddress().String()
+
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
+
+	expectedAddr := []*types.RegisteredRelayerAddress{
+		{
+			Address:             sender,
+			CounterpartyAddress: counterparty,
+		},
+	}
+
+	addr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllRelayerAddresses(suite.chainA.GetContext())
+	suite.Require().Len(addr, len(expectedAddr))
+	suite.Require().Equal(addr, expectedAddr)
+}

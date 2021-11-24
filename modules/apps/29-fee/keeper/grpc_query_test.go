@@ -17,8 +17,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 	)
 
 	// setup
-	validPacketId := types.NewPacketId(ibctesting.FirstChannelID, 1)
-	invalidPacketId := types.NewPacketId(ibctesting.FirstChannelID, 2)
+	validPacketId := types.NewPacketId(ibctesting.FirstChannelID, types.PortID, 1)
+	invalidPacketId := types.NewPacketId(ibctesting.FirstChannelID, types.PortID, 2)
 	identifiedPacketFee := types.NewIdentifiedPacketFee(
 		validPacketId,
 		types.Fee{
@@ -110,9 +110,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			func() {
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 
-				fee1 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 1), fee, refundAcc.String(), []string(nil))
-				fee2 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 2), fee, refundAcc.String(), []string(nil))
-				fee3 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, 3), fee, refundAcc.String(), []string(nil))
+				fee1 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, types.PortID, 1), fee, refundAcc.String(), []string(nil))
+				fee2 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, types.PortID, 2), fee, refundAcc.String(), []string(nil))
+				fee3 := types.NewIdentifiedPacketFee(types.NewPacketId(ibctesting.FirstChannelID, types.PortID, 3), fee, refundAcc.String(), []string(nil))
 
 				expPackets = []*types.IdentifiedPacketFee{}
 				expPackets = append(expPackets, fee1, fee2, fee3)
