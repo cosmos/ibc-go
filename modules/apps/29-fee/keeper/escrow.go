@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
@@ -18,12 +17,11 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.Identified
 	if err != nil {
 		return err
 	}
+
 	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
 	if hasRefundAcc == nil {
 		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))
 	}
-
-	identifiedFee.RefundAcc = refundAcc.String()
 
 	coins := identifiedFee.Fee.ReceiveFee
 	coins = coins.Add(identifiedFee.Fee.AckFee...)
@@ -57,13 +55,13 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, destRelayer, sourceRel
 	// send receive fee to dest relayer
 	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, destRelayer, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to send fee to forward relayer")
+		return sdkerrors.Wrap(err, "failed to send fee to destination relayer")
 	}
 
 	// send ack fee to source relayer
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, sourceRelayer, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, "error sending fee to reverse relayer")
+		return sdkerrors.Wrap(err, "error sending fee to source relayer")
 	}
 
 	// refund timeout fee to refundAddr
@@ -83,7 +81,7 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer 
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
 	if !found {
-		return sdkerrors.Wrap(types.ErrFeeNotFound, refundAcc.String())
+		return sdkerrors.Wrapf(types.ErrFeeNotFound, "for packetID %s", packetID.String())
 	}
 
 	// get module accAddr

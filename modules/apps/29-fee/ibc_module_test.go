@@ -300,3 +300,168 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		})
 	}
 }
+
+func (suite *FeeTestSuite) TestOnRecvPacket() {
+	testCases := []struct {
+		name      string
+		cpVersion string
+		malleate  func(suite *FeeTestSuite)
+		expPass   bool
+	}{
+		{
+			"success",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			func(suite *FeeTestSuite) {},
+			true,
+		},
+		{
+			"identified packet fee doesn't exist",
+			channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+		{
+			"refundAccount doesn't exist",
+			channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.SetupConnections(suite.path)
+
+			// malleate test case
+			tc.malleate(suite)
+
+			suite.path.EndpointA.ChanOpenInit()
+			suite.path.EndpointB.ChanOpenTry()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayer)
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+			}
+		})
+	}
+}
+
+func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
+	testCases := []struct {
+		name      string
+		cpVersion string
+		malleate  func(suite *FeeTestSuite)
+		expPass   bool
+	}{
+		{
+			"success",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			func(suite *FeeTestSuite) {},
+			true,
+		},
+		{
+			"identified packet fee doesn't exist",
+			channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+		{
+			"refundAccount doesn't exist",
+			channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.SetupConnections(suite.path)
+
+			// malleate test case
+			tc.malleate(suite)
+
+			suite.path.EndpointA.ChanOpenInit()
+			suite.path.EndpointB.ChanOpenTry()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayer)
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+			}
+		})
+	}
+}
+
+func (suite *FeeTestSuite) TestOnTimeoutPacket() {
+	testCases := []struct {
+		name      string
+		cpVersion string
+		malleate  func(suite *FeeTestSuite)
+		expPass   bool
+	}{
+		{
+			"success",
+			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			func(suite *FeeTestSuite) {},
+			true,
+		},
+		{
+			"identified packet fee doesn't exist",
+			channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+		{
+			"refundAccount doesn't exist",
+			channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.SetupConnections(suite.path)
+
+			// malleate test case
+			tc.malleate(suite)
+
+			suite.path.EndpointA.ChanOpenInit()
+			suite.path.EndpointB.ChanOpenTry()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayer)
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+			}
+		})
+	}
+}

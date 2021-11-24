@@ -175,7 +175,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 			return sdkerrors.Wrapf(types.ErrFeeNotFound, "fee not found for packet id %s", packetId)
 		}
 
-		if err := im.keeper.DistributeFee(ctx, sdk.AccAddress(identifiedPacketFee.RefundAcc), relayer, sdk.AccAddress(sourceRelayer), packetId); err != nil {
+		if err := im.keeper.DistributeFee(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, sdk.AccAddress(sourceRelayer), packetId); err != nil {
 			return err
 		}
 	}
@@ -194,7 +194,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return sdkerrors.Wrapf(types.ErrFeeNotFound, "fee not found for packet id %s", packetId)
 	}
 	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		if err := im.keeper.DistributeFeeTimeout(ctx, sdk.AccAddress(identifiedPacketFee.RefundAcc), relayer, types.NewPacketId(packet.SourceChannel, packet.Sequence)); err != nil {
+		if err := im.keeper.DistributeFeeTimeout(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, types.NewPacketId(packet.SourceChannel, packet.Sequence)); err != nil {
 			return err
 		}
 	}

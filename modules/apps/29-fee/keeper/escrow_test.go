@@ -1,9 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
@@ -73,7 +72,11 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			packetId := &channeltypes.PacketId{ChannelId: validChannelId, PortId: types.PortKey, Sequence: uint64(1)}
 
 			tc.malleate()
-			fee := types.Fee{ackFee, receiveFee, timeoutFee}
+			fee := types.Fee{
+				ReceiveFee: ackFee,
+				AckFee:     receiveFee,
+				TimeoutFee: timeoutFee,
+			}
 			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 
 			// refundAcc balance before escrow
