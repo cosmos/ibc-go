@@ -8,6 +8,12 @@ const (
 	// ModuleName defines the interchain accounts module name
 	ModuleName = "interchainaccounts"
 
+	// ControllerModuleName defines the interchain accounts module name
+	ControllerModuleName = "controller"
+
+	// ModuleName defines the interchain accounts module name
+	HostModuleName = "host"
+
 	// VersionPrefix defines the current version for interchain accounts
 	VersionPrefix = "ics27-1"
 

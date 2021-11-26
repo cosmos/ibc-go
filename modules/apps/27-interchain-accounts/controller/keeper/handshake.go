@@ -5,8 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
@@ -33,29 +32,29 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
-	connSequence, err := icatypes.ParseControllerConnSequence(portID)
+	connSequence, err := types.ParseControllerConnSequence(portID)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", icatypes.ControllerPortFormat, portID)
+		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, portID)
 	}
 
-	counterpartyConnSequence, err := icatypes.ParseHostConnSequence(portID)
+	counterpartyConnSequence, err := types.ParseHostConnSequence(portID)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", icatypes.ControllerPortFormat, portID)
+		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, portID)
 	}
 
 	if err := k.validateControllerPortParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
 		return sdkerrors.Wrapf(err, "failed to validate controller port %s", portID)
 	}
 
-	if counterparty.PortId != icatypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.PortID, counterparty.PortId)
+	if counterparty.PortId != types.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, counterparty.PortId)
 	}
 
-	if version != icatypes.VersionPrefix {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "expected %s, got %s", icatypes.VersionPrefix, version)
+	if version != types.VersionPrefix {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.VersionPrefix, version)
 	}
 
-	activeChannelID, found := k.icaKeeper.GetActiveChannelID(ctx, types.ModuleName, portID)
+	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
 	if found {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
@@ -71,22 +70,22 @@ func (k Keeper) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	if portID == icatypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID cannot be host chain port ID: %s", icatypes.PortID)
+	if portID == types.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID cannot be host chain port ID: %s", types.PortID)
 	}
 
-	if err := icatypes.ValidateVersion(counterpartyVersion); err != nil {
+	if err := types.ValidateVersion(counterpartyVersion); err != nil {
 		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
 
-	k.icaKeeper.SetActiveChannelID(ctx, types.ModuleName, portID, channelID)
+	k.SetActiveChannelID(ctx, portID, channelID)
 
-	accAddr, err := icatypes.ParseAddressFromVersion(counterpartyVersion)
+	accAddr, err := types.ParseAddressFromVersion(counterpartyVersion)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format <app-version%saccount-address>, got %s", icatypes.Delimiter, counterpartyVersion)
+		return sdkerrors.Wrapf(err, "expected format <app-version%saccount-address>, got %s", types.Delimiter, counterpartyVersion)
 	}
 
-	k.icaKeeper.SetInterchainAccountAddress(ctx, types.ModuleName, portID, accAddr)
+	k.SetInterchainAccountAddress(ctx, portID, accAddr)
 
 	return nil
 }
@@ -98,7 +97,7 @@ func (k Keeper) OnChanCloseConfirm(
 	channelID string,
 ) error {
 
-	k.icaKeeper.DeleteActiveChannelID(ctx, types.ModuleName, portID)
+	k.DeleteActiveChannelID(ctx, portID)
 
 	return nil
 }

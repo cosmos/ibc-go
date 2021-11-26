@@ -85,7 +85,7 @@ func (k Keeper) OnChanOpenConfirm(
 	channelID string,
 ) error {
 
-	k.icaKeeper.SetActiveChannelID(ctx, types.ModuleName, portID, channelID)
+	k.SetActiveChannelID(ctx, portID, channelID)
 
 	return nil
 }
@@ -97,7 +97,7 @@ func (k Keeper) OnChanCloseConfirm(
 	channelID string,
 ) error {
 
-	k.icaKeeper.DeleteActiveChannelID(ctx, types.ModuleName, portID)
+	k.DeleteActiveChannelID(ctx, portID)
 
 	return nil
 }

@@ -5,16 +5,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts controller application state from a provided genesis state
-func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, state types.ControllerGenesisState) {
 	for _, portID := range state.Ports {
 		if !keeper.IsBound(ctx, portID) {
-			cap := keeper.icaKeeper.BindPort(ctx, types.ModuleName, portID)
+			cap := keeper.BindPort(ctx, portID)
 			if err := keeper.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
 				panic(fmt.Sprintf("could not claim port capability: %v", err))
 			}
@@ -22,19 +21,19 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesi
 	}
 
 	for _, ch := range state.ActiveChannels {
-		keeper.icaKeeper.SetActiveChannelID(ctx, types.ModuleName, ch.PortId, ch.ChannelId)
+		keeper.SetActiveChannelID(ctx, ch.PortId, ch.ChannelId)
 	}
 
 	for _, acc := range state.InterchainAccounts {
-		keeper.icaKeeper.SetInterchainAccountAddress(ctx, types.ModuleName, acc.PortId, acc.AccountAddress)
+		keeper.SetInterchainAccountAddress(ctx, acc.PortId, acc.AccountAddress)
 	}
 }
 
 // ExportGenesis returns the interchain accounts controller exported genesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) icatypes.ControllerGenesisState {
-	return icatypes.NewControllerGenesisState(
-		keeper.icaKeeper.GetAllActiveChannels(ctx, types.ModuleName),
-		keeper.icaKeeper.GetAllInterchainAccounts(ctx, types.ModuleName),
-		keeper.icaKeeper.GetAllPorts(ctx, types.ModuleName),
+func ExportGenesis(ctx sdk.Context, keeper Keeper) types.ControllerGenesisState {
+	return types.NewControllerGenesisState(
+		keeper.GetAllActiveChannels(ctx),
+		keeper.GetAllInterchainAccounts(ctx),
+		keeper.GetAllPorts(ctx),
 	)
 }

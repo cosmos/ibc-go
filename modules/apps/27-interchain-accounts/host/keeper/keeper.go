@@ -19,7 +19,8 @@ import (
 
 // Keeper defines the IBC interchain accounts host keeper
 type Keeper struct {
-	cdc codec.BinaryCodec
+	cdc         codec.BinaryCodec
+	storePrefix string
 
 	icaKeeper     icakeeper.Keeper
 	channelKeeper types.ChannelKeeper
@@ -33,7 +34,7 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, icaKeeper icakeeper.Keeper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	cdc codec.BinaryCodec, storePrefix string, icaKeeper icakeeper.Keeper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	accountKeeper types.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 
@@ -44,6 +45,7 @@ func NewKeeper(
 
 	return Keeper{
 		cdc:           cdc,
+		storePrefix:   storePrefix,
 		icaKeeper:     icaKeeper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
@@ -72,6 +74,56 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // ClaimCapability wraps the scopedKeeper's ClaimCapability function
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// GetAllPorts returns all ports to which the interchain accounts host module is bound. Used in ExportGenesis
+func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
+	return k.icaKeeper.GetAllPorts(ctx, k.storePrefix)
+}
+
+// BindPort stores the provided portID and binds to it, returning the associated capability
+func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+	return k.icaKeeper.BindPort(ctx, k.storePrefix, portID)
+}
+
+// GetActiveChannelID retrieves the active channelID from the store keyed by the provided portID
+func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool) {
+	return k.icaKeeper.GetActiveChannelID(ctx, k.storePrefix, portID)
+}
+
+// GetAllActiveChannels returns a list of all active interchain accounts host channels and their associated port identifiers
+func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []types.ActiveChannel {
+	return k.icaKeeper.GetAllActiveChannels(ctx, k.storePrefix)
+}
+
+// SetActiveChannelID stores the active channelID, keyed by the provided portID
+func (k Keeper) SetActiveChannelID(ctx sdk.Context, portID, channelID string) {
+	k.icaKeeper.SetActiveChannelID(ctx, k.storePrefix, portID, channelID)
+}
+
+// DeleteActiveChannelID removes the active channel keyed by the provided portID stored in state
+func (k Keeper) DeleteActiveChannelID(ctx sdk.Context, portID string) {
+	k.icaKeeper.DeleteActiveChannelID(ctx, k.storePrefix, portID)
+}
+
+// IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
+func (k Keeper) IsActiveChannel(ctx sdk.Context, portID string) bool {
+	return k.icaKeeper.IsActiveChannel(ctx, k.storePrefix, portID)
+}
+
+// GetInterchainAccountAddress retrieves the InterchainAccount address from the store keyed by the provided portID
+func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (string, bool) {
+	return k.icaKeeper.GetInterchainAccountAddress(ctx, k.storePrefix, portID)
+}
+
+// GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated host port identifiers
+func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []types.RegisteredInterchainAccount {
+	return k.icaKeeper.GetAllInterchainAccounts(ctx, k.storePrefix)
+}
+
+// SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated portID
+func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, address string) {
+	k.icaKeeper.SetInterchainAccountAddress(ctx, k.storePrefix, portID, address)
 }
 
 // NegotiateAppVersion handles application version negotation for the IBC interchain accounts module

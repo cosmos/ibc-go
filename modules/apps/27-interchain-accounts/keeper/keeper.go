@@ -82,22 +82,6 @@ func (k Keeper) BindPort(ctx sdk.Context, storePrefix, portID string) *capabilit
 	return k.portKeeper.BindPort(ctx, portID)
 }
 
-// IsBound checks if the interchain account controller module is already bound to the desired port
-func (k Keeper) IsBound(ctx sdk.Context, storePreifx, portID string) bool {
-	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-	return ok
-}
-
-// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
-func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
-	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
-}
-
-// ClaimCapability wraps the scopedKeeper's ClaimCapability function
-func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
-	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
-}
-
 // GetActiveChannelID retrieves the active channelID from the store keyed by the provided portID
 func (k Keeper) GetActiveChannelID(ctx sdk.Context, storePrefix, portID string) (string, bool) {
 	store := k.prefixStore(ctx, storePrefix)
