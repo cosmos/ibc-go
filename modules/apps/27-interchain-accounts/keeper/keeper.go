@@ -14,15 +14,14 @@ import (
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
-// Keeper defines the IBC interchain accounts controller keeper
+// Keeper defines the IBC interchain accounts keeper
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      codec.BinaryCodec
-
+	storeKey   sdk.StoreKey
+	cdc        codec.BinaryCodec
 	portKeeper types.PortKeeper
 }
 
-// NewKeeper creates a new interchain accounts controller Keeper instance
+// NewKeeper creates a new interchain accounts Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey,
 	portKeeper types.PortKeeper,
@@ -45,7 +44,7 @@ func (k Keeper) prefixStore(ctx sdk.Context, storePrefix string) sdk.KVStore {
 	return prefix.NewStore(ctx.KVStore(k.storeKey), []byte(storePrefix))
 }
 
-// GetAllPorts returns all ports to which the interchain accounts controller module is bound. Used in ExportGenesis
+// GetAllPorts returns all ports to which a interchain accounts submodule is bound. Used in ExportGenesis
 func (k Keeper) GetAllPorts(ctx sdk.Context, storePrefix string) []string {
 	store := k.prefixStore(ctx, storePrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PortKeyPrefix))
@@ -61,7 +60,8 @@ func (k Keeper) GetAllPorts(ctx sdk.Context, storePrefix string) []string {
 	return ports
 }
 
-// BindPort stores the provided portID and binds to it, returning the associated capability
+// BindPort stores the provided portID and binds to it, returning the associated capability. The
+// binded port is stored in state under the associated interchain accounts submodule.
 func (k Keeper) BindPort(ctx sdk.Context, storePrefix, portID string) *capabilitytypes.Capability {
 	store := k.prefixStore(ctx, storePrefix)
 	store.Set(types.KeyPort(portID), []byte{0x01})
@@ -70,6 +70,7 @@ func (k Keeper) BindPort(ctx sdk.Context, storePrefix, portID string) *capabilit
 }
 
 // GetActiveChannelID retrieves the active channelID from the store keyed by the provided portID
+// for a given interchain accounts submodule.
 func (k Keeper) GetActiveChannelID(ctx sdk.Context, storePrefix, portID string) (string, bool) {
 	store := k.prefixStore(ctx, storePrefix)
 	key := types.KeyActiveChannel(portID)
@@ -81,7 +82,8 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, storePrefix, portID string) 
 	return string(store.Get(key)), true
 }
 
-// GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated port identifiers
+// GetAllActiveChannels returns a list of all active interchain accounts channels and their associated port identifiers
+// for a give interchain accounts submodule.
 func (k Keeper) GetAllActiveChannels(ctx sdk.Context, storePrefix string) []types.ActiveChannel {
 	store := k.prefixStore(ctx, storePrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ActiveChannelKeyPrefix))
@@ -102,25 +104,29 @@ func (k Keeper) GetAllActiveChannels(ctx sdk.Context, storePrefix string) []type
 	return activeChannels
 }
 
-// SetActiveChannelID stores the active channelID, keyed by the provided portID
+// SetActiveChannelID stores the active channelID, keyed by the provided portID for a given
+// interchain accounts submodule.
 func (k Keeper) SetActiveChannelID(ctx sdk.Context, storePrefix, portID, channelID string) {
 	store := k.prefixStore(ctx, storePrefix)
 	store.Set(types.KeyActiveChannel(portID), []byte(channelID))
 }
 
 // DeleteActiveChannelID removes the active channel keyed by the provided portID stored in state
+// for a given interchain accounts submodule.
 func (k Keeper) DeleteActiveChannelID(ctx sdk.Context, storePrefix, portID string) {
 	store := k.prefixStore(ctx, storePrefix)
 	store.Delete(types.KeyActiveChannel(portID))
 }
 
-// IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
+// IsActiveChannel returns true if there exists an active channel (for a given interchain accounts submodule)
+// for the provided portID, otherwise false
 func (k Keeper) IsActiveChannel(ctx sdk.Context, storePrefix, portID string) bool {
 	_, ok := k.GetActiveChannelID(ctx, storePrefix, portID)
 	return ok
 }
 
 // GetInterchainAccountAddress retrieves the InterchainAccount address from the store keyed by the provided portID
+// for a given interchain accounts submodule.
 func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, storePrefix, portID string) (string, bool) {
 	store := k.prefixStore(ctx, storePrefix)
 	key := types.KeyOwnerAccount(portID)
@@ -133,6 +139,7 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, storePrefix, portID
 }
 
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated controller port identifiers
+// for a given interchain accounts submodule.
 func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context, storePrefix string) []types.RegisteredInterchainAccount {
 	store := k.prefixStore(ctx, storePrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.OwnerKeyPrefix))
@@ -153,6 +160,7 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context, storePrefix string) []
 }
 
 // SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated portID
+// for a given interchain accounts submodule.
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, storePrefix, portID string, address string) {
 	store := k.prefixStore(ctx, storePrefix)
 	store.Set(types.KeyOwnerAccount(portID), []byte(address))
