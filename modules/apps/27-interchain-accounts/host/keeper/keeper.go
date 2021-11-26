@@ -76,11 +76,6 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetAllPorts returns all ports to which the interchain accounts host module is bound. Used in ExportGenesis
-func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
-	return k.icaKeeper.GetAllPorts(ctx, k.storePrefix)
-}
-
 // BindPort stores the provided portID and binds to it, returning the associated capability
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	return k.icaKeeper.BindPort(ctx, k.storePrefix, portID)
