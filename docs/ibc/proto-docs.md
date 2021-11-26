@@ -4,6 +4,9 @@
 
 ## Table of Contents
 
+- [ibc/applications/fee/v1/ack.proto](#ibc/applications/fee/v1/ack.proto)
+    - [IncentivizedAcknowledgement](#ibc.applications.fee.v1.IncentivizedAcknowledgement)
+  
 - [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
     - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
     - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
@@ -271,6 +274,39 @@
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="ibc/applications/fee/v1/ack.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/ack.proto
+
+
+
+<a name="ibc.applications.fee.v1.IncentivizedAcknowledgement"></a>
+
+### IncentivizedAcknowledgement
+IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
+It contains the raw acknowledgement bytes, as well as the forward relayer address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [bytes](#bytes) |  |  |
+| `forward_relayer_address` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
 
 
 

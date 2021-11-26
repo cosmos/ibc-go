@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
@@ -11,7 +12,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 
 	// build PacketId & Fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetId := types.NewPacketId(
+	packetId := channeltypes.NewPacketId(
 		ibctesting.FirstChannelID,
 		types.PortID,
 		uint64(1),
@@ -73,7 +74,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	// setup & escrow the packet fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetId := types.NewPacketId(
+	packetId := channeltypes.NewPacketId(
 		ibctesting.FirstChannelID,
 		types.PortID,
 		uint64(1),
