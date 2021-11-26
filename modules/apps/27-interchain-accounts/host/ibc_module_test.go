@@ -45,7 +45,7 @@ func TestICATestSuite(t *testing.T) {
 }
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }
@@ -104,6 +104,21 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	}
 
 	return nil
+}
+
+// Test initiating a ChanOpenInit using the host chain instead of the controller chain
+// ChainA is the controller chain. ChainB is the host chain
+func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	// use chainB (host) for ChanOpenInit
+	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, types.VersionPrefix, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, types.ModuleName)
+	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
+	_, err := handler(suite.chainB.GetContext(), msg)
+
+	suite.Require().Error(err)
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
@@ -192,6 +207,41 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 }
 
+// Test initiating a ChanOpenAck using the host chain instead of the controller chain
+// ChainA is the controller chain. ChainB is the host chain
+func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
+	suite.SetupTest() // reset
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanOpenTry()
+	suite.Require().NoError(err)
+
+	// chainA maliciously sets channel to TRYOPEN
+	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
+	suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+
+	// commit state changes so proof can be created
+	suite.chainA.App.Commit()
+	suite.chainA.NextBlock()
+
+	path.EndpointB.UpdateClient()
+
+	// query proof from ChainA
+	channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	proofTry, proofHeight := path.EndpointA.Chain.QueryProof(channelKey)
+
+	// use chainB (host) for ChanOpenAck
+	msg := channeltypes.NewMsgChannelOpenAck(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelID, TestVersion, proofTry, proofHeight, types.ModuleName)
+	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
+	_, err = handler(suite.chainB.GetContext(), msg)
+
+	suite.Require().Error(err)
+}
+
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 	testCases := []struct {
 		name     string
@@ -251,6 +301,77 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		})
 	}
 
+}
+
+// OnChanCloseInit on host (chainB)
+func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	err = cbs.OnChanCloseInit(
+		suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
+	)
+
+	suite.Require().Error(err)
+}
+
+func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+
+		{
+			"success", func() {}, true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			tc.malleate() // malleate mutates test data
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanCloseConfirm(
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+			activeChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().False(found)
+				suite.Require().Empty(activeChannelID)
+			} else {
+				suite.Require().Error(err)
+			}
+
+		})
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
@@ -335,6 +456,114 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		})
 	}
 
+}
+
+func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"ICA OnAcknowledgementPacket fails with ErrInvalidChannelFlow", func() {}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			tc.malleate() // malleate mutates test data
+
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			packet := channeltypes.NewPacket(
+				[]byte("empty packet data"),
+				suite.chainA.SenderAccount.GetSequence(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
+
+			err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, []byte("ackBytes"), TestAccAddress)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"ICA OnTimeoutPacket fails with ErrInvalidChannelFlow", func() {}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			tc.malleate() // malleate mutates test data
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			packet := channeltypes.NewPacket(
+				[]byte("empty packet data"),
+				suite.chainA.SenderAccount.GetSequence(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
+
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, TestAccAddress)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
