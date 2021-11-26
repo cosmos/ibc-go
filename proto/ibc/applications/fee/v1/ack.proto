@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package ibc.applications.fee.v1;
+
+message IncentivizedAcknowledgement {
+    oneof response {
+        IncentivizedAck  result = 21;
+        string error  = 22;
+    }
+}
+
+message IncentivizedAck {
+    bytes result = 1;
+    string  forward_relayer_address = 2 [(gogoproto.moretags) = "yaml:\"forward_relayer_address\""];
+}
