@@ -79,7 +79,7 @@ func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
 func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
-	return k.channelKeeper.SendPacket(ctx, chanCap, packet)
+	return k.ics4Wrapper.SendPacket(ctx, chanCap, packet)
 }
 
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
