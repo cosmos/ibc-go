@@ -22,5 +22,5 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddres
 	k.accountKeeper.NewAccount(ctx, interchainAccount)
 	k.accountKeeper.SetAccount(ctx, interchainAccount)
 
-	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
+	k.icaKeeper.SetInterchainAccountAddress(ctx, types.ModuleName, controllerPortID, interchainAccount.Address)
 }
