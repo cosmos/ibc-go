@@ -14,12 +14,16 @@ type AccountKeeper interface {
 	GetAccount(sdk.Context, sdk.AccAddress) types.AccountI
 }
 
+// ICS4Wrapper defines the expected ICS4Wrapper for middleware
+type ICS4Wrapper interface {
+	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
+}
+
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
+	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
-	ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error
 }
 
 // PortKeeper defines the expected IBC port keeper
