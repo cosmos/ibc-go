@@ -354,15 +354,14 @@ func NewSimApp(
 
 	app.ICAKeeper = icakeeper.NewKeeper(
 		appCodec, keys[icatypes.StoreKey],
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAControllerKeeper, app.MsgServiceRouter(),
+		&app.IBCKeeper.PortKeeper,
 	)
 
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, icatypes.ControllerModuleName, app.ICAKeeper,
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAControllerKeeper, app.MsgServiceRouter(),
+		scopedICAControllerKeeper, app.MsgServiceRouter(),
 	)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(

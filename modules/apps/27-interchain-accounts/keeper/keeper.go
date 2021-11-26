@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	baseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -21,29 +19,18 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
 
-	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
-	accountKeeper types.AccountKeeper
-
-	scopedKeeper capabilitykeeper.ScopedKeeper
-
-	msgRouter *baseapp.MsgServiceRouter
+	portKeeper types.PortKeeper
 }
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey,
-	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
-	accountKeeper types.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
+	portKeeper types.PortKeeper,
 ) Keeper {
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		accountKeeper: accountKeeper,
-		scopedKeeper:  scopedKeeper,
-		msgRouter:     msgRouter,
+		storeKey:   key,
+		cdc:        cdc,
+		portKeeper: portKeeper,
 	}
 }
 
