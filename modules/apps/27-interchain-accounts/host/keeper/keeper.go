@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -57,23 +56,6 @@ func NewKeeper(
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
-}
-
-// RegisterInterchainAccount attempts to create a new account using the provided address and stores it in state keyed by the provided port identifier
-// If an account for the provided address already exists this function returns early (no-op)
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddress, controllerPortID string) {
-	if acc := k.accountKeeper.GetAccount(ctx, accAddr); acc != nil {
-		return
-	}
-
-	interchainAccount := types.NewInterchainAccount(
-		authtypes.NewBaseAccountWithAddress(accAddr),
-		controllerPortID,
-	)
-
-	k.accountKeeper.NewAccount(ctx, interchainAccount)
-	k.accountKeeper.SetAccount(ctx, interchainAccount)
-	k.SetInterchainAccountAddress(ctx, controllerPortID, interchainAccount.Address)
 }
 
 // BindPort stores the provided portID and binds to it, returning the associated capability

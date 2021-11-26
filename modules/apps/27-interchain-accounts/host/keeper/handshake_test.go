@@ -168,7 +168,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
