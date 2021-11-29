@@ -7,17 +7,13 @@ import (
 )
 
 const (
-	// DefaultControllerEnabled enabled
+	// DefaultControllerEnabled is the default value for the controller param (set to true)
 	DefaultControllerEnabled = true
-	// DefaultHostEnabled enabled
-	DefaultHostEnabled = true
 )
 
 var (
 	// KeyControllerEnabled is store's key for ControllerEnabled Params
 	KeyControllerEnabled = []byte("ControllerEnabled")
-	// KeyHostEnabled is store's key for HostEnabled Params
-	KeyHostEnabled = []byte("HostEnabled")
 )
 
 // ParamKeyTable type declaration for parameters
@@ -25,33 +21,31 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// NewParams creates a new parameter configuration for the interchain accounts module
-func NewParams(enableController, enableHost bool) Params {
+// NewParams creates a new parameter configuration for the controller submodule
+func NewParams(enableController bool) Params {
 	return Params{
 		ControllerEnabled: enableController,
-		HostEnabled:       enableHost,
 	}
 }
 
-// DefaultParams is the default parameter configuration for the ibc-transfer module
+// DefaultParams is the default parameter configuration for the controller submodule
 func DefaultParams() Params {
-	return NewParams(DefaultControllerEnabled, DefaultHostEnabled)
+	return NewParams(DefaultControllerEnabled)
 }
 
-// Validate all ibc-transfer module parameters
+// Validate validates all controller submodule parameters
 func (p Params) Validate() error {
 	if err := validateEnabled(p.ControllerEnabled); err != nil {
 		return err
 	}
 
-	return validateEnabled(p.HostEnabled)
+	return nil
 }
 
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyControllerEnabled, p.ControllerEnabled, validateEnabled),
-		paramtypes.NewParamSetPair(KeyHostEnabled, p.HostEnabled, validateEnabled),
 	}
 }
 

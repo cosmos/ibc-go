@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
 )
 
 func TestValidateParams(t *testing.T) {
 	require.NoError(t, types.DefaultParams().Validate())
-	require.NoError(t, types.NewParams(true, false).Validate())
+	require.NoError(t, types.NewParams(false).Validate())
 }
