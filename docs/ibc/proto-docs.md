@@ -17,7 +17,6 @@
 - [ibc/applications/interchain_accounts/v1/types.proto](#ibc/applications/interchain_accounts/v1/types.proto)
     - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
     - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
-    - [Params](#ibc.applications.interchain_accounts.v1.Params)
   
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
@@ -434,24 +433,6 @@ InterchainAccountPacketData is comprised of a raw transaction, type of transacti
 | `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
 | `data` | [bytes](#bytes) |  |  |
 | `memo` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.Params"></a>
-
-### Params
-Params defines the set of on-chain interchain accounts parameters.
-The following parameters may be used to disable controller or host
-submodules.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `controller_enabled` | [bool](#bool) |  | controller_enabled enables or disables the controller submodule. |
-| `host_enabled` | [bool](#bool) |  | host_enabled enables or disables the host submodule. |
 
 
 
