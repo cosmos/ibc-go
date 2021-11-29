@@ -125,7 +125,7 @@ func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
 			false,
 		},
 		{
-			"failed to validate registered account - invalid port identifier",
+			"failed to validate registered account - invalid owner address",
 			func() {
 				activeChannels := []types.ActiveChannel{
 					{
