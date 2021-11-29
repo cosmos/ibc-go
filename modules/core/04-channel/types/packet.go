@@ -115,3 +115,20 @@ func (p Packet) ValidateBasic() error {
 	}
 	return nil
 }
+
+// Validates a PacketId
+func (p PacketId) Validate() error {
+	if err := host.PortIdentifierValidator(p.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid source port ID")
+	}
+
+	if err := host.ChannelIdentifierValidator(p.ChannelId); err != nil {
+		return sdkerrors.Wrap(err, "invalid source channel ID")
+	}
+
+	if p.Sequence == 0 {
+		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
+	}
+
+	return nil
+}
