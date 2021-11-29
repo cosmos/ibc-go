@@ -65,9 +65,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		suite.coordinator.SetupConnections(suite.path)
-		err := SetupFeePath(suite.path)
-		suite.Require().NoError(err)
+		suite.coordinator.Setup(suite.path) // setup channel
 
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
 		channelID := suite.path.EndpointA.ChannelID
@@ -75,7 +73,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		msg := types.NewMsgPayPacketFee(fee, suite.path.EndpointA.ChannelConfig.PortID, channelID, refundAcc.String(), []string{})
 
 		tc.malleate()
-		_, err = suite.chainA.SendMsgs(msg)
+		_, err := suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
@@ -100,9 +98,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		suite.coordinator.SetupConnections(suite.path)
-		err := SetupFeePath(suite.path)
-		suite.Require().NoError(err)
+		suite.coordinator.Setup(suite.path) // setup channel
 
 		ctxA := suite.chainA.GetContext()
 
@@ -120,7 +116,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		tc.malleate()
 
 		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee)
-		_, err = suite.chainA.SendMsgs(msg)
+		_, err := suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed

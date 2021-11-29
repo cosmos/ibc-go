@@ -12,6 +12,10 @@ import (
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
 func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.IdentifiedPacketFee) error {
+	if !k.IsFeeEnabled(ctx, identifiedFee.PacketId.PortId, identifiedFee.PacketId.ChannelId) {
+		// users may not escrow fees on this channel. Must send packets without a fee message
+		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
+	}
 	// check if the refund account exists
 	refundAcc, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
 	if err != nil {
@@ -106,4 +110,41 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer 
 	k.DeleteFeeInEscrow(ctx, packetID)
 
 	return nil
+}
+
+func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) error {
+	// get module accAddr
+	feeModuleAccAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+
+	var refundErr error
+
+	k.IterateChannelFeesInEscrow(ctx, portID, channelID, func(identifiedFee types.IdentifiedPacketFee) (stop bool) {
+		refundAccAddr, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+
+		// refund all fees to refund address
+		// Use SendCoins rather than the module account send functions since refund address may be a user account or module address.
+		// if any `SendCoins` call returns an error, we return error and stop iteration
+		err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAccAddr, identifiedFee.Fee.ReceiveFee)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+		err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAccAddr, identifiedFee.Fee.AckFee)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+		err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, refundAccAddr, identifiedFee.Fee.TimeoutFee)
+		if err != nil {
+			refundErr = err
+			return true
+		}
+		return false
+	})
+
+	return refundErr
 }
