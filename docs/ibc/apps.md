@@ -160,8 +160,8 @@ Application modules are expected to verify versioning used during the channel ha
 * `ChanOpenTry` callback should verify that the `MsgChanOpenTry.Version` is valid and that `MsgChanOpenTry.CounterpartyVersion` is valid.
 * `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
 
-IBC expects modules to implement the function `NegotiateAppVersion` from the application module
-interface. This function performs application version negotiation and returns the negotiated version.
+IBC expects application modules to implement the `NegotiateAppVersion` method from the `IBCModule`
+interface. This method performs application version negotiation and returns the negotiated version.
 If the version cannot be negotiated, an error should be returned.
 
 ```go
