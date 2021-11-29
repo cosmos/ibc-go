@@ -45,7 +45,17 @@ func ValidateVersion(version string) error {
 		return sdkerrors.Wrapf(ErrInvalidVersion, "expected %s, got %s", VersionPrefix, s[0])
 	}
 
-	if !IsValidAddr(s[1]) || len(s[1]) == 0 || len(s[1]) > DefaultMaxAddrLength {
+	if err := ValidateAccountAddress(s[1]); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ValidateAccountAddress performs basic validation of interchain account addresses, enforcing constraints
+// on address length and character set
+func ValidateAccountAddress(addr string) error {
+	if !IsValidAddr(addr) || len(addr) == 0 || len(addr) > DefaultMaxAddrLength {
 		return sdkerrors.Wrapf(
 			ErrInvalidAccountAddress,
 			"address must contain strictly alphanumeric characters, not exceeding %d characters in length",

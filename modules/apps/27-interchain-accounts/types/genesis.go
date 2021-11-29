@@ -1,8 +1,6 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
@@ -66,12 +64,8 @@ func (gs ControllerGenesisState) Validate() error {
 			return err
 		}
 
-		if !IsValidAddr(acc.AccountAddress) || len(acc.AccountAddress) == 0 || len(acc.AccountAddress) > DefaultMaxAddrLength {
-			return sdkerrors.Wrapf(
-				ErrInvalidAccountAddress,
-				"address must contain strictly alphanumeric characters, not exceeding %d characters in length",
-				DefaultMaxAddrLength,
-			)
+		if err := ValidateAccountAddress(acc.AccountAddress); err != nil {
+			return err
 		}
 	}
 
@@ -117,12 +111,8 @@ func (gs HostGenesisState) Validate() error {
 			return err
 		}
 
-		if !IsValidAddr(acc.AccountAddress) || len(acc.AccountAddress) == 0 || len(acc.AccountAddress) > DefaultMaxAddrLength {
-			return sdkerrors.Wrapf(
-				ErrInvalidAccountAddress,
-				"address must contain strictly alphanumeric characters, not exceeding %d characters in length",
-				DefaultMaxAddrLength,
-			)
+		if err := ValidateAccountAddress(acc.AccountAddress); err != nil {
+			return err
 		}
 	}
 
