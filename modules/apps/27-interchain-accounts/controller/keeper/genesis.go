@@ -27,6 +27,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state types.ControllerGenesisSt
 	for _, acc := range state.InterchainAccounts {
 		keeper.SetInterchainAccountAddress(ctx, acc.PortId, acc.AccountAddress)
 	}
+
+	keeper.SetParams(ctx, state.Params)
 }
 
 // ExportGenesis returns the interchain accounts controller exported genesis
@@ -35,5 +37,6 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.ControllerGenesisState 
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),
 		keeper.GetAllPorts(ctx),
+		keeper.GetParams(ctx),
 	)
 }

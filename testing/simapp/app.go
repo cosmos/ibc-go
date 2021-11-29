@@ -353,14 +353,14 @@ func NewSimApp(
 	mockIBCModule := ibcmock.NewIBCModule(&ibcmock.MockIBCApp{}, scopedIBCMockKeeper)
 
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey],
+		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAControllerKeeper, app.MsgServiceRouter(),
 	)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey],
+		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
 	)
@@ -708,6 +708,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
+	paramsKeeper.Subspace(icacontrollertypes.ModuleName)
+	paramsKeeper.Subspace(icahosttypes.ModuleName)
 
 	return paramsKeeper
 }
