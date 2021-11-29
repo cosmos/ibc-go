@@ -70,6 +70,10 @@ func (k Keeper) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
+	if portID == types.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID cannot be host chain port ID: %s", types.PortID)
+	}
+
 	if err := types.ValidateVersion(counterpartyVersion); err != nil {
 		return sdkerrors.Wrap(err, "counterparty version validation failed")
 	}
