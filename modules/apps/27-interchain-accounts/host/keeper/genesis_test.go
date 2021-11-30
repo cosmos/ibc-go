@@ -2,27 +2,28 @@ package keeper_test
 
 import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
-	genesisState := types.HostGenesisState{
-		ActiveChannels: []types.ActiveChannel{
+	genesisState := icatypes.HostGenesisState{
+		ActiveChannels: []icatypes.ActiveChannel{
 			{
 				PortId:    TestPortID,
 				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
-		InterchainAccounts: []types.RegisteredInterchainAccount{
+		InterchainAccounts: []icatypes.RegisteredInterchainAccount{
 			{
 				PortId:         TestPortID,
 				AccountAddress: TestAccAddress.String(),
 			},
 		},
-		Port: types.PortID,
+		Port: icatypes.PortID,
 	}
 
 	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
@@ -34,6 +35,10 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	accountAdrr, found := suite.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(TestAccAddress.String(), accountAdrr)
+
+	expParams := types.NewParams(false)
+	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
+	suite.Require().Equal(expParams, params)
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
@@ -53,5 +58,8 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(TestAccAddress.String(), genesisState.InterchainAccounts[0].AccountAddress)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
 
-	suite.Require().Equal(types.PortID, genesisState.GetPort())
+	suite.Require().Equal(icatypes.PortID, genesisState.GetPort())
+
+	expParams := types.DefaultParams()
+	suite.Require().Equal(expParams, genesisState.GetParams())
 }
