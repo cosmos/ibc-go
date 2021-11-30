@@ -13,9 +13,6 @@ const (
 	// StoreKey is the store key string for IBC fee module
 	StoreKey = ModuleName
 
-	// PortID is the port id that is wrapped by fee middleware
-	PortID = "feetransfer"
-
 	// RouterKey is the message route for IBC fee module
 	RouterKey = ModuleName
 
@@ -47,5 +44,10 @@ func KeyRelayerAddress(address string) []byte {
 
 // KeyFeeInEscrow returns the key for escrowed fees
 func KeyFeeInEscrow(packetID *channeltypes.PacketId) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/packet/%d", FeeInEscrowPrefix, packetID.PortId, packetID.ChannelId, packetID.Sequence))
+	return []byte(fmt.Sprintf("%s/%d", KeyFeeInEscrowChannelPrefix(packetID.PortId, packetID.ChannelId), packetID.Sequence))
+}
+
+// KeyFeeInEscrowChannelPrefix returns the key prefix for escrowed fees on the given channel
+func KeyFeeInEscrowChannelPrefix(portID, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/packet", FeeInEscrowPrefix, portID, channelID))
 }

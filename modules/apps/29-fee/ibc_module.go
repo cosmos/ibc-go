@@ -130,8 +130,20 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// TODO: Unescrow all remaining funds for unprocessed packets
+	// delete fee enabled on channel
+	// and refund any remaining fees escrowed on channel
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
+	// error should only be non-nil if there is a bug in the code
+	// that causes module account to have insufficient funds to refund
+	// all escrowed fees on the channel.
+	// Disable all channels to allow for coordinated fix to the issue
+	// and mitigate/reverse damage.
+	// NOTE: Underlying application's packets will still go through, but
+	// fee module will be disabled for all channels
+	if err != nil {
+		im.keeper.DisableAllChannels(ctx)
+	}
 	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
@@ -141,8 +153,20 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	// TODO: Unescrow all remaining funds for unprocessed packets
+	// delete fee enabled on channel
+	// and refund any remaining fees escrowed on channel
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
+	// error should only be non-nil if there is a bug in the code
+	// that causes module account to have insufficient funds to refund
+	// all escrowed fees on the channel.
+	// Disable all channels to allow for coordinated fix to the issue
+	// and mitigate/reverse damage.
+	// NOTE: Underlying application's packets will still go through, but
+	// fee module will be disabled for all channels
+	if err != nil {
+		im.keeper.DisableAllChannels(ctx)
+	}
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
