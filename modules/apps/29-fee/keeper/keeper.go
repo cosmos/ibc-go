@@ -126,6 +126,21 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []*types.FeeEnabledCha
 	return enabledChArr
 }
 
+// DisableAllChannels will disable the fee module for all channels.
+// Only called if the module enters into an invalid state
+// e.g. ModuleAccount has insufficient balance to refund users.
+// In this case, chain developers should investigate the issue, fix it,
+// and then re-enable the fee module in a coordinated upgrade.
+func (k Keeper) DisableAllChannels(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
+}
+
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
 func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
@@ -186,6 +201,21 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId)
 	return fee, true
 }
 
+// IterateChannelFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
+// if the callback returns true, then iteration is stopped.
+func (k Keeper) IterateChannelFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(identifiedFee types.IdentifiedPacketFee) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeeInEscrowChannelPrefix(portID, channelID))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		identifiedFee := k.MustUnmarshalFee(iterator.Value())
+		if cb(identifiedFee) {
+			break
+		}
+	}
+}
+
 // Deletes the fee associated with the given packetId
 func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) {
 	store := ctx.KVStore(k.storeKey)
@@ -193,7 +223,7 @@ func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId *channeltypes.Packet
 	store.Delete(key)
 }
 
-// GetFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
+// HasFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
 func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) bool {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(packetId)
