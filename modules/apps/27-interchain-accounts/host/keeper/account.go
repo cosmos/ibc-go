@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 )
 
 // RegisterInterchainAccount attempts to create a new account using the provided address and stores it in state keyed by the provided port identifier
@@ -14,7 +14,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, accAddr sdk.AccAddres
 		return
 	}
 
-	interchainAccount := types.NewInterchainAccount(
+	interchainAccount := icatypes.NewInterchainAccount(
 		authtypes.NewBaseAccountWithAddress(accAddr),
 		controllerPortID,
 	)

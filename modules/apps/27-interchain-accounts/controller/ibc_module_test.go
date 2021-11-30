@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
@@ -19,13 +19,13 @@ import (
 var (
 	// TestAccAddress defines a resuable bech32 address for testing purposes
 	// TODO: update crypto.AddressHash() when sdk uses address.Module()
-	TestAccAddress = types.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleName))), TestPortID)
+	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), TestPortID)
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID, _ = types.GeneratePortID(TestOwnerAddress, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	TestPortID, _ = icatypes.GeneratePortID(TestOwnerAddress, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
-	TestVersion = types.NewAppVersion(types.VersionPrefix, TestAccAddress.String())
+	TestVersion = icatypes.NewAppVersion(icatypes.VersionPrefix, TestAccAddress.String())
 )
 
 type InterchainAccountsTestSuite struct {
@@ -50,18 +50,18 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = types.PortID
-	path.EndpointB.ChannelConfig.PortID = types.PortID
+	path.EndpointA.ChannelConfig.PortID = icatypes.PortID
+	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointA.ChannelConfig.Version = types.VersionPrefix
+	path.EndpointA.ChannelConfig.Version = icatypes.VersionPrefix
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
 }
 
 func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
-	portID, err := types.GeneratePortID(owner, endpoint.ConnectionID, endpoint.Counterparty.ConnectionID)
+	portID, err := icatypes.GeneratePortID(owner, endpoint.ConnectionID, endpoint.Counterparty.ConnectionID)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
-			portID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			portID, err := icatypes.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
@@ -160,7 +160,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.VersionPrefix,
+				Version:        icatypes.VersionPrefix,
 			}
 
 			tc.malleate() // malleate mutates test data
@@ -213,7 +213,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	proofInit, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenTry
-	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, types.VersionPrefix, proofInit, proofHeight, types.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, icatypes.VersionPrefix, proofInit, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
@@ -334,7 +334,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 	proofAck, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenConfirm
-	msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proofAck, proofHeight, types.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proofAck, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
@@ -505,7 +505,7 @@ func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
 			cbs, ok := suite.chainA.GetSimApp().GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			counterpartyPortID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			counterpartyPortID, err := icatypes.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			suite.Require().NoError(err)
 
 			counterparty := channeltypes.Counterparty{
@@ -513,14 +513,14 @@ func (suite *InterchainAccountsTestSuite) TestNegotiateAppVersion() {
 				ChannelId: path.EndpointB.ChannelID,
 			}
 
-			proposedVersion = types.VersionPrefix
+			proposedVersion = icatypes.VersionPrefix
 
 			tc.malleate()
 
 			version, err := cbs.NegotiateAppVersion(suite.chainA.GetContext(), channeltypes.ORDERED, path.EndpointA.ConnectionID, path.EndpointA.ChannelConfig.PortID, counterparty, proposedVersion)
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().NoError(types.ValidateVersion(version))
+				suite.Require().NoError(icatypes.ValidateVersion(version))
 				suite.Require().Equal(TestVersion, version)
 			} else {
 				suite.Require().Error(err)

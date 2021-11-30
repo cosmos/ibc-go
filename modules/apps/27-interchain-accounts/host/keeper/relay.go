@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 )
 
@@ -13,7 +13,7 @@ import (
 func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
 	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
+		return sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
 
 	for _, msg := range msgs {
@@ -54,7 +54,7 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 	handler := k.msgRouter.Handler(msg)
 	if handler == nil {
-		return nil, types.ErrInvalidRoute
+		return nil, icatypes.ErrInvalidRoute
 	}
 
 	return handler(ctx, msg)
@@ -62,16 +62,16 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 
 // OnRecvPacket handles a given interchain accounts packet on a destination host chain
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error {
-	var data types.InterchainAccountPacketData
+	var data icatypes.InterchainAccountPacketData
 
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
-		return sdkerrors.Wrapf(types.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
+		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
 
 	switch data.Type {
-	case types.EXECUTE_TX:
-		msgs, err := types.DeserializeCosmosTx(k.cdc, data.Data)
+	case icatypes.EXECUTE_TX:
+		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
 		if err != nil {
 			return err
 		}
@@ -82,6 +82,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) error 
 
 		return nil
 	default:
-		return types.ErrUnknownDataType
+		return icatypes.ErrUnknownDataType
 	}
 }

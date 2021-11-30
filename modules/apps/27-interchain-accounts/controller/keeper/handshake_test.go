@@ -3,7 +3,7 @@ package keeper_test
 import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid connection sequence",
 			func() {
-				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
+				portID, err := icatypes.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
 				suite.Require().NoError(err)
 
 				path.EndpointA.ChannelConfig.PortID = portID
@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid counterparty connection sequence",
 			func() {
-				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+				portID, err := icatypes.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
 				suite.Require().NoError(err)
 
 				path.EndpointA.ChannelConfig.PortID = portID
@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
-			portID, err := types.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			portID, err := icatypes.GeneratePortID(TestOwnerAddress, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.VersionPrefix,
+				Version:        icatypes.VersionPrefix,
 			}
 
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
@@ -176,7 +176,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"invalid portID", func() {
-				path.EndpointA.ChannelConfig.PortID = types.PortID
+				path.EndpointA.ChannelConfig.PortID = icatypes.PortID
 				expectedChannelID = ""
 			}, false,
 		},
