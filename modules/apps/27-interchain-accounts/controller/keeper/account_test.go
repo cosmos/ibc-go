@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 
@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		{
 			"MsgChanOpenInit fails - channel is already active",
 			func() {
-				portID, err := types.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+				portID, err := icatypes.GeneratePortID(owner, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 				suite.Require().NoError(err)
 
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)

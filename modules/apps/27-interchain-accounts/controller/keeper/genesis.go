@@ -5,12 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts controller application state from a provided genesis state
-func InitGenesis(ctx sdk.Context, keeper Keeper, state types.ControllerGenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesisState) {
 	for _, portID := range state.Ports {
 		if !keeper.IsBound(ctx, portID) {
 			cap := keeper.BindPort(ctx, portID)
@@ -32,8 +32,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state types.ControllerGenesisSt
 }
 
 // ExportGenesis returns the interchain accounts controller exported genesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) types.ControllerGenesisState {
-	return types.NewControllerGenesisState(
+func ExportGenesis(ctx sdk.Context, keeper Keeper) icatypes.ControllerGenesisState {
+	return icatypes.NewControllerGenesisState(
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),
 		keeper.GetAllPorts(ctx),

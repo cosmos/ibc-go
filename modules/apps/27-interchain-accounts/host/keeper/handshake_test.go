@@ -3,7 +3,7 @@ package keeper_test
 import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid connection sequence",
 			func() {
-				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
+				portID, err := icatypes.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
 				suite.Require().NoError(err)
 
 				channel.Counterparty.PortId = portID
@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid counterparty connection sequence",
 			func() {
-				portID, err := types.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
+				portID, err := icatypes.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
 				suite.Require().NoError(err)
 
 				channel.Counterparty.PortId = portID
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid account address",
 			func() {
-				portID, err := types.GeneratePortID("invalid-owner-addr", "connection-0", "connection-0")
+				portID, err := icatypes.GeneratePortID("invalid-owner-addr", "connection-0", "connection-0")
 				suite.Require().NoError(err)
 
 				channel.Counterparty.PortId = portID
@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			counterpartyVersion = types.VersionPrefix
+			counterpartyVersion = icatypes.VersionPrefix
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)

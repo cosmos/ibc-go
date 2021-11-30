@@ -5,7 +5,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
@@ -15,7 +15,7 @@ import (
 func (suite *KeeperTestSuite) TestTrySendTx() {
 	var (
 		path       *ibctesting.Path
-		packetData types.InterchainAccountPacketData
+		packetData icatypes.InterchainAccountPacketData
 		chanCap    *capabilitytypes.Capability
 	)
 
@@ -36,11 +36,11 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
 				}
 
-				data, err := types.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []sdk.Msg{msg})
 				suite.Require().NoError(err)
 
-				packetData = types.InterchainAccountPacketData{
-					Type: types.EXECUTE_TX,
+				packetData = icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
 					Data: data,
 				}
 			},
@@ -65,11 +65,11 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 					},
 				}
 
-				data, err := types.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), msgsBankSend)
+				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), msgsBankSend)
 				suite.Require().NoError(err)
 
-				packetData = types.InterchainAccountPacketData{
-					Type: types.EXECUTE_TX,
+				packetData = icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
 					Data: data,
 				}
 			},
@@ -78,8 +78,8 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"data is nil",
 			func() {
-				packetData = types.InterchainAccountPacketData{
-					Type: types.EXECUTE_TX,
+				packetData = icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
 					Data: nil,
 				}
 			},

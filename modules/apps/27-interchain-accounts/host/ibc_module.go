@@ -6,7 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
 )
@@ -34,7 +34,7 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -59,7 +59,7 @@ func (im IBCModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
-	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -113,7 +113,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "cannot receive acknowledgement on a host channel end, a host chain does not send a packet over the channel")
+	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "cannot receive acknowledgement on a host channel end, a host chain does not send a packet over the channel")
 }
 
 // OnTimeoutPacket implements the IBCModule interface
@@ -122,7 +122,7 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
+	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }
 
 // NegotiateAppVersion implements the IBCModule interface

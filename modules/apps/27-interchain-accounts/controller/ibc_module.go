@@ -6,7 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
@@ -63,7 +63,7 @@ func (im IBCModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
-	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -92,7 +92,7 @@ func (im IBCModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
 // OnChanCloseInit implements the IBCModule interface
@@ -156,5 +156,5 @@ func (im IBCModule) NegotiateAppVersion(
 	counterparty channeltypes.Counterparty,
 	proposedVersion string,
 ) (string, error) {
-	return "", sdkerrors.Wrap(types.ErrInvalidChannelFlow, "ICS-27 app version negotiation is unsupported on controller chains")
+	return "", sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "ICS-27 app version negotiation is unsupported on controller chains")
 }
