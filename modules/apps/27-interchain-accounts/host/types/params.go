@@ -12,7 +12,7 @@ const (
 )
 
 var (
-	// KeyHostEnabled is store's key for HostEnabled Params
+	// KeyHostEnabled is the store key for HostEnabled Params
 	KeyHostEnabled = []byte("HostEnabled")
 )
 
