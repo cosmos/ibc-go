@@ -9,10 +9,10 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
-// IBCModule implements the ICS26 callbacks for the fee middleware given the fee keeper and the underlying application.
+// IncentivizedIBCModule implements the ICS26 callbacks for the fee middleware given the fee keeper and the underlying application.
 type IBCModule struct {
 	keeper keeper.Keeper
 	app    porttypes.IBCModule
@@ -175,9 +175,14 @@ func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
+) exported.Acknowledgement {
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
-	return ack
+	sourceRelayer, _ := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
+
+	return types.IncentivizedAcknowledgement{
+		Result:                ack.Acknowledgement(),
+		ForwardRelayerAddress: sourceRelayer,
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -188,20 +193,18 @@ func (im IBCModule) OnAcknowledgementPacket(
 	relayer sdk.AccAddress,
 ) error {
 	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		sourceRelayer, exists := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
-		if !exists {
-			return sdkerrors.Wrapf(types.ErrCounterpartyAddressEmpty, "source address for dest relayer address %s not found", relayer.String())
+		ack := &types.IncentivizedAcknowledgement{}
+		if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", err)
 		}
 
-		// unmarshal incentivized ack
-
-		packetId := channeltypes.NewPacketId(packet.SourceChannel, types.PortID, packet.Sequence)
+		packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 		identifiedPacketFee, exists := im.keeper.GetFeeInEscrow(ctx, packetId)
 		if !exists {
 			return sdkerrors.Wrapf(types.ErrFeeNotFound, "fee not found for packet id %s", packetId)
 		}
 
-		if err := im.keeper.DistributeFee(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, sdk.AccAddress(sourceRelayer), packetId); err != nil {
+		if err := im.keeper.DistributeFee(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), sdk.AccAddress(ack.ForwardRelayerAddress), relayer, packetId); err != nil {
 			return err
 		}
 	}
@@ -214,13 +217,13 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	packetId := channeltypes.NewPacketId(packet.SourceChannel, types.PortID, packet.Sequence)
+	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 	identifiedPacketFee, exists := im.keeper.GetFeeInEscrow(ctx, packetId)
 	if !exists {
 		return sdkerrors.Wrapf(types.ErrFeeNotFound, "fee not found for packet id %s", packetId)
 	}
 	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		if err := im.keeper.DistributeFeeTimeout(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, types.PortID, packet.Sequence)); err != nil {
+		if err := im.keeper.DistributeFeeTimeout(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)); err != nil {
 			return err
 		}
 	}
