@@ -169,7 +169,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 			return sdkerrors.Wrapf(types.ErrCounterpartyAddressEmpty, "source address for dest relayer address %s not found", relayer.String())
 		}
 
-		packetId := types.NewPacketId(packet.SourceChannel, packet.Sequence)
+		// unmarshal incentivized ack
+
+		packetId := channeltypes.NewPacketId(packet.SourceChannel, types.PortID, packet.Sequence)
 		identifiedPacketFee, exists := im.keeper.GetFeeInEscrow(ctx, packetId)
 		if !exists {
 			return sdkerrors.Wrapf(types.ErrFeeNotFound, "fee not found for packet id %s", packetId)
@@ -188,13 +190,13 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	packetId := types.NewPacketId(packet.SourceChannel, packet.Sequence)
+	packetId := channeltypes.NewPacketId(packet.SourceChannel, types.PortID, packet.Sequence)
 	identifiedPacketFee, exists := im.keeper.GetFeeInEscrow(ctx, packetId)
 	if !exists {
 		return sdkerrors.Wrapf(types.ErrFeeNotFound, "fee not found for packet id %s", packetId)
 	}
 	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		if err := im.keeper.DistributeFeeTimeout(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, types.NewPacketId(packet.SourceChannel, packet.Sequence)); err != nil {
+		if err := im.keeper.DistributeFeeTimeout(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, types.PortID, packet.Sequence)); err != nil {
 			return err
 		}
 	}
