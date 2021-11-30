@@ -5,7 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
@@ -29,30 +29,30 @@ func (k Keeper) OnChanOpenTry(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
-	if portID != types.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", types.PortID, portID)
+	if portID != icatypes.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.PortID, portID)
 	}
 
-	connSequence, err := types.ParseHostConnSequence(counterparty.PortId)
+	connSequence, err := icatypes.ParseHostConnSequence(counterparty.PortId)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, counterparty.PortId)
+		return sdkerrors.Wrapf(err, "expected format %s, got %s", icatypes.ControllerPortFormat, counterparty.PortId)
 	}
 
-	counterpartyConnSequence, err := types.ParseControllerConnSequence(counterparty.PortId)
+	counterpartyConnSequence, err := icatypes.ParseControllerConnSequence(counterparty.PortId)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", types.ControllerPortFormat, counterparty.PortId)
+		return sdkerrors.Wrapf(err, "expected format %s, got %s", icatypes.ControllerPortFormat, counterparty.PortId)
 	}
 
 	if err := k.validateControllerPortParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
 		return sdkerrors.Wrapf(err, "failed to validate controller port %s", counterparty.PortId)
 	}
 
-	if err := types.ValidateVersion(version); err != nil {
+	if err := icatypes.ValidateVersion(version); err != nil {
 		return sdkerrors.Wrap(err, "version validation failed")
 	}
 
-	if counterpartyVersion != types.VersionPrefix {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.VersionPrefix, version)
+	if counterpartyVersion != icatypes.VersionPrefix {
+		return sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "expected %s, got %s", icatypes.VersionPrefix, version)
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
@@ -62,14 +62,14 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	// Check to ensure that the version string contains the expected address generated from the Counterparty portID
-	accAddr := types.GenerateAddress(k.accountKeeper.GetModuleAddress(types.ModuleName), counterparty.PortId)
-	parsedAddr, err := types.ParseAddressFromVersion(version)
+	accAddr := icatypes.GenerateAddress(k.accountKeeper.GetModuleAddress(icatypes.ModuleName), counterparty.PortId)
+	parsedAddr, err := icatypes.ParseAddressFromVersion(version)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format <app-version%saccount-address>, got %s", types.Delimiter, version)
+		return sdkerrors.Wrapf(err, "expected format <app-version%saccount-address>, got %s", icatypes.Delimiter, version)
 	}
 
 	if parsedAddr != accAddr.String() {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "version contains invalid account address: expected %s, got %s", parsedAddr, accAddr)
 	}
 
 	// Register interchain account if it does not already exist
