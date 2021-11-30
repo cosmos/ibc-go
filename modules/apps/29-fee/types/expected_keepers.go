@@ -16,6 +16,7 @@ type AccountKeeper interface {
 
 // ICS4Wrapper defines the expected ICS4Wrapper for middleware
 type ICS4Wrapper interface {
+	WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, acknowledgement []byte) error
 	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
 }
 
