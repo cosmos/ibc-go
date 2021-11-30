@@ -12,7 +12,7 @@ const (
 )
 
 var (
-	// KeyControllerEnabled is store's key for ControllerEnabled Params
+	// KeyControllerEnabled is the store key for ControllerEnabled Params
 	KeyControllerEnabled = []byte("ControllerEnabled")
 )
 
