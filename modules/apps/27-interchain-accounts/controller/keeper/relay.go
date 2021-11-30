@@ -5,18 +5,18 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 )
 
 // TrySendTx takes in a transaction from an authentication module and attempts to send the packet
 // if the base application has the capability to send on the provided portID
-func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, icaPacketData types.InterchainAccountPacketData) (uint64, error) {
+func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, icaPacketData icatypes.InterchainAccountPacketData) (uint64, error) {
 	// Check for the active channel
 	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
 	if !found {
-		return 0, sdkerrors.Wrapf(types.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
+		return 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
 
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
@@ -37,7 +37,7 @@ func (k Keeper) createOutgoingPacket(
 	destinationPort,
 	destinationChannel string,
 	chanCap *capabilitytypes.Capability,
-	icaPacketData types.InterchainAccountPacketData,
+	icaPacketData icatypes.InterchainAccountPacketData,
 ) (uint64, error) {
 	if err := icaPacketData.ValidateBasic(); err != nil {
 		return 0, sdkerrors.Wrap(err, "invalid interchain account packet data")
