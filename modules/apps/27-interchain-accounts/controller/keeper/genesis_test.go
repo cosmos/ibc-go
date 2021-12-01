@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
@@ -34,6 +35,11 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(TestAccAddress.String(), accountAdrr)
+
+	expParams := types.NewParams(false)
+	params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
+	suite.Require().Equal(expParams, params)
+
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
@@ -54,4 +60,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
 
 	suite.Require().Equal([]string{TestPortID}, genesisState.GetPorts())
+
+	expParams := types.DefaultParams()
+	suite.Require().Equal(expParams, genesisState.GetParams())
 }

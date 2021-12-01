@@ -29,3 +29,4 @@ message InterchainAccountPacketData {
 message CosmosTx {
   repeated google.protobuf.Any messages = 1;
 }
+

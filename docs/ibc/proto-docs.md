@@ -336,6 +336,7 @@ ControllerGenesisState defines the interchain accounts controller genesis state
 | `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
 | `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
 | `ports` | [string](#string) | repeated |  |
+| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
 
 
 
@@ -369,6 +370,7 @@ HostGenesisState defines the interchain accounts host genesis state
 | `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
 | `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
 | `port` | [string](#string) |  |  |
+| `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
 
 
 

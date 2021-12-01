@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	controllertypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
@@ -85,7 +87,7 @@ func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
 					},
 				}
 
-				genesisState = types.NewControllerGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, []string{})
+				genesisState = types.NewControllerGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
 			},
 			false,
 		},
@@ -99,7 +101,7 @@ func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
 					},
 				}
 
-				genesisState = types.NewControllerGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, []string{})
+				genesisState = types.NewControllerGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
 			},
 			false,
 		},
@@ -120,7 +122,7 @@ func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
 					},
 				}
 
-				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{})
+				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
 			},
 			false,
 		},
@@ -141,7 +143,7 @@ func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
 					},
 				}
 
-				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{})
+				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
 			},
 			false,
 		},
@@ -162,7 +164,7 @@ func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
 					},
 				}
 
-				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{"invalid|port"})
+				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{"invalid|port"}, controllertypes.DefaultParams())
 			},
 			false,
 		},
@@ -210,7 +212,7 @@ func (suite *TypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = types.NewHostGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, types.PortID)
+				genesisState = types.NewHostGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, types.PortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -224,7 +226,7 @@ func (suite *TypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = types.NewHostGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, types.PortID)
+				genesisState = types.NewHostGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, types.PortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -245,7 +247,7 @@ func (suite *TypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, types.PortID)
+				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, types.PortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -266,7 +268,7 @@ func (suite *TypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, types.PortID)
+				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, types.PortID, hosttypes.DefaultParams())
 			},
 			false,
 		},
@@ -287,7 +289,7 @@ func (suite *TypesTestSuite) TestValidateHostGenesisState() {
 					},
 				}
 
-				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, "invalid|port")
+				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, "invalid|port", hosttypes.DefaultParams())
 			},
 			false,
 		},

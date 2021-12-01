@@ -5,6 +5,8 @@ package ibc.applications.interchain_accounts.v1;
 option go_package = "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types";
 
 import "gogoproto/gogo.proto";
+import "ibc/applications/interchain_accounts/controller/v1/controller.proto";
+import "ibc/applications/interchain_accounts/host/v1/host.proto";
 
 // GenesisState defines the interchain accounts genesis state
 message GenesisState {
@@ -21,6 +23,7 @@ message ControllerGenesisState {
   repeated RegisteredInterchainAccount interchain_accounts = 2
       [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"interchain_accounts\""];
   repeated string ports = 3;
+  ibc.applications.interchain_accounts.controller.v1.Params params = 4 [(gogoproto.nullable) = false];
 }
 
 // HostGenesisState defines the interchain accounts host genesis state
@@ -30,6 +33,7 @@ message HostGenesisState {
   repeated RegisteredInterchainAccount interchain_accounts = 2
       [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"interchain_accounts\""];
   string port = 3;
+   ibc.applications.interchain_accounts.host.v1.Params params = 4 [(gogoproto.nullable) = false];
 }
 
 // ActiveChannel contains a pairing of port ID and channel ID for an active interchain accounts channel

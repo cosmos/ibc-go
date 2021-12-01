@@ -10,8 +10,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
@@ -19,8 +21,9 @@ import (
 
 // Keeper defines the IBC interchain accounts host keeper
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      codec.BinaryCodec
+	storeKey   sdk.StoreKey
+	cdc        codec.BinaryCodec
+	paramSpace paramtypes.Subspace
 
 	channelKeeper icatypes.ChannelKeeper
 	portKeeper    icatypes.PortKeeper
@@ -33,7 +36,8 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
+	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+	channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 
@@ -42,9 +46,15 @@ func NewKeeper(
 		panic("the Interchain Accounts module account has not been set")
 	}
 
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
+
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
+		paramSpace:    paramSpace,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		accountKeeper: accountKeeper,
