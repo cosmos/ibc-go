@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -104,8 +105,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 							timeoutTimestamp = consensusStateTimestamp + timeoutTimestamp
 						}
 					} else {
-						// rare case: if local clock time is equal to or earlier than Jan 1st, 1970 12:00 AM
-						timeoutTimestamp = consensusStateTimestamp + timeoutTimestamp
+						return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
 					}
 				}
 			}
