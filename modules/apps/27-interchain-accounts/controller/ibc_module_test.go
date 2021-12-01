@@ -262,7 +262,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			}, false,
 		},
-
 		{
 			"ICA OnChanOpenACK fails - invalid version", func() {
 				path.EndpointB.ChannelConfig.Version = "invalid|version"
