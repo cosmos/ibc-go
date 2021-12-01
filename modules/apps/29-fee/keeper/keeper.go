@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -75,11 +74,6 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (
 // GetFeeAccount returns the ICS29 Fee ModuleAccount address
 func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 	return k.authKeeper.GetModuleAddress(types.ModuleName)
-}
-
-// SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
-	return k.ics4Wrapper.SendPacket(ctx, chanCap, packet)
 }
 
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
@@ -149,6 +143,25 @@ func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAdd
 func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyRelayerAddress(address)
+
+	if !store.Has(key) {
+		return "", false
+	}
+
+	addr := string(store.Get(key))
+	return addr, true
+}
+
+// SetForwardRelayerAddress sets the forward relayer address during OnRecvPacket in case of async acknowledgement
+func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId, address string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyForwardRelayerAddress(packetId), []byte(address))
+}
+
+// GetForwardRelayerAddress gets forward relayer address for a particular packet
+func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyForwardRelayerAddress(packetId)
 
 	if !store.Has(key) {
 		return "", false
