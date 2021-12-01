@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -73,7 +74,7 @@ func validateAllowlist(i interface{}) error {
 	}
 
 	for _, typeURL := range allowMsgs {
-		if typeURL == "" {
+		if strings.TrimSpace(typeURL) == "" {
 			return fmt.Errorf("parameter must not contain empty strings: %s", allowMsgs)
 		}
 	}
