@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
-	hosttypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
@@ -138,6 +138,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			"success", func() {}, true,
 		},
 		{
+			"host submodule disabled", func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, false,
+		},
+		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
@@ -252,6 +257,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 
 		{
 			"success", func() {}, true,
+		},
+		{
+			"host submodule disabled", func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, false,
 		},
 		{
 			"success: ICA auth module callback returns error", func() {
@@ -388,6 +398,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			"success", func() {}, true,
 		},
 		{
+			"host submodule disabled", func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, false,
+		},
+		{
 			"success with ICA auth module callback failure", func() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
@@ -437,7 +452,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			}
 			packetData = icaPacketData.GetBytes()
 
-			expParams := hosttypes.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+			expParams := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), expParams)
 
 			// malleate packetData for test cases
