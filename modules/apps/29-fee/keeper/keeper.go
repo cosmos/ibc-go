@@ -28,6 +28,7 @@ type Keeper struct {
 	cdc      codec.BinaryCodec
 
 	authKeeper    types.AccountKeeper
+	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	bankKeeper    types.BankKeeper
@@ -36,12 +37,13 @@ type Keeper struct {
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
+		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		authKeeper:    authKeeper,
@@ -52,11 +54,6 @@ func NewKeeper(
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
-}
-
-// ChanCloseInit wraps the channel keeper's function in order to expose it to underlying app.
-func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error {
-	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // BindPort defines a wrapper function for the port Keeper's function in
@@ -82,7 +79,7 @@ func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
 func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
-	return k.channelKeeper.SendPacket(ctx, chanCap, packet)
+	return k.ics4Wrapper.SendPacket(ctx, chanCap, packet)
 }
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
