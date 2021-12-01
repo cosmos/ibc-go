@@ -80,6 +80,10 @@ func (gs ControllerGenesisState) Validate() error {
 		}
 	}
 
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -124,6 +128,10 @@ func (gs HostGenesisState) Validate() error {
 	}
 
 	if err := host.PortIdentifierValidator(gs.Port); err != nil {
+		return err
+	}
+
+	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
 
