@@ -34,6 +34,7 @@
   
 - [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
+    - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
     - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
   
@@ -724,6 +725,22 @@ Contains the PortID & ChannelID for a fee enabled channel
 
 
 
+<a name="ibc.applications.fee.v1.ForwardRelayerAddress"></a>
+
+### ForwardRelayerAddress
+Contains the forward relayer address and packetId used for async acknowledgements
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
+
+
+
+
+
+
 <a name="ibc.applications.fee.v1.GenesisState"></a>
 
 ### GenesisState
@@ -735,6 +752,7 @@ GenesisState defines the fee middleware genesis state
 | `identified_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated |  |
 | `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated |  |
+| `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated |  |
 
 
 

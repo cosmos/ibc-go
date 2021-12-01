@@ -29,6 +29,9 @@ const (
 
 	// FeeInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeeInEscrowPrefix = "feeInEscrow"
+
+	// ForwardRelayerPrefix is the key prefix for forward relayer addresses stored in state for async acknowledgements
+	ForwardRelayerPrefix = "forwardRelayer"
 )
 
 // FeeEnabledKey returns the key that stores a flag to determine if fee logic should
@@ -44,7 +47,7 @@ func KeyRelayerAddress(address string) []byte {
 
 // KeyForwardAddress returns the key for packetID -> forwardAddress mapping
 func KeyForwardRelayerAddress(packetId *channeltypes.PacketId) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%d/", RelayerAddressKeyPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
+	return []byte(fmt.Sprintf("%s/%s/%s/%d/", ForwardRelayerPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
 }
 
 // KeyFeeInEscrow returns the key for escrowed fees

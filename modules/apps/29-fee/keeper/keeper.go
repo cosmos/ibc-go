@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -152,6 +153,27 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string,
 	return addr, true
 }
 
+// GetAllRelayerAddresses returns all registered relayer addresses
+func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelayerAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.RelayerAddressKeyPrefix))
+	defer iterator.Close()
+
+	var registeredAddrArr []*types.RegisteredRelayerAddress
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		addr := &types.RegisteredRelayerAddress{
+			Address:             keySplit[1],
+			CounterpartyAddress: string(iterator.Value()),
+		}
+
+		registeredAddrArr = append(registeredAddrArr, addr)
+	}
+
+	return registeredAddrArr
+}
+
 // SetForwardRelayerAddress sets the forward relayer address during OnRecvPacket in case of async acknowledgement
 func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId, address string) {
 	store := ctx.KVStore(k.storeKey)
@@ -171,24 +193,28 @@ func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes
 	return addr, true
 }
 
-func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelayerAddress {
+// GetAllForwardRelayerAddresses returns all forward relayer addresses stored for async acknowledgements
+func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.RelayerAddressKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ForwardRelayerPrefix))
 	defer iterator.Close()
 
-	var registeredAddrArr []*types.RegisteredRelayerAddress
+	var forwardRelayerAddr []*types.ForwardRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		addr := &types.RegisteredRelayerAddress{
-			Address:             keySplit[1],
-			CounterpartyAddress: string(iterator.Value()),
+		seq, _ := strconv.ParseUint(keySplit[3], 0, 64)
+		packetId := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+
+		addr := &types.ForwardRelayerAddress{
+			Address:  string(iterator.Value()),
+			PacketId: packetId,
 		}
 
-		registeredAddrArr = append(registeredAddrArr, addr)
+		forwardRelayerAddr = append(forwardRelayerAddr, addr)
 	}
 
-	return registeredAddrArr
+	return forwardRelayerAddr
 }
 
 // Stores a Fee for a given packet in state
