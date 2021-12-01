@@ -14,7 +14,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	packetId := channeltypes.NewPacketId(
 		ibctesting.FirstChannelID,
-		types.PortID,
+		transfertypes.PortID,
 		uint64(1),
 	)
 	fee := types.Fee{
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	packetId := channeltypes.NewPacketId(
 		ibctesting.FirstChannelID,
-		types.PortID,
+		transfertypes.PortID,
 		uint64(1),
 	)
 	fee := types.Fee{

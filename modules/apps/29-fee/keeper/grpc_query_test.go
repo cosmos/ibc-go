@@ -7,19 +7,21 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
+func (suite *KeeperTestSuite) TestQueryIncentivizedPacketI() {
 
 	var (
 		req *types.QueryIncentivizedPacketRequest
 	)
 
 	// setup
-	validPacketId := channeltypes.NewPacketId(ibctesting.FirstChannelID, types.PortID, 1)
-	invalidPacketId := channeltypes.NewPacketId(ibctesting.FirstChannelID, types.PortID, 2)
+	suite.coordinator.Setup(suite.path) // setup channel
+	validPacketId := channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 1)
+	invalidPacketId := channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 2)
 	identifiedPacketFee := types.NewIdentifiedPacketFee(
 		validPacketId,
 		types.Fee{
@@ -67,8 +69,10 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			identifiedPacketFee.RefundAddress = refundAcc.String()
 
 			tc.malleate()
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
+			suite.Require().NoError(err)
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 			res, err := suite.queryClient.IncentivizedPacket(ctx, req)
 
 			if tc.expPass {
@@ -111,13 +115,14 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			func() {
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 
-				fee1 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, types.PortID, 1), fee, refundAcc.String(), []string(nil))
-				fee2 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, types.PortID, 2), fee, refundAcc.String(), []string(nil))
-				fee3 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, types.PortID, 3), fee, refundAcc.String(), []string(nil))
+				fee1 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 1), fee, refundAcc.String(), []string(nil))
+				fee2 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 2), fee, refundAcc.String(), []string(nil))
+				fee3 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 3), fee, refundAcc.String(), []string(nil))
 
 				expPackets = []*types.IdentifiedPacketFee{}
 				expPackets = append(expPackets, fee1, fee2, fee3)
 
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
 				for _, p := range expPackets {
 					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), p)
 				}
