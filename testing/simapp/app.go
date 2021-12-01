@@ -222,7 +222,6 @@ func NewSimApp(
 	homePath string, invCheckPeriod uint, encodingConfig simappparams.EncodingConfig,
 	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
-
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -323,7 +322,7 @@ func NewSimApp(
 	)
 
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
 	)
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
