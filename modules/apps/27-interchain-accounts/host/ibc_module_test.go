@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
+	hosttypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
@@ -435,6 +436,9 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				Data: data,
 			}
 			packetData = icaPacketData.GetBytes()
+
+			expParams := hosttypes.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), expParams)
 
 			// malleate packetData for test cases
 			tc.malleate()

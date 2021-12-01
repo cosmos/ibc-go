@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 )
@@ -16,7 +17,12 @@ func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) e
 		return sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
 
+	allowMsgs := k.GetAllowMessages(ctx)
 	for _, msg := range msgs {
+		if !types.ContainsType(allowMsgs, msg) {
+			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
+		}
+
 		for _, signer := range msg.GetSigners() {
 			if interchainAccountAddr != signer.String() {
 				return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, signer.String())
