@@ -10,6 +10,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	transfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
@@ -49,6 +50,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -74,6 +78,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -105,6 +112,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate), sdk.MsgTypeURL(msgUndelegate)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -137,6 +147,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -173,6 +186,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -196,6 +212,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -219,6 +238,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -253,6 +275,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
@@ -310,6 +335,27 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			false,
 		},
 		{
+			"unauthorised: message type not allowed", // NOTE: do not update params to explicitly force the error
+			func() {
+				msg := &banktypes.MsgSend{
+					FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
+					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
+				}
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
+				suite.Require().NoError(err)
+
+				icaPacketData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+			},
+			false,
+		},
+		{
 			"unauthorised: signer address is not the interchain account associated with the controller portID",
 			func() {
 				msg := &banktypes.MsgSend{
@@ -327,6 +373,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 
 				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			false,
 		},

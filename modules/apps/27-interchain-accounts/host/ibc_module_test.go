@@ -139,7 +139,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false))
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
 		},
 		{
@@ -260,7 +260,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		},
 		{
 			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false))
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
 		},
 		{
@@ -399,7 +399,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		},
 		{
 			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false))
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
 		},
 		{
@@ -451,6 +451,9 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				Data: data,
 			}
 			packetData = icaPacketData.GetBytes()
+
+			params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
 			// malleate packetData for test cases
 			tc.malleate()
