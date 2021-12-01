@@ -18,7 +18,7 @@ func GetCmdParams() *cobra.Command {
 		Short:   "Query the current interchain-accounts controller submodule parameters",
 		Long:    "Query the current interchain-accounts controller submodule parameters",
 		Args:    cobra.NoArgs,
-		Example: fmt.Sprintf("%s query ibc-transfer params", version.AppName),
+		Example: fmt.Sprintf("%s query interchain-accounts controller params", version.AppName),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
