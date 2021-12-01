@@ -6,6 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
@@ -42,6 +43,10 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
+	if !im.keeper.IsControllerEnabled(ctx) {
+		return types.ErrControllerSubModuleDisabled
+	}
+
 	if err := im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
 		return err
 	}
@@ -78,6 +83,10 @@ func (im IBCModule) OnChanOpenAck(
 	channelID string,
 	counterpartyVersion string,
 ) error {
+	if !im.keeper.IsControllerEnabled(ctx) {
+		return types.ErrControllerSubModuleDisabled
+	}
+
 	if err := im.keeper.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion); err != nil {
 		return err
 	}
@@ -130,6 +139,10 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	if !im.keeper.IsControllerEnabled(ctx) {
+		return types.ErrControllerSubModuleDisabled
+	}
+
 	// call underlying app's OnAcknowledgementPacket callback.
 	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
@@ -140,6 +153,10 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	if !im.keeper.IsControllerEnabled(ctx) {
+		return types.ErrControllerSubModuleDisabled
+	}
+
 	if err := im.keeper.OnTimeoutPacket(ctx, packet); err != nil {
 		return err
 	}
