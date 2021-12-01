@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
@@ -116,6 +117,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	}{
 		{
 			"success", func() {}, true,
+		},
+		{
+			"controller submodule disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
+			}, false,
 		},
 		{
 			"ICA OnChanOpenInit fails - UNORDERED channel", func() {
@@ -250,6 +256,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	}{
 		{
 			"success", func() {}, true,
+		},
+		{
+			"controller submodule disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
+			}, false,
 		},
 		{
 			"ICA OnChanOpenACK fails - invalid version", func() {
@@ -460,15 +471,15 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			packet := channeltypes.NewPacket(
 				[]byte("empty packet data"),
 				suite.chainA.SenderAccount.GetSequence(),
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
 				clienttypes.NewHeight(0, 100),
 				0,
 			)
 
-			ack := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, TestAccAddress)
+			ack := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, TestAccAddress)
 			suite.Require().Equal(tc.expPass, ack.Success())
 		})
 	}

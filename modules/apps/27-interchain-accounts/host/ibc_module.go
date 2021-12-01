@@ -6,6 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v2/modules/core/exported"
@@ -49,6 +50,10 @@ func (im IBCModule) OnChanOpenTry(
 	version,
 	counterpartyVersion string,
 ) error {
+	if !im.keeper.IsHostEnabled(ctx) {
+		return types.ErrHostSubModuleDisabled
+	}
+
 	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
 }
 
@@ -68,6 +73,10 @@ func (im IBCModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
+	if !im.keeper.IsHostEnabled(ctx) {
+		return types.ErrHostSubModuleDisabled
+	}
+
 	return im.keeper.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
@@ -96,6 +105,10 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	if !im.keeper.IsHostEnabled(ctx) {
+		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled.Error())
+	}
+
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 	if err := im.keeper.OnRecvPacket(ctx, packet); err != nil {

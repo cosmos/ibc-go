@@ -6,8 +6,9 @@ import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/controller/types"
 )
 
-// GetControllerEnabled retrieves the host enabled boolean from the paramstore
-func (k Keeper) GetControllerEnabled(ctx sdk.Context) bool {
+// IsControllerEnabled retrieves the host enabled boolean from the paramstore.
+// True is returned if the controller submodule is enabled.
+func (k Keeper) IsControllerEnabled(ctx sdk.Context) bool {
 	var res bool
 	k.paramSpace.Get(ctx, types.KeyControllerEnabled, &res)
 	return res
@@ -15,7 +16,7 @@ func (k Keeper) GetControllerEnabled(ctx sdk.Context) bool {
 
 // GetParams returns the total set of the host submodule parameters.
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.GetControllerEnabled(ctx))
+	return types.NewParams(k.IsControllerEnabled(ctx))
 }
 
 // SetParams sets the total set of the host submodule parameters.
