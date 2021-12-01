@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().True(found)
 	suite.Require().Equal(TestAccAddress.String(), accountAdrr)
 
-	expParams := types.NewParams(false)
+	expParams := types.NewParams(false, nil)
 	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
 	suite.Require().Equal(expParams, params)
 }
