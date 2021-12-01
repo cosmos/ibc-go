@@ -12,7 +12,7 @@ const (
 	VersionPrefix = "ics27-1"
 
 	// PortID is the default port id that the interchain accounts module binds to
-	PortID = "ibcaccount"
+	PortID = "interchain-account"
 
 	// StoreKey is the store key string for interchain accounts
 	StoreKey = ModuleName
