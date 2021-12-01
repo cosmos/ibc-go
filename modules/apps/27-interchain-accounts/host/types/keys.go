@@ -12,8 +12,8 @@ const (
 	StoreKey = ModuleName
 )
 
-// ContainsType returns true if the sdk.Msg TypeURL is present in allowMsgs, otherwise false
-func ContainsType(allowMsgs []string, msg sdk.Msg) bool {
+// ContainsMsgType returns true if the sdk.Msg TypeURL is present in allowMsgs, otherwise false
+func ContainsMsgType(allowMsgs []string, msg sdk.Msg) bool {
 	for _, v := range allowMsgs {
 		if v == sdk.MsgTypeURL(msg) {
 			return true

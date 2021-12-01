@@ -452,8 +452,8 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			}
 			packetData = icaPacketData.GetBytes()
 
-			expParams := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), expParams)
+			params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
 			// malleate packetData for test cases
 			tc.malleate()

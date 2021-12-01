@@ -19,7 +19,7 @@ func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) e
 
 	allowMsgs := k.GetAllowMessages(ctx)
 	for _, msg := range msgs {
-		if !types.ContainsType(allowMsgs, msg) {
+		if !types.ContainsMsgType(allowMsgs, msg) {
 			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
 		}
 

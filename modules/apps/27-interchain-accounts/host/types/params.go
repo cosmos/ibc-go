@@ -67,9 +67,15 @@ func validateEnabled(i interface{}) error {
 }
 
 func validateAllowlist(i interface{}) error {
-	_, ok := i.([]string)
+	allowMsgs, ok := i.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	for _, typeURL := range allowMsgs {
+		if typeURL == "" {
+			return fmt.Errorf("parameter must not contain empty strings: %s", allowMsgs)
+		}
 	}
 
 	return nil
