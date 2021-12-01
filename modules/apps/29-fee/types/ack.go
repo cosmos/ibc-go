@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
+// NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
 func NewIncentivizedAcknowledgement(relayer string, ack []byte) IncentivizedAcknowledgement {
 	return IncentivizedAcknowledgement{
 		Result:                ack,
