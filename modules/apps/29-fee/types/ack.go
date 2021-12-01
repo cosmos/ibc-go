@@ -6,10 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// two methods for ack
-// success - returns bool (if fwd relayer address empty, false)
-// acknowledge will just marshl & return
-
 // Success implements the Acknowledgement interface. The acknowledgement is
 // considered successful if the forward relayer address is empty. Otherwise it is
 // considered a failed acknowledgement.
