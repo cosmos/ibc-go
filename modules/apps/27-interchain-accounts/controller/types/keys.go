@@ -1,9 +1,9 @@
 package types
 
 const (
-	// ModuleName defines the interchain accounts controller module name
-	ModuleName = "icacontroller"
+	// SubModuleName defines the interchain accounts controller module name
+	SubModuleName = "icacontroller"
 
 	// StoreKey is the store key string for the interchain accounts controller module
-	StoreKey = ModuleName
+	StoreKey = SubModuleName
 )
