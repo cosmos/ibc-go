@@ -14,19 +14,19 @@ message GenesisState {
   repeated ForwardRelayerAddress    forward_relayers     = 4 [(gogoproto.moretags) = "yaml:\"forward_relayers\""];
 }
 
-// Contains the PortID & ChannelID for a fee enabled channel
+// FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 message FeeEnabledChannel {
   string port_id    = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
-// Contains the address and counterparty address for a specific relayer (for distributing fees)
+// RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
 message RegisteredRelayerAddress {
   string address              = 1;
   string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
 }
 
-// Contains the forward relayer address and packetId used for async acknowledgements
+// ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements
 message ForwardRelayerAddress {
   string                       address   = 1;
   ibc.core.channel.v1.PacketId packet_id = 2 [(gogoproto.moretags) = "yaml:\"packet_id\""];
