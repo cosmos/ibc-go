@@ -64,7 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
 
-## [v1.2.4](https://github.com/cosmos/ibc-go/releases/tag/v1.2.4) - 2021-13-02
+## [v1.2.4](https://github.com/cosmos/ibc-go/releases/tag/v1.2.4) - 2021-12-02
 
 ### Dependencies
 
@@ -107,7 +107,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](https://github.com/tendermint/tendermint) from v0.34.12 to v0.34.13.
 
-## [v1.1.4](https://github.com/cosmos/ibc-go/releases/tag/v1.2.4) - 2021-13-02
+## [v1.1.4](https://github.com/cosmos/ibc-go/releases/tag/v1.1.4) - 2021-12-02
 
 ### Dependencies
 
