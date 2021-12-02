@@ -34,6 +34,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.0.1](https://github.com/cosmos/ibc-go/releases/tag/v2.0.1) - 2021-12-02
+
+### Dependencies
+
+* [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+
+### Improvements
+
+* (02-client) [\#568](https://github.com/cosmos/ibc-go/pull/568) In IBC `transfer` cli command use local clock time as reference for relative timestamp timeout if greater than the block timestamp queried from the latest consensus state corresponding to the counterparty channel.
+
+### Bug Fixes
+
+* (02-client) [\#500](https://github.com/cosmos/ibc-go/pull/500) Fix IBC `update-client proposal` cli command to expect correct number of args.
+
 ## [v2.0.0](https://github.com/cosmos/ibc-go/releases/tag/v2.0.0) - 2021-11-09
 
 ### Dependencies
@@ -50,6 +64,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
 
+## [v1.2.4](https://github.com/cosmos/ibc-go/releases/tag/v1.2.4) - 2021-12-02
+
+### Dependencies
+
+* [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+
 ## [v1.2.3](https://github.com/cosmos/ibc-go/releases/tag/v1.2.3) - 2021-11-09
 
 ### Dependencies
@@ -58,6 +78,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
 
 ## [v1.2.2](https://github.com/cosmos/ibc-go/releases/tag/v1.2.2) - 2021-10-15
+
+### Dependencies
 
 * [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
 
@@ -84,6 +106,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](https://github.com/tendermint/tendermint) from v0.34.12 to v0.34.13.
+
+## [v1.1.4](https://github.com/cosmos/ibc-go/releases/tag/v1.1.4) - 2021-12-02
+
+### Dependencies
+
+* [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
 
 ## [v1.1.3](https://github.com/cosmos/ibc-go/releases/tag/v1.1.3) - 2021-11-09
 
