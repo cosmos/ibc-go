@@ -47,6 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (02-client) [\#500](https://github.com/cosmos/ibc-go/pull/500) Fix IBC `update-client proposal` cli command to expect correct number of args.
+* [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
 
 ## [v2.0.0](https://github.com/cosmos/ibc-go/releases/tag/v2.0.0) - 2021-11-09
 
@@ -69,6 +70,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+
+### Bug Fixes
+
+* [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
 
 ## [v1.2.3](https://github.com/cosmos/ibc-go/releases/tag/v1.2.3) - 2021-11-09
 
@@ -112,6 +117,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+
+### Bug Fixes
+
+* [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
 
 ## [v1.1.3](https://github.com/cosmos/ibc-go/releases/tag/v1.1.3) - 2021-11-09
 
