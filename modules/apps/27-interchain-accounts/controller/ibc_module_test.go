@@ -462,11 +462,69 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 			tc.malleate() // malleate mutates test data
 
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
+
+			packet := channeltypes.NewPacket(
+				[]byte("empty packet data"),
+				suite.chainB.SenderAccount.GetSequence(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
+
+			ack := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, TestAccAddress)
+			suite.Require().Equal(tc.expPass, ack.Success())
+		})
+	}
+}
+
+func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"controller submodule disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
+			}, false,
+		},
+		{
+			"ICA auth module callback fails", func() {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("mock ica auth fails")
+				}
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.msg, func() {
+			suite.SetupTest() // reset
+
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
 
 			packet := channeltypes.NewPacket(
 				[]byte("empty packet data"),
@@ -479,8 +537,96 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				0,
 			)
 
-			ack := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, TestAccAddress)
-			suite.Require().Equal(tc.expPass, ack.Success())
+			tc.malleate() // malleate mutates test data
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"controller submodule disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
+			}, false,
+		},
+		{
+			"ICA auth module callback fails", func() {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("mock ica auth fails")
+				}
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.msg, func() {
+			suite.SetupTest() // reset
+
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			packet := channeltypes.NewPacket(
+				[]byte("empty packet data"),
+				suite.chainA.SenderAccount.GetSequence(),
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
+
+			tc.malleate() // malleate mutates test data
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+
+			activeChannelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Empty(activeChannelID)
+				suite.Require().False(found)
+			} else {
+				suite.Require().Error(err)
+			}
 		})
 	}
 }
