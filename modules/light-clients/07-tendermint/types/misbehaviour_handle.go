@@ -92,8 +92,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	}
 
 	cs.FrozenHeight = FrozenHeight
-
-	SetClientState(clientStore, cdc, &cs)
+	setClientState(clientStore, cdc, &cs)
 
 	return nil
 }

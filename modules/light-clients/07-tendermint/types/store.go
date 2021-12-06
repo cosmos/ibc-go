@@ -42,8 +42,8 @@ var (
 	KeyIteration = []byte("/iterationKey")
 )
 
-// SetClientState stores the client state
-func SetClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
+// setClientState stores the client state
+func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
 	key := host.ClientStateKey()
 	val := clienttypes.MustMarshalClientState(cdc, clientState)
 	clientStore.Set(key, val)
