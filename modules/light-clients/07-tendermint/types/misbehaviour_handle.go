@@ -26,10 +26,10 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	cdc codec.BinaryCodec,
 	clientStore sdk.KVStore,
 	misbehaviour exported.Misbehaviour,
-) (exported.ClientState, error) {
+) error {
 	tmMisbehaviour, ok := misbehaviour.(*Misbehaviour)
 	if !ok {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &Misbehaviour{})
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &Misbehaviour{})
 	}
 
 	// The status of the client is checked in 02-client
@@ -39,22 +39,22 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	if tmMisbehaviour.Header1.GetHeight().EQ(tmMisbehaviour.Header2.GetHeight()) {
 		blockID1, err := tmtypes.BlockIDFromProto(&tmMisbehaviour.Header1.SignedHeader.Commit.BlockID)
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "invalid block ID from header 1 in misbehaviour")
+			return sdkerrors.Wrap(err, "invalid block ID from header 1 in misbehaviour")
 		}
 		blockID2, err := tmtypes.BlockIDFromProto(&tmMisbehaviour.Header2.SignedHeader.Commit.BlockID)
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
+			return sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
 		}
 
 		// Ensure that Commit Hashes are different
 		if bytes.Equal(blockID1.Hash, blockID2.Hash) {
-			return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
+			return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
 		}
 	} else {
 		// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
 		// Header2 time in order to be valid misbehaviour (violation of monotonic time).
 		if tmMisbehaviour.Header1.SignedHeader.Header.Time.After(tmMisbehaviour.Header2.SignedHeader.Header.Time) {
-			return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
+			return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
 		}
 	}
 
@@ -66,13 +66,13 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	// Get consensus bytes from clientStore
 	tmConsensusState1, err := GetConsensusState(clientStore, cdc, tmMisbehaviour.Header1.TrustedHeight)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", tmMisbehaviour.Header1)
+		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", tmMisbehaviour.Header1)
 	}
 
 	// Get consensus bytes from clientStore
 	tmConsensusState2, err := GetConsensusState(clientStore, cdc, tmMisbehaviour.Header2.TrustedHeight)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", tmMisbehaviour.Header2)
+		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", tmMisbehaviour.Header2)
 	}
 
 	// Check the validity of the two conflicting headers against their respective
@@ -83,17 +83,19 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	if err := checkMisbehaviourHeader(
 		&cs, tmConsensusState1, tmMisbehaviour.Header1, ctx.BlockTime(),
 	); err != nil {
-		return nil, sdkerrors.Wrap(err, "verifying Header1 in Misbehaviour failed")
+		return sdkerrors.Wrap(err, "verifying Header1 in Misbehaviour failed")
 	}
 	if err := checkMisbehaviourHeader(
 		&cs, tmConsensusState2, tmMisbehaviour.Header2, ctx.BlockTime(),
 	); err != nil {
-		return nil, sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
+		return sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 	}
 
 	cs.FrozenHeight = FrozenHeight
 
-	return &cs, nil
+	SetClientState(clientStore, cdc, &cs)
+
+	return nil
 }
 
 // checkMisbehaviourHeader checks that a Header in Misbehaviour is valid misbehaviour given

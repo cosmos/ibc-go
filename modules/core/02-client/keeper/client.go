@@ -218,12 +218,11 @@ func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour ex
 		return err
 	}
 
-	clientState, err := clientState.CheckMisbehaviourAndUpdateState(ctx, k.cdc, clientStore, misbehaviour)
+	err := clientState.CheckMisbehaviourAndUpdateState(ctx, k.cdc, clientStore, misbehaviour)
 	if err != nil {
 		return err
 	}
 
-	k.SetClientState(ctx, misbehaviour.GetClientID(), clientState)
 	k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", misbehaviour.GetClientID())
 
 	defer func() {

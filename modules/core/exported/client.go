@@ -61,7 +61,11 @@ type ClientState interface {
 	// Update and Misbehaviour functions
 
 	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
-	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) (ClientState, error)
+
+	// CheckMisbehaviourAndUpdateState must:
+	// - verify the provided misbehaviour
+	// - if the misbehaviour is valid, set the client status to frozen
+	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) error
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
 	// Upgrade functions

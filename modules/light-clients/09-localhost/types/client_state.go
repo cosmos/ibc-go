@@ -99,8 +99,8 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 // Thus, CheckMisbehaviourAndUpdateState returns an error for localhost
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Misbehaviour,
-) (exported.ClientState, error) {
-	return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "cannot submit misbehaviour to localhost client")
+) error {
+	return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "cannot submit misbehaviour to localhost client")
 }
 
 // CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by

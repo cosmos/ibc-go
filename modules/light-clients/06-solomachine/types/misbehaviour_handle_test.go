@@ -247,17 +247,25 @@ func (suite *SoloMachineTestSuite) TestCheckMisbehaviourAndUpdateState() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
+				// reset suite to create fresh application state
+				suite.SetupTest()
+
 				// setup test
 				tc.setup()
 
-				clientState, err := clientState.CheckMisbehaviourAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.store, misbehaviour)
+				err := clientState.CheckMisbehaviourAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.store, misbehaviour)
+
+				clientState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.Solomachine)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
+					suite.Require().True(found)
 					suite.Require().True(clientState.(*types.ClientState).IsFrozen, "client not frozen")
 				} else {
 					suite.Require().Error(err)
-					suite.Require().Nil(clientState)
+					if found {
+						suite.Require().False(clientState.(*types.ClientState).IsFrozen, "client is frozen")
+					}
 				}
 			})
 		}

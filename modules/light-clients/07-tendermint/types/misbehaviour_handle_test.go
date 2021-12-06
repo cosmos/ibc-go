@@ -410,20 +410,22 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, tc.height2, tc.consensusState2)
 			}
 
-			clientState, err := tc.clientState.CheckMisbehaviourAndUpdateState(
+			err := tc.clientState.CheckMisbehaviourAndUpdateState(
 				ctx,
 				suite.chainA.App.AppCodec(),
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, clientID), // pass in clientID prefixed clientStore
 				tc.misbehaviour,
 			)
 
+			clientState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(ctx, clientID)
+
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
-				suite.Require().NotNil(clientState, "valid test case %d failed: %s", i, tc.name)
+				suite.Require().True(found, "valid test case %d failed: %s", i, tc.name)
 				suite.Require().True(!clientState.(*types.ClientState).FrozenHeight.IsZero(), "valid test case %d failed: %s", i, tc.name)
 			} else {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
-				suite.Require().Nil(clientState, "invalid test case %d passed: %s", i, tc.name)
+				suite.Require().False(found, "invalid test case %d passed: %s", i, tc.name)
 			}
 		})
 	}

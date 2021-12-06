@@ -19,11 +19,11 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	cdc codec.BinaryCodec,
 	clientStore sdk.KVStore,
 	misbehaviour exported.Misbehaviour,
-) (exported.ClientState, error) {
+) error {
 
 	soloMisbehaviour, ok := misbehaviour.(*Misbehaviour)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
+		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidClientType,
 			"misbehaviour type %T, expected %T", misbehaviour, &Misbehaviour{},
 		)
@@ -34,16 +34,18 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 
 	// verify first signature
 	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureOne); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature one")
+		return sdkerrors.Wrap(err, "failed to verify signature one")
 	}
 
 	// verify second signature
 	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureTwo); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature two")
+		return sdkerrors.Wrap(err, "failed to verify signature two")
 	}
 
 	cs.IsFrozen = true
-	return &cs, nil
+	setClientState(clientStore, cdc, &cs)
+
+	return nil
 }
 
 // verifySignatureAndData verifies that the currently registered public key has signed
