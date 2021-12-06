@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channelutils "github.com/cosmos/ibc-go/v2/modules/core/04-channel/client/utils"
 )

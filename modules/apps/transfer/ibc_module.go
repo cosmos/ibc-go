@@ -8,8 +8,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"

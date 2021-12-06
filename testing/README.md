@@ -255,7 +255,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/simapp"
+	"github.com/cosmos/ibc-go/modules/apps/transfer/simapp"
 	ibctesting "github.com/cosmos/ibc-go/v2/testing"
 )
 

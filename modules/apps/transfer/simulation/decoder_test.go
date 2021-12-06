@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v2/testing/simapp"
 )
 
