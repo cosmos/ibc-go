@@ -89,7 +89,8 @@ func (k Keeper) WriteAcknowledgement(
 	packet ibcexported.PacketI,
 	acknowledgement []byte,
 ) error {
-	return k.channelKeeper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
+	return nil
+	// return k.channelKeeper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 }
 
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel

@@ -8,10 +8,11 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	// clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 var (
@@ -470,213 +471,300 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	}
 }
 
-// func (suite *FeeTestSuite) TestOnRecvPacket() {
-// 	testCases := []struct {
-// 		name      string
-// 		cpVersion string
-// 		malleate  func(suite *FeeTestSuite)
-// 		expPass   bool
-// 	}{
-// 		{
-// 			"success",
-// 			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-// 			func(suite *FeeTestSuite) {
-// 				// packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
-// 				// refundAcc := suite.chainA.SenderAccount.GetAddress()
-// 				// identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-// 				// err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
-// 				// suite.Require().NoError(err)
+func (suite *FeeTestSuite) TestOnRecvPacket() {
+	testCases := []struct {
+		name          string
+		malleate      func(suite *FeeTestSuite)
+		sourceRelayer bool
+	}{
+		{
+			"success",
+			func(suite *FeeTestSuite) {
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String())
+			},
+			true,
+		},
+		{
+			"source relayer is empty string",
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+	}
 
-// 				// path := NewTransferPath(suite.chainA, suite.chainB)
-// 				// suite.coordinator.Setup(path)
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.SetupConnections(suite.path)
 
-// 				// // send coin from chainB to chainA, receive them, acknowledge them, and send back to chainB
-// 				// coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-// 				// transferMsg := transfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0)
-// 				// _, err := suite.chainB.SendMsgs(transferMsg)
-// 				// suite.Require().NoError(err) // message committed
+			// open incentivized channel
+			suite.path.EndpointA.ChanOpenInit()
+			suite.path.EndpointB.ChanOpenTry()
+			suite.path.EndpointA.ChanOpenAck()
+			suite.path.EndpointB.ChanOpenConfirm()
 
-// 				// // relay send packet
-// 				// fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.Uint64(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-// 				// packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 110), 0)
-// 				// ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-// 				// err = path.RelayPacket(packet, ack.Acknowledgement())
-// 				// suite.Require().NoError(err) // relay committed
+			// set up coins
+			coin := ibctesting.TestCoin
+			fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(
+				coin.Denom,
+				sdk.NewInt(100).Uint64(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+			)
+			packet := channeltypes.NewPacket(
+				fungibleTokenPacket.GetBytes(),
+				suite.chainA.SenderAccount.GetSequence(),
+				suite.path.EndpointA.ChannelConfig.PortID,
+				suite.path.EndpointA.ChannelID,
+				suite.path.EndpointB.ChannelConfig.PortID,
+				suite.path.EndpointB.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
 
-// 			},
-// 			true,
-// 		},
-// 		// {
-// 		// 	"identified packet fee doesn't exist",
-// 		// 	channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
-// 		// 	func(suite *FeeTestSuite) {},
-// 		// 	false,
-// 		// },
-// 		// {
-// 		// 	"refundAccount doesn't exist",
-// 		// 	channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
-// 		// 	func(suite *FeeTestSuite) {},
-// 		// 	false,
-// 		// },
-// 	}
+			// set up & escrow packet fees
+			refundAcc := suite.chainA.SenderAccount.GetAddress()
+			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
+			identifiedFee := types.NewIdentifiedPacketFee(
+				packetId,
+				types.Fee{
+					ReceiveFee: validCoins,
+					AckFee:     validCoins2,
+					TimeoutFee: validCoins3,
+				},
+				refundAcc.String(),
+				[]string{},
+			)
+			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+			suite.Require().NoError(err)
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest()
-// 			suite.coordinator.SetupConnections(suite.path)
+			// set up module and callbacks
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
 
-// 			// malleate test case
-// 			tc.malleate(suite)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
 
-// 			suite.path.EndpointA.ChanOpenInit()
-// 			suite.path.EndpointB.ChanOpenTry()
+			// malleate test case
+			tc.malleate(suite)
 
-// 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-// 			suite.Require().NoError(err)
+			result := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, refundAcc)
 
-// 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-// 			suite.Require().True(ok)
+			if tc.sourceRelayer {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+				ack := types.IncentivizedAcknowledgement{
+					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
+				}
+				suite.Require().Equal(result, ack)
+			} else {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+				ack := types.IncentivizedAcknowledgement{
+					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					ForwardRelayerAddress: "",
+				}
+				suite.Require().Equal(result, ack)
+			}
+		})
+	}
+}
 
-// 			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
-// 			refundAcc := suite.chainA.SenderAccount.GetAddress()
-// 			identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-// 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
-// 			suite.Require().NoError(err)
+func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
+	testCases := []struct {
+		name     string
+		malleate func(suite *FeeTestSuite)
+		expPass  bool
+	}{
+		{
+			"success",
+			func(suite *FeeTestSuite) {
+				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
+				identifiedFee := types.NewIdentifiedPacketFee(
+					packetId,
+					types.Fee{
+						ReceiveFee: validCoins,
+						AckFee:     validCoins2,
+						TimeoutFee: validCoins3,
+					},
+					suite.chainA.SenderAccount.GetAddress().String(),
+					[]string{},
+				)
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"identified packet fee doesn't exist",
+			func(suite *FeeTestSuite) {
+				suite.Require().Error(types.ErrFeeNotFound)
+			},
+			false,
+		},
+		{
+			"refundAccount doesn't exist",
+			func(suite *FeeTestSuite) {
+				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
+				identifiedFee := types.NewIdentifiedPacketFee(
+					packetId,
+					types.Fee{
+						ReceiveFee: validCoins,
+						AckFee:     validCoins2,
+						TimeoutFee: validCoins3,
+					},
+					suite.chainB.SenderAccount.GetAddress().String(),
+					[]string{},
+				)
+				suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().Error(types.ErrRefundAccNotFound)
+			},
+			false,
+		},
+	}
 
-// 			path := NewTransferPath(suite.chainA, suite.chainB)
-// 			suite.coordinator.Setup(path)
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.SetupConnections(suite.path)
 
-// 			// send coin from chainB to chainA, receive them, acknowledge them, and send back to chainB
-// 			coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-// 			transferMsg := transfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0)
-// 			_, err = suite.chainB.SendMsgs(transferMsg)
-// 			suite.Require().NoError(err) // message committed
+			// open incentivized channel
+			suite.path.EndpointA.ChanOpenInit()
+			suite.path.EndpointB.ChanOpenTry()
+			suite.path.EndpointA.ChanOpenAck()
+			suite.path.EndpointB.ChanOpenConfirm()
 
-// 			// relay send packet
-// 			fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.Uint64(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-// 			packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 110), 0)
-// 			ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-// 			err = path.RelayPacket(packet, ack.Acknowledgement())
-// 			suite.Require().NoError(err) // relay committed
+			// set up coins
+			coin := ibctesting.TestCoin
+			fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(
+				coin.Denom,
+				sdk.NewInt(100).Uint64(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+			)
+			packet := channeltypes.NewPacket(
+				fungibleTokenPacket.GetBytes(),
+				suite.chainA.SenderAccount.GetSequence(),
+				suite.path.EndpointA.ChannelConfig.PortID,
+				suite.path.EndpointA.ChannelID,
+				suite.path.EndpointB.ChannelConfig.PortID,
+				suite.path.EndpointB.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
 
-// 			incentivisedAck := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, refundAcc)
-// 			fmt.Println(incentivisedAck)
-// 			if tc.expPass {
-// 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
-// 			} else {
-// 				suite.Require().Error(err, "%s expected error but returned none", tc.name)
-// 			}
-// 		})
-// 	}
-// }
+			// set up module and callbacks
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
 
-// func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
-// 	testCases := []struct {
-// 		name      string
-// 		cpVersion string
-// 		malleate  func(suite *FeeTestSuite)
-// 		expPass   bool
-// 	}{
-// 		{
-// 			"success",
-// 			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-// 			func(suite *FeeTestSuite) {},
-// 			true,
-// 		},
-// 		{
-// 			"identified packet fee doesn't exist",
-// 			channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
-// 			func(suite *FeeTestSuite) {},
-// 			false,
-// 		},
-// 		{
-// 			"refundAccount doesn't exist",
-// 			channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
-// 			func(suite *FeeTestSuite) {},
-// 			false,
-// 		},
-// 	}
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest()
-// 			suite.coordinator.SetupConnections(suite.path)
+			// malleate test case
+			tc.malleate(suite)
 
-// 			// malleate test case
-// 			tc.malleate(suite)
+			ack := types.IncentivizedAcknowledgement{
+				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
+			}
+			ackBytes := ack.Acknowledgement()
 
-// 			suite.path.EndpointA.ChanOpenInit()
-// 			suite.path.EndpointB.ChanOpenTry()
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ackBytes, suite.chainB.SenderAccount.GetAddress())
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+			}
+		})
+	}
+}
 
-// 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-// 			suite.Require().NoError(err)
+func (suite *FeeTestSuite) TestOnTimeoutPacket() {
+	testCases := []struct {
+		name     string
+		malleate func(suite *FeeTestSuite)
+		expPass  bool
+	}{
+		{
+			"success",
+			func(suite *FeeTestSuite) {
+				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
+				identifiedFee := types.NewIdentifiedPacketFee(
+					packetId,
+					types.Fee{
+						ReceiveFee: validCoins,
+						AckFee:     validCoins2,
+						TimeoutFee: validCoins3,
+					},
+					suite.chainA.SenderAccount.GetAddress().String(),
+					[]string{},
+				)
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
 
-// 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-// 			suite.Require().True(ok)
+				// fund chain A's escrow path so that tokens can be unescrowed upon timeout
+				escrow := transfertypes.GetEscrowAddress(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				trace := transfertypes.ParseDenomTrace(sdk.DefaultBondDenom)
+				coin := sdk.NewCoin(trace.IBCDenom(), sdk.NewInt(100))
 
-// 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, relayer)
-// 			if tc.expPass {
-// 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
-// 			} else {
-// 				suite.Require().Error(err, "%s expected error but returned none", tc.name)
-// 			}
-// 		})
-// 	}
-// }
+				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+			},
+			true,
+		},
+		{
+			"identified packet fee doesn't exist",
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+	}
 
-// func (suite *FeeTestSuite) TestOnTimeoutPacket() {
-// 	testCases := []struct {
-// 		name      string
-// 		cpVersion string
-// 		malleate  func(suite *FeeTestSuite)
-// 		expPass   bool
-// 	}{
-// 		{
-// 			"success",
-// 			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-// 			func(suite *FeeTestSuite) {},
-// 			true,
-// 		},
-// 		{
-// 			"identified packet fee doesn't exist",
-// 			channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
-// 			func(suite *FeeTestSuite) {},
-// 			false,
-// 		},
-// 		{
-// 			"refundAccount doesn't exist",
-// 			channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
-// 			func(suite *FeeTestSuite) {},
-// 			false,
-// 		},
-// 	}
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.SetupConnections(suite.path)
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest()
-// 			suite.coordinator.SetupConnections(suite.path)
+			// open incentivized channel
+			suite.path.EndpointA.ChanOpenInit()
+			suite.path.EndpointB.ChanOpenTry()
+			suite.path.EndpointA.ChanOpenAck()
+			suite.path.EndpointB.ChanOpenConfirm()
 
-// 			// malleate test case
-// 			tc.malleate(suite)
+			// set up coins
+			coin := ibctesting.TestCoin
+			fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(
+				coin.Denom,
+				sdk.NewInt(100).Uint64(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+			)
+			packet := channeltypes.NewPacket(
+				fungibleTokenPacket.GetBytes(),
+				suite.chainA.SenderAccount.GetSequence(),
+				suite.path.EndpointA.ChannelConfig.PortID,
+				suite.path.EndpointA.ChannelID,
+				suite.path.EndpointB.ChannelConfig.PortID,
+				suite.path.EndpointB.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
 
-// 			suite.path.EndpointA.ChanOpenInit()
-// 			suite.path.EndpointB.ChanOpenTry()
+			// set up module and callbacks
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
 
-// 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-// 			suite.Require().NoError(err)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
 
-// 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-// 			suite.Require().True(ok)
+			// malleate test case
+			tc.malleate(suite)
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 
-// 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayer)
-// 			if tc.expPass {
-// 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
-// 			} else {
-// 				suite.Require().Error(err, "%s expected error but returned none", tc.name)
-// 			}
-// 		})
-// 	}
-// }
+			if tc.expPass {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+			}
+		})
+	}
+}
