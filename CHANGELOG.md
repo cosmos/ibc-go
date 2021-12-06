@@ -42,6 +42,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
  
+
+* (02-client) [\#595](https://github.com/cosmos/ibc-go/pull/595) The client state return value has been removed from `CheckMisbehaviourAndUpdateState`. Light client implementations must update the client state in the client store before returning for valid misbehaviour.
 * (transfer) [\#517](https://github.com/cosmos/ibc-go/pull/517) Separates the ICS 26 callback functions from `AppModule` into a new type `IBCModule` for ICS 20 transfer.
 * (modules/core/02-client) [\#536](https://github.com/cosmos/ibc-go/pull/536) GetSelfConsensusState return type changed from bool to error.
 
