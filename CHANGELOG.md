@@ -51,6 +51,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#383](https://github.com/cosmos/ibc-go/pull/383) Adds helper functions for merging and splitting middleware versions from the underlying app version.
 * (modules/core/05-port) [\#288](https://github.com/cosmos/ibc-go/issues/288) Making the 05-port keeper function IsBound public. The IsBound function checks if the provided portID is already binded to a module.
+* (02-client) [\#568](https://github.com/cosmos/ibc-go/pull/568) In IBC `transfer` cli command use local clock time as reference for relative timestamp timeout if greater than the block timestamp queried from the latest consensus state corresponding to the counterparty channel.
 
 ### Features
 
@@ -155,6 +156,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/light-clients/06-solomachine) [\#122](https://github.com/cosmos/ibc-go/pull/122) Fix solo machine merkle prefix casting bug. 
 * (modules/light-clients/06-solomachine) [\#120](https://github.com/cosmos/ibc-go/pull/120) Fix solo machine handshake verification bug. 
 * (modules/light-clients/06-solomachine) [\#153](https://github.com/cosmos/ibc-go/pull/153) fix solo machine connection handshake failure at `ConnectionOpenAck`.
+* (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
 
 ### API Breaking
 
