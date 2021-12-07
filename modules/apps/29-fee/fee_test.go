@@ -36,14 +36,6 @@ func (suite *FeeTestSuite) SetupTest() {
 	suite.path = path
 }
 
-func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-
-	return path
-}
-
 func TestIBCFeeTestSuite(t *testing.T) {
 	suite.Run(t, new(FeeTestSuite))
 }

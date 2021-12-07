@@ -177,8 +177,8 @@ func (im IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
-	sourceRelayer, exists := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
-	if !exists {
+	sourceRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
+	if !found {
 		sourceRelayer = ""
 	}
 
@@ -202,8 +202,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 		}
 
 		packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-		identifiedPacketFee, exists := im.keeper.GetFeeInEscrow(ctx, packetId)
-		if !exists {
+		identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
+		if !found {
 			return sdkerrors.Wrapf(types.ErrFeeNotFound, "fee not found for packet id %s", packetId)
 		}
 
