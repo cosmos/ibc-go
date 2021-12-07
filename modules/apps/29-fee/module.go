@@ -53,7 +53,6 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // 29-fee module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesisState())
-	return nil
 }
 
 // ValidateGenesis performs genesis state validation for the 29-fee module.
@@ -89,14 +88,12 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	keeper keeper.Keeper
-	app    porttypes.IBCModule
 }
 
 // NewAppModule creates a new 29-fee module
-func NewAppModule(k keeper.Keeper, app porttypes.IBCModule) AppModule {
+func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
-		app:    app,
 	}
 }
 

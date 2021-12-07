@@ -336,7 +336,7 @@ func NewSimApp(
 	// create fee-wrapped transfer module
 	feeTransferModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, transferModule)
 
-	feeModule := ibcfee.NewAppModule(app.IBCFeeKeeper, feeTransferModule)
+	feeModule := ibcfee.NewAppModule(app.IBCFeeKeeper)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
