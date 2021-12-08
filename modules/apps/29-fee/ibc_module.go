@@ -178,14 +178,14 @@ func (im IBCModule) OnRecvPacket(
 ) exported.Acknowledgement {
 	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
 		ack := im.app.OnRecvPacket(ctx, packet, relayer)
-		sourceRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
+		forwardRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
 		if !found {
-			sourceRelayer = ""
+			forwardRelayer = ""
 		}
 
 		return types.IncentivizedAcknowledgement{
 			Result:                ack.Acknowledgement(),
-			ForwardRelayerAddress: sourceRelayer,
+			ForwardRelayerAddress: forwardRelayer,
 		}
 	}
 	return im.app.OnRecvPacket(ctx, packet, relayer)
