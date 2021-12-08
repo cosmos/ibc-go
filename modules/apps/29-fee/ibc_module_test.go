@@ -16,10 +16,9 @@ import (
 )
 
 var (
-	validCoins   = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	validCoins2  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	validCoins3  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-	invalidCoins = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
+	validCoins  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	validCoins2 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
+	validCoins3 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -474,19 +473,47 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 func (suite *FeeTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
 		name          string
-		malleate      func(suite *FeeTestSuite)
+		malleate      func()
 		sourceRelayer bool
+		feeEnabled    bool
 	}{
 		{
 			"success",
-			func(suite *FeeTestSuite) {
+			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String())
+
+				// set up & escrow packet fees
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
+				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
+				identifiedFee := types.NewIdentifiedPacketFee(
+					packetId,
+					types.Fee{
+						ReceiveFee: validCoins,
+						AckFee:     validCoins2,
+						TimeoutFee: validCoins3,
+					},
+					refundAcc.String(),
+					[]string{},
+				)
+				// escrow packet fees
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
 			},
+			true,
 			true,
 		},
 		{
 			"source relayer is empty string",
-			func(suite *FeeTestSuite) {},
+			func() {},
+			false,
+			true,
+		},
+		{
+			"fee not enabled",
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			true,
 			false,
 		},
 	}
@@ -495,7 +522,6 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.SetupConnections(suite.path)
 
 			// open incentivized channel
 			suite.coordinator.Setup(suite.path)
@@ -519,22 +545,6 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				0,
 			)
 
-			// set up & escrow packet fees
-			refundAcc := suite.chainA.SenderAccount.GetAddress()
-			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
-			identifiedFee := types.NewIdentifiedPacketFee(
-				packetId,
-				types.Fee{
-					ReceiveFee: validCoins,
-					AckFee:     validCoins2,
-					TimeoutFee: validCoins3,
-				},
-				refundAcc.String(),
-				[]string{},
-			)
-			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
-			suite.Require().NoError(err)
-
 			// set up module and callbacks
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
@@ -543,23 +553,29 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			suite.Require().True(ok)
 
 			// malleate test case
-			tc.malleate(suite)
+			tc.malleate()
 
-			result := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, refundAcc)
+			result := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 
-			if tc.sourceRelayer {
+			if tc.sourceRelayer && tc.feeEnabled {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 				ack := types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
 					ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
 				}
 				suite.Require().Equal(result, ack)
-			} else {
+			}
+			if !tc.sourceRelayer && tc.feeEnabled {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 				ack := types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
 					ForwardRelayerAddress: "",
 				}
+				suite.Require().Equal(result, ack)
+			}
+			if tc.sourceRelayer && !tc.feeEnabled {
+				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+				ack := channeltypes.NewResultAcknowledgement([]byte{1})
 				suite.Require().Equal(result, ack)
 			}
 		})
@@ -569,12 +585,13 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	testCases := []struct {
 		name     string
-		malleate func(suite *FeeTestSuite)
+		malleate func()
+		ackBytes []byte
 		expPass  bool
 	}{
 		{
 			"success",
-			func(suite *FeeTestSuite) {
+			func() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				identifiedFee := types.NewIdentifiedPacketFee(
 					packetId,
@@ -589,18 +606,45 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 			},
+			types.IncentivizedAcknowledgement{
+				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
+			}.Acknowledgement(),
 			true,
 		},
 		{
-			"identified packet fee doesn't exist",
-			func(suite *FeeTestSuite) {
-				suite.Require().Error(types.ErrFeeNotFound)
+			"fee not enabled, success",
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
+			channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+			true,
+		},
+		{
+			"fee not enabled, fail",
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			types.IncentivizedAcknowledgement{
+				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
+			}.Acknowledgement(),
 			false,
 		},
 		{
-			"refundAccount doesn't exist",
-			func(suite *FeeTestSuite) {
+			"identified packet fee doesn't exist",
+			func() {
+				suite.Require().Error(types.ErrFeeNotFound)
+			},
+			types.IncentivizedAcknowledgement{
+				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
+			}.Acknowledgement(),
+			false,
+		},
+		{
+			"ack wrong format",
+			func() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				identifiedFee := types.NewIdentifiedPacketFee(
 					packetId,
@@ -609,12 +653,13 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 						AckFee:     validCoins2,
 						TimeoutFee: validCoins3,
 					},
-					suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainA.SenderAccount.GetAddress().String(),
 					[]string{},
 				)
-				suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
-				suite.Require().Error(types.ErrRefundAccNotFound)
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
+				suite.Require().NoError(err)
 			},
+			channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
 			false,
 		},
 	}
@@ -623,7 +668,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.SetupConnections(suite.path)
 
 			// open incentivized channel
 			suite.coordinator.Setup(suite.path)
@@ -655,15 +699,10 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			suite.Require().True(ok)
 
 			// malleate test case
-			tc.malleate(suite)
+			tc.malleate()
 
-			ack := types.IncentivizedAcknowledgement{
-				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-			}
-			ackBytes := ack.Acknowledgement()
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, tc.ackBytes, suite.chainB.SenderAccount.GetAddress())
 
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ackBytes, suite.chainB.SenderAccount.GetAddress())
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 			} else {
@@ -676,12 +715,12 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	testCases := []struct {
 		name     string
-		malleate func(suite *FeeTestSuite)
+		malleate func()
 		expPass  bool
 	}{
 		{
 			"success",
-			func(suite *FeeTestSuite) {
+			func() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				identifiedFee := types.NewIdentifiedPacketFee(
 					packetId,
@@ -707,7 +746,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"identified packet fee doesn't exist",
-			func(suite *FeeTestSuite) {},
+			func() {},
 			false,
 		},
 	}
@@ -716,7 +755,6 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.SetupConnections(suite.path)
 
 			// open incentivized channel
 			suite.coordinator.Setup(suite.path)
@@ -748,7 +786,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			suite.Require().True(ok)
 
 			// malleate test case
-			tc.malleate(suite)
+			tc.malleate()
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 
 			if tc.expPass {

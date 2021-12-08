@@ -198,8 +198,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	ack := &types.IncentivizedAcknowledgement{}
 	if im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+		ack := &types.IncentivizedAcknowledgement{}
 		if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", err)
 		}
@@ -213,8 +213,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 		if err := im.keeper.DistributeFee(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), sdk.AccAddress(ack.ForwardRelayerAddress), relayer, packetId); err != nil {
 			return err
 		}
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
