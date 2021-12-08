@@ -498,10 +498,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			suite.coordinator.SetupConnections(suite.path)
 
 			// open incentivized channel
-			suite.path.EndpointA.ChanOpenInit()
-			suite.path.EndpointB.ChanOpenTry()
-			suite.path.EndpointA.ChanOpenAck()
-			suite.path.EndpointB.ChanOpenConfirm()
+			suite.coordinator.Setup(suite.path)
 
 			// set up coins
 			coin := ibctesting.TestCoin
@@ -629,10 +626,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			suite.coordinator.SetupConnections(suite.path)
 
 			// open incentivized channel
-			suite.path.EndpointA.ChanOpenInit()
-			suite.path.EndpointB.ChanOpenTry()
-			suite.path.EndpointA.ChanOpenAck()
-			suite.path.EndpointB.ChanOpenConfirm()
+			suite.coordinator.Setup(suite.path)
 
 			// set up coins
 			coin := ibctesting.TestCoin
@@ -725,10 +719,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			suite.coordinator.SetupConnections(suite.path)
 
 			// open incentivized channel
-			suite.path.EndpointA.ChanOpenInit()
-			suite.path.EndpointB.ChanOpenTry()
-			suite.path.EndpointA.ChanOpenAck()
-			suite.path.EndpointB.ChanOpenConfirm()
+			suite.coordinator.Setup(suite.path)
 
 			// set up coins
 			coin := ibctesting.TestCoin
