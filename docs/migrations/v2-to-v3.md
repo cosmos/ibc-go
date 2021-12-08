@@ -30,7 +30,7 @@ The IBC module callbacks have been moved from the mock modules `AppModule` into 
 
 As apart of this release, the mock module now supports middleware testing. Please see the [README](../../testing/README.md#middleware-testing) for more information.
 
-Please review the [mock](../../testing/mock/ibc_module.go) and [transfer](../../modules/apps/transfer/ibc_module.go) modules as examples.    
+Please review the [mock](../../testing/mock/ibc_module.go) and [transfer](../../modules/apps/transfer/ibc_module.go) modules as examples. Additionally, [simapp](../../testing/simapp/app.go) provides an example of how `IBCModule` types should now be added to the IBC router in favour of `AppModule`.
 
 ## Relayers
 
