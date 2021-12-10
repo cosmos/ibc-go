@@ -206,9 +206,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	ack := &types.IncentivizedAcknowledgement{}
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", err)
+	ack := types.IncentivizedAcknowledgement{}
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
