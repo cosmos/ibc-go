@@ -226,11 +226,11 @@ func (im IBCModule) OnAcknowledgementPacket(
 	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	// if there is no error, write the cache and then call underlying callback
+	// otherwise discard cache and call underlying callback
 	if err == nil {
 		writeFn()
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
-	// else, distribution is a no-op, discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
@@ -261,10 +261,10 @@ func (im IBCModule) OnTimeoutPacket(
 	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	// if there is no error, write the cache and then call underlying callback
+	// otherwise discard cache and call underlying callback
 	if err == nil {
 		writeFn()
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
-	// else, distribution is a no-op, discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }

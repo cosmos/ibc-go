@@ -39,8 +39,6 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.Identified
 
 	// Store fee in state for reference later
 	// feeInEscrow/<port-id>/<channel-id>/packet/<sequence-id>/ -> Fee (timeout, ack, onrecv)
-
-	// TODO: set refund acc to refer to later
 	k.SetFeeInEscrow(ctx, identifiedFee)
 	return nil
 }
