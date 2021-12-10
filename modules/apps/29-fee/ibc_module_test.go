@@ -472,10 +472,10 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 
 func (suite *FeeTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
-		name          string
-		malleate      func()
-		sourceRelayer bool
-		feeEnabled    bool
+		name           string
+		malleate       func()
+		forwardRelayer bool
+		feeEnabled     bool
 	}{
 		{
 			"success",
@@ -557,7 +557,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			result := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 
-			if tc.sourceRelayer && tc.feeEnabled {
+			if tc.forwardRelayer && tc.feeEnabled {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 				ack := types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
@@ -565,7 +565,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				}
 				suite.Require().Equal(result, ack)
 			}
-			if !tc.sourceRelayer && tc.feeEnabled {
+			if !tc.forwardRelayer && tc.feeEnabled {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 				ack := types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
@@ -573,7 +573,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				}
 				suite.Require().Equal(result, ack)
 			}
-			if tc.sourceRelayer && !tc.feeEnabled {
+			if tc.forwardRelayer && !tc.feeEnabled {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 				ack := channeltypes.NewResultAcknowledgement([]byte{1})
 				suite.Require().Equal(result, ack)
@@ -582,6 +582,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 	}
 }
 
+// different channel than sending chain
 func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	testCases := []struct {
 		name     string
@@ -631,17 +632,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			}.Acknowledgement(),
 			false,
 		},
-		{
-			"identified packet fee doesn't exist",
-			func() {
-				suite.Require().Error(types.ErrFeeNotFound)
-			},
-			types.IncentivizedAcknowledgement{
-				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-			}.Acknowledgement(),
-			false,
-		},
+
 		{
 			"ack wrong format",
 			func() {

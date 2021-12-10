@@ -59,13 +59,13 @@ func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, revers
 	// send receive fee to forward relayer
 	err := k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to send fee to destination relayer")
+		return sdkerrors.Wrap(err, "failed to send fee to forward relayer")
 	}
 
 	// send ack fee to reverse relayer
 	err = k.bankKeeper.SendCoins(ctx, feeModuleAccAddr, reverseRelayer, feeInEscrow.Fee.AckFee)
 	if err != nil {
-		return sdkerrors.Wrap(err, "error sending fee to source relayer")
+		return sdkerrors.Wrap(err, "error sending fee to reverse relayer")
 	}
 
 	// refund timeout fee to refundAddr
@@ -85,7 +85,7 @@ func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer 
 	// check if there is a Fee in escrow for the given packetId
 	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrFeeNotFound, "for packetID %s", packetID.String())
+		return sdkerrors.Wrapf(types.ErrFeeNotFound, "for packetID %s", packetID)
 	}
 
 	// get module accAddr
