@@ -256,7 +256,7 @@ func (im IBCModule) OnTimeoutPacket(
 	// cache context before trying to distribute the fee
 	cacheCtx, writeFn := ctx.CacheContext()
 
-	err := im.keeper.DistributeFeeTimeout(ctx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence))
+	err := im.keeper.DistributeFeeTimeout(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence))
 	// emit the error in event if any
 	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
