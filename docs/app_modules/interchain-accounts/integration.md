@@ -45,7 +45,7 @@ type App struct {
     ...
 
     ICAControllerKeeper icacontrollerkeeper.Keeper
-	ICAHostKeeper       icahostkeeper.Keeper
+    ICAHostKeeper       icahostkeeper.Keeper
     ICAAuthKeeper       icaauthkeeper.Keeper
 
     ...
@@ -57,7 +57,7 @@ type App struct {
 keys := sdk.NewKVStoreKeys(
     ...
     icacontrollertypes.StoreKey,
-	icahosttypes.StoreKey,
+    icahosttypes.StoreKey,
     icaauthtypes.StoreKey,
     ...
 )
