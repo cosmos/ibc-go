@@ -46,24 +46,32 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 			return err
 		}
 
-		if _, err := k.executeMsg(cacheCtx, msg); err != nil {
+		if err := k.executeMsg(cacheCtx, msg); err != nil {
 			return err
 		}
 	}
 
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	writeCache()
 
 	return nil
 }
 
 // Attempts to get the message handler from the router and if found will then execute the message
-func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) error {
 	handler := k.msgRouter.Handler(msg)
 	if handler == nil {
-		return nil, icatypes.ErrInvalidRoute
+		return icatypes.ErrInvalidRoute
 	}
 
-	return handler(ctx, msg)
+	res, err := handler(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvents(res.GetEvents())
+
+	return nil
 }
 
 // OnRecvPacket handles a given interchain accounts packet on a destination host chain
