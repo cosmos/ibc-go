@@ -16,6 +16,7 @@ Interchain Accounts exposes a simple-to-use API which means IBC application deve
 Developers looking to build upon Interchain Accounts must write custom logic in their own IBC application module, called authentication modules.
 
 - How is an interchain account different than a regular account?
+
 Regular accounts use a private key to sign transactions on-chain. Interchain Accounts are instead controlled programmatically by separate chains via IBC transactions. Interchain Accounts are implemented as sub-accounts of the interchain accounts module account. 
 
 # Concepts 
