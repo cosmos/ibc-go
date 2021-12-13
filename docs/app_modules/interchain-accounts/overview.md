@@ -4,14 +4,16 @@ order: 1
 
 # Overview
 
-
 Learn about what the Interchain Accounts module is, and how to build custom modules that utilize Interchain Accounts functionality {synopsis}
 
 
 # What is the Interchain Accounts module?
 
+Interchain Accounts is the Cosmos SDK implementation of the ICS-27 protocol, which enables cross-chain account management built upon IBC. Chains using the Interchain Accounts module can programmatically create accounts on other chains and control these accounts via IBC transactions. 
 
-Interchain Accounts is the Cosmos SDK implementation of the ICS-27 protocol, which enables cross-chain account management built upon IBC. Chains using the Interchain Accounts module can programmatically create accounts on other chains and control these accounts via IBC transactions. Interchain Accounts exposes a simple-to-use API which means IBC application developers do not require an in-depth knowledge of the underlying low-level details of IBC or the ICS-27 protocol. Developers looking to build upon Interchain Accounts must write custom logic in their own IBC application module, called authentication modules.
+Interchain Accounts exposes a simple-to-use API which means IBC application developers do not require an in-depth knowledge of the underlying low-level details of IBC or the ICS-27 protocol. 
+
+Developers looking to build upon Interchain Accounts must write custom logic in their own IBC application module, called authentication modules.
 
 - How is an interchain account different than a regular account?
 Regular accounts use a private key to sign transactions on-chain. Interchain Accounts are instead controlled programmatically by separate chains via IBC transactions. Interchain Accounts are implemented as sub-accounts of the interchain accounts module account. 
