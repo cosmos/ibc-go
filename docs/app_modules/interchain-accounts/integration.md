@@ -4,7 +4,7 @@ order: 2
 
 # Integrating Interchain Accounts into a Chain
 
-Learn how to integrate Interchain Accounts host and controller funcitonality to your chain. The following document only applies for Cosmos SDK chains.
+Learn how to integrate Interchain Accounts host and controller functionality to your chain. The following document only applies for Cosmos SDK chains.
 
 The Interchain Accounts module contains two submodules. Each submodule has its own IBC application. The Interchain Accounts module should be registered as an `AppModule` in the same way all SDK modules are registered on a chain, but each submodule should create their own `IBCModule` as necessary. A route should be added to the IBC router for each submodule which will be used. 
 
