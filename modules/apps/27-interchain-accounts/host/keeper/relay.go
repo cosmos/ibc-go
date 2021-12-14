@@ -51,6 +51,7 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 		}
 	}
 
+	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
 	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	writeCache()
 
@@ -69,6 +70,7 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) error {
 		return err
 	}
 
+	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	return nil

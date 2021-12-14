@@ -38,6 +38,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, counterpart
 		return err
 	}
 
+	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	return nil
