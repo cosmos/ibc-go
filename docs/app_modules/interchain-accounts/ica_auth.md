@@ -27,14 +27,14 @@ The following `IBCModule` callbacks must be implemented with appropriate custom 
 ```go
 // OnChanOpenInit implements the IBCModule interface
 func (im IBCModule) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version string,
+    ctx sdk.Context,
+    order channeltypes.Order,
+    connectionHops []string,
+    portID string,
+    channelID string,
+    chanCap *capabilitytypes.Capability,
+    counterparty channeltypes.Counterparty,
+    version string,
 ) error {
     // the authentication module *must* claim the channel capability on OnChanOpenInit
     if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
@@ -48,48 +48,48 @@ func (im IBCModule) OnChanOpenInit(
 
 // OnChanOpenAck implements the IBCModule interface
 func (im IBCModule) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyVersion string,
+    ctx sdk.Context,
+    portID,
+    channelID string,
+    counterpartyVersion string,
 ) error {
     // perform custom logic
 
-	return nil
+    return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
 func (im IBCModule) OnChanCloseConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
+    ctx sdk.Context,
+    portID,
+    channelID string,
 ) error {
     // perform custom logic
 
-	return nil
+    return nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
 func (im IBCModule) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    acknowledgement []byte,
+    relayer sdk.AccAddress,
 ) error {
     // perform custom logic
 
-	return nil
+    return nil
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
 func (im IBCModule) OnTimeoutPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    relayer sdk.AccAddress,
 ) error {
     // perform custom logic
 
-	return nil
+    return nil
 }
 ```
 
@@ -100,33 +100,33 @@ The following functions must be defined to fulfill the `IBCModule` interface, bu
 ```go
 // OnChanOpenTry implements the IBCModule interface
 func (im IBCModule) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version,
-	counterpartyVersion string,
+    ctx sdk.Context,
+    order channeltypes.Order,
+    connectionHops []string,
+    portID,
+    channelID string,
+    chanCap *capabilitytypes.Capability,
+    counterparty channeltypes.Counterparty,
+    version,
+    counterpartyVersion string,
 ) error {
     panic("UNIMPLEMENTED")
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
+    ctx sdk.Context,
+    portID,
+    channelID string,
 ) error {
 	panic("UNIMPLEMENTED")
 }
 
 // OnChanCloseInit implements the IBCModule interface
 func (im IBCModule) OnChanCloseInit(
-	ctx sdk.Context,
-	portID,
-	channelID string,
+    ctx sdk.Context,
+    portID,
+    channelID string,
 ) error {
 	panic("UNIMPLEMENTED")
 }
@@ -135,21 +135,21 @@ func (im IBCModule) OnChanCloseInit(
 // is returned if the packet data is succesfully decoded and the receive application
 // logic returns without error.
 func (im IBCModule) OnRecvPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	panic("UNIMPLEMENTED")
 }
 
 // NegotiateAppVersion implements the IBCModule interface
 func (im IBCModule) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
+    ctx sdk.Context,
+    order channeltypes.Order,
+    connectionID string,
+    portID string,
+    counterparty channeltypes.Counterparty,
+    proposedVersion string,
 ) (string, error) {
 	panic("UNIMPLEMENTED")
 }
@@ -160,11 +160,11 @@ func (im IBCModule) NegotiateAppVersion(
 The authentication module may begin registering interchain accounts by calling `InitInterchainAccount`:
 
 ```go
-    if err := keeper.icaControllerKeeper.InitInterchainAccount(ctx, connectionID, counterpartyConnectionID, owner.String()); err != nil {
-        return err
-    }
+if err := keeper.icaControllerKeeper.InitInterchainAccount(ctx, connectionID, counterpartyConnectionID, owner.String()); err != nil {
+    return err
+}
 
-    return nil
+return nil
 ```
 
 ## TrySendTx
@@ -176,39 +176,39 @@ The authentication module may attempt to send a packet by calling `TrySendTx`:
     
     // Lookup portID based on interchain account owner address
     portID, err := icatypes.GeneratePortID(owner.String(), connectionID, counterpartyConnectionID)
-	if err != nil {
-		return err
-	}
+    if err != nil {
+	    return err
+    }
 
-	channelID, found := keeper.icaControllerKeeper.GetActiveChannelID(ctx, portID)
-	if !found {
-		return sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portId)
-	}
+    channelID, found := keeper.icaControllerKeeper.GetActiveChannelID(ctx, portID)
+    if !found {
+	    return sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portId)
+    }
     
     // Obtain the channel capability. 
     // The channel capability should have been claimed by the authentication module in OnChanOpenInit
-	chanCap, found := keeper.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
-	if !found {
-		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
+    chanCap, found := keeper.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+    if !found {
+	    return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+    }
     
     // Obtain data to be sent to the host chain. 
     // In this example, the owner of the interchain account would like to send a bank MsgSend to the host chain. 
     // The appropriate serialization function should be called. The host chain must be able to deserialize the transaction. 
     // If the host chain is using the ibc-go host module, `SerializeCosmosTx` should be used. 
-	msg := &banktypes.MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amt}
-	data, err := icatypes.SerializeCosmosTx(keeper.cdc, []sdk.Msg{msg})
-	if err != nil {
-		return err
-	}
+    msg := &banktypes.MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amt}
+    data, err := icatypes.SerializeCosmosTx(keeper.cdc, []sdk.Msg{msg})
+    if err != nil {
+	    return err
+    }
 
     // Construct packet data
-	packetData := icatypes.InterchainAccountPacketData{
-		Type: icatypes.EXECUTE_TX,
-		Data: data,
-	}
+    packetData := icatypes.InterchainAccountPacketData{
+	    Type: icatypes.EXECUTE_TX,
+	    Data: data,
+    }
 
-	_, err = keeper.icaControllerKeeper.TrySendTx(ctx, chanCap, p, packetData)
+    _, err = keeper.icaControllerKeeper.TrySendTx(ctx, chanCap, p, packetData)
 ```
 
 The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain. 
