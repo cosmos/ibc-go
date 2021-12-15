@@ -1,4 +1,4 @@
-# Migrating from v2.0.0 to v3.0.0
+# Migrating from ibc-go v2 to v3
 
 This document is intended to highlight significant changes which may require more information than presented in the CHANGELOG.
 Any changes that must be done by a user of ibc-go should be documented here.
@@ -38,4 +38,5 @@ Please review the [mock](../../testing/mock/ibc_module.go) and [transfer](../../
 
 ## IBC Light Clients
 
-- No relevant changes were made in this release.
+The `GetProofSpecs` function has been removed from the `ClientState` interface. This function was previously unused by core IBC. Light clients which don't use this function may remove it. 
+
