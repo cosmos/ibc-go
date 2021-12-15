@@ -95,11 +95,16 @@ message Header {
   // merkle proof of inclusion in header.extrinsic_root
   repeated bytes extrinsic_proof = 2 [(gogoproto.nullable) = false];
   // actual scale encoded timestamp extrinsic.
-  bytes timestamp_extrinsic = 3 [(gogoproto.nullable) = false];
+  Extrinsic timestamp_extrinsic = 3 [(gogoproto.nullable) = false];
   // Data needed to prove parachain header finality
   ParachainHeaderProof parachain_header_proof = 4 [(gogoproto.nullable) = false];
   // optional payload to update the mmr root hash.
   ClientUpdateProof client_update_proof = 5 [(gogoproto.nullable) = true];
+}
+
+// todo: https://github.com/centrifuge/go-substrate-rpc-client/blob/7a18f81cc0e531eea6ee0bd96ab49f68aeee0c81/types/extrinsic.go#L46-L53
+message Extrinsic {
+
 }
 
 // todo: https://github.com/centrifuge/go-substrate-rpc-client/blob/7a18f81cc0e531eea6ee0bd96ab49f68aeee0c81/types/header.go?_pjax=%23js-repo-pjax-container%2C%20div%5Bitemtype%3D%22http%3A%2F%2Fschema.org%2FSoftwareSourceCode%22%5D%20main%2C%20%5Bdata-pjax-container%5D#L28-L34
