@@ -216,4 +216,4 @@ If the host chain is using the ibc-go host chain submodule, `SerializeCosmosTx` 
 
 ### Integration into app.go file
 
-To integrate the authentication module into your chain, please follow the steps outlined above in [app.go integration](#ExampleIntegration).
+To integrate the authentication module into your chain, please follow the steps outlined above in [app.go integration](./integration.md#example-integration).
