@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 
 // Partial data for MmrLeaf
 message MmrLeafPartial {
-  // this should be uint8 :(
+  // todo: this should be uint8 :(
   uint64 version = 1 [(gogoproto.nullable) = false];
   // parent block for this leaf
   uint64 parent_number = 2 [(gogoproto.nullable) = false];
