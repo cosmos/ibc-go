@@ -65,12 +65,12 @@ IBC Client Heights are represented by the struct:
 ```go
 type Height struct {
    RevisionNumber uint64
-   RevisionHeight  uint64
+   RevisionHeight uint64
 }
 ```
 
 The `RevisionNumber` represents the revision of the chain that the height is representing.
-An revision typically represents a continuous, monotonically increasing range of block-heights.
+A revision typically represents a continuous, monotonically increasing range of block-heights.
 The `RevisionHeight` represents the height of the chain within the given revision.
 
 On any reset of the `RevisionHeight`, for example, when hard-forking a Tendermint chain,
