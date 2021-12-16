@@ -4,13 +4,13 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: Nov 24, 2021_
+_Lastest update: Dec 16, 2021_
 
-This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
+This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go byt the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans.
 
-The release tags and timelines are educated guesses based on the information at hand at the moment of updating this document. The release version numbers might change if we need to release security vulnerability patches or urgent bug fixes.
+The release tags and timelines are educated guesses based on the information at hand at the moment of updating this document. The `x` in the release tags is a placeholder for the final version number.
 
 ## Q4 - 2021
 
@@ -30,7 +30,7 @@ The release tags and timelines are educated guesses based on the information at 
 
 ### Align implementation with ICS02
 
-We will work on to bring the ibc-go implementation in line with [ICS02](https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics): [#284](https://github.com/cosmos/ibc-go/issues/284), [#285](https://github.com/cosmos/ibc-go/issues/285), [#286](https://github.com/cosmos/ibc-go/issues/286), [#594](https://github.com/cosmos/ibc-go/issues/594) and [#599](https://github.com/cosmos/ibc-go/issues/599). The support for Wasm-based light clients relies on these issues as well. 
+We will work to bring the ibc-go implementation in line with [ICS02](https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics): [#284](https://github.com/cosmos/ibc-go/issues/284), [#285](https://github.com/cosmos/ibc-go/issues/285), [#286](https://github.com/cosmos/ibc-go/issues/286), [#594](https://github.com/cosmos/ibc-go/issues/594) and [#599](https://github.com/cosmos/ibc-go/issues/599). The support for Wasm-based light clients relies on these issues as well. 
 
 ### Release schedule
 
