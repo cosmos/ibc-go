@@ -217,6 +217,36 @@
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
+<<<<<<< HEAD
+=======
+- [ibc/lightclients/beefy/v1/beefy.proto](#ibc/lightclients/beefy/v1/beefy.proto)
+    - [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet)
+    - [Call](#ibc.lightclients.beefy.v1.Call)
+    - [CallIndex](#ibc.lightclients.beefy.v1.CallIndex)
+    - [ChangesTrieSignal](#ibc.lightclients.beefy.v1.ChangesTrieSignal)
+    - [ClientState](#ibc.lightclients.beefy.v1.ClientState)
+    - [ClientUpdateProof](#ibc.lightclients.beefy.v1.ClientUpdateProof)
+    - [Consensus](#ibc.lightclients.beefy.v1.Consensus)
+    - [ConsensusState](#ibc.lightclients.beefy.v1.ConsensusState)
+    - [DigestItem](#ibc.lightclients.beefy.v1.DigestItem)
+    - [Extrinsic](#ibc.lightclients.beefy.v1.Extrinsic)
+    - [ExtrinsicEra](#ibc.lightclients.beefy.v1.ExtrinsicEra)
+    - [ExtrinsicSignatureV4](#ibc.lightclients.beefy.v1.ExtrinsicSignatureV4)
+    - [Header](#ibc.lightclients.beefy.v1.Header)
+    - [Misbehaviour](#ibc.lightclients.beefy.v1.Misbehaviour)
+    - [MmrLeafPartial](#ibc.lightclients.beefy.v1.MmrLeafPartial)
+    - [MortalEra](#ibc.lightclients.beefy.v1.MortalEra)
+    - [MultiAddress](#ibc.lightclients.beefy.v1.MultiAddress)
+    - [MultiSignature](#ibc.lightclients.beefy.v1.MultiSignature)
+    - [ParachainHeader](#ibc.lightclients.beefy.v1.ParachainHeader)
+    - [ParachainHeaderProof](#ibc.lightclients.beefy.v1.ParachainHeaderProof)
+    - [PreRuntime](#ibc.lightclients.beefy.v1.PreRuntime)
+    - [Seal](#ibc.lightclients.beefy.v1.Seal)
+  
+- [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
+    - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
+  
+>>>>>>> 1764cc7 (feat: add beefy proto files)
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -3249,6 +3279,454 @@ GenesisState defines the ibc module's genesis state.
 
 
 
+<<<<<<< HEAD
+=======
+<a name="ibc/lightclients/beefy/v1/beefy.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/beefy/v1/beefy.proto
+
+
+
+<a name="ibc.lightclients.beefy.v1.BeefyAuthoritySet"></a>
+
+### BeefyAuthoritySet
+Beefy Authority Info
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  | Id of the authority set, it should be strictly increasing |
+| `len` | [uint64](#uint64) |  | size of the authority set |
+| `authorityMerkleRoot` | [bytes](#bytes) |  | merkle root of all authority public keys. |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.Call"></a>
+
+### Call
+Call is the extrinsic function descriptor
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `CallIndex` | [CallIndex](#ibc.lightclients.beefy.v1.CallIndex) |  |  |
+| `Args` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.CallIndex"></a>
+
+### CallIndex
+Call is the extrinsic function descriptor
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `SectionIndex` | [uint32](#uint32) |  |  |
+| `MethodIndex` | [uint32](#uint32) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ChangesTrieSignal"></a>
+
+### ChangesTrieSignal
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `IsNewConfiguration` | [bool](#bool) |  |  |
+| `AsNewConfiguration` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ClientState"></a>
+
+### ClientState
+ClientState from Tendermint tracks the current validator set, latest height,
+and a possible frozen height.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_id` | [string](#string) |  |  |
+| `mmr_root_hash` | [bytes](#bytes) |  | Latest mmr root hash |
+| `latestBeefyHeight` | [uint64](#uint64) |  | block number for the latest mmr_root_hash |
+| `authority` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the current round |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ClientUpdateProof"></a>
+
+### ClientUpdateProof
+data needed to update the client
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `mmr_root_hash` | [bytes](#bytes) |  | new mmr_root_hash |
+| `signatures` | [bytes](#bytes) | repeated | gotten from rpc subscription |
+| `authority_proof` | [bytes](#bytes) | repeated | generated using full authority list from runtime |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.Consensus"></a>
+
+### Consensus
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ConsensusEngineID` | [uint32](#uint32) |  |  |
+| `Bytes` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ConsensusState"></a>
+
+### ConsensusState
+ConsensusState defines the consensus state from Tendermint.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
+| `root` | [bytes](#bytes) |  | commitment root (i.e app hash) |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.DigestItem"></a>
+
+### DigestItem
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `IsChangesTrieRoot` | [bool](#bool) |  |  |
+| `AsChangesTrieRoot` | [bytes](#bytes) |  |  |
+| `IsPreRuntime` | [bool](#bool) |  |  |
+| `AsPreRuntime` | [PreRuntime](#ibc.lightclients.beefy.v1.PreRuntime) |  |  |
+| `IsConsensus` | [bool](#bool) |  |  |
+| `AsConsensus` | [Consensus](#ibc.lightclients.beefy.v1.Consensus) |  |  |
+| `IsSeal` | [bool](#bool) |  |  |
+| `AsSeal` | [Seal](#ibc.lightclients.beefy.v1.Seal) |  |  |
+| `IsChangesTrieSignal` | [bool](#bool) |  |  |
+| `AsChangesTrieSignal` | [ChangesTrieSignal](#ibc.lightclients.beefy.v1.ChangesTrieSignal) |  |  |
+| `IsOther` | [bool](#bool) |  |  |
+| `AsOther` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.Extrinsic"></a>
+
+### Extrinsic
+borrowed from https://github.com/centrifuge/go-substrate-rpc-client/blob/7a18f81cc0e531eea6ee0bd96ab49f68aeee0c81/types/extrinsic.go#L46-L53
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `Version` | [uint32](#uint32) |  | Version is the encoded version flag (which encodes the raw transaction version and signing information in one byte) |
+| `Signature` | [ExtrinsicSignatureV4](#ibc.lightclients.beefy.v1.ExtrinsicSignatureV4) |  | Signature is the ExtrinsicSignatureV4, it's presence depends on the Version flag |
+| `Method` | [Call](#ibc.lightclients.beefy.v1.Call) |  | Method is the call this extrinsic wraps |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ExtrinsicEra"></a>
+
+### ExtrinsicEra
+ExtrinsicEra indicates either a mortal or immortal extrinsic
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `IsImmortalEra` | [bool](#bool) |  |  |
+| `IsMortalEra` | [bool](#bool) |  | AsImmortalEra ImmortalEra |
+| `AsMortalEra` | [MortalEra](#ibc.lightclients.beefy.v1.MortalEra) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ExtrinsicSignatureV4"></a>
+
+### ExtrinsicSignatureV4
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `Signer` | [MultiAddress](#ibc.lightclients.beefy.v1.MultiAddress) |  |  |
+| `Signature` | [MultiSignature](#ibc.lightclients.beefy.v1.MultiSignature) |  |  |
+| `Era` | [ExtrinsicEra](#ibc.lightclients.beefy.v1.ExtrinsicEra) |  | extra via system::CheckEra |
+| `Nonce` | [uint64](#uint64) |  | extra via system::CheckNonce (Compact<Index> where Index is u32)) |
+| `Tip` | [uint64](#uint64) |  | extra via balances::TakeFees (Compact<Balance> where Balance is u128)) |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.Header"></a>
+
+### Header
+Header contains the neccessary data to proove finality about IBC commitments
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `parachain_header` | [ParachainHeader](#ibc.lightclients.beefy.v1.ParachainHeader) |  |  |
+| `extrinsic_proof` | [bytes](#bytes) | repeated | merkle proof of inclusion in header.extrinsic_root |
+| `timestamp_extrinsic` | [Extrinsic](#ibc.lightclients.beefy.v1.Extrinsic) |  | actual scale encoded timestamp extrinsic. |
+| `parachain_header_proof` | [ParachainHeaderProof](#ibc.lightclients.beefy.v1.ParachainHeaderProof) |  | Data needed to prove parachain header finality |
+| `client_update_proof` | [ClientUpdateProof](#ibc.lightclients.beefy.v1.ClientUpdateProof) |  | optional payload to update the mmr root hash. |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.Misbehaviour"></a>
+
+### Misbehaviour
+Misbehaviour is a wrapper over two conflicting Headers
+that implements Misbehaviour interface expected by ICS-02
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `header_1` | [Header](#ibc.lightclients.beefy.v1.Header) |  |  |
+| `header_2` | [Header](#ibc.lightclients.beefy.v1.Header) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.MmrLeafPartial"></a>
+
+### MmrLeafPartial
+Partial data for MmrLeaf
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [uint64](#uint64) |  | todo: this should be uint8 :( |
+| `parent_number` | [uint64](#uint64) |  | parent block for this leaf |
+| `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
+| `next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | next authority set. |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.MortalEra"></a>
+
+### MortalEra
+MortalEra for an extrinsic, indicating period and phase
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `First` | [uint32](#uint32) |  |  |
+| `Second` | [uint32](#uint32) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.MultiAddress"></a>
+
+### MultiAddress
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `IsID` | [bool](#bool) |  |  |
+| `AsID` | [bytes](#bytes) |  |  |
+| `IsIndex` | [bool](#bool) |  |  |
+| `AsIndex` | [uint32](#uint32) |  |  |
+| `IsRaw` | [bool](#bool) |  |  |
+| `AsRaw` | [bytes](#bytes) |  |  |
+| `IsAddress32` | [bool](#bool) |  |  |
+| `AsAddress32` | [bytes](#bytes) |  |  |
+| `IsAddress20` | [bool](#bool) |  |  |
+| `AsAddress20` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.MultiSignature"></a>
+
+### MultiSignature
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `IsEd25519` | [bool](#bool) |  | 0:: Ed25519(Ed25519Signature) |
+| `AsEd25519` | [bytes](#bytes) |  | Ed25519Signature |
+| `IsSr25519` | [bool](#bool) |  | 1:: Sr25519(Sr25519Signature) |
+| `AsSr25519` | [bytes](#bytes) |  | Sr25519Signature |
+| `IsEcdsa` | [bool](#bool) |  | 2:: Ecdsa(EcdsaSignature) |
+| `AsEcdsa` | [bytes](#bytes) |  | EcdsaSignature |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ParachainHeader"></a>
+
+### ParachainHeader
+borrowed from: https://github.com/centrifuge/go-substrate-rpc-client/blob/7a18f81cc0e531eea6ee0bd96ab49f68aeee0c81/types/header.go?_pjax=%23js-repo-pjax-container%2C%20div%5Bitemtype%3D%22http%3A%2F%2Fschema.org%2FSoftwareSourceCode%22%5D%20main%2C%20%5Bdata-pjax-container%5D#L28-L34
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ParentHash` | [bytes](#bytes) |  |  |
+| `Number` | [uint32](#uint32) |  |  |
+| `StateRoot` | [bytes](#bytes) |  |  |
+| `ExtrinsicsRoot` | [bytes](#bytes) |  |  |
+| `Digest` | [DigestItem](#ibc.lightclients.beefy.v1.DigestItem) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.ParachainHeaderProof"></a>
+
+### ParachainHeaderProof
+data needed to prove finality about ibc commitments in parachain
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `leaf_index` | [uint64](#uint64) |  | leaf index, latest_beefy_block - beefy_activation_block |
+| `proofs` | [bytes](#bytes) | repeated | mmr proofs for this index, gotten from rpc "mmr_generateProofs" |
+| `heads_proof` | [bytes](#bytes) | repeated | proofs for our header in the parachain heads root |
+| `mmr_leaf_partial` | [MmrLeafPartial](#ibc.lightclients.beefy.v1.MmrLeafPartial) |  | reconstructed MmrLeaf, see beefy-go spec |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.PreRuntime"></a>
+
+### PreRuntime
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ConsensusEngineID` | [uint32](#uint32) |  |  |
+| `Bytes` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.beefy.v1.Seal"></a>
+
+### Seal
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ConsensusEngineID` | [uint32](#uint32) |  |  |
+| `Bytes` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/lightclients/localhost/v1/localhost.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/localhost/v1/localhost.proto
+
+
+
+<a name="ibc.lightclients.localhost.v1.ClientState"></a>
+
+### ClientState
+ClientState defines a loopback (localhost) client. It requires (read-only)
+access to keys outside the client prefix.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_id` | [string](#string) |  | self chain ID |
+| `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | self latest block height |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+>>>>>>> 1764cc7 (feat: add beefy proto files)
 <a name="ibc/lightclients/solomachine/v1/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
