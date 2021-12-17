@@ -49,7 +49,7 @@ message ClientState {
 message ParachainHeaderProof {
   option (gogoproto.goproto_getters) = false;
   // leaf index, latest_beefy_block - beefy_activation_block
-  uint64 leaf_index = 1 ;
+  uint64 leaf_index = 1;
   // mmr proofs for this index, gotten from rpc "mmr_generateProofs"
   repeated bytes proofs = 2;
   // proofs for our header in the parachain heads root
@@ -62,7 +62,7 @@ message ParachainHeaderProof {
 message ClientUpdateProof {
   option (gogoproto.goproto_getters) = false;
   // new mmr_root_hash
-  bytes mmr_root_hash = 1 ;
+  bytes mmr_root_hash = 1;
   // gotten from rpc subscription
   repeated bytes signatures = 2;
   // generated using full authority list from runtime
@@ -93,11 +93,11 @@ message Misbehaviour {
 // Header contains the neccessary data to proove finality about IBC commitments
 message Header {
   // scale-encoded header bytes
-  bytes parachain_header = 1 [(gogoproto.embed) = true, (gogoproto.moretags) = "yaml:\"signed_header\""];
+  bytes parachain_header = 1 [(gogoproto.moretags) = "yaml:\"signed_header\""];
   // merkle proof of inclusion in header.extrinsic_root
   repeated bytes extrinsic_proof = 2;
   // actual scale encoded timestamp extrinsic.
-  bytes timestamp_extrinsic = 3 [(gogoproto.nullable) = false];
+  bytes timestamp_extrinsic = 3;
   // Data needed to prove parachain header finality
   ParachainHeaderProof parachain_header_proof = 4 [(gogoproto.nullable) = false];
   // optional payload to update the mmr root hash.
