@@ -292,7 +292,6 @@ The original sender module then executes application-specific acknowledgment log
 If you want to learn more about IBC, check the following specifications:
 
 * [IBC specification overview](https://github.com/cosmos/ibc/blob/master/README.md)
-* [IBC SDK specification](../../modules/core/spec/README.md)
 
 ## Next {hide}
 
