@@ -119,7 +119,7 @@ func (im IBCModule) OnChanOpenConfirm(
     portID,
     channelID string,
 ) error {
-	panic("UNIMPLEMENTED")
+    panic("UNIMPLEMENTED")
 }
 
 // OnChanCloseInit implements the IBCModule interface
@@ -128,7 +128,7 @@ func (im IBCModule) OnChanCloseInit(
     portID,
     channelID string,
 ) error {
-	panic("UNIMPLEMENTED")
+    panic("UNIMPLEMENTED")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -139,7 +139,7 @@ func (im IBCModule) OnRecvPacket(
     packet channeltypes.Packet,
     relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	panic("UNIMPLEMENTED")
+    panic("UNIMPLEMENTED")
 }
 
 // NegotiateAppVersion implements the IBCModule interface
@@ -151,7 +151,7 @@ func (im IBCModule) NegotiateAppVersion(
     counterparty channeltypes.Counterparty,
     proposedVersion string,
 ) (string, error) {
-	panic("UNIMPLEMENTED")
+    panic("UNIMPLEMENTED")
 }
 ```
 
@@ -177,7 +177,7 @@ The authentication module may attempt to send a packet by calling `TrySendTx`:
 // Lookup portID based on interchain account owner address
 portID, err := icatypes.GeneratePortID(owner.String(), connectionID, counterpartyConnectionID)
 if err != nil {
-	return err
+    return err
 }
 
 channelID, found := keeper.icaControllerKeeper.GetActiveChannelID(ctx, portID)
@@ -189,7 +189,7 @@ if !found {
 // The channel capability should have been claimed by the authentication module in OnChanOpenInit
 chanCap, found := keeper.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 if !found {
-	return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+    return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 }
     
 // Obtain data to be sent to the host chain. 
