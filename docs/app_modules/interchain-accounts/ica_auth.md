@@ -16,9 +16,10 @@ To implement an authentication module, the `IBCModule` interface must be fulfill
 By implementing the controller module as middleware, any amount of authentication modules can be created and connected to the controller module without writing redundant code. 
 
 The authentication module must:
-- authenticate interchain account owners
-- track the associated interchain account address for an owner
-- send packets on behalf of an owner (after authentication)
+- Authenticate interchain account owners
+- Track the associated interchain account address for an owner
+- Claim the channel capability in `OnChanOpenInit`
+- Send packets on behalf of an owner (after authentication)
 
 ### IBCModule implementation
 
@@ -167,10 +168,11 @@ if err := keeper.icaControllerKeeper.InitInterchainAccount(ctx, connectionID, co
 return nil
 ```
 
-## TrySendTx
+## `TrySendTx`
 
-The authentication module may attempt to send a packet by calling `TrySendTx`:
+The authentication module can attempt to send a packet by calling `TrySendTx`:
 ```go
+
 // Authenticate owner
 // perform custom logic
     
