@@ -10,8 +10,8 @@ The type of authentication used to manage the interchain accounts remains unspec
 There may exist many different types of authentication which are desirable for different use cases. 
 Thus the purpose of the authentication module is to wrap the controller module with custom authentication logic.
 
-In ibc-go, authentication modules are connected to the controller chain via a middleware stack. 
-The authentication module acts as the base application within this stack. 
+In ibc-go, authentication modules are connected to the controller chain via a middleware stack.
+The controller module is implemented as [middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware) and the authentication module is connected to the controller module as the base application of the middleware stack. 
 To implement an authentication module, the `IBCModule` interface must be fulfilled. 
 By implementing the controller module as middleware, any amount of authentication modules can be created and connected to the controller module without writing redundant code. 
 
