@@ -163,15 +163,3 @@ func (im IBCModule) OnTimeoutPacket(
 
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
-
-// NegotiateAppVersion implements the IBCModule interface
-func (im IBCModule) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
-) (string, error) {
-	return "", sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "ICS-27 app version negotiation is unsupported on controller chains")
-}

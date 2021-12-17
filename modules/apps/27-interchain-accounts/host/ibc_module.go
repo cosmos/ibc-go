@@ -137,15 +137,3 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }
-
-// NegotiateAppVersion implements the IBCModule interface
-func (im IBCModule) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
-) (string, error) {
-	return im.keeper.NegotiateAppVersion(ctx, order, connectionID, portID, counterparty, proposedVersion)
-}
