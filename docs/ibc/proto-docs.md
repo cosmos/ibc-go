@@ -4473,7 +4473,7 @@ Partial data for MmrLeaf
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `version` | [uint64](#uint64) |  | todo: this should be uint8 :( |
+| `version` | [uint32](#uint32) |  | todo: this should be uint8 :( |
 | `parent_number` | [uint64](#uint64) |  | parent block for this leaf |
 | `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
 | `next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | next authority set. |
