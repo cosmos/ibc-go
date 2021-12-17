@@ -11,8 +11,8 @@ import "gogoproto/gogo.proto";
 
 // Partial data for MmrLeaf
 message MmrLeafPartial {
-  // todo: this should be uint8 :(
-  uint64 version = 1 ;
+  // leaf version
+  uint32 version = 1 [(gogoproto.customtype) = "uint8", (gogoproto.nullable) = false];
   // parent block for this leaf
   uint64 parent_number = 2;
   // parent hash for this leaf
