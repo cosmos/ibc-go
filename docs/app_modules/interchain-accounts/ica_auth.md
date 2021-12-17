@@ -7,7 +7,7 @@ order: 3
 The controller module is used for account registration and packet sending. 
 It executes only logic required of all controllers of interchain accounts. 
 The type of authentication used to manage the interchain accounts remains unspecified. 
-There may exist may different types of authentication which are desirable for different use cases. 
+There may exist many different types of authentication which are desirable for different use cases. 
 Thus the purpose of the authentication module is to wrap the controller module with custom authentication logic.
 
 In ibc-go, authentication modules are connected to the controller chain via a middleware stack. 
@@ -155,9 +155,9 @@ func (im IBCModule) NegotiateAppVersion(
 }
 ```
 
-## InitInterchainAccount
+## `InitInterchainAccount`
 
-The authentication module may begin registering interchain accounts by calling `InitInterchainAccount`:
+The authentication module can begin registering interchain accounts by calling `InitInterchainAccount`:
 
 ```go
 if err := keeper.icaControllerKeeper.InitInterchainAccount(ctx, connectionID, counterpartyConnectionID, owner.String()); err != nil {
