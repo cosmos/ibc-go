@@ -1,8 +1,6 @@
 package fee
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -208,8 +206,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	ack := types.IncentivizedAcknowledgement{}
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+	ack := new(types.IncentivizedAcknowledgement)
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
@@ -224,9 +222,10 @@ func (im IBCModule) OnAcknowledgementPacket(
 	// cache context before trying to distribute the fee
 	cacheCtx, writeFn := ctx.CacheContext()
 
-	fmt.Println("forward", ack.ForwardRelayerAddress)
+	forwardRelayer, _ := sdk.AccAddressFromBech32(ack.ForwardRelayerAddress)
+	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
 
-	err := im.keeper.DistributeFee(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), sdk.AccAddress(ack.ForwardRelayerAddress), relayer, packetId)
+	err := im.keeper.DistributeFee(cacheCtx, refundAcc, forwardRelayer, relayer, packetId)
 
 	if err == nil {
 		// write the cache and then call underlying callback
@@ -261,7 +260,7 @@ func (im IBCModule) OnTimeoutPacket(
 	// cache context before trying to distribute the fee
 	cacheCtx, writeFn := ctx.CacheContext()
 
-	err := im.keeper.DistributeFeeTimeout(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence))
+	err := im.keeper.DistributeFeeTimeout(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, packetId)
 
 	if err == nil {
 		// write the cache and then call underlying callback

@@ -596,11 +596,10 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			false,
 		},
 		{
-			"error on distribute fee",
+			"error on distribute fee (blocked address)",
 			func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), types.ModuleName).GetAddress()
 
-				fmt.Println("blocked", blockedAddr.String())
 				ack = types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
 					ForwardRelayerAddress: blockedAddr.String(),
@@ -660,7 +659,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().Equal(
 					sdk.Coin{
 						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(99999999999600),
+						Amount: sdk.NewInt(100000000000000),
 					},
 					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			} else {
