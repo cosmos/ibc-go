@@ -201,13 +201,13 @@ if !found {
 msg := &banktypes.MsgSend{FromAddress: fromAddr, ToAddress: toAddr, Amount: amt}
 data, err := icatypes.SerializeCosmosTx(keeper.cdc, []sdk.Msg{msg})
 if err != nil {
-	return err
+    return err
 }
 
 // Construct packet data
 packetData := icatypes.InterchainAccountPacketData{
-	Type: icatypes.EXECUTE_TX,
-	Data: data,
+    Type: icatypes.EXECUTE_TX,
+    Data: data,
 }
 
 _, err = keeper.icaControllerKeeper.TrySendTx(ctx, chanCap, p, packetData)
