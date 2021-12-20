@@ -2,7 +2,7 @@
 order: 3
 -->
 
-# Building an ICA Authentication Module
+# Building an ICA authentication module
 
 The controller module is used for account registration and packet sending. 
 It executes only logic required of all controllers of interchain accounts. 
