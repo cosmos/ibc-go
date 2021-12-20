@@ -224,7 +224,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	// cache context before trying to distribute the fee
 	cacheCtx, writeFn := ctx.CacheContext()
 
-	fmt.Println(sdk.AccAddress(identifiedPacketFee.RefundAddress))
+	fmt.Println("forward", ack.ForwardRelayerAddress)
 
 	err := im.keeper.DistributeFee(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), sdk.AccAddress(ack.ForwardRelayerAddress), relayer, packetId)
 
@@ -262,7 +262,7 @@ func (im IBCModule) OnTimeoutPacket(
 	cacheCtx, writeFn := ctx.CacheContext()
 
 	err := im.keeper.DistributeFeeTimeout(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence))
-	
+
 	if err == nil {
 		// write the cache and then call underlying callback
 		writeFn()

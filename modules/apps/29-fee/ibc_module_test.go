@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
@@ -557,19 +556,15 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 // different channel than sending chain
 func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
+	var ack []byte
 	testCases := []struct {
 		name     string
 		malleate func()
-		ackBytes []byte
 		expPass  bool
 	}{
 		{
 			"success",
 			func() {},
-			types.IncentivizedAcknowledgement{
-				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-			}.Acknowledgement(),
 			true,
 		},
 		{
@@ -577,49 +572,40 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
+
+				ack = types.IncentivizedAcknowledgement{
+					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+				}.Acknowledgement()
 			},
-			types.IncentivizedAcknowledgement{
-				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-			}.Acknowledgement(),
-			true,
+			false,
 		},
 		{
 			"ack wrong format",
-			func() {},
-			[]byte("unsupported acknowledgement format"),
+			func() {
+				ack = []byte("unsupported acknowledgement format")
+			},
 			false,
 		},
 		{
 			"channel is not fee not enabled, success",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
 			},
-			channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-			true,
+			false,
 		},
-		// {
-		// 	"error on distribute fee",
-		// 	func() {
-		// 		pubkey := secp256k1.GenPrivKey().PubKey()
-		// 		invalidAddr := sdk.AccAddress(pubkey.Address())
-		// 		suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), invalidAddr.String())
-		// 	},
-		// 	types.IncentivizedAcknowledgement{
-		// 		Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-		// 		ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-		// 	}.Acknowledgement(),
-		// 	false,
-		// },
 		{
-			"channel is not fee enabled, fail",
+			"error on distribute fee",
 			func() {
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), types.ModuleName).GetAddress()
+
+				fmt.Println("blocked", blockedAddr.String())
+				ack = types.IncentivizedAcknowledgement{
+					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					ForwardRelayerAddress: blockedAddr.String(),
+				}.Acknowledgement()
 			},
-			types.IncentivizedAcknowledgement{
-				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-				ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-			}.Acknowledgement(),
 			false,
 		},
 	}
@@ -658,15 +644,32 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 			suite.Require().NoError(err)
 
+			// must be changed explicitly
+			ack = types.IncentivizedAcknowledgement{
+				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+				ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+			}.Acknowledgement()
+
 			// malleate test case
 			tc.malleate()
 
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, tc.ackBytes, suite.chainB.SenderAccount.GetAddress())
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, suite.chainA.SenderAccount.GetAddress())
 
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+				suite.Require().Equal(
+					sdk.Coin{
+						Denom:  ibctesting.TestCoin.Denom,
+						Amount: sdk.NewInt(99999999999600),
+					},
+					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			} else {
-				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+				suite.Require().Equal(
+					sdk.Coin{
+						Denom:  ibctesting.TestCoin.Denom,
+						Amount: sdk.NewInt(99999999999400),
+					},
+					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			}
 		})
 	}
@@ -674,7 +677,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	var (
-		refundAddr string
+		relayerAddr sdk.AccAddress
 	)
 	testCases := []struct {
 		name     string
@@ -693,23 +696,21 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
 			},
-			true,
+			false,
 		},
 		{
-			"error on distribute fee",
+			"error on distribute fee (blocked address)",
 			func() {
-				// refundAddr = "address_invalid"
-				// fee := suite.chainA.GetContext().EventManager().Events()
-				// suite.Assert().Equal(fee, true)
+				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), types.ModuleName).GetAddress()
 			},
-			true,
+			false,
 		},
 		{
 			"fee not enabled",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
-			true,
+			false,
 		},
 	}
 
@@ -739,7 +740,8 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 
 			// must be explicitly changed
-			refundAddr = suite.chainA.SenderAccount.GetAddress().String()
+			relayerAddr = suite.chainA.SenderAccount.GetAddress()
+
 			identifiedFee := types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
@@ -747,7 +749,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 					AckFee:     validCoins2,
 					TimeoutFee: validCoins3,
 				},
-				refundAddr,
+				suite.chainA.SenderAccount.GetAddress().String(),
 				[]string{},
 			)
 
@@ -757,16 +759,23 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			// malleate test case
 			tc.malleate()
 
-			relayerAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
 
 			if tc.expPass {
-				fmt.Println(tc.name, refundAddr)
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
-			}
-
-			if !tc.expPass {
-				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+				suite.Require().Equal(
+					sdk.Coin{
+						Denom:  ibctesting.TestCoin.Denom,
+						Amount: sdk.NewInt(99999999999800),
+					},
+					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+			} else {
+				suite.Require().Equal(
+					sdk.Coin{
+						Denom:  ibctesting.TestCoin.Denom,
+						Amount: sdk.NewInt(99999999999500),
+					},
+					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			}
 		})
 	}
