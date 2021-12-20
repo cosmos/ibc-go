@@ -1,6 +1,8 @@
 package fee
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -177,7 +179,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -214,23 +216,25 @@ func (im IBCModule) OnAcknowledgementPacket(
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 
-	// return underlying callback if no fee found for given packetID
 	if !found {
+		// return underlying callback if no fee found for given packetID
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
+
 	// cache context before trying to distribute the fee
 	cacheCtx, writeFn := ctx.CacheContext()
 
-	err := im.keeper.DistributeFee(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), sdk.AccAddress(ack.ForwardRelayerAddress), relayer, packetId)
-	// emit the error in event if any
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+	fmt.Println(sdk.AccAddress(identifiedPacketFee.RefundAddress))
 
-	// if there is no error, write the cache and then call underlying callback
-	// otherwise discard cache and call underlying callback
+	err := im.keeper.DistributeFee(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), sdk.AccAddress(ack.ForwardRelayerAddress), relayer, packetId)
+
 	if err == nil {
+		// write the cache and then call underlying callback
 		writeFn()
+		// emit the event
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
-	// call underlying callback
+	// otherwise discard cache and call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
@@ -247,9 +251,10 @@ func (im IBCModule) OnTimeoutPacket(
 
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 
-	// return underlying callback if fee not found for given packetID
 	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
+
 	if !found {
+		// return underlying callback if fee not found for given packetID
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
@@ -257,14 +262,14 @@ func (im IBCModule) OnTimeoutPacket(
 	cacheCtx, writeFn := ctx.CacheContext()
 
 	err := im.keeper.DistributeFeeTimeout(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence))
-	// emit the error in event if any
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
-	// if there is no error, write the cache and then call underlying callback
-	// otherwise discard cache and call underlying callback
+	
 	if err == nil {
+		// write the cache and then call underlying callback
 		writeFn()
+		// emit the event
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
-	// call underlying callback
+
+	// otherwise discard cache and call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }

@@ -5,8 +5,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
 )
@@ -38,4 +40,25 @@ func (suite *FeeTestSuite) SetupTest() {
 
 func TestIBCFeeTestSuite(t *testing.T) {
 	suite.Run(t, new(FeeTestSuite))
+}
+
+func (suite *FeeTestSuite) CreateICS20Packet(coin sdk.Coin) channeltypes.Packet {
+
+	fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(
+		coin.Denom,
+		sdk.NewInt(100).Uint64(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+	)
+
+	return channeltypes.NewPacket(
+		fungibleTokenPacket.GetBytes(),
+		suite.chainA.SenderAccount.GetSequence(),
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(0, 100),
+		0,
+	)
 }
