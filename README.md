@@ -29,7 +29,7 @@
     <img alt="Lint Status" src="https://github.com/cosmos/cosmos-sdk/workflows/Lint/badge.svg" />
 </div>
 
-Interblockchain communication protocol (IBC) implementation in Golang built as a SDK module.
+The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to each other. IBC handles transport across different sovereign blockchains. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. This IBC implementation in Golang is built as a Cosmos SDK module.
 
 ## Contents
 
@@ -58,6 +58,10 @@ Interblockchain communication protocol (IBC) implementation in Golang built as a
     3.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
 
 Note: The localhost client is currently non-functional. 
+
+## Roadmap
+
+For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
 
 ## Resources
 

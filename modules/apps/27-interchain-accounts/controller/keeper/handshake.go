@@ -42,7 +42,7 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(err, "expected format %s, got %s", icatypes.ControllerPortFormat, portID)
 	}
 
-	if err := k.validateControllerPortParams(ctx, channelID, portID, connSequence, counterpartyConnSequence); err != nil {
+	if err := k.validateControllerPortParams(ctx, connectionHops, connSequence, counterpartyConnSequence); err != nil {
 		return sdkerrors.Wrapf(err, "failed to validate controller port %s", portID)
 	}
 
@@ -104,25 +104,21 @@ func (k Keeper) OnChanCloseConfirm(
 
 // validateControllerPortParams asserts the provided connection sequence and counterparty connection sequence
 // match that of the associated connection stored in state
-func (k Keeper) validateControllerPortParams(ctx sdk.Context, channelID, portID string, connectionSeq, counterpartyConnectionSeq uint64) error {
-	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID %s channel ID %s", portID, channelID)
-	}
-
-	counterpartyHops, found := k.channelKeeper.CounterpartyHops(ctx, channel)
-	if !found {
-		return sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
-	}
-
-	connSeq, err := connectiontypes.ParseConnectionSequence(channel.ConnectionHops[0])
+func (k Keeper) validateControllerPortParams(ctx sdk.Context, connectionHops []string, connectionSeq, counterpartyConnectionSeq uint64) error {
+	connectionID := connectionHops[0]
+	connection, err := k.channelKeeper.GetConnection(ctx, connectionID)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to parse connection sequence %s", channel.ConnectionHops[0])
+		return err
 	}
 
-	counterpartyConnSeq, err := connectiontypes.ParseConnectionSequence(counterpartyHops[0])
+	connSeq, err := connectiontypes.ParseConnectionSequence(connectionID)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to parse counterparty connection sequence %s", counterpartyHops[0])
+		return sdkerrors.Wrapf(err, "failed to parse connection sequence %s", connectionID)
+	}
+
+	counterpartyConnSeq, err := connectiontypes.ParseConnectionSequence(connection.GetCounterparty().GetConnectionID())
+	if err != nil {
+		return sdkerrors.Wrapf(err, "failed to parse counterparty connection sequence %s", connection.GetCounterparty().GetConnectionID())
 	}
 
 	if connSeq != connectionSeq {

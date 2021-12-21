@@ -1,4 +1,4 @@
-# Migrating from v2.0.0 to v3.0.0
+# Migrating from ibc-go v2 to v3
 
 This document is intended to highlight significant changes which may require more information than presented in the CHANGELOG.
 Any changes that must be done by a user of ibc-go should be documented here.
@@ -22,6 +22,14 @@ ICS27 Interchain Accounts has been added as a supported IBC application of ibc-g
 
 ## IBC Apps
 
+### Channel state will not be set before application callback
+
+The channel handshake logic has been reorganized within core IBC. 
+Channel state will not be set in state after the application callback is performed.
+Applications must rely only on the passed in channel parameters instead of querying the channel keeper for channel state.
+
+### IBC application callbacks moved from `AppModule` to `IBCModule`
+
 Previously, IBC module callbacks were apart of the `AppModule` type. 
 The recommended approach is to create an `IBCModule` type and move the IBC module callbacks from `AppModule` to `IBCModule` in a separate file `ibc_module.go`. 
 
@@ -38,4 +46,5 @@ Please review the [mock](../../testing/mock/ibc_module.go) and [transfer](../../
 
 ## IBC Light Clients
 
-- No relevant changes were made in this release.
+The `GetProofSpecs` function has been removed from the `ClientState` interface. This function was previously unused by core IBC. Light clients which don't use this function may remove it. 
+
