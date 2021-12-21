@@ -147,16 +147,16 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				// mock module callback should not be called on host side
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
-					counterparty channeltypes.Counterparty, version, counterpartyVersion string,
-				) error {
-					return fmt.Errorf("mock ica auth fails")
+					counterparty channeltypes.Counterparty, counterpartyVersion string,
+				) (string, error) {
+					return "", fmt.Errorf("mock ica auth fails")
 				}
 
 			}, true,
 		},
 		{
-			"ICA callback fails - invalid version", func() {
-				channel.Version = icatypes.VersionPrefix
+			"ICA callback fails - invalid channel order", func() {
+				channel.Ordering = channeltypes.UNORDERED
 			}, false,
 		},
 	}
@@ -181,7 +181,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
-				Version:        TestVersion,
+				Version:        "",
 			}
 
 			tc.malleate()
@@ -198,14 +198,16 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), path.EndpointA.ChannelConfig.Version,
+			version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(TestVersion, version)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal("", version)
 			}
 
 		})

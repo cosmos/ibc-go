@@ -236,12 +236,13 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	chanCap, found := suite.chainA.App.GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 	suite.Require().True(found)
 
-	err = cbs.OnChanOpenTry(
+	version, err := cbs.OnChanOpenTry(
 		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
 		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap,
-		counterparty, path.EndpointA.ChannelConfig.Version, path.EndpointB.ChannelConfig.Version,
+		counterparty, path.EndpointB.ChannelConfig.Version,
 	)
 	suite.Require().Error(err)
+	suite.Require().Equal("", version)
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
