@@ -82,6 +82,17 @@ func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability,
 	return k.ics4Wrapper.SendPacket(ctx, chanCap, packet)
 }
 
+// WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
+func (k Keeper) WriteAcknowledgement(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet ibcexported.PacketI,
+	acknowledgement []byte,
+) error {
+	return nil
+	// return k.channelKeeper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
+}
+
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
 // identified by channel and port identifiers.
 func (k Keeper) SetFeeEnabled(ctx sdk.Context, portID, channelID string) {

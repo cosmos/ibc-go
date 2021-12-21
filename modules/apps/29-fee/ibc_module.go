@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	"github.com/cosmos/ibc-go/modules/core/exported"
 )
 
 // IBCModule implements the ICS26 callbacks for the fee middleware given the fee keeper and the underlying application.
@@ -171,32 +171,105 @@ func (im IBCModule) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCModule interface.
+// If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
-	// TODO: Implement fee specific logic if fee is enabled for the given channel
-	return im.app.OnRecvPacket(ctx, packet, relayer)
+) exported.Acknowledgement {
+	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+
+	forwardRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
+	if !found {
+		forwardRelayer = ""
+	}
+
+	return types.IncentivizedAcknowledgement{
+		Result:                ack.Acknowledgement(),
+		ForwardRelayerAddress: forwardRelayer,
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
+// If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	// TODO: Implement fee specific logic if fee is enabled for the given channel
-	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	ack := new(types.IncentivizedAcknowledgement)
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
+		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
+	}
+
+	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
+
+	if !found {
+		// return underlying callback if no fee found for given packetID
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	}
+
+	// cache context before trying to distribute the fee
+	cacheCtx, writeFn := ctx.CacheContext()
+
+	forwardRelayer, _ := sdk.AccAddressFromBech32(ack.ForwardRelayerAddress)
+	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
+
+	err := im.keeper.DistributeFee(cacheCtx, refundAcc, forwardRelayer, relayer, packetId)
+
+	if err == nil {
+		// write the cache and then call underlying callback
+		writeFn()
+		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+	}
+	// otherwise discard cache and call underlying callback
+	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
+// If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	// TODO: Implement fee specific logic if fee is enabled for the given channel
+	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+
+	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
+
+	if !found {
+		// return underlying callback if fee not found for given packetID
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	// cache context before trying to distribute the fee
+	cacheCtx, writeFn := ctx.CacheContext()
+
+	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
+	err := im.keeper.DistributeFeeTimeout(cacheCtx, refundAcc, relayer, packetId)
+
+	if err == nil {
+		// write the cache and then call underlying callback
+		writeFn()
+		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+	}
+
+	// otherwise discard cache and call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }

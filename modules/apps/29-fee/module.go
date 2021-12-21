@@ -53,7 +53,6 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // 29-fee module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesisState())
-	return nil
 }
 
 // ValidateGenesis performs genesis state validation for the 29-fee module.
