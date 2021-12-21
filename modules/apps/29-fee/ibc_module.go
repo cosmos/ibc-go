@@ -230,7 +230,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err == nil {
 		// write the cache and then call underlying callback
 		writeFn()
-		// emit the event
+		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
 		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
 	// otherwise discard cache and call underlying callback
@@ -266,7 +266,7 @@ func (im IBCModule) OnTimeoutPacket(
 	if err == nil {
 		// write the cache and then call underlying callback
 		writeFn()
-		// emit the event
+		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
 		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
 

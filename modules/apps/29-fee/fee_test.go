@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
