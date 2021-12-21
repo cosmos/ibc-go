@@ -260,7 +260,8 @@ func (im IBCModule) OnTimeoutPacket(
 	// cache context before trying to distribute the fee
 	cacheCtx, writeFn := ctx.CacheContext()
 
-	err := im.keeper.DistributeFeeTimeout(cacheCtx, sdk.AccAddress(identifiedPacketFee.RefundAddress), relayer, packetId)
+	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
+	err := im.keeper.DistributeFeeTimeout(cacheCtx, refundAcc, relayer, packetId)
 
 	if err == nil {
 		// write the cache and then call underlying callback

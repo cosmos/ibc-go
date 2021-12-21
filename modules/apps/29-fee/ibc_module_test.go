@@ -765,7 +765,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				suite.Require().Equal(
 					sdk.Coin{
 						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(99999999999800),
+						Amount: sdk.NewInt(100000000000100),
 					},
 					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			} else {
