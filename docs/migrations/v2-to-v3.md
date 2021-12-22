@@ -64,8 +64,6 @@ The `version` string in `MsgChanOpenTry` has been deprecated and will be ignored
 Relayers no longer need to determine the version to use on the `ChanOpenTry` step.
 IBC applications will determine the correct version using the counterparty version. 
 
-Relayers may need to ensure the counterparty version passed in on `ChanOpenAck` matches the version set by the `ChanOpenTry` step.
-
 ## IBC Light Clients
 
 The `GetProofSpecs` function has been removed from the `ClientState` interface. This function was previously unused by core IBC. Light clients which don't use this function may remove it. 
