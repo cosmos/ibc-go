@@ -19,7 +19,7 @@ No genesis or in-place migrations are required when upgrading from v1 or v2 of i
 ## Chains
 
 ICS27 Interchain Accounts has been added as a supported IBC application of ibc-go.
-Please see the [ICS27 documentation](../app_modules/interchain-acounts/overview.md) for more information.
+Please see the [ICS27 documentation](../app_modules/interchain-accounts/overview.md) for more information.
 
 ## IBC Apps
 
