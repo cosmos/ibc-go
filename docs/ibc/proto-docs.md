@@ -1819,14 +1819,15 @@ MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 ### MsgChannelOpenTry
 MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
-on Chain B.
+on Chain B. The version field within the Channel field has been deprecated. Its
+value will be ignored by core IBC.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
 | `previous_channel_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the channel identifier of the previous channel in state INIT |
-| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
+| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  | NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC. |
 | `counterparty_version` | [string](#string) |  |  |
 | `proof_init` | [bytes](#bytes) |  |  |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |

@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
+// MockIBCApp contains IBC application module callbacks as defined in 05-port.
 type MockIBCApp struct {
 	OnChanOpenInit func(
 		ctx sdk.Context,
@@ -28,9 +29,8 @@ type MockIBCApp struct {
 		channelID string,
 		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
-		version,
 		counterpartyVersion string,
-	) error
+	) (version string, err error)
 
 	OnChanOpenAck func(
 		ctx sdk.Context,
