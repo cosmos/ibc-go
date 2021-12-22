@@ -18,7 +18,7 @@ Let's assume that the planned release schedule looks like the following:
   - The first minor release for the `v2.x` release series with release tag `v2.a.0`. The placeholder is `a` since this is the first minor release.
 - At time `t0 + delta`:
   - The second patch release for the `v2.0.x` release series with release tag `v2.0.b`. The placehoder is `b` since this is the next patch release of this release series after `v2.0.a`.
-  - The first patch release for the new `v2.a.x` release series with release tag `v2.a.a`. The minor placeholder is `a` because this is the first patch release of the series.
+  - The first patch release for the new `v2.a.x` release series with release tag `v2.a.a`. The patch version placeholder is `a` because this is the first patch release of the series.
 
 ## Q4 - 2021
 
