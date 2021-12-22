@@ -166,6 +166,19 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			previousChannelID = path.EndpointB.ChannelID
 			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
 		}, true},
+		{"previous channel with invalid version, crossing hello", func() {
+			suite.coordinator.SetupConnections(path)
+			path.SetChannelOrdered()
+
+			// modify channel version
+			path.EndpointA.ChannelConfig.Version = "invalid version"
+
+			err := suite.coordinator.ChanOpenInitOnBothChains(path)
+			suite.Require().NoError(err)
+
+			previousChannelID = path.EndpointB.ChannelID
+			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
+		}, false},
 		{"previous channel with invalid state", func() {
 			suite.coordinator.SetupConnections(path)
 
