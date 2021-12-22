@@ -219,21 +219,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
-	// cache context before trying to distribute the fee
-	cacheCtx, writeFn := ctx.CacheContext()
+	im.keeper.DistributeFee(ctx, identifiedPacketFee.RefundAddress, ack.ForwardRelayerAddress, relayer.String(), packetId)
 
-	forwardRelayer, _ := sdk.AccAddressFromBech32(ack.ForwardRelayerAddress)
-	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
-
-	err := im.keeper.DistributeFee(cacheCtx, refundAcc, forwardRelayer, relayer, packetId)
-
-	if err == nil {
-		// write the cache and then call underlying callback
-		writeFn()
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-	}
-	// otherwise discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
@@ -257,19 +245,8 @@ func (im IBCModule) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	// cache context before trying to distribute the fee
-	cacheCtx, writeFn := ctx.CacheContext()
+	im.keeper.DistributeFeeTimeout(ctx, identifiedPacketFee.RefundAddress, relayer.String(), packetId)
 
-	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
-	err := im.keeper.DistributeFeeTimeout(cacheCtx, refundAcc, relayer, packetId)
-
-	if err == nil {
-		// write the cache and then call underlying callback
-		writeFn()
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-	}
-
-	// otherwise discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }

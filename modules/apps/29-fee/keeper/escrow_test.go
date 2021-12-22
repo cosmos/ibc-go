@@ -70,7 +70,11 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			packetId = &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: uint64(1)}
 
 			tc.malleate()
-			fee := types.Fee{ackFee, receiveFee, timeoutFee}
+			fee := types.Fee{
+				ReceiveFee: receiveFee,
+				AckFee:     ackFee,
+				TimeoutFee: timeoutFee,
+			}
 			identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 
 			// refundAcc balance before escrow
@@ -146,7 +150,11 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			receiveFee = validCoins2
 			timeoutFee = validCoins3
 			packetId = &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: validSeq}
-			fee := types.Fee{receiveFee, ackFee, timeoutFee}
+			fee := types.Fee{
+				ReceiveFee: receiveFee,
+				AckFee:     ackFee,
+				TimeoutFee: timeoutFee,
+			}
 
 			// escrow the packet fee & store the fee in state
 			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
@@ -159,7 +167,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			// refundAcc balance after escrow
 			refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFee(suite.chainA.GetContext(), refundAcc, forwardRelayer, reverseRelayer, packetId)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFee(suite.chainA.GetContext(), refundAcc.String(), forwardRelayer.String(), reverseRelayer.String(), packetId)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -236,7 +244,11 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 			receiveFee = validCoins2
 			timeoutFee = validCoins3
 			packetId = &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: validSeq}
-			fee := types.Fee{receiveFee, ackFee, timeoutFee}
+			fee := types.Fee{
+				ReceiveFee: receiveFee,
+				AckFee:     ackFee,
+				TimeoutFee: timeoutFee,
+			}
 
 			// escrow the packet fee & store the fee in state
 			identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
@@ -248,7 +260,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 			// refundAcc balance after escrow
 			refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFeeTimeout(suite.chainA.GetContext(), refundAcc, timeoutRelayer, packetId)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.DistributeFeeTimeout(suite.chainA.GetContext(), refundAcc.String(), timeoutRelayer.String(), packetId)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -291,7 +303,11 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 
 	for i := 0; i < 5; i++ {
 		packetId := &channeltypes.PacketId{ChannelId: "channel-0", PortId: transfertypes.PortID, Sequence: uint64(i)}
-		fee := types.Fee{receiveFee, ackFee, timeoutFee}
+		fee := types.Fee{
+			ReceiveFee: receiveFee,
+			AckFee:     ackFee,
+			TimeoutFee: timeoutFee,
+		}
 
 		identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, "channel-0")
@@ -301,7 +317,11 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 
 	// send a packet over a different channel to ensure this fee is not refunded
 	packetId := &channeltypes.PacketId{ChannelId: "channel-1", PortId: transfertypes.PortID, Sequence: 1}
-	fee := types.Fee{receiveFee, ackFee, timeoutFee}
+	fee := types.Fee{
+		ReceiveFee: receiveFee,
+		AckFee:     ackFee,
+		TimeoutFee: timeoutFee,
+	}
 
 	identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, "channel-1")
@@ -318,7 +338,11 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 
 	// create escrow and then change module account balance to cause error on refund
 	packetId = &channeltypes.PacketId{ChannelId: "channel-0", PortId: transfertypes.PortID, Sequence: uint64(6)}
-	fee = types.Fee{receiveFee, ackFee, timeoutFee}
+	fee = types.Fee{
+		ReceiveFee: receiveFee,
+		AckFee:     ackFee,
+		TimeoutFee: timeoutFee,
+	}
 
 	identifiedPacketFee = types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 	err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), &identifiedPacketFee)

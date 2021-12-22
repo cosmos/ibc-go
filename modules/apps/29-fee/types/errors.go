@@ -13,4 +13,5 @@ var (
 	ErrRelayersNotNil           = sdkerrors.Register(ModuleName, 6, "relayers must be nil. This feature is not supported")
 	ErrCounterpartyAddressEmpty = sdkerrors.Register(ModuleName, 7, "counterparty address must not be empty")
 	ErrFeeNotEnabled            = sdkerrors.Register(ModuleName, 8, "fee module is not enabled for this channel. If this error occurs after channel setup, fee module may not be enabled")
+	ErrFeeDistribution          = sdkerrors.Register(ModuleName, 9, "error on distributing packet fee")
 )
