@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 
 			channelID, cap, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
-				path.EndpointB.ChannelConfig.PortID, previousChannelID, portCap, counterparty, path.EndpointB.ChannelConfig.Version, path.EndpointA.ChannelConfig.Version,
+				path.EndpointB.ChannelConfig.PortID, previousChannelID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
