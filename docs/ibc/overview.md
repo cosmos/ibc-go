@@ -73,13 +73,13 @@ The `RevisionNumber` represents the revision of the chain that the height is rep
 A revision typically represents a continuous, monotonically increasing range of block-heights.
 The `RevisionHeight` represents the height of the chain within the given revision.
 
-On any reset of the `RevisionHeight`, for example, when hard-forking a Tendermint chain,
+On any reset of the `RevisionHeight`—for example, when hard-forking a Tendermint chain—
 the `RevisionNumber` will get incremented. This allows IBC clients to distinguish between a
 block-height `n` of a previous revision of the chain (at revision `p`) and block-height `n` of the current
 revision of the chain (at revision `e`).
 
-`Heights` that share the same revision number can be compared by simply comparing their respective `RevisionHeights`.
-Heights that do not share the same revision number will only be compared using their respective `RevisionNumbers`.
+`Height`s that share the same revision number can be compared by simply comparing their respective `RevisionHeight`s.
+`Height`s that do not share the same revision number will only be compared using their respective `RevisionNumber`s.
 Thus a height `h` with revision number `e+1` will always be greater than a height `g` with revision number `e`,
 **REGARDLESS** of the difference in revision heights.
 
@@ -90,26 +90,26 @@ Height{RevisionNumber: 3, RevisionHeight: 0} > Height{RevisionNumber: 2, Revisio
 ```
 
 When a Tendermint chain is running a particular revision, relayers can simply submit headers and proofs with the revision number
-given by the chain's chainID, and the revision height given by the Tendermint block height. When a chain updates using a hard-fork 
-and resets its block-height, it is responsible for updating its chain-id to increment the revision number.
-IBC Tendermint clients then verifies the revision number against their `ChainId` and treat the `RevisionHeight` as the Tendermint block-height.
+given by the chain's `chainID`, and the revision height given by the Tendermint block height. When a chain updates using a hard-fork 
+and resets its block-height, it is responsible for updating its `chainID` to increment the revision number.
+IBC Tendermint clients then verifies the revision number against their `chainID` and treat the `RevisionHeight` as the Tendermint block-height.
 
-Tendermint chains wishing to use revisions to maintain persistent IBC connections even across height-resetting upgrades must format their chain-ids
-in the following manner: `{chainID}-{revision_number}`. On any height-resetting upgrade, the chainID **MUST** be updated with a higher revision number
+Tendermint chains wishing to use revisions to maintain persistent IBC connections even across height-resetting upgrades must format their `chainID`s
+in the following manner: `{chainID}-{revision_number}`. On any height-resetting upgrade, the `chainID` **MUST** be updated with a higher revision number
 than the previous value.
 
 Ex:
 
-- Before upgrade ChainID: `gaiamainnet-3`
-- After upgrade ChainID: `gaiamainnet-4`
+- Before upgrade `chainID`: `gaiamainnet-3`
+- After upgrade `chainID`: `gaiamainnet-4`
 
 Clients that do not require revisions, such as the solo-machine client, simply hardcode `0` into the revision number whenever they
 need to return an IBC height when implementing IBC interfaces and use the `RevisionHeight` exclusively.
 
-Other client-types may implement their own logic to verify the IBC Heights that relayers provide in their `Update`, `Misbehavior`, and
+Other client-types can implement their own logic to verify the IBC heights that relayers provide in their `Update`, `Misbehavior`, and
 `Verify` functions respectively.
 
-The IBC interfaces expect an `ibcexported.Height` interface, however all clients should use the concrete implementation provided in
+The IBC interfaces expect an `ibcexported.Height` interface, however all clients must use the concrete implementation provided in
 `02-client/types` and reproduced above.
 
 ### [Connections](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection)
@@ -210,16 +210,16 @@ that the module **must** claim so that they can pass in a capability to authenti
 like sending packets. The channel capability is passed into the callback on the first parts of the
 handshake; either `OnChanOpenInit` on the initializing chain or `OnChanOpenTry` on the other chain.
 
-#### Closing Channels
+#### Closing channels
 
-Closing a channel occurs in occurs in 2 handshake steps as defined in [ICS 04](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics).
+Closing a channel occurs in 2 handshake steps as defined in [ICS 04](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics).
 
-`ChanCloseInit` will close a channel on the executing chain if the channel exists, it is not 
+`ChanCloseInit` closes a channel on the executing chain if the channel exists, it is not 
 already closed and the connection it exists upon is OPEN. Channels can only be closed by a 
 calling module or in the case of a packet timeout on an ORDERED channel.
 
 `ChanCloseConfirm` is a response to a counterparty channel executing `ChanCloseInit`. The channel
-on the executing chain will be closed if the channel exists, the channel is not already closed, 
+on the executing chain closes if the channel exists, the channel is not already closed, 
 the connection the channel exists upon is OPEN and the executing chain successfully verifies
 that the counterparty channel has been closed.
 
