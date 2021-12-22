@@ -1,37 +1,19 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
-
-// CounterpartyHops returns the connection hops of the counterparty channel.
-// The counterparty hops are stored in the inverse order as the channel's.
-// NOTE: Since connectionHops only supports single connection channels for now,
-// this function requires that connection hops only contain a single connection id
-func (k Keeper) CounterpartyHops(ctx sdk.Context, ch types.Channel) ([]string, bool) {
-	// Return empty array if connection hops is more than one
-	// ConnectionHops length should be verified earlier
-	if len(ch.ConnectionHops) != 1 {
-		return []string{}, false
-	}
-	counterpartyHops := make([]string, 1)
-	hop := ch.ConnectionHops[0]
-	conn, found := k.connectionKeeper.GetConnection(ctx, hop)
-	if !found {
-		return []string{}, false
-	}
-
-	counterpartyHops[0] = conn.GetCounterparty().GetConnectionID()
-	return counterpartyHops, true
-}
 
 // ChanOpenInit is called by a module to initiate a channel opening handshake with
 // a module on another chain. The counterparty channel identifier is validated to be
@@ -73,13 +55,29 @@ func (k Keeper) ChanOpenInit(
 	}
 
 	channelID := k.GenerateChannelIdentifier(ctx)
-	channel := types.NewChannel(types.INIT, order, counterparty, connectionHops, version)
-	k.SetChannel(ctx, portID, channelID, channel)
 
 	capKey, err := k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 	if err != nil {
 		return "", nil, sdkerrors.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
 	}
+
+	return channelID, capKey, nil
+}
+
+// WriteOpenInitChannel writes a channel which has successfully passed the OpenInit handshake step.
+// The channel is set in state and all the associated Send and Recv sequences are set to 1.
+// An event is emitted for the handshake step.
+func (k Keeper) WriteOpenInitChannel(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	order types.Order,
+	connectionHops []string,
+	counterparty types.Counterparty,
+	version string,
+) {
+	channel := types.NewChannel(types.INIT, order, counterparty, connectionHops, version)
+	k.SetChannel(ctx, portID, channelID, channel)
 
 	k.SetNextSequenceSend(ctx, portID, channelID, 1)
 	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
@@ -102,7 +100,12 @@ func (k Keeper) ChanOpenInit(
 		),
 	})
 
-	return channelID, capKey, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }
 
 // ChanOpenTry is called by a module to accept the first step of a channel opening
@@ -127,6 +130,11 @@ func (k Keeper) ChanOpenTry(
 
 	channelID := previousChannelID
 
+	// connection hops only supports a single connection
+	if len(connectionHops) != 1 {
+		return "", nil, sdkerrors.Wrapf(types.ErrTooManyConnectionHops, "expected 1, got %d", len(connectionHops))
+	}
+
 	// empty channel identifier indicates continuing a previous channel handshake
 	if previousChannelID != "" {
 		// channel identifier and connection hop length checked on msg.ValidateBasic()
@@ -139,7 +147,7 @@ func (k Keeper) ChanOpenTry(
 		if !(previousChannel.Ordering == order &&
 			previousChannel.Counterparty.PortId == counterparty.PortId &&
 			previousChannel.Counterparty.ChannelId == "" &&
-			previousChannel.ConnectionHops[0] == connectionHops[0] &&
+			previousChannel.ConnectionHops[0] == connectionHops[0] && // ChanOpenInit will only set a single connection hop
 			previousChannel.Version == version) {
 			return "", nil, sdkerrors.Wrap(types.ErrInvalidChannel, "channel fields mismatch previous channel fields")
 		}
@@ -186,21 +194,13 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
-	// NOTE: this step has been switched with the one below to reverse the connection
-	// hops
-	channel := types.NewChannel(types.TRYOPEN, order, counterparty, connectionHops, version)
-
-	counterpartyHops, found := k.CounterpartyHops(ctx, channel)
-	if !found {
-		// should not reach here, connectionEnd was able to be retrieved above
-		panic("cannot find connection")
-	}
+	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	// expectedCounterpaty is the counterparty of the counterparty's channel end
 	// (i.e self)
 	expectedCounterparty := types.NewCounterparty(portID, "")
 	expectedChannel := types.NewChannel(
-		types.INIT, channel.Ordering, expectedCounterparty,
+		types.INIT, order, expectedCounterparty,
 		counterpartyHops, counterpartyVersion,
 	)
 
@@ -222,9 +222,6 @@ func (k Keeper) ChanOpenTry(
 			return "", nil, sdkerrors.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
 		}
 
-		k.SetNextSequenceSend(ctx, portID, channelID, 1)
-		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
-		k.SetNextSequenceAck(ctx, portID, channelID, 1)
 	} else {
 		// capability initialized in ChanOpenInit
 		capKey, found = k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
@@ -234,6 +231,30 @@ func (k Keeper) ChanOpenTry(
 			)
 		}
 	}
+
+	return channelID, capKey, nil
+}
+
+// WriteOpenTryChannel writes a channel which has successfully passed the OpenTry handshake step.
+// The channel is set in state. If a previous channel state did not exist, all the Send and Recv
+// sequences are set to 1. An event is emitted for the handshake step.
+func (k Keeper) WriteOpenTryChannel(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	order types.Order,
+	connectionHops []string,
+	counterparty types.Counterparty,
+	version string,
+) {
+	previousChannel, previousChannelFound := k.GetChannel(ctx, portID, channelID)
+	if !previousChannelFound {
+		k.SetNextSequenceSend(ctx, portID, channelID, 1)
+		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
+		k.SetNextSequenceAck(ctx, portID, channelID, 1)
+	}
+
+	channel := types.NewChannel(types.TRYOPEN, order, counterparty, connectionHops, version)
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
@@ -253,8 +274,12 @@ func (k Keeper) ChanOpenTry(
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 		),
 	})
-
-	return channelID, capKey, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }
 
 // ChanOpenAck is called by the handshake-originating module to acknowledge the
@@ -297,11 +322,7 @@ func (k Keeper) ChanOpenAck(
 		)
 	}
 
-	counterpartyHops, found := k.CounterpartyHops(ctx, channel)
-	if !found {
-		// should not reach here, connectionEnd was able to be retrieved above
-		panic("cannot find connection")
-	}
+	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	// counterparty of the counterparty channel end (i.e self)
 	expectedCounterparty := types.NewCounterparty(portID, channelID)
@@ -318,16 +339,33 @@ func (k Keeper) ChanOpenAck(
 		return err
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "OPEN")
+	return nil
+}
 
-	defer func() {
-		telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
-	}()
+// WriteOpenAckChannel writes an updated channel state for the successful OpenAck handshake step.
+// An event is emitted for the handshake step.
+func (k Keeper) WriteOpenAckChannel(
+	ctx sdk.Context,
+	portID,
+	channelID,
+	counterpartyVersion,
+	counterpartyChannelID string,
+) {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenAck step, channelID: %s, portID: %s", channelID, portID))
+	}
 
 	channel.State = types.OPEN
 	channel.Version = counterpartyVersion
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
+
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", "OPEN")
+
+	defer func() {
+		telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
+	}()
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -339,8 +377,13 @@ func (k Keeper) ChanOpenAck(
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 		),
 	})
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 
-	return nil
 }
 
 // ChanOpenConfirm is called by the counterparty module to close their end of the
@@ -381,11 +424,7 @@ func (k Keeper) ChanOpenConfirm(
 		)
 	}
 
-	counterpartyHops, found := k.CounterpartyHops(ctx, channel)
-	if !found {
-		// Should not reach here, connectionEnd was able to be retrieved above
-		panic("cannot find connection")
-	}
+	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.NewChannel(
@@ -399,6 +438,21 @@ func (k Keeper) ChanOpenConfirm(
 		expectedChannel,
 	); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// WriteOpenConfirmChannel writes an updated channel state for the successful OpenConfirm handshake step.
+// An event is emitted for the handshake step.
+func (k Keeper) WriteOpenConfirmChannel(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenConfirm step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	channel.State = types.OPEN
@@ -419,8 +473,12 @@ func (k Keeper) ChanOpenConfirm(
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 		),
 	})
-
-	return nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }
 
 // Closing Handshake
@@ -519,11 +577,7 @@ func (k Keeper) ChanCloseConfirm(
 		)
 	}
 
-	counterpartyHops, found := k.CounterpartyHops(ctx, channel)
-	if !found {
-		// Should not reach here, connectionEnd was able to be retrieved above
-		panic("cannot find connection")
-	}
+	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.NewChannel(
