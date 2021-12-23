@@ -3,7 +3,8 @@ name: Check docs build
 # This will check if the docs build successfully by running `npm run build`
 on:
   pull_request:
-    types: [ labeled ]
+  paths:
+      - './docs'
 
 jobs:
   check-docs-build:
