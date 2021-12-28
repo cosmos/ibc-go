@@ -7,10 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v2/modules/core/exported"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // TimeoutPacket is called by a module which originally attempted to send a
@@ -227,11 +227,7 @@ func (k Keeper) TimeoutOnClose(
 		return sdkerrors.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
-	counterpartyHops, found := k.CounterpartyHops(ctx, channel)
-	if !found {
-		// Should not reach here, connectionEnd was able to be retrieved above
-		panic("cannot find connection")
-	}
+	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
 	expectedChannel := types.NewChannel(

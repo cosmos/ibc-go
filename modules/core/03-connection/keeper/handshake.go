@@ -8,10 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v2/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v2/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // ConnOpenInit initialises a connection attempt on chain A. The generated connection identifier
@@ -125,9 +125,9 @@ func (k Keeper) ConnOpenTry(
 		return "", err
 	}
 
-	expectedConsensusState, found := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
-	if !found {
-		return "", sdkerrors.Wrap(clienttypes.ErrSelfConsensusStateNotFound, consensusHeight.String())
+	expectedConsensusState, err := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
+	if err != nil {
+		return "", sdkerrors.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
 	}
 
 	// expectedConnection defines Chain A's ConnectionEnd
@@ -250,9 +250,9 @@ func (k Keeper) ConnOpenAck(
 	}
 
 	// Retrieve chainA's consensus state at consensusheight
-	expectedConsensusState, found := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
-	if !found {
-		return clienttypes.ErrSelfConsensusStateNotFound
+	expectedConsensusState, err := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
 	}
 
 	prefix := k.GetCommitmentPrefix()

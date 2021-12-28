@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v2/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v2/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v2/testing"
-	ibcmock "github.com/cosmos/ibc-go/v2/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 var defaultTimeoutHeight = clienttypes.NewHeight(0, 100000)
@@ -139,10 +139,10 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 
 			proof, consensusHeight := suite.chainB.QueryConsensusStateProof(path.EndpointB.ClientID)
 			proofHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()-1))
-			consensusState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
-			suite.Require().True(found)
+			consensusState, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
+			suite.Require().NoError(err)
 
-			err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyClientConsensusState(
+			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyClientConsensusState(
 				suite.chainA.GetContext(), connection,
 				malleateHeight(proofHeight, heightDiff), consensusHeight, proof, consensusState,
 			)

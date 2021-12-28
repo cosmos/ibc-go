@@ -71,9 +71,8 @@ OnChanOpenTry(
     channelID string,
     channelCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
-    version,
     counterpartyVersion string,
-) error {
+) (string, error) {
     // Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
     // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
     // If the module can already authenticate the capability then the module already owns it so we don't need to claim
@@ -88,8 +87,18 @@ OnChanOpenTry(
     // ... do custom initialization logic
 
     // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+    if err := checkArguments(args); err != nil {
+        return err
+    }
+
+    // Construct application version 
+    // IBC applications must return the appropriate application version
+    // This can be a simple string or it can be a complex version constructed
+    // from the counterpartyVersion and other arguments. 
+    // The version returned will be the channel version used for both channel ends. 
+    appVersion := negotiateAppVersion(counterpartyVersion, args)
+    
+    return appVersion, nil
 }
 
 // Called by IBC Handler on MsgOpenAck
@@ -157,8 +166,11 @@ OnChanCloseConfirm(
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
 * `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
-* `ChanOpenTry` callback should verify that the `MsgChanOpenTry.Version` is valid and that `MsgChanOpenTry.CounterpartyVersion` is valid.
+* `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error. 
 * `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
+
+IBC expects application modules to perform application version negotiation in `OnChanOpenTry`. The negotiated version
+must be returned to core IBC. If the version cannot be negotiated, an error should be returned.
 
 Versions must be strings but can implement any versioning structure. If your application plans to
 have linear releases then semantic versioning is recommended. If your application plans to release

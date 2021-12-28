@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
 // GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given hash.
@@ -97,7 +97,11 @@ func GetCmdParams() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, _ := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
 			return clientCtx.PrintProto(res.Params)
 		},
 	}
