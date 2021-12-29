@@ -62,7 +62,7 @@ func ValidateTransferChannelParams(
 }
 
 // SetMiddleware sets ICS30 middleware
-func (im IBCModule) SetMiddleware(app porttypes.IBCModule) {
+func (im *IBCModule) SetMiddleware(app porttypes.IBCModule) {
 	im.app = app
 }
 
