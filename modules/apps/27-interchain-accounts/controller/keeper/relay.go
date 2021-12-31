@@ -49,8 +49,8 @@ func (k Keeper) createOutgoingPacket(
 		return 0, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "failed to retrieve next sequence send for channel %s on port %s", sourceChannel, sourcePort)
 	}
 
-	// timeoutTimestamp is set to be a max number here so that we never recieve a timeout
-	// ics-27-1 uses ordered channels which can close upon recieving a timeout, which is an undesired effect
+	// timeoutTimestamp is set to be a max number here so that we never receive a timeout
+	// ics-27-1 uses ordered channels which can close upon receiving a timeout, which is an undesired effect
 	const timeoutTimestamp = ^uint64(0) >> 1 // Shift the unsigned bit to satisfy hermes relayer timestamp conversion
 
 	packet := channeltypes.NewPacket(

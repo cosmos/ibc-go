@@ -7,10 +7,11 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	"io/ioutil"
 	"strconv"
 	"strings"
+
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	"github.com/tendermint/tendermint/crypto"
 
@@ -281,7 +282,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		panic(fmt.Errorf("Failed to read model-based test files: %w", err))
 	}
 	for _, file_info := range files {
-		var tlaTestCases = []TlaOnRecvPacketTestCase{}
+		tlaTestCases := []TlaOnRecvPacketTestCase{}
 		if !strings.HasSuffix(file_info.Name(), ".json") {
 			continue
 		}

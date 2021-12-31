@@ -256,7 +256,7 @@ func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontype
 
 // ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit.
 // ChannelOpenInit will perform 04-channel checks, route to the application
-// callback, and write an OpenInit channel into state upon successful exection.
+// callback, and write an OpenInit channel into state upon successful execution.
 func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -294,7 +294,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 
 // ChannelOpenTry defines a rpc handler method for MsgChannelOpenTry.
 // ChannelOpenTry will perform 04-channel checks, route to the application
-// callback, and write an OpenTry channel into state upon successful exection.
+// callback, and write an OpenTry channel into state upon successful execution.
 func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -332,7 +332,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.
 // ChannelOpenAck will perform 04-channel checks, route to the application
-// callback, and write an OpenAck channel into state upon successful exection.
+// callback, and write an OpenAck channel into state upon successful execution.
 func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -368,7 +368,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 
 // ChannelOpenConfirm defines a rpc handler method for MsgChannelOpenConfirm.
 // ChannelOpenConfirm will perform 04-channel checks, route to the application
-// callback, and write an OpenConfirm channel into state upon successful exection.
+// callback, and write an OpenConfirm channel into state upon successful execution.
 func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
