@@ -63,6 +63,9 @@ func ValidateTransferChannelParams(
 
 // SetMiddleware sets ICS30 middleware
 func (im *IBCModule) SetMiddleware(app porttypes.IBCModule) {
+	if im.app != nil {
+		panic("middleware already set for transfer app")
+	}
 	im.app = app
 }
 
