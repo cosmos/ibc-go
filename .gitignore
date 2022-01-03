@@ -52,10 +52,3 @@ dependency-graph.png
 *.aux
 *.out
 *.synctex.gz
-
-.history/*
-*.pb.go
-go.mod
-*.pb.gw.go
-*.md
-
