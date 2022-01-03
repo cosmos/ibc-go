@@ -20,8 +20,8 @@ No genesis or in-place migrations are required when upgrading from v1 or v2 of i
 
 ### ICS20
 
-The `transferkeeper.NewKeeper(...)` now takes in an ics4Wrapper. 
-The ics4Wrapper should be the IBC Channel Keeper unless ICS 20 is being connected to a middleware application.
+The `transferkeeper.NewKeeper(...)` now takes in an ICS4Wrapper. 
+The ICS4Wrapper should be the IBC Channel Keeper unless ICS 20 is being connected to a middleware application.
 
 ### ICS27
 
