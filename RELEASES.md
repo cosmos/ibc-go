@@ -21,6 +21,40 @@ To summarize: **All our ibc-go releases allow chains to communicate successfully
 
 We ensure all major releases are supported by relayers ([hermes](https://github.com/informalsystems/ibc-rs), [rly](https://github.com/strangelove-ventures/relayer) and [ts-relayer](https://github.com/confio/ts-relayer) at the moment) which can relay between the new major release and older releases. We have no plans of upgrading to an IBC protocol specification v2.0, as this would be very disruptive to the ecosystem.
 
+## Stable Release Policy
+
+A Major Release series continues to receive bug fixes (released as a Patch Release) until it reaches End Of Life. A Major Release series reaches End of Life 6 months after the publication of the next Major Release series. For example, if the current Major Release series is v1, then v1 will be supported for up to 6 months after the publication of v2. 
+
+Only the following major release series have a stable release status:
+
+TODO: create table, use specific release lines (v1.1.x, v1.2.x)
+
+    v1 will be supported until x.x.x. 
+    v2 will be supported until 6 months after the publication of v3. 
+
+At the time this policy was adopted, v1 and v2 had already been released. The 6 month policy for the v1 Major Release series will go into affect on the day this policy was merged into the codebase as opposed to when v2 was released.
+
+### What pull requests will be included in stable patch-releases?
+
+Pull requests that fix bugs and add features that fall in the following categories:
+
+* **Severe regressions**.
+* Bugs that may cause **client applications** to be **largely unusable**.
+* Bugs that may cause **state corruption or data loss**.
+* Bugs that may directly or indirectly cause a **security vulnerability**.
+* Non-breaking features that are strongly requested by the community.
+* Non-breaking CLI improvements that are strongly requested by the community.
+
+### What pull requests will NOT be automatically included in stable point-releases?
+
+As rule of thumb, the following changes will **NOT** be automatically accepted into stable point-releases:
+
+* **State machine changes**, unless the previous behaviour would result in a consensus halt.
+* **Protobuf-breaking changes**.
+* **Client-breaking changes**, i.e. changes that prevent gRPC, HTTP and RPC clients to continue interacting with the node without any change.
+* **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
+* **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
+
 ## Graphics
 
 The decision tree above was generated with the following code:
