@@ -159,7 +159,7 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetDenomHash retreives the hash key from the store for a demon trace
+// GetDenomHash retrieves the hash key from the store for a denom trace
 func (k Keeper) GetDenomHash(ctx sdk.Context, denomTrace types.DenomTrace) (tmbytes.HexBytes, bool) {
 	hash := denomTrace.Hash()
 	traceExist := false
