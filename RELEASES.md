@@ -27,10 +27,11 @@ A Major Release series continues to receive bug fixes (released as a Patch Relea
 
 Only the following major release series have a stable release status:
 
-TODO: create table, use specific release lines (v1.1.x, v1.2.x)
-
-    v1 will be supported until x.x.x. 
-    v2 will be supported until 6 months after the publication of v3. 
+|Release|End of Life Date|
+|-------|-------|
+|`v1.1.x`|July 05, 2022|
+|`v1.2.x`|July 05, 2022|
+|`v2.0.x`|6 months after v3 release|
 
 At the time this policy was adopted, v1 and v2 had already been released. The 6 month policy for the v1 Major Release series will go into affect on the day this policy was merged into the codebase as opposed to when v2 was released.
 
