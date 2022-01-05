@@ -1,4 +1,4 @@
-# ADR 002: Go package versioning
+# ADR 002: Go module versioning
 
 ## Changelog
 * 05/01/2022: initial draft
@@ -34,7 +34,9 @@ Not including a go.mod in our release is not a viable option.
 #### Attempting to import multiple go module versions for ibc-go
 
 Attempting to import two versions of ibc-go, such as:
+
 `github.com/cosmos/ibc-go/v2`
+
 `github.com/cosmos/ibc-go/v3`
 
 will result in multiple issues. 
@@ -77,9 +79,13 @@ It also requires all extended functions to live in the same go module, disruptin
 
 The version that implements this change will still be incompatible with previous versions, but future versions could be imported together without namespace collisions.
 For example, lets say this solution is implmented in v3. Then
+
 `github.com/cosmos/ibc-go/v2` cannot be imported with any other ibc-go version
+
 `guthub.com/cosmos/ibc-go/v3` cannot be imported with any previous ibc-go versions
+
 `github.com/cosmos/ibc-go/v4` may be imported with ibc-go versions v3+
+
 `github.com/cosmos/ibc-go/v5` may be imported with ibc-go versions v3+
 
 ## Decision
