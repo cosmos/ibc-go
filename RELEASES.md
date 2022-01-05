@@ -46,7 +46,7 @@ Pull requests that fix bugs and add features that fall in the following categori
 * Non-breaking features that are strongly requested by the community.
 * Non-breaking CLI improvements that are strongly requested by the community.
 
-### What pull requests will NOT be automatically included in stable point-releases?
+### What pull requests will NOT be automatically included in stable patch-releases?
 
 As rule of thumb, the following changes will **NOT** be automatically accepted into stable point-releases:
 
