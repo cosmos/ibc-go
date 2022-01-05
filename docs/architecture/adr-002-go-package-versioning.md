@@ -85,7 +85,7 @@ For example, lets say this solution is implmented in v3. Then
 ## Decision
 
 Supporting importing multiple versions of ibc-go requires a non-trivial amount of complexity.
-It is also unclear when a user of the ibc-go code would need to multiple versions of ibc-go. 
+It is unclear when a user of the ibc-go code would need to multiple versions of ibc-go. 
 Until there is an overwhelming reason to support importing multiple versions of ibc-go:
 
 Major releases cannot be imported simultaneously. 
@@ -109,8 +109,3 @@ Multiple ibc-go versions cannot be imported.
 
 ### Neutral
 
-## References
-
-> Are there any relevant PR comments, issues that led up to this, or articles referrenced for why we made the given design choice? If so link them here!
-
-* {reference link}
