@@ -96,6 +96,7 @@ func (q Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 	if err != nil {
 		return nil, err
 	}
+	
 	ctx := sdk.UnwrapSDKContext(c)
 	denomHash, found := q.GetDenomHash(ctx, denomTrace)
 	if !found {
