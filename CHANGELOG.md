@@ -62,6 +62,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - [\#432](https://github.com/cosmos/ibc-go/pull/432) Introduce `MockIBCApp` struct to the mock module. Allows the mock module to be reused to perform custom logic on each IBC App interface function. This might be useful when testing out IBC applications written as middleware.
 - [\#380](https://github.com/cosmos/ibc-go/pull/380) Adding the Interchain Accounts module v1
+- [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
 
 ### Bug Fixes
 
@@ -270,7 +271,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - [\#198](https://github.com/cosmos/ibc-go/pull/198) New CLI command `query ibc-transfer escrow-address <port> <channel id>` to get the escrow address for a channel; can be used to then query balance of escrowed tokens
-- [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this is helpful if only the denom path and base are available
 
 ### Client Breaking Changes
 
