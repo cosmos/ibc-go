@@ -179,9 +179,6 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 		{
 			"success",
 			func() {
-				req = &types.QueryDenomHashRequest{
-					Trace: reqTrace.GetFullDenomPath(),
-				}
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), reqTrace)
 
 				req = &types.QueryDenomHashRequest{
