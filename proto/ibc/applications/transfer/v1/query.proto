@@ -28,7 +28,7 @@ service Query {
 
   // DenomHash queries a denomination hash information.
   rpc DenomHash(QueryDenomHashRequest) returns (QueryDenomHashResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{trace}";
+    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_hashes/{trace}";
   }
 }
 

@@ -93,12 +93,10 @@ func (q Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 	if err := denomTrace.Validate(); err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
-	
+
 	ctx := sdk.UnwrapSDKContext(c)
-	denomHash, found := q.GetDenomHash(ctx, denomTrace)
+	denomHash := denomTrace.Hash()
+	found := q.HasDenomTrace(ctx, denomHash)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,

@@ -410,7 +410,7 @@ var (
 
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "apps", "transfer", "v1", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_DenomHash_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"ibc", "apps", "transfer", "v1", "denom_traces", "trace"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DenomHash_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"ibc", "apps", "transfer", "v1", "denom_hashes", "trace"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

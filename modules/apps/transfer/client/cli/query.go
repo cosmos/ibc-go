@@ -136,6 +136,7 @@ func GetCmdQueryEscrowAddress() *cobra.Command {
 	return cmd
 }
 
+// GetCmdQueryDenomHash defines the command to query a denomination hash from a given trace.
 func GetCmdQueryDenomHash() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "denom-hash [trace]",

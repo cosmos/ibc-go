@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"bytes"
-
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -157,21 +155,4 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
-}
-
-// GetDenomHash retrieves the hash key from the store for a denom trace
-func (k Keeper) GetDenomHash(ctx sdk.Context, denomTrace types.DenomTrace) (tmbytes.HexBytes, bool) {
-	hash := denomTrace.Hash()
-	traceExist := false
-	k.IterateDenomTraces(ctx, func(denomTrace types.DenomTrace) bool {
-		if bytes.Equal(denomTrace.Hash(), hash) {
-			traceExist = true
-			return true
-		}
-		return false
-	})
-	if !traceExist {
-		return nil, false
-	}
-	return hash, true
 }
