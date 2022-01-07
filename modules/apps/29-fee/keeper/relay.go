@@ -23,7 +23,7 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 	// retrieve the forward relayer that was stored in `onRecvPacket`
 	relayer, found := k.GetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()))
 	if !found {
-		return sdkerrors.Wrap(types.ErrForwardRelayerAddressNotFound, fmt.Sprintf("packet: %s, %s, %d", packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()))
+		return sdkerrors.Wrapf(types.ErrForwardRelayerAddressNotFound, "packet: %s, %s, %d", packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	}
 
 	ack := types.NewIncentivizedAcknowledgement(relayer, acknowledgement)
