@@ -35,17 +35,11 @@ Not including a go.mod in our release is not a viable option.
 
 Attempting to import two versions of ibc-go, such as `github.com/cosmos/ibc-go/v2` and `github.com/cosmos/ibc-go/v3`, will result in multiple issues. 
 
-`github.com/cosmos/ibc-go/v2`
-
-`github.com/cosmos/ibc-go/v3`
-
-will result in multiple issues. 
-
-The SDK does global registration of error and governance proposal types. 
+The Cosmos SDK does global registration of error and governance proposal types. 
 The errors and proposals used in ibc-go would need to now register their naming based on the go module version.
 
 The more concerning problem is that protobuf definitions will also reach a namespace collision.
-ibc-go and the SDK in general rely heavily on using extended functions for go structs generated from protobuf definitions.
+ibc-go and the Cosmos SDK in general rely heavily on using extended functions for go structs generated from protobuf definitions.
 This requires the go structs to be defined in the same package as the extended functions. 
 Thus, bumping the import versioning causes the protobuf definitions to be generated in two places (in v2 and v3). 
 When registering these types at compile time, the go compiler will panic.
@@ -61,12 +55,12 @@ More information [here](https://developers.google.com/protocol-buffers/docs/refe
 The protobuf definitions all have a type URL containing the protobuf version for this type. 
 Changing the protobuf version would solve the namespace collision which arise from importing multiple versions of ibc-go, but it leads to new issues. 
 
-In the SDK, `Any`s are unpacked and decoded using the type URL.
+In the Cosmos SDK, `Any`s are unpacked and decoded using the type URL.
 Changing the type URL thus is creating a distinctly different type. 
 The same registration on the proto codec cannot be used to unpack the new type.
 For example:
 
-All SDK messages are packed into `Any`s. If we incremented the protobuf version for our IBC messages, clients which submitted the v1 of our SDK messages would now be rejected since the old type is not registered on the codec.
+All Cosmos SDK messages are packed into `Any`s. If we incremented the protobuf version for our IBC messages, clients which submitted the v1 of our Cosmos SDK messages would now be rejected since the old type is not registered on the codec.
 The clients must know to submit the v2 of these messages. This pushes the burden of versioning onto relayers and wallets.
 
 A more serious problem is that the `ClientState` and `ConsensusState` are packed as `Any`s. Changing the protobuf versioning of these types would break compatibility with IBC specification v1.
@@ -100,12 +94,12 @@ Old functionality should be marked as deprecated and there should exist upgrade 
 Deprecated functionality may be removed when no clients rely on that functionality.
 How this is determined is to be decided.
 
-- **Error and proposal type registration will not be changed between go module version increments**.
+**Error and proposal type registration will not be changed between go module version increments**.
 This explicitly stops external clients from trying to import two major versions (potentially risking a bug due to the instability of proto name collisions override).
 
 ## Consequences
 
-This also only affects clients relying directly on the go code. 
+This only affects clients relying directly on the go code. 
 
 ### Positive
 
