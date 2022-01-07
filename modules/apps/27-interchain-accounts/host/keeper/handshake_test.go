@@ -159,7 +159,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				// suite.Require().Equal(TestVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)

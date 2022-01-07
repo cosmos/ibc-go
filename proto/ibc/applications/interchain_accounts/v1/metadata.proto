@@ -6,7 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 
-// Metadata defines a set of protocol specific data encoded into the channel version bytestring
+// Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
 // See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
 message Metadata {
   string version                  = 1;

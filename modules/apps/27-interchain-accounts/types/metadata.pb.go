@@ -23,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Metadata defines a set of protocol specific data encoded into the channel version bytestring
+// Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
 // See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
 type Metadata struct {
 	Version                string `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`

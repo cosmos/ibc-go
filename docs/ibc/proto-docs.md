@@ -409,7 +409,7 @@ RegisteredInterchainAccount contains a pairing of controller port ID and associa
 <a name="ibc.applications.interchain_accounts.v1.Metadata"></a>
 
 ### Metadata
-Metadata defines a set of protocol specific data encoded into the channel version bytestring
+Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
 See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
 
 
