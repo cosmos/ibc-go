@@ -32,26 +32,23 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
-	connSequence, err := icatypes.ParseControllerConnSequence(portID)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", icatypes.ControllerPortFormat, portID)
-	}
-
-	counterpartyConnSequence, err := icatypes.ParseHostConnSequence(portID)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format %s, got %s", icatypes.ControllerPortFormat, portID)
-	}
-
-	if err := k.validateControllerPortParams(ctx, connectionHops, connSequence, counterpartyConnSequence); err != nil {
-		return sdkerrors.Wrapf(err, "failed to validate controller port %s", portID)
-	}
+	// TODO: Validate first party port ID (controller)
 
 	if counterparty.PortId != icatypes.PortID {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.PortID, counterparty.PortId)
 	}
 
-	if version != icatypes.VersionPrefix {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "expected %s, got %s", icatypes.VersionPrefix, version)
+	var metadata icatypes.Metadata
+	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
+		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account metadata")
+	}
+
+	if err := k.validateConnectionParams(ctx, connectionHops, metadata.ControllerConnectionId, metadata.HostConnectionId); err != nil {
+		return err
+	}
+
+	if metadata.Version != icatypes.Version {
+		return sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "expected %s, got %s", icatypes.Version, metadata.Version)
 	}
 
 	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
@@ -74,18 +71,21 @@ func (k Keeper) OnChanOpenAck(
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID cannot be host chain port ID: %s", icatypes.PortID)
 	}
 
-	if err := icatypes.ValidateVersion(counterpartyVersion); err != nil {
-		return sdkerrors.Wrap(err, "counterparty version validation failed")
+	var metadata icatypes.Metadata
+	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
+		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account metadata")
+	}
+
+	if err := icatypes.ValidateAccountAddress(metadata.Address); err != nil {
+		return err
+	}
+
+	if metadata.Version != icatypes.Version {
+		return sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "expected %s, got %s", icatypes.Version, metadata.Version)
 	}
 
 	k.SetActiveChannelID(ctx, portID, channelID)
-
-	accAddr, err := icatypes.ParseAddressFromVersion(counterpartyVersion)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "expected format <app-version%saccount-address>, got %s", icatypes.Delimiter, counterpartyVersion)
-	}
-
-	k.SetInterchainAccountAddress(ctx, portID, accAddr)
+	k.SetInterchainAccountAddress(ctx, portID, metadata.Address)
 
 	return nil
 }
@@ -102,31 +102,20 @@ func (k Keeper) OnChanCloseConfirm(
 	return nil
 }
 
-// validateControllerPortParams asserts the provided connection sequence and counterparty connection sequence
-// match that of the associated connection stored in state
-func (k Keeper) validateControllerPortParams(ctx sdk.Context, connectionHops []string, connectionSeq, counterpartyConnectionSeq uint64) error {
+// validateConnectionParams asserts the provided controller and host connection identifiers match that of the associated connection stored in state
+func (k Keeper) validateConnectionParams(ctx sdk.Context, connectionHops []string, controllerConnectionID, hostConnectionID string) error {
 	connectionID := connectionHops[0]
 	connection, err := k.channelKeeper.GetConnection(ctx, connectionID)
 	if err != nil {
 		return err
 	}
 
-	connSeq, err := connectiontypes.ParseConnectionSequence(connectionID)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to parse connection sequence %s", connectionID)
+	if controllerConnectionID != connectionID {
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connectionID, controllerConnectionID)
 	}
 
-	counterpartyConnSeq, err := connectiontypes.ParseConnectionSequence(connection.GetCounterparty().GetConnectionID())
-	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to parse counterparty connection sequence %s", connection.GetCounterparty().GetConnectionID())
-	}
-
-	if connSeq != connectionSeq {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "sequence mismatch, expected %d, got %d", connSeq, connectionSeq)
-	}
-
-	if counterpartyConnSeq != counterpartyConnectionSeq {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "counterparty sequence mismatch, expected %d, got %d", counterpartyConnSeq, counterpartyConnectionSeq)
+	if hostConnectionID != connection.GetCounterparty().GetConnectionID() {
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connection.GetCounterparty().GetConnectionID(), hostConnectionID)
 	}
 
 	return nil
