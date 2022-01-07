@@ -15,10 +15,10 @@ import (
 )
 
 var (
-	validCoins   = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	validCoins2  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	validCoins3  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-	invalidCoins = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
+	defaultReceiveFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
+	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
+	invalidCoins      = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
 )
 
 type KeeperTestSuite struct {
@@ -57,10 +57,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestFeeInEscrow() {
-	ackFee := validCoins
-	receiveFee := validCoins2
-	timeoutFee := validCoins3
-	fee := types.Fee{ReceiveFee: receiveFee, AckFee: ackFee, TimeoutFee: timeoutFee}
+	fee := types.Fee{ReceiveFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee}
 
 	// set some fees
 	for i := 1; i < 6; i++ {
@@ -104,11 +101,8 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	ackFee := validCoins
-	receiveFee := validCoins2
-	timeoutFee := validCoins3
 	packetId := &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: uint64(1)}
-	fee := types.Fee{ackFee, receiveFee, timeoutFee}
+	fee := types.Fee{defaultAckFee, defaultReceiveFee, defaultTimeoutFee}
 	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 
 	// escrow the packet fee

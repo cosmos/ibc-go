@@ -18,9 +18,9 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		uint64(1),
 	)
 	fee := types.Fee{
-		validCoins,
-		validCoins2,
-		validCoins3,
+		defaultReceiveFee,
+		defaultAckFee,
+		defaultTimeoutFee,
 	}
 
 	// relayer addresses
@@ -80,9 +80,9 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 		uint64(1),
 	)
 	fee := types.Fee{
-		validCoins,
-		validCoins2,
-		validCoins3,
+		defaultReceiveFee,
+		defaultAckFee,
+		defaultTimeoutFee,
 	}
 	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)

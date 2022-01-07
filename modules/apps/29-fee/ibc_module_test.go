@@ -653,7 +653,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			tc.malleate()
 
 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, suite.chainA.SenderAccount.GetAddress())
-			fmt.Println(err)
 
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
