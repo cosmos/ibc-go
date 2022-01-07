@@ -23,17 +23,17 @@ We ensure all major releases are supported by relayers ([hermes](https://github.
 
 ## Stable Release Policy
 
-A major release series continues to receive bug fixes (released as a patch release) until it reaches End Of Life. A major release series reaches End of Life 6 months after the publication of the next major release series. For example, if the current major release series is v1, then v1 will be supported for up to 6 months after the publication of v2. 
+A major release series continues to receive bug fixes (released as a patch release) until it reaches End Of Life. A major release series reaches End of Life 1 year after its initial release. An extension to the End of Life date is made if the next major release is not made for 6 months. In this situation, the End of Life is the date of publication for the next major release plus 6 months. 
+
+For example, if the current major release series is v1 and was released on January 1st, 2022, then v1 will be supported at least until January 1st, 2023. If v2 is published on August 1st 2022, then v1's End of Life will be March 1st, 2023. 
 
 Only the following major release series have a stable release status:
 
 |Release|End of Life Date|
 |-------|-------|
-|`v1.1.x`|July 05, 2022|
-|`v1.2.x`|July 05, 2022|
-|`v2.0.x`|6 months after v3 release|
-
-At the time this policy was adopted, v1 and v2 had already been released. The 6 month policy for the v1 Major Release series will go into effect on the day this policy was merged into the codebase as opposed to when v2 was released.
+|`v1.1.x`|September 03, 2022|
+|`v1.2.x`|September 10, 2022|
+|`v2.0.x`|November 09, 2022|
 
 ### What pull requests will be included in stable patch-releases?
 
