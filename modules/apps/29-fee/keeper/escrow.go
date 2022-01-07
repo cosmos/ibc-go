@@ -43,145 +43,66 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.Identified
 	return nil
 }
 
-// DistributeFee pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
-func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer string, packetID *channeltypes.PacketId) error {
-	var packetIdErr error
-	var distributeFwdErr error
-	var distributeReverseErr error
-	var refundAccErr error
-
-	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
-	if !found {
-		packetIdErr = sdkerrors.Wrapf(types.ErrFeeNotFound, "with channelID %s, sequence %d", packetID.ChannelId, packetID.Sequence)
-	}
-
-	// cache context before trying to send to forward relayer
-	cacheCtx, writeFn := ctx.CacheContext()
-
-	fwd, err := sdk.AccAddressFromBech32(forwardRelayer)
+// DistributePacketFees pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee.
+func (k Keeper) DistributePacketFees(ctx sdk.Context, refundAcc, forwardRelayer string, reverseRelayer sdk.AccAddress, feeInEscrow types.IdentifiedPacketFee) {
+	// distribute fee for forward relaying
+	forward, err := sdk.AccAddressFromBech32(forwardRelayer)
 	if err == nil {
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, fwd, feeInEscrow.Fee.ReceiveFee)
-		if err == nil {
-			// write the cache
-			writeFn()
-			// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-		}
-	} else {
-		distributeFwdErr = sdkerrors.Wrap(err, "failed to send fee to forward relayer")
+		k.distributeFee(ctx, forward, feeInEscrow.Fee.ReceiveFee)
 	}
 
-	// cache context before trying to send to reverse relayer
-	cacheCtx, writeFn = ctx.CacheContext()
+	// distribute fee for reverse relaying
+	k.distributeFee(ctx, reverseRelayer, feeInEscrow.Fee.AckFee)
 
-	reverse, err := sdk.AccAddressFromBech32(reverseRelayer)
-	if err == nil {
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, reverse, feeInEscrow.Fee.AckFee)
-		if err == nil {
-			// write the cache
-			writeFn()
-			// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-		}
-	} else {
-		distributeReverseErr = sdkerrors.Wrap(err, "failed to send fee to reverse relayer")
+	// refund timeout fee refund,
+	refundAddr, err := sdk.AccAddressFromBech32(refundAcc)
+	if err != nil {
+		panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", refundAcc))
 	}
 
-	// cache context before trying to send timeout fee to refund address
-	cacheCtx, writeFn = ctx.CacheContext()
-
-	refund, err := sdk.AccAddressFromBech32(refundAcc)
-	if err == nil {
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refund, feeInEscrow.Fee.TimeoutFee)
-		if err == nil {
-			// write the cache
-			writeFn()
-			// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-		}
-	} else {
-		refundAccErr = sdkerrors.Wrap(err, "refunding timeout fee")
-	}
+	// refund timeout fee for unused timeout
+	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.TimeoutFee)
 
 	// removes the fee from the store as fee is now paid
-	k.DeleteFeeInEscrow(ctx, packetID)
-
-	// check if there are any errors, otherwise return nil
-	if packetIdErr != nil || distributeFwdErr != nil || distributeReverseErr != nil || refundAccErr != nil {
-		return sdkerrors.Wrapf(types.ErrFeeDistribution, "error in distributing fee: %s %s %s %s", packetIdErr, distributeFwdErr, distributeReverseErr, refundAccErr)
-	}
-	return nil
+	k.DeleteFeeInEscrow(ctx, feeInEscrow.PacketId)
 }
 
-// DistributeFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer string, packetID *channeltypes.PacketId) error {
-	var packetIdErr error
-	var refundAccErr error
-	var distributeTimeoutErr error
-
-	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
-	if !found {
-		packetIdErr = sdkerrors.Wrapf(types.ErrFeeNotFound, "for packetID %s", packetID)
-	}
-
-	// cache context before trying to refund the receive fee
-	cacheCtx, writeFn := ctx.CacheContext()
-
+// DistributePacketsFeesTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
+func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, refundAcc string, timeoutRelayer sdk.AccAddress, feeInEscrow types.IdentifiedPacketFee) {
 	// check if refundAcc address works
-	refund, err := sdk.AccAddressFromBech32(refundAcc)
-	if err == nil {
-		// first try to refund receive fee
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refund, feeInEscrow.Fee.ReceiveFee)
-		if err == nil {
-			// write the cache
-			writeFn()
-			// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-		} else {
-			// set refundAccErr to error resulting from failed refund
-			refundAccErr = sdkerrors.Wrap(err, "error refunding receive fee")
-		}
-
-		// then try to refund ack fee
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refund, feeInEscrow.Fee.AckFee)
-		if err == nil {
-			// write the cache
-			writeFn()
-			// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-		} else {
-			// set refundAccErr to error resulting from failed refund
-			refundAccErr = sdkerrors.Wrap(err, "error refunding ack fee")
-		}
-	} else {
-		refundAccErr = sdkerrors.Wrap(err, "failed to parse refund account address")
-	}
-
-	// parse timeout relayer address
-	cacheCtx, writeFn = ctx.CacheContext()
-	timeout, err := sdk.AccAddressFromBech32(timeoutRelayer)
+	refundAddr, err := sdk.AccAddressFromBech32(refundAcc)
 	if err != nil {
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, timeout, feeInEscrow.Fee.TimeoutFee)
-		if err == nil {
-			// write the cache
-			writeFn()
-			// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-		}
-	} else {
-		distributeTimeoutErr = sdkerrors.Wrap(err, "error sending fee to timeout relayer")
+		panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", refundAcc))
 	}
+
+	// refund receive fee for unused forward relaying
+	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.ReceiveFee)
+
+	// refund ack fee for unused reverse relaying
+	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.AckFee)
+
+	// distribute fee for timeout relaying
+	k.distributeFee(ctx, timeoutRelayer, feeInEscrow.Fee.TimeoutFee)
 
 	// removes the fee from the store as fee is now paid
-	k.DeleteFeeInEscrow(ctx, packetID)
+	k.DeleteFeeInEscrow(ctx, feeInEscrow.PacketId)
+}
 
-	// check if there are any errors, otherwise return nil
-	if packetIdErr != nil || refundAccErr != nil || distributeTimeoutErr != nil {
-		return sdkerrors.Wrapf(types.ErrFeeDistribution, "error in distributing fee: %s %s %s", packetIdErr, refundAccErr, distributeTimeoutErr)
+// distributeFee will attempt to distribute the escrowed fee to the receiver address.
+// If the distribution fails for any reason (such as the receiving address being blocked),
+// the state changes will be discarded.
+func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.Coins) {
+	// cache context before trying to send to reverse relayer
+	cacheCtx, writeFn := ctx.CacheContext()
+
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)
+	if err == nil {
+		// write the cache
+		writeFn()
+
+		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
-	return nil
 }
 
 func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) error {

@@ -212,14 +212,14 @@ func (im IBCModule) OnAcknowledgementPacket(
 	}
 
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 
+	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 	if !found {
 		// return underlying callback if no fee found for given packetID
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
-	im.keeper.DistributeFee(ctx, identifiedPacketFee.RefundAddress, ack.ForwardRelayerAddress, relayer.String(), packetId)
+	im.keeper.DistributePacketFees(ctx, identifiedPacketFee.RefundAddress, ack.ForwardRelayerAddress, relayer, identifiedPacketFee)
 
 	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
@@ -239,13 +239,12 @@ func (im IBCModule) OnTimeoutPacket(
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 
 	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
-
 	if !found {
 		// return underlying callback if fee not found for given packetID
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	im.keeper.DistributeFeeTimeout(ctx, identifiedPacketFee.RefundAddress, relayer.String(), packetId)
+	im.keeper.DistributePacketFeesOnTimeout(ctx, identifiedPacketFee.RefundAddress, relayer, identifiedPacketFee)
 
 	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
