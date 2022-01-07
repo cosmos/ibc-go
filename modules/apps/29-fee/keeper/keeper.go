@@ -217,6 +217,13 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardR
 	return forwardRelayerAddr
 }
 
+// Deletes the forwardRelayerAddr associated with the packetId
+func (k Keeper) DeleteForwardAddress(ctx sdk.Context, packetId *channeltypes.PacketId) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyForwardRelayerAddress(packetId)
+	store.Delete(key)
+}
+
 // Stores a Fee for a given packet in state
 func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee *types.IdentifiedPacketFee) {
 	store := ctx.KVStore(k.storeKey)
