@@ -14,8 +14,10 @@ import (
 )
 
 var (
+	// TODO: Cosmos-SDK ADR-28: Update crypto.AddressHash() when sdk uses address.Module()
+	// https://github.com/cosmos/cosmos-sdk/issues/10225
+	//
 	// TestAccAddress defines a resuable bech32 address for testing purposes
-	// TODO: update crypto.AddressHash() when sdk uses address.Module()
 	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), TestPortID)
 
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes

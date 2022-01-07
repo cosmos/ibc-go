@@ -3,6 +3,7 @@ package keeper_test
 import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -10,10 +11,10 @@ import (
 
 func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 	var (
-		channel *channeltypes.Channel
-		path    *ibctesting.Path
-		chanCap *capabilitytypes.Capability
-		// counterpartyVersion string
+		channel  *channeltypes.Channel
+		path     *ibctesting.Path
+		chanCap  *capabilitytypes.Capability
+		metadata icatypes.Metadata
 	)
 
 	testCases := []struct {
@@ -43,14 +44,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			},
 			false,
 		},
-		// TODO: Validate counterparty port (controller)
-		// {
-		// 	"invalid counterparty port",
-		// 	func() {
-		// 		channel.Counterparty.PortId = "invalid-port-id"
-		// 	},
-		// 	false,
-		// },
+		{
+			"invalid counterparty port",
+			func() {
+				channel.Counterparty.PortId = "invalid-port-id"
+			},
+			false,
+		},
 		{
 			"connection not found",
 			func() {
@@ -59,41 +59,49 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			},
 			false,
 		},
-		// TODO: validate conneciton sequence
-		// {
-		// 	"invalid connection sequence",
-		// 	func() {
-		// 		// portID, err := icatypes.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
-		// 		portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-		// 		suite.Require().NoError(err)
+		{
+			"invalid metadata bytestring",
+			func() {
+				path.EndpointA.ChannelConfig.Version = "invalid-metadata-bytestring"
+			},
+			false,
+		},
+		{
+			"invalid controller connection ID",
+			func() {
+				metadata.ControllerConnectionId = "invalid-connnection-id"
 
-		// 		channel.Counterparty.PortId = portID
-		// 		path.EndpointB.SetChannel(*channel)
-		// 	},
-		// 	false,
-		// },
-		// TODO: validate counterparty connection sequence
-		// {
-		// 	"invalid counterparty connection sequence",
-		// 	func() {
-		// 		// portID, err := icatypes.GeneratePortID(TestOwnerAddress, "connection-1", "connection-0")
-		// 		portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-		// 		suite.Require().NoError(err)
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
 
-		// 		channel.Counterparty.PortId = portID
-		// 		path.EndpointB.SetChannel(*channel)
-		// 	},
-		// 	false,
-		// },
-		// TODO: Validate counterparty version
-		// {
-		// 	"invalid counterparty version",
-		// 	func() {
-		// 		// counterpartyVersion = "version"
-		// 		path.EndpointB.SetChannel(*channel)
-		// 	},
-		// 	false,
-		// },
+				path.EndpointA.ChannelConfig.Version = string(bz)
+			},
+			false,
+		},
+		{
+			"invalid host connection ID",
+			func() {
+				metadata.HostConnectionId = "invalid-connnection-id"
+
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.Version = string(bz)
+			},
+			false,
+		},
+		{
+			"invalid counterparty version",
+			func() {
+				metadata.Version = "invalid-version"
+
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.Version = string(bz)
+			},
+			false,
+		},
 		{
 			"capability already claimed",
 			func() {
@@ -112,7 +120,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			// counterpartyVersion = icatypes.Version
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -123,13 +130,22 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			path.EndpointB.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 
 			// default values
+			metadata = icatypes.Metadata{
+				Version:                icatypes.Version,
+				ControllerConnectionId: ibctesting.FirstConnectionID,
+				HostConnectionId:       ibctesting.FirstConnectionID,
+			}
+
+			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+			suite.Require().NoError(err)
+
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
-				Version:        TestVersion,
+				Version:        string(bz),
 			}
 
 			chanCap, err = suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
@@ -138,7 +154,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			tc.malleate() // malleate mutates test data
 
 			version, err := suite.chainB.GetSimApp().ICAHostKeeper.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, TestVersion,
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 			)
 
 			if tc.expPass {

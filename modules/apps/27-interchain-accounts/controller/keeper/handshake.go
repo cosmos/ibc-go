@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -32,7 +34,9 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
-	// TODO: Validate first party port ID (controller)
+	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
+	}
 
 	if counterparty.PortId != icatypes.PortID {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.PortID, counterparty.PortId)
@@ -69,6 +73,10 @@ func (k Keeper) OnChanOpenAck(
 ) error {
 	if portID == icatypes.PortID {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID cannot be host chain port ID: %s", icatypes.PortID)
+	}
+
+	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
 	}
 
 	var metadata icatypes.Metadata

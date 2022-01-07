@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -34,7 +36,9 @@ func (k Keeper) OnChanOpenTry(
 		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.PortID, portID)
 	}
 
-	// TODO: Validate counterparty port ID (controller)
+	if !strings.HasPrefix(counterparty.PortId, icatypes.PortPrefix) {
+		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "controller port %s does not contain expected prefix %s", counterparty.PortId, icatypes.PortPrefix)
+	}
 
 	var metadata icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
@@ -46,7 +50,7 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	if metadata.Version != icatypes.Version {
-		return "", sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "expected %s, got %s", icatypes.Version, counterpartyVersion)
+		return "", sdkerrors.Wrapf(icatypes.ErrInvalidVersion, "expected %s, got %s", icatypes.Version, metadata.Version)
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry

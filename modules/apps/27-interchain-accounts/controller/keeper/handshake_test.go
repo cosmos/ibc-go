@@ -11,9 +11,10 @@ import (
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
-		channel *channeltypes.Channel
-		path    *ibctesting.Path
-		chanCap *capabilitytypes.Capability
+		channel  *channeltypes.Channel
+		path     *ibctesting.Path
+		chanCap  *capabilitytypes.Capability
+		metadata icatypes.Metadata
 	)
 
 	testCases := []struct {
@@ -36,14 +37,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			},
 			false,
 		},
-		// TODO: Validate new port id - PortPrefix-Owner
-		// {
-		// 	"invalid port ID",
-		// 	func() {
-		// 		path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
-		// 	},
-		// 	false,
-		// },
+		{
+			"invalid port",
+			func() {
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+			},
+			false,
+		},
 		{
 			"invalid counterparty port ID",
 			func() {
@@ -53,10 +53,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			false,
 		},
 		{
-			"invalid version",
+			"invalid metadata bytestring",
 			func() {
 				path.EndpointA.SetChannel(*channel)
-				channel.Version = "version"
+				channel.Version = "invalid-metadata-bytestring"
 			},
 			false,
 		},
@@ -68,32 +68,45 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			},
 			false,
 		},
-		// TODO: Validate connection sequence
-		// {
-		// 	"invalid connection sequence",
-		// 	func() {
-		// 		// portID, err := icatypes.NewControllerPortID(TestOwnerAddress, "connection-1", "connection-0")
-		// 		portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-		// 		suite.Require().NoError(err)
+		{
+			"invalid controller connection ID",
+			func() {
+				metadata.ControllerConnectionId = "invalid-connnection-id"
 
-		// 		path.EndpointA.ChannelConfig.PortID = portID
-		// 		path.EndpointA.SetChannel(*channel)
-		// 	},
-		// 	false,
-		// },
-		// TODO: Validate counterparty connection sequence
-		// {
-		// 	"invalid counterparty connection sequence",
-		// 	func() {
-		// 		// portID, err := icatypes.GeneratePortID(TestOwnerAddress, "connection-0", "connection-1")
-		// 		portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-		// 		suite.Require().NoError(err)
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
 
-		// 		path.EndpointA.ChannelConfig.PortID = portID
-		// 		path.EndpointA.SetChannel(*channel)
-		// 	},
-		// 	false,
-		// },
+				channel.Version = string(bz)
+				path.EndpointA.SetChannel(*channel)
+			},
+			false,
+		},
+		{
+			"invalid host connection ID",
+			func() {
+				metadata.HostConnectionId = "invalid-connnection-id"
+
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				channel.Version = string(bz)
+				path.EndpointA.SetChannel(*channel)
+			},
+			false,
+		},
+		{
+			"invalid version",
+			func() {
+				metadata.Version = "invalid-version"
+
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				channel.Version = string(bz)
+				path.EndpointA.SetChannel(*channel)
+			},
+			false,
+		},
 		{
 			"channel is already active",
 			func() {
@@ -121,7 +134,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			path.EndpointA.ChannelConfig.PortID = portID
 
 			// default values
-			metadata := icatypes.Metadata{
+			metadata = icatypes.Metadata{
 				Version:                icatypes.Version,
 				ControllerConnectionId: ibctesting.FirstConnectionID,
 				HostConnectionId:       ibctesting.FirstConnectionID,
@@ -145,7 +158,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			tc.malleate() // malleate mutates test data
 
 			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
 			)
 
 			if tc.expPass {
@@ -160,9 +173,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 	var (
-		path              *ibctesting.Path
-		expectedChannelID string
-		// counterpartyVersion string
+		path     *ibctesting.Path
+		metadata icatypes.Metadata
 	)
 
 	testCases := []struct {
@@ -173,20 +185,50 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		{
 			"success", func() {}, true,
 		},
-		// TODO: Validate counterpary version
-		// {
-		// 	"invalid counterparty version",
-		// 	func() {
-		// 		expectedChannelID = ""
-		// 		// counterpartyVersion = "version"
-		// 	},
-		// 	false,
-		// },
 		{
-			"invalid portID", func() {
+			"invalid port - host chain",
+			func() {
 				path.EndpointA.ChannelConfig.PortID = icatypes.PortID
-				expectedChannelID = ""
-			}, false,
+			},
+			false,
+		},
+		{
+			"invalid port - unexpected prefix",
+			func() {
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+			},
+			false,
+		},
+		{
+			"invalid metadata bytestring",
+			func() {
+				path.EndpointA.Counterparty.ChannelConfig.Version = "invalid-metadata-bytestring"
+			},
+			false,
+		},
+		{
+			"invalid account address",
+			func() {
+				metadata.Address = "invalid-account-address"
+
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.Counterparty.ChannelConfig.Version = string(bz)
+			},
+			false,
+		},
+		{
+			"invalid counterparty version",
+			func() {
+				metadata.Version = "invalid-version"
+
+				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.Counterparty.ChannelConfig.Version = string(bz)
+			},
+			false,
 		},
 	}
 
@@ -197,17 +239,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			// counterpartyVersion = TestVersion
-
-			metadata := icatypes.Metadata{
-				Version:                icatypes.Version,
-				ControllerConnectionId: ibctesting.FirstConnectionID,
-				HostConnectionId:       ibctesting.FirstConnectionID,
-				Address:                TestAccAddress.String(),
-			}
-
-			bz, _ := icatypes.ModuleCdc.MarshalJSON(&metadata)
-
 			suite.coordinator.SetupConnections(path)
 
 			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -215,20 +246,37 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
-			expectedChannelID = path.EndpointA.ChannelID
+
+			metadata = icatypes.Metadata{
+				Version:                icatypes.Version,
+				ControllerConnectionId: ibctesting.FirstConnectionID,
+				HostConnectionId:       ibctesting.FirstConnectionID,
+				Address:                TestAccAddress.String(),
+			}
+
+			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+			suite.Require().NoError(err)
+
+			path.EndpointB.ChannelConfig.Version = string(bz)
 
 			tc.malleate() // malleate mutates test data
 
 			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenAck(suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, string(bz),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelConfig.Version,
 			)
-
-			activeChannelID, _ := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-
-			suite.Require().Equal(expectedChannelID, activeChannelID)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				activeChannelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				suite.Require().Equal(path.EndpointA.ChannelID, activeChannelID)
+
+				interchainAccAddress, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				suite.Require().Equal(metadata.Address, interchainAccAddress)
 			} else {
 				suite.Require().Error(err)
 			}
