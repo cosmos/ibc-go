@@ -203,7 +203,11 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardR
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		seq, _ := strconv.ParseUint(keySplit[3], 0, 64)
+		seq, err := strconv.ParseUint(keySplit[3], 0, 64)
+		if err != nil {
+			panic("Error parsing sequence")
+		}
+
 		packetId := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
 
 		addr := &types.ForwardRelayerAddress{
