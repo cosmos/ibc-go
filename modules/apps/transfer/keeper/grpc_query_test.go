@@ -171,20 +171,14 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 			"not found denom trace",
 			func() {
 				req = &types.QueryDenomHashRequest{
-					Trace: reqTrace.GetFullDenomPath(),
+					Trace: "transfer/channelToC/uatom",
 				}
 			},
 			false,
 		},
 		{
 			"success",
-			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), reqTrace)
-
-				req = &types.QueryDenomHashRequest{
-					Trace: reqTrace.GetFullDenomPath(),
-				}
-			},
+			func() {},
 			true,
 		},
 	}
@@ -192,6 +186,11 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+
+			req = &types.QueryDenomHashRequest{
+				Trace: reqTrace.GetFullDenomPath(),
+			}
+			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), reqTrace)
 
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
