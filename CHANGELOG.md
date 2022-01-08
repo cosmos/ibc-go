@@ -34,10 +34,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-<<<<<<< HEAD
-=======
-## [Unreleased]
-
 ## [v1.2.6](https://github.com/cosmos/ibc-go/releases/tag/v1.2.6) - 2021-01-12
 
 ### Improvements
