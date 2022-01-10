@@ -35,12 +35,7 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, owner strin
 		return err
 	}
 
-	metadata := icatypes.Metadata{
-		Version:                icatypes.Version,
-		ControllerConnectionId: connectionID,
-		HostConnectionId:       connectionEnd.GetCounterparty().GetConnectionID(),
-	}
-
+	metadata := icatypes.NewMetadata(icatypes.Version, connectionID, connectionEnd.GetCounterparty().GetConnectionID(), "")
 	bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 	if err != nil {
 		return err

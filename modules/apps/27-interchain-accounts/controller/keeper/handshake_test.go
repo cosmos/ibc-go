@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			false,
 		},
 		{
-			"invalid port",
+			"invalid port ID",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
 			},
@@ -134,12 +134,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			path.EndpointA.ChannelConfig.PortID = portID
 
 			// default values
-			metadata = icatypes.Metadata{
-				Version:                icatypes.Version,
-				ControllerConnectionId: ibctesting.FirstConnectionID,
-				HostConnectionId:       ibctesting.FirstConnectionID,
-			}
-
+			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "")
 			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
@@ -186,14 +181,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			"success", func() {}, true,
 		},
 		{
-			"invalid port - host chain",
+			"invalid port ID - host chain",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = icatypes.PortID
 			},
 			false,
 		},
 		{
-			"invalid port - unexpected prefix",
+			"invalid port ID - unexpected prefix",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
 			},
@@ -247,13 +242,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
 
-			metadata = icatypes.Metadata{
-				Version:                icatypes.Version,
-				ControllerConnectionId: ibctesting.FirstConnectionID,
-				HostConnectionId:       ibctesting.FirstConnectionID,
-				Address:                TestAccAddress.String(),
-			}
-
+			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestAccAddress.String())
 			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 

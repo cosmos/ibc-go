@@ -22,7 +22,7 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 		{
 			"success",
 			func() {},
-			fmt.Sprint(types.PortPrefix, types.Delimiter, TestOwnerAddress),
+			fmt.Sprint(types.PortPrefix, TestOwnerAddress),
 			true,
 		},
 		{

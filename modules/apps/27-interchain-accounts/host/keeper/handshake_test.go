@@ -38,14 +38,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			false,
 		},
 		{
-			"invalid port",
+			"invalid port ID",
 			func() {
 				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
 			},
 			false,
 		},
 		{
-			"invalid counterparty port",
+			"invalid counterparty port ID",
 			func() {
 				channel.Counterparty.PortId = "invalid-port-id"
 			},
@@ -130,12 +130,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			path.EndpointB.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 
 			// default values
-			metadata = icatypes.Metadata{
-				Version:                icatypes.Version,
-				ControllerConnectionId: ibctesting.FirstConnectionID,
-				HostConnectionId:       ibctesting.FirstConnectionID,
-			}
-
+			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "")
 			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 

@@ -12,7 +12,7 @@ const (
 	PortID = "interchain-account"
 
 	// PortPrefix is the default port prefix that the interchain accounts controller submodule binds to
-	PortPrefix = "ics27"
+	PortPrefix = "ics27-"
 
 	// Version defines the current version for interchain accounts
 	Version = "ics27-1"
@@ -25,9 +25,6 @@ const (
 
 	// QuerierRoute is the querier route for interchain accounts
 	QuerierRoute = ModuleName
-
-	// Delimiter is the delimiter used for the interchain accounts controller port
-	Delimiter = "-"
 )
 
 var (
