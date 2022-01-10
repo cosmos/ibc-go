@@ -35,11 +35,11 @@ func (k Keeper) OnChanOpenInit(
 	}
 
 	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
 	}
 
 	if counterparty.PortId != icatypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.PortID, counterparty.PortId)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.PortID, counterparty.PortId)
 	}
 
 	var metadata icatypes.Metadata
@@ -72,11 +72,11 @@ func (k Keeper) OnChanOpenAck(
 	counterpartyVersion string,
 ) error {
 	if portID == icatypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "portID cannot be host chain port ID: %s", icatypes.PortID)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "portID cannot be host chain port ID: %s", icatypes.PortID)
 	}
 
 	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
 	}
 
 	var metadata icatypes.Metadata

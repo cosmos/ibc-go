@@ -10,7 +10,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
@@ -33,11 +32,11 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	if portID != icatypes.PortID {
-		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.PortID, portID)
+		return "", sdkerrors.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.PortID, portID)
 	}
 
 	if !strings.HasPrefix(counterparty.PortId, icatypes.PortPrefix) {
-		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "controller port %s does not contain expected prefix %s", counterparty.PortId, icatypes.PortPrefix)
+		return "", sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", counterparty.PortId, icatypes.PortPrefix)
 	}
 
 	var metadata icatypes.Metadata
