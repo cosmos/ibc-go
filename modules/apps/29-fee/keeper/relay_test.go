@@ -16,14 +16,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 			func() {},
 			true,
 		},
-		{
-			"forward relayer address not set",
-			func() {
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
-				suite.chainB.GetSimApp().IBCFeeKeeper.DeleteForwardRelayerAddress(suite.chainB.GetContext(), packetID)
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -49,7 +41,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 			ack := []byte("ack")
 			chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
-			suite.chainB.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), suite.chainB.SenderAccount.GetAddress().String())
 
 			// malleate test case
 			tc.malleate()

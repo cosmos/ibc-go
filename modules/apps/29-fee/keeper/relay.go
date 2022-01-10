@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
@@ -21,12 +20,11 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 	// retrieve the forward relayer that was stored in `onRecvPacket`
 	packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
 	relayer, found := k.GetForwardRelayerAddress(ctx, packetId)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrForwardRelayerAddressNotFound, "packet: %s, %s, %d", packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	}
 
-	// delete the forward relayer address as it is no longer used
-	k.DeleteForwardRelayerAddress(ctx, packetId)
+	if found {
+		// delete the forward relayer address as it is no longer used
+		k.DeleteForwardRelayerAddress(ctx, packetId)
+	}
 
 	ack := types.NewIncentivizedAcknowledgement(relayer, acknowledgement)
 	bz := ack.Acknowledgement()
