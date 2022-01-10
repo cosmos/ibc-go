@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -185,7 +184,6 @@ func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes
 func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyForwardRelayerAddress(packetId)
-	fmt.Print(key)
 	if !store.Has(key) {
 		return "", false
 	}
@@ -226,7 +224,6 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardR
 func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyForwardRelayerAddress(packetId)
-	fmt.Print(key)
 	store.Delete(key)
 }
 
