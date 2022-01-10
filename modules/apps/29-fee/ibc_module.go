@@ -188,10 +188,7 @@ func (im IBCModule) OnRecvPacket(
 		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), forwardRelayer)
 	}
 
-	return types.IncentivizedAcknowledgement{
-		Result:                ack.Acknowledgement(),
-		ForwardRelayerAddress: forwardRelayer,
-	}
+	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement())
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
