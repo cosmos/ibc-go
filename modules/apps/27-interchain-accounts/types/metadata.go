@@ -39,7 +39,7 @@ func ValidateMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHo
 	}
 
 	if metadata.Version != Version {
-		return sdkerrors.Wrap(ErrUnsupported, "")
+		return sdkerrors.Wrapf(ErrInvalidVersion, "expected %s, got %s", Version, metadata.Version)
 	}
 
 	return nil
