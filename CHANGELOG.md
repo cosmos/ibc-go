@@ -34,6 +34,42 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+<<<<<<< HEAD
+=======
+## [Unreleased]
+
+### Dependencies
+
+* [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
+
+### API Breaking
+ 
+* (transfer) [\#675](https://github.com/cosmos/ibc-go/pull/675) Transfer `NewKeeper` now takes in an ICS4Wrapper. The ICS4Wrapper may be the IBC Channel Keeper when ICS20 is not used in a middleware stack. The ICS4Wrapper is required for applications wishing to connect middleware to ICS20.
+* (core) [\#650](https://github.com/cosmos/ibc-go/pull/650) Modify `OnChanOpenTry` IBC application module callback to return the negotiated app version. The version passed into the `MsgChanOpenTry` has been deprecated and will be ignored by core IBC.
+* (core) [\#629](https://github.com/cosmos/ibc-go/pull/629) Removes the `GetProofSpecs` from the ClientState interface. This function was previously unused by core IBC.
+* (transfer) [\#517](https://github.com/cosmos/ibc-go/pull/517) Separates the ICS 26 callback functions from `AppModule` into a new type `IBCModule` for ICS 20 transfer.
+* (modules/core/02-client) [\#536](https://github.com/cosmos/ibc-go/pull/536) `GetSelfConsensusState` return type changed from bool to error.
+* (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Removes `CounterpartyHops` function from the ChannelKeeper.
+
+### State Machine Breaking
+
+### Improvements
+
+* (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
+* [\#383](https://github.com/cosmos/ibc-go/pull/383) Adds helper functions for merging and splitting middleware versions from the underlying app version.
+* (modules/core/05-port) [\#288](https://github.com/cosmos/ibc-go/issues/288) Making the 05-port keeper function IsBound public. The IsBound function checks if the provided portID is already binded to a module.
+* (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Adds `GetChannelConnection` to the ChannelKeeper. This function returns the connectionID and connection state associated with a channel. 
+* (channel) [\647](https://github.com/cosmos/ibc-go/pull/647) Reorganizes channel handshake handling to set channel state after IBC application callbacks. 
+
+### Features
+
+* [\#432](https://github.com/cosmos/ibc-go/pull/432) Introduce `MockIBCApp` struct to the mock module. Allows the mock module to be reused to perform custom logic on each IBC App interface function. This might be useful when testing out IBC applications written as middleware. 
+* [\#380](https://github.com/cosmos/ibc-go/pull/380) Adding the Interchain Accounts module v1
+* [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
+
+### Bug Fixes
+
+>>>>>>> cb9bf5d (add cli to get denom hash from trace path and base denom (#679))
 ## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
 
 ### Dependencies
