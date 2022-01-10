@@ -184,7 +184,7 @@ func (im IBCModule) OnRecvPacket(
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 
 	forwardRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
-	if !found {
+	if ack == nil && found {
 		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), forwardRelayer)
 	}
 
