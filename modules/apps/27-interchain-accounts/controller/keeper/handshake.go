@@ -35,7 +35,7 @@ func (k Keeper) OnChanOpenInit(
 	}
 
 	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.PortPrefix, portID)
 	}
 
 	if counterparty.PortId != icatypes.PortID {
@@ -76,7 +76,7 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.PortPrefix, portID)
 	}
 
 	var metadata icatypes.Metadata
