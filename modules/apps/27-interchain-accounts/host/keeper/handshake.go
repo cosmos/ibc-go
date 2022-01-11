@@ -64,12 +64,12 @@ func (k Keeper) OnChanOpenTry(
 	k.RegisterInterchainAccount(ctx, accAddress, counterparty.PortId)
 
 	metadata.Address = accAddress.String()
-	bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+	versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 	if err != nil {
 		return "", err
 	}
 
-	return string(bz), nil
+	return string(versionBytes), nil
 }
 
 // OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain

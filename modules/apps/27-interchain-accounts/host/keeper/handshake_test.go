@@ -71,10 +71,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			func() {
 				metadata.ControllerConnectionId = "invalid-connnection-id"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				path.EndpointA.ChannelConfig.Version = string(bz)
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
 			},
 			false,
 		},
@@ -83,10 +83,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			func() {
 				metadata.HostConnectionId = "invalid-connnection-id"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				path.EndpointA.ChannelConfig.Version = string(bz)
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
 			},
 			false,
 		},
@@ -95,10 +95,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			func() {
 				metadata.Version = "invalid-version"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				path.EndpointA.ChannelConfig.Version = string(bz)
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
 			},
 			false,
 		},
@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 			// default values
 			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "")
-			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -140,7 +140,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
-				Version:        string(bz),
+				Version:        string(versionBytes),
 			}
 
 			chanCap, err = suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))

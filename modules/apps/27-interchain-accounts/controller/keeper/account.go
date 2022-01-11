@@ -35,13 +35,14 @@ func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, owner strin
 		return err
 	}
 
+	// NOTE: An empty string is provided for accAddress, to be fulfilled upon OnChanOpenTry handshake step
 	metadata := icatypes.NewMetadata(icatypes.Version, connectionID, connectionEnd.GetCounterparty().GetConnectionID(), "")
-	bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+	versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 	if err != nil {
 		return err
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, string(bz), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
 	handler := k.msgRouter.Handler(msg)
 
 	res, err := handler(ctx, msg)
