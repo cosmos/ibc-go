@@ -204,7 +204,7 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardR
 
 		seq, err := strconv.ParseUint(keySplit[3], 0, 64)
 		if err != nil {
-			panic("Error parsing sequence")
+			panic("failed to parse packet sequence in forward relayer address mapping")
 		}
 
 		packetId := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
