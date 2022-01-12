@@ -19,7 +19,7 @@ func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability,
 func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, acknowledgement []byte) error {
 	// retrieve the forward relayer that was stored in `onRecvPacket`
 	packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
-	relayer, found := k.GetForwardRelayerAddress(ctx, packetId)
+	relayer, _ := k.GetForwardRelayerAddress(ctx, packetId)
 
 	k.DeleteForwardRelayerAddress(ctx, packetId)
 
