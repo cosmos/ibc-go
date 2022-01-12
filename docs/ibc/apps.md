@@ -7,7 +7,7 @@ order: 3
 Learn how to configure your application to use IBC and send data packets to other chains. {synopsis}
 
 This document serves as a guide for developers who want to write their own Inter-blockchain
-Communication Protocol (IBC) applications for custom [use-cases](https://github.com/cosmos/ics/blob/master/ibc/4_IBC_USECASES.md).
+Communication Protocol (IBC) applications for custom use cases.
 
 Due to the modular design of the IBC protocol, IBC
 application developers do not need to concern themselves with the low-level details of clients,
@@ -71,9 +71,8 @@ OnChanOpenTry(
     channelID string,
     channelCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
-    version,
     counterpartyVersion string,
-) error {
+) (string, error) {
     // Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
     // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
     // If the module can already authenticate the capability then the module already owns it so we don't need to claim
@@ -88,8 +87,18 @@ OnChanOpenTry(
     // ... do custom initialization logic
 
     // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+    if err := checkArguments(args); err != nil {
+        return err
+    }
+
+    // Construct application version 
+    // IBC applications must return the appropriate application version
+    // This can be a simple string or it can be a complex version constructed
+    // from the counterpartyVersion and other arguments. 
+    // The version returned will be the channel version used for both channel ends. 
+    appVersion := negotiateAppVersion(counterpartyVersion, args)
+    
+    return appVersion, nil
 }
 
 // Called by IBC Handler on MsgOpenAck
@@ -157,8 +166,11 @@ OnChanCloseConfirm(
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
 * `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
-* `ChanOpenTry` callback should verify that the `MsgChanOpenTry.Version` is valid and that `MsgChanOpenTry.CounterpartyVersion` is valid.
+* `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error. 
 * `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
+
+IBC expects application modules to perform application version negotiation in `OnChanOpenTry`. The negotiated version
+must be returned to core IBC. If the version cannot be negotiated, an error should be returned.
 
 Versions must be strings but can implement any versioning structure. If your application plans to
 have linear releases then semantic versioning is recommended. If your application plans to release
@@ -255,7 +267,7 @@ to implement callbacks for handling the packet flow through a channel.
 Once a module A and module B are connected to each other, relayers can start relaying packets and
 acknowledgements back and forth on the channel.
 
-![IBC packet flow diagram](https://media.githubusercontent.com/media/cosmos/ics/master/spec/ics-004-channel-and-packet-semantics/packet-state-machine.png)
+![IBC packet flow diagram](https://media.githubusercontent.com/media/cosmos/ibc/old/spec/ics-004-channel-and-packet-semantics/channel-state-machine.png)
 
 Briefly, a successful packet flow works as follows:
 
@@ -353,7 +365,7 @@ receive acknowledegments with the IBC modules as byte strings.
 
 Thus, modules must agree on how to encode/decode acknowledgements. The process of creating an
 acknowledgement struct along with encoding and decoding it, is very similar to the packet data
-example above. [ICS 04](https://github.com/cosmos/ics/tree/master/spec/ics-004-channel-and-packet-semantics#acknowledgement-envelope)
+example above. [ICS 04](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope)
 specifies a recommended format for acknowledgements. This acknowledgement type can be imported from
 [channel types](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel/types).
 
@@ -366,7 +378,7 @@ While modules may choose arbitrary acknowledgement structs, a default acknowledg
 // conflicts with other protobuf message formats used for acknowledgements.
 // The first byte of any message with this format will be the non-ASCII values
 // `0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
-// https://github.com/cosmos/ics/tree/master/spec/ics-004-channel-and-packet-semantics#acknowledgement-envelope
+// https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
 message Acknowledgement {
   // response contains either a result or an error and must be non-empty
   oneof response {

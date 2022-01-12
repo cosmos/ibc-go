@@ -4,16 +4,16 @@ import (
 	"encoding/hex"
 
 	"github.com/armon/go-metrics"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/ibc-go/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/modules/core/exported"
+
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // CreateClient creates a new client state and populates it with a given consensus
-// state as defined in https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#create
+// state as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#create
 func (k Keeper) CreateClient(
 	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) (string, error) {

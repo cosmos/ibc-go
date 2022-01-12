@@ -139,7 +139,7 @@ func NewApp(...args) *App {
 
 ### Module Managers
 
-In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](./../building-modules/simulator.md).
+In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/simulator.md).
 
 ```go
 // app.go
@@ -178,7 +178,7 @@ connection handhake.
 The IBC module also has
 [`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as
 well. This is optional as it is only required if your application uses the [localhost
-client](https://github.com/cosmos/ics/blob/master/spec/ics-009-loopback-client) to connect two
+client](https://github.com/cosmos/ibc/blob/master/spec/client/ics-009-loopback-client) to connect two
 different modules from the same chain.
 
 ::: tip
@@ -221,4 +221,4 @@ different chains. If you want to have a broader view of the changes take a look 
 
 ## Next {hide}
 
-Learn about how to create [custom IBC modules](./custom.md) for your application {hide}
+Learn about how to create [custom IBC modules](./apps.md) for your application {hide}

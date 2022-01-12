@@ -54,16 +54,32 @@
     - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
   
     - [Msg](#ibc.applications.fee.v1.Msg)
+- [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
+    - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
+  
+- [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
+    - [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel)
+    - [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState)
+    - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
+    - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
+    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
+  
+- [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
+    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
+    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
+  
+    - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
-    - [FungibleTokenPacketData](#ibc.applications.transfer.v1.FungibleTokenPacketData)
     - [Params](#ibc.applications.transfer.v1.Params)
   
 - [ibc/applications/transfer/v1/genesis.proto](#ibc/applications/transfer/v1/genesis.proto)
     - [GenesisState](#ibc.applications.transfer.v1.GenesisState)
   
 - [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
+    - [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest)
+    - [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse)
     - [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest)
     - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
     - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
@@ -78,6 +94,20 @@
     - [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse)
   
     - [Msg](#ibc.applications.transfer.v1.Msg)
+  
+- [ibc/applications/transfer/v2/packet.proto](#ibc/applications/transfer/v2/packet.proto)
+    - [FungibleTokenPacketData](#ibc.applications.transfer.v2.FungibleTokenPacketData)
+  
+- [ibc/core/channel/v1/channel.proto](#ibc/core/channel/v1/channel.proto)
+    - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
+    - [Channel](#ibc.core.channel.v1.Channel)
+    - [Counterparty](#ibc.core.channel.v1.Counterparty)
+    - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
+    - [Packet](#ibc.core.channel.v1.Packet)
+    - [PacketState](#ibc.core.channel.v1.PacketState)
+  
+    - [Order](#ibc.core.channel.v1.Order)
+    - [State](#ibc.core.channel.v1.State)
   
 - [ibc/core/channel/v1/genesis.proto](#ibc/core/channel/v1/genesis.proto)
     - [GenesisState](#ibc.core.channel.v1.GenesisState)
@@ -289,12 +319,25 @@
 ### IncentivizedAcknowledgement
 IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
 It contains the raw acknowledgement bytes, as well as the forward relayer address
+<a name="ibc/applications/interchain_accounts/v1/account.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/account.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccount"></a>
+
+### InterchainAccount
+An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `result` | [bytes](#bytes) |  |  |
 | `forward_relayer_address` | [string](#string) |  |  |
+| `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
+| `account_owner` | [string](#string) |  |  |
 
 
 
@@ -712,6 +755,17 @@ and an optional list of relayers that are permitted to receive the fee.
 
 ### FeeEnabledChannel
 Contains the PortID & ChannelID for a fee enabled channel
+<a name="ibc/applications/interchain_accounts/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/genesis.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.ActiveChannel"></a>
+
+### ActiveChannel
+ActiveChannel contains a pairing of port ID and channel ID for an active interchain accounts channel
 
 
 | Field | Type | Label | Description |
@@ -728,6 +782,28 @@ Contains the PortID & ChannelID for a fee enabled channel
 
 ### GenesisState
 GenesisState defines the fee middleware genesis state
+<a name="ibc.applications.interchain_accounts.v1.ControllerGenesisState"></a>
+
+### ControllerGenesisState
+ControllerGenesisState defines the interchain accounts controller genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
+| `ports` | [string](#string) | repeated |  |
+| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain accounts genesis state
 
 
 | Field | Type | Label | Description |
@@ -735,6 +811,8 @@ GenesisState defines the fee middleware genesis state
 | `identified_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated |  |
 | `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated |  |
+| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState) |  |  |
+| `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState) |  |  |
 
 
 
@@ -745,12 +823,36 @@ GenesisState defines the fee middleware genesis state
 
 ### RegisteredRelayerAddress
 Contains the address and counterparty address for a specific relayer (for distributing fees)
+<a name="ibc.applications.interchain_accounts.v1.HostGenesisState"></a>
+
+### HostGenesisState
+HostGenesisState defines the interchain accounts host genesis state
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 | `counterparty_address` | [string](#string) |  |  |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
+| `port` | [string](#string) |  |  |
+| `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
+
+### RegisteredInterchainAccount
+RegisteredInterchainAccount contains a pairing of controller port ID and associated interchain account address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `account_address` | [string](#string) |  |  |
 
 
 
@@ -777,12 +879,24 @@ Contains the address and counterparty address for a specific relayer (for distri
 
 ### QueryIncentivizedPacketRequest
 QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+<a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/packet.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
+
+### CosmosTx
+CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | PacketID |
 | `query_height` | [uint64](#uint64) |  | Height to query at |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
 
 
 
@@ -793,6 +907,10 @@ QueryIncentivizedPacketRequest is the request type for querying for all incentiv
 
 ### QueryIncentivizedPacketResponse
 QueryIncentivizedPacketsResponse is the response type for the incentivized packet RPC
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
+
+### InterchainAccountPacketData
+InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
 
 
 | Field | Type | Label | Description |
@@ -829,6 +947,9 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `incentivized_packets` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated | Map of all incentivized_packets |
+| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `memo` | [string](#string) |  |  |
 
 
 
@@ -946,6 +1067,18 @@ MsgRegisterCounterpartyAddressResponse defines the Msg/RegisterCounterypartyAddr
 
  <!-- end messages -->
 
+<a name="ibc.applications.interchain_accounts.v1.Type"></a>
+
+### Type
+Type defines a classification of message issued from a controller chain to its associated interchain accounts
+host
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
+| TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
+
+
  <!-- end enums -->
 
  <!-- end HasExtensions -->
@@ -984,26 +1117,6 @@ source tracing information path.
 | ----- | ---- | ----- | ----------- |
 | `path` | [string](#string) |  | path defines the chain of port/channel identifiers used for tracing the source of the fungible token. |
 | `base_denom` | [string](#string) |  | base denomination of the relayed fungible token. |
-
-
-
-
-
-
-<a name="ibc.applications.transfer.v1.FungibleTokenPacketData"></a>
-
-### FungibleTokenPacketData
-FungibleTokenPacketData defines a struct for the packet payload
-See FungibleTokenPacketData spec:
-https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  | the token denomination to be transferred |
-| `amount` | [uint64](#uint64) |  | the token amount to be transferred |
-| `sender` | [string](#string) |  | the sender address |
-| `receiver` | [string](#string) |  | the recipient address on the destination chain |
 
 
 
@@ -1075,6 +1188,38 @@ GenesisState defines the ibc-transfer genesis state
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v1/query.proto
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
+
+### QueryDenomHashRequest
+QueryDenomHashRequest is the request type for the Query/DenomHash RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
+
+### QueryDenomHashResponse
+QueryDenomHashResponse is the response type for the Query/DenomHash RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+
+
+
 
 
 
@@ -1184,6 +1329,7 @@ Query provides defines the gRPC querier service.
 | `DenomTrace` | [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/apps/transfer/v1/denom_traces/{hash}|
 | `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
 | `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
+| `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
 
  <!-- end services -->
 
@@ -1201,7 +1347,7 @@ Query provides defines the gRPC querier service.
 ### MsgTransfer
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
 ICS20 enabled chains. See ICS Spec here:
-https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
 
 
 | Field | Type | Label | Description |
@@ -1243,6 +1389,211 @@ Msg defines the ibc/transfer Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Transfer` | [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer) | [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/transfer/v2/packet.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v2/packet.proto
+
+
+
+<a name="ibc.applications.transfer.v2.FungibleTokenPacketData"></a>
+
+### FungibleTokenPacketData
+FungibleTokenPacketData defines a struct for the packet payload
+See FungibleTokenPacketData spec:
+https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | the token denomination to be transferred |
+| `amount` | [string](#string) |  | the token amount to be transferred |
+| `sender` | [string](#string) |  | the sender address |
+| `receiver` | [string](#string) |  | the recipient address on the destination chain |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/channel/v1/channel.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/channel/v1/channel.proto
+
+
+
+<a name="ibc.core.channel.v1.Acknowledgement"></a>
+
+### Acknowledgement
+Acknowledgement is the recommended acknowledgement format to be used by
+app-specific protocols.
+NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
+conflicts with other protobuf message formats used for acknowledgements.
+The first byte of any message with this format will be the non-ASCII values
+`0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
+https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [bytes](#bytes) |  |  |
+| `error` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Channel"></a>
+
+### Channel
+Channel defines pipeline for exactly-once packet delivery between specific
+modules on separate blockchains, which has at least one end capable of
+sending packets and one end capable of receiving packets.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
+| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
+| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
+| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Counterparty"></a>
+
+### Counterparty
+Counterparty defines a channel end counterparty
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | port on the counterparty chain which owns the other end of the channel. |
+| `channel_id` | [string](#string) |  | channel end on the counterparty chain |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.IdentifiedChannel"></a>
+
+### IdentifiedChannel
+IdentifiedChannel defines a channel with additional port and channel
+identifier fields.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
+| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
+| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
+| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
+| `port_id` | [string](#string) |  | port identifier |
+| `channel_id` | [string](#string) |  | channel identifier |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Packet"></a>
+
+### Packet
+Packet defines a type that carries data across different chains through IBC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | number corresponds to the order of sends and receives, where a Packet with an earlier sequence number must be sent and received before a Packet with a later sequence number. |
+| `source_port` | [string](#string) |  | identifies the port on the sending chain. |
+| `source_channel` | [string](#string) |  | identifies the channel end on the sending chain. |
+| `destination_port` | [string](#string) |  | identifies the port on the receiving chain. |
+| `destination_channel` | [string](#string) |  | identifies the channel end on the receiving chain. |
+| `data` | [bytes](#bytes) |  | actual opaque bytes transferred directly to the application module |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the packet times out |
+| `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the packet times out |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.PacketState"></a>
+
+### PacketState
+PacketState defines the generic type necessary to retrieve and store
+packet commitments, acknowledgements, and receipts.
+Caller is responsible for knowing the context necessary to interpret this
+state as a commitment, acknowledgement, or a receipt.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | channel port identifier. |
+| `channel_id` | [string](#string) |  | channel unique identifier. |
+| `sequence` | [uint64](#uint64) |  | packet sequence. |
+| `data` | [bytes](#bytes) |  | embedded data that represents packet state. |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.core.channel.v1.Order"></a>
+
+### Order
+Order defines if a channel is ORDERED or UNORDERED
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| ORDER_NONE_UNSPECIFIED | 0 | zero-value for channel ordering |
+| ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
+| ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
+
+
+
+<a name="ibc.core.channel.v1.State"></a>
+
+### State
+State defines if a channel is in one of the following states:
+CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STATE_UNINITIALIZED_UNSPECIFIED | 0 | Default State |
+| STATE_INIT | 1 | A channel has just started the opening handshake. |
+| STATE_TRYOPEN | 2 | A channel has acknowledged the handshake step on the counterparty chain. |
+| STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
+| STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
@@ -1570,6 +1921,7 @@ Query/QueryPacketCommitments RPC method
 | `port_id` | [string](#string) |  | port unique identifier |
 | `channel_id` | [string](#string) |  | channel unique identifier |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+| `packet_commitment_sequences` | [uint64](#uint64) | repeated | list of packet sequences |
 
 
 
@@ -1995,14 +2347,15 @@ MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 ### MsgChannelOpenTry
 MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
-on Chain B.
+on Chain B. The version field within the Channel field has been deprecated. Its
+value will be ignored by core IBC.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
 | `previous_channel_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the channel identifier of the previous channel in state INIT |
-| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
+| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  | NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC. |
 | `counterparty_version` | [string](#string) |  |  |
 | `proof_init` | [bytes](#bytes) |  |  |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
