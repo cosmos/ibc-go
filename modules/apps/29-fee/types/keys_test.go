@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 )
 
 func TestKeyRelayerAddress(t *testing.T) {
