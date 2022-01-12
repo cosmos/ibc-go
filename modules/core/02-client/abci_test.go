@@ -3,17 +3,17 @@ package client_test
 import (
 	"testing"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	client "github.com/cosmos/ibc-go/modules/core/02-client"
-	"github.com/cosmos/ibc-go/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/modules/light-clients/09-localhost/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	client "github.com/cosmos/ibc-go/v3/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	localhosttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 type ClientTestSuite struct {

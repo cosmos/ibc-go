@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-go/modules/core/02-client/types"
-	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/modules/light-clients/09-localhost/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	localhosttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {
@@ -678,8 +678,8 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 
 	result, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err)
-	// first event type is "message", followed by 2 "tx" events in ante
-	updateEvent := result.Events[3]
+	// first event type is "message", followed by 3 "tx" events in ante
+	updateEvent := result.Events[4]
 	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
 
 	// use a boolean to ensure the update event contains the header

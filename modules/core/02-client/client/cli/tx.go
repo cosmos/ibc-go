@@ -5,9 +5,6 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -17,8 +14,11 @@ import (
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-go/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/modules/core/exported"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // NewCreateClientCmd defines the command to create a new IBC light client.
@@ -237,8 +237,8 @@ func NewUpgradeClientCmd() *cobra.Command {
 // NewCmdSubmitUpdateClientProposal implements a command handler for submitting an update IBC client proposal transaction.
 func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-client [subject-client-id] [substitute-client-id] [flags]",
-		Args:  cobra.ExactArgs(3),
+		Use:   "update-client [subject-client-id] [substitute-client-id]",
+		Args:  cobra.ExactArgs(2),
 		Short: "Submit an update IBC client proposal",
 		Long: "Submit an update IBC client proposal along with an initial deposit.\n" +
 			"Please specify a subject client identifier you want to update..\n" +
