@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
@@ -70,9 +70,9 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
 		channelID := suite.path.EndpointA.ChannelID
 		fee := types.Fee{
-			ReceiveFee: validCoins,
-			AckFee:     validCoins,
-			TimeoutFee: validCoins,
+			ReceiveFee: defaultReceiveFee,
+			AckFee:     defaultAckFee,
+			TimeoutFee: defaultTimeoutFee,
 		}
 		msg := types.NewMsgPayPacketFee(fee, suite.path.EndpointA.ChannelConfig.PortID, channelID, refundAcc.String(), []string{})
 
@@ -111,9 +111,9 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		// build packetId
 		channelID := suite.path.EndpointA.ChannelID
 		fee := types.Fee{
-			ReceiveFee: validCoins,
-			AckFee:     validCoins,
-			TimeoutFee: validCoins,
+			ReceiveFee: defaultReceiveFee,
+			AckFee:     defaultAckFee,
+			TimeoutFee: defaultTimeoutFee,
 		}
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 

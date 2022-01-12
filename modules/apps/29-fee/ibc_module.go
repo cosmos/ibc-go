@@ -5,11 +5,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/modules/core/exported"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // IBCModule implements the ICS26 callbacks for the fee middleware given the fee keeper and the underlying application.
@@ -64,32 +64,33 @@ func (im IBCModule) OnChanOpenTry(
 	channelID string,
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
-	version,
 	counterpartyVersion string,
-) error {
-	mwVersion, appVersion := channeltypes.SplitChannelVersion(version)
+) (string, error) {
 	cpMwVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
 
 	// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
 	// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 	// application.
 	// If an invalid fee version was passed, we expect the underlying application to fail on its version negotiation.
-	if mwVersion == types.Version || cpMwVersion == types.Version {
-		if cpMwVersion != mwVersion {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "fee versions do not match. self version: %s, counterparty version: %s", mwVersion, cpMwVersion)
-		}
-
+	if cpMwVersion == types.Version {
 		im.keeper.SetFeeEnabled(ctx, portID, channelID)
 	} else {
 		// middleware versions are not the expected version for this midddleware. Pass the full version strings along,
 		// if it not valid version for any other lower middleware, an error will be returned by base application.
-		appVersion = version
 		cpAppVersion = counterpartyVersion
 	}
 
 	// call underlying app's OnChanOpenTry callback with the app versions
-	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, appVersion, cpAppVersion)
+	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, cpAppVersion)
+	if err != nil {
+		return "", err
+	}
+
+	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return channeltypes.MergeChannelVersions(types.Version, appVersion), nil
+	}
+
+	return appVersion, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -211,28 +212,16 @@ func (im IBCModule) OnAcknowledgementPacket(
 	}
 
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 
+	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 	if !found {
 		// return underlying callback if no fee found for given packetID
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
-	// cache context before trying to distribute the fee
-	cacheCtx, writeFn := ctx.CacheContext()
+	im.keeper.DistributePacketFees(ctx, identifiedPacketFee.RefundAddress, ack.ForwardRelayerAddress, relayer, identifiedPacketFee)
 
-	forwardRelayer, _ := sdk.AccAddressFromBech32(ack.ForwardRelayerAddress)
-	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
-
-	err := im.keeper.DistributeFee(cacheCtx, refundAcc, forwardRelayer, relayer, packetId)
-
-	if err == nil {
-		// write the cache and then call underlying callback
-		writeFn()
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-	}
-	// otherwise discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
@@ -250,25 +239,13 @@ func (im IBCModule) OnTimeoutPacket(
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 
 	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
-
 	if !found {
 		// return underlying callback if fee not found for given packetID
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	// cache context before trying to distribute the fee
-	cacheCtx, writeFn := ctx.CacheContext()
+	im.keeper.DistributePacketFeesOnTimeout(ctx, identifiedPacketFee.RefundAddress, relayer, identifiedPacketFee)
 
-	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
-	err := im.keeper.DistributeFeeTimeout(cacheCtx, refundAcc, relayer, packetId)
-
-	if err == nil {
-		// write the cache and then call underlying callback
-		writeFn()
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-	}
-
-	// otherwise discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }

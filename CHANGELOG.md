@@ -36,8 +36,183 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-* (core) [\#227](https://github.com/cosmos/ibc-go/pull/227) Remove sdk.Result from application callbacks
+### Dependencies
 
+* [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
+
+### API Breaking
+ 
+* (transfer) [\#675](https://github.com/cosmos/ibc-go/pull/675) Transfer `NewKeeper` now takes in an ICS4Wrapper. The ICS4Wrapper may be the IBC Channel Keeper when ICS20 is not used in a middleware stack. The ICS4Wrapper is required for applications wishing to connect middleware to ICS20.
+* (core) [\#650](https://github.com/cosmos/ibc-go/pull/650) Modify `OnChanOpenTry` IBC application module callback to return the negotiated app version. The version passed into the `MsgChanOpenTry` has been deprecated and will be ignored by core IBC.
+* (core) [\#629](https://github.com/cosmos/ibc-go/pull/629) Removes the `GetProofSpecs` from the ClientState interface. This function was previously unused by core IBC.
+* (transfer) [\#517](https://github.com/cosmos/ibc-go/pull/517) Separates the ICS 26 callback functions from `AppModule` into a new type `IBCModule` for ICS 20 transfer.
+* (modules/core/02-client) [\#536](https://github.com/cosmos/ibc-go/pull/536) `GetSelfConsensusState` return type changed from bool to error.
+* (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Removes `CounterpartyHops` function from the ChannelKeeper.
+
+### State Machine Breaking
+
+### Improvements
+
+* (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
+* [\#383](https://github.com/cosmos/ibc-go/pull/383) Adds helper functions for merging and splitting middleware versions from the underlying app version.
+* (modules/core/05-port) [\#288](https://github.com/cosmos/ibc-go/issues/288) Making the 05-port keeper function IsBound public. The IsBound function checks if the provided portID is already binded to a module.
+* (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Adds `GetChannelConnection` to the ChannelKeeper. This function returns the connectionID and connection state associated with a channel. 
+* (channel) [\647](https://github.com/cosmos/ibc-go/pull/647) Reorganizes channel handshake handling to set channel state after IBC application callbacks. 
+
+### Features
+
+* [\#432](https://github.com/cosmos/ibc-go/pull/432) Introduce `MockIBCApp` struct to the mock module. Allows the mock module to be reused to perform custom logic on each IBC App interface function. This might be useful when testing out IBC applications written as middleware. 
+* [\#380](https://github.com/cosmos/ibc-go/pull/380) Adding the Interchain Accounts module v1
+* [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
+
+### Bug Fixes
+
+## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
+
+### Dependencies
+
+* [\#589](https://github.com/cosmos/ibc-go/pull/589) Bump SDK version to v0.44.5
+
+### Bug Fixes
+
+* (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
+
+## [v2.0.1](https://github.com/cosmos/ibc-go/releases/tag/v2.0.1) - 2021-12-05
+
+### Dependencies
+
+* [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+
+### Improvements
+
+* (02-client) [\#568](https://github.com/cosmos/ibc-go/pull/568) In IBC `transfer` cli command use local clock time as reference for relative timestamp timeout if greater than the block timestamp queried from the latest consensus state corresponding to the counterparty channel.
+* [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
+
+### Bug Fixes
+
+* (02-client) [\#500](https://github.com/cosmos/ibc-go/pull/500) Fix IBC `update-client proposal` cli command to expect correct number of args.
+
+## [v2.0.0](https://github.com/cosmos/ibc-go/releases/tag/v2.0.0) - 2021-11-09
+
+### Dependencies
+
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to v0.34.14
+* [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
+
+### API Breaking
+
+* (core) [\#227](https://github.com/cosmos/ibc-go/pull/227) Remove sdk.Result from application callbacks
+* (transfer) [\#350](https://github.com/cosmos/ibc-go/pull/350) Change FungibleTokenPacketData to use a string for the Amount field. This enables token transfers with amounts previously restricted by uint64. Up to the maximum uint256 value is supported. 
+
+### Features
+
+* [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
+
+## [v1.2.5](https://github.com/cosmos/ibc-go/releases/tag/v1.2.5) - 2021-12-15
+
+### Dependencies
+
+* [\#589](https://github.com/cosmos/ibc-go/pull/589) Bump SDK version to v0.44.5
+
+### Bug Fixes
+
+* (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
+
+## [v1.2.4](https://github.com/cosmos/ibc-go/releases/tag/v1.2.4) - 2021-12-05
+
+### Dependencies
+
+* [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+
+### Improvements
+
+* [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
+
+## [v1.2.3](https://github.com/cosmos/ibc-go/releases/tag/v1.2.3) - 2021-11-09
+
+### Dependencies
+
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to v0.34.14
+* [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
+
+## [v1.2.2](https://github.com/cosmos/ibc-go/releases/tag/v1.2.2) - 2021-10-15
+
+### Dependencies
+
+* [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
+
+## [v1.2.1](https://github.com/cosmos/ibc-go/releases/tag/v1.2.1) - 2021-10-04
+
+### Dependencies
+
+* [\#455](https://github.com/cosmos/ibc-go/pull/455) Bump SDK version to v0.44.1
+
+## [v1.2.0](https://github.com/cosmos/ibc-go/releases/tag/v1.2.0) - 2021-09-10
+
+### State Machine Breaking
+
+* (24-host) [\#344](https://github.com/cosmos/ibc-go/pull/344) Increase port identifier limit to 128 characters.
+
+### Improvements
+
+* [\#373](https://github.com/cosmos/ibc-go/pull/375) Added optional field `PacketCommitmentSequences` to `QueryPacketAcknowledgementsRequest` to provide filtering of packet acknowledgements.
+
+### Features
+
+* [\#372](https://github.com/cosmos/ibc-go/pull/372) New CLI command `query ibc client status <client id>` to get the current activity status of a client.
+
+### Dependencies
+
+* [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](https://github.com/tendermint/tendermint) from v0.34.12 to v0.34.13.
+
+## [v1.1.5](https://github.com/cosmos/ibc-go/releases/tag/v1.1.5) - 2021-12-15
+
+### Dependencies
+
+* [\#589](https://github.com/cosmos/ibc-go/pull/589) Bump SDK version to v0.44.5
+
+### Bug Fixes
+
+* (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
+
+## [v1.1.4](https://github.com/cosmos/ibc-go/releases/tag/v1.1.4) - 2021-12-05
+
+### Dependencies
+
+* [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+
+### Improvements
+
+* [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
+
+## [v1.1.3](https://github.com/cosmos/ibc-go/releases/tag/v1.1.3) - 2021-11-09
+
+### Dependencies
+
+* [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to v0.34.14
+* [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
+
+## [v1.1.2](https://github.com/cosmos/ibc-go/releases/tag/v1.1.2) - 2021-10-15
+
+* [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
+ 
+## [v1.1.1](https://github.com/cosmos/ibc-go/releases/tag/v1.1.1) - 2021-10-04
+
+### Dependencies
+
+* [\#455](https://github.com/cosmos/ibc-go/pull/455) Bump SDK version to v0.44.1
+
+## [v1.1.0](https://github.com/cosmos/ibc-go/releases/tag/v1.1.0) - 2021-09-03
+
+### Dependencies
+
+* [\#367](https://github.com/cosmos/ibc-go/pull/367) Bump [cosmos-sdk](https://github.com/cosmos/cosmos-sdk) from 0.43 to 0.44.
+
+## [v1.0.1](https://github.com/cosmos/ibc-go/releases/tag/v1.0.1) - 2021-08-25
+
+### Improvements
+
+* [\#343](https://github.com/cosmos/ibc-go/pull/343) Create helper functions for publishing of packet sent and acknowledgement sent events.
 
 ## [v1.0.0](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0) - 2021-08-10
 
@@ -53,6 +228,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/light-clients/06-solomachine) [\#153](https://github.com/cosmos/ibc-go/pull/153) Fix solo machine proof height sequence mismatch bug.
 * (modules/light-clients/06-solomachine) [\#122](https://github.com/cosmos/ibc-go/pull/122) Fix solo machine merkle prefix casting bug. 
 * (modules/light-clients/06-solomachine) [\#120](https://github.com/cosmos/ibc-go/pull/120) Fix solo machine handshake verification bug. 
+* (modules/light-clients/06-solomachine) [\#153](https://github.com/cosmos/ibc-go/pull/153) fix solo machine connection handshake failure at `ConnectionOpenAck`.
 
 ### API Breaking
 
@@ -107,7 +283,7 @@ The IBC module was originally released in [v0.40.0](https://github.com/cosmos/co
 Please see the [Release Notes](https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/RELEASE_NOTES.md).
 
 The IBC module is also contained in the releases for [v0.41.x](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.41.0) and [v0.42.x](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.42.0).
-Please see the Release Notes for [v0.41.x](https://github.com/cosmos/cosmos-sdk/blob/release/v0.41.x/RELEASE_NOTES.md) and [v0.42.x](https://github.com/cosmos/cosmos-sdk/blob/release/v0.42.x/RELEASE_NOTES.md).
+Please see the Release Notes for [v0.41.x](https://github.com/cosmos/cosmos-sdk/blob/v0.41.0/RELEASE_NOTES.md) and [v0.42.x](https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/RELEASE_NOTES.md).
 
 The IBC module was removed in the commit hash [da064e13d56add466548135739c5860a9f7ed842](https://github.com/cosmos/cosmos-sdk/commit/da064e13d56add466548135739c5860a9f7ed842) on the SDK. The release for SDK v0.43.0 will be the first release without the IBC module.
 

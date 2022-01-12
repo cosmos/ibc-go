@@ -6,12 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	"github.com/cosmos/ibc-go/testing/simapp"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
 var (
@@ -107,42 +107,30 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	testCases := []struct {
 		name      string
-		version   string
 		cpVersion string
 		crossing  bool
 		expPass   bool
 	}{
 		{
-			"valid fee middleware and transfer version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			"valid fee middleware version",
 			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			false,
 			true,
 		},
 		{
-			"valid transfer version on try and counterparty",
-			transfertypes.Version,
+			"valid transfer version",
 			transfertypes.Version,
 			false,
 			true,
 		},
 		{
-			"valid fee middleware and transfer version, crossing hellos",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			"crossing hellos: valid fee middleware",
 			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			true,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			channeltypes.MergeChannelVersions("otherfee28-1", transfertypes.Version),
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"invalid counterparty fee middleware version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			channeltypes.MergeChannelVersions("wrongfee29-1", transfertypes.Version),
 			false,
 			false,
@@ -150,42 +138,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid transfer version",
 			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"invalid counterparty transfer version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
-			false,
-			false,
-		},
-		{
-			"transfer version not wrapped",
-			types.Version,
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"counterparty transfer version not wrapped",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			types.Version,
-			false,
-			false,
-		},
-		{
-			"fee version not included on try, but included in counterparty",
-			transfertypes.Version,
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"fee version not included",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			transfertypes.Version,
 			false,
 			false,
 		},
@@ -222,7 +174,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
-				Version:        tc.version,
+				Version:        tc.cpVersion,
 			}
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
@@ -231,13 +183,13 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.version, tc.cpVersion)
+			_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
 
 			if tc.expPass {
-				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
+				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err, "error not returned for version: %s", tc.version)
+				suite.Require().Error(err)
 			}
 		})
 	}
@@ -556,7 +508,14 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 // different channel than sending chain
 func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
-	var ack []byte
+	var (
+		ack                    []byte
+		identifiedFee          *types.IdentifiedPacketFee
+		originalBalance        sdk.Coins
+		expectedBalance        sdk.Coins
+		expectedRelayerBalance sdk.Coins
+	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -564,7 +523,9 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				expectedRelayerBalance = identifiedFee.Fee.ReceiveFee.Add(identifiedFee.Fee.AckFee[0])
+			},
 			true,
 		},
 		{
@@ -577,13 +538,17 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
 					ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
 				}.Acknowledgement()
+
+				expectedBalance = originalBalance
 			},
-			false,
+			true,
 		},
 		{
 			"ack wrong format",
 			func() {
 				ack = []byte("unsupported acknowledgement format")
+
+				expectedBalance = originalBalance
 			},
 			false,
 		},
@@ -592,20 +557,24 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 				ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
+
+				expectedBalance = originalBalance
 			},
-			false,
+			true,
 		},
 		{
-			"error on distribute fee (blocked address)",
+			"fail on distribute receive fee (blocked address)",
 			func() {
-				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), types.ModuleName).GetAddress()
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				ack = types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
 					ForwardRelayerAddress: blockedAddr.String(),
 				}.Acknowledgement()
+
+				expectedRelayerBalance = identifiedFee.Fee.AckFee
 			},
-			false,
+			true,
 		},
 	}
 
@@ -613,6 +582,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			expectedRelayerBalance = sdk.Coins{} // reset
 
 			// open incentivized channel
 			suite.coordinator.Setup(suite.path)
@@ -630,7 +600,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 			// escrow the packet fee
 			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
-			identifiedFee := types.NewIdentifiedPacketFee(
+			identifiedFee = types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
 					ReceiveFee: validCoins,
@@ -643,45 +613,59 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 			suite.Require().NoError(err)
 
+			relayerAddr := suite.chainB.SenderAccount.GetAddress()
+
 			// must be changed explicitly
 			ack = types.IncentivizedAcknowledgement{
 				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
-				ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+				ForwardRelayerAddress: relayerAddr.String(),
 			}.Acknowledgement()
+
+			// log original sender balance
+			// NOTE: balance is logged after escrowing tokens
+			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+
+			// default to success case
+			expectedBalance = originalBalance.
+				Add(identifiedFee.Fee.TimeoutFee[0])
 
 			// malleate test case
 			tc.malleate()
 
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, suite.chainA.SenderAccount.GetAddress())
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, relayerAddr)
 
 			if tc.expPass {
-				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
-				suite.Require().Equal(
-					sdk.Coin{
-						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(100000000000000),
-					},
-					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+				suite.Require().NoError(err)
 			} else {
-				suite.Require().Equal(
-					sdk.Coin{
-						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(99999999999400),
-					},
-					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+				suite.Require().Error(err)
 			}
+
+			suite.Require().Equal(
+				expectedBalance,
+				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+			)
+
+			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
+			suite.Require().Equal(
+				expectedRelayerBalance,
+				relayerBalance,
+			)
+
 		})
 	}
 }
 
 func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	var (
-		relayerAddr sdk.AccAddress
+		relayerAddr     sdk.AccAddress
+		identifiedFee   *types.IdentifiedPacketFee
+		originalBalance sdk.Coins
+		expectedBalance sdk.Coins
 	)
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name              string
+		malleate          func()
+		expFeeDistributed bool
 	}{
 		{
 			"success",
@@ -689,25 +673,34 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			true,
 		},
 		{
+			"fee not enabled",
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+
+				expectedBalance = originalBalance.Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
+			},
+			false,
+		},
+		{
 			"no op if identified packet fee doesn't exist",
 			func() {
 				// delete packet fee
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
+
+				expectedBalance = originalBalance.Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
 			},
 			false,
 		},
 		{
-			"error on distribute fee (blocked address)",
+			"distribute fee fails for timeout fee (blocked address)",
 			func() {
-				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), types.ModuleName).GetAddress()
-			},
-			false,
-		},
-		{
-			"fee not enabled",
-			func() {
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+
+				expectedBalance = originalBalance.
+					Add(identifiedFee.Fee.ReceiveFee[0]).
+					Add(identifiedFee.Fee.AckFee[0]).
+					Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
 			},
 			false,
 		},
@@ -739,9 +732,9 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 
 			// must be explicitly changed
-			relayerAddr = suite.chainA.SenderAccount.GetAddress()
+			relayerAddr = suite.chainB.SenderAccount.GetAddress()
 
-			identifiedFee := types.NewIdentifiedPacketFee(
+			identifiedFee = types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
 					ReceiveFee: validCoins,
@@ -755,26 +748,35 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 			suite.Require().NoError(err)
 
+			// log original sender balance
+			// NOTE: balance is logged after escrowing tokens
+			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+
+			// default to success case
+			expectedBalance = originalBalance.
+				Add(identifiedFee.Fee.ReceiveFee[0]).
+				Add(identifiedFee.Fee.AckFee[0]).
+				Add(coin) // timeout refund from ics20 transfer
+
 			// malleate test case
 			tc.malleate()
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
+			suite.Require().NoError(err)
 
-			if tc.expPass {
-				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+			suite.Require().Equal(
+				expectedBalance,
+				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+			)
+
+			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
+			if tc.expFeeDistributed {
 				suite.Require().Equal(
-					sdk.Coin{
-						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(100000000000100),
-					},
-					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+					identifiedFee.Fee.TimeoutFee,
+					relayerBalance,
+				)
 			} else {
-				suite.Require().Equal(
-					sdk.Coin{
-						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(99999999999500),
-					},
-					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+				suite.Require().Empty(relayerBalance)
 			}
 		})
 	}
