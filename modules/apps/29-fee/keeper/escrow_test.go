@@ -148,14 +148,9 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			}
 
 			// escrow the packet fee & store the fee in state
-			identifiedPacketFee := types.IdentifiedPacketFee{
-				PacketId:      packetId,
-				Fee:           fee,
-				RefundAddress: refundAcc.String(),
-				Relayers:      []string{},
-			}
+			identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
 
-			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), &identifiedPacketFee)
+			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -163,7 +158,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			// refundAcc balance after escrow
 			refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), refundAcc.String(), forwardRelayer, reverseRelayer, identifiedPacketFee)
+			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), refundAcc.String(), forwardRelayer, reverseRelayer, *identifiedPacketFee)
 
 			if tc.expPass {
 				// there should no longer be a fee in escrow for this packet
