@@ -94,6 +94,9 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	// set counterparty address
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
 
+	// set forward relayer address
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainA.GetContext(), packetId, sender)
+
 	// export genesis
 	genesisState := suite.chainA.GetSimApp().IBCFeeKeeper.ExportGenesis(suite.chainA.GetContext())
 
@@ -110,4 +113,8 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	// check registered relayer addresses
 	suite.Require().Equal(sender, genesisState.RegisteredRelayers[0].Address)
 	suite.Require().Equal(counterparty, genesisState.RegisteredRelayers[0].CounterpartyAddress)
+
+	// check registered relayer addresses
+	suite.Require().Equal(sender, genesisState.ForwardRelayers[0].Address)
+	suite.Require().Equal(packetId, genesisState.ForwardRelayers[0].PacketId)
 }

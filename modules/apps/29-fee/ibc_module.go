@@ -185,14 +185,13 @@ func (im IBCModule) OnRecvPacket(
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 
 	forwardRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
-	if !found {
-		forwardRelayer = ""
+
+	// incase of async aknowledgement (ack == nil) store the ForwardRelayer address for use later
+	if ack == nil && found {
+		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), forwardRelayer)
 	}
 
-	return types.IncentivizedAcknowledgement{
-		Result:                ack.Acknowledgement(),
-		ForwardRelayerAddress: forwardRelayer,
-	}
+	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement())
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

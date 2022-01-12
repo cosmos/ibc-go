@@ -34,6 +34,7 @@
   
 - [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
+    - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
     - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
   
@@ -749,13 +750,29 @@ and an optional list of relayers that are permitted to receive the fee.
 <a name="ibc.applications.fee.v1.FeeEnabledChannel"></a>
 
 ### FeeEnabledChannel
-Contains the PortID & ChannelID for a fee enabled channel
+FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.ForwardRelayerAddress"></a>
+
+### ForwardRelayerAddress
+ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
 
 
 
@@ -773,6 +790,7 @@ GenesisState defines the fee middleware genesis state
 | `identified_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated |  |
 | `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated |  |
+| `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated |  |
 
 
 
@@ -782,7 +800,7 @@ GenesisState defines the fee middleware genesis state
 <a name="ibc.applications.fee.v1.RegisteredRelayerAddress"></a>
 
 ### RegisteredRelayerAddress
-Contains the address and counterparty address for a specific relayer (for distributing fees)
+RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
 
 
 | Field | Type | Label | Description |

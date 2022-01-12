@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,7 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -75,22 +75,6 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (
 // GetFeeAccount returns the ICS29 Fee ModuleAccount address
 func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 	return k.authKeeper.GetModuleAddress(types.ModuleName)
-}
-
-// SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
-	return k.ics4Wrapper.SendPacket(ctx, chanCap, packet)
-}
-
-// WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
-func (k Keeper) WriteAcknowledgement(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	packet ibcexported.PacketI,
-	acknowledgement []byte,
-) error {
-	return nil
-	// return k.channelKeeper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 }
 
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
@@ -169,6 +153,7 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string,
 	return addr, true
 }
 
+// GetAllRelayerAddresses returns all registered relayer addresses
 func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.RelayerAddressKeyPrefix))
@@ -187,6 +172,59 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelay
 	}
 
 	return registeredAddrArr
+}
+
+// SetForwardRelayerAddress sets the forward relayer address during OnRecvPacket in case of async acknowledgement
+func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId, address string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyForwardRelayerAddress(packetId), []byte(address))
+}
+
+// GetForwardRelayerAddress gets forward relayer address for a particular packet
+func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyForwardRelayerAddress(packetId)
+	if !store.Has(key) {
+		return "", false
+	}
+
+	addr := string(store.Get(key))
+	return addr, true
+}
+
+// GetAllForwardRelayerAddresses returns all forward relayer addresses stored for async acknowledgements
+func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardRelayerAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ForwardRelayerPrefix))
+	defer iterator.Close()
+
+	var forwardRelayerAddr []*types.ForwardRelayerAddress
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		seq, err := strconv.ParseUint(keySplit[3], 0, 64)
+		if err != nil {
+			panic("failed to parse packet sequence in forward relayer address mapping")
+		}
+
+		packetId := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+
+		addr := &types.ForwardRelayerAddress{
+			Address:  string(iterator.Value()),
+			PacketId: packetId,
+		}
+
+		forwardRelayerAddr = append(forwardRelayerAddr, addr)
+	}
+
+	return forwardRelayerAddr
+}
+
+// Deletes the forwardRelayerAddr associated with the packetId
+func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyForwardRelayerAddress(packetId)
+	store.Delete(key)
 }
 
 // Stores a Fee for a given packet in state

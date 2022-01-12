@@ -16,6 +16,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		k.SetCounterpartyAddress(ctx, addr.Address, addr.CounterpartyAddress)
 	}
 
+	for _, forwardAddr := range state.ForwardRelayers {
+		k.SetForwardRelayerAddress(ctx, forwardAddr.PacketId, forwardAddr.Address)
+	}
+
 	for _, enabledChan := range state.FeeEnabledChannels {
 		k.SetFeeEnabled(ctx, enabledChan.PortId, enabledChan.ChannelId)
 	}
@@ -27,5 +31,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		IdentifiedFees:     k.GetAllIdentifiedPacketFees(ctx),
 		FeeEnabledChannels: k.GetAllFeeEnabledChannels(ctx),
 		RegisteredRelayers: k.GetAllRelayerAddresses(ctx),
+		ForwardRelayers:    k.GetAllForwardRelayerAddresses(ctx),
 	}
 }
