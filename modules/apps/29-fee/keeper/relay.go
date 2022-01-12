@@ -21,10 +21,7 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 	packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
 	relayer, found := k.GetForwardRelayerAddress(ctx, packetId)
 
-	if found {
-		// delete the forward relayer address as it is no longer used
-		k.DeleteForwardRelayerAddress(ctx, packetId)
-	}
+	k.DeleteForwardRelayerAddress(ctx, packetId)
 
 	ack := types.NewIncentivizedAcknowledgement(relayer, acknowledgement)
 	bz := ack.Acknowledgement()
