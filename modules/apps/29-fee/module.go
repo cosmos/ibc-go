@@ -17,14 +17,14 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/client/cli"
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/client/cli"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 
-	// "github.com/cosmos/ibc-go/modules/apps/29-fee/client/cli"
-	// "github.com/cosmos/ibc-go/modules/apps/29-fee/simulation"
+	// "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/client/cli"
+	// "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/simulation"
 
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 )
 
 var (

@@ -1,9 +1,7 @@
 package mock
 
 import (
-	"bytes"
 	"encoding/json"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,14 +15,15 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/modules/core/24-host"
-	"github.com/cosmos/ibc-go/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 const (
 	ModuleName = "mock"
+
+	Version = "mock-version"
 )
 
 var (
@@ -38,7 +37,7 @@ var (
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
 )
 
-var _ porttypes.IBCModule = AppModule{}
+var _ porttypes.IBCModule = IBCModule{}
 
 // Expected Interface
 // PortKeeper defines the expected IBC port keeper
@@ -146,92 +145,4 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock implements the AppModule interface
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
-}
-
-// OnChanOpenInit implements the IBCModule interface.
-func (am AppModule) OnChanOpenInit(
-	ctx sdk.Context, _ channeltypes.Order, _ []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, _ channeltypes.Counterparty, _ string,
-) error {
-	// Claim channel capability passed back by IBC module
-	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// OnChanOpenTry implements the IBCModule interface.
-func (am AppModule) OnChanOpenTry(
-	ctx sdk.Context, _ channeltypes.Order, _ []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, _ channeltypes.Counterparty, _, _ string,
-) error {
-	// Claim channel capability passed back by IBC module
-	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// OnChanOpenAck implements the IBCModule interface.
-func (am AppModule) OnChanOpenAck(sdk.Context, string, string, string) error {
-	return nil
-}
-
-// OnChanOpenConfirm implements the IBCModule interface.
-func (am AppModule) OnChanOpenConfirm(sdk.Context, string, string) error {
-	return nil
-}
-
-// OnChanCloseInit implements the IBCModule interface.
-func (am AppModule) OnChanCloseInit(sdk.Context, string, string) error {
-	return nil
-}
-
-// OnChanCloseConfirm implements the IBCModule interface.
-func (am AppModule) OnChanCloseConfirm(sdk.Context, string, string) error {
-	return nil
-}
-
-// OnRecvPacket implements the IBCModule interface.
-func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
-	// set state by claiming capability to check if revert happens return
-	_, err := am.scopedKeeper.NewCapability(ctx, MockRecvCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
-	}
-	if bytes.Equal(MockPacketData, packet.GetData()) {
-		return MockAcknowledgement
-	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
-		return nil
-	}
-
-	return MockFailAcknowledgement
-}
-
-// OnAcknowledgementPacket implements the IBCModule interface.
-func (am AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
-	_, err := am.scopedKeeper.NewCapability(ctx, MockAckCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
-	}
-
-	return nil
-}
-
-// OnTimeoutPacket implements the IBCModule interface.
-func (am AppModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, _ sdk.AccAddress) error {
-	_, err := am.scopedKeeper.NewCapability(ctx, MockTimeoutCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
-	}
-
-	return nil
 }
