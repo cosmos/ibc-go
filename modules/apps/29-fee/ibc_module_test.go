@@ -565,14 +565,14 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"fail on distribute receive fee (blocked address)",
 			func() {
-				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), types.ModuleName).GetAddress()
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				ack = types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
 					ForwardRelayerAddress: blockedAddr.String(),
 				}.Acknowledgement()
 
-				expectedBalance = originalBalance.Add(identifiedFee.Fee.AckFee[0])
+				expectedRelayerBalance = identifiedFee.Fee.AckFee
 			},
 			true,
 		},
@@ -695,7 +695,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"distribute fee fails for timeout fee (blocked address)",
 			func() {
-				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), types.ModuleName).GetAddress()
+				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				expectedBalance = originalBalance.
 					Add(identifiedFee.Fee.ReceiveFee[0]).
