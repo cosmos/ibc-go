@@ -16,6 +16,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 			func() {},
 			true,
 		},
+		{
+			"forward relayer address is successfully deleted",
+			func() {
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
+			},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -49,6 +56,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				_, found := suite.chainB.GetSimApp().IBCFeeKeeper.GetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1))
+				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
 			}
