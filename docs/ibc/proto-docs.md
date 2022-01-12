@@ -750,7 +750,7 @@ and an optional list of relayers that are permitted to receive the fee.
 <a name="ibc.applications.fee.v1.FeeEnabledChannel"></a>
 
 ### FeeEnabledChannel
-Contains the PortID & ChannelID for a fee enabled channel
+FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 
 
 | Field | Type | Label | Description |
@@ -766,7 +766,7 @@ Contains the PortID & ChannelID for a fee enabled channel
 <a name="ibc.applications.fee.v1.ForwardRelayerAddress"></a>
 
 ### ForwardRelayerAddress
-Contains the forward relayer address and packetId used for async acknowledgements
+ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements
 
 
 | Field | Type | Label | Description |
@@ -800,7 +800,7 @@ GenesisState defines the fee middleware genesis state
 <a name="ibc.applications.fee.v1.RegisteredRelayerAddress"></a>
 
 ### RegisteredRelayerAddress
-Contains the address and counterparty address for a specific relayer (for distributing fees)
+RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
 
 
 | Field | Type | Label | Description |
