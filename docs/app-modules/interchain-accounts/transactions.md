@@ -8,9 +8,8 @@ Learn about Interchain Accounts transaction execution {synopsis}
 
 ## Executing a transaction
 
-As described in [Authentication Modules](./auth-modules.md#trysendtx) transactions are executed using the interchain accounts controller API and require a base application as outlined in [ICS30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware) to facilitate authentication. The method of authentication remains unspecified to provide flexibility for the authentication module developer.
+As described in [Authentication Modules](./auth-modules.md#trysendtx) transactions are executed using the interchain accounts controller API and require a `Base Application` as outlined in [ICS30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware) to facilitate authentication. The method of authentication remains unspecified to provide flexibility for the authentication module developer.
 
-<!-- Insert high level flow diagram -->
 **!! Insert high level diagram !!**
 
 ## Atomicity
