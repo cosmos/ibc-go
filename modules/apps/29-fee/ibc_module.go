@@ -213,28 +213,16 @@ func (im IBCModule) OnAcknowledgementPacket(
 	}
 
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 
+	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 	if !found {
 		// return underlying callback if no fee found for given packetID
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
-	// cache context before trying to distribute the fee
-	cacheCtx, writeFn := ctx.CacheContext()
+	im.keeper.DistributePacketFees(ctx, identifiedPacketFee.RefundAddress, ack.ForwardRelayerAddress, relayer, identifiedPacketFee)
 
-	forwardRelayer, _ := sdk.AccAddressFromBech32(ack.ForwardRelayerAddress)
-	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
-
-	err := im.keeper.DistributeFee(cacheCtx, refundAcc, forwardRelayer, relayer, packetId)
-
-	if err == nil {
-		// write the cache and then call underlying callback
-		writeFn()
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-	}
-	// otherwise discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
@@ -252,25 +240,13 @@ func (im IBCModule) OnTimeoutPacket(
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 
 	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
-
 	if !found {
 		// return underlying callback if fee not found for given packetID
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	// cache context before trying to distribute the fee
-	cacheCtx, writeFn := ctx.CacheContext()
+	im.keeper.DistributePacketFeesOnTimeout(ctx, identifiedPacketFee.RefundAddress, relayer, identifiedPacketFee)
 
-	refundAcc, _ := sdk.AccAddressFromBech32(identifiedPacketFee.RefundAddress)
-	err := im.keeper.DistributeFeeTimeout(cacheCtx, refundAcc, relayer, packetId)
-
-	if err == nil {
-		// write the cache and then call underlying callback
-		writeFn()
-		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-	}
-
-	// otherwise discard cache and call underlying callback
+	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }

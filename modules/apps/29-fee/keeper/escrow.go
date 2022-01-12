@@ -7,7 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
@@ -43,68 +42,66 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.Identified
 	return nil
 }
 
-// DistributeFee pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee
-func (k Keeper) DistributeFee(ctx sdk.Context, refundAcc, forwardRelayer, reverseRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
-	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrFeeNotFound, "with channelID %s, sequence %d", packetID.ChannelId, packetID.Sequence)
+// DistributePacketFees pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee.
+func (k Keeper) DistributePacketFees(ctx sdk.Context, refundAcc, forwardRelayer string, reverseRelayer sdk.AccAddress, feeInEscrow types.IdentifiedPacketFee) {
+	// distribute fee for forward relaying
+	forward, err := sdk.AccAddressFromBech32(forwardRelayer)
+	if err == nil {
+		k.distributeFee(ctx, forward, feeInEscrow.Fee.ReceiveFee)
 	}
 
-	// send receive fee to forward relayer
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, forwardRelayer, feeInEscrow.Fee.ReceiveFee)
+	// distribute fee for reverse relaying
+	k.distributeFee(ctx, reverseRelayer, feeInEscrow.Fee.AckFee)
+
+	// refund timeout fee refund,
+	refundAddr, err := sdk.AccAddressFromBech32(refundAcc)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to send fee to forward relayer")
+		panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", refundAcc))
 	}
 
-	// send ack fee to reverse relayer
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, reverseRelayer, feeInEscrow.Fee.AckFee)
-	if err != nil {
-		return sdkerrors.Wrap(err, "error sending fee to reverse relayer")
-	}
-
-	// refund timeout fee to refundAddr
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAcc, feeInEscrow.Fee.TimeoutFee)
-	if err != nil {
-		return sdkerrors.Wrap(err, "error refunding timeout fee")
-	}
+	// refund timeout fee for unused timeout
+	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.TimeoutFee)
 
 	// removes the fee from the store as fee is now paid
-	k.DeleteFeeInEscrow(ctx, packetID)
-
-	return nil
+	k.DeleteFeeInEscrow(ctx, feeInEscrow.PacketId)
 }
 
-// DistributeFeeTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) DistributeFeeTimeout(ctx sdk.Context, refundAcc, timeoutRelayer sdk.AccAddress, packetID *channeltypes.PacketId) error {
-	// check if there is a Fee in escrow for the given packetId
-	feeInEscrow, found := k.GetFeeInEscrow(ctx, packetID)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrFeeNotFound, "for packetID %s", packetID)
+// DistributePacketsFeesTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
+func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, refundAcc string, timeoutRelayer sdk.AccAddress, feeInEscrow types.IdentifiedPacketFee) {
+	// check if refundAcc address works
+	refundAddr, err := sdk.AccAddressFromBech32(refundAcc)
+	if err != nil {
+		panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", refundAcc))
 	}
 
-	// refund the receive fee
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAcc, feeInEscrow.Fee.ReceiveFee)
-	if err != nil {
-		return sdkerrors.Wrap(err, "error refunding receive fee")
-	}
+	// refund receive fee for unused forward relaying
+	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.ReceiveFee)
 
-	// refund the ack fee
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAcc, feeInEscrow.Fee.AckFee)
-	if err != nil {
-		return sdkerrors.Wrap(err, "error refunding ack fee")
-	}
+	// refund ack fee for unused reverse relaying
+	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.AckFee)
 
-	// pay the timeout fee to the timeout relayer
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, timeoutRelayer, feeInEscrow.Fee.TimeoutFee)
-	if err != nil {
-		return sdkerrors.Wrap(err, "error sending fee to timeout relayer")
-	}
+	// distribute fee for timeout relaying
+	k.distributeFee(ctx, timeoutRelayer, feeInEscrow.Fee.TimeoutFee)
 
 	// removes the fee from the store as fee is now paid
-	k.DeleteFeeInEscrow(ctx, packetID)
+	k.DeleteFeeInEscrow(ctx, feeInEscrow.PacketId)
+}
 
-	return nil
+// distributeFee will attempt to distribute the escrowed fee to the receiver address.
+// If the distribution fails for any reason (such as the receiving address being blocked),
+// the state changes will be discarded.
+func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.Coins) {
+	// cache context before trying to send to reverse relayer
+	cacheCtx, writeFn := ctx.CacheContext()
+
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)
+	if err == nil {
+		// write the cache
+		writeFn()
+
+		// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+	}
 }
 
 func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) error {

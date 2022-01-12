@@ -70,9 +70,9 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
 		channelID := suite.path.EndpointA.ChannelID
 		fee := types.Fee{
-			ReceiveFee: validCoins,
-			AckFee:     validCoins,
-			TimeoutFee: validCoins,
+			ReceiveFee: defaultReceiveFee,
+			AckFee:     defaultAckFee,
+			TimeoutFee: defaultTimeoutFee,
 		}
 		msg := types.NewMsgPayPacketFee(fee, suite.path.EndpointA.ChannelConfig.PortID, channelID, refundAcc.String(), []string{})
 
@@ -111,9 +111,9 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		// build packetId
 		channelID := suite.path.EndpointA.ChannelID
 		fee := types.Fee{
-			ReceiveFee: validCoins,
-			AckFee:     validCoins,
-			TimeoutFee: validCoins,
+			ReceiveFee: defaultReceiveFee,
+			AckFee:     defaultAckFee,
+			TimeoutFee: defaultTimeoutFee,
 		}
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
