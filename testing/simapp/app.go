@@ -207,6 +207,7 @@ type SimApp struct {
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
 	ScopedIBCFeeKeeper        capabilitykeeper.ScopedKeeper
+	ScopedFeeMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
 	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
@@ -286,6 +287,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + ibcfeetypes.ModuleName)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
 
 	// seal capability keeper after scoping modules
@@ -356,8 +358,10 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+
 	// create fee-wrapped transfer module
-	feeTransferModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, transferModule)
+	feeTransferModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, transferIBCModule)
 
 	feeModule := ibcfee.NewAppModule(app.IBCFeeKeeper)
 
@@ -366,7 +370,7 @@ func NewSimApp(
 	// Pass IBCFeeKeeper for PortKeeper since fee middleware will wrap the IBCKeeper for underlying application.
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCFeeKeeper)
 	// create fee wrapped mock module
-	feeMockModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, &ibcmock.MockIBCApp{})
+	feeMockModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, ibcmock.NewIBCModule(nil, scopedFeeMockKeeper))
 
 	mockIBCModule := ibcmock.NewIBCModule(&ibcmock.MockIBCApp{}, scopedIBCMockKeeper)
 

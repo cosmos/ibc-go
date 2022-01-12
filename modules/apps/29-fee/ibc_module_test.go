@@ -10,8 +10,8 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	"github.com/cosmos/ibc-go/testing/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
 var (
@@ -107,42 +107,30 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	testCases := []struct {
 		name      string
-		version   string
 		cpVersion string
 		crossing  bool
 		expPass   bool
 	}{
 		{
-			"valid fee middleware and transfer version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			"valid fee middleware version",
 			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			false,
 			true,
 		},
 		{
-			"valid transfer version on try and counterparty",
-			transfertypes.Version,
+			"valid transfer version",
 			transfertypes.Version,
 			false,
 			true,
 		},
 		{
-			"valid fee middleware and transfer version, crossing hellos",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			"crossing hellos: valid fee middleware",
 			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			true,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			channeltypes.MergeChannelVersions("otherfee28-1", transfertypes.Version),
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"invalid counterparty fee middleware version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
 			channeltypes.MergeChannelVersions("wrongfee29-1", transfertypes.Version),
 			false,
 			false,
@@ -150,42 +138,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid transfer version",
 			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"invalid counterparty transfer version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
-			false,
-			false,
-		},
-		{
-			"transfer version not wrapped",
-			types.Version,
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"counterparty transfer version not wrapped",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			types.Version,
-			false,
-			false,
-		},
-		{
-			"fee version not included on try, but included in counterparty",
-			transfertypes.Version,
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			false,
-			false,
-		},
-		{
-			"fee version not included",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
-			transfertypes.Version,
 			false,
 			false,
 		},
@@ -222,7 +174,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
-				Version:        tc.version,
+				Version:        tc.cpVersion,
 			}
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
@@ -231,13 +183,13 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.version, tc.cpVersion)
+			_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
 
 			if tc.expPass {
-				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
+				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err, "error not returned for version: %s", tc.version)
+				suite.Require().Error(err)
 			}
 		})
 	}
@@ -656,17 +608,22 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+
+				expectedAmt, ok := sdk.NewIntFromString("10000000000000000000")
+				suite.Require().True(ok)
 				suite.Require().Equal(
 					sdk.Coin{
 						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(100000000000000),
+						Amount: expectedAmt,
 					},
 					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			} else {
+				expectedAmt, ok := sdk.NewIntFromString("9999999999999999400")
+				suite.Require().True(ok)
 				suite.Require().Equal(
 					sdk.Coin{
 						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(99999999999400),
+						Amount: expectedAmt,
 					},
 					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			}
@@ -762,17 +719,22 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
+
+				expectedAmt, ok := sdk.NewIntFromString("10000000000000000100")
+				suite.Require().True(ok)
 				suite.Require().Equal(
 					sdk.Coin{
 						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(100000000000100),
+						Amount: expectedAmt,
 					},
 					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			} else {
+				expectedAmt, ok := sdk.NewIntFromString("9999999999999999500")
+				suite.Require().True(ok)
 				suite.Require().Equal(
 					sdk.Coin{
 						Denom:  ibctesting.TestCoin.Denom,
-						Amount: sdk.NewInt(99999999999500),
+						Amount: expectedAmt,
 					},
 					suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			}
