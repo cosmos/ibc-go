@@ -3,11 +3,11 @@ package cli
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
@@ -133,5 +133,37 @@ func GetCmdQueryEscrowAddress() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
+	return cmd
+}
+
+// GetCmdQueryDenomHash defines the command to query a denomination hash from a given trace.
+func GetCmdQueryDenomHash() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "denom-hash [trace]",
+		Short:   "Query the denom hash info from a given denom trace",
+		Long:    "Query the denom hash info from a given denom trace",
+		Example: fmt.Sprintf("%s query ibc-transfer denom-hash [denom_trace]", version.AppName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryDenomHashRequest{
+				Trace: args[0],
+			}
+
+			res, err := queryClient.DenomHash(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
