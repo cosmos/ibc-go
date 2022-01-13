@@ -39,6 +39,8 @@ const (
 	// used for testing proposals
 	Title       = "title"
 	Description = "description"
+
+	LongString = "Loremipsumdolorsitame,consecteturadipiscingeliseddoeiusmodtemporincididuntutlaboreetdoloremagnaaliquUtenimadminimveniamquisnostrudexercitationullamcolaborisnisiutaliquipexeacommodoconsequDuisauteiruredolorinreprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollitanimidestlaborum"
 )
 
 var (

@@ -4,10 +4,56 @@ import (
 	"fmt"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-func (suite *TypesTestSuite) TestParseAddressFromVersion() {
+func (suite *TypesTestSuite) TestValidateAccountAddress() {
+	testCases := []struct {
+		name    string
+		address string
+		expPass bool
+	}{
+		{
+			"success",
+			TestOwnerAddress,
+			true,
+		},
+		{
+			"success with single character",
+			"a",
+			true,
+		},
+		{
+			"empty string",
+			"",
+			false,
+		},
+		{
+			"only spaces",
+			"     ",
+			false,
+		},
+		{
+			"address is too long",
+			ibctesting.LongString,
+			false,
+		},
+	}
 
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			err := types.ValidateAccountAddress(tc.address)
+
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestParseAddressFromVersion() {
 	testCases := []struct {
 		name     string
 		version  string
