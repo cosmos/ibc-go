@@ -624,12 +624,8 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
 
-			activeChannelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Empty(activeChannelID)
-				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
 			}
