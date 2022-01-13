@@ -43,7 +43,7 @@ func (k Keeper) OnChanOpenTry(
 		return "", sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
-	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
 	}
 

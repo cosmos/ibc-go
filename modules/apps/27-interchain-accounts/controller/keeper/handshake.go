@@ -46,7 +46,7 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
-	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (k Keeper) OnChanOpenAck(
 		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
-	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
+	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
 		return err
 	}
 
