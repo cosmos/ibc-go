@@ -24,12 +24,8 @@ func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, co
 		return err
 	}
 
-	if metadata.ControllerConnectionId != connectionHops[0] {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connectionHops[0], metadata.ControllerConnectionId)
-	}
-
-	if metadata.HostConnectionId != connection.GetCounterparty().GetConnectionID() {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connection.GetCounterparty().GetConnectionID(), metadata.HostConnectionId)
+	if err := validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID()); err != nil {
+		return err
 	}
 
 	if metadata.Address != "" {
@@ -52,12 +48,8 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 		return err
 	}
 
-	if metadata.ControllerConnectionId != connection.GetCounterparty().GetConnectionID() {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connection.GetCounterparty().GetConnectionID(), metadata.ControllerConnectionId)
-	}
-
-	if metadata.HostConnectionId != connectionHops[0] {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connectionHops[0], metadata.HostConnectionId)
+	if err := validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0]); err != nil {
+		return err
 	}
 
 	if metadata.Address != "" {
@@ -68,6 +60,19 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 
 	if metadata.Version != Version {
 		return sdkerrors.Wrapf(ErrInvalidVersion, "expected %s, got %s", Version, metadata.Version)
+	}
+
+	return nil
+}
+
+// validateConnectionParams compares the given the controller and host connection IDs to those set in the provided ICS27 Metadata
+func validateConnectionParams(metadata Metadata, controllerConnectionID, hostConnectionID string) error {
+	if metadata.ControllerConnectionId != controllerConnectionID {
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", controllerConnectionID, metadata.ControllerConnectionId)
+	}
+
+	if metadata.HostConnectionId != hostConnectionID {
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", hostConnectionID, metadata.HostConnectionId)
 	}
 
 	return nil
