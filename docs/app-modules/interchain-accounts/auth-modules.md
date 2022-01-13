@@ -110,7 +110,6 @@ func (im IBCModule) OnChanOpenTry(
     channelID string,
     chanCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
-    version,
     counterpartyVersion string,
 ) (string, error) {
     panic("UNIMPLEMENTED")
