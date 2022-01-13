@@ -112,6 +112,7 @@ func TestParseChainID(t *testing.T) {
 		{"gaiamainnet--4", 0, false},
 		{"gaiamainnet-3.4", 0, false},
 		{"gaiamainnet", 0, false},
+		{"gaiamain\nnet-1", 0, false}, // newlines not allowed in chainID
 		{"gaiamainnet-1\n", 0, false}, // newlines not allowed after dash
 		{"gaiamainnet\n-3", 0, false}, // newlines not allowed before revision number
 		{"a--1", 0, false},
