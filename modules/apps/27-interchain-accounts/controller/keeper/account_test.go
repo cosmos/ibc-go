@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 					Ordering:       channeltypes.ORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
-					Version:        string("version"),
+					Version:        TestVersion,
 				}
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID, channel)
 			},
