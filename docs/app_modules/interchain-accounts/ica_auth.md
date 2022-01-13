@@ -212,8 +212,7 @@ packetData := icatypes.InterchainAccountPacketData{
 
 // Obtain timeout timestamp
 // An appropriate timeout timestamp must be determined based on the usage of the interchain account.
-// If the packet is timed out, the channel will be closed requiring a new channel to be created 
-// and reassociated with the existing interchain account on the host chain. 
+// If the packet times out, the channel will be closed requiring a new channel to be created 
 timeoutTimestamp := obtainTimeoutTimestamp()
 
 _, err = keeper.icaControllerKeeper.TrySendTx(ctx, chanCap, p, packetData, timeoutTimestamp)
