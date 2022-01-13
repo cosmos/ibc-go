@@ -11,9 +11,9 @@ import (
 // DefaultMaxAddrLength defines the default maximum character length used in validation of addresses
 var DefaultMaxAddrLength = 128
 
-// IsValidAddr defines a regular expression to check if the provided string consists of
-// strictly alphanumeric characters
-var IsValidAddr = regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
+// isValidAddr defines a regular expression to check if the provided string consists of
+// strictly alphanumeric characters and is non empty
+var isValidAddr = regexp.MustCompile("^[a-zA-Z0-9]+$").MatchString
 
 // NewVersion returns a complete version string in the format: VersionPrefix + Delimter + AccAddress
 func NewAppVersion(versionPrefix, accAddr string) string {
@@ -55,7 +55,7 @@ func ValidateVersion(version string) error {
 // ValidateAccountAddress performs basic validation of interchain account addresses, enforcing constraints
 // on address length and character set
 func ValidateAccountAddress(addr string) error {
-	if !IsValidAddr(addr) || len(addr) == 0 || len(addr) > DefaultMaxAddrLength {
+	if !isValidAddr(addr) || len(addr) > DefaultMaxAddrLength {
 		return sdkerrors.Wrapf(
 			ErrInvalidAccountAddress,
 			"address must contain strictly alphanumeric characters, not exceeding %d characters in length",
