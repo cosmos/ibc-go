@@ -53,11 +53,11 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 	}
 
 	if metadata.ControllerConnectionId != connection.GetCounterparty().GetConnectionID() {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connectionHops[0], metadata.ControllerConnectionId)
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connection.GetCounterparty().GetConnectionID(), metadata.ControllerConnectionId)
 	}
 
 	if metadata.HostConnectionId != connectionHops[0] {
-		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connection.GetCounterparty().GetConnectionID(), metadata.HostConnectionId)
+		return sdkerrors.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", connectionHops[0], metadata.HostConnectionId)
 	}
 
 	if metadata.Address != "" {
