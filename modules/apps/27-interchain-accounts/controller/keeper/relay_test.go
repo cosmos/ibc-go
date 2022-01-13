@@ -137,7 +137,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 
 				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			},
-			true,
+			false,
 		},
 	}
 

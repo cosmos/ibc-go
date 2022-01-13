@@ -29,7 +29,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	if uint64(ctx.BlockTime().UnixNano()) > timeoutTimestamp {
+	if uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
 		return 0, icatypes.ErrInvalidTimeoutTimestamp
 	}
 
