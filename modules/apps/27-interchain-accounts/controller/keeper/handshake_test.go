@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					Ordering:       channeltypes.ORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
-					Version:        string("version"),
+					Version:        TestVersion,
 				}
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 			},

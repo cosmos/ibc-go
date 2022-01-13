@@ -116,7 +116,11 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 
 // HasActiveChannel retrieves the active channelID from the store key by the provided portID & checks if the channel in question is in state OPEN
 func (k Keeper) HasActiveChannel(ctx sdk.Context, portID string) (string, bool) {
-	channelID, _ := k.GetActiveChannelID(ctx, portID)
+	channelID, found := k.GetActiveChannelID(ctx, portID)
+	if !found {
+		return "", false
+	}
+
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
 	if found && channel.State == channeltypes.OPEN {
