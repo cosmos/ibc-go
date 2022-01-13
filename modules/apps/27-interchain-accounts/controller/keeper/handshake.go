@@ -88,6 +88,10 @@ func (k Keeper) OnChanOpenAck(
 		return err
 	}
 
+	if metadata.Address == "" {
+		return sdkerrors.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be empty")
+	}
+
 	k.SetActiveChannelID(ctx, portID, channelID)
 	k.SetInterchainAccountAddress(ctx, portID, metadata.Address)
 
