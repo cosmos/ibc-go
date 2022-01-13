@@ -88,7 +88,7 @@ func (k Keeper) OnChanOpenAck(
 		return err
 	}
 
-	if metadata.Address == "" {
+	if strings.TrimSpace(metadata.Address) == "" {
 		return sdkerrors.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be empty")
 	}
 
