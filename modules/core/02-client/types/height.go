@@ -18,7 +18,6 @@ var _ exported.Height = (*Height)(nil)
 // IsRevisionFormat checks if a chainID is in the format required for parsing revisions
 // The chainID must be in the form: `{chainID}-{revision}`.
 // 24-host may enforce stricter checks on chainID
-// Newlines are allowed in the chainID.
 var IsRevisionFormat = regexp.MustCompile(`^.*[^\n-]-{1}[1-9][0-9]*$`).MatchString
 
 // ZeroHeight is a helper function which returns an uninitialized height.
