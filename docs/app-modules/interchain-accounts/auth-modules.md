@@ -198,8 +198,13 @@ packetData := icatypes.InterchainAccountPacketData{
     Data: data,
 }
 
+// Obtain timeout timestamp
+// An appropriate timeout timestamp must be determined based on the usage of the interchain account.
+// If the packet times out, the channel will be closed requiring a new channel to be created 
+timeoutTimestamp := obtainTimeoutTimestamp()
+
 // Send the interchain accounts packet, returning the packet sequence
-seq, err = keeper.icaControllerKeeper.TrySendTx(ctx, chanCap, portID, packetData)
+seq, err = keeper.icaControllerKeeper.TrySendTx(ctx, chanCap, portID, packetData, timeoutTimestamp)
 ```
 
 The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain. 
