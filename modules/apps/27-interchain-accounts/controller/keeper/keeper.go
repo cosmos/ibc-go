@@ -14,6 +14,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
@@ -101,7 +102,7 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetActiveChannelID retrieves the active channelID from the store keyed by the provided portID
+// GetActiveChannelID retrieves the active channelID from the store key by the provided portID
 func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := icatypes.KeyActiveChannel(portID)
@@ -111,6 +112,21 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 	}
 
 	return string(store.Get(key)), true
+}
+
+// HasActiveChannel retrieves the active channelID from the store key by the provided portID & checks if the channel in question is in state OPEN
+func (k Keeper) HasActiveChannel(ctx sdk.Context, portID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := icatypes.KeyActiveChannel(portID)
+
+	channelID := string(store.Get(key))
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+
+	if channel.State == channeltypes.OPEN && found {
+		return channelID, true
+	}
+
+	return "", false
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated port identifiers
