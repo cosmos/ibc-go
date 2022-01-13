@@ -35,12 +35,12 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	if !strings.HasPrefix(counterparty.PortId, icatypes.PortPrefix) {
-		return "", sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", counterparty.PortId, icatypes.PortPrefix)
+		return "", sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.PortPrefix, counterparty.PortId)
 	}
 
 	var metadata icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return "", sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account metadata")
+		return "", sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
 	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
@@ -59,12 +59,12 @@ func (k Keeper) OnChanOpenTry(
 	k.RegisterInterchainAccount(ctx, accAddress, counterparty.PortId)
 
 	metadata.Address = accAddress.String()
-	bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+	versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 	if err != nil {
 		return "", err
 	}
 
-	return string(bz), nil
+	return string(versionBytes), nil
 }
 
 // OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain

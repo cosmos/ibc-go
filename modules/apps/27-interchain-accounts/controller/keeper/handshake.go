@@ -34,7 +34,7 @@ func (k Keeper) OnChanOpenInit(
 	}
 
 	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.PortPrefix, portID)
 	}
 
 	if counterparty.PortId != icatypes.PortID {
@@ -43,7 +43,7 @@ func (k Keeper) OnChanOpenInit(
 
 	var metadata icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
-		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account metadata")
+		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
 	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
@@ -71,12 +71,12 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	if !strings.HasPrefix(portID, icatypes.PortPrefix) {
-		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "controller port %s does not contain expected prefix %s", portID, icatypes.PortPrefix)
+		return sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.PortPrefix, portID)
 	}
 
 	var metadata icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account metadata")
+		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)

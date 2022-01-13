@@ -73,10 +73,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			func() {
 				metadata.ControllerConnectionId = "invalid-connnection-id"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				channel.Version = string(bz)
+				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
 			false,
@@ -86,10 +86,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			func() {
 				metadata.HostConnectionId = "invalid-connnection-id"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				channel.Version = string(bz)
+				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
 			false,
@@ -99,10 +99,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			func() {
 				metadata.Version = "invalid-version"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				channel.Version = string(bz)
+				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
 			false,
@@ -135,7 +135,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 			// default values
 			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "")
-			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        string(bz),
+				Version:        string(versionBytes),
 			}
 
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
@@ -206,10 +206,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			func() {
 				metadata.Address = "invalid-account-address"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				path.EndpointA.Counterparty.ChannelConfig.Version = string(bz)
+				path.EndpointA.Counterparty.ChannelConfig.Version = string(versionBytes)
 			},
 			false,
 		},
@@ -218,10 +218,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			func() {
 				metadata.Version = "invalid-version"
 
-				bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
-				path.EndpointA.Counterparty.ChannelConfig.Version = string(bz)
+				path.EndpointA.Counterparty.ChannelConfig.Version = string(versionBytes)
 			},
 			false,
 		},
@@ -243,10 +243,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			suite.Require().NoError(err)
 
 			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestAccAddress.String())
-			bz, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
-			path.EndpointB.ChannelConfig.Version = string(bz)
+			path.EndpointB.ChannelConfig.Version = string(versionBytes)
 
 			tc.malleate() // malleate mutates test data
 

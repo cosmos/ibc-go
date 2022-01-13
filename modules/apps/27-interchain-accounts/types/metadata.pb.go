@@ -26,10 +26,15 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
 // See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
 type Metadata struct {
-	Version                string `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	// version defines the ICS27 protocol version
+	Version string `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	// controller_connection_id is the connection identifier associated with the controller chain
 	ControllerConnectionId string `protobuf:"bytes,2,opt,name=controller_connection_id,json=controllerConnectionId,proto3" json:"controller_connection_id,omitempty" yaml:"controller_connection_id"`
-	HostConnectionId       string `protobuf:"bytes,3,opt,name=host_connection_id,json=hostConnectionId,proto3" json:"host_connection_id,omitempty" yaml:"host_connection_id"`
-	Address                string `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
+	// host_connection_id is the connection identifier associated with the host chain
+	HostConnectionId string `protobuf:"bytes,3,opt,name=host_connection_id,json=hostConnectionId,proto3" json:"host_connection_id,omitempty" yaml:"host_connection_id"`
+	// address defines the interchain account address to be fulfilled upon the OnChanOpenTry handshake step
+	// NOTE: the address field is empty on the OnChanOpenInit handshake step
+	Address string `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *Metadata) Reset()         { *m = Metadata{} }
