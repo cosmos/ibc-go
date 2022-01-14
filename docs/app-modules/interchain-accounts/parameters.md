@@ -38,7 +38,7 @@ The `HostEnabled` parameter controls a chains ability to service ICS27 host spec
 
 #### AllowMessages
 
-The `AllowMessages` parameter provides the ability for a chain to limit the types of messages or transactions that it chooses to facilitate by defining an allowlist using the Protobuf message TypeURL format.
+The `AllowMessages` parameter provides the ability for a chain to limit the types of messages or transactions that hosted interchain accounts are authorized to execute by defining an allowlist using the Protobuf message TypeURL format.
 
 For example, a Cosmos SDK based chain that elects to provide hosted Interchain Accounts with the ability of governance voting and staking delegations will define its parameters as follows:
 
