@@ -102,7 +102,7 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetActiveChannelID retrieves the active channelID from the store, keyd by the provided portID
+// GetActiveChannelID retrieves the active channelID from the store, keyed by the provided portID
 func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := icatypes.KeyActiveChannel(portID)
@@ -114,8 +114,8 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 	return string(store.Get(key)), true
 }
 
-// HasActiveChannel retrieves the active channelID from the store, keyd by the provided portID & checks if the channel in question is in state OPEN
-func (k Keeper) HasActiveChannel(ctx sdk.Context, portID string) (string, bool) {
+// GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided portID & checks if the channel in question is in state OPEN
+func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, portID string) (string, bool) {
 	channelID, found := k.GetActiveChannelID(ctx, portID)
 	if !found {
 		return "", false
