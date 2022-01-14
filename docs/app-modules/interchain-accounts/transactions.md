@@ -16,32 +16,6 @@ Transactions are executed via the ICS27 [`TrySendTx` API](./auth-modules.md#trys
 
 ## Atomicity
 
-As the Interchain Accounts module supports the execution of multiple transactions using the Cosmos SDK `Msg` interface, it provides the same atomicity guarantees as Cosmos SDK-based applications, leveraging the [`CacheMultiStore`](https://docs.cosmos.network/master/core/store.html#cachemultistore) architecture provided by the `Context` type. 
+As the Interchain Accounts module supports the execution of multiple transactions using the Cosmos SDK `Msg` interface, it provides the same atomicity guarantees as Cosmos SDK-based applications, leveraging the [`CacheMultiStore`](https://docs.cosmos.network/master/core/store.html#cachemultistore) architecture provided by the [`Context`](https://docs.cosmos.network/master/core/context.html) type. 
 
-
-```go
-func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) error {
-	if err := k.AuthenticateTx(ctx, msgs, sourcePort); err != nil {
-		return err
-	}
-
-	// CacheContext returns a new context with the multi-store branched into a cached storage object
-	// writeCache is called only if all msgs succeed, performing state transitions atomically
-	cacheCtx, writeCache := ctx.CacheContext()
-	for _, msg := range msgs {
-		if err := msg.ValidateBasic(); err != nil {
-			return err
-		}
-
-		if err := k.executeMsg(cacheCtx, msg); err != nil {
-			return err
-		}
-	}
-
-	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-	writeCache()
-
-	return nil
-}
-```
+This provides atomic execution of transactions when using Interchain Accounts, where state changes are only committed if all `Msg`s succeed.

@@ -19,7 +19,7 @@ Developers looking to build upon Interchain Accounts must write custom logic in 
 
 Regular accounts use a private key to sign transactions on-chain. Interchain Accounts are instead controlled programmatically by separate chains via IBC transactions. Interchain Accounts are implemented as sub-accounts of the interchain accounts module account. 
 
-## Definitions 
+## Concepts 
 
 `Host Chain`: The chain where the interchain account is registered. The host chain listens for IBC packets from a controller chain which should contain instructions (e.g. cosmos SDK messages) for which the interchain account will execute.
 
