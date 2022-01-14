@@ -18,7 +18,6 @@ Transactions are executed via the ICS27 [`TrySendTx` API](./auth-modules.md#trys
 
 As the Interchain Accounts module supports the execution of multiple transactions using the Cosmos SDK `Msg` interface, it provides the same atomicity guarantees as Cosmos SDK-based applications, leveraging the [`CacheMultiStore`](https://docs.cosmos.network/master/core/store.html#cachemultistore) architecture provided by the `Context` type. 
 
-When a host chain receives an Interchain Accounts packet and successfully deserializes its message content, each `Msg` is authenticated and executed using a cached storage object. A new `CacheMultiStore` is obtained via the Cosmos SDK `ctx.CacheContext()` method. State changes are then performed within the context of a branched key-value store and commited when `writeCache()` is invoked. This storage mechanism ensures that state changes are committed if and only if all transactions succeed.
 
 ```go
 func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) error {
