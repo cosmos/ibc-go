@@ -124,6 +124,18 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 			true,
 		},
 		{
+			"success with empty account address",
+			func() {
+				metadata = types.Metadata{
+					Version:                types.Version,
+					ControllerConnectionId: ibctesting.FirstConnectionID,
+					HostConnectionId:       ibctesting.FirstConnectionID,
+					Address:                "",
+				}
+			},
+			true,
+		},
+		{
 			"invalid controller connection",
 			func() {
 				metadata = types.Metadata{
