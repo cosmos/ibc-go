@@ -119,7 +119,7 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 
 	err = msg.IdentifiedPacketFee.Validate()
 	if err != nil {
-		return sdkerrors.Wrap(err, "Invalid IdentifiedPacketFee")
+		return sdkerrors.Wrap(err, "invalid IdentifiedPacketFee")
 	}
 
 	return nil
@@ -144,11 +144,12 @@ func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr 
 	}
 }
 
+// Validate performs a stateless check of the IdentifiedPacketFee fields
 func (fee IdentifiedPacketFee) Validate() error {
 	// validate PacketId
 	err := fee.PacketId.Validate()
 	if err != nil {
-		return sdkerrors.Wrap(err, "Invalid PacketId")
+		return sdkerrors.Wrap(err, "invalid PacketId")
 	}
 
 	_, err = sdk.AccAddressFromBech32(fee.RefundAddress)
