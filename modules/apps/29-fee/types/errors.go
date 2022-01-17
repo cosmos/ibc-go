@@ -14,4 +14,5 @@ var (
 	ErrCounterpartyAddressEmpty      = sdkerrors.Register(ModuleName, 7, "counterparty address must not be empty")
 	ErrForwardRelayerAddressNotFound = sdkerrors.Register(ModuleName, 8, "forward relayer address not found")
 	ErrFeeNotEnabled                 = sdkerrors.Register(ModuleName, 9, "fee module is not enabled for this channel. If this error occurs after channel setup, fee module may not be enabled")
+	ErrInvalidFee                    = sdkerrors.Register(ModuleName, 10, "one or more fees are invalid")
 )

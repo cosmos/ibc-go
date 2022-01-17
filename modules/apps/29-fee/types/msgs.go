@@ -84,12 +84,12 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 
 	// if any of the fee's are invalid return an error
 	if !msg.Fee.AckFee.IsValid() || !msg.Fee.ReceiveFee.IsValid() || !msg.Fee.TimeoutFee.IsValid() {
-		return sdkerrors.ErrInvalidCoins
+		return ErrInvalidFee
 	}
 
 	// if all three fee's are zero or empty return an error
 	if msg.Fee.AckFee.IsZero() && msg.Fee.ReceiveFee.IsZero() && msg.Fee.TimeoutFee.IsZero() {
-		return sdkerrors.ErrInvalidCoins
+		return ErrInvalidFee
 	}
 
 	return nil
