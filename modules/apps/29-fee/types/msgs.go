@@ -11,6 +11,8 @@ import (
 // msg types
 const (
 	TypeMsgRegisterCounterpartyAddress = "registerCounterpartyAddress"
+	TypeMsgPayPacketFee                = "payPacketFee"
+	TypeMsgPayPacketFeeAsync           = "payPacketFeeAsync"
 )
 
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
@@ -42,6 +44,21 @@ func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
+}
+
+// Route implements sdk.Msg
+func (msg MsgRegisterCounterpartyAddress) Route() string {
+	return RouterKey
+}
+
+// Type implements sdk.Msg
+func (msg MsgRegisterCounterpartyAddress) Type() string {
+	return TypeMsgRegisterCounterpartyAddress
+}
+
+// GetSignBytes implements sdk.Msg.
+func (msg MsgRegisterCounterpartyAddress) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
 
 // NewMsgPayPacketFee creates a new instance of MsgPayPacketFee
@@ -102,6 +119,21 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
+// Route implements sdk.Msg
+func (msg MsgPayPacketFee) Route() string {
+	return RouterKey
+}
+
+// Type implements sdk.Msg
+func (msg MsgPayPacketFee) Type() string {
+	return TypeMsgPayPacketFee
+}
+
+// GetSignBytes implements sdk.Msg.
+func (msg MsgPayPacketFee) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+}
+
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
 func NewMsgPayPacketFeeAsync(identifiedPacketFee IdentifiedPacketFee) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
@@ -133,6 +165,21 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
+}
+
+// Route implements sdk.Msg
+func (msg MsgPayPacketFeeAsync) Route() string {
+	return RouterKey
+}
+
+// Type implements sdk.Msg
+func (msg MsgPayPacketFeeAsync) Type() string {
+	return TypeMsgPayPacketFeeAsync
+}
+
+// GetSignBytes implements sdk.Msg.
+func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
 
 func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) *IdentifiedPacketFee {
