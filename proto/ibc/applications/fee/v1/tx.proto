@@ -26,7 +26,7 @@ service Msg {
   rpc PayPacketFeeAsync(MsgPayPacketFeeAsync) returns (MsgPayPacketFeeAsyncResponse);
 }
 
-// MsgRegisterCounterpartyAddress is the request type for registering the counter party address
+// MsgRegisterCounterpartyAddress is the request type for registering the counterparty address
 message MsgRegisterCounterpartyAddress {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;

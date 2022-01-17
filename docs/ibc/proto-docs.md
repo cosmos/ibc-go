@@ -978,7 +978,7 @@ MsgPayPacketFeeResponse defines the response type for Msg/PayPacketFee
 <a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
 
 ### MsgRegisterCounterpartyAddress
-MsgRegisterCounterpartyAddress is the request type for registering the counter party address
+MsgRegisterCounterpartyAddress is the request type for registering the counterparty address
 
 
 | Field | Type | Label | Description |
