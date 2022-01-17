@@ -51,10 +51,6 @@ func (h Header) ConsensusState() *ConsensusState {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// parachainHeader.ExtrinsicsRoot // [32]byte
-	// h.Timestamp.ExtrinsicProof //
-	// h.Timestamp.Extrinsic //
-	// h.Timestamp.ExtrinsicIndex // validate!
 
 	rootHash, err := parachainHeader.StateRoot.MarshalJSON()
 	if err != nil {
@@ -93,13 +89,11 @@ func (h Header) GetHeight() exported.Height {
 // NOTE: TrustedHeight and TrustedValidators may be empty when creating client
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
-	// we can decode header
 	_, err := DecodeParachainHeader(h.ParachainHeader)
 	if err != nil {
 		return err
 	}
 
-	// we can decode timestamp
 	_, err = DecodeExtrinsicTimestamp(h.TimestampExtrinsic)
 	if err != nil {
 		return err
