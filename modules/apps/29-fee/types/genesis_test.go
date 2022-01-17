@@ -23,7 +23,7 @@ var (
 
 func TestValidateGenesis(t *testing.T) {
 	var (
-		packetId     *channeltypes.PacketId
+		packetId     channeltypes.PacketId
 		fee          types.Fee
 		refundAcc    string
 		sender       string

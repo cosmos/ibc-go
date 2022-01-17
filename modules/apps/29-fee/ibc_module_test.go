@@ -271,13 +271,13 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		{
 			"success",
 			func(suite *FeeTestSuite) {
-				packetId := channeltypes.PacketId{
-					PortId:    suite.path.EndpointA.ChannelConfig.PortID,
-					ChannelId: suite.path.EndpointA.ChannelID,
-					Sequence:  1,
-				}
+				packetId := channeltypes.NewPacketId(
+					suite.path.EndpointA.ChannelID,
+					suite.path.EndpointA.ChannelConfig.PortID,
+					1,
+				)
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 			},
@@ -292,7 +292,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 
@@ -357,7 +357,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 			},
@@ -372,7 +372,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 
