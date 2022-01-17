@@ -58,19 +58,17 @@ func NewMsgPayPacketFee(fee Fee, sourcePortId, sourceChannelId, signer string, r
 // ValidateBasic performs a basic check of the MsgPayPacketFee fields
 func (msg MsgPayPacketFee) ValidateBasic() error {
 	// validate channelId
-	err := host.ChannelIdentifierValidator(msg.SourceChannelId)
-	if err != nil {
+	if err := host.ChannelIdentifierValidator(msg.SourceChannelId); err != nil {
 		return err
 	}
 
 	// validate portId
-	err = host.PortIdentifierValidator(msg.SourcePortId)
-	if err != nil {
+	if err := host.PortIdentifierValidator(msg.SourcePortId); err != nil {
 		return err
 	}
 
 	// signer check
-	_, err = sdk.AccAddressFromBech32(msg.Signer)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
@@ -117,8 +115,7 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
-	err = msg.IdentifiedPacketFee.Validate()
-	if err != nil {
+	if err = msg.IdentifiedPacketFee.Validate(); err != nil {
 		return sdkerrors.Wrap(err, "Invalid IdentifiedPacketFee")
 	}
 
@@ -146,12 +143,11 @@ func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr
 
 func (fee IdentifiedPacketFee) Validate() error {
 	// validate PacketId
-	err := fee.PacketId.Validate()
-	if err != nil {
+	if err := fee.PacketId.Validate(); err != nil {
 		return sdkerrors.Wrap(err, "Invalid PacketId")
 	}
 
-	_, err = sdk.AccAddressFromBech32(fee.RefundAddress)
+	_, err := sdk.AccAddressFromBech32(fee.RefundAddress)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
 	}
