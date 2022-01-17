@@ -485,10 +485,11 @@ func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
 	suite.Require().True(ok)
 
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
+	suite.Require().NoError(err)
 	path.EndpointB.UpdateClient()
 
 	// relay send
-	packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), ^uint64(0))
+	packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = path.RelayPacket(packetRelay, ack.Acknowledgement())
 	suite.Require().NoError(err) // relay committed
