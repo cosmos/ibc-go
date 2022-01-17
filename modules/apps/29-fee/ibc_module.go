@@ -191,7 +191,13 @@ func (im IBCModule) OnRecvPacket(
 		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), forwardRelayer)
 	}
 
-	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement())
+	// pack ack into an Any type
+	packedAck, err := channeltypes.PackAcknowledgement(ack)
+	if err != nil {
+		return nil
+	}
+
+	return types.NewIncentivizedAcknowledgement(forwardRelayer, packedAck)
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -213,16 +219,21 @@ func (im IBCModule) OnAcknowledgementPacket(
 
 	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 
+	appAck, err := channeltypes.UnpackAcknowledgement(ack.AppAcknowledgement)
+	if err != nil {
+		return err
+	}
+
 	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
 	if !found {
 		// return underlying callback if no fee found for given packetID
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, packet, appAck.Acknowledgement(), relayer)
 	}
 
 	im.keeper.DistributePacketFees(ctx, identifiedPacketFee.RefundAddress, ack.ForwardRelayerAddress, relayer, identifiedPacketFee)
 
 	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, packet, appAck.Acknowledgement(), relayer)
 }
 
 // OnTimeoutPacket implements the IBCModule interface

@@ -1,13 +1,16 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
-func NewIncentivizedAcknowledgement(relayer string, ack []byte) IncentivizedAcknowledgement {
+func NewIncentivizedAcknowledgement(relayer string, ack *codectypes.Any) IncentivizedAcknowledgement {
 	return IncentivizedAcknowledgement{
-		Result:                ack,
+		AppAcknowledgement:    ack,
 		ForwardRelayerAddress: relayer,
 	}
 }
@@ -16,7 +19,12 @@ func NewIncentivizedAcknowledgement(relayer string, ack []byte) IncentivizedAckn
 // considered successful if the forward relayer address is empty. Otherwise it is
 // considered a failed acknowledgement.
 func (ack IncentivizedAcknowledgement) Success() bool {
-	return ack.ForwardRelayerAddress != ""
+	unpackedAck, err := channeltypes.UnpackAcknowledgement(ack.AppAcknowledgement)
+	if err != nil {
+		return false
+	}
+
+	return unpackedAck.Success()
 }
 
 // Acknowledgement implements the Acknowledgement interface. It returns the

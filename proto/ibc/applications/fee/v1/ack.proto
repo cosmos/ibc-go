@@ -1,12 +1,15 @@
 syntax = "proto3";
 
 package ibc.applications.fee.v1;
-import "gogoproto/gogo.proto";
+
 option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
 
 // IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
 // It contains the raw acknowledgement bytes, as well as the forward relayer address
 message IncentivizedAcknowledgement {
-  bytes  result                  = 1;
+  google.protobuf.Any  app_acknowledgement                  = 1 [(gogoproto.moretags) = "yaml:\"forward_relayer_address\""];
   string forward_relayer_address = 2 [(gogoproto.moretags) = "yaml:\"forward_relayer_address\""];
 }

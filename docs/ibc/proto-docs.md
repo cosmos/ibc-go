@@ -332,7 +332,7 @@ It contains the raw acknowledgement bytes, as well as the forward relayer addres
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `result` | [bytes](#bytes) |  |  |
+| `app_acknowledgement` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `forward_relayer_address` | [string](#string) |  |  |
 
 
