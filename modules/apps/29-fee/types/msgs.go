@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -28,7 +30,7 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
 	}
 
-	if msg.CounterpartyAddress == "" {
+	if strings.TrimSpace(msg.CounterpartyAddress) == "" {
 		return ErrCounterpartyAddressEmpty
 	}
 
