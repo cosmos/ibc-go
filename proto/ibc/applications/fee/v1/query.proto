@@ -10,7 +10,6 @@ import "google/api/annotations.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
-
 // Query provides defines the gRPC querier service.
 service Query {
   // Gets all incentivized packets

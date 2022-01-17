@@ -8,7 +8,6 @@ import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";
 
-
 // GenesisState defines the fee middleware genesis state
 message GenesisState {
   repeated IdentifiedPacketFee      identified_fees      = 1 [(gogoproto.moretags) = "yaml:\"identified_fees\""];
