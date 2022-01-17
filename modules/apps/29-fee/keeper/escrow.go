@@ -10,7 +10,7 @@ import (
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
-func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.IdentifiedPacketFee) error {
+func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedPacketFee) error {
 	if !k.IsFeeEnabled(ctx, identifiedFee.PacketId.PortId, identifiedFee.PacketId.ChannelId) {
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
