@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package ibc.applications.fee.v1;
+
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";

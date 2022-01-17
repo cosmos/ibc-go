@@ -1,16 +1,18 @@
 syntax = "proto3";
 
 package ibc.applications.fee.v1;
+
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto";
+
 option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
 
 // Fee implements the ics29 Fee interface
 // See Fee Payment Middleware spec:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
 message Fee {
-  repeated cosmos.base.v1beta1.Coin receive_fee = 1 [
+  repeated cosmos.base.v1beta1.Coin recv_fee = 1 [
     (gogoproto.moretags)     = "yaml:\"receive_fee\"",
     (gogoproto.nullable)     = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"

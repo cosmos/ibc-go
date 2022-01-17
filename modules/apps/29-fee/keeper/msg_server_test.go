@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		refundAcc := suite.chainA.SenderAccount.GetAddress()
 		channelID := suite.path.EndpointA.ChannelID
 		fee := types.Fee{
-			ReceiveFee: defaultReceiveFee,
+			RecvFee:    defaultReceiveFee,
 			AckFee:     defaultAckFee,
 			TimeoutFee: defaultTimeoutFee,
 		}
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		// build packetId
 		channelID := suite.path.EndpointA.ChannelID
 		fee := types.Fee{
-			ReceiveFee: defaultReceiveFee,
+			RecvFee:    defaultReceiveFee,
 			AckFee:     defaultAckFee,
 			TimeoutFee: defaultTimeoutFee,
 		}
