@@ -28,6 +28,7 @@ require (
 )
 
 require (
+	github.com/ComposableFi/go-merkle-trees v0.0.0-20220118130130-2247e75ded7e
 	github.com/centrifuge/go-substrate-rpc-client v2.0.0+incompatible
 	github.com/jhump/protoreflect v1.9.1-0.20210817181203-db1a327a393e // indirect
 	github.com/klauspost/compress v1.13.5 // indirect
