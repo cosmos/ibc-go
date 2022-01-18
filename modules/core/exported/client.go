@@ -19,6 +19,13 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
+	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
+	Beefy string = "11-beefy"
+
+	// Localhost is the client type for a localhost client. It is also used as the clientID
+	// for the localhost client.
+	Localhost string = "09-localhost"
+
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 
@@ -49,25 +56,13 @@ type ClientState interface {
 	// Clients must return their status. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status
 
-	// Checks for evidence of a misbehaviour in Header or Misbehaviour type
-	CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg ClientMessage) bool
-
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
-	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
-	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage)
-
-	// VerifyClientMessage verifies a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
-	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
-
-	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
-	// An error is returned if ClientMessage is of type Misbehaviour
-	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
-
 	// Update and Misbehaviour functions
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
-	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
+
+	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
+	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) (ClientState, error)
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
 	// Upgrade functions
@@ -76,7 +71,6 @@ type ClientState interface {
 	// height of the current revision is somehow encoded in the proof verification process.
 	// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
 	// may be cancelled or modified before the last planned height.
-	// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 	VerifyUpgradeAndUpdateState(
 		ctx sdk.Context,
 		cdc codec.BinaryCodec,
@@ -85,7 +79,7 @@ type ClientState interface {
 		newConsState ConsensusState,
 		proofUpgradeClient,
 		proofUpgradeConsState []byte,
-	) error
+	) (ClientState, ConsensusState, error)
 	// Utility function that zeroes out any client customizable fields in client state
 	// Ledger enforced fields are maintained while all custom fields are zero values
 	// Used to verify upgrades
@@ -193,20 +187,31 @@ type ConsensusState interface {
 
 	ClientType() string // Consensus kind
 
+	// GetRoot returns the commitment root of the consensus state,
+	// which is used for key-value pair verification.
+	GetRoot() Root
+
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64
 
 	ValidateBasic() error
 }
 
-// ClientMessage is an interface used to update an IBC client.
-// The update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces
-// a change to state of the IBC client
-type ClientMessage interface {
+// Misbehaviour defines counterparty misbehaviour for a specific consensus type
+type Misbehaviour interface {
 	proto.Message
 
-	GetHeight() Height
 	ClientType() string
+	GetClientID() string
+	ValidateBasic() error
+}
+
+// Header is the consensus state update information
+type Header interface {
+	proto.Message
+
+	ClientType() string
+	GetHeight() Height
 	ValidateBasic() error
 }
 
