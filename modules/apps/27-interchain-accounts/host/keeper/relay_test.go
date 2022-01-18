@@ -481,6 +481,7 @@ func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
 	params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
+	// control the interchain account
 	chanCap, ok := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 	suite.Require().True(ok)
 
@@ -519,5 +520,21 @@ func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
 
-	//TODO: control interchain account to ensure access
+	// Try to control the interchain account
+	chanCap, ok = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+	suite.Require().True(ok)
+
+	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
+	suite.Require().NoError(err)
+	path.EndpointB.UpdateClient()
+
+	// relay send
+	packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
+	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = path.RelayPacket(packetRelay, ack.Acknowledgement())
+	suite.Require().NoError(err) // relay committed
+
+	// check that the ica balance is updated
+	hasBalance = suite.chainB.GetSimApp().BankKeeper.HasBalance(suite.chainB.GetContext(), icaAddr, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
+	suite.Require().True(hasBalance)
 }
