@@ -2,12 +2,14 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/centrifuge/go-substrate-rpc-client/scale"
 	"time"
 
 	substrateTypes "github.com/centrifuge/go-substrate-rpc-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	goMerkleMmr "github.com/ComposableFi/go-merkle-trees/mmr"
 )
 
 var _ exported.Header = &Header{}
@@ -88,7 +90,8 @@ func (h Header) GetHeight() exported.Height {
 // NOTE: TrustedHeight and TrustedValidators may be empty when creating client
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
-	_, err := DecodeParachainHeader(h.ParachainHeaders[0].ParachainHeader)
+	parachainHeader := h.ParachainHeaders[0]
+	decHeader, err := DecodeParachainHeader(parachainHeader.ParachainHeader)
 	if err != nil {
 		return err
 	}
@@ -96,6 +99,17 @@ func (h Header) ValidateBasic() error {
 	_, err = DecodeExtrinsicTimestamp(h.ParachainHeaders[0].Timestamp.Extrinsic)
 	if err != nil {
 		return err
+	}
+
+	rootHash := decHeader.ExtrinsicsRoot[:]
+	parachainProof := parachainHeader.ParachainHeadsProof
+	extrinsic := parachainHeader.Timestamp.Extrinsic
+	extrinsicIndex := uint64(parachainHeader.Timestamp.ExtrinsicIndex)
+
+	leaves := []goMerkleMmr.Leaf{{Index: extrinsicIndex, Hash: extrinsic}}
+	proof := goMerkleMmr.NewProof(goMerkleMmr.LeafIndexToMMRSize(extrinsicIndex), parachainProof, leaves, &goMerkleMmr.Merge{})
+	if !proof.Verify(rootHash) {
+		return fmt.Errorf("unable to verify extrinsic inclusion")
 	}
 
 	return nil
