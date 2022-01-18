@@ -2,7 +2,7 @@
 order: 2
 -->
 
-# Building an Authentication Module
+# Building an authentication module
 
 Authentication modules play the role of the `Base Application` as described in [ICS30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware), and enable application developers to perform custom logic when working with the Interchain Accounts controller API. {synopsis}
 
