@@ -319,7 +319,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		tc.malleate()
 		fee = Fee{receiveFee, ackFee, timeoutFee}
 
-		packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
+		packetId := channeltypes.NewPacketId(channelID, portID, seq)
 		identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: signer, Relayers: relayers}
 		msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
 
@@ -341,7 +341,7 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	portID := validPortID
 	fee := Fee{validCoins, validCoins, validCoins}
 	seq := uint64(1)
-	packetId := &channeltypes.PacketId{ChannelId: channelID, PortId: portID, Sequence: seq}
+	packetId := channeltypes.NewPacketId(channelID, portID, seq)
 	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
 	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
 

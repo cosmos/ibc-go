@@ -175,13 +175,13 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelay
 }
 
 // SetForwardRelayerAddress sets the forward relayer address during OnRecvPacket in case of async acknowledgement
-func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId, address string) {
+func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.PacketId, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyForwardRelayerAddress(packetId), []byte(address))
 }
 
 // GetForwardRelayerAddress gets forward relayer address for a particular packet
-func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId) (string, bool) {
+func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.PacketId) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyForwardRelayerAddress(packetId)
 	if !store.Has(key) {
@@ -221,7 +221,7 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardR
 }
 
 // Deletes the forwardRelayerAddr associated with the packetId
-func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetId *channeltypes.PacketId) {
+func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.PacketId) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyForwardRelayerAddress(packetId)
 	store.Delete(key)
@@ -235,7 +235,7 @@ func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee *types.IdentifiedPacketFee) 
 }
 
 // Gets a Fee for a given packet
-func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) (types.IdentifiedPacketFee, bool) {
+func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) (types.IdentifiedPacketFee, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(packetId)
 	bz := store.Get(key)
@@ -263,14 +263,14 @@ func (k Keeper) IterateChannelFeesInEscrow(ctx sdk.Context, portID, channelID st
 }
 
 // Deletes the fee associated with the given packetId
-func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) {
+func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(packetId)
 	store.Delete(key)
 }
 
 // HasFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
-func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId *channeltypes.PacketId) bool {
+func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) bool {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeeInEscrow(packetId)
 

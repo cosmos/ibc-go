@@ -43,7 +43,7 @@ message QueryIncentivizedPacketsResponse {
 // QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
 message QueryIncentivizedPacketRequest {
   // PacketID
-  ibc.core.channel.v1.PacketId packet_id = 1;
+  ibc.core.channel.v1.PacketId packet_id = 1[(gogoproto.nullable)     = false];
   // Height to query at
   uint64 query_height = 2;
 }

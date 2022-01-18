@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 		ackFee     sdk.Coins
 		receiveFee sdk.Coins
 		timeoutFee sdk.Coins
-		packetId   *channeltypes.PacketId
+		packetId   channeltypes.PacketId
 	)
 
 	testCases := []struct {
@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			receiveFee = defaultReceiveFee
 			ackFee = defaultAckFee
 			timeoutFee = defaultTimeoutFee
-			packetId = &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: uint64(1)}
+			packetId = channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, uint64(1))
 
 			tc.malleate()
 			fee := types.Fee{
@@ -140,7 +140,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			reverseRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 			forwardRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
-			packetId := &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: validSeq}
+			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, validSeq)
 			fee := types.Fee{
 				ReceiveFee: defaultReceiveFee,
 				AckFee:     defaultAckFee,
@@ -199,11 +199,11 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	timeoutRelayer := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
-	packetId := &channeltypes.PacketId{
-		ChannelId: suite.path.EndpointA.ChannelID,
-		PortId:    transfertypes.PortID,
-		Sequence:  1,
-	}
+	packetId := channeltypes.NewPacketId(
+		suite.path.EndpointA.ChannelID,
+		transfertypes.PortID,
+		1,
+	)
 
 	fee := types.Fee{
 		ReceiveFee: defaultReceiveFee,
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	prevBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
 
 	for i := 0; i < 5; i++ {
-		packetId := &channeltypes.PacketId{ChannelId: "channel-0", PortId: transfertypes.PortID, Sequence: uint64(i)}
+		packetId := channeltypes.NewPacketId("channel-0", transfertypes.PortID, uint64(i))
 		fee := types.Fee{
 			ReceiveFee: defaultReceiveFee,
 			AckFee:     defaultAckFee,
@@ -268,7 +268,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	}
 
 	// send a packet over a different channel to ensure this fee is not refunded
-	packetId := &channeltypes.PacketId{ChannelId: "channel-1", PortId: transfertypes.PortID, Sequence: 1}
+	packetId := channeltypes.NewPacketId("channel-1", transfertypes.PortID, 1)
 	fee := types.Fee{
 		ReceiveFee: defaultReceiveFee,
 		AckFee:     defaultAckFee,
@@ -289,7 +289,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	suite.Require().Equal(prevBal, afterBal.Add(fee.ReceiveFee...).Add(fee.AckFee...).Add(fee.TimeoutFee...), "refund account not back to original balance after refunding all tokens")
 
 	// create escrow and then change module account balance to cause error on refund
-	packetId = &channeltypes.PacketId{ChannelId: "channel-0", PortId: transfertypes.PortID, Sequence: uint64(6)}
+	packetId = channeltypes.NewPacketId("channel-0", transfertypes.PortID, uint64(6))
 
 	identifiedPacketFee = types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 	err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), &identifiedPacketFee)

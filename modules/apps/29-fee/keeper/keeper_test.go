@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetId := &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: uint64(1)}
+	packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, uint64(1))
 	fee := types.Fee{defaultAckFee, defaultReceiveFee, defaultTimeoutFee}
 	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
 

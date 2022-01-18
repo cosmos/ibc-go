@@ -135,7 +135,7 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) *IdentifiedPacketFee {
+func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) *IdentifiedPacketFee {
 	return &IdentifiedPacketFee{
 		PacketId:      packetId,
 		Fee:           fee,
