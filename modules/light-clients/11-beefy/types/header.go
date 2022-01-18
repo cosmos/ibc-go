@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"encoding/gob"
+	"github.com/centrifuge/go-substrate-rpc-client/scale"
 	"time"
 
 	substrateTypes "github.com/centrifuge/go-substrate-rpc-client/types"
@@ -18,7 +18,7 @@ const revisionNumber = 0
 // as an argument and returns a concrete substrate Header type.
 func DecodeParachainHeader(hb []byte) (substrateTypes.Header, error) {
 	h := substrateTypes.Header{}
-	dec := gob.NewDecoder(bytes.NewReader(hb))
+	dec := scale.NewDecoder(bytes.NewReader(hb))
 	err := dec.Decode(&h)
 	if err != nil {
 		return substrateTypes.Header{}, err
@@ -29,25 +29,24 @@ func DecodeParachainHeader(hb []byte) (substrateTypes.Header, error) {
 // DecodeExtrinsicTimestamp decodes a scale encoded timestamp to a time.Time type
 func DecodeExtrinsicTimestamp(encodedExtrinsic []byte) (time.Time, error) {
 	extrinsic := substrateTypes.Extrinsic{}
-	dec := gob.NewDecoder(bytes.NewReader(encodedExtrinsic))
+	dec := scale.NewDecoder(bytes.NewReader(encodedExtrinsic))
 	err := dec.Decode(&extrinsic)
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	var timestamp int64
-	timestampDecode := gob.NewDecoder(bytes.NewReader(extrinsic.Method.Args))
-	err = timestampDecode.Decode(&timestamp)
+	t := time.Time{}
+	err = t.GobDecode(extrinsic.Method.Args)
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	return time.Unix(timestamp, 0), nil
+	return t, nil
 }
 
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {
-	parachainHeader, err := DecodeParachainHeader(h.ParachainHeader)
+	parachainHeader, err := DecodeParachainHeader(h.ParachainHeaders[0].ParachainHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +56,7 @@ func (h Header) ConsensusState() *ConsensusState {
 		log.Fatal(err)
 	}
 
-	timestamp, err := DecodeExtrinsicTimestamp(h.TimestampExtrinsic)
+	timestamp, err := DecodeExtrinsicTimestamp(h.ParachainHeaders[0].Timestamp.Extrinsic)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,7 +76,7 @@ func (h Header) ClientType() string {
 // header is nil.
 // NOTE: the header.Header is checked to be non nil in ValidateBasic.
 func (h Header) GetHeight() exported.Height {
-	parachainHeader, err := DecodeParachainHeader(h.ParachainHeader)
+	parachainHeader, err := DecodeParachainHeader(h.ParachainHeaders[0].ParachainHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -89,12 +88,12 @@ func (h Header) GetHeight() exported.Height {
 // NOTE: TrustedHeight and TrustedValidators may be empty when creating client
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
-	_, err := DecodeParachainHeader(h.ParachainHeader)
+	_, err := DecodeParachainHeader(h.ParachainHeaders[0].ParachainHeader)
 	if err != nil {
 		return err
 	}
 
-	_, err = DecodeExtrinsicTimestamp(h.TimestampExtrinsic)
+	_, err = DecodeExtrinsicTimestamp(h.ParachainHeaders[0].Timestamp.Extrinsic)
 	if err != nil {
 		return err
 	}

@@ -14,9 +14,6 @@
     - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
     - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
   
-- [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
-    - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
-  
 - [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
     - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
     - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
@@ -31,8 +28,6 @@
     - [GenesisState](#ibc.applications.transfer.v1.GenesisState)
   
 - [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
-    - [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest)
-    - [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse)
     - [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest)
     - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
     - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
@@ -127,8 +122,6 @@
     - [MsgTimeoutOnCloseResponse](#ibc.core.channel.v1.MsgTimeoutOnCloseResponse)
     - [MsgTimeoutResponse](#ibc.core.channel.v1.MsgTimeoutResponse)
   
-    - [ResponseResultType](#ibc.core.channel.v1.ResponseResultType)
-  
     - [Msg](#ibc.core.channel.v1.Msg)
   
 - [ibc/core/client/v1/genesis.proto](#ibc/core/client/v1/genesis.proto)
@@ -214,22 +207,15 @@
   
     - [Msg](#ibc.core.connection.v1.Msg)
   
+- [ibc/core/port/v1/query.proto](#ibc/core/port/v1/query.proto)
+    - [QueryAppVersionRequest](#ibc.core.port.v1.QueryAppVersionRequest)
+    - [QueryAppVersionResponse](#ibc.core.port.v1.QueryAppVersionResponse)
+  
+    - [Query](#ibc.core.port.v1.Query)
+  
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-- [ibc/lightclients/beefy/v1/beefy.proto](#ibc/lightclients/beefy/v1/beefy.proto)
-    - [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet)
-    - [ClientState](#ibc.lightclients.beefy.v1.ClientState)
-    - [ClientUpdateProof](#ibc.lightclients.beefy.v1.ClientUpdateProof)
-    - [ConsensusState](#ibc.lightclients.beefy.v1.ConsensusState)
-    - [Header](#ibc.lightclients.beefy.v1.Header)
-    - [Misbehaviour](#ibc.lightclients.beefy.v1.Misbehaviour)
-    - [MmrLeafPartial](#ibc.lightclients.beefy.v1.MmrLeafPartial)
-    - [ParachainHeaderProof](#ibc.lightclients.beefy.v1.ParachainHeaderProof)
-=======
 - [ibc/lightclients/beefy/v1/beefy.proto](#ibc/lightclients/beefy/v1/beefy.proto)
     - [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet)
     - [BeefyMmrLeaf](#ibc.lightclients.beefy.v1.BeefyMmrLeaf)
@@ -245,12 +231,10 @@
     - [PayloadItem](#ibc.lightclients.beefy.v1.PayloadItem)
     - [SignedCommitment](#ibc.lightclients.beefy.v1.SignedCommitment)
     - [TimestampExtrinsic](#ibc.lightclients.beefy.v1.TimestampExtrinsic)
->>>>>>> 2876a90 (introduce IBC proto types)
   
 - [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
     - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
   
->>>>>>> 1764cc7 (feat: add beefy proto files)
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -344,12 +328,11 @@ An InterchainAccount is defined as a BaseAccount & the address of the account ow
 <a name="ibc.applications.interchain_accounts.v1.ActiveChannel"></a>
 
 ### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID
+ActiveChannel contains a pairing of port ID and channel ID for an active interchain accounts channel
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
 
@@ -413,51 +396,13 @@ HostGenesisState defines the interchain accounts host genesis state
 <a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
 
 ### RegisteredInterchainAccount
-RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
+RegisteredInterchainAccount contains a pairing of controller port ID and associated interchain account address
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `account_address` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/interchain_accounts/v1/metadata.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/interchain_accounts/v1/metadata.proto
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.Metadata"></a>
-
-### Metadata
-Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
-See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `version` | [string](#string) |  | version defines the ICS27 protocol version |
-| `controller_connection_id` | [string](#string) |  | controller_connection_id is the connection identifier associated with the controller chain |
-| `host_connection_id` | [string](#string) |  | host_connection_id is the connection identifier associated with the host chain |
-| `address` | [string](#string) |  | address defines the interchain account address to be fulfilled upon the OnChanOpenTry handshake step NOTE: the address field is empty on the OnChanOpenInit handshake step |
-| `encoding` | [string](#string) |  | encoding defines the supported codec format |
-| `tx_type` | [string](#string) |  | tx_type defines the type of transactions the interchain account can execute |
 
 
 
@@ -626,38 +571,6 @@ GenesisState defines the ibc-transfer genesis state
 
 
 
-<a name="ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
-
-### QueryDenomHashRequest
-QueryDenomHashRequest is the request type for the Query/DenomHash RPC
-method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
-
-
-
-
-
-
-<a name="ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
-
-### QueryDenomHashResponse
-QueryDenomHashResponse is the response type for the Query/DenomHash RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
-
-
-
-
-
-
 <a name="ibc.applications.transfer.v1.QueryDenomTraceRequest"></a>
 
 ### QueryDenomTraceRequest
@@ -764,7 +677,6 @@ Query provides defines the gRPC querier service.
 | `DenomTrace` | [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/apps/transfer/v1/denom_traces/{hash}|
 | `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
 | `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
-| `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
 
  <!-- end services -->
 
@@ -940,7 +852,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `sender` | [string](#string) |  | the sender address |
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
+| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp (in nanoseconds) relative to the current block timestamp. The timeout is disabled when set to 0. |
 
 
 
@@ -1771,11 +1683,6 @@ MsgAcknowledgement receives incoming IBC acknowledgement
 MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
 
 
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
-
-
 
 
 
@@ -1926,11 +1833,6 @@ is called by a relayer on Chain A.
 MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `channel_id` | [string](#string) |  |  |
-
-
 
 
 
@@ -1939,15 +1841,14 @@ MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 ### MsgChannelOpenTry
 MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
-on Chain B. The version field within the Channel field has been deprecated. Its
-value will be ignored by core IBC.
+on Chain B.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
 | `previous_channel_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the channel identifier of the previous channel in state INIT |
-| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  | NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC. |
+| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
 | `counterparty_version` | [string](#string) |  |  |
 | `proof_init` | [bytes](#bytes) |  |  |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
@@ -1990,11 +1891,6 @@ MsgRecvPacket receives incoming IBC packet
 
 ### MsgRecvPacketResponse
 MsgRecvPacketResponse defines the Msg/RecvPacket response type.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
 
 
 
@@ -2046,11 +1942,6 @@ MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
 
 
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
-
-
 
 
 
@@ -2061,28 +1952,10 @@ MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
 MsgTimeoutResponse defines the Msg/Timeout response type.
 
 
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `result` | [ResponseResultType](#ibc.core.channel.v1.ResponseResultType) |  |  |
-
-
 
 
 
  <!-- end messages -->
-
-
-<a name="ibc.core.channel.v1.ResponseResultType"></a>
-
-### ResponseResultType
-ResponseResultType defines the possible outcomes of the execution of a message
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| RESPONSE_RESULT_UNSPECIFIED | 0 | Default zero value enumeration |
-| RESPONSE_RESULT_NOOP | 1 | The message did not call the IBC application callbacks (because, for example, the packet had already been relayed) |
-| RESPONSE_RESULT_SUCCESS | 2 | The message was executed successfully |
-
 
  <!-- end enums -->
 
@@ -3250,6 +3123,67 @@ Msg defines the ibc/connection Msg service.
 
 
 
+<a name="ibc/core/port/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/port/v1/query.proto
+
+
+
+<a name="ibc.core.port.v1.QueryAppVersionRequest"></a>
+
+### QueryAppVersionRequest
+QueryAppVersionRequest is the request type for the Query/AppVersion RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | port unique identifier |
+| `connection_id` | [string](#string) |  | connection unique identifier |
+| `ordering` | [ibc.core.channel.v1.Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
+| `counterparty` | [ibc.core.channel.v1.Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `proposed_version` | [string](#string) |  | proposed version |
+
+
+
+
+
+
+<a name="ibc.core.port.v1.QueryAppVersionResponse"></a>
+
+### QueryAppVersionResponse
+QueryAppVersionResponse is the response type for the Query/AppVersion RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | port id associated with the request identifiers |
+| `version` | [string](#string) |  | supported app version |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.core.port.v1.Query"></a>
+
+### Query
+Query defines the gRPC querier service
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `AppVersion` | [QueryAppVersionRequest](#ibc.core.port.v1.QueryAppVersionRequest) | [QueryAppVersionResponse](#ibc.core.port.v1.QueryAppVersionResponse) | AppVersion queries an IBC Port and determines the appropriate application version to be used | |
+
+ <!-- end services -->
+
+
+
 <a name="ibc/core/types/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3268,166 +3202,6 @@ GenesisState defines the ibc module's genesis state.
 | `client_genesis` | [ibc.core.client.v1.GenesisState](#ibc.core.client.v1.GenesisState) |  | ICS002 - Clients genesis state |
 | `connection_genesis` | [ibc.core.connection.v1.GenesisState](#ibc.core.connection.v1.GenesisState) |  | ICS003 - Connections genesis state |
 | `channel_genesis` | [ibc.core.channel.v1.GenesisState](#ibc.core.channel.v1.GenesisState) |  | ICS004 - Channel genesis state |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<<<<<<< HEAD
-=======
-<a name="ibc/lightclients/beefy/v1/beefy.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/lightclients/beefy/v1/beefy.proto
-
-
-
-<a name="ibc.lightclients.beefy.v1.BeefyAuthoritySet"></a>
-
-### BeefyAuthoritySet
-Beefy Authority Info
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `id` | [uint64](#uint64) |  | Id of the authority set, it should be strictly increasing |
-| `len` | [uint64](#uint64) |  | size of the authority set |
-| `authority_root` | [bytes](#bytes) |  | merkle root of all authority public keys. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.ClientState"></a>
-
-### ClientState
-ClientState from Tendermint tracks the current validator set, latest height,
-and a possible frozen height.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  |  |
-| `mmr_root_hash` | [bytes](#bytes) |  | Latest mmr root hash |
-| `latest_beefy_height` | [uint64](#uint64) |  | block number for the latest mmr_root_hash |
-| `authority` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the current round |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.ClientUpdateProof"></a>
-
-### ClientUpdateProof
-data needed to update the client
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `mmr_root_hash` | [bytes](#bytes) |  | new mmr_root_hash |
-| `signatures` | [bytes](#bytes) | repeated | gotten from rpc subscription |
-| `authority_proof` | [bytes](#bytes) | repeated | generated using full authority list from runtime |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.ConsensusState"></a>
-
-### ConsensusState
-ConsensusState defines the consensus state from Tendermint.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
-| `root` | [bytes](#bytes) |  | commitment root (i.e app hash) |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.Header"></a>
-
-### Header
-Header contains the neccessary data to proove finality about IBC commitments
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `parachain_header` | [bytes](#bytes) |  | scale-encoded header bytes |
-| `extrinsic_proof` | [bytes](#bytes) | repeated | merkle proof of inclusion in header.extrinsic_root |
-| `timestamp_extrinsic` | [bytes](#bytes) |  | actual scale encoded timestamp extrinsic. |
-| `parachain_header_proof` | [ParachainHeaderProof](#ibc.lightclients.beefy.v1.ParachainHeaderProof) |  | Data needed to prove parachain header finality |
-| `client_update_proof` | [ClientUpdateProof](#ibc.lightclients.beefy.v1.ClientUpdateProof) |  | optional payload to update the mmr root hash. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.Misbehaviour"></a>
-
-### Misbehaviour
-Misbehaviour is a wrapper over two conflicting Headers
-that implements Misbehaviour interface expected by ICS-02
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `header_1` | [Header](#ibc.lightclients.beefy.v1.Header) |  |  |
-| `header_2` | [Header](#ibc.lightclients.beefy.v1.Header) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.MmrLeafPartial"></a>
-
-### MmrLeafPartial
-Partial data for MmrLeaf
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `version` | [uint32](#uint32) |  | todo: this should be uint8 :( |
-| `parent_number` | [uint64](#uint64) |  | parent block for this leaf |
-| `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
-| `next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | next authority set. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.ParachainHeaderProof"></a>
-
-### ParachainHeaderProof
-data needed to prove finality about ibc commitments in parachain
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `leaf_index` | [uint64](#uint64) |  | leaf index, latest_beefy_block - beefy_activation_block |
-| `proofs` | [bytes](#bytes) | repeated | mmr proofs for this index, gotten from rpc "mmr_generateProofs" |
-| `heads_proof` | [bytes](#bytes) | repeated | proofs for our header in the parachain heads root |
-| `mmr_leaf_partial` | [MmrLeafPartial](#ibc.lightclients.beefy.v1.MmrLeafPartial) |  | reconstructed MmrLeaf, see beefy-go spec |
 
 
 
@@ -3741,7 +3515,6 @@ access to keys outside the client prefix.
 
 
 
->>>>>>> 1764cc7 (feat: add beefy proto files)
 <a name="ibc/lightclients/solomachine/v1/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -4216,7 +3989,7 @@ of a sequence and two signatures over different messages at that sequence.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
+| `client_id` | [string](#string) |  |  |
 | `sequence` | [uint64](#uint64) |  |  |
 | `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 | `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
@@ -4483,7 +4256,7 @@ that implements Misbehaviour interface expected by ICS-02
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
+| `client_id` | [string](#string) |  |  |
 | `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 

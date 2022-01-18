@@ -19,15 +19,11 @@ message ClientState {
   // block number for the latest mmr_root_hash
   uint64 latest_beefy_height = 4;
 
-  // block number that the beefy protocol was activated on the relay chain.
-  // This shoould be the first block in the merkle-mountain-range tree.
-  uint64 beefy_activation_block = 5;
-
   // authorities for the current round
-  BeefyAuthoritySet authority = 6;
+  BeefyAuthoritySet authority = 5;
 
   // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 7;
+  BeefyAuthoritySet next_authority_set = 6;
 }
 
 // Actual payload items
@@ -76,7 +72,7 @@ message SignedCommitment {
   // gotten from rpc subscription
   repeated CommitmentSignature signatures = 2;
 }
-  
+
 // data needed to update the client
 message MmrUpdateProof {
   option (gogoproto.goproto_getters) = false;
@@ -187,6 +183,9 @@ message BeefyMmrLeafPartial {
 
   // leaf version
   uint32 version = 1 [(gogoproto.customtype) = "uint8", (gogoproto.nullable) = false];
+
+  // parent block for this leaf
+  uint64 parent_number = 2;
 
   // parent hash for this leaf
   bytes parent_hash = 3 ;
