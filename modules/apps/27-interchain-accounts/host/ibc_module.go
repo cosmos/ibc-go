@@ -111,7 +111,16 @@ func (im IBCModule) OnRecvPacket(
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 	if err := im.keeper.OnRecvPacket(ctx, packet); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(err.Error())
+		ack = channeltypes.NewErrorAcknowledgement("error occurred handling packet on destination chain")
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				icatypes.EventTypePacket,
+				sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+				sdk.NewAttribute(icatypes.AttributeKeyControllerPort, packet.GetSourcePort()),
+				sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()),
+			),
+		)
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
