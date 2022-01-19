@@ -4587,7 +4587,6 @@ data needed to prove parachain header inclusion in mmr.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `parachain_header` | [bytes](#bytes) |  | scale-encoded parachain header bytes |
-| `mmr_leaf_index` | [uint64](#uint64) |  | leaf index, latest_beefy_block - beefy_activation_block |
 | `mmr_leaf_partial` | [BeefyMmrLeafPartial](#ibc.lightclients.beefy.v1.BeefyMmrLeafPartial) |  | reconstructed MmrLeaf, see beefy-go spec |
 | `para_id` | [uint32](#uint32) |  | para_id of the header. |
 | `parachain_heads_proof` | [bytes](#bytes) | repeated | proofs for our header in the parachain heads root |
