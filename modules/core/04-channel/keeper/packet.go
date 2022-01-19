@@ -2,12 +2,12 @@ package keeper
 
 import (
 	"bytes"
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -135,6 +135,7 @@ func (k Keeper) SendPacket(
 		"dst_port", packet.GetDestPort(),
 		"dst_channel", packet.GetDestChannel(),
 	)
+
 	return nil
 }
 
@@ -281,7 +282,14 @@ func (k Keeper) RecvPacket(
 	}
 
 	// log that a packet has been received & executed
-	k.Logger(ctx).Info("packet received", "packet", fmt.Sprintf("%v", packet))
+	k.Logger(ctx).Info(
+		"packet received",
+		"sequence", packet.GetSequence(),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestPort(),
+		"dst_channel", packet.GetDestChannel(),
+	)
 
 	// emit an event that the relayer can query for
 	EmitRecvPacketEvent(ctx, packet, channel)
@@ -345,7 +353,14 @@ func (k Keeper) WriteAcknowledgement(
 	)
 
 	// log that a packet acknowledgement has been written
-	k.Logger(ctx).Info("acknowledged written", "packet", fmt.Sprintf("%v", packet))
+	k.Logger(ctx).Info(
+		"acknowledgement written",
+		"sequence", packet.GetSequence,
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestPort(),
+		"dst_channel", packet.GetDestChannel(),
+	)
 
 	EmitWriteAcknowledgementEvent(ctx, packet, channel, acknowledgement)
 
@@ -472,7 +487,14 @@ func (k Keeper) AcknowledgePacket(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// log that a packet has been acknowledged
-	k.Logger(ctx).Info("packet acknowledged", "packet", fmt.Sprintf("%v", packet))
+	k.Logger(ctx).Info(
+		"packet acknowledged",
+		"sequence", packet.GetSequence,
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestPort(),
+		"dst_channel", packet.GetDestChannel(),
+	)
 
 	// emit an event marking that we have processed the acknowledgement
 	EmitAcknowledgePacketEvent(ctx, packet, channel)

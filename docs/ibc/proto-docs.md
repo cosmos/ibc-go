@@ -14,6 +14,9 @@
     - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
     - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
   
+- [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
+    - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
+  
 - [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
     - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
     - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
@@ -28,6 +31,8 @@
     - [GenesisState](#ibc.applications.transfer.v1.GenesisState)
   
 - [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
+    - [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest)
+    - [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse)
     - [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest)
     - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
     - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
@@ -396,6 +401,41 @@ RegisteredInterchainAccount contains a pairing of controller port ID and associa
 
 
 
+<a name="ibc/applications/interchain_accounts/v1/metadata.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/metadata.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.Metadata"></a>
+
+### Metadata
+Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
+See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [string](#string) |  | version defines the ICS27 protocol version |
+| `controller_connection_id` | [string](#string) |  | controller_connection_id is the connection identifier associated with the controller chain |
+| `host_connection_id` | [string](#string) |  | host_connection_id is the connection identifier associated with the host chain |
+| `address` | [string](#string) |  | address defines the interchain account address to be fulfilled upon the OnChanOpenTry handshake step NOTE: the address field is empty on the OnChanOpenInit handshake step |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -549,6 +589,38 @@ GenesisState defines the ibc-transfer genesis state
 
 
 
+<a name="ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
+
+### QueryDenomHashRequest
+QueryDenomHashRequest is the request type for the Query/DenomHash RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
+
+### QueryDenomHashResponse
+QueryDenomHashResponse is the response type for the Query/DenomHash RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+
+
+
+
+
+
 <a name="ibc.applications.transfer.v1.QueryDenomTraceRequest"></a>
 
 ### QueryDenomTraceRequest
@@ -655,6 +727,7 @@ Query provides defines the gRPC querier service.
 | `DenomTrace` | [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/apps/transfer/v1/denom_traces/{hash}|
 | `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
 | `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
+| `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
 
  <!-- end services -->
 
@@ -830,7 +903,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `sender` | [string](#string) |  | the sender address |
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp (in nanoseconds) relative to the current block timestamp. The timeout is disabled when set to 0. |
+| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
 
 
 
