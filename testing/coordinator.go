@@ -10,9 +10,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-const ChainIDPrefix = "testchain"
-
 var (
+	ChainIDPrefix   = "testchain"
 	globalStartTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	TimeIncrement   = time.Second * 5
 )
@@ -174,7 +173,7 @@ func (coord *Coordinator) GetChain(chainID string) *TestChain {
 
 // GetChainID returns the chainID used for the provided index.
 func GetChainID(index int) string {
-	return ChainIDPrefix + strconv.Itoa(index)
+	return ChainIDPrefix + strconv.Itoa(index+1)
 }
 
 // CommitBlock commits a block on the provided indexes and then increments the global time.
