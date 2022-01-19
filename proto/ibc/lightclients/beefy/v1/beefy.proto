@@ -155,9 +155,6 @@ message ParachainHeader {
   // scale-encoded parachain header bytes
   bytes parachain_header = 1;
 
-  // leaf index, latest_beefy_block - beefy_activation_block
-  uint64 mmr_leaf_index = 2;
-
   // reconstructed MmrLeaf, see beefy-go spec
   BeefyMmrLeafPartial mmr_leaf_partial = 4;
 

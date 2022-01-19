@@ -183,9 +183,21 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 			},
 		}.Encode()
 
+		var leafIndex uint64
+
+		// given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
+		// calculate the leafIndex for this leaf.
+		if cs.BeefyActivationBlock == 0 {
+			// in this case the leaf index is the same as the block number.
+			leafIndex = parachainHeader.MmrLeafPartial.ParentNumber + 1
+		} else {
+			// in this case the leaf index is activation block - current block number.
+			leafIndex = cs.BeefyActivationBlock - (parachainHeader.MmrLeafPartial.ParentNumber + 1)
+		}
+
 		mmrData := mmr.Leaf{
 			Hash:  crypto.Keccak256(mmrLeafBytes),
-			Index: parachainHeader.MmrLeafIndex,
+			Index: leafIndex,
 		}
 
 		mmrLeaves = append(mmrLeaves, mmrData)
