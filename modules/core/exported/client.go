@@ -19,6 +19,9 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
+	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
+	Beefy string = "11-beefy"
+
 	// Localhost is the client type for a localhost client. It is also used as the clientID
 	// for the localhost client.
 	Localhost string = "09-localhost"
