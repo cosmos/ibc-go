@@ -4464,6 +4464,7 @@ and a possible frozen height.
 | ----- | ---- | ----- | ----------- |
 | `mmr_root_hash` | [bytes](#bytes) |  | Latest mmr root hash |
 | `latest_beefy_height` | [uint64](#uint64) |  | block number for the latest mmr_root_hash |
+| `beefy_activation_block` | [uint64](#uint64) |  | block number that the beefy protocol was activated on the relay chain. This shoould be the first block in the merkle-mountain-range tree. |
 | `authority` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the current round |
 | `next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the next round |
 
