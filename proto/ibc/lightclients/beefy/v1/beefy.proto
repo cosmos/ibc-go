@@ -159,9 +159,6 @@ message ParachainHeader {
   // scale-encoded parachain header bytes
   bytes parachain_header = 1;
 
-  // leaf index, latest_beefy_block - beefy_activation_block
-  uint64 mmr_leaf_index = 2;
-
   // reconstructed MmrLeaf, see beefy-go spec
   BeefyMmrLeafPartial mmr_leaf_partial = 4;
 
@@ -187,6 +184,9 @@ message BeefyMmrLeafPartial {
 
   // leaf version
   uint32 version = 1 [(gogoproto.customtype) = "uint8", (gogoproto.nullable) = false];
+
+  // parent block for this leaf
+  uint64 parent_number = 2;
 
   // parent hash for this leaf
   bytes parent_hash = 3 ;
