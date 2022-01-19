@@ -19,11 +19,15 @@ message ClientState {
   // block number for the latest mmr_root_hash
   uint64 latest_beefy_height = 4;
 
+  // block number that the beefy protocol was activated on the relay chain.
+  // This shoould be the first block in the merkle-mountain-range tree.
+  uint64 beefy_activation_block = 5;
+
   // authorities for the current round
-  BeefyAuthoritySet authority = 5;
+  BeefyAuthoritySet authority = 6;
 
   // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 6;
+  BeefyAuthoritySet next_authority_set = 7;
 }
 
 // Actual payload items
@@ -72,7 +76,6 @@ message SignedCommitment {
   // gotten from rpc subscription
   repeated CommitmentSignature signatures = 2;
 }
-
 // data needed to update the client
 message MmrUpdateProof {
   option (gogoproto.goproto_getters) = false;
@@ -156,22 +159,22 @@ message ParachainHeader {
   bytes parachain_header = 1;
 
   // reconstructed MmrLeaf, see beefy-go spec
-  BeefyMmrLeafPartial mmr_leaf_partial = 4;
+  BeefyMmrLeafPartial mmr_leaf_partial = 2;
 
   // para_id of the header.
-  uint32 para_id = 5;
+  uint32 para_id = 3;
 
   // proofs for our header in the parachain heads root
-  repeated bytes parachain_heads_proof = 6;
+  repeated bytes parachain_heads_proof = 4;
 
   // leaf index for parachain heads proof
-  uint32 heads_leaf_index = 7;
+  uint32 heads_leaf_index = 5;
 
   // total number of para heads in parachain_heads_root
-  uint32 heads_total_count = 8;
+  uint32 heads_total_count = 6;
 
   // data needed to provide timestamp for ConsensusState
-  TimestampExtrinsic timestamp = 9;
+  TimestampExtrinsic timestamp = 7;
 }
 
 // Partial data for MmrLeaf
