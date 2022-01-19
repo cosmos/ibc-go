@@ -2,14 +2,15 @@ package types
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
-	"github.com/centrifuge/go-substrate-rpc-client/scale"
 	"time"
 
+	"github.com/ChainSafe/gossamer/lib/trie"
+	"github.com/centrifuge/go-substrate-rpc-client/scale"
 	substrateTypes "github.com/centrifuge/go-substrate-rpc-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	goMerkleMmr "github.com/ComposableFi/go-merkle-trees/mmr"
 )
 
 var _ exported.Header = &Header{}
@@ -90,26 +91,31 @@ func (h Header) GetHeight() exported.Height {
 // NOTE: TrustedHeight and TrustedValidators may be empty when creating client
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
-	parachainHeader := h.ParachainHeaders[0]
-	decHeader, err := DecodeParachainHeader(parachainHeader.ParachainHeader)
-	if err != nil {
-		return err
-	}
+	for _, header := range h.ParachainHeaders {
+		decHeader, err := DecodeParachainHeader(header.ParachainHeader)
+		if err != nil {
+			return err
+		}
 
-	_, err = DecodeExtrinsicTimestamp(h.ParachainHeaders[0].Timestamp.Extrinsic)
-	if err != nil {
-		return err
-	}
+		_, err = DecodeExtrinsicTimestamp(h.ParachainHeaders[0].Timestamp.Extrinsic)
+		if err != nil {
+			return err
+		}
 
-	rootHash := decHeader.ExtrinsicsRoot[:]
-	parachainProof := parachainHeader.ParachainHeadsProof
-	extrinsic := parachainHeader.Timestamp.Extrinsic
-	extrinsicIndex := uint64(parachainHeader.Timestamp.ExtrinsicIndex)
+		rootHash := decHeader.ExtrinsicsRoot[:]
+		parachainProof := header.Timestamp.ExtrinsicProof
+		extrinsic := header.Timestamp.Extrinsic
 
-	leaves := []goMerkleMmr.Leaf{{Index: extrinsicIndex, Hash: extrinsic}}
-	proof := goMerkleMmr.NewProof(goMerkleMmr.LeafIndexToMMRSize(extrinsicIndex), parachainProof, leaves, &goMerkleMmr.Merge{})
-	if !proof.Verify(rootHash) {
-		return fmt.Errorf("unable to verify extrinsic inclusion")
+		var key []byte
+		binary.LittleEndian.PutUint32(key, 0)
+		isVerified, err := trie.VerifyProof(parachainProof, rootHash, []trie.Pair{{Key: key, Value: extrinsic}})
+		if err != nil {
+			return fmt.Errorf("error verifying proof: %v", err.Error())
+		}
+
+		if !isVerified {
+			return fmt.Errorf("unable to verify extrinsic inclusion")
+		}
 	}
 
 	return nil
