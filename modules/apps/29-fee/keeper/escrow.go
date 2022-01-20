@@ -117,19 +117,15 @@ func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) e
 		// refund all fees to refund address
 		// Use SendCoins rather than the module account send functions since refund address may be a user account or module address.
 		// if any `SendCoins` call returns an error, we return error and stop iteration
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.RecvFee)
-		if err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.RecvFee); err != nil {
 			refundErr = err
 			return true
 		}
-
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.AckFee)
-		if err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.AckFee); err != nil {
 			refundErr = err
 			return true
 		}
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.TimeoutFee)
-		if err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.TimeoutFee); err != nil {
 			refundErr = err
 			return true
 		}
