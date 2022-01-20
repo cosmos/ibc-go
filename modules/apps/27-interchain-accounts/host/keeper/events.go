@@ -7,7 +7,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
-// EmitWriteErrorAcknowledgementEvent emits an event signalling an error acknowledmgent and including the error details
+// EmitWriteErrorAcknowledgementEvent emits an event signalling an error acknowledgement and including the error details
 func EmitWriteErrorAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, err error) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
