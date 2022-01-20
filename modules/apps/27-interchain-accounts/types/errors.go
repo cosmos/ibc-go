@@ -7,7 +7,7 @@ import (
 const (
 	// AcknowledgementError defines a string constant included in error acknowledgements
 	// NOTE: Changing this const is state machine breaking as acknowledgements are written into state
-	AcknowledgementError = "error handling packet on destination chain: see events for details"
+	AcknowledgementError = "error handling packet on host chain: see events for details"
 )
 
 var (
