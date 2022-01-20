@@ -524,7 +524,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success",
 			func() {
-				expectedRelayerBalance = identifiedFee.Fee.ReceiveFee.Add(identifiedFee.Fee.AckFee[0])
+				expectedRelayerBalance = identifiedFee.Fee.RecvFee.Add(identifiedFee.Fee.AckFee[0])
 			},
 			true,
 		},
@@ -603,7 +603,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			identifiedFee = types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
-					ReceiveFee: validCoins,
+					RecvFee:    validCoins,
 					AckFee:     validCoins2,
 					TimeoutFee: validCoins3,
 				},
@@ -698,7 +698,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				expectedBalance = originalBalance.
-					Add(identifiedFee.Fee.ReceiveFee[0]).
+					Add(identifiedFee.Fee.RecvFee[0]).
 					Add(identifiedFee.Fee.AckFee[0]).
 					Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
 			},
@@ -737,7 +737,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			identifiedFee = types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
-					ReceiveFee: validCoins,
+					RecvFee:    validCoins,
 					AckFee:     validCoins2,
 					TimeoutFee: validCoins3,
 				},
@@ -754,7 +754,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			// default to success case
 			expectedBalance = originalBalance.
-				Add(identifiedFee.Fee.ReceiveFee[0]).
+				Add(identifiedFee.Fee.RecvFee[0]).
 				Add(identifiedFee.Fee.AckFee[0]).
 				Add(coin) // timeout refund from ics20 transfer
 
