@@ -228,9 +228,9 @@ func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetId channeltyp
 }
 
 // Stores a Fee for a given packet in state
-func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee *types.IdentifiedPacketFee) {
+func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee types.IdentifiedPacketFee) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.MustMarshalFee(fee)
+	bz := k.MustMarshalFee(&fee)
 	store.Set(types.KeyFeeInEscrow(fee.PacketId), bz)
 }
 
@@ -278,15 +278,15 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) 
 }
 
 // GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
-func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []*types.IdentifiedPacketFee {
+func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeInEscrowPrefix))
 	defer iterator.Close()
 
-	var identifiedFees []*types.IdentifiedPacketFee
+	var identifiedFees []types.IdentifiedPacketFee
 	for ; iterator.Valid(); iterator.Next() {
 		fee := k.MustUnmarshalFee(iterator.Value())
-		identifiedFees = append(identifiedFees, &fee)
+		identifiedFees = append(identifiedFees, fee)
 	}
 
 	return identifiedFees

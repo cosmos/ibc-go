@@ -83,13 +83,13 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 	}
 
 	// if any of the fee's are invalid return an error
-	if !msg.Fee.AckFee.IsValid() || !msg.Fee.ReceiveFee.IsValid() || !msg.Fee.TimeoutFee.IsValid() {
-		return ErrInvalidFee
+	if !msg.Fee.AckFee.IsValid() || !msg.Fee.RecvFee.IsValid() || !msg.Fee.TimeoutFee.IsValid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	// if all three fee's are zero or empty return an error
-	if msg.Fee.AckFee.IsZero() && msg.Fee.ReceiveFee.IsZero() && msg.Fee.TimeoutFee.IsZero() {
-		return ErrInvalidFee
+	if msg.Fee.AckFee.IsZero() && msg.Fee.RecvFee.IsZero() && msg.Fee.TimeoutFee.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	return nil
@@ -137,8 +137,8 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) *IdentifiedPacketFee {
-	return &IdentifiedPacketFee{
+func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) IdentifiedPacketFee {
+	return IdentifiedPacketFee{
 		PacketId:      packetId,
 		Fee:           fee,
 		RefundAddress: refundAddr,
@@ -160,12 +160,12 @@ func (fee IdentifiedPacketFee) Validate() error {
 	}
 
 	// if any of the fee's are invalid return an error
-	if !fee.Fee.AckFee.IsValid() || !fee.Fee.ReceiveFee.IsValid() || !fee.Fee.TimeoutFee.IsValid() {
+	if !fee.Fee.AckFee.IsValid() || !fee.Fee.RecvFee.IsValid() || !fee.Fee.TimeoutFee.IsValid() {
 		return sdkerrors.ErrInvalidCoins
 	}
 
 	// if all three fee's are zero or empty return an error
-	if fee.Fee.AckFee.IsZero() && fee.Fee.ReceiveFee.IsZero() && fee.Fee.TimeoutFee.IsZero() {
+	if fee.Fee.AckFee.IsZero() && fee.Fee.RecvFee.IsZero() && fee.Fee.TimeoutFee.IsZero() {
 		return sdkerrors.ErrInvalidCoins
 	}
 
