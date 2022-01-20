@@ -5,6 +5,7 @@
 package ibctesting
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -63,5 +64,5 @@ var (
 )
 
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
-	return MockRecvCanaryCapabilityName + strconv.Itoa(int(packet.GetSequence()))
+	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
 }

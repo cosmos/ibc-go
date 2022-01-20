@@ -106,7 +106,7 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	}
 
 	// set state by claiming capability to check if revert happens return
-	capName := CreateOnRecvMockCapabilityName(packet)
+	capName := GetMockRecvCanaryCapabilityName(packet)
 	_, err := im.scopedKeeper.NewCapability(ctx, capName)
 	if err != nil {
 		// application callback called twice on same packet sequence
@@ -155,6 +155,7 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	return nil
 }
 
-func CreateOnRecvMockCapabilityName(packet channeltypes.Packet) string {
+// Generates a capability name based on a Packet
+func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
 }
