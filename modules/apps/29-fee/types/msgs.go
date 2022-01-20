@@ -143,7 +143,7 @@ func (fee IdentifiedPacketFee) Validate() error {
 	// validate PacketId
 	err := fee.PacketId.Validate()
 	if err != nil {
-		return sdkerrors.Wrap(err, "Invalid PacketId")
+		return sdkerrors.Wrap(err, "invalid PacketId")
 	}
 
 	_, err = sdk.AccAddressFromBech32(fee.RefundAddress)
@@ -168,12 +168,12 @@ func (fee IdentifiedPacketFee) Validate() error {
 func (fee Fee) Validate() error {
 	// if any of the fee's are invalid return an error
 	if !fee.AckFee.IsValid() || !fee.ReceiveFee.IsValid() || !fee.TimeoutFee.IsValid() {
-		return sdkerrors.ErrInvalidCoins
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	// if all three fee's are zero or empty return an error
 	if fee.AckFee.IsZero() && fee.ReceiveFee.IsZero() && fee.TimeoutFee.IsZero() {
-		return sdkerrors.ErrInvalidCoins
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	return nil
