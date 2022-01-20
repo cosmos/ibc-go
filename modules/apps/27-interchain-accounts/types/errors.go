@@ -4,6 +4,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const (
+	// AcknowledgementError defines a string constant included in error acknowledgements
+	// NOTE: Changing this const is state machine breaking as acknowledgements are written into state
+	AcknowledgementError = "error handling packet on host chain: see events for details"
+)
+
 var (
 	ErrUnknownDataType             = sdkerrors.Register(ModuleName, 2, "unknown data type")
 	ErrAccountAlreadyExist         = sdkerrors.Register(ModuleName, 3, "account already exist")
@@ -20,4 +26,5 @@ var (
 	ErrInvalidControllerPort       = sdkerrors.Register(ModuleName, 14, "invalid controller port")
 	ErrInvalidHostPort             = sdkerrors.Register(ModuleName, 15, "invalid host port")
 	ErrInvalidTimeoutTimestamp     = sdkerrors.Register(ModuleName, 16, "timeout timestamp must be in the future")
+	ErrInvalidCodec                = sdkerrors.Register(ModuleName, 17, "codec is not supported")
 )
