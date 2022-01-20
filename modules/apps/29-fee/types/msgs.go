@@ -130,8 +130,8 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) *IdentifiedPacketFee {
-	return &IdentifiedPacketFee{
+func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) IdentifiedPacketFee {
+	return IdentifiedPacketFee{
 		PacketId:      packetId,
 		Fee:           fee,
 		RefundAddress: refundAddr,
@@ -167,12 +167,12 @@ func (fee IdentifiedPacketFee) Validate() error {
 // Validate asserts that each Fee is valid and all three Fees are not empty or zero
 func (fee Fee) Validate() error {
 	// if any of the fee's are invalid return an error
-	if !fee.AckFee.IsValid() || !fee.ReceiveFee.IsValid() || !fee.TimeoutFee.IsValid() {
+	if !fee.AckFee.IsValid() || !fee.RecvFee.IsValid() || !fee.TimeoutFee.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	// if all three fee's are zero or empty return an error
-	if fee.AckFee.IsZero() && fee.ReceiveFee.IsZero() && fee.TimeoutFee.IsZero() {
+	if fee.AckFee.IsZero() && fee.RecvFee.IsZero() && fee.TimeoutFee.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 

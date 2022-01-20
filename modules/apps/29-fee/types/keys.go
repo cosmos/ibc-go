@@ -46,12 +46,12 @@ func KeyRelayerAddress(address string) []byte {
 }
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
-func KeyForwardRelayerAddress(packetId *channeltypes.PacketId) []byte {
+func KeyForwardRelayerAddress(packetId channeltypes.PacketId) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s/%d/", ForwardRelayerPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
 }
 
 // KeyFeeInEscrow returns the key for escrowed fees
-func KeyFeeInEscrow(packetID *channeltypes.PacketId) []byte {
+func KeyFeeInEscrow(packetID channeltypes.PacketId) []byte {
 	return []byte(fmt.Sprintf("%s/%d", KeyFeeInEscrowChannelPrefix(packetID.PortId, packetID.ChannelId), packetID.Sequence))
 }
 
