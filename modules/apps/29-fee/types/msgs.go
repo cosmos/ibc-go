@@ -68,8 +68,7 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 	}
 
 	// signer check
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
