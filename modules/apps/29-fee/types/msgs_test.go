@@ -29,6 +29,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 		{"validate with correct sdk.AccAddress", NewMsgRegisterCounterpartyAddress(validAddr, validAddr), true},
 		{"validate with incorrect destination relayer address", NewMsgRegisterCounterpartyAddress(invalidAddr, validAddr), false},
 		{"invalid counterparty address", NewMsgRegisterCounterpartyAddress(validAddr, ""), false},
+		{"invalid counterparty address: whitespaced empty string", NewMsgRegisterCounterpartyAddress(validAddr, " "), false},
 	}
 
 	for i, tc := range testCases {
