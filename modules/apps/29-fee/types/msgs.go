@@ -164,7 +164,7 @@ func (fee IdentifiedPacketFee) Validate() error {
 	return nil
 }
 
-// Validates that each Fee is valid or if all three Fees are empty or zero
+// Validate asserts that each Fee is valid and all three Fees are not empty or zero
 func (fee Fee) Validate() error {
 	// if any of the fee's are invalid return an error
 	if !fee.AckFee.IsValid() || !fee.ReceiveFee.IsValid() || !fee.TimeoutFee.IsValid() {
