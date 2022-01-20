@@ -23,7 +23,7 @@ var (
 
 func TestValidateGenesis(t *testing.T) {
 	var (
-		packetId     *channeltypes.PacketId
+		packetId     channeltypes.PacketId
 		fee          types.Fee
 		refundAcc    string
 		sender       string
@@ -150,7 +150,7 @@ func TestValidateGenesis(t *testing.T) {
 		tc.malleate()
 
 		genState := types.GenesisState{
-			IdentifiedFees: []*types.IdentifiedPacketFee{
+			IdentifiedFees: []types.IdentifiedPacketFee{
 				{
 					PacketId:      packetId,
 					Fee:           fee,

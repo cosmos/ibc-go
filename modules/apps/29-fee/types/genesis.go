@@ -8,7 +8,7 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []*IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress) *GenesisState {
+func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
@@ -19,7 +19,7 @@ func NewGenesisState(identifiedFees []*IdentifiedPacketFee, feeEnabledChannels [
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:     []*IdentifiedPacketFee{},
+		IdentifiedFees:     []IdentifiedPacketFee{},
 		FeeEnabledChannels: []*FeeEnabledChannel{},
 		RegisteredRelayers: []*RegisteredRelayerAddress{},
 	}
