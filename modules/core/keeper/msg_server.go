@@ -33,23 +33,9 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 		return nil, err
 	}
 
-	clientID, err := k.ClientKeeper.CreateClient(ctx, clientState, consensusState)
-	if err != nil {
+	if _, err = k.ClientKeeper.CreateClient(ctx, clientState, consensusState); err != nil {
 		return nil, err
 	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			clienttypes.EventTypeCreateClient,
-			sdk.NewAttribute(clienttypes.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(clienttypes.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	})
 
 	return &clienttypes.MsgCreateClientResponse{}, nil
 }
@@ -66,13 +52,6 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, header); err != nil {
 		return nil, err
 	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	)
 
 	return &clienttypes.MsgUpdateClientResponse{}, nil
 }
@@ -94,13 +73,6 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 		msg.ProofUpgradeClient, msg.ProofUpgradeConsensusState); err != nil {
 		return nil, err
 	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	)
 
 	return &clienttypes.MsgUpgradeClientResponse{}, nil
 }
@@ -138,19 +110,7 @@ func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.M
 		return nil, sdkerrors.Wrap(err, "connection handshake open init failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenInit,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, connectionID),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, msg.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, msg.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, msg.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
+	EmitOpenConnectionInitEvent(ctx, connectionID, msg)
 
 	return &connectiontypes.MsgConnectionOpenInitResponse{}, nil
 }
@@ -173,19 +133,7 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 		return nil, sdkerrors.Wrap(err, "connection handshake open try failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenTry,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, connectionID),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, msg.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, msg.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, msg.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
+	EmitOpenConnectionOpenTryEvent(ctx, connectionID, msg)
 
 	return &connectiontypes.MsgConnectionOpenTryResponse{}, nil
 }
@@ -208,19 +156,7 @@ func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.Ms
 
 	connectionEnd, _ := k.ConnectionKeeper.GetConnection(ctx, msg.ConnectionId)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenAck,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, msg.ConnectionId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, connectionEnd.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, connectionEnd.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, connectionEnd.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
+	EmitConnectionOpenAckEvent(ctx, msg.ConnectionId, connectionEnd)
 
 	return &connectiontypes.MsgConnectionOpenAckResponse{}, nil
 }
@@ -237,19 +173,7 @@ func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontype
 
 	connectionEnd, _ := k.ConnectionKeeper.GetConnection(ctx, msg.ConnectionId)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenConfirm,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, msg.ConnectionId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, connectionEnd.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, connectionEnd.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, connectionEnd.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
+	EmitConnectionOpenConfirmEvent(ctx, msg.ConnectionId, connectionEnd)
 
 	return &connectiontypes.MsgConnectionOpenConfirmResponse{}, nil
 }
