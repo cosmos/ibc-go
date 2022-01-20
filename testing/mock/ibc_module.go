@@ -155,7 +155,7 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	return nil
 }
 
-// Generates a capability name based on a Packet
+// GetMockRecvCanaryCapabilityName generates a capability name based on a Packet
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
 }
