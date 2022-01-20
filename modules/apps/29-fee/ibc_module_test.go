@@ -510,7 +510,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		ack                    []byte
-		identifiedFee          *types.IdentifiedPacketFee
+		identifiedFee          types.IdentifiedPacketFee
 		originalBalance        sdk.Coins
 		expectedBalance        sdk.Coins
 		expectedRelayerBalance sdk.Coins
@@ -658,7 +658,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	var (
 		relayerAddr     sdk.AccAddress
-		identifiedFee   *types.IdentifiedPacketFee
+		identifiedFee   types.IdentifiedPacketFee
 		originalBalance sdk.Coins
 		expectedBalance sdk.Coins
 	)

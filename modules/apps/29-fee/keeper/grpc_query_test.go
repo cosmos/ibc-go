@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketI() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(identifiedPacketFee, res.IncentivizedPacket)
+				suite.Require().Equal(&identifiedPacketFee, res.IncentivizedPacket)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -120,11 +120,11 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 				fee3 := types.NewIdentifiedPacketFee(channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 3), fee, refundAcc.String(), []string(nil))
 
 				expPackets = []*types.IdentifiedPacketFee{}
-				expPackets = append(expPackets, fee1, fee2, fee3)
+				expPackets = append(expPackets, &fee1, &fee2, &fee3)
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
 				for _, p := range expPackets {
-					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), p)
+					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), *p)
 				}
 
 				req = &types.QueryIncentivizedPacketsRequest{
