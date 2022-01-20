@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -28,7 +30,7 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
 	}
 
-	if msg.CounterpartyAddress == "" {
+	if strings.TrimSpace(msg.CounterpartyAddress) == "" {
 		return ErrCounterpartyAddressEmpty
 	}
 
@@ -82,12 +84,12 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 
 	// if any of the fee's are invalid return an error
 	if !msg.Fee.AckFee.IsValid() || !msg.Fee.RecvFee.IsValid() || !msg.Fee.TimeoutFee.IsValid() {
-		return sdkerrors.ErrInvalidCoins
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	// if all three fee's are zero or empty return an error
 	if msg.Fee.AckFee.IsZero() && msg.Fee.RecvFee.IsZero() && msg.Fee.TimeoutFee.IsZero() {
-		return sdkerrors.ErrInvalidCoins
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	return nil
@@ -119,7 +121,7 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 
 	err = msg.IdentifiedPacketFee.Validate()
 	if err != nil {
-		return sdkerrors.Wrap(err, "Invalid IdentifiedPacketFee")
+		return sdkerrors.Wrap(err, "invalid IdentifiedPacketFee")
 	}
 
 	return nil
@@ -144,11 +146,12 @@ func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr 
 	}
 }
 
+// Validate performs a stateless check of the IdentifiedPacketFee fields
 func (fee IdentifiedPacketFee) Validate() error {
 	// validate PacketId
 	err := fee.PacketId.Validate()
 	if err != nil {
-		return sdkerrors.Wrap(err, "Invalid PacketId")
+		return sdkerrors.Wrap(err, "invalid PacketId")
 	}
 
 	_, err = sdk.AccAddressFromBech32(fee.RefundAddress)

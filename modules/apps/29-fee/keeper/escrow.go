@@ -23,7 +23,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 
 	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
 	if hasRefundAcc == nil {
-		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))
+		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", refundAcc)
 	}
 
 	coins := identifiedFee.Fee.RecvFee
@@ -122,6 +122,7 @@ func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) e
 			refundErr = err
 			return true
 		}
+
 		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.AckFee)
 		if err != nil {
 			refundErr = err
