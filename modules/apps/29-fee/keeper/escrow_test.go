@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 
 			tc.malleate()
 			fee := types.Fee{
-				ReceiveFee: receiveFee,
+				RecvFee:    receiveFee,
 				AckFee:     ackFee,
 				TimeoutFee: timeoutFee,
 			}
@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 				feeInEscrow, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeInEscrow(suite.chainA.GetContext(), packetId)
 				// check if the escrowed fee is set in state
 				suite.Require().True(feeInEscrow.Fee.AckFee.IsEqual(fee.AckFee))
-				suite.Require().True(feeInEscrow.Fee.ReceiveFee.IsEqual(fee.ReceiveFee))
+				suite.Require().True(feeInEscrow.Fee.RecvFee.IsEqual(fee.RecvFee))
 				suite.Require().True(feeInEscrow.Fee.TimeoutFee.IsEqual(fee.TimeoutFee))
 				// check if the fee is escrowed correctly
 				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(600)})
@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 
 			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, validSeq)
 			fee := types.Fee{
-				ReceiveFee: defaultReceiveFee,
+				RecvFee:    defaultReceiveFee,
 				AckFee:     defaultAckFee,
 				TimeoutFee: defaultTimeoutFee,
 			}
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				// check if the forward relayer is paid
 				forward, err := sdk.AccAddressFromBech32(forwardRelayer)
 				suite.Require().NoError(err)
-				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), forward, fee.ReceiveFee[0])
+				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), forward, fee.RecvFee[0])
 				suite.Require().True(hasBalance)
 
 				// check if the refund acc has been refunded the timeoutFee
@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				suite.Require().True(hasBalance)
 			} else {
 				// check the module acc wallet still has forward relaying balance
-				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), fee.ReceiveFee[0])
+				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), fee.RecvFee[0])
 				suite.Require().True(hasBalance)
 			}
 		})
@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 	)
 
 	fee := types.Fee{
-		ReceiveFee: defaultReceiveFee,
+		RecvFee:    defaultReceiveFee,
 		AckFee:     defaultAckFee,
 		TimeoutFee: defaultTimeoutFee,
 	}
@@ -237,7 +237,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 
 	// check if the refund acc has been refunded the recv & ack fees
 	expectedRefundAccBal := refundAccBal.Add(fee.AckFee[0])
-	expectedRefundAccBal = refundAccBal.Add(fee.ReceiveFee[0])
+	expectedRefundAccBal = refundAccBal.Add(fee.RecvFee[0])
 	hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), refundAcc, expectedRefundAccBal)
 	suite.Require().True(hasBalance)
 
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	for i := 0; i < 5; i++ {
 		packetId := channeltypes.NewPacketId("channel-0", transfertypes.PortID, uint64(i))
 		fee := types.Fee{
-			ReceiveFee: defaultReceiveFee,
+			RecvFee:    defaultReceiveFee,
 			AckFee:     defaultAckFee,
 			TimeoutFee: defaultTimeoutFee,
 		}
@@ -270,7 +270,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	// send a packet over a different channel to ensure this fee is not refunded
 	packetId := channeltypes.NewPacketId("channel-1", transfertypes.PortID, 1)
 	fee := types.Fee{
-		ReceiveFee: defaultReceiveFee,
+		RecvFee:    defaultReceiveFee,
 		AckFee:     defaultAckFee,
 		TimeoutFee: defaultTimeoutFee,
 	}
@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 
 	// add fee sent to channel-1 to after balance to recover original balance
 	afterBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
-	suite.Require().Equal(prevBal, afterBal.Add(fee.ReceiveFee...).Add(fee.AckFee...).Add(fee.TimeoutFee...), "refund account not back to original balance after refunding all tokens")
+	suite.Require().Equal(prevBal, afterBal.Add(fee.RecvFee...).Add(fee.AckFee...).Add(fee.TimeoutFee...), "refund account not back to original balance after refunding all tokens")
 
 	// create escrow and then change module account balance to cause error on refund
 	packetId = channeltypes.NewPacketId("channel-0", transfertypes.PortID, uint64(6))
