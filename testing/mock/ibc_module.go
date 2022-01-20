@@ -2,6 +2,7 @@ package mock
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -52,8 +53,8 @@ func (im IBCModule) OnChanOpenTry(
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
 		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
-
 	}
+
 	// Claim channel capability passed back by IBC module
 	if err := im.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
@@ -105,12 +106,14 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	}
 
 	// set state by claiming capability to check if revert happens return
-	_, err := im.scopedKeeper.NewCapability(ctx, MockRecvCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
+	capName := CreateOnRecvMockCapabilityName(packet)
+	_, err := im.scopedKeeper.NewCapability(ctx, capName)
 	if err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
+
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
@@ -150,4 +153,8 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	}
 
 	return nil
+}
+
+func CreateOnRecvMockCapabilityName(packet channeltypes.Packet) string {
+	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
 }

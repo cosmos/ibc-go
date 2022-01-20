@@ -23,6 +23,7 @@ import (
 const (
 	ModuleName = "mock"
 
+	PortID  = "mock-portID"
 	Version = "mock-version"
 )
 
