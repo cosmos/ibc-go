@@ -10,7 +10,7 @@ import (
 func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpdateClient,
+			types.EventTypeCreateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 		),
@@ -68,14 +68,12 @@ func EmitUpdateClientProposaEvent(ctx sdk.Context, clientID string, clientState 
 
 // EmitSubmitMisbehaviourEvent emits an event of client misbehaviour
 // TODO - For client misbehaviour event, can we just emit the event with client id and state, or do we need to do it with height and header?
-func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState, consensusHeight exported.Height, headerStr string) {
+func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
 		),
 	)
 }

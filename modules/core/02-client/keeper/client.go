@@ -137,7 +137,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 			)
 		}()
 
-		EmitSubmitMisbehaviourEvent(ctx, clientID, newClientState, consensusHeight, headerStr)
+		EmitSubmitMisbehaviourEvent(ctx, clientID, newClientState)
 	}
 
 	return nil
@@ -222,6 +222,8 @@ func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour ex
 			},
 		)
 	}()
+
+	EmitSubmitMisbehaviourEvent(ctx, misbehaviour.GetClientID(), clientState)
 
 	return nil
 }
