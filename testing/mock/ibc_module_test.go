@@ -2,11 +2,12 @@ package mock_test
 
 import (
 	"testing"
+	
+	"github.com/stretchr/testify/require"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v3/testing/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateCapabilityName(t *testing.T) {
