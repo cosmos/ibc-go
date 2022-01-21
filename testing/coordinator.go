@@ -33,7 +33,7 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 		CurrentTime: globalStartTime,
 	}
 
-	for i := 0; i < n; i++ {
+	for i := 1; i <= n; i++ {
 		chainID := GetChainID(i)
 		chains[chainID] = NewTestChain(t, coord, chainID)
 	}
@@ -173,7 +173,7 @@ func (coord *Coordinator) GetChain(chainID string) *TestChain {
 
 // GetChainID returns the chainID used for the provided index.
 func GetChainID(index int) string {
-	return ChainIDPrefix + strconv.Itoa(index+1)
+	return ChainIDPrefix + strconv.Itoa(index)
 }
 
 // CommitBlock commits a block on the provided indexes and then increments the global time.
