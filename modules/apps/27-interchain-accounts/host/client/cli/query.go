@@ -51,7 +51,7 @@ func GetCmdPacketEvents() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "packet-events [channel-id] [sequence]",
 		Short:   "Query the interchain-accounts host submodule packet events",
-		Long:    "Query the interchain-accounts host submodule packet events",
+		Long:    "Query the interchain-accounts host submodule packet events for a particular channel and sequence",
 		Args:    cobra.ExactArgs(2),
 		Example: fmt.Sprintf("%s query interchain-accounts host packet-events channel-0 100", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
