@@ -129,8 +129,8 @@ func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes
 		return im.IBCApp.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	_, err := im.scopedKeeper.NewCapability(ctx, MockAckCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
+	capName := GetMockAckCanaryCapabilityName(packet)
+	if _, err := im.scopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -145,8 +145,8 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 		return im.IBCApp.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	_, err := im.scopedKeeper.NewCapability(ctx, MockTimeoutCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
+	capName := GetMockTimeoutCanaryCapabilityName(packet)
+	if _, err := im.scopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -155,7 +155,17 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	return nil
 }
 
-// GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality. 
+// GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
+}
+
+// GetMockAckCanaryCapabilityName generates a capability name for OnAcknowledgementPacket functionality.
+func GetMockAckCanaryCapabilityName(packet channeltypes.Packet) string {
+	return fmt.Sprintf("%s%s%s%s", MockAckCanaryCapabilityName, packet.GetSourcePort(), packet.GetSourceChannel(), strconv.Itoa(int(packet.GetSequence())))
+}
+
+// GetMockTimeoutCanaryCapabilityName generates a capability name for OnTimeoutacket functionality.
+func GetMockTimeoutCanaryCapabilityName(packet channeltypes.Packet) string {
+	return fmt.Sprintf("%s%s%s%s", MockTimeoutCanaryCapabilityName, packet.GetSourcePort(), packet.GetSourceChannel(), strconv.Itoa(int(packet.GetSequence())))
 }

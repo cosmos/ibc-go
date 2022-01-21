@@ -23,5 +23,11 @@ func TestCreateCapabilityName(t *testing.T) {
 	)
 
 	name := mock.GetMockRecvCanaryCapabilityName(packet)
-	require.Equal(t, "mock receive canary capability namemock-portIDchannel-01", name)
+	require.Equal(t, "mock receive canary capability namemockchannel-01", name)
+
+	name = mock.GetMockAckCanaryCapabilityName(packet)
+	require.Equal(t, "mock acknowledgement canary capability namemockchannel-01", name)
+
+	name = mock.GetMockTimeoutCanaryCapabilityName(packet)
+	require.Equal(t, "mock timeout canary capability namemockchannel-01", name)
 }
