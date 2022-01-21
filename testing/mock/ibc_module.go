@@ -107,8 +107,7 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 
 	// set state by claiming capability to check if revert happens return
 	capName := GetMockRecvCanaryCapabilityName(packet)
-	_, err := im.scopedKeeper.NewCapability(ctx, capName)
-	if err != nil {
+	if _, err := im.scopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
