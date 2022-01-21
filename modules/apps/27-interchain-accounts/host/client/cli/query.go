@@ -72,7 +72,7 @@ func GetCmdPacketEvents() *cobra.Command {
 				fmt.Sprintf("%s.%s='%d'", channeltypes.EventTypeRecvPacket, channeltypes.AttributeKeySequence, seq),
 			}
 
-			result, err := tx.QueryTxsByEvents(clientCtx, searchEvents, 1, 30, "")
+			result, err := tx.QueryTxsByEvents(clientCtx, searchEvents, 1, 1, "")
 			if err != nil {
 				return err
 			}
