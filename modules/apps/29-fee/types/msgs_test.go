@@ -196,6 +196,50 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{addr}, res)
 }
 
+// TestMsgPayPacketFeeRoute tests Route for MsgPayPacketFee
+func TestMsgPayPacketFeeRoute(t *testing.T) {
+	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	// build message
+	signer := addr.String()
+	channelID := validChannelID
+	portID := validPortID
+	fee := Fee{validCoins, validCoins, validCoins}
+	msg := NewMsgPayPacketFee(fee, portID, channelID, signer, nil)
+
+	require.Equal(t, RouterKey, msg.Route())
+}
+
+// TestMsgPayPacketFeeType tests Type for MsgPayPacketFee
+func TestMsgPayPacketFeeType(t *testing.T) {
+	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	// build message
+	signer := addr.String()
+	channelID := validChannelID
+	portID := validPortID
+	fee := Fee{validCoins, validCoins, validCoins}
+	msg := NewMsgPayPacketFee(fee, portID, channelID, signer, nil)
+
+	require.Equal(t, "payPacketFee", msg.Type())
+}
+
+// TestMsgPayPacketFeeGetSignBytes tests that GetSignBytes does not panic
+func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
+	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	// build message
+	signer := addr.String()
+	channelID := validChannelID
+	portID := validPortID
+	fee := Fee{validCoins, validCoins, validCoins}
+	msg := NewMsgPayPacketFee(fee, portID, channelID, signer, nil)
+
+	require.NotPanics(t, func() {
+		_ = msg.GetSignBytes()
+	})
+}
+
 // TestMsgPayPacketFeeAsyncValidation tests ValidateBasic
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	var (
@@ -350,4 +394,54 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	res := msg.GetSigners()
 
 	require.Equal(t, []sdk.AccAddress{addr}, res)
+}
+
+// TestMsgPayPacketFeeAsyncRoute tests Route for MsgPayPacketFeeAsync
+func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
+	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	// build message
+	channelID := validChannelID
+	portID := validPortID
+	fee := Fee{validCoins, validCoins, validCoins}
+	seq := uint64(1)
+	packetId := channeltypes.NewPacketId(channelID, portID, seq)
+	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
+	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+
+	require.Equal(t, RouterKey, msg.Route())
+}
+
+// TestMsgPayPacketFeeAsyncType tests Type for MsgPayPacketFeeAsync
+func TestMsgPayPacketFeeAsyncType(t *testing.T) {
+	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	// build message
+	channelID := validChannelID
+	portID := validPortID
+	fee := Fee{validCoins, validCoins, validCoins}
+	seq := uint64(1)
+	packetId := channeltypes.NewPacketId(channelID, portID, seq)
+	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
+	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+
+	require.Equal(t, "payPacketFeeAsync", msg.Type())
+}
+
+// TestMsgPayPacketFeeAsyncGetSignBytes tests that GetSignBytes does not panic
+func TestMsgPayPacketFeeAsyncGetSignBytes(t *testing.T) {
+	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	// build message
+	channelID := validChannelID
+	portID := validPortID
+	fee := Fee{validCoins, validCoins, validCoins}
+	seq := uint64(1)
+	packetId := channeltypes.NewPacketId(channelID, portID, seq)
+	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
+	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+
+	require.NotPanics(t, func() {
+		_ = msg.GetSignBytes()
+	})
 }
