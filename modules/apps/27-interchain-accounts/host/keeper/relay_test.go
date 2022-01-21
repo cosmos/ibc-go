@@ -15,7 +15,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -449,91 +448,4 @@ func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amou
 	res, err := suite.chainB.SendMsgs(msgBankSend)
 	suite.Require().NotEmpty(res)
 	suite.Require().NoError(err)
-}
-
-func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
-	// create channel + init interchain account on a particular port
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
-
-	// check that the account is working as expected
-	suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000))))
-	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
-	suite.Require().True(found)
-
-	tokenAmt := sdk.NewInt(5000)
-	msg := &banktypes.MsgSend{
-		FromAddress: interchainAccountAddr,
-		ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-		Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, tokenAmt)),
-	}
-
-	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
-	suite.Require().NoError(err)
-
-	icaPacketData := icatypes.InterchainAccountPacketData{
-		Type: icatypes.EXECUTE_TX,
-		Data: data,
-	}
-
-	params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
-
-	chanCap, ok := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-	suite.Require().True(ok)
-
-	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
-	suite.Require().NoError(err)
-	path.EndpointB.UpdateClient()
-
-	// relay the packet
-	packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	err = path.RelayPacket(packetRelay, ack.Acknowledgement())
-	suite.Require().NoError(err) // relay committed
-
-	// check that the ica balance is updated
-	icaAddr, _ := sdk.AccAddressFromBech32(interchainAccountAddr)
-	hasBalance := suite.chainB.GetSimApp().BankKeeper.HasBalance(suite.chainB.GetContext(), icaAddr, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: tokenAmt})
-	suite.Require().True(hasBalance)
-
-	// close the channel
-	err = path.EndpointA.SetChannelClosed()
-	path.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
-	err = path.EndpointB.SetChannelClosed()
-	path.EndpointA.UpdateClient()
-	suite.Require().NoError(err)
-
-	// open a new channel on the same port
-	path.EndpointA.ChannelID = ""
-	path.EndpointB.ChannelID = ""
-	err = path.EndpointA.ChanOpenInit()
-	suite.Require().NoError(err)
-	err = path.EndpointB.ChanOpenTry()
-	suite.Require().NoError(err)
-	err = path.EndpointA.ChanOpenAck()
-	suite.Require().NoError(err)
-	err = path.EndpointB.ChanOpenConfirm()
-	suite.Require().NoError(err)
-
-	// try to control the interchain account again
-	chanCap, ok = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-	suite.Require().True(ok)
-
-	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
-	suite.Require().NoError(err)
-	path.EndpointB.UpdateClient()
-
-	// relay the packet
-	packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
-	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	err = path.RelayPacket(packetRelay, ack.Acknowledgement())
-	suite.Require().NoError(err) // relay committed
-
-	// check that the ica balance is updated
-	hasBalance = suite.chainB.GetSimApp().BankKeeper.HasBalance(suite.chainB.GetContext(), icaAddr, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
-	suite.Require().True(hasBalance)
 }
