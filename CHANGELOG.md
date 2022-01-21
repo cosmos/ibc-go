@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
+* (core) [\#709](https://github.com/cosmos/ibc-go/pull/709) Replace github.com/pkg/errors with stdlib errors
 
 ### API Breaking
  
@@ -49,6 +50,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#517](https://github.com/cosmos/ibc-go/pull/517) Separates the ICS 26 callback functions from `AppModule` into a new type `IBCModule` for ICS 20 transfer.
 * (modules/core/02-client) [\#536](https://github.com/cosmos/ibc-go/pull/536) `GetSelfConsensusState` return type changed from bool to error.
 * (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Removes `CounterpartyHops` function from the ChannelKeeper.
+* (testing) [\#776](https://github.com/cosmos/ibc-go/pull/776) Adding helper fn to generate capability name for testing callbacks 
+
 
 ### State Machine Breaking
 
