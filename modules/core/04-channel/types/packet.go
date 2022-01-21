@@ -13,8 +13,8 @@ import (
 )
 
 // NewPacketId returns a new instance of PacketId
-func NewPacketId(channelId, portId string, seq uint64) *PacketId {
-	return &PacketId{ChannelId: channelId, PortId: portId, Sequence: seq}
+func NewPacketId(channelId, portId string, seq uint64) PacketId {
+	return PacketId{ChannelId: channelId, PortId: portId, Sequence: seq}
 }
 
 // CommitPacket returns the packet commitment bytes. The commitment consists of:

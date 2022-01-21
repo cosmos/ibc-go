@@ -56,6 +56,8 @@ func (im IBCModule) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCModule interface
+// If the channel is not fee enabled the underlying application version will be returned
+// If the channel is fee enabled we merge the underlying application version with the ics29 version
 func (im IBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -86,11 +88,11 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		return channeltypes.MergeChannelVersions(types.Version, appVersion), nil
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return appVersion, nil
 	}
 
-	return appVersion, nil
+	return channeltypes.MergeChannelVersions(types.Version, appVersion), nil
 }
 
 // OnChanOpenAck implements the IBCModule interface

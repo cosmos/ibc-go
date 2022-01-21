@@ -57,7 +57,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestFeeInEscrow() {
-	fee := types.Fee{ReceiveFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee}
+	fee := types.Fee{RecvFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee}
 
 	// set some fees
 	for i := 1; i < 6; i++ {
@@ -101,15 +101,15 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetId := &channeltypes.PacketId{ChannelId: suite.path.EndpointA.ChannelID, PortId: transfertypes.PortID, Sequence: uint64(1)}
+	packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, uint64(1))
 	fee := types.Fee{defaultAckFee, defaultReceiveFee, defaultTimeoutFee}
-	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+	identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
 
 	// escrow the packet fee
 	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 	suite.Require().NoError(err)
 
-	expectedFees := []*types.IdentifiedPacketFee{
+	expectedFees := []types.IdentifiedPacketFee{
 		{
 			PacketId:      packetId,
 			Fee:           fee,

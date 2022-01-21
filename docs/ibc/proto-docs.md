@@ -701,7 +701,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `receive_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `recv_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
@@ -978,7 +978,7 @@ MsgPayPacketFeeResponse defines the response type for Msg/PayPacketFee
 <a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
 
 ### MsgRegisterCounterpartyAddress
-MsgRegisterCounterpartyAddress is the request type for registering the counter party address
+MsgRegisterCounterpartyAddress is the request type for registering the counterparty address
 
 
 | Field | Type | Label | Description |
