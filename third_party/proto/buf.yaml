@@ -31,4 +31,3 @@ lint:
     - gogoproto
     - google
     - tendermint
-    - proofs.proto
