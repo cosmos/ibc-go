@@ -452,7 +452,7 @@ func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amou
 }
 
 func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
-	// create Channel + init interchain account on a particular port
+	// create channel + init interchain account on a particular port
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 	err := SetupICAPath(path, TestOwnerAddress)
@@ -481,7 +481,6 @@ func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
 	params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
-	// control the interchain account
 	chanCap, ok := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 	suite.Require().True(ok)
 
@@ -489,7 +488,7 @@ func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
 	suite.Require().NoError(err)
 	path.EndpointB.UpdateClient()
 
-	// relay send
+	// relay the packet
 	packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = path.RelayPacket(packetRelay, ack.Acknowledgement())
@@ -520,7 +519,7 @@ func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
 
-	// Try to control the interchain account
+	// try to control the interchain account again
 	chanCap, ok = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 	suite.Require().True(ok)
 
@@ -528,7 +527,7 @@ func (suite *KeeperTestSuite) TestControlAccountAfterChannelClose() {
 	suite.Require().NoError(err)
 	path.EndpointB.UpdateClient()
 
-	// relay send
+	// relay the packet
 	packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
 	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = path.RelayPacket(packetRelay, ack.Acknowledgement())
