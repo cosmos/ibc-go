@@ -79,7 +79,6 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return ErrRelayersNotNil
 	}
 
-	// validate Fee
 	if err := msg.Fee.Validate(); err != nil {
 		return err
 	}
@@ -154,24 +153,8 @@ func (fee IdentifiedPacketFee) Validate() error {
 		return ErrRelayersNotNil
 	}
 
-	// validate Fee
 	if err := fee.Fee.Validate(); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-// Validate asserts that each Fee is valid and all three Fees are not empty or zero
-func (fee Fee) Validate() error {
-	// if any of the fee's are invalid return an error
-	if !fee.AckFee.IsValid() || !fee.RecvFee.IsValid() || !fee.TimeoutFee.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
-	}
-
-	// if all three fee's are zero or empty return an error
-	if fee.AckFee.IsZero() && fee.RecvFee.IsZero() && fee.TimeoutFee.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "contains one or more invalid fees")
 	}
 
 	return nil
