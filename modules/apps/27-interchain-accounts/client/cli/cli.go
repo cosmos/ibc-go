@@ -20,7 +20,6 @@ func GetQueryCmd() *cobra.Command {
 	icaQueryCmd.AddCommand(
 		controllercli.GetQueryCmd(),
 		hostcli.GetQueryCmd(),
-		hostcli.GetCmdPacketEvents(),
 	)
 
 	return icaQueryCmd

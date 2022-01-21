@@ -6,11 +6,15 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/spf13/cobra"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // GetCmdParams returns the command handler for the host submodule parameter querying.
@@ -56,30 +60,29 @@ func GetCmdPacketEvents() *cobra.Command {
 				return err
 			}
 
-			queryClient := types.NewQueryClient(clientCtx)
-
+			channelID, portID := args[0], icatypes.PortID
 			seq, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			req := &types.QueryPacketEventsRequest{
-				ChannelId: args[0],
-				Sequence:  seq,
+			searchEvents := []string{
+				fmt.Sprintf("%s.%s='%s'", channeltypes.EventTypeRecvPacket, channeltypes.AttributeKeyDstChannel, channelID),
+				fmt.Sprintf("%s.%s='%s'", channeltypes.EventTypeRecvPacket, channeltypes.AttributeKeyDstPort, portID),
+				fmt.Sprintf("%s.%s='%d'", channeltypes.EventTypeRecvPacket, channeltypes.AttributeKeySequence, seq),
 			}
 
-			res, err := queryClient.PacketEvents(cmd.Context(), req)
+			result, err := tx.QueryTxsByEvents(clientCtx, searchEvents, 1, 30, "")
 			if err != nil {
 				return err
 			}
 
-			txResp, err := tx.QueryTx(clientCtx, string(msgRecvPacket.GetDataSignBytes()))
-			if err != nil {
-				return err
+			var resEvents []abci.Event
+			for _, r := range result.Txs {
+				resEvents = append(resEvents, r.Events...)
 			}
 
-			res := &types.QueryPacketEventsResponse{}
-			return clientCtx.PrintProto(txResp.Events)
+			return clientCtx.PrintString(sdk.StringifyEvents(resEvents).String())
 		},
 	}
 
