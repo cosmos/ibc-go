@@ -10,9 +10,8 @@ import (
 
 // msg types
 const (
-	TypeMsgRegisterCounterpartyAddress = "registerCounterpartyAddress"
-	TypeMsgPayPacketFee                = "payPacketFee"
-	TypeMsgPayPacketFeeAsync           = "payPacketFeeAsync"
+	TypeMsgPayPacketFee      = "payPacketFee"
+	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
 )
 
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
@@ -44,21 +43,6 @@ func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
-}
-
-// Route implements sdk.Msg
-func (msg MsgRegisterCounterpartyAddress) Route() string {
-	return RouterKey
-}
-
-// Type implements sdk.Msg
-func (msg MsgRegisterCounterpartyAddress) Type() string {
-	return TypeMsgRegisterCounterpartyAddress
-}
-
-// GetSignBytes implements sdk.Msg.
-func (msg MsgRegisterCounterpartyAddress) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
 
 // NewMsgPayPacketFee creates a new instance of MsgPayPacketFee
