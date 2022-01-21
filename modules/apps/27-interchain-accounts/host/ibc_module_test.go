@@ -652,7 +652,9 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	suite.Require().NoError(err) // relay committed
 
 	// check that the ica balance is updated
-	icaAddr, _ := sdk.AccAddressFromBech32(interchainAccountAddr)
+	icaAddr, err := sdk.AccAddressFromBech32(interchainAccountAddr)
+	suite.Require().NoError(err)
+
 	hasBalance := suite.chainB.GetSimApp().BankKeeper.HasBalance(suite.chainB.GetContext(), icaAddr, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(5000)})
 	suite.Require().True(hasBalance)
 
