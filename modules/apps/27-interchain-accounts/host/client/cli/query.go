@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 // GetCmdParams returns the command handler for the host submodule parameter querying.
@@ -61,6 +62,10 @@ func GetCmdPacketEvents() *cobra.Command {
 			}
 
 			channelID, portID := args[0], icatypes.PortID
+			if err := host.ChannelIdentifierValidator(channelID); err != nil {
+				return err
+			}
+
 			seq, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
