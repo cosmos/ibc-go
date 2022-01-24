@@ -25,16 +25,14 @@ func (b Keccak256) Hash(data []byte) ([]byte, error) {
 	return crypto.Keccak256(data), nil
 }
 
-// CheckHeaderAndUpdateState checks if the provided header is valid, and if valid it will:
+// CheckHeaderAndUpdateState checks if the provided header(s) is valid, and if valid it will:
 // create the consensus state for the header.Height
 // and update the client state if the header height is greater than the latest client state height
 // It returns an error if:
 // - the client or header provided are not parseable to tendermint types
 // - the header is invalid
 // - header height is less than or equal to the trusted header height
-// - header revision is not equal to trusted header revision
 // - header valset commit verification fails
-// - header timestamp is past the trusting period in relation to the consensus state
 // - header timestamp is less than or equal to the consensus state timestamp
 //
 // UpdateClient may be used to either create a consensus state for:
@@ -86,8 +84,12 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 			signedCommitment = beefyHeader.MmrUpdateProof.SignedCommitment
 		)
 
+		commitmentBytes, err := Encode(signedCommitment.Commitment)
+		if err != nil {
+			return nil, nil, err
+		}
 		// take keccak hash of the commitment scale-encoded
-		commitmentHash := crypto.Keccak256(signedCommitment.Commitment.Encode()) // todo: implement encode
+		commitmentHash := crypto.Keccak256(commitmentBytes) // todo: implement encode
 
 		// array of leaves in the authority merkle root.
 		var authorityLeaves []merkle.Leaf
@@ -131,7 +133,10 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 				// checks for the right payloadId
 				if reflect.DeepEqual(payload.PayloadId, []byte("mh")) {
 					// the next authorities are in the latest BeefyMmrLeaf
-					mmrLeafBytes, err := mmrUpdateProof.MmrLeaf.Encode()
+					mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
+					if err != nil {
+						return nil, nil, err
+					}
 					// we treat this leaf as the latest leaf in the mmr
 					mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
 					mmrLeaves := []mmr.Leaf{
@@ -182,7 +187,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 			return nil, nil, err
 		}
 
-		mmrLeafBytes, err := BeefyMmrLeaf{
+		mmrLeaf := BeefyMmrLeaf{
 			Version:        parachainHeader.MmrLeafPartial.Version,
 			ParentNumber:   parachainHeader.MmrLeafPartial.ParentNumber,
 			ParentHash:     parachainHeader.MmrLeafPartial.ParentHash,
@@ -192,7 +197,12 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 				AuthorityRoot: cs.NextAuthoritySet.AuthorityRoot,
 				Len:           cs.NextAuthoritySet.Len,
 			},
-		}.Encode()
+		}
+
+		mmrLeafBytes, err := Encode(mmrLeaf)
+		if err != nil {
+			return nil, nil, err
+		}
 
 		var leafIndex uint64
 
@@ -225,80 +235,80 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// Check if the Client store already has a consensus state for the header's height
 	// If the consensus state exists, and it matches the header then we return early
 	// since header has already been submitted in a previous UpdateClient.
-	for _, header := range beefyHeader.ParachainHeaders {
-		var conflictingHeader bool
-		prevConsState, _ := GetConsensusState(clientStore, cdc, header.ParachainHeader)
-		if prevConsState != nil {
-			// This header has already been submitted and the necessary state is already stored
-			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(prevConsState, header.ConsensusState()) {
-				return &cs, prevConsState, nil
-			}
-			// A consensus state already exists for this height, but it does not match the provided header.
-			// Thus, we must check that this header is valid, and if so we will freeze the client.
-			conflictingHeader = true
-		}
+	// for _, header := range beefyHeader.ParachainHeaders {
+	// 	var conflictingHeader bool
+	// 	prevConsState, _ := GetConsensusState(clientStore, cdc, header.ParachainHeader)
+	// 	if prevConsState != nil {
+	// 		// This header has already been submitted and the necessary state is already stored
+	// 		// in client store, thus we can return early without further validation.
+	// 		if reflect.DeepEqual(prevConsState, header.ConsensusState()) {
+	// 			return &cs, prevConsState, nil
+	// 		}
+	// 		// A consensus state already exists for this height, but it does not match the provided header.
+	// 		// Thus, we must check that this header is valid, and if so we will freeze the client.
+	// 		conflictingHeader = true
+	// 	}
 
-		// get consensus state from clientStore
-		trustedConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
-		if err != nil {
-			return nil, nil, sdkerrors.Wrapf(
-				err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
-			)
-		}
-		// forks
-		consState := tmHeader.ConsensusState()
-		// Header is different from existing consensus state and also valid, so freeze the client and return
-		if conflictingHeader {
-			cs.FrozenHeight = FrozenHeight
-			return &cs, consState, nil
-		}
+	// 	// get consensus state from clientStore
+	// 	trustedConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
+	// 	if err != nil {
+	// 		return nil, nil, sdkerrors.Wrapf(
+	// 			err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
+	// 		)
+	// 	}
+	// 	// forks
+	// 	consState := tmHeader.ConsensusState()
+	// 	// Header is different from existing consensus state and also valid, so freeze the client and return
+	// 	if conflictingHeader {
+	// 		cs.FrozenHeight = FrozenHeight
+	// 		return &cs, consState, nil
+	// 	}
 
-		// Check that consensus state timestamps are monotonic
-		prevCons, prevOk := GetPreviousConsensusState(clientStore, cdc, header.GetHeight())
-		nextCons, nextOk := GetNextConsensusState(clientStore, cdc, header.GetHeight())
-		// if previous consensus state exists, check consensus state time is greater than previous consensus state time
-		// if previous consensus state is not before current consensus state, freeze the client and return.
-		if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
-			cs.FrozenHeight = FrozenHeight
-			return &cs, consState, nil
-		}
-		// if next consensus state exists, check consensus state time is less than next consensus state time
-		// if next consensus state is not after current consensus state, freeze the client and return.
-		if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
-			cs.FrozenHeight = FrozenHeight
-			return &cs, consState, nil
-		}
-	}
+	// 	// Check that consensus state timestamps are monotonic
+	// 	prevCons, prevOk := GetPreviousConsensusState(clientStore, cdc, header.GetHeight())
+	// 	nextCons, nextOk := GetNextConsensusState(clientStore, cdc, header.GetHeight())
+	// 	// if previous consensus state exists, check consensus state time is greater than previous consensus state time
+	// 	// if previous consensus state is not before current consensus state, freeze the client and return.
+	// 	if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
+	// 		cs.FrozenHeight = FrozenHeight
+	// 		return &cs, consState, nil
+	// 	}
+	// 	// if next consensus state exists, check consensus state time is less than next consensus state time
+	// 	// if next consensus state is not after current consensus state, freeze the client and return.
+	// 	if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
+	// 		cs.FrozenHeight = FrozenHeight
+	// 		return &cs, consState, nil
+	// 	}
+	// }
 
-	// pruning
-	// Check the earliest consensus state to see if it is expired, if so then set the prune height
-	// so that we can delete consensus state and all associated metadata.
-	var (
-		pruneHeight exported.Height
-		pruneError  error
-	)
-	pruneCb := func(height exported.Height) bool {
-		consState, err := GetConsensusState(clientStore, cdc, height)
-		// this error should never occur
-		if err != nil {
-			pruneError = err
-			return true
-		}
-		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
-			pruneHeight = height
-		}
-		return true
-	}
-	IterateConsensusStateAscending(clientStore, pruneCb)
-	if pruneError != nil {
-		return nil, nil, pruneError
-	}
-	// if pruneHeight is set, delete consensus state and metadata
-	if pruneHeight != nil {
-		deleteConsensusState(clientStore, pruneHeight)
-		deleteConsensusMetadata(clientStore, pruneHeight)
-	}
+	// // pruning
+	// // Check the earliest consensus state to see if it is expired, if so then set the prune height
+	// // so that we can delete consensus state and all associated metadata.
+	// var (
+	// 	pruneHeight exported.Height
+	// 	pruneError  error
+	// )
+	// pruneCb := func(height exported.Height) bool {
+	// 	consState, err := GetConsensusState(clientStore, cdc, height)
+	// 	// this error should never occur
+	// 	if err != nil {
+	// 		pruneError = err
+	// 		return true
+	// 	}
+	// 	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+	// 		pruneHeight = height
+	// 	}
+	// 	return true
+	// }
+	// IterateConsensusStateAscending(clientStore, pruneCb)
+	// if pruneError != nil {
+	// 	return nil, nil, pruneError
+	// }
+	// // if pruneHeight is set, delete consensus state and metadata
+	// if pruneHeight != nil {
+	// 	deleteConsensusState(clientStore, pruneHeight)
+	// 	deleteConsensusMetadata(clientStore, pruneHeight)
+	// }
 
 	// newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
 	// return newClientState, consensusState, nil
