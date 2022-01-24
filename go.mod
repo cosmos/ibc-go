@@ -40,6 +40,8 @@ require (
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 )
 
+require github.com/snowfork/go-substrate-rpc-client/v3 v3.0.8
+
 require (
 	filippo.io/edwards25519 v1.0.0-beta.2 // indirect
 	github.com/99designs/keyring v1.1.6 // indirect
@@ -131,7 +133,6 @@ require (
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/rs/zerolog v1.23.0 // indirect
 	github.com/sasha-s/go-deadlock v0.2.1-0.20190427202633-1595213edefa // indirect
-	github.com/snowfork/go-substrate-rpc-client/v3 v3.0.8 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
