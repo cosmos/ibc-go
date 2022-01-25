@@ -2,21 +2,24 @@ package types_test
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
+	"sort"
 	"testing"
 
+	"github.com/ComposableFi/go-merkle-trees/merkle"
+	"github.com/ComposableFi/go-merkle-trees/mmr"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	store_test "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types/test"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	client "github.com/snowfork/go-substrate-rpc-client/v3"
 	clientTypes "github.com/snowfork/go-substrate-rpc-client/v3/types"
-	
 )
 
 type Authorities = [][33]uint8
 
-func getBeefyAuthorities(blockNumber uint64, conn *client.SubstrateAPI, method string) ([]common.Address, error) {
+func getBeefyAuthorities(blockNumber uint64, conn *client.SubstrateAPI, method string) ([][]byte, error) {
 	blockHash, err := conn.RPC.Chain.GetBlockHash(blockNumber)
 	if err != nil {
 		return nil, err
@@ -45,7 +48,7 @@ func getBeefyAuthorities(blockNumber uint64, conn *client.SubstrateAPI, method s
 	}
 
 	// Convert from beefy authorities to ethereum addresses
-	var authorityEthereumAddresses []common.Address
+	var authorityEthereumAddresses [][]byte
 	for _, authority := range authorities {
 		pub, err := crypto.DecompressPubkey(authority[:])
 		if err != nil {
@@ -55,7 +58,7 @@ func getBeefyAuthorities(blockNumber uint64, conn *client.SubstrateAPI, method s
 		if err != nil {
 			return nil, err
 		}
-		authorityEthereumAddresses = append(authorityEthereumAddresses, ethereumAddress)
+		authorityEthereumAddresses = append(authorityEthereumAddresses, ethereumAddress[:])
 	}
 
 	return authorityEthereumAddresses, nil
@@ -112,10 +115,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 		panic(err)
 	}
 
-	_parachainApi, err := client.NewSubstrateAPI("wss://127.0.0.1:9988")
-	if err != nil {
-		panic(err)
-	}
+	// _parachainApi, err := client.NewSubstrateAPI("wss://127.0.0.1:9988")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	ch := make(chan interface{})
 
@@ -130,6 +133,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+
+	var clientState *types.ClientState
 	defer sub.Unsubscribe()
 
 	for {
@@ -153,12 +158,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				"rawMessage":                                 msg.(string),
 			})
 
-			parentNumber := signedCommitment.Commitment.BlockNumber - 1
 			blockHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(signedCommitment.Commitment.BlockNumber))
-			if err != nil {
-				panic(err)
-			}
-			parentHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(parentNumber))
 			if err != nil {
 				panic(err)
 			}
@@ -176,7 +176,135 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
+
+			authorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(authorities)
+			if err != nil {
+				panic(err)
+			}
+			nextAuthorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(nextAuthorities)
+			if err != nil {
+				panic(err)
+			}
+
+			if clientState == nil {
+				clientState = &types.ClientState{
+					MmrRootHash:          signedCommitment.Commitment.Payload[:],
+					LatestBeefyHeight:    uint64(signedCommitment.Commitment.BlockNumber),
+					BeefyActivationBlock: 0,
+					Authority: &types.BeefyAuthoritySet{
+						Id:            uint64(signedCommitment.Commitment.ValidatorSetID),
+						Len:           uint32(len(authorities)),
+						AuthorityRoot: authorityTree.Root(),
+					},
+					NextAuthoritySet: &types.BeefyAuthoritySet{
+						Id:            uint64(signedCommitment.Commitment.ValidatorSetID) + 1,
+						Len:           uint32(len(nextAuthorities)),
+						AuthorityRoot: nextAuthorityTree.Root(),
+					},
+				}
+				continue
+			}
+
+			var paraHeadsLeaves [][]byte
+			var index uint32
+			var paraHeader []byte
+			count := 0
+
+			sortedParaHeadKeys := func() []uint32 {
+				var keys []uint32
+				for k, _ := range paraHeads {
+					keys = append(keys, k)
+				}
+				sort.SliceStable(keys, func(i, j int) bool {
+					return keys[i] < keys[j]
+				})
+				return keys
+			}
+
+			for _, v := range sortedParaHeadKeys() {
+				paraIdScale := make([]byte, 4)
+				// scale encode para_id
+				binary.LittleEndian.PutUint32(paraIdScale[:], v)
+				leaf := append(paraIdScale, paraHeads[v]...)
+				paraHeadsLeaves = append(paraHeadsLeaves, leaf)
+				if v == 2000 {
+					paraHeader = paraHeads[v]
+					index = uint32(count)
+				}
+				count++
+			}
+
+			tree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(paraHeadsLeaves)
+			if err != nil {
+				panic(err)
+			}
+
+			mmrProofs, err := relayApi.RPC.MMR.GenerateProof(uint64(signedCommitment.Commitment.BlockNumber), blockHash)
+			if err != nil {
+				panic(err)
+			}
+
+			paraHeadsProof := tree.Proof([]uint32{index})
+
+			parachainHeader := []*types.ParachainHeader{{
+				ParachainHeader: paraHeader,
+				MmrLeafPartial: &types.BeefyMmrLeafPartial{
+					Version:      uint8(mmrProofs.Leaf.Version),
+					ParentNumber: uint64(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
+					ParentHash:   mmrProofs.Leaf.ParentNumberAndHash.Hash[:],
+					BeefyNextAuthoritySet: types.BeefyAuthoritySet{
+						Id:            uint64(mmrProofs.Leaf.BeefyNextAuthoritySet.ID),
+						Len:           uint32(mmrProofs.Leaf.BeefyNextAuthoritySet.Len),
+						AuthorityRoot: mmrProofs.Leaf.BeefyNextAuthoritySet.Root[:],
+					},
+				},
+				ParachainHeadsProof: paraHeadsProof.ProofHashes(),
+				ParaId:              2000,
+				HeadsLeafIndex:      index,
+				HeadsTotalCount:     uint32(len(paraHeadsLeaves)),
+			}}
+
+			var proofItems [][]byte
+			for i := 0; i < len(mmrProofs.Proof.Items); i++ {
+				proofItems = append(proofItems, mmrProofs.Proof.Items[i][:])
+			}
+			var signatures []*types.CommitmentSignature
+			var authorityIndeces []uint32
+			for i, v := range signedCommitment.Signatures {
+				if v.IsSome() {
+					signatures = append(signatures, &types.CommitmentSignature{
+						Signature:      v.Value[:],
+						AuthorityIndex: uint32(i),
+					})
+					authorityIndeces = append(authorityIndeces, uint32(i))
+				}
+			}
+			header := types.Header{
+				ParachainHeaders: parachainHeader,
+				MmrProofs:        proofItems,
+				MmrSize:          mmr.LeafIndexToMMRSize(uint64(mmrProofs.Proof.LeafIndex)),
+				MmrUpdateProof: &types.MmrUpdateProof{
+					MmrLeaf: &types.BeefyMmrLeaf{
+						Version:        uint8(mmrProofs.Leaf.Version),
+						ParentNumber:   uint64(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
+						ParentHash:     mmrProofs.Leaf.ParentNumberAndHash.Hash[:],
+						ParachainHeads: mmrProofs.Leaf.ParachainHeads[:],
+					},
+					MmrLeafIndex: uint64(mmrProofs.Proof.LeafIndex),
+					MmrProof:     proofItems,
+					SignedCommitment: &types.SignedCommitment{
+						Commitment: &types.Commitment{
+							Payload:        []*types.PayloadItem{{PayloadId: []byte("mh"), PayloadData: signedCommitment.Commitment.Payload[:]}},
+							BlockNumer:     uint64(signedCommitment.Commitment.BlockNumber),
+							ValidatorSetId: uint64(signedCommitment.Commitment.ValidatorSetID),
+						},
+						Signatures: signatures,
+					},
+					AuthoritiesProof: authorityTree.Proof(authorityIndeces).ProofHashes(),
+				},
+			}
+	
+			clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
 		}
 	}
-
 }

@@ -3396,7 +3396,6 @@ data needed to update the client
 | `mmr_proof` | [bytes](#bytes) | repeated | proof that this mmr_leaf index is valid. |
 | `signed_commitment` | [SignedCommitment](#ibc.lightclients.beefy.v1.SignedCommitment) |  | signed commitment data |
 | `authorities_proof` | [bytes](#bytes) | repeated | generated using full authority list from runtime |
-| `authorities_count` | [uint32](#uint32) |  | lenght of authorities in authorities root. |
 
 
 
