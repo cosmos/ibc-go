@@ -9,6 +9,7 @@ import (
 
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
@@ -45,6 +46,10 @@ func (k Keeper) OnChanOpenTry(
 
 	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
+	}
+
+	if activeChannelID, found := k.GetOpenActiveChannel(ctx, portID); found {
+		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
