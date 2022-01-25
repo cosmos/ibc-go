@@ -93,9 +93,6 @@ message MmrUpdateProof {
 
   // generated using full authority list from runtime
   repeated bytes authorities_proof = 5;
-
-  // lenght of authorities in authorities root.
-  uint32 authorities_count = 6;
 }
 
 // ConsensusState defines the consensus state from Tendermint.
