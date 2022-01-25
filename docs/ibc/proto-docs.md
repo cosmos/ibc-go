@@ -379,11 +379,12 @@ HostGenesisState defines the interchain accounts host genesis state
 <a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
 
 ### RegisteredInterchainAccount
-RegisteredInterchainAccount contains a pairing of controller port ID and associated interchain account address
+RegisteredInterchainAccount contains a pairing of owner key and associated interchain account address
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `account_address` | [string](#string) |  |  |
 
