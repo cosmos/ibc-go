@@ -11,8 +11,8 @@ import (
 
 // AuthenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
 // from state using the provided controller port identifier
-func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, connID, portID string) error {
-	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, connID, portID)
+func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, portID string) error {
+	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, connectionID, portID)
 	if !found {
 		return sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
 	}
