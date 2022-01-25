@@ -379,7 +379,7 @@ HostGenesisState defines the interchain accounts host genesis state
 <a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
 
 ### RegisteredInterchainAccount
-RegisteredInterchainAccount contains a pairing of owner key and associated interchain account address
+RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
 
 
 | Field | Type | Label | Description |

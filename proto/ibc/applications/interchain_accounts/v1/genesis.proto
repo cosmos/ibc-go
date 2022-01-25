@@ -42,7 +42,7 @@ message ActiveChannel {
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
-// RegisteredInterchainAccount contains a pairing of owner key and associated interchain account address
+// RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
 message RegisteredInterchainAccount {
   string connection_id   = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
   string port_id         = 2 [(gogoproto.moretags) = "yaml:\"port_id\""];
