@@ -79,6 +79,10 @@ func (k Keeper) OnChanOpenAck(
 		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
+	if activeChannelID, found := k.GetOpenActiveChannel(ctx, portID); found {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", activeChannelID, portID)
+	}
+
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
