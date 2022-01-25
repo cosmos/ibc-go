@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"success",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
 				msg := &banktypes.MsgSend{
@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"success with multiple sdk.Msg",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
 				msgsBankSend := []sdk.Msg{
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"timeout timestamp is not in the future",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
 				msg := &banktypes.MsgSend{

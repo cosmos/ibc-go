@@ -19,6 +19,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		},
 		InterchainAccounts: []icatypes.RegisteredInterchainAccount{
 			{
+				ConnectionId:   ibctesting.FirstConnectionID,
 				PortId:         TestPortID,
 				AccountAddress: TestAccAddress.String(),
 			},
@@ -32,7 +33,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().True(found)
 	suite.Require().Equal(ibctesting.FirstChannelID, channelID)
 
-	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), TestPortID)
+	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(TestAccAddress.String(), accountAdrr)
 

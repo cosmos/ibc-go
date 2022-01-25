@@ -23,7 +23,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.HostGenesisState
 	}
 
 	for _, acc := range state.InterchainAccounts {
-		keeper.SetInterchainAccountAddress(ctx, acc.PortId, acc.AccountAddress)
+		keeper.SetInterchainAccountAddress(ctx, acc.ConnectionId, acc.PortId, acc.AccountAddress)
 	}
 
 	keeper.SetParams(ctx, state.Params)

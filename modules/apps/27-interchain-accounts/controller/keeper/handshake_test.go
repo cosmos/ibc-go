@@ -284,7 +284,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 				suite.Require().Equal(path.EndpointA.ChannelID, activeChannelID)
 
-				interchainAccAddress, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				interchainAccAddress, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
 				suite.Require().Equal(metadata.Address, interchainAccAddress)

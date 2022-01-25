@@ -53,10 +53,10 @@ func (k Keeper) OnChanOpenTry(
 		return "", sdkerrors.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
 	}
 
-	accAddress := icatypes.GenerateAddress(k.accountKeeper.GetModuleAddress(icatypes.ModuleName), counterparty.PortId)
+	accAddress := icatypes.GenerateAddress(k.accountKeeper.GetModuleAddress(icatypes.ModuleName), counterparty.PortId+metadata.HostConnectionId)
 
 	// Register interchain account if it does not already exist
-	k.RegisterInterchainAccount(ctx, accAddress, counterparty.PortId)
+	k.RegisterInterchainAccount(ctx, metadata.HostConnectionId, counterparty.PortId, accAddress)
 
 	metadata.Address = accAddress.String()
 	versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)

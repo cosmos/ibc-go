@@ -138,11 +138,11 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	counterpartyPortID := path.EndpointA.ChannelConfig.PortID
 	expectedAddr := authtypes.NewBaseAccountWithAddress(icatypes.GenerateAddress(suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(icatypes.ModuleName), counterpartyPortID)).GetAddress()
 
-	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), counterpartyPortID)
+	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, counterpartyPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAddr.String(), retrievedAddr)
 
-	retrievedAddr, found = suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), "invalid port")
+	retrievedAddr, found = suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, "invalid port")
 	suite.Require().False(found)
 	suite.Require().Empty(retrievedAddr)
 }
@@ -193,14 +193,16 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), expectedPortID, expectedAccAddr)
+	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
 
 	expectedAccounts := []icatypes.RegisteredInterchainAccount{
 		{
+			ConnectionId:   ibctesting.FirstConnectionID,
 			PortId:         TestPortID,
 			AccountAddress: TestAccAddress.String(),
 		},
 		{
+			ConnectionId:   ibctesting.FirstConnectionID,
 			PortId:         expectedPortID,
 			AccountAddress: expectedAccAddr,
 		},
@@ -230,9 +232,9 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 		expectedPortID  string = "test-port"
 	)
 
-	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), expectedPortID, expectedAccAddr)
+	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
 
-	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), expectedPortID)
+	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
