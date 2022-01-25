@@ -110,7 +110,7 @@ func fetchParaHeads(conn *client.SubstrateAPI, blockHash clientTypes.Hash) (map[
 	return heads, nil
 }
 func TestCheckHeaderAndUpdateState(t *testing.T) {
-	relayApi, err := client.NewSubstrateAPI("wss://127.0.0.1:9944")
+	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
 	if err != nil {
 		panic(err)
 	}
@@ -177,11 +177,21 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic(err)
 			}
 
-			authorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(authorities)
+			var authorityLeaves [][]byte
+			for _, v := range authorities {
+				authorityLeaves = append(authorityLeaves, crypto.Keccak256(v))
+			}
+
+			var nextAuthorityLeaves [][]byte
+			for _, v := range authorities {
+				nextAuthorityLeaves = append(nextAuthorityLeaves, crypto.Keccak256(v))
+			}
+
+			authorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(authorityLeaves)
 			if err != nil {
 				panic(err)
 			}
-			nextAuthorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(nextAuthorities)
+			nextAuthorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(nextAuthorityLeaves)
 			if err != nil {
 				panic(err)
 			}
@@ -226,7 +236,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				// scale encode para_id
 				binary.LittleEndian.PutUint32(paraIdScale[:], v)
 				leaf := append(paraIdScale, paraHeads[v]...)
-				paraHeadsLeaves = append(paraHeadsLeaves, leaf)
+				paraHeadsLeaves = append(paraHeadsLeaves, crypto.Keccak256(leaf))
 				if v == 2000 {
 					paraHeader = paraHeads[v]
 					index = uint32(count)
