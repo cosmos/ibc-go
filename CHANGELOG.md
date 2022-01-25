@@ -97,7 +97,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](github.com/tendermint/tendermint) from v0.34.12 to v0.34.13.
 
-## [v1.1.6](https://github.com/cosmos/ibc-go/releases/tag/v1.1.6) - 2021-01-12
+## [v1.1.6](https://github.com/cosmos/ibc-go/releases/tag/v1.1.6) - 2022-01-25
 
 ### Improvements
 
