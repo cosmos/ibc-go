@@ -135,10 +135,10 @@ func (k Keeper) IsActiveChannel(ctx sdk.Context, portID string) bool {
 	return ok
 }
 
-// GetInterchainAccountAddress retrieves the InterchainAccount address from the store keyed by the provided portID
-func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connID, portID string) (string, bool) {
+// GetInterchainAccountAddress retrieves the InterchainAccount address from the store associated with the provided connectionID and portID
+func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := icatypes.KeyOwnerAccount(connID, portID)
+	key := icatypes.KeyOwnerAccount(connectionID, portID)
 
 	if !store.Has(key) {
 		return "", false
@@ -147,7 +147,7 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connID, portID stri
 	return string(store.Get(key)), true
 }
 
-// GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated controller port identifiers
+// GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated connection and controller port identifiers
 func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []icatypes.RegisteredInterchainAccount {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.OwnerKeyPrefix))
@@ -168,8 +168,8 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []icatypes.RegisteredI
 	return interchainAccounts
 }
 
-// SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated portID
-func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connID, portID, address string) {
+// SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated connectionID and portID
+func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(icatypes.KeyOwnerAccount(connID, portID), []byte(address))
+	store.Set(icatypes.KeyOwnerAccount(connectionID, portID), []byte(address))
 }
