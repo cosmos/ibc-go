@@ -32,7 +32,7 @@ func (c Commitment) Bytes() []byte {
 
 // SignedCommitment is a beefy commitment with optional signatures from the set of validators
 type SignedCommitment struct {
-	Commitment Commitment
+	Commitment Commitment 
 	Signatures []OptionBeefySignature
 }
 
