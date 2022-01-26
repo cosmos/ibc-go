@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	store_test "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types/test"
 	"github.com/ethereum/go-ethereum/crypto"
-	client "github.com/snowfork/go-substrate-rpc-client/v3"
-	clientTypes "github.com/snowfork/go-substrate-rpc-client/v3/types"
+	client "github.com/snowfork/go-substrate-rpc-client/v4"
+	clientTypes "github.com/snowfork/go-substrate-rpc-client/v4/types"
 )
 
 type Authorities = [][33]uint8
@@ -313,7 +313,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					AuthoritiesProof: authorityTree.Proof(authorityIndeces).ProofHashes(),
 				},
 			}
-	
+
 			clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
 		}
 	}
