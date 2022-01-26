@@ -11,7 +11,6 @@ import (
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
-	store_test "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types/test"
 	"github.com/ethereum/go-ethereum/crypto"
 	client "github.com/snowfork/go-substrate-rpc-client/v4"
 	clientTypes "github.com/snowfork/go-substrate-rpc-client/v4/types"
@@ -110,6 +109,16 @@ func fetchParaHeads(conn *client.SubstrateAPI, blockHash clientTypes.Hash) (map[
 	return heads, nil
 }
 func TestCheckHeaderAndUpdateState(t *testing.T) {
+	hex := "0xeee4318d5f09f8e6bb227855f3d1f265ce2bd6303316c560b9c1bc31be8149e761010000000000000000000014013845a96faf999274e973735201a2a0e70c7ebec67d016a1e1d5a68cd3205a41a708588694d948865da4f640cb58ca097a2dcb51baa33606453271136ca1ae7d1000001e05c7d9481cb6d7ae52c1a1b7608e1f55cf3e63a177306bca813a38c375da18f48f875874ef4a4931cbc9d7509ef9c3fa8144ea4407a65c2d31376341e981f560001b85e8d525f60a5f26a2350bd0b632d4c9f505bdd0d826f314cb9524a88a8b36f59e678dfc266ee8676db39a993b350ce5bbc33ab514bcac710c0ba4eedc10c7e0001626fe670748b10bbdecdacfc8253b7819afca627ee9a2787149d664aff76daa94a3bc509172cf444eca4a93025c8f90e5a56e4eff0b16f11511bebbbdbaecce300"
+	signedCommitment := &clientTypes.SignedCommitment{}
+
+	err := types.DecodeFromHexString(hex, signedCommitment)
+
+	if err != nil {
+		//panic("Failed to decode BEEFY commitment messages ")
+		panic(err.Error())
+	}
+
 	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
 	if err != nil {
 		panic(err)
@@ -144,10 +153,13 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic("error reading channel")
 			}
 
-			signedCommitment := &store_test.SignedCommitment{}
+			signedCommitment := &clientTypes.SignedCommitment{}
+			fmt.Printf("Got commitment %s", msg.(string))
+
 			err := types.DecodeFromHexString(msg.(string), signedCommitment)
 			if err != nil {
-				panic("Failed to decode BEEFY commitment messages")
+				//panic("Failed to decode BEEFY commitment messages ")
+				panic(err.Error())
 			}
 
 			fmt.Printf("Witnessed a new BEEFY commitment. %v \n", map[string]interface{}{
@@ -282,8 +294,9 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			var authorityIndeces []uint32
 			for i, v := range signedCommitment.Signatures {
 				if v.IsSome() {
+					_, sig := v.Unwrap()
 					signatures = append(signatures, &types.CommitmentSignature{
-						Signature:      v.Value[:],
+						Signature:      sig[:],
 						AuthorityIndex: uint32(i),
 					})
 					authorityIndeces = append(authorityIndeces, uint32(i))
