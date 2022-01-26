@@ -92,7 +92,7 @@ func (m *HostGenesisState) GetParams() Params {
 	return Params{}
 }
 
-// ActiveChannel contains a pairing of port ID and channel ID for an active interchain accounts channel
+// ActiveChannel contains a connection ID, controller port ID and channel ID for an active interchain accounts channel
 type ActiveChannel struct {
 	ConnectionId string `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
 	PortId       string `protobuf:"bytes,2,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
@@ -153,7 +153,7 @@ func (m *ActiveChannel) GetChannelId() string {
 	return ""
 }
 
-// RegisteredInterchainAccount contains a pairing of controller port ID and associated interchain account address
+// RegisteredInterchainAccount contains a connection ID, controller port ID and associated interchain account address
 type RegisteredInterchainAccount struct {
 	ConnectionId   string `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
 	PortId         string `protobuf:"bytes,2,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
