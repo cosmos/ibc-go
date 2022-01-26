@@ -1118,6 +1118,7 @@ Order defines if a channel is ORDERED or UNORDERED
 | ORDER_NONE_UNSPECIFIED | 0 | zero-value for channel ordering |
 | ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
 | ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
+| ORDER_ORDERED_ALLOW_TIMEOUT | 3 | packets are delivered exactly in the order which they were sent, packet timeouts do not close the channel |
 
 
 

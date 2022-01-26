@@ -247,6 +247,8 @@ func (k Keeper) RecvPacket(
 		k.SetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 	case types.ORDERED:
+		fallthrough
+	case types.ORDERED_ALLOW_TIMEOUT:
 		// check if the packet is being received in order
 		nextSequenceRecv, found := k.GetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel())
 		if !found {
@@ -458,7 +460,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	// assert packets acknowledged in order
-	if channel.Ordering == types.ORDERED {
+	if channel.Ordering == types.ORDERED || channel.Ordering == types.ORDERED_ALLOW_TIMEOUT {
 		nextSequenceAck, found := k.GetNextSequenceAck(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if !found {
 			return sdkerrors.Wrapf(

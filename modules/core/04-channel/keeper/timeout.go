@@ -98,6 +98,8 @@ func (k Keeper) TimeoutPacket(
 
 	switch channel.Ordering {
 	case types.ORDERED:
+		fallthrough
+	case types.ORDERED_ALLOW_TIMEOUT:
 		// check that packet has not been received
 		if nextSequenceRecv > packet.GetSequence() {
 			return sdkerrors.Wrapf(
@@ -253,6 +255,8 @@ func (k Keeper) TimeoutOnClose(
 	var err error
 	switch channel.Ordering {
 	case types.ORDERED:
+		fallthrough
+	case types.ORDERED_ALLOW_TIMEOUT:
 		// check that packet has not been received
 		if nextSequenceRecv > packet.GetSequence() {
 			return sdkerrors.Wrapf(types.ErrInvalidPacket, "packet already received, next sequence receive > packet sequence (%d > %d", nextSequenceRecv, packet.GetSequence())

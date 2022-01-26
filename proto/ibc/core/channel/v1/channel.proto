@@ -78,6 +78,8 @@ enum Order {
   ORDER_UNORDERED = 1 [(gogoproto.enumvalue_customname) = "UNORDERED"];
   // packets are delivered exactly in the order which they were sent
   ORDER_ORDERED = 2 [(gogoproto.enumvalue_customname) = "ORDERED"];
+  // packets are delivered exactly in the order which they were sent, packet timeouts do not close the channel
+  ORDER_ORDERED_ALLOW_TIMEOUT = 3 [(gogoproto.enumvalue_customname) = "ORDERED_ALLOW_TIMEOUT"];
 }
 
 // Counterparty defines a channel end counterparty
