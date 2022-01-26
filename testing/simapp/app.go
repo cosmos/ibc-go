@@ -368,7 +368,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
 	// Pass IBCFeeKeeper for PortKeeper since fee middleware will wrap the IBCKeeper for underlying application.
-	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCFeeKeeper)
+	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
 	// create fee wrapped mock module
 	feeMockModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, ibcmock.NewIBCModule(nil, scopedFeeMockKeeper))
 
