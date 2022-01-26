@@ -5,12 +5,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts host application state from a provided genesis state
-func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.HostGenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, state types.HostGenesisState) {
 	if !keeper.IsBound(ctx, state.Port) {
 		cap := keeper.BindPort(ctx, state.Port)
 		if err := keeper.ClaimCapability(ctx, cap, host.PortPath(state.Port)); err != nil {
@@ -30,7 +31,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.HostGenesisState
 }
 
 // ExportGenesis returns the interchain accounts host exported genesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) icatypes.HostGenesisState {
+func ExportGenesis(ctx sdk.Context, keeper Keeper) types.HostGenesisState {
 	return icatypes.NewHostGenesisState(
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),

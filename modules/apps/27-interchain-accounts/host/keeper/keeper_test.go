@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
+	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -163,7 +164,7 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 
 	suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), expectedPortID, expectedChannelID)
 
-	expectedChannels := []icatypes.ActiveChannel{
+	expectedChannels := []types.ActiveChannel{
 		{
 			PortId:    path.EndpointB.ChannelConfig.PortID,
 			ChannelId: path.EndpointB.ChannelID,
@@ -195,7 +196,7 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 
 	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), expectedPortID, expectedAccAddr)
 
-	expectedAccounts := []icatypes.RegisteredInterchainAccount{
+	expectedAccounts := []types.RegisteredInterchainAccount{
 		{
 			PortId:         TestPortID,
 			AccountAddress: TestAccAddress.String(),

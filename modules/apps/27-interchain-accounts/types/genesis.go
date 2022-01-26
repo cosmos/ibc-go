@@ -15,7 +15,7 @@ func DefaultGenesis() *GenesisState {
 }
 
 // NewGenesisState creates and returns a new GenesisState instance from the provided controller and host genesis state types
-func NewGenesisState(controllerGenesisState ControllerGenesisState, hostGenesisState HostGenesisState) *GenesisState {
+func NewGenesisState(controllerGenesisState controllertypes.ControllerGenesisState, hostGenesisState hosttypes.HostGenesisState) *GenesisState {
 	return &GenesisState{
 		ControllerGenesisState: controllerGenesisState,
 		HostGenesisState:       hostGenesisState,
@@ -24,11 +24,11 @@ func NewGenesisState(controllerGenesisState ControllerGenesisState, hostGenesisS
 
 // Validate performs basic validation of the interchain accounts GenesisState
 func (gs GenesisState) Validate() error {
-	if err := gs.ControllerGenesisState.Validate(); err != nil {
+	if err := ValidateControllerGenesis(gs.ControllerGenesisState); err != nil {
 		return err
 	}
 
-	if err := gs.HostGenesisState.Validate(); err != nil {
+	if err := ValidateHostGenesis(gs.HostGenesisState); err != nil {
 		return err
 	}
 
@@ -36,15 +36,15 @@ func (gs GenesisState) Validate() error {
 }
 
 // DefaultControllerGenesis creates and returns the default interchain accounts ControllerGenesisState
-func DefaultControllerGenesis() ControllerGenesisState {
-	return ControllerGenesisState{
+func DefaultControllerGenesis() controllertypes.ControllerGenesisState {
+	return controllertypes.ControllerGenesisState{
 		Params: controllertypes.DefaultParams(),
 	}
 }
 
 // NewControllerGenesisState creates a returns a new ControllerGenesisState instance
-func NewControllerGenesisState(channels []ActiveChannel, accounts []RegisteredInterchainAccount, ports []string, controllerParams controllertypes.Params) ControllerGenesisState {
-	return ControllerGenesisState{
+func NewControllerGenesisState(channels []controllertypes.ActiveChannel, accounts []controllertypes.RegisteredInterchainAccount, ports []string, controllerParams controllertypes.Params) controllertypes.ControllerGenesisState {
+	return controllertypes.ControllerGenesisState{
 		ActiveChannels:     channels,
 		InterchainAccounts: accounts,
 		Ports:              ports,
@@ -52,8 +52,8 @@ func NewControllerGenesisState(channels []ActiveChannel, accounts []RegisteredIn
 	}
 }
 
-// Validate performs basic validation of the ControllerGenesisState
-func (gs ControllerGenesisState) Validate() error {
+// ValidateControllerGenesis performs basic validation of the ControllerGenesisState
+func ValidateControllerGenesis(gs controllertypes.ControllerGenesisState) error {
 	for _, ch := range gs.ActiveChannels {
 		if err := host.ChannelIdentifierValidator(ch.ChannelId); err != nil {
 			return err
@@ -88,16 +88,16 @@ func (gs ControllerGenesisState) Validate() error {
 }
 
 // DefaultHostGenesis creates and returns the default interchain accounts HostGenesisState
-func DefaultHostGenesis() HostGenesisState {
-	return HostGenesisState{
+func DefaultHostGenesis() hosttypes.HostGenesisState {
+	return hosttypes.HostGenesisState{
 		Port:   PortID,
 		Params: hosttypes.DefaultParams(),
 	}
 }
 
 // NewHostGenesisState creates a returns a new HostGenesisState instance
-func NewHostGenesisState(channels []ActiveChannel, accounts []RegisteredInterchainAccount, port string, hostParams hosttypes.Params) HostGenesisState {
-	return HostGenesisState{
+func NewHostGenesisState(channels []hosttypes.ActiveChannel, accounts []hosttypes.RegisteredInterchainAccount, port string, hostParams hosttypes.Params) hosttypes.HostGenesisState {
+	return hosttypes.HostGenesisState{
 		ActiveChannels:     channels,
 		InterchainAccounts: accounts,
 		Port:               port,
@@ -105,8 +105,8 @@ func NewHostGenesisState(channels []ActiveChannel, accounts []RegisteredIntercha
 	}
 }
 
-// Validate performs basic validation of the HostGenesisState
-func (gs HostGenesisState) Validate() error {
+// ValidateHostGenesis performs basic validation of the HostGenesisState
+func ValidateHostGenesis(gs hosttypes.HostGenesisState) error {
 	for _, ch := range gs.ActiveChannels {
 		if err := host.ChannelIdentifierValidator(ch.ChannelId); err != nil {
 			return err

@@ -3,21 +3,20 @@ package keeper_test
 import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
-	genesisState := icatypes.ControllerGenesisState{
-		ActiveChannels: []icatypes.ActiveChannel{
+	genesisState := types.ControllerGenesisState{
+		ActiveChannels: []types.ActiveChannel{
 			{
 				PortId:    TestPortID,
 				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
-		InterchainAccounts: []icatypes.RegisteredInterchainAccount{
+		InterchainAccounts: []types.RegisteredInterchainAccount{
 			{
 				PortId:         TestPortID,
 				AccountAddress: TestAccAddress.String(),
