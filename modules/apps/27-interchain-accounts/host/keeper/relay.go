@@ -11,9 +11,41 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
-// AuthenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
+// OnRecvPacket handles a given interchain accounts packet on a destination host chain
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) (txResponse []byte, err error) {
+	var data icatypes.InterchainAccountPacketData
+
+	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
+		return nil, sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
+	}
+
+	switch data.Type {
+	case icatypes.EXECUTE_TX:
+		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		msgResponses, err := k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
+		if err != nil {
+			return nil, err
+		}
+
+		txResponse, err := proto.Marshal(&icatypes.TxMsgData{MsgResponses: msgResponses})
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "failed to marshal TxMsgData with Msg responses")
+		}
+
+		return txResponse, nil
+	default:
+		return nil, icatypes.ErrUnknownDataType
+	}
+}
+
+// authenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
 // from state using the provided controller port identifier
-func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
+func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
 	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portID)
 	if !found {
 		return sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
@@ -36,7 +68,7 @@ func (k Keeper) AuthenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) e
 }
 
 func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) ([]*codectypes.Any, error) {
-	if err := k.AuthenticateTx(ctx, msgs, sourcePort); err != nil {
+	if err := k.authenticateTx(ctx, msgs, sourcePort); err != nil {
 		return nil, err
 	}
 
@@ -108,36 +140,4 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error
 	}
 
 	return any, nil
-}
-
-// OnRecvPacket handles a given interchain accounts packet on a destination host chain
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) (txResponse []byte, err error) {
-	var data icatypes.InterchainAccountPacketData
-
-	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
-		return nil, sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
-	}
-
-	switch data.Type {
-	case icatypes.EXECUTE_TX:
-		msgs, err := icatypes.DeserializeCosmosTx(k.cdc, data.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		msgResponses, err := k.executeTx(ctx, packet.SourcePort, packet.DestinationPort, packet.DestinationChannel, msgs)
-		if err != nil {
-			return nil, err
-		}
-
-		txResponse, err := proto.Marshal(&icatypes.TxMsgData{MsgResponses: msgResponses})
-		if err != nil {
-			return nil, sdkerrors.Wrap(err, "failed to marshal TxMsgData with Msg responses")
-		}
-
-		return txResponse, nil
-	default:
-		return nil, icatypes.ErrUnknownDataType
-	}
 }
