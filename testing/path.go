@@ -35,6 +35,12 @@ func (path *Path) SetChannelOrdered() {
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 }
 
+// SetChannelOrderedAllowTimeout sets the channel order for both endpoints to ORDERED_ALLOW_TIMEOUT.
+func (path *Path) SetChannelOrderedAllowTimeout() {
+	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED_ALLOW_TIMEOUT
+	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED_ALLOW_TIMEOUT
+}
+
 // RelayPacket attempts to relay the packet first on EndpointA and then on EndpointB
 // if EndpointA does not contain a packet commitment for that packet. An error is returned
 // if a relay step fails or the packet commitment does not exist on either endpoint.

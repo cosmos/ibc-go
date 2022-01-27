@@ -125,7 +125,7 @@ func TestVerifyProposedVersion(t *testing.T) {
 		supportedVersion *types.Version
 		expPass          bool
 	}{
-		{"entire feature set supported", types.DefaultIBCVersion, types.NewVersion("1", []string{"ORDER_ORDERED", "ORDER_UNORDERED", "ORDER_DAG"}), true},
+		{"entire feature set supported", types.DefaultIBCVersion, types.NewVersion("1", []string{"ORDER_ORDERED", "ORDER_ORDERED_ALLOW_TIMEOUT", "ORDER_UNORDERED", "ORDER_DAG"}), true},
 		{"empty feature sets not supported", types.NewVersion("1", []string{}), types.DefaultIBCVersion, false},
 		{"one feature missing", types.DefaultIBCVersion, types.NewVersion("1", []string{"ORDER_UNORDERED", "ORDER_DAG"}), false},
 		{"both features missing", types.DefaultIBCVersion, types.NewVersion("1", []string{"ORDER_DAG"}), false},

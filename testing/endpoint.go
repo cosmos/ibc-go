@@ -424,6 +424,8 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 
 	switch endpoint.ChannelConfig.Order {
 	case channeltypes.ORDERED:
+		fallthrough
+	case channeltypes.ORDERED_ALLOW_TIMEOUT:
 		packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 	case channeltypes.UNORDERED:
 		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())

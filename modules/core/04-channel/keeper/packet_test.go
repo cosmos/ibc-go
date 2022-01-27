@@ -244,6 +244,15 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			suite.Require().NoError(err)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, true},
+		{"success: ORDERED_ALLOW_TIMEOUT channel", func() {
+			path.SetChannelOrderedAllowTimeout()
+			suite.coordinator.Setup(path)
+
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		}, true},
 		{"success UNORDERED channel", func() {
 			// setup uses an UNORDERED channel
 			suite.coordinator.Setup(path)
@@ -271,6 +280,20 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			expError = types.ErrNoOpMsg
 
 			path.SetChannelOrdered()
+			suite.coordinator.Setup(path)
+
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+			err = path.EndpointB.RecvPacket(packet.(types.Packet))
+			suite.Require().NoError(err)
+		}, false},
+		{"packet already relayed ORDERED_ALLOW_TIMEOUT channel (no-op)", func() {
+			expError = types.ErrNoOpMsg
+
+			path.SetChannelOrderedAllowTimeout()
 			suite.coordinator.Setup(path)
 
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -311,6 +334,23 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			// attempts to receive packet 2 without receiving packet 1
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
+		{"out of order packet failure with ORDERED_ALLOW_TIMEOUT channel", func() {
+			expError = types.ErrPacketSequenceOutOfOrder
+
+			path.SetChannelOrderedAllowTimeout()
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+
+			// send 2 packets
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+			// set sequence to 2
+			packet = types.NewPacket(ibctesting.MockPacketData, 2, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+			// attempts to receive packet 2 without receiving packet 1
+			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		}, false},
 		{"channel not found", func() {
 			expError = types.ErrChannelNotFound
 
@@ -333,6 +373,17 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			expError = types.ErrInvalidChannelCapability
 
 			path.SetChannelOrdered()
+			suite.coordinator.Setup(path)
+
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+			channelCap = capabilitytypes.NewCapability(3)
+		}, false},
+		{"capability cannot authenticate ORDERED_ALLOW_TIMEOUT", func() {
+			expError = types.ErrInvalidChannelCapability
+
+			path.SetChannelOrderedAllowTimeout()
 			suite.coordinator.Setup(path)
 
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -469,7 +520,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				suite.Require().True(found)
 				receipt, receiptStored := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketReceipt(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
-				if channelB.Ordering == types.ORDERED {
+				if channelB.Ordering == types.ORDERED || channelB.Ordering == types.ORDERED_ALLOW_TIMEOUT {
 					suite.Require().Equal(packet.GetSequence()+1, nextSeqRecv, "sequence not incremented in ordered channel")
 					suite.Require().False(receiptStored, "packet receipt stored on ORDERED channel")
 				} else {
@@ -602,6 +653,20 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
+		{"success on ordered allow timeout channel", func() {
+			path.SetChannelOrderedAllowTimeout()
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			// create packet commitment
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+
+			// create packet receipt and acknowledgement
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		}, true},
 		{"success on unordered channel", func() {
 			// setup uses an UNORDERED channel
 			suite.coordinator.Setup(path)
@@ -621,6 +686,25 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			expError = types.ErrNoOpMsg
 
 			path.SetChannelOrdered()
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			// create packet commitment
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+
+			// create packet receipt and acknowledgement
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
+			suite.Require().NoError(err)
+		}, false},
+		{"packet already acknowledged ordered allow timeout channel (no-op)", func() {
+			expError = types.ErrNoOpMsg
+
+			path.SetChannelOrderedAllowTimeout()
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 			// create packet commitment
@@ -677,6 +761,23 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			expError = types.ErrInvalidChannelCapability
 
 			path.SetChannelOrdered()
+			suite.coordinator.Setup(path)
+
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			// create packet commitment
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+
+			// create packet receipt and acknowledgement
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			channelCap = capabilitytypes.NewCapability(3)
+		}, false},
+		{"capability authentication failed ORDERED_ALLOW_TIMEOUT", func() {
+			expError = types.ErrInvalidChannelCapability
+
+			path.SetChannelOrderedAllowTimeout()
 			suite.coordinator.Setup(path)
 
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
@@ -821,6 +922,23 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 10)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
+		{"next ack sequence mismatch ORDERED_ALLOW_TIMEOUT", func() {
+			expError = types.ErrPacketSequenceOutOfOrder
+			path.SetChannelOrderedAllowTimeout()
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			// create packet commitment
+			err := path.EndpointA.SendPacket(packet)
+			suite.Require().NoError(err)
+
+			// create packet acknowledgement
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			// set next sequence ack wrong
+			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 10)
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		}, false},
 	}
 
 	for i, tc := range testCases {
@@ -845,7 +963,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.NoError(err)
 				suite.Nil(pc)
 
-				if channelA.Ordering == types.ORDERED {
+				if channelA.Ordering == types.ORDERED || channelA.Ordering == types.ORDERED_ALLOW_TIMEOUT {
 					suite.Require().Equal(packet.GetSequence()+1, sequenceAck, "sequence not incremented in ordered channel")
 				} else {
 					suite.Require().Equal(uint64(1), sequenceAck, "sequence incremented for UNORDERED channel")
