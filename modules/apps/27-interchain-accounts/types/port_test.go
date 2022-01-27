@@ -22,7 +22,7 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 		{
 			"success",
 			func() {},
-			fmt.Sprint(types.PortPrefix, TestOwnerAddress),
+			fmt.Sprint(types.PortPrefix, TestOwnerAddress, ibctesting.FirstConnectionID),
 			true,
 		},
 		{
@@ -45,7 +45,7 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 
 			tc.malleate() // malleate mutates test data
 
-			portID, err := types.NewControllerPortID(owner)
+			portID, err := types.NewControllerPortID(owner, ibctesting.FirstConnectionID)
 
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)

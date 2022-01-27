@@ -395,7 +395,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+			portID, err := icatypes.NewControllerPortID(TestOwnerAddress, ibctesting.FirstConnectionID)
 			suite.Require().NoError(err)
 
 			// Get the address of the interchain account stored in state during handshake step

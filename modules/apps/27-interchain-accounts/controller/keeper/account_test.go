@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 		{
 			"MsgChanOpenInit fails - channel is already active & in state OPEN",
 			func() {
-				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+				portID, err := icatypes.NewControllerPortID(TestOwnerAddress, ibctesting.FirstConnectionID)
 				suite.Require().NoError(err)
 
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)

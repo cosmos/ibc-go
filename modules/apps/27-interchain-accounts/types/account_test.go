@@ -19,7 +19,7 @@ var (
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID, _ = types.NewControllerPortID(TestOwnerAddress)
+	TestPortID, _ = types.NewControllerPortID(TestOwnerAddress, ibctesting.FirstConnectionID)
 )
 
 type TypesTestSuite struct {

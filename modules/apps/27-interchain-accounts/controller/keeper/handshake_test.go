@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
-			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+			portID, err := icatypes.NewControllerPortID(TestOwnerAddress, ibctesting.FirstConnectionID)
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)

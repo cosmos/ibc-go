@@ -28,7 +28,7 @@ var (
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
+	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress, ibctesting.FirstConnectionID)
 
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
 	TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
@@ -71,7 +71,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 }
 
 func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
-	portID, err := icatypes.NewControllerPortID(owner)
+	portID, err := icatypes.NewControllerPortID(owner, ibctesting.FirstConnectionID)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
-			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+			portID, err := icatypes.NewControllerPortID(TestOwnerAddress, ibctesting.FirstConnectionID)
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)

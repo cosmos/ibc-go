@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
@@ -16,7 +17,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+	portID, err := icatypes.NewControllerPortID(TestOwnerAddress, ibctesting.FirstConnectionID)
 	suite.Require().NoError(err)
 
 	// Get the address of the interchain account stored in state during handshake step

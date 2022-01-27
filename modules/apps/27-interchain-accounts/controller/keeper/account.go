@@ -16,7 +16,7 @@ import (
 // already in use. Gaining access to interchain accounts whose channels have closed
 // cannot be done with this function. A regular MsgChanOpenInit must be used.
 func (k Keeper) InitInterchainAccount(ctx sdk.Context, connectionID, owner string) error {
-	portID, err := icatypes.NewControllerPortID(owner)
+	portID, err := icatypes.NewControllerPortID(owner, connectionID)
 	if err != nil {
 		return err
 	}
