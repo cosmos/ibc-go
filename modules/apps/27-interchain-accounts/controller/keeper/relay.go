@@ -15,16 +15,10 @@ import (
 // If the base application has the capability to send on the provided portID. An appropriate
 // absolute timeoutTimestamp must be provided. If the packet is timed out, the channel will be closed.
 // In the case of channel closure, a new channel may be reopened to reconnect to the host chain.
-func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
-	// Check for the active channel
-	activeChannelID, found := k.GetActiveChannelID(ctx, portID)
+func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, channelID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
-		return 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
-	}
-
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
-	if !found {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, activeChannelID)
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, channelID)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
@@ -34,7 +28,7 @@ func (k Keeper) TrySendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, 
 		return 0, icatypes.ErrInvalidTimeoutTimestamp
 	}
 
-	return k.createOutgoingPacket(ctx, portID, activeChannelID, destinationPort, destinationChannel, chanCap, icaPacketData, timeoutTimestamp)
+	return k.createOutgoingPacket(ctx, portID, channelID, destinationPort, destinationChannel, chanCap, icaPacketData, timeoutTimestamp)
 }
 
 func (k Keeper) createOutgoingPacket(

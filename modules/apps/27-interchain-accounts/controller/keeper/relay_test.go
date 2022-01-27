@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"channel does not exist",
 			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, "channel-100")
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, "channel-100")
 			},
 			false,
 		},
@@ -160,7 +160,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 
 			tc.malleate() // malleate mutates test data
 
-			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
+			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, path.EndpointA.ChannelID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
