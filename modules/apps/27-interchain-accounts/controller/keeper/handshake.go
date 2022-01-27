@@ -93,7 +93,7 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	k.SetActiveChannelID(ctx, portID, channelID)
-	k.SetInterchainAccountAddress(ctx, metadata.HostConnectionId, portID, metadata.Address)
+	k.SetInterchainAccountAddress(ctx, metadata.ControllerConnectionId, portID, metadata.Address)
 
 	return nil
 }
