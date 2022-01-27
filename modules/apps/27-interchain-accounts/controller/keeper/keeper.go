@@ -102,7 +102,7 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetActiveChannelID retrieves the active channelID from the store, keyed by the provided portID
+// GetActiveChannelID retrieves the active channelID from the store, keyed by the provided connectionID and portID
 func (k Keeper) GetActiveChannelID(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := icatypes.KeyActiveChannel(connectionID, portID)
@@ -114,7 +114,7 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, connectionID, portID string)
 	return string(store.Get(key)), true
 }
 
-// GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided portID & checks if the channel in question is in state OPEN
+// GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided connectionID and portID & checks if the channel in question is in state OPEN
 func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	channelID, found := k.GetActiveChannelID(ctx, connectionID, portID)
 	if !found {
@@ -130,7 +130,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 	return "", false
 }
 
-// GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated port identifiers
+// GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers
 func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []icatypes.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
@@ -152,13 +152,13 @@ func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []icatypes.ActiveChannel {
 	return activeChannels
 }
 
-// SetActiveChannelID stores the active channelID, keyed by the provided portID
+// SetActiveChannelID stores the active channelID, keyed by the provided connectionID and portID
 func (k Keeper) SetActiveChannelID(ctx sdk.Context, connectionID, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyActiveChannel(connectionID, portID), []byte(channelID))
 }
 
-// IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
+// IsActiveChannel returns true if there exists an active channel for the provided connectionID and portID, otherwise false
 func (k Keeper) IsActiveChannel(ctx sdk.Context, connectionID, portID string) bool {
 	_, ok := k.GetActiveChannelID(ctx, connectionID, portID)
 	return ok
