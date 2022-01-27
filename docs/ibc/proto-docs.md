@@ -316,6 +316,7 @@ ActiveChannel contains a pairing of port ID and channel ID for an active interch
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
 

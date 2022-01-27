@@ -38,8 +38,9 @@ message HostGenesisState {
 
 // ActiveChannel contains a pairing of port ID and channel ID for an active interchain accounts channel
 message ActiveChannel {
-  string port_id    = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
-  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string connection_id = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  string port_id       = 2 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string channel_id    = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
 // RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
