@@ -30,7 +30,10 @@ require (
 
 require github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
 
-require github.com/snowfork/go-substrate-rpc-client/v4 v4.0.0
+require (
+	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0
+	github.com/snowfork/go-substrate-rpc-client/v4 v4.0.0
+)
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
