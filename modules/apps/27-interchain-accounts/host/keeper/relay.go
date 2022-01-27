@@ -43,30 +43,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) (txRes
 	}
 }
 
-// authenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
-// from state using the provided controller port identifier
-func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
-	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portID)
-	if !found {
-		return sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
-	}
-
-	allowMsgs := k.GetAllowMessages(ctx)
-	for _, msg := range msgs {
-		if !types.ContainsMsgType(allowMsgs, msg) {
-			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
-		}
-
-		for _, signer := range msg.GetSigners() {
-			if interchainAccountAddr != signer.String() {
-				return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, signer.String())
-			}
-		}
-	}
-
-	return nil
-}
-
 func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) ([]*codectypes.Any, error) {
 	if err := k.authenticateTx(ctx, msgs, sourcePort); err != nil {
 		return nil, err
@@ -95,6 +71,30 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 	writeCache()
 
 	return msgResponses, nil
+}
+
+// authenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
+// from state using the provided controller port identifier
+func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, portID string) error {
+	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, portID)
+	if !found {
+		return sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)
+	}
+
+	allowMsgs := k.GetAllowMessages(ctx)
+	for _, msg := range msgs {
+		if !types.ContainsMsgType(allowMsgs, msg) {
+			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
+		}
+
+		for _, signer := range msg.GetSigners() {
+			if interchainAccountAddr != signer.String() {
+				return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, signer.String())
+			}
+		}
+	}
+
+	return nil
 }
 
 // Attempts to get the message handler from the router and if found will then execute the message
