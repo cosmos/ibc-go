@@ -46,9 +46,9 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -65,7 +65,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 
 // SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
 func SetupICAPath(path *ibctesting.Path, owner string) error {
-	if err := InitInterchainAccount(path.EndpointA, owner); err != nil {
+	if err := RegisterInterchainAccount(path.EndpointA, owner); err != nil {
 		return err
 	}
 
@@ -84,8 +84,8 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return nil
 }
 
-// InitInterchainAccount is a helper function for starting the channel handshake
-func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+// RegisterInterchainAccount is a helper function for starting the channel handshake
+func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner); err != nil {
 		return err
 	}
 
