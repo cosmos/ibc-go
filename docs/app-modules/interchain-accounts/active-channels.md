@@ -6,7 +6,7 @@ order: 3
 
 The Interchain Accounts module uses [ORDERED channels](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#ordering) to maintain the order of transactions when sending packets from a controller to a host chain. A limitation when using ORDERED channels is that when a packet times out the channel will be closed. 
 
-In the case of a channel closing a Controller chain needs to be able to regain access to the interchain account registered on this channel. `Active Channels` enable this functionality. Future versions of the ICS-27 protocol and the Interchain Accounts module will likely use a new 
+In the case of a channel closing, a controller chain needs to be able to regain access to the interchain account registered on this channel. `Active Channels` enable this functionality. Future versions of the ICS-27 protocol and the Interchain Accounts module will likely use a new 
 channel type that provides ordering of packets without the channel closing on timing out, thus removing the need for `Active Channels` entirely.  
 
 When an Interchain Account is registered using the `RegisterInterchainAccount` API, a new channel is created on a particular port. During the `OnChanOpenAck` and `OnChanOpenConfirm` steps (controller & host chain) the `Active Channel` for this interchain account
