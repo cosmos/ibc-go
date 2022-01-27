@@ -410,6 +410,7 @@ TM_P2P              = third_party/proto/tendermint/p2p
 
 SDK_QUERY 			= third_party/proto/cosmos/base/query/v1beta1
 SDK_BASE 			= third_party/proto/cosmos/base/v1beta1
+SDK_BASE_ABCI 			= third_party/proto/cosmos/base/abci/v1beta1
 SDK_UPGRADE			= third_party/proto/cosmos/upgrade
 
 GOGO_PROTO_TYPES    = third_party/proto/gogoproto
@@ -425,6 +426,9 @@ proto-update-deps:
 	@mkdir -p $(SDK_BASE)
 	@curl -sSL $(SDK_PROTO_URL)/base/v1beta1/coin.proto > $(SDK_BASE)/coin.proto
 
+	@mkdir -p $(SDK_BASE_ABCI)
+	@curl -sSL $(SDK_PROTO_URL)/base/abci/v1beta1/abci.proto > $(SDK_BASE_ABCI)/abci.proto
+
 	@mkdir -p $(SDK_UPGRADE)
 	@curl -sSL $(SDK_PROTO_URL)/upgrade/v1beta1/upgrade.proto > $(SDK_UPGRADE)/v1beta1/upgrade.proto
 
@@ -432,9 +436,13 @@ proto-update-deps:
 ## use of `sed` in order to build properly with cosmos-sdk's proto file layout
 ## (which is the standard Buf.build FILE_LAYOUT)
 ## Issue link: https://github.com/tendermint/tendermint/issues/5021
+	@mkdir -p $(TM_ABCI_TYPES)
+	@curl -sSL $(TM_URL)/abci/types.proto > $(TM_ABCI_TYPES)/types.proto
+
 	@mkdir -p $(TM_TYPES)
 	@curl -sSL $(TM_URL)/types/types.proto > $(TM_TYPES)/types.proto
 	@curl -sSL $(TM_URL)/types/validator.proto > $(TM_TYPES)/validator.proto
+	@curl -sSL $(TM_URL)/types/params.proto > $(TM_TYPES)/params.proto
 
 	@mkdir -p $(TM_VERSION)
 	@curl -sSL $(TM_URL)/version/types.proto > $(TM_VERSION)/types.proto

@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package ibc.applications.interchain_accounts.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types";
+
+import "google/protobuf/any.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/abci/v1beta1/abci.proto";
+
+// TxMsgData defines a list of MsgData. A transaction will have a MsgData object
+// for each message.
+message TxMsgData {
+  option (gogoproto.goproto_stringer) = true;
+
+  // data field is deprecated and not populated.
+  repeated cosmos.base.abci.v1beta1.MsgData data = 1 [deprecated = true];
+
+  // msg_responses contains the Msg handler responses packed into Anys.
+  //
+  // Since: cosmos-sdk 0.45
+  repeated google.protobuf.Any msg_responses = 2;
+}

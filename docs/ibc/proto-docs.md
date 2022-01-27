@@ -23,6 +23,9 @@
   
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
+- [ibc/applications/interchain_accounts/v1/sdk.proto](#ibc/applications/interchain_accounts/v1/sdk.proto)
+    - [TxMsgData](#ibc.applications.interchain_accounts.v1.TxMsgData)
+  
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
     - [Params](#ibc.applications.transfer.v1.Params)
@@ -488,6 +491,41 @@ host
 | TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
 | TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
 
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/sdk.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/sdk.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.TxMsgData"></a>
+
+### TxMsgData
+TxMsgData defines a list of MsgData. A transaction will have a MsgData object
+for each message.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [cosmos.base.abci.v1beta1.MsgData](#cosmos.base.abci.v1beta1.MsgData) | repeated | **Deprecated.** data field is deprecated and not populated. |
+| `msg_responses` | [google.protobuf.Any](#google.protobuf.Any) | repeated | msg_responses contains the Msg handler responses packed into Anys.
+
+Since: cosmos-sdk 0.45 |
+
+
+
+
+
+ <!-- end messages -->
 
  <!-- end enums -->
 
