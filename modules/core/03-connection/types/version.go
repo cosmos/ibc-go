@@ -11,7 +11,7 @@ import (
 var (
 	// DefaultIBCVersion represents the latest supported version of IBC used
 	// in connection version negotiation. The current version supports only
-	// ORDERED and UNORDERED channels and requires at least one channel type
+	// ORDERED, ORDERED_ALLOW_TIMEOUT and UNORDERED channels and requires at least one channel type
 	// to be agreed upon.
 	DefaultIBCVersion = NewVersion(DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED", "ORDER_ORDERED_ALLOW_TIMEOUT", "ORDER_UNORDERED"})
 
