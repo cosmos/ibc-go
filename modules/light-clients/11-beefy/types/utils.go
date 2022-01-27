@@ -43,6 +43,7 @@ func DecodeFromHexString(str string, target interface{}) error {
 	if err != nil {
 		return err
 	}
+	scale.NewDecoder(bytes.NewReader(bz)).Decode(target)
 	return DecodeFromBytes(bz, target)
 }
 
