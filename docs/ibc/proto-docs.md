@@ -311,7 +311,7 @@ An InterchainAccount is defined as a BaseAccount & the address of the account ow
 <a name="ibc.applications.interchain_accounts.v1.ActiveChannel"></a>
 
 ### ActiveChannel
-ActiveChannel contains a conection ID, port ID and associated active channel ID
+ActiveChannel contains a connection ID, port ID and associated active channel ID
 
 
 | Field | Type | Label | Description |

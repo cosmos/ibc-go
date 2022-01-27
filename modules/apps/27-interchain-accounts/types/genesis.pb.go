@@ -216,7 +216,7 @@ func (m *HostGenesisState) GetParams() types1.Params {
 	return types1.Params{}
 }
 
-// ActiveChannel contains a conection ID, port ID and associated active channel ID
+// ActiveChannel contains a connection ID, port ID and associated active channel ID
 type ActiveChannel struct {
 	ConnectionId string `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
 	PortId       string `protobuf:"bytes,2,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
