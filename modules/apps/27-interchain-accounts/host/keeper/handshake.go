@@ -82,6 +82,7 @@ func (k Keeper) OnChanOpenConfirm(
 		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
+	// There can only be one active channel per connectionID/portID so we can overwrite if active channel exists in state already
 	k.SetActiveChannelID(ctx, channel.ConnectionHops[0], portID, channelID)
 
 	return nil
