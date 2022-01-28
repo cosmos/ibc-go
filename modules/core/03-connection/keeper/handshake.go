@@ -50,7 +50,7 @@ func (k Keeper) ConnOpenInit(
 		telemetry.IncrCounter(1, "ibc", "connection", "open-init")
 	}()
 
-	EmitOpenConnectionInitEvent(ctx, connectionID, clientID, counterparty)
+	EmitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
 
 	return connectionID, nil
 }

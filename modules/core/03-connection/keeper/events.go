@@ -5,8 +5,8 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 )
 
-// EmitOpenConnectionInitEvent emits an open connection init event
-func EmitOpenConnectionInitEvent(ctx sdk.Context, connectionID string, clientID string, counterparty types.Counterparty) {
+// EmitConnectionOpenInitEvent emits a connection open init event
+func EmitConnectionOpenInitEvent(ctx sdk.Context, connectionID string, clientID string, counterparty types.Counterparty) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeConnectionOpenInit,

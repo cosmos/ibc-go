@@ -70,7 +70,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	EmitUpdateClientProposaEvent(ctx, p.SubjectClientId, clientState)
+	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, clientState)
 
 	return nil
 }

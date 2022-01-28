@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
@@ -54,8 +55,8 @@ func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 	})
 }
 
-// EmitUpdateClientProposaEvent emits an update client proposal event
-func EmitUpdateClientProposaEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+// EmitUpdateClientProposalEvent emits an update client proposal event
+func EmitUpdateClientProposalEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeUpdateClientProposal,
