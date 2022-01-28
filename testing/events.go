@@ -60,7 +60,7 @@ func ParseChannelIDFromEvents(events sdk.Events) (string, error) {
 // acknowledgement.
 func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 	for _, ev := range events {
-		if ev.Type == channeltypes.EventTypeRecvPacket {
+		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
 				if string(attr.Key) == channeltypes.AttributeKeyAck {
 					return attr.Value, nil
