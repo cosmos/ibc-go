@@ -83,7 +83,7 @@ func (k Keeper) OnChanOpenConfirm(
 	}
 
 	// There can only be one active channel per connectionID/portID so we can overwrite if active channel exists in state already
-	k.SetActiveChannelID(ctx, channel.ConnectionHops[0], portID, channelID)
+	k.SetActiveChannelID(ctx, channel.ConnectionHops[0], channel.Counterparty.PortId, channelID)
 
 	return nil
 }
