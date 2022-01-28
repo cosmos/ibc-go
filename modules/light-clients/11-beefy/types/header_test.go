@@ -2,8 +2,8 @@ package types_test
 
 import (
 	"bytes"
-	"github.com/centrifuge/go-substrate-rpc-client/scale"
-	substrateTypes "github.com/centrifuge/go-substrate-rpc-client/types"
+	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
+	substrateTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	"testing"
 	"time"

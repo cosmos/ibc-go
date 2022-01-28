@@ -121,7 +121,8 @@ var xxx_messageInfo_PayloadItem proto.InternalMessageInfo
 // Commitment message signed by beefy validators
 type Commitment struct {
 	// array of payload items signed by Beefy validators
-	Payload []*PayloadItem `protobuf:"bytes,1,rep,name=payload,proto3" json:"payload,omitempty"`
+	Payload []byte
+	// Payload []*PayloadItem `protobuf:"bytes,1,rep,name=payload,proto3" json:"payload,omitempty"`
 	// block number for this commitment
 	BlockNumer uint64 `protobuf:"varint,2,opt,name=block_numer,json=blockNumer,proto3" json:"block_numer,omitempty"`
 	// validator set that signed this commitment

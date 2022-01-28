@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	"github.com/snowfork/go-substrate-rpc-client/v4/scale"
-	"github.com/snowfork/go-substrate-rpc-client/v4/types"
+	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
+	"github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 )
 
 // ---------------------------------------------------------------------------------------------
