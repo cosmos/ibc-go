@@ -113,7 +113,7 @@ func (im IBCModule) OnRecvPacket(
 		// Emit an event including the error msg
 		keeper.EmitWriteErrorAcknowledgementEvent(ctx, packet, err)
 
-		return channeltypes.NewErrorAcknowledgement(icatypes.AcknowledgementError)
+		return types.NewErrorAcknowledgement(err)
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
