@@ -30,10 +30,7 @@ require (
 
 require github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
 
-require (
-	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0
-	github.com/snowfork/go-substrate-rpc-client/v4 v4.0.0
-)
+require github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
@@ -65,7 +62,7 @@ require (
 	github.com/cosmos/ledger-go v0.9.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/deckarep/golang-set v1.7.1 // indirect
+	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/base58 v1.0.3 // indirect
 	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -158,3 +155,5 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+replace github.com/ComposableFi/go-substrate-rpc-client/v4 => ../go-substrate-rpc-client

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
-	"github.com/centrifuge/go-substrate-rpc-client/scale"
-	substrateTypes "github.com/centrifuge/go-substrate-rpc-client/types"
+	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
+	substrateTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
