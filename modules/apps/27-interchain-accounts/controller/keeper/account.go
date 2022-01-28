@@ -21,13 +21,17 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner s
 		return err
 	}
 
-	if k.portKeeper.IsBound(ctx, portID) {
-		return sdkerrors.Wrap(icatypes.ErrPortAlreadyBound, portID)
+	// if there is an active channel for this portID / connectionID return an error
+	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
+	if found {
+		return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s for owner %s", activeChannelID, portID, connectionID, owner)
 	}
 
-	cap := k.BindPort(ctx, portID)
-	if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
-		return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
+	if !k.portKeeper.IsBound(ctx, portID) {
+		cap := k.BindPort(ctx, portID)
+		if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
+			return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
+		}
 	}
 
 	connectionEnd, err := k.channelKeeper.GetConnection(ctx, connectionID)

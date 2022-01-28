@@ -3,6 +3,7 @@ package keeper_test
 import (
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -22,11 +23,13 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 			"success", func() {}, true,
 		},
 		{
-			"port is already bound",
+			"port is already bound for owner",
 			func() {
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+				cap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+				err := suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), cap, host.PortPath(TestPortID))
+				suite.Require().NoError(err)
 			},
-			false,
+			true,
 		},
 		{
 			"fails to generate port-id",
