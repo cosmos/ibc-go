@@ -48,7 +48,7 @@ func (k Keeper) OnChanOpenTry(
 		return "", err
 	}
 
-	if activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionHops[0], portID); found {
+	if activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionHops[0], counterparty.PortId); found {
 		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
 
