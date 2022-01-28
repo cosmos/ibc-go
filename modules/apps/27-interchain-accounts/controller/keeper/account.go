@@ -27,7 +27,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner s
 		return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s for owner %s", activeChannelID, portID, connectionID, owner)
 	}
 
-	if !k.portKeeper.IsBound(ctx, portID) {
+	if !k.IsBound(ctx, portID) {
 		cap := k.BindPort(ctx, portID)
 		if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
 			return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
