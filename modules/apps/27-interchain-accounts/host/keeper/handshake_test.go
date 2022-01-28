@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, ch)
 
 				// set the active channelID in state
-				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			}, false,
 		},
 	}
@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			// set the channel id on host
@@ -187,6 +187,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 		{
 			"success", func() {}, true,
 		},
+		{
+			"channel not found",
+			func() {
+				path.EndpointB.ChannelID = "invalid-channel-id"
+				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -198,7 +206,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
@@ -210,7 +218,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			tc.malleate() // malleate mutates test data
 
 			err = suite.chainB.GetSimApp().ICAHostKeeper.OnChanOpenConfirm(suite.chainB.GetContext(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
