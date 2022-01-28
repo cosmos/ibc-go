@@ -5,7 +5,7 @@ import (
 	"strings"
 	"encoding/hex"
 
-	"github.com/centrifuge/go-substrate-rpc-client/scale"
+	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
 )
 
 // Decode decodes an encoded type to a target type. It takes encoded bytes and target interface as arguments and

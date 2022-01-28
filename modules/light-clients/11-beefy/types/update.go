@@ -65,7 +65,7 @@ func (b Keccak256) Hash(data []byte) ([]byte, error) {
 // UpdateClient will additionally retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
 // becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
-func (cs ClientState) CheckHeaderAndUpdateState(
+func (cs *ClientState) CheckHeaderAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
 	header exported.Header,
 ) (exported.ClientState, exported.ConsensusState, error) {
@@ -129,9 +129,10 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 
 		// only update if we have a higher block number.
 		if signedCommitment.Commitment.BlockNumer > cs.LatestBeefyHeight {
-			for _, payload := range signedCommitment.Commitment.Payload {
+			payload := signedCommitment.Commitment.Payload
+			// for _, payload := range signedCommitment.Commitment.Payload {
 				// checks for the right payloadId
-				if reflect.DeepEqual(payload.PayloadId, []byte("mh")) {
+				// if reflect.DeepEqual(payload.PayloadId, []byte("mh")) {
 					// the next authorities are in the latest BeefyMmrLeaf
 					mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
 					if err != nil {
@@ -147,21 +148,21 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 					}
 					mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
 					// verify that the leaf is valid, for the signed mmr-root-hash
-					if !mmrProof.Verify(payload.PayloadData) {
+					if !mmrProof.Verify(payload) {
 						return nil, nil, err // error!, mmr proof is invalid
 					}
 					// update the block_number
 					cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
 					// updates the mmr_root_hash
-					cs.MmrRootHash = payload.PayloadData
+					cs.MmrRootHash = payload
 					// authority set has changed, rotate our view of the authorities
 					if updatedAuthority {
 						cs.Authority = cs.NextAuthoritySet
 						// mmr leaf has been verified, use it to update our view of the next authority set
 						cs.NextAuthoritySet = &mmrUpdateProof.MmrLeaf.BeefyNextAuthoritySet
-					}
-					break
-				}
+					// }
+					// break
+				// }
 			}
 		}
 	}
@@ -215,6 +216,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 			// in this case the leaf index is activation block - current block number.
 			leafIndex = cs.BeefyActivationBlock - (parachainHeader.MmrLeafPartial.ParentNumber + 1)
 		}
+
 
 		mmrData := mmr.Leaf{
 			Hash:  crypto.Keccak256(mmrLeafBytes),
