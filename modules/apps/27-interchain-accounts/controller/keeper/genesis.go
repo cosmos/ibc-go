@@ -21,7 +21,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesi
 	}
 
 	for _, ch := range state.ActiveChannels {
-		keeper.SetActiveChannelID(ctx, ch.PortId, ch.ChannelId)
+		keeper.SetActiveChannelID(ctx, ch.ConnectionId, ch.PortId, ch.ChannelId)
 	}
 
 	for _, acc := range state.InterchainAccounts {
