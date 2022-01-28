@@ -52,7 +52,7 @@ func (k Keeper) OnChanOpenInit(
 
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionHops[0], portID)
 	if found {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", activeChannelID, portID)
+		return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
 
 	return nil
