@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -10,7 +11,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/crypto"
-	"reflect"
 )
 
 type Keccak256 struct{}
@@ -131,37 +131,37 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		if signedCommitment.Commitment.BlockNumer > cs.LatestBeefyHeight {
 			payload := signedCommitment.Commitment.Payload
 			// for _, payload := range signedCommitment.Commitment.Payload {
-				// checks for the right payloadId
-				// if reflect.DeepEqual(payload.PayloadId, []byte("mh")) {
-					// the next authorities are in the latest BeefyMmrLeaf
-					mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
-					if err != nil {
-						return nil, nil, err
-					}
-					// we treat this leaf as the latest leaf in the mmr
-					mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
-					mmrLeaves := []mmr.Leaf{
-						{
-							Hash:  crypto.Keccak256(mmrLeafBytes),
-							Index: mmrUpdateProof.MmrLeafIndex,
-						},
-					}
-					mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
-					// verify that the leaf is valid, for the signed mmr-root-hash
-					if !mmrProof.Verify(payload) {
-						return nil, nil, err // error!, mmr proof is invalid
-					}
-					// update the block_number
-					cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
-					// updates the mmr_root_hash
-					cs.MmrRootHash = payload
-					// authority set has changed, rotate our view of the authorities
-					if updatedAuthority {
-						cs.Authority = cs.NextAuthoritySet
-						// mmr leaf has been verified, use it to update our view of the next authority set
-						cs.NextAuthoritySet = &mmrUpdateProof.MmrLeaf.BeefyNextAuthoritySet
-					// }
-					// break
+			// checks for the right payloadId
+			// if reflect.DeepEqual(payload.PayloadId, []byte("mh")) {
+			// the next authorities are in the latest BeefyMmrLeaf
+			mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
+			if err != nil {
+				return nil, nil, err
+			}
+			// we treat this leaf as the latest leaf in the mmr
+			mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
+			mmrLeaves := []mmr.Leaf{
+				{
+					Hash:  crypto.Keccak256(mmrLeafBytes),
+					Index: mmrUpdateProof.MmrLeafIndex,
+				},
+			}
+			mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
+			// verify that the leaf is valid, for the signed mmr-root-hash
+			if !mmrProof.Verify(payload) {
+				return nil, nil, err // error!, mmr proof is invalid
+			}
+			// update the block_number
+			cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
+			// updates the mmr_root_hash
+			cs.MmrRootHash = payload
+			// authority set has changed, rotate our view of the authorities
+			if updatedAuthority {
+				cs.Authority = cs.NextAuthoritySet
+				// mmr leaf has been verified, use it to update our view of the next authority set
+				cs.NextAuthoritySet = &mmrUpdateProof.MmrLeaf.BeefyNextAuthoritySet
+				// }
+				// break
 				// }
 			}
 		}
@@ -216,7 +216,6 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			// in this case the leaf index is activation block - current block number.
 			leafIndex = cs.BeefyActivationBlock - (parachainHeader.MmrLeafPartial.ParentNumber + 1)
 		}
-
 
 		mmrData := mmr.Leaf{
 			Hash:  crypto.Keccak256(mmrLeafBytes),
