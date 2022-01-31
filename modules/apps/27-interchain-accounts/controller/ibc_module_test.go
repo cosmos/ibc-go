@@ -690,12 +690,10 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 
 			suite.Require().NotEqual(accAddressChainA, accAddressChainC)
 
-			// TODO: Update icatypes.PortID to pathAToB.EndpointA.ChannelConfig.PortID
-			chainAChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathAToB.EndpointB.ConnectionID, icatypes.PortID)
+			chainAChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathAToB.EndpointB.ConnectionID, pathAToB.EndpointA.ChannelConfig.PortID)
 			suite.Require().True(found)
 
-			// TODO: Update icatypes.PortID to pathCToB.EndpointA.ChannelConfig.PortID
-			chainCChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathCToB.EndpointB.ConnectionID, icatypes.PortID)
+			chainCChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathCToB.EndpointB.ConnectionID, pathCToB.EndpointA.ChannelConfig.PortID)
 			suite.Require().True(found)
 
 			suite.Require().NotEqual(chainAChannelID, chainCChannelID)
