@@ -667,7 +667,7 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 			suite.Require().NoError(err)
 
 			// Setup a new path from C(controller) -> B(host)
-			// NOTE: Here the version metadata is overridden to include to the next controller connection sequence (i.e. chainC's connection to chainB)
+			// NOTE: Here the version metadata is overridden to include to the next host connection sequence (i.e. chainB's connection to chainC)
 			nextConnectionSeq := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetNextConnectionSequence(suite.chainB.GetContext())
 			TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
 				Version:                icatypes.Version,
