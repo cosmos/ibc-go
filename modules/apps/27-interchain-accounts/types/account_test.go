@@ -34,8 +34,8 @@ type TypesTestSuite struct {
 func (suite *TypesTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestTypesTestSuite(t *testing.T) {
@@ -43,7 +43,7 @@ func TestTypesTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestGenerateAddress() {
-	addr := types.GenerateAddress([]byte{}, "test-port-id")
+	addr := types.GenerateAddress([]byte{}, "test-connection-id", "test-port-id")
 	accAddr, err := sdk.AccAddressFromBech32(addr.String())
 
 	suite.Require().NoError(err, "TestGenerateAddress failed")
