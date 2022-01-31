@@ -3,25 +3,45 @@ package types_test
 import (
 	"context"
 	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"testing"
 
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
+	client "github.com/ComposableFi/go-substrate-rpc-client/v4"
+	clientTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	client "github.com/ComposableFi/go-substrate-rpc-client/v4"
-	clientTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 )
-  
+
+type logCommitment struct {
+	blockNumber    clientTypes.U32                    `json:"block_number"`
+	payload        string                             `json:"payload"`
+	validatorSetID clientTypes.U64                    `json:"validator_set_id"`
+	signatures     []clientTypes.OptionBeefySignature `json:"signatures"`
+	rawMessage     string                             `json:"raw_message"`
+}
+
+func PrettyPrint(v interface{}) (err error) {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Witnessed a new BEEFY commitment. %s \n", string(b))
+	return nil
+}
+
 func TestCheckHeaderAndUpdateState(t *testing.T) {
 
-	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
+	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:65353")
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("==== connected! ==== \n")
 
 	// _parachainApi, err := client.NewSubstrateAPI("wss://127.0.0.1:9988")
 	// if err != nil {
@@ -41,7 +61,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-
+	fmt.Printf("====== subcribed! ======\n")
 	var clientState *types.ClientState
 	defer sub.Unsubscribe()
 
@@ -53,28 +73,34 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			signedCommitment := &clientTypes.SignedCommitment{}
-			t.Logf("Got commitment %s", msg.(string))
 
 			err := types.DecodeFromHexString(msg.(string), signedCommitment)
 			if err != nil {
-				//panic("Failed to decode BEEFY commitment messages ")
 				panic(err.Error())
 			}
 
-			t.Logf("Witnessed a new BEEFY commitment. %v \n", map[string]interface{}{
-				"signedCommitment.Commitment.BlockNumber":    signedCommitment.Commitment.BlockNumber,
-				"signedCommitment.Commitment.Payload":        signedCommitment.Commitment.Payload.Hex(),
-				"signedCommitment.Commitment.ValidatorSetID": signedCommitment.Commitment.ValidatorSetID,
-				"signedCommitment.Signatures":                signedCommitment.Signatures,
-				"rawMessage":                                 msg.(string),
-			})
+			output := logCommitment{
+				blockNumber:    signedCommitment.Commitment.BlockNumber,
+				payload:        signedCommitment.Commitment.Payload.Hex(),
+				validatorSetID: signedCommitment.Commitment.ValidatorSetID,
+			}
+			fmt.Printf("Witnessed a new BEEFY commitment. %+v \n", output)
 
-			blockHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(signedCommitment.Commitment.BlockNumber))
+			// fmt.Printf("Witnessed a new BEEFY commitment. %+v \n", logCommitment{
+			// 	blockNumber:    signedCommitment.Commitment.BlockNumber,
+			// 	payload:        signedCommitment.Commitment.Payload.Hex(),
+			// 	validatorSetID: signedCommitment.Commitment.ValidatorSetID,
+			// 	rawMessage:     msg.(string),
+			// 	signatures:     signedCommitment.Signatures,
+			// })
+
+			blockNumber := uint64(signedCommitment.Commitment.BlockNumber)
+			blockHash, err := relayApi.RPC.Chain.GetBlockHash(blockNumber)
 			if err != nil {
 				panic(err)
 			}
 
-			authorities, err := getBeefyAuthorities(uint64(signedCommitment.Commitment.BlockNumber), relayApi, "Authorities")
+			authorities, err := getBeefyAuthorities(blockNumber, relayApi, "Authorities")
 			if err != nil {
 				panic(err)
 			}
@@ -83,7 +109,13 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			if err != nil {
 				panic("Failed to decode BEEFY commitment messages")
 			}
-			nextAuthorities, err := getBeefyAuthorities(uint64(signedCommitment.Commitment.BlockNumber), relayApi, "NextAuthorities")
+
+			// Log paraHeads as hex strings
+			for k, v := range paraHeads {
+				fmt.Printf("key: %d, paraHead: %s\n", k, hex.EncodeToString(v))
+			}
+
+			nextAuthorities, err := getBeefyAuthorities(blockNumber, relayApi, "NextAuthorities")
 			if err != nil {
 				panic(err)
 			}
@@ -110,7 +142,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			if clientState == nil {
 				clientState = &types.ClientState{
 					MmrRootHash:          signedCommitment.Commitment.Payload[:],
-					LatestBeefyHeight:    uint64(signedCommitment.Commitment.BlockNumber),
+					LatestBeefyHeight:    blockNumber,
 					BeefyActivationBlock: 0,
 					Authority: &types.BeefyAuthoritySet{
 						Id:            uint64(signedCommitment.Commitment.ValidatorSetID),
@@ -123,7 +155,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 						AuthorityRoot: nextAuthorityTree.Root(),
 					},
 				}
-				t.Logf("Initializing client state %v", clientState)
+				fmt.Printf("Initializing client state %v", clientState)
 				continue
 			}
 
@@ -161,7 +193,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic(err)
 			}
 
-			mmrProofs, err := relayApi.RPC.MMR.GenerateProof(uint64(signedCommitment.Commitment.BlockNumber), blockHash)
+			// todo: convert block number to leafIndex
+			mmrProofs, err := relayApi.RPC.MMR.GenerateProof(blockNumber-1, blockHash)
 			if err != nil {
 				panic(err)
 			}
@@ -228,7 +261,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				},
 			}
 
-			clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
+			_, _, errs := clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
+			if errs != nil {
+				panic(errs)
+			}
+			fmt.Printf("====== successfully processed justification! ======\n")
+
 		}
 	}
 }
@@ -322,4 +360,3 @@ func fetchParaHeads(conn *client.SubstrateAPI, blockHash clientTypes.Hash) (map[
 
 	return heads, nil
 }
-

@@ -46,7 +46,7 @@ message Commitment {
   option (gogoproto.goproto_getters) = false;
 
   // array of payload items signed by Beefy validators
-  repeated PayloadItem payload = 1;
+  bytes payload = 1;
 
   // block number for this commitment
   uint64 block_numer = 2;

@@ -211,7 +211,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		// calculate the leafIndex for this leaf.
 		if cs.BeefyActivationBlock == 0 {
 			// in this case the leaf index is the same as the block number.
-			leafIndex = parachainHeader.MmrLeafPartial.ParentNumber + 1
+			leafIndex = parachainHeader.MmrLeafPartial.ParentNumber 
 		} else {
 			// in this case the leaf index is activation block - current block number.
 			leafIndex = cs.BeefyActivationBlock - (parachainHeader.MmrLeafPartial.ParentNumber + 1)
