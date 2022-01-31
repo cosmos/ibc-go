@@ -30,7 +30,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner s
 	if !k.IsBound(ctx, portID) {
 		cap := k.BindPort(ctx, portID)
 		if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
-			return sdkerrors.Wrap(err, "unable to bind to newly generated portID")
+			return sdkerrors.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
 		}
 	}
 
