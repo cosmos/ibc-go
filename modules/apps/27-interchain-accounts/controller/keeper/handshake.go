@@ -9,7 +9,6 @@ import (
 
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.
@@ -50,9 +49,9 @@ func (k Keeper) OnChanOpenInit(
 		return err
 	}
 
-	activeChannelID, found := k.GetOpenActiveChannel(ctx, portID)
+	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionHops[0], portID)
 	if found {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "existing active channel %s for portID %s", activeChannelID, portID)
+		return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
 
 	return nil
@@ -79,6 +78,10 @@ func (k Keeper) OnChanOpenAck(
 		return sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 
+	if activeChannelID, found := k.GetOpenActiveChannel(ctx, metadata.ControllerConnectionId, portID); found {
+		return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
+	}
+
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
@@ -92,8 +95,8 @@ func (k Keeper) OnChanOpenAck(
 		return sdkerrors.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be empty")
 	}
 
-	k.SetActiveChannelID(ctx, portID, channelID)
-	k.SetInterchainAccountAddress(ctx, portID, metadata.Address)
+	k.SetActiveChannelID(ctx, metadata.ControllerConnectionId, portID, channelID)
+	k.SetInterchainAccountAddress(ctx, metadata.ControllerConnectionId, portID, metadata.Address)
 
 	return nil
 }
