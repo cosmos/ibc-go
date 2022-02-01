@@ -17,7 +17,7 @@ message ClientState {
   bytes mmr_root_hash = 3;
 
   // block number for the latest mmr_root_hash
-  uint64 latest_beefy_height = 4;
+  uint32 latest_beefy_height = 4;
 
   // block number that the beefy protocol was activated on the relay chain.
   // This shoould be the first block in the merkle-mountain-range tree.
@@ -46,10 +46,10 @@ message Commitment {
   option (gogoproto.goproto_getters) = false;
 
   // array of payload items signed by Beefy validators
-  bytes payload = 1;
+  bytes payload = 1 [(gogoproto.customtype) = "[32]byte"];
 
   // block number for this commitment
-  uint64 block_numer = 2;
+  uint32 block_numer = 2;
 
   // validator set that signed this commitment
   uint64 validator_set_id = 3;

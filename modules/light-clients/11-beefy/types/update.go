@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/binary"
+	"encoding/hex"
+	"fmt"
 
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
@@ -89,20 +91,32 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			return nil, nil, err
 		}
 		// take keccak hash of the commitment scale-encoded
-		commitmentHash := crypto.Keccak256(commitmentBytes) // todo: implement encode
+		commitmentHash := crypto.Keccak256(commitmentBytes)
+
+		fmt.Printf(
+			"\ncommitmentBytes: %s\ncommitmentHash: %s",
+			hex.EncodeToString(commitmentBytes),
+			hex.EncodeToString(commitmentHash),
+		)
 
 		// array of leaves in the authority merkle root.
 		var authorityLeaves []merkle.Leaf
 
 		for _, signature := range signedCommitment.Signatures {
 			// recover uncompressed public key from signature
-			pubkey, _ := crypto.Ecrecover(commitmentHash, signature.Signature)
+			pubkey, err := crypto.Ecrecover(commitmentHash, signature.Signature)
+			
+			if err != nil {
+				return nil, nil, err
+			}
+
 			// convert public key to ethereum address.
 			address := crypto.Keccak256(pubkey[1:])[12:]
 			authorityLeaf := merkle.Leaf{
-				Hash:  crypto.Keccak256(address),
+				Hash:  crypto.Keccak256(address[:]),
 				Index: signature.AuthorityIndex,
 			}
+			fmt.Printf("\nderived: Index: %d, Address: %s\n", signature.AuthorityIndex, hex.EncodeToString(address[:]))
 			authorityLeaves = append(authorityLeaves, authorityLeaf)
 		}
 
@@ -112,6 +126,8 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		switch signedCommitment.Commitment.ValidatorSetId {
 		case cs.Authority.Id:
 			authoritiesProof := merkle.NewProof(authorityLeaves, proof, cs.Authority.Len, Keccak256{})
+			root, _ := authoritiesProof.RootHex()
+			fmt.Printf("\nDerivedProof: %s\n", root)
 			valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot)
 			if err != nil || !valid {
 				return nil, nil, nil
@@ -148,13 +164,13 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			}
 			mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
 			// verify that the leaf is valid, for the signed mmr-root-hash
-			if !mmrProof.Verify(payload) {
+			if !mmrProof.Verify(payload[:]) {
 				return nil, nil, err // error!, mmr proof is invalid
 			}
 			// update the block_number
 			cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
 			// updates the mmr_root_hash
-			cs.MmrRootHash = payload
+			cs.MmrRootHash = payload[:]
 			// authority set has changed, rotate our view of the authorities
 			if updatedAuthority {
 				cs.Authority = cs.NextAuthoritySet
@@ -211,7 +227,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		// calculate the leafIndex for this leaf.
 		if cs.BeefyActivationBlock == 0 {
 			// in this case the leaf index is the same as the block number.
-			leafIndex = parachainHeader.MmrLeafPartial.ParentNumber 
+			leafIndex = parachainHeader.MmrLeafPartial.ParentNumber
 		} else {
 			// in this case the leaf index is activation block - current block number.
 			leafIndex = cs.BeefyActivationBlock - (parachainHeader.MmrLeafPartial.ParentNumber + 1)

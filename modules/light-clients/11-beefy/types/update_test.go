@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"sort"
 	"testing"
 
@@ -85,6 +86,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				validatorSetID: signedCommitment.Commitment.ValidatorSetID,
 			}
 			fmt.Printf("Witnessed a new BEEFY commitment. %+v \n", output)
+			blockNumber := uint32(signedCommitment.Commitment.BlockNumber)
+
+			if clientState != nil && clientState.LatestBeefyHeight >= blockNumber {
+				fmt.Printf("Skipping stale Commitment for block: %d", signedCommitment.Commitment.BlockNumber)
+				continue
+			}
 
 			// fmt.Printf("Witnessed a new BEEFY commitment. %+v \n", logCommitment{
 			// 	blockNumber:    signedCommitment.Commitment.BlockNumber,
@@ -94,8 +101,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			// 	signatures:     signedCommitment.Signatures,
 			// })
 
-			blockNumber := uint64(signedCommitment.Commitment.BlockNumber)
-			blockHash, err := relayApi.RPC.Chain.GetBlockHash(blockNumber)
+			blockHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(blockNumber))
 			if err != nil {
 				panic(err)
 			}
@@ -121,8 +127,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			var authorityLeaves [][]byte
-			for _, v := range authorities {
-				authorityLeaves = append(authorityLeaves, crypto.Keccak256(v))
+			for i, v := range authorities {
+				hash := crypto.Keccak256(v)
+				fmt.Printf("authorityLeaves: Index: %d,  Address: %s\n", i, hex.EncodeToString(v))
+				authorityLeaves = append(authorityLeaves, hash)
 			}
 
 			var nextAuthorityLeaves [][]byte
@@ -155,7 +163,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 						AuthorityRoot: nextAuthorityTree.Root(),
 					},
 				}
-				fmt.Printf("Initializing client state %v", clientState)
+				fmt.Printf("\n\nInitializing client state\n\n")
 				continue
 			}
 
@@ -194,7 +202,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			// todo: convert block number to leafIndex
-			mmrProofs, err := relayApi.RPC.MMR.GenerateProof(blockNumber-1, blockHash)
+			mmrProofs, err := relayApi.RPC.MMR.GenerateProof(uint64(blockNumber)-1, blockHash)
 			if err != nil {
 				panic(err)
 			}
@@ -225,6 +233,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 			var signatures []*types.CommitmentSignature
 			var authorityIndeces []uint32
+			// luckily for us, this is already sorted and maps to the right authority index in the authority root.
 			for i, v := range signedCommitment.Signatures {
 				if v.IsSome() {
 					_, sig := v.Unwrap()
@@ -235,6 +244,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					authorityIndeces = append(authorityIndeces, uint32(i))
 				}
 			}
+			var buf [32]byte
+			copy(buf[:], signedCommitment.Commitment.Payload[:])
 			header := types.Header{
 				ParachainHeaders: parachainHeader,
 				MmrProofs:        proofItems,
@@ -245,14 +256,19 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 						ParentNumber:   uint64(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
 						ParentHash:     mmrProofs.Leaf.ParentNumberAndHash.Hash[:],
 						ParachainHeads: mmrProofs.Leaf.ParachainHeads[:],
+						BeefyNextAuthoritySet: types.BeefyAuthoritySet{
+							Id:            uint64(mmrProofs.Leaf.BeefyNextAuthoritySet.ID),
+							Len:           uint32(mmrProofs.Leaf.BeefyNextAuthoritySet.Len),
+							AuthorityRoot: mmrProofs.Leaf.BeefyNextAuthoritySet.Root[:],
+						},
 					},
 					MmrLeafIndex: uint64(mmrProofs.Proof.LeafIndex),
 					MmrProof:     proofItems,
 					SignedCommitment: &types.SignedCommitment{
 						Commitment: &types.Commitment{
-							Payload: signedCommitment.Commitment.Payload[:],
+							Payload: &buf,
 							// Payload:        []*types.PayloadItem{{PayloadId: []byte("mh"), PayloadData: signedCommitment.Commitment.Payload[:]}},
-							BlockNumer:     uint64(signedCommitment.Commitment.BlockNumber),
+							BlockNumer:     uint32(signedCommitment.Commitment.BlockNumber),
 							ValidatorSetId: uint64(signedCommitment.Commitment.ValidatorSetID),
 						},
 						Signatures: signatures,
@@ -265,16 +281,49 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			if errs != nil {
 				panic(errs)
 			}
+
+			fmt.Printf("\nclientState.LatestBeefyHeight: %d\nclientState.MmrRootHash: %s\n", clientState.LatestBeefyHeight, hex.EncodeToString(clientState.MmrRootHash))
+
+			if clientState.LatestBeefyHeight != uint32(signedCommitment.Commitment.BlockNumber) && !reflect.DeepEqual(clientState.MmrRootHash, signedCommitment.Commitment.Payload) {
+				panic("\n\nfailed to update client state!\n")
+			}
 			fmt.Printf("====== successfully processed justification! ======\n")
 
 		}
 	}
 }
 
+func fetchBeefyNextAuthoritySet(blockHash clientTypes.Hash, conn *client.SubstrateAPI) (clientTypes.BeefyNextAuthoritySet, error) {
+	// Fetch metadata
+	meta, err := conn.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return clientTypes.BeefyNextAuthoritySet{}, err
+	}
+
+	storageKey, err := clientTypes.CreateStorageKey(meta, "MmrLeaf", "BeefyNextAuthorities", nil, nil)
+	if err != nil {
+		return clientTypes.BeefyNextAuthoritySet{}, err
+	}
+
+	var nextAuthorities clientTypes.BeefyNextAuthoritySet
+
+	ok, err := conn.RPC.State.GetStorage(storageKey, &nextAuthorities, blockHash)
+	if err != nil {
+		return clientTypes.BeefyNextAuthoritySet{}, err
+	}
+
+	if !ok {
+		return clientTypes.BeefyNextAuthoritySet{}, fmt.Errorf("Beefy authorities not found")
+	}
+
+	return nextAuthorities, nil
+
+}
+
 type Authorities = [][33]uint8
 
-func getBeefyAuthorities(blockNumber uint64, conn *client.SubstrateAPI, method string) ([][]byte, error) {
-	blockHash, err := conn.RPC.Chain.GetBlockHash(blockNumber)
+func getBeefyAuthorities(blockNumber uint32, conn *client.SubstrateAPI, method string) ([][]byte, error) {
+	blockHash, err := conn.RPC.Chain.GetBlockHash(uint64(blockNumber))
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +350,7 @@ func getBeefyAuthorities(blockNumber uint64, conn *client.SubstrateAPI, method s
 		return nil, fmt.Errorf("Beefy authorities not found")
 	}
 
-	// Convert from beefy authorities to ethereum addresses
+	// Convert from ecdsa public key to ethereum address
 	var authorityEthereumAddresses [][]byte
 	for _, authority := range authorities {
 		pub, err := crypto.DecompressPubkey(authority[:])
