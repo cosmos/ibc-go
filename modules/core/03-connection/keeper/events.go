@@ -30,8 +30,7 @@ func EmitConnectionOpenTryEvent(ctx sdk.Context, connectionID string, clientID s
 			sdk.NewAttribute(types.AttributeKeyConnectionID, connectionID),
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, counterparty.ClientId),
-			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID,
-				counterparty.ConnectionId),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, counterparty.ConnectionId),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
