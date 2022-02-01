@@ -33,9 +33,11 @@ Only the following major release series have a stable release status:
 
 |Release|End of Life Date|
 |-------|-------|
-|`v1.1.x`|September 03, 2022|
-|`v1.2.x`|September 10, 2022|
-|`v2.0.x`|November 09, 2022|
+|`v1.1.x`|July 01, 2022|
+|`v1.2.x`|July 01, 2022|
+|`v2.0.x`|February 01, 2023|
+
+**Note**: The v1 major release series will reach end of life 6 months after merging this policy. v2 will reach end of life one year after merging this policy. 
 
 ### What pull requests will be included in stable patch-releases?
 
