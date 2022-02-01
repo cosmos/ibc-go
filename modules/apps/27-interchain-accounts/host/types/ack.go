@@ -14,7 +14,7 @@ const (
 	ackErrorString = "error handling packet on host chain: see events for details"
 )
 
-// AcknowledgementErrorString returns a deterministic error string which may be used in
+// NewErrorAcknowledgement returns a deterministic error string which may be used in
 // the packet acknowledgement.
 func NewErrorAcknowledgement(err error) channeltypes.Acknowledgement {
 	// the ABCI code is included in the abcitypes.ResponseDeliverTx hash
