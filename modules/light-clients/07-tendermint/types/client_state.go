@@ -539,7 +539,7 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exp
 	return nil
 }
 
-// produceVerificationArgs perfoms the basic checks on the arguments that are
+// produceVerificationArgs performs the basic checks on the arguments that are
 // shared between the verification functions and returns the unmarshalled
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
