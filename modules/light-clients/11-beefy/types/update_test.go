@@ -18,6 +18,12 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+func bytes32(bytes []byte) [32]byte {
+	var buffer [32]byte
+	copy(buffer[:], bytes)
+	return buffer
+}
+
 func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:65353")
@@ -84,20 +90,14 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic("Failed to decode BEEFY commitment messages")
 			}
 
-			// Log paraHeads as hex strings
-			for k, v := range paraHeads {
-				fmt.Printf("key: %d, paraHead: %s\n", k, hex.EncodeToString(v))
-			}
-
 			nextAuthorities, err := getBeefyAuthorities(blockNumber, relayApi, "NextAuthorities")
 			if err != nil {
 				panic(err)
 			}
 
 			var authorityLeaves [][]byte
-			for i, v := range authorities {
+			for _, v := range authorities {
 				hash := crypto.Keccak256(v)
-				fmt.Printf("authorityLeaves: Index: %d,  Address: %s\n", i, hex.EncodeToString(v))
 				authorityLeaves = append(authorityLeaves, hash)
 			}
 
@@ -180,15 +180,15 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			paraHeadsProof := tree.Proof([]uint32{index})
-			var BeefyNextAuthoritySetRoot [32]byte
-			copy(BeefyNextAuthoritySetRoot[:], mmrProofs.Leaf.BeefyNextAuthoritySet.Root[:])
+			BeefyNextAuthoritySetRoot := bytes32(mmrProofs.Leaf.BeefyNextAuthoritySet.Root[:])
+			parentHash := bytes32(mmrProofs.Leaf.ParentNumberAndHash.Hash[:])
 
 			parachainHeader := []*types.ParachainHeader{{
 				ParachainHeader: paraHeader,
 				MmrLeafPartial: &types.BeefyMmrLeafPartial{
 					Version:      uint8(mmrProofs.Leaf.Version),
-					ParentNumber: uint64(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
-					ParentHash:   mmrProofs.Leaf.ParentNumberAndHash.Hash[:],
+					ParentNumber: uint32(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
+					ParentHash:   &parentHash,
 					BeefyNextAuthoritySet: types.BeefyAuthoritySet{
 						Id:            uint64(mmrProofs.Leaf.BeefyNextAuthoritySet.ID),
 						Len:           uint32(mmrProofs.Leaf.BeefyNextAuthoritySet.Len),
@@ -219,9 +219,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				}
 			}
 
-			var CommitmentPayload [32]byte
-			copy(CommitmentPayload[:], signedCommitment.Commitment.Payload[:])
-
+			CommitmentPayload := bytes32(signedCommitment.Commitment.Payload[:])
+			ParachainHeads := bytes32(mmrProofs.Leaf.ParachainHeads[:])
 			header := types.Header{
 				ParachainHeaders: parachainHeader,
 				MmrProofs:        proofItems,
@@ -230,8 +229,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					MmrLeaf: &types.BeefyMmrLeaf{
 						Version:        uint8(mmrProofs.Leaf.Version),
 						ParentNumber:   uint32(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
-						ParentHash:     mmrProofs.Leaf.ParentNumberAndHash.Hash[:],
-						ParachainHeads: mmrProofs.Leaf.ParachainHeads[:],
+						ParentHash:     &parentHash,
+						ParachainHeads: &ParachainHeads,
 						BeefyNextAuthoritySet: types.BeefyAuthoritySet{
 							Id:            uint64(mmrProofs.Leaf.BeefyNextAuthoritySet.ID),
 							Len:           uint32(mmrProofs.Leaf.BeefyNextAuthoritySet.Len),
