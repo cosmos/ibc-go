@@ -30,7 +30,6 @@ require (
 
 require github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
 
-require github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
@@ -160,4 +159,3 @@ replace github.com/ComposableFi/go-substrate-rpc-client/v4 => ../go-substrate-rp
 
 replace github.com/ChainSafe/go-schnorrkel v1.0.0 => github.com/ChainSafe/go-schnorrkel v0.0.0-20210222182958-bd440c890782
 
-replace github.com/vedhavyas/go-subkey => github.com/vedhavyas/go-subkey v1.0.2
