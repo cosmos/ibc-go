@@ -47,16 +47,20 @@ func (k Keeper) OnChanOpenTry(
 		return "", err
 	}
 
+	if activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionHops[0], counterparty.PortId); found {
+		return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
+	}
+
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
 	// The capability being claimed in OpenInit is for a controller chain (the port is different)
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", sdkerrors.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
 	}
 
-	accAddress := icatypes.GenerateAddress(k.accountKeeper.GetModuleAddress(icatypes.ModuleName), counterparty.PortId)
+	accAddress := icatypes.GenerateAddress(k.accountKeeper.GetModuleAddress(icatypes.ModuleName), metadata.HostConnectionId, counterparty.PortId)
 
 	// Register interchain account if it does not already exist
-	k.RegisterInterchainAccount(ctx, accAddress, counterparty.PortId)
+	k.RegisterInterchainAccount(ctx, metadata.HostConnectionId, counterparty.PortId, accAddress)
 
 	metadata.Address = accAddress.String()
 	versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
@@ -73,8 +77,16 @@ func (k Keeper) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+	}
 
-	k.SetActiveChannelID(ctx, portID, channelID)
+	// It is assumed the controller chain will not allow multiple active channels to be created for the same connectionID/portID
+	// If the controller chain does allow multiple active channels to be created for the same connectionID/portID, 
+	// disallowing overwriting the current active channel guarantees the channel can no longer be used as the controller
+	// and host will disagree on what the currently active channel is 
+	k.SetActiveChannelID(ctx, channel.ConnectionHops[0], channel.Counterparty.PortId, channelID)
 
 	return nil
 }
