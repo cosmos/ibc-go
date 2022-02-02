@@ -106,7 +106,7 @@ func (h Header) ValidateBasic() error {
 		parachainProof := header.Timestamp.ExtrinsicProof
 		extrinsic := header.Timestamp.Extrinsic
 
-		var key []byte
+		key := make([]byte, 4)
 		binary.LittleEndian.PutUint32(key, 0)
 		isVerified, err := trie.VerifyProof(parachainProof, rootHash, []trie.Pair{{Key: key, Value: extrinsic}})
 		if err != nil {

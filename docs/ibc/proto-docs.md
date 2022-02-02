@@ -3287,6 +3287,7 @@ and a possible frozen height.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `frozen_height` | [uint64](#uint64) |  | Block height when the client was frozen due to a misbehaviour |
 | `mmr_root_hash` | [bytes](#bytes) |  | Latest mmr root hash |
 | `latest_beefy_height` | [uint64](#uint64) |  | block number for the latest mmr_root_hash |
 | `authority` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the current round |
