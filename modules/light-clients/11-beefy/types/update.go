@@ -126,9 +126,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		switch signedCommitment.Commitment.ValidatorSetId {
 		case cs.Authority.Id:
 			authoritiesProof := merkle.NewProof(authorityLeaves, proof, cs.Authority.Len, Keccak256{})
-			root, _ := authoritiesProof.RootHex()
-			fmt.Printf("\nDerivedProof: %s\n", root)
-			valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot)
+			valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
 			if err != nil || !valid {
 				return nil, nil, nil
 			}
@@ -136,7 +134,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		// new authority set has kicked in
 		case cs.NextAuthoritySet.Id:
 			authoritiesProof := merkle.NewProof(authorityLeaves, proof, cs.NextAuthoritySet.Len, Keccak256{})
-			valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot)
+			valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
 			if err != nil || !valid {
 				return nil, nil, nil
 			}
