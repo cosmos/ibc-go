@@ -3250,10 +3250,10 @@ Beefy Authority Info
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `version` | [uint32](#uint32) |  | leaf version |
-| `parent_number` | [uint64](#uint64) |  | parent block for this leaf |
+| `parent_number` | [uint32](#uint32) |  | parent block for this leaf |
 | `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
-| `parachain_heads` | [bytes](#bytes) |  | merkle root hash of parachain heads included in the leaf. |
 | `beefy_next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | beefy next authority set. |
+| `parachain_heads` | [bytes](#bytes) |  | merkle root hash of parachain heads included in the leaf. |
 
 
 
@@ -3269,7 +3269,7 @@ Partial data for MmrLeaf
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `version` | [uint32](#uint32) |  | leaf version |
-| `parent_number` | [uint64](#uint64) |  | parent block for this leaf |
+| `parent_number` | [uint32](#uint32) |  | parent block for this leaf |
 | `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
 | `beefy_next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | next authority set. |
 
@@ -3288,7 +3288,8 @@ and a possible frozen height.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `mmr_root_hash` | [bytes](#bytes) |  | Latest mmr root hash |
-| `latest_beefy_height` | [uint64](#uint64) |  | block number for the latest mmr_root_hash |
+| `latest_beefy_height` | [uint32](#uint32) |  | block number for the latest mmr_root_hash |
+| `beefy_activation_block` | [uint32](#uint32) |  | block number that the beefy protocol was activated on the relay chain. This shoould be the first block in the merkle-mountain-range tree. |
 | `authority` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the current round |
 | `next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the next round |
 
@@ -3305,8 +3306,8 @@ Commitment message signed by beefy validators
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `payload` | [PayloadItem](#ibc.lightclients.beefy.v1.PayloadItem) | repeated | array of payload items signed by Beefy validators |
-| `block_numer` | [uint64](#uint64) |  | block number for this commitment |
+| `payload` | [bytes](#bytes) |  | array of payload items signed by Beefy validators |
+| `block_numer` | [uint32](#uint32) |  | block number for this commitment |
 | `validator_set_id` | [uint64](#uint64) |  | validator set that signed this commitment |
 
 
@@ -3395,7 +3396,6 @@ data needed to update the client
 | `mmr_proof` | [bytes](#bytes) | repeated | proof that this mmr_leaf index is valid. |
 | `signed_commitment` | [SignedCommitment](#ibc.lightclients.beefy.v1.SignedCommitment) |  | signed commitment data |
 | `authorities_proof` | [bytes](#bytes) | repeated | generated using full authority list from runtime |
-| `authorities_count` | [uint32](#uint32) |  | lenght of authorities in authorities root. |
 
 
 
@@ -3411,7 +3411,6 @@ data needed to prove parachain header inclusion in mmr.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `parachain_header` | [bytes](#bytes) |  | scale-encoded parachain header bytes |
-| `mmr_leaf_index` | [uint64](#uint64) |  | leaf index, latest_beefy_block - beefy_activation_block |
 | `mmr_leaf_partial` | [BeefyMmrLeafPartial](#ibc.lightclients.beefy.v1.BeefyMmrLeafPartial) |  | reconstructed MmrLeaf, see beefy-go spec |
 | `para_id` | [uint32](#uint32) |  | para_id of the header. |
 | `parachain_heads_proof` | [bytes](#bytes) | repeated | proofs for our header in the parachain heads root |

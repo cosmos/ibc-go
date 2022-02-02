@@ -8,22 +8,33 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
+option (gogoproto.marshaler_all) = false;
+option (gogoproto.unmarshaler_all) = false;
+option (gogoproto.sizer_all) = false;
+option (gogoproto.goproto_registration) = true;
+option (gogoproto.messagename_all) = true;
+option (gogoproto.protosizer_all) =false;
+
 // ClientState from Tendermint tracks the current validator set, latest height,
 // and a possible frozen height.
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
   // Latest mmr root hash
-  bytes mmr_root_hash = 3;
+  bytes mmr_root_hash = 1;
 
   // block number for the latest mmr_root_hash
-  uint64 latest_beefy_height = 4;
+  uint32 latest_beefy_height = 2;
+
+  // block number that the beefy protocol was activated on the relay chain.
+  // This shoould be the first block in the merkle-mountain-range tree.
+  uint32 beefy_activation_block = 3;
 
   // authorities for the current round
-  BeefyAuthoritySet authority = 5;
+  BeefyAuthoritySet authority = 4;
 
   // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 6;
+  BeefyAuthoritySet next_authority_set = 5;
 }
 
 // Actual payload items
@@ -42,10 +53,10 @@ message Commitment {
   option (gogoproto.goproto_getters) = false;
 
   // array of payload items signed by Beefy validators
-  repeated PayloadItem payload = 1;
+  bytes payload = 1 [(gogoproto.customtype) = "[32]byte"];
 
   // block number for this commitment
-  uint64 block_numer = 2;
+  uint32 block_numer = 2;
 
   // validator set that signed this commitment
   uint64 validator_set_id = 3;
@@ -72,7 +83,6 @@ message SignedCommitment {
   // gotten from rpc subscription
   repeated CommitmentSignature signatures = 2;
 }
-
 // data needed to update the client
 message MmrUpdateProof {
   option (gogoproto.goproto_getters) = false;
@@ -90,9 +100,6 @@ message MmrUpdateProof {
 
   // generated using full authority list from runtime
   repeated bytes authorities_proof = 5;
-
-  // lenght of authorities in authorities root.
-  uint32 authorities_count = 6;
 }
 
 // ConsensusState defines the consensus state from Tendermint.
@@ -155,26 +162,23 @@ message ParachainHeader {
   // scale-encoded parachain header bytes
   bytes parachain_header = 1;
 
-  // leaf index, latest_beefy_block - beefy_activation_block
-  uint64 mmr_leaf_index = 2;
-
   // reconstructed MmrLeaf, see beefy-go spec
-  BeefyMmrLeafPartial mmr_leaf_partial = 4;
+  BeefyMmrLeafPartial mmr_leaf_partial = 2;
 
   // para_id of the header.
-  uint32 para_id = 5;
+  uint32 para_id = 3;
 
   // proofs for our header in the parachain heads root
-  repeated bytes parachain_heads_proof = 6;
+  repeated bytes parachain_heads_proof = 4;
 
   // leaf index for parachain heads proof
-  uint32 heads_leaf_index = 7;
+  uint32 heads_leaf_index = 5;
 
   // total number of para heads in parachain_heads_root
-  uint32 heads_total_count = 8;
+  uint32 heads_total_count = 6;
 
   // data needed to provide timestamp for ConsensusState
-  TimestampExtrinsic timestamp = 9;
+  TimestampExtrinsic timestamp = 7;
 }
 
 // Partial data for MmrLeaf
@@ -185,10 +189,10 @@ message BeefyMmrLeafPartial {
   uint32 version = 1 [(gogoproto.customtype) = "uint8", (gogoproto.nullable) = false];
 
   // parent block for this leaf
-  uint64 parent_number = 2;
+  uint32 parent_number = 2;
 
   // parent hash for this leaf
-  bytes parent_hash = 3 ;
+  bytes parent_hash = 3 [(gogoproto.customtype) = "[32]byte"];
 
   // next authority set.
   BeefyAuthoritySet beefy_next_authority_set = 4 [(gogoproto.nullable) = false];
@@ -205,7 +209,7 @@ message BeefyAuthoritySet {
   uint32 len = 2 ;
 
   // merkle root of the sorted authority public keys.
-  bytes authority_root = 3 ;
+  bytes authority_root = 3 [(gogoproto.customtype) = "[32]byte"];
 }
 
 message BeefyMmrLeaf {
@@ -215,14 +219,15 @@ message BeefyMmrLeaf {
   uint32 version = 1 [(gogoproto.customtype) = "uint8", (gogoproto.nullable) = false];
 
   // parent block for this leaf
-  uint64 parent_number = 2;
+  uint32 parent_number = 2;
 
   // parent hash for this leaf
-  bytes parent_hash = 3 ;
-
-  // merkle root hash of parachain heads included in the leaf.
-  bytes parachain_heads = 4;
+  bytes parent_hash = 3 [(gogoproto.customtype) = "[32]byte"];
 
   // beefy next authority set.
-  BeefyAuthoritySet beefy_next_authority_set = 5 [(gogoproto.nullable) = false];
+  BeefyAuthoritySet beefy_next_authority_set = 4 [(gogoproto.nullable) = false];
+
+  // merkle root hash of parachain heads included in the leaf.
+  bytes parachain_heads = 5 [(gogoproto.customtype) = "[32]byte"];
+
 }
