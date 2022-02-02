@@ -23,13 +23,13 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 			"success", func() {}, true,
 		},
 		{
-			"port is already bound for owner",
+			"port is already bound for owner but capability is claimed by another module",
 			func() {
 				cap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
-				err := suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), cap, host.PortPath(TestPortID))
+				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), cap, host.PortPath(TestPortID))
 				suite.Require().NoError(err)
 			},
-			true,
+			false,
 		},
 		{
 			"fails to generate port-id",
@@ -59,7 +59,6 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 			false,
 		},
 	}
-
 	for _, tc := range testCases {
 		tc := tc
 
@@ -80,7 +79,6 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
