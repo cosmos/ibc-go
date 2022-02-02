@@ -9,16 +9,6 @@ import (
 	"time"
 )
 
-func encode(key interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := scale.NewEncoder(&buf)
-	err := enc.Encode(key)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
 func TestDecodeParachainHeader(t *testing.T) {
 	hash, err := substrateTypes.NewHashFromHexString("da5e6d0616e05c6a6348605a37ca33493fc1a15ad1e6a405ee05c17843fdafed")
 	if err != nil {
@@ -30,7 +20,7 @@ func TestDecodeParachainHeader(t *testing.T) {
 		Number: 1,
 	}
 
-	encoded, err := encode(data)
+	encoded, err := types.Encode(data)
 	if err != nil {
 		panic(err)
 	}

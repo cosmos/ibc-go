@@ -7,6 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
+import "proofs.proto";
 
 option (gogoproto.marshaler_all) = false;
 option (gogoproto.unmarshaler_all) = false;
@@ -19,6 +20,9 @@ option (gogoproto.protosizer_all) =false;
 // and a possible frozen height.
 message ClientState {
   option (gogoproto.goproto_getters) = false;
+
+  // Block height when the client was frozen due to a misbehaviour
+  uint64 frozen_height = 2;
 
   // Latest mmr root hash
   bytes mmr_root_hash = 1;
