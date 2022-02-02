@@ -677,6 +677,8 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 				Version:                icatypes.Version,
 				ControllerConnectionId: pathCToB.EndpointA.ConnectionID,
 				HostConnectionId:       pathCToB.EndpointB.ConnectionID,
+				Encoding:               icatypes.EncodingProtobuf,
+				TxType:                 icatypes.TxTypeSDKMultiMsg,
 			}))
 
 			err = SetupICAPath(pathCToB, TestOwnerAddress)
