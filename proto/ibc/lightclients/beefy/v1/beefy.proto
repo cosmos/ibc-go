@@ -182,10 +182,10 @@ message BeefyMmrLeafPartial {
   uint32 version = 1 [(gogoproto.customtype) = "uint8", (gogoproto.nullable) = false];
 
   // parent block for this leaf
-  uint64 parent_number = 2;
+  uint32 parent_number = 2;
 
   // parent hash for this leaf
-  bytes parent_hash = 3 ;
+  bytes parent_hash = 3 [(gogoproto.customtype) = "[32]byte"];
 
   // next authority set.
   BeefyAuthoritySet beefy_next_authority_set = 4 [(gogoproto.nullable) = false];
@@ -202,7 +202,7 @@ message BeefyAuthoritySet {
   uint32 len = 2 ;
 
   // merkle root of the sorted authority public keys.
-  bytes authority_root = 3 ;
+  bytes authority_root = 3 [(gogoproto.customtype) = "[32]byte"];
 }
 
 message BeefyMmrLeaf {
@@ -212,13 +212,13 @@ message BeefyMmrLeaf {
   uint32 version = 1 [(gogoproto.customtype) = "uint8", (gogoproto.nullable) = false];
 
   // parent block for this leaf
-  uint64 parent_number = 2;
+  uint32 parent_number = 2;
 
   // parent hash for this leaf
-  bytes parent_hash = 3 ;
+  bytes parent_hash = 3 [(gogoproto.customtype) = "[32]byte"];
 
   // merkle root hash of parachain heads included in the leaf.
-  bytes parachain_heads = 4;
+  bytes parachain_heads = 4 [(gogoproto.customtype) = "[32]byte"];
 
   // beefy next authority set.
   BeefyAuthoritySet beefy_next_authority_set = 5 [(gogoproto.nullable) = false];

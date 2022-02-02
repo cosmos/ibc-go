@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
@@ -18,23 +17,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
-
-type logCommitment struct {
-	blockNumber    clientTypes.U32                    `json:"block_number"`
-	payload        string                             `json:"payload"`
-	validatorSetID clientTypes.U64                    `json:"validator_set_id"`
-	signatures     []clientTypes.OptionBeefySignature `json:"signatures"`
-	rawMessage     string                             `json:"raw_message"`
-}
-
-func PrettyPrint(v interface{}) (err error) {
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Witnessed a new BEEFY commitment. %s \n", string(b))
-	return nil
-}
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
 
@@ -80,26 +62,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic(err.Error())
 			}
 
-			output := logCommitment{
-				blockNumber:    signedCommitment.Commitment.BlockNumber,
-				payload:        signedCommitment.Commitment.Payload.Hex(),
-				validatorSetID: signedCommitment.Commitment.ValidatorSetID,
-			}
-			fmt.Printf("Witnessed a new BEEFY commitment. %+v \n", output)
 			blockNumber := uint32(signedCommitment.Commitment.BlockNumber)
 
 			if clientState != nil && clientState.LatestBeefyHeight >= blockNumber {
 				fmt.Printf("Skipping stale Commitment for block: %d", signedCommitment.Commitment.BlockNumber)
 				continue
 			}
-
-			// fmt.Printf("Witnessed a new BEEFY commitment. %+v \n", logCommitment{
-			// 	blockNumber:    signedCommitment.Commitment.BlockNumber,
-			// 	payload:        signedCommitment.Commitment.Payload.Hex(),
-			// 	validatorSetID: signedCommitment.Commitment.ValidatorSetID,
-			// 	rawMessage:     msg.(string),
-			// 	signatures:     signedCommitment.Signatures,
-			// })
 
 			blockHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(blockNumber))
 			if err != nil {
@@ -148,6 +116,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			if clientState == nil {
+				var authorityTreeRoot [32]byte
+				copy(authorityTreeRoot[:], authorityTree.Root())
+				var nextAuthorityTreeRoot [32]byte
+				copy(nextAuthorityTreeRoot[:], nextAuthorityTree.Root())
 				clientState = &types.ClientState{
 					MmrRootHash:          signedCommitment.Commitment.Payload[:],
 					LatestBeefyHeight:    blockNumber,
@@ -155,12 +127,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					Authority: &types.BeefyAuthoritySet{
 						Id:            uint64(signedCommitment.Commitment.ValidatorSetID),
 						Len:           uint32(len(authorities)),
-						AuthorityRoot: authorityTree.Root(),
+						AuthorityRoot: &authorityTreeRoot,
 					},
 					NextAuthoritySet: &types.BeefyAuthoritySet{
 						Id:            uint64(signedCommitment.Commitment.ValidatorSetID) + 1,
 						Len:           uint32(len(nextAuthorities)),
-						AuthorityRoot: nextAuthorityTree.Root(),
+						AuthorityRoot: &nextAuthorityTreeRoot,
 					},
 				}
 				fmt.Printf("\n\nInitializing client state\n\n")
@@ -208,6 +180,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			paraHeadsProof := tree.Proof([]uint32{index})
+			var BeefyNextAuthoritySetRoot [32]byte
+			copy(BeefyNextAuthoritySetRoot[:], mmrProofs.Leaf.BeefyNextAuthoritySet.Root[:])
 
 			parachainHeader := []*types.ParachainHeader{{
 				ParachainHeader: paraHeader,
@@ -218,7 +192,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					BeefyNextAuthoritySet: types.BeefyAuthoritySet{
 						Id:            uint64(mmrProofs.Leaf.BeefyNextAuthoritySet.ID),
 						Len:           uint32(mmrProofs.Leaf.BeefyNextAuthoritySet.Len),
-						AuthorityRoot: mmrProofs.Leaf.BeefyNextAuthoritySet.Root[:],
+						AuthorityRoot: &BeefyNextAuthoritySetRoot,
 					},
 				},
 				ParachainHeadsProof: paraHeadsProof.ProofHashes(),
@@ -244,8 +218,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					authorityIndeces = append(authorityIndeces, uint32(i))
 				}
 			}
-			var buf [32]byte
-			copy(buf[:], signedCommitment.Commitment.Payload[:])
+
+			var CommitmentPayload [32]byte
+			copy(CommitmentPayload[:], signedCommitment.Commitment.Payload[:])
+
 			header := types.Header{
 				ParachainHeaders: parachainHeader,
 				MmrProofs:        proofItems,
@@ -253,20 +229,20 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				MmrUpdateProof: &types.MmrUpdateProof{
 					MmrLeaf: &types.BeefyMmrLeaf{
 						Version:        uint8(mmrProofs.Leaf.Version),
-						ParentNumber:   uint64(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
+						ParentNumber:   uint32(mmrProofs.Leaf.ParentNumberAndHash.ParentNumber),
 						ParentHash:     mmrProofs.Leaf.ParentNumberAndHash.Hash[:],
 						ParachainHeads: mmrProofs.Leaf.ParachainHeads[:],
 						BeefyNextAuthoritySet: types.BeefyAuthoritySet{
 							Id:            uint64(mmrProofs.Leaf.BeefyNextAuthoritySet.ID),
 							Len:           uint32(mmrProofs.Leaf.BeefyNextAuthoritySet.Len),
-							AuthorityRoot: mmrProofs.Leaf.BeefyNextAuthoritySet.Root[:],
+							AuthorityRoot: &BeefyNextAuthoritySetRoot,
 						},
 					},
 					MmrLeafIndex: uint64(mmrProofs.Proof.LeafIndex),
 					MmrProof:     proofItems,
 					SignedCommitment: &types.SignedCommitment{
 						Commitment: &types.Commitment{
-							Payload: &buf,
+							Payload: &CommitmentPayload,
 							// Payload:        []*types.PayloadItem{{PayloadId: []byte("mh"), PayloadData: signedCommitment.Commitment.Payload[:]}},
 							BlockNumer:     uint32(signedCommitment.Commitment.BlockNumber),
 							ValidatorSetId: uint64(signedCommitment.Commitment.ValidatorSetID),
@@ -291,33 +267,6 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 		}
 	}
-}
-
-func fetchBeefyNextAuthoritySet(blockHash clientTypes.Hash, conn *client.SubstrateAPI) (clientTypes.BeefyNextAuthoritySet, error) {
-	// Fetch metadata
-	meta, err := conn.RPC.State.GetMetadataLatest()
-	if err != nil {
-		return clientTypes.BeefyNextAuthoritySet{}, err
-	}
-
-	storageKey, err := clientTypes.CreateStorageKey(meta, "MmrLeaf", "BeefyNextAuthorities", nil, nil)
-	if err != nil {
-		return clientTypes.BeefyNextAuthoritySet{}, err
-	}
-
-	var nextAuthorities clientTypes.BeefyNextAuthoritySet
-
-	ok, err := conn.RPC.State.GetStorage(storageKey, &nextAuthorities, blockHash)
-	if err != nil {
-		return clientTypes.BeefyNextAuthoritySet{}, err
-	}
-
-	if !ok {
-		return clientTypes.BeefyNextAuthoritySet{}, fmt.Errorf("Beefy authorities not found")
-	}
-
-	return nextAuthorities, nil
-
 }
 
 type Authorities = [][33]uint8
