@@ -224,9 +224,10 @@ message BeefyMmrLeaf {
   // parent hash for this leaf
   bytes parent_hash = 3 [(gogoproto.customtype) = "[32]byte"];
 
-  // merkle root hash of parachain heads included in the leaf.
-  bytes parachain_heads = 4 [(gogoproto.customtype) = "[32]byte"];
-
   // beefy next authority set.
-  BeefyAuthoritySet beefy_next_authority_set = 5 [(gogoproto.nullable) = false];
+  BeefyAuthoritySet beefy_next_authority_set = 4 [(gogoproto.nullable) = false];
+
+  // merkle root hash of parachain heads included in the leaf.
+  bytes parachain_heads = 5 [(gogoproto.customtype) = "[32]byte"];
+
 }

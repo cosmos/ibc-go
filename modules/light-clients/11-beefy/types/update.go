@@ -1,9 +1,6 @@
 package types
 
 import (
-	"encoding/binary"
-	"encoding/hex"
-	"fmt"
 
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
@@ -93,19 +90,13 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		// take keccak hash of the commitment scale-encoded
 		commitmentHash := crypto.Keccak256(commitmentBytes)
 
-		fmt.Printf(
-			"\ncommitmentBytes: %s\ncommitmentHash: %s",
-			hex.EncodeToString(commitmentBytes),
-			hex.EncodeToString(commitmentHash),
-		)
-
 		// array of leaves in the authority merkle root.
 		var authorityLeaves []merkle.Leaf
 
 		for _, signature := range signedCommitment.Signatures {
 			// recover uncompressed public key from signature
 			pubkey, err := crypto.Ecrecover(commitmentHash, signature.Signature)
-			
+
 			if err != nil {
 				return nil, nil, err
 			}
@@ -116,7 +107,6 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 				Hash:  crypto.Keccak256(address[:]),
 				Index: signature.AuthorityIndex,
 			}
-			fmt.Printf("\nderived: Index: %d, Address: %s\n", signature.AuthorityIndex, hex.EncodeToString(address[:]))
 			authorityLeaves = append(authorityLeaves, authorityLeaf)
 		}
 
@@ -185,18 +175,29 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 	// verify parachain headers
 	for _, parachainHeader := range beefyHeader.ParachainHeaders {
-		paraIdScale := make([]byte, 4)
-		// scale encode para_id
-		binary.LittleEndian.PutUint32(paraIdScale[:], parachainHeader.ParaId)
-
+		type ParaIdAndHead struct {
+			ParaId uint32
+			Header []byte
+		}
+		paraIdAndHead := ParaIdAndHead{
+			ParaId: parachainHeader.ParaId,
+			Header: parachainHeader.ParachainHeader,
+		}
+		// scale encode to get parachain heads leaf bytes
+		headsLeafBytes, err := Encode(paraIdAndHead)
+		if err != nil {
+			return nil, nil, err
+		}
 		headsLeaf := []merkle.Leaf{
 			{
-				Hash:  crypto.Keccak256(append(paraIdScale, parachainHeader.ParachainHeader...)),
+				Hash:  crypto.Keccak256(headsLeafBytes),
 				Index: parachainHeader.HeadsLeafIndex,
 			},
 		}
-		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, cs.Authority.Len, Keccak256{})
+		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, Keccak256{})
 		ParachainHeadsRoot, err := parachainHeadsProof.Root()
+		var ParachainHeads [32]byte
+		copy(ParachainHeads[:], ParachainHeadsRoot)
 
 		if err != nil {
 			return nil, nil, err
@@ -206,7 +207,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			Version:        parachainHeader.MmrLeafPartial.Version,
 			ParentNumber:   parachainHeader.MmrLeafPartial.ParentNumber,
 			ParentHash:     parachainHeader.MmrLeafPartial.ParentHash,
-			ParachainHeads: ParachainHeadsRoot,
+			ParachainHeads: &ParachainHeads,
 			BeefyNextAuthoritySet: BeefyAuthoritySet{
 				Id:            cs.NextAuthoritySet.Id,
 				AuthorityRoot: cs.NextAuthoritySet.AuthorityRoot,
