@@ -3252,8 +3252,8 @@ Beefy Authority Info
 | `version` | [uint32](#uint32) |  | leaf version |
 | `parent_number` | [uint32](#uint32) |  | parent block for this leaf |
 | `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
-| `parachain_heads` | [bytes](#bytes) |  | merkle root hash of parachain heads included in the leaf. |
 | `beefy_next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | beefy next authority set. |
+| `parachain_heads` | [bytes](#bytes) |  | merkle root hash of parachain heads included in the leaf. |
 
 
 
