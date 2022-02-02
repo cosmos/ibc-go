@@ -7,17 +7,16 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	golang_proto "github.com/golang/protobuf/proto"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
-	io "io"
 	math "math"
-	math_bits "math/bits"
 	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
+var _ = golang_proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 var _ = time.Kitchen
@@ -32,16 +31,16 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // and a possible frozen height.
 type ClientState struct {
 	// Latest mmr root hash
-	MmrRootHash []byte `protobuf:"bytes,3,opt,name=mmr_root_hash,json=mmrRootHash,proto3" json:"mmr_root_hash,omitempty"`
+	MmrRootHash []byte `protobuf:"bytes,1,opt,name=mmr_root_hash,json=mmrRootHash,proto3" json:"mmr_root_hash,omitempty"`
 	// block number for the latest mmr_root_hash
-	LatestBeefyHeight uint32 `protobuf:"varint,4,opt,name=latest_beefy_height,json=latestBeefyHeight,proto3" json:"latest_beefy_height,omitempty"`
+	LatestBeefyHeight uint32 `protobuf:"varint,2,opt,name=latest_beefy_height,json=latestBeefyHeight,proto3" json:"latest_beefy_height,omitempty"`
 	// block number that the beefy protocol was activated on the relay chain.
 	// This shoould be the first block in the merkle-mountain-range tree.
-	BeefyActivationBlock uint32 `protobuf:"varint,5,opt,name=beefy_activation_block,json=beefyActivationBlock,proto3" json:"beefy_activation_block,omitempty"`
+	BeefyActivationBlock uint32 `protobuf:"varint,3,opt,name=beefy_activation_block,json=beefyActivationBlock,proto3" json:"beefy_activation_block,omitempty"`
 	// authorities for the current round
-	Authority *BeefyAuthoritySet `protobuf:"bytes,6,opt,name=authority,proto3" json:"authority,omitempty"`
+	Authority *BeefyAuthoritySet `protobuf:"bytes,4,opt,name=authority,proto3" json:"authority,omitempty"`
 	// authorities for the next round
-	NextAuthoritySet *BeefyAuthoritySet `protobuf:"bytes,7,opt,name=next_authority_set,json=nextAuthoritySet,proto3" json:"next_authority_set,omitempty"`
+	NextAuthoritySet *BeefyAuthoritySet `protobuf:"bytes,5,opt,name=next_authority_set,json=nextAuthoritySet,proto3" json:"next_authority_set,omitempty"`
 }
 
 func (m *ClientState) Reset()         { *m = ClientState{} }
@@ -51,31 +50,26 @@ func (*ClientState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{0}
 }
 func (m *ClientState) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_ClientState.Unmarshal(m, b)
 }
 func (m *ClientState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ClientState.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_ClientState.Marshal(b, m, deterministic)
 }
 func (m *ClientState) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ClientState.Merge(m, src)
 }
 func (m *ClientState) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_ClientState.Size(m)
 }
 func (m *ClientState) XXX_DiscardUnknown() {
 	xxx_messageInfo_ClientState.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_ClientState proto.InternalMessageInfo
+
+func (*ClientState) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.ClientState"
+}
 
 // Actual payload items
 type PayloadItem struct {
@@ -92,31 +86,26 @@ func (*PayloadItem) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{1}
 }
 func (m *PayloadItem) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_PayloadItem.Unmarshal(m, b)
 }
 func (m *PayloadItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PayloadItem.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_PayloadItem.Marshal(b, m, deterministic)
 }
 func (m *PayloadItem) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_PayloadItem.Merge(m, src)
 }
 func (m *PayloadItem) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_PayloadItem.Size(m)
 }
 func (m *PayloadItem) XXX_DiscardUnknown() {
 	xxx_messageInfo_PayloadItem.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_PayloadItem proto.InternalMessageInfo
+
+func (*PayloadItem) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.PayloadItem"
+}
 
 // Commitment message signed by beefy validators
 type Commitment struct {
@@ -135,31 +124,26 @@ func (*Commitment) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{2}
 }
 func (m *Commitment) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_Commitment.Unmarshal(m, b)
 }
 func (m *Commitment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Commitment.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_Commitment.Marshal(b, m, deterministic)
 }
 func (m *Commitment) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Commitment.Merge(m, src)
 }
 func (m *Commitment) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_Commitment.Size(m)
 }
 func (m *Commitment) XXX_DiscardUnknown() {
 	xxx_messageInfo_Commitment.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_Commitment proto.InternalMessageInfo
+
+func (*Commitment) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.Commitment"
+}
 
 // Signature belonging to a single validator
 type CommitmentSignature struct {
@@ -176,31 +160,26 @@ func (*CommitmentSignature) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{3}
 }
 func (m *CommitmentSignature) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_CommitmentSignature.Unmarshal(m, b)
 }
 func (m *CommitmentSignature) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_CommitmentSignature.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_CommitmentSignature.Marshal(b, m, deterministic)
 }
 func (m *CommitmentSignature) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_CommitmentSignature.Merge(m, src)
 }
 func (m *CommitmentSignature) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_CommitmentSignature.Size(m)
 }
 func (m *CommitmentSignature) XXX_DiscardUnknown() {
 	xxx_messageInfo_CommitmentSignature.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_CommitmentSignature proto.InternalMessageInfo
+
+func (*CommitmentSignature) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.CommitmentSignature"
+}
 
 // signed commitment data
 type SignedCommitment struct {
@@ -217,31 +196,26 @@ func (*SignedCommitment) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{4}
 }
 func (m *SignedCommitment) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_SignedCommitment.Unmarshal(m, b)
 }
 func (m *SignedCommitment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_SignedCommitment.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_SignedCommitment.Marshal(b, m, deterministic)
 }
 func (m *SignedCommitment) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_SignedCommitment.Merge(m, src)
 }
 func (m *SignedCommitment) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_SignedCommitment.Size(m)
 }
 func (m *SignedCommitment) XXX_DiscardUnknown() {
 	xxx_messageInfo_SignedCommitment.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_SignedCommitment proto.InternalMessageInfo
+
+func (*SignedCommitment) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.SignedCommitment"
+}
 
 // data needed to update the client
 type MmrUpdateProof struct {
@@ -264,31 +238,26 @@ func (*MmrUpdateProof) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{5}
 }
 func (m *MmrUpdateProof) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_MmrUpdateProof.Unmarshal(m, b)
 }
 func (m *MmrUpdateProof) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MmrUpdateProof.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_MmrUpdateProof.Marshal(b, m, deterministic)
 }
 func (m *MmrUpdateProof) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MmrUpdateProof.Merge(m, src)
 }
 func (m *MmrUpdateProof) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_MmrUpdateProof.Size(m)
 }
 func (m *MmrUpdateProof) XXX_DiscardUnknown() {
 	xxx_messageInfo_MmrUpdateProof.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_MmrUpdateProof proto.InternalMessageInfo
+
+func (*MmrUpdateProof) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.MmrUpdateProof"
+}
 
 // ConsensusState defines the consensus state from Tendermint.
 type ConsensusState struct {
@@ -308,31 +277,26 @@ func (*ConsensusState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{6}
 }
 func (m *ConsensusState) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_ConsensusState.Unmarshal(m, b)
 }
 func (m *ConsensusState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ConsensusState.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_ConsensusState.Marshal(b, m, deterministic)
 }
 func (m *ConsensusState) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ConsensusState.Merge(m, src)
 }
 func (m *ConsensusState) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_ConsensusState.Size(m)
 }
 func (m *ConsensusState) XXX_DiscardUnknown() {
 	xxx_messageInfo_ConsensusState.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_ConsensusState proto.InternalMessageInfo
+
+func (*ConsensusState) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.ConsensusState"
+}
 
 // Misbehaviour is a wrapper over two conflicting Headers
 // that implements Misbehaviour interface expected by ICS-02
@@ -348,31 +312,26 @@ func (*Misbehaviour) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{7}
 }
 func (m *Misbehaviour) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_Misbehaviour.Unmarshal(m, b)
 }
 func (m *Misbehaviour) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Misbehaviour.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_Misbehaviour.Marshal(b, m, deterministic)
 }
 func (m *Misbehaviour) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Misbehaviour.Merge(m, src)
 }
 func (m *Misbehaviour) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_Misbehaviour.Size(m)
 }
 func (m *Misbehaviour) XXX_DiscardUnknown() {
 	xxx_messageInfo_Misbehaviour.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_Misbehaviour proto.InternalMessageInfo
+
+func (*Misbehaviour) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.Misbehaviour"
+}
 
 // Timestamp extrinsic data
 type TimestampExtrinsic struct {
@@ -391,25 +350,16 @@ func (*TimestampExtrinsic) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{8}
 }
 func (m *TimestampExtrinsic) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_TimestampExtrinsic.Unmarshal(m, b)
 }
 func (m *TimestampExtrinsic) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_TimestampExtrinsic.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_TimestampExtrinsic.Marshal(b, m, deterministic)
 }
 func (m *TimestampExtrinsic) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_TimestampExtrinsic.Merge(m, src)
 }
 func (m *TimestampExtrinsic) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_TimestampExtrinsic.Size(m)
 }
 func (m *TimestampExtrinsic) XXX_DiscardUnknown() {
 	xxx_messageInfo_TimestampExtrinsic.DiscardUnknown(m)
@@ -438,6 +388,10 @@ func (m *TimestampExtrinsic) GetExtrinsic() []byte {
 	return nil
 }
 
+func (*TimestampExtrinsic) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.TimestampExtrinsic"
+}
+
 // Header contains the neccessary data to proove finality about IBC commitments
 type Header struct {
 	// parachain headers needed for proofs and ConsensusState
@@ -457,31 +411,26 @@ func (*Header) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{9}
 }
 func (m *Header) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_Header.Unmarshal(m, b)
 }
 func (m *Header) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Header.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_Header.Marshal(b, m, deterministic)
 }
 func (m *Header) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Header.Merge(m, src)
 }
 func (m *Header) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_Header.Size(m)
 }
 func (m *Header) XXX_DiscardUnknown() {
 	xxx_messageInfo_Header.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_Header proto.InternalMessageInfo
+
+func (*Header) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.Header"
+}
 
 // data needed to prove parachain header inclusion in mmr.
 type ParachainHeader struct {
@@ -508,31 +457,26 @@ func (*ParachainHeader) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{10}
 }
 func (m *ParachainHeader) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_ParachainHeader.Unmarshal(m, b)
 }
 func (m *ParachainHeader) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ParachainHeader.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_ParachainHeader.Marshal(b, m, deterministic)
 }
 func (m *ParachainHeader) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ParachainHeader.Merge(m, src)
 }
 func (m *ParachainHeader) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_ParachainHeader.Size(m)
 }
 func (m *ParachainHeader) XXX_DiscardUnknown() {
 	xxx_messageInfo_ParachainHeader.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_ParachainHeader proto.InternalMessageInfo
+
+func (*ParachainHeader) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.ParachainHeader"
+}
 
 // Partial data for MmrLeaf
 type BeefyMmrLeafPartial struct {
@@ -553,31 +497,26 @@ func (*BeefyMmrLeafPartial) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{11}
 }
 func (m *BeefyMmrLeafPartial) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_BeefyMmrLeafPartial.Unmarshal(m, b)
 }
 func (m *BeefyMmrLeafPartial) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_BeefyMmrLeafPartial.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_BeefyMmrLeafPartial.Marshal(b, m, deterministic)
 }
 func (m *BeefyMmrLeafPartial) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BeefyMmrLeafPartial.Merge(m, src)
 }
 func (m *BeefyMmrLeafPartial) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_BeefyMmrLeafPartial.Size(m)
 }
 func (m *BeefyMmrLeafPartial) XXX_DiscardUnknown() {
 	xxx_messageInfo_BeefyMmrLeafPartial.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_BeefyMmrLeafPartial proto.InternalMessageInfo
+
+func (*BeefyMmrLeafPartial) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.BeefyMmrLeafPartial"
+}
 
 // Beefy Authority Info
 type BeefyAuthoritySet struct {
@@ -596,31 +535,26 @@ func (*BeefyAuthoritySet) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{12}
 }
 func (m *BeefyAuthoritySet) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_BeefyAuthoritySet.Unmarshal(m, b)
 }
 func (m *BeefyAuthoritySet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_BeefyAuthoritySet.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_BeefyAuthoritySet.Marshal(b, m, deterministic)
 }
 func (m *BeefyAuthoritySet) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BeefyAuthoritySet.Merge(m, src)
 }
 func (m *BeefyAuthoritySet) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_BeefyAuthoritySet.Size(m)
 }
 func (m *BeefyAuthoritySet) XXX_DiscardUnknown() {
 	xxx_messageInfo_BeefyAuthoritySet.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_BeefyAuthoritySet proto.InternalMessageInfo
+
+func (*BeefyAuthoritySet) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.BeefyAuthoritySet"
+}
 
 type BeefyMmrLeaf struct {
 	// leaf version
@@ -642,25 +576,16 @@ func (*BeefyMmrLeaf) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{13}
 }
 func (m *BeefyMmrLeaf) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
+	return xxx_messageInfo_BeefyMmrLeaf.Unmarshal(m, b)
 }
 func (m *BeefyMmrLeaf) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_BeefyMmrLeaf.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
+	return xxx_messageInfo_BeefyMmrLeaf.Marshal(b, m, deterministic)
 }
 func (m *BeefyMmrLeaf) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BeefyMmrLeaf.Merge(m, src)
 }
 func (m *BeefyMmrLeaf) XXX_Size() int {
-	return m.Size()
+	return xxx_messageInfo_BeefyMmrLeaf.Size(m)
 }
 func (m *BeefyMmrLeaf) XXX_DiscardUnknown() {
 	xxx_messageInfo_BeefyMmrLeaf.DiscardUnknown(m)
@@ -668,3428 +593,128 @@ func (m *BeefyMmrLeaf) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BeefyMmrLeaf proto.InternalMessageInfo
 
+func (*BeefyMmrLeaf) XXX_MessageName() string {
+	return "ibc.lightclients.beefy.v1.BeefyMmrLeaf"
+}
 func init() {
 	proto.RegisterType((*ClientState)(nil), "ibc.lightclients.beefy.v1.ClientState")
+	golang_proto.RegisterType((*ClientState)(nil), "ibc.lightclients.beefy.v1.ClientState")
 	proto.RegisterType((*PayloadItem)(nil), "ibc.lightclients.beefy.v1.PayloadItem")
+	golang_proto.RegisterType((*PayloadItem)(nil), "ibc.lightclients.beefy.v1.PayloadItem")
 	proto.RegisterType((*Commitment)(nil), "ibc.lightclients.beefy.v1.Commitment")
+	golang_proto.RegisterType((*Commitment)(nil), "ibc.lightclients.beefy.v1.Commitment")
 	proto.RegisterType((*CommitmentSignature)(nil), "ibc.lightclients.beefy.v1.CommitmentSignature")
+	golang_proto.RegisterType((*CommitmentSignature)(nil), "ibc.lightclients.beefy.v1.CommitmentSignature")
 	proto.RegisterType((*SignedCommitment)(nil), "ibc.lightclients.beefy.v1.SignedCommitment")
+	golang_proto.RegisterType((*SignedCommitment)(nil), "ibc.lightclients.beefy.v1.SignedCommitment")
 	proto.RegisterType((*MmrUpdateProof)(nil), "ibc.lightclients.beefy.v1.MmrUpdateProof")
+	golang_proto.RegisterType((*MmrUpdateProof)(nil), "ibc.lightclients.beefy.v1.MmrUpdateProof")
 	proto.RegisterType((*ConsensusState)(nil), "ibc.lightclients.beefy.v1.ConsensusState")
+	golang_proto.RegisterType((*ConsensusState)(nil), "ibc.lightclients.beefy.v1.ConsensusState")
 	proto.RegisterType((*Misbehaviour)(nil), "ibc.lightclients.beefy.v1.Misbehaviour")
+	golang_proto.RegisterType((*Misbehaviour)(nil), "ibc.lightclients.beefy.v1.Misbehaviour")
 	proto.RegisterType((*TimestampExtrinsic)(nil), "ibc.lightclients.beefy.v1.TimestampExtrinsic")
+	golang_proto.RegisterType((*TimestampExtrinsic)(nil), "ibc.lightclients.beefy.v1.TimestampExtrinsic")
 	proto.RegisterType((*Header)(nil), "ibc.lightclients.beefy.v1.Header")
+	golang_proto.RegisterType((*Header)(nil), "ibc.lightclients.beefy.v1.Header")
 	proto.RegisterType((*ParachainHeader)(nil), "ibc.lightclients.beefy.v1.ParachainHeader")
+	golang_proto.RegisterType((*ParachainHeader)(nil), "ibc.lightclients.beefy.v1.ParachainHeader")
 	proto.RegisterType((*BeefyMmrLeafPartial)(nil), "ibc.lightclients.beefy.v1.BeefyMmrLeafPartial")
+	golang_proto.RegisterType((*BeefyMmrLeafPartial)(nil), "ibc.lightclients.beefy.v1.BeefyMmrLeafPartial")
 	proto.RegisterType((*BeefyAuthoritySet)(nil), "ibc.lightclients.beefy.v1.BeefyAuthoritySet")
+	golang_proto.RegisterType((*BeefyAuthoritySet)(nil), "ibc.lightclients.beefy.v1.BeefyAuthoritySet")
 	proto.RegisterType((*BeefyMmrLeaf)(nil), "ibc.lightclients.beefy.v1.BeefyMmrLeaf")
+	golang_proto.RegisterType((*BeefyMmrLeaf)(nil), "ibc.lightclients.beefy.v1.BeefyMmrLeaf")
 }
 
 func init() {
 	proto.RegisterFile("ibc/lightclients/beefy/v1/beefy.proto", fileDescriptor_43205c4bfbe9a422)
 }
+func init() {
+	golang_proto.RegisterFile("ibc/lightclients/beefy/v1/beefy.proto", fileDescriptor_43205c4bfbe9a422)
+}
 
 var fileDescriptor_43205c4bfbe9a422 = []byte{
-	// 1286 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x57, 0xcf, 0x6f, 0x1b, 0xc5,
-	0x17, 0xcf, 0x3a, 0xce, 0x0f, 0x3f, 0xff, 0x88, 0x33, 0x69, 0xbf, 0x5f, 0xb7, 0x14, 0x3b, 0x0d,
-	0x94, 0xa6, 0x2d, 0xb1, 0x65, 0x07, 0x24, 0xd4, 0x13, 0x75, 0xa8, 0xd4, 0x00, 0x8d, 0xa2, 0x4d,
-	0x2b, 0x4a, 0x0b, 0x5a, 0x8d, 0x77, 0x27, 0xf6, 0xa8, 0xbb, 0x3b, 0xd6, 0xce, 0xac, 0xd5, 0xf4,
-	0x0c, 0x12, 0x07, 0x0e, 0xfd, 0x13, 0x38, 0x70, 0xe7, 0xc4, 0x9f, 0x80, 0x54, 0x89, 0x4b, 0x8f,
-	0xa8, 0x87, 0x80, 0xd2, 0xff, 0x80, 0x33, 0x07, 0x34, 0x3f, 0x76, 0xbd, 0x76, 0x83, 0x69, 0x91,
-	0x10, 0xb7, 0xd9, 0xf7, 0xf3, 0xf3, 0xde, 0xbc, 0xf7, 0xe6, 0x2d, 0x5c, 0xa2, 0x3d, 0xb7, 0xe5,
-	0xd3, 0xfe, 0x40, 0xb8, 0x3e, 0x25, 0xa1, 0xe0, 0xad, 0x1e, 0x21, 0x87, 0x47, 0xad, 0x51, 0x5b,
-	0x1f, 0x9a, 0xc3, 0x88, 0x09, 0x86, 0xce, 0xd1, 0x9e, 0xdb, 0xcc, 0x8a, 0x35, 0x35, 0x77, 0xd4,
-	0x3e, 0x5f, 0xef, 0x33, 0xd6, 0xf7, 0x49, 0x4b, 0x09, 0xf6, 0xe2, 0xc3, 0x96, 0x17, 0x47, 0x58,
-	0x50, 0x16, 0x6a, 0xd5, 0xf3, 0x8d, 0x69, 0xbe, 0xa0, 0x01, 0xe1, 0x02, 0x07, 0x43, 0x23, 0x70,
-	0xa6, 0xcf, 0xfa, 0x4c, 0x1d, 0x5b, 0xf2, 0xa4, 0xa9, 0x1b, 0x3f, 0xe5, 0xa0, 0xb8, 0xa3, 0x7c,
-	0x1d, 0x08, 0x2c, 0x08, 0xda, 0x80, 0x72, 0x10, 0x44, 0x4e, 0xc4, 0x98, 0x70, 0x06, 0x98, 0x0f,
-	0x6a, 0xf3, 0xeb, 0xd6, 0x66, 0xc9, 0x2e, 0x06, 0x41, 0x64, 0x33, 0x26, 0x6e, 0x61, 0x3e, 0x40,
-	0x4d, 0x58, 0xf3, 0xb1, 0x20, 0x5c, 0x38, 0x0a, 0x9d, 0x33, 0x20, 0x12, 0x71, 0x2d, 0xbf, 0x6e,
-	0x6d, 0x96, 0xed, 0x55, 0xcd, 0xea, 0x4a, 0xce, 0x2d, 0xc5, 0x40, 0xef, 0xc1, 0xff, 0xb4, 0x20,
-	0x76, 0x05, 0x1d, 0x29, 0xd0, 0x4e, 0xcf, 0x67, 0xee, 0xc3, 0xda, 0x82, 0x52, 0x39, 0xa3, 0xb8,
-	0x37, 0x52, 0x66, 0x57, 0xf2, 0xd0, 0xc7, 0x50, 0xc0, 0xb1, 0x18, 0xb0, 0x88, 0x8a, 0xa3, 0xda,
-	0xe2, 0xba, 0xb5, 0x59, 0xec, 0xbc, 0xdb, 0xfc, 0xcb, 0xfc, 0x34, 0x95, 0xc3, 0x1b, 0x89, 0xc2,
-	0x01, 0x11, 0xf6, 0x58, 0x1d, 0xdd, 0x07, 0x14, 0x92, 0x47, 0xc2, 0x49, 0x29, 0x0e, 0x27, 0xa2,
-	0xb6, 0xf4, 0x0f, 0x8c, 0x56, 0xa5, 0x9d, 0x2c, 0xe5, 0x7a, 0xfe, 0x9b, 0xef, 0x1a, 0x73, 0x1b,
-	0x77, 0xa1, 0xb8, 0x8f, 0x8f, 0x7c, 0x86, 0xbd, 0x5d, 0x41, 0x02, 0xf4, 0x26, 0xc0, 0x50, 0x7f,
-	0x3a, 0xd4, 0xab, 0x59, 0x2a, 0x87, 0x05, 0x43, 0xd9, 0xf5, 0xd0, 0x45, 0x28, 0x25, 0x6c, 0x0f,
-	0x0b, 0x5c, 0xcb, 0xe9, 0x24, 0x1b, 0xda, 0x47, 0x58, 0x60, 0x63, 0xf6, 0x6b, 0x0b, 0x60, 0x87,
-	0x05, 0x01, 0x15, 0x01, 0x09, 0x05, 0x7a, 0x07, 0x96, 0x8c, 0x8c, 0xb6, 0xd9, 0x2d, 0x3d, 0x3f,
-	0x6e, 0x2c, 0x3f, 0xd8, 0xee, 0x7c, 0xd9, 0x3b, 0x12, 0xc4, 0x4e, 0x98, 0xa8, 0x01, 0x45, 0x95,
-	0x60, 0x27, 0x8c, 0x03, 0x12, 0x29, 0xf3, 0x65, 0x1b, 0x14, 0x69, 0x4f, 0x52, 0xd0, 0x26, 0x54,
-	0x47, 0xd8, 0xa7, 0x1e, 0x16, 0x2c, 0x92, 0xb9, 0x90, 0x28, 0xe5, 0x4d, 0xe7, 0xed, 0x4a, 0x4a,
-	0x3f, 0x20, 0x62, 0xd7, 0x33, 0x38, 0x7a, 0xb0, 0x36, 0x86, 0x71, 0x40, 0xfb, 0x21, 0x16, 0x71,
-	0x44, 0xd0, 0x05, 0x28, 0xf0, 0xe4, 0x23, 0x89, 0x32, 0x25, 0xa0, 0xcb, 0xb0, 0x32, 0x4e, 0x38,
-	0x0d, 0x3d, 0xf2, 0xc8, 0x20, 0xa9, 0xa4, 0xe4, 0x5d, 0x49, 0x35, 0x3e, 0x7e, 0xb0, 0xa0, 0x2a,
-	0x4d, 0x13, 0x2f, 0x13, 0xf1, 0x4d, 0x00, 0x37, 0xfd, 0x52, 0x2e, 0x8a, 0x9d, 0x4b, 0x33, 0x6e,
-	0x6c, 0xac, 0x6a, 0x67, 0x14, 0xd1, 0x1e, 0x40, 0x8a, 0x8b, 0xd7, 0x72, 0xeb, 0xf3, 0x9b, 0xc5,
-	0x4e, 0xf3, 0x95, 0xcc, 0xa4, 0xc1, 0xda, 0x19, 0x0b, 0x06, 0xf1, 0xf7, 0x39, 0xa8, 0xdc, 0x0e,
-	0xa2, 0xbb, 0x43, 0x0f, 0x0b, 0xb2, 0x1f, 0x31, 0x76, 0x88, 0xba, 0xb0, 0x2c, 0xfb, 0xc7, 0x27,
-	0xf8, 0xd0, 0xa0, 0xbd, 0xfc, 0x77, 0xf5, 0x75, 0x3b, 0x88, 0x3e, 0x25, 0xf8, 0xd0, 0x5e, 0x0a,
-	0xf4, 0x01, 0xbd, 0x0d, 0x95, 0xc4, 0x46, 0x26, 0x6d, 0x79, 0xbb, 0x64, 0x04, 0x54, 0xd2, 0xd0,
-	0x1b, 0x50, 0x90, 0x52, 0x43, 0xe9, 0xb6, 0x36, 0xbf, 0x3e, 0xbf, 0x59, 0xb2, 0xa5, 0x6b, 0x0d,
-	0xe3, 0x1e, 0xac, 0x72, 0x95, 0x4a, 0x27, 0x93, 0xbd, 0xbc, 0xc2, 0x73, 0x6d, 0x06, 0x9e, 0xe9,
-	0xf4, 0xdb, 0x55, 0x3e, 0x7d, 0x21, 0xd7, 0x60, 0x35, 0xb9, 0x3d, 0x4a, 0xb8, 0x71, 0xbf, 0xa0,
-	0xdc, 0x57, 0x33, 0x0c, 0x05, 0xc3, 0xa4, 0xe9, 0x67, 0x0b, 0x2a, 0x3b, 0x2c, 0xe4, 0x24, 0xe4,
-	0x31, 0xd7, 0x63, 0xa6, 0x0b, 0x85, 0x74, 0x3e, 0x99, 0x3c, 0x9d, 0x6f, 0xea, 0x09, 0xd6, 0x4c,
-	0x26, 0x58, 0xf3, 0x4e, 0x22, 0xd1, 0x5d, 0x7e, 0x7a, 0xdc, 0x98, 0x7b, 0xf2, 0x6b, 0xc3, 0xb2,
-	0xc7, 0x6a, 0x08, 0x41, 0x5e, 0x8e, 0x29, 0xd3, 0x3c, 0xea, 0x8c, 0x1e, 0x40, 0x75, 0x88, 0x23,
-	0xec, 0x0e, 0x30, 0x0d, 0x9d, 0x01, 0xc1, 0x1e, 0x89, 0x4c, 0xd8, 0x57, 0x67, 0x84, 0xbd, 0x9f,
-	0xa8, 0xdc, 0x52, 0x1a, 0xdd, 0xbc, 0x74, 0x67, 0xaf, 0x0c, 0x27, 0xc9, 0x26, 0x9a, 0x67, 0x16,
-	0x94, 0x6e, 0x53, 0xde, 0x23, 0x03, 0x3c, 0xa2, 0x2c, 0x8e, 0xd0, 0x17, 0xb0, 0xac, 0x3d, 0x39,
-	0x6d, 0x85, 0xa5, 0xd8, 0xb9, 0x38, 0xc3, 0x97, 0x71, 0x51, 0x3f, 0x39, 0x6e, 0x2c, 0xe9, 0x73,
-	0xfb, 0xf7, 0xe3, 0xc6, 0xca, 0x11, 0x0e, 0xfc, 0xeb, 0x1b, 0x89, 0x9d, 0x0d, 0x7b, 0x49, 0x1f,
-	0xdb, 0x19, 0xeb, 0x1d, 0xd5, 0xa1, 0xaf, 0x6b, 0xbd, 0xf3, 0x92, 0xf5, 0x4e, 0x6a, 0xbd, 0x63,
-	0x42, 0xfa, 0xca, 0x02, 0x94, 0x26, 0xfb, 0xe6, 0x23, 0x11, 0xd1, 0x90, 0x53, 0x57, 0xf6, 0x2f,
-	0x49, 0x3e, 0x4c, 0x21, 0x5a, 0xba, 0x7f, 0x53, 0xb2, 0x2e, 0xc5, 0x09, 0x41, 0x5d, 0x11, 0x39,
-	0x55, 0x11, 0x63, 0x41, 0x5d, 0x96, 0x17, 0xa0, 0x90, 0x52, 0xcc, 0xcb, 0x32, 0x26, 0x6c, 0xfc,
-	0x61, 0xc1, 0xa2, 0x06, 0x8d, 0x3e, 0x83, 0xd5, 0xe9, 0x7b, 0xe4, 0x35, 0x4b, 0xb5, 0xed, 0x6b,
-	0x5c, 0xa4, 0x5d, 0x9d, 0xba, 0x42, 0x2e, 0x07, 0x73, 0xda, 0x35, 0xdc, 0xa0, 0x2c, 0x24, 0x6d,
-	0xc3, 0xd1, 0x39, 0xdd, 0xbe, 0x9c, 0x3e, 0x26, 0x66, 0x1e, 0xca, 0xae, 0x3c, 0xa0, 0x8f, 0x09,
-	0xfa, 0x1c, 0xaa, 0x92, 0x15, 0xab, 0x66, 0x37, 0x51, 0xea, 0xd2, 0xba, 0x32, 0x03, 0xd1, 0xe4,
-	0x78, 0x50, 0x95, 0x65, 0xd9, 0xb2, 0xbd, 0x33, 0x54, 0x73, 0x0b, 0xdf, 0xce, 0xc3, 0xca, 0x54,
-	0x00, 0xe8, 0xca, 0x29, 0xf5, 0xac, 0xe7, 0xec, 0x74, 0x75, 0xa2, 0x7b, 0x1a, 0x9f, 0x9a, 0x1a,
-	0x43, 0x1c, 0x09, 0x8a, 0x7d, 0x53, 0x8e, 0xcd, 0x57, 0x9c, 0x40, 0xfb, 0x5a, 0x4b, 0xc1, 0xcb,
-	0x7c, 0xa3, 0xff, 0xcb, 0x57, 0x27, 0xc2, 0xc9, 0x1b, 0x51, 0xb6, 0x17, 0xe5, 0xe7, 0xae, 0x87,
-	0x3a, 0x70, 0x76, 0x12, 0x1d, 0x4f, 0xf3, 0x22, 0xf3, 0xba, 0x36, 0x01, 0x51, 0x8f, 0x04, 0xf9,
-	0xf2, 0x68, 0xc9, 0xcc, 0x78, 0xd3, 0x6b, 0x40, 0x45, 0xd1, 0xc7, 0x03, 0xee, 0x2a, 0xac, 0x6a,
-	0x49, 0xc1, 0x04, 0xf6, 0x1d, 0x97, 0xc5, 0xa1, 0x50, 0x8b, 0x40, 0xd9, 0x5e, 0x51, 0x8c, 0x3b,
-	0x92, 0xbe, 0x23, 0xc9, 0xe8, 0x93, 0xec, 0x3c, 0xd1, 0xef, 0xfa, 0xd6, 0x8c, 0xa8, 0x5f, 0x2e,
-	0xf6, 0xcc, 0x60, 0x49, 0x9e, 0xde, 0x1c, 0xac, 0x9d, 0x92, 0x1d, 0x74, 0x19, 0x96, 0x46, 0x24,
-	0xe2, 0x94, 0x85, 0xba, 0x1b, 0xba, 0x65, 0x39, 0x2d, 0x9e, 0x1f, 0x37, 0x16, 0x62, 0x1a, 0x8a,
-	0x0f, 0xec, 0x84, 0x8b, 0xde, 0x82, 0xf2, 0x10, 0x47, 0x24, 0x14, 0xf2, 0x15, 0xee, 0xa5, 0xcf,
-	0x70, 0x49, 0x13, 0xf7, 0x14, 0x0d, 0x6d, 0x41, 0xd1, 0x08, 0x8d, 0xb7, 0xad, 0xa9, 0x57, 0x1d,
-	0xb4, 0x80, 0x5a, 0xbd, 0x1e, 0x42, 0x4d, 0xaf, 0x52, 0xa7, 0xac, 0x33, 0xf9, 0xd7, 0x5f, 0x67,
-	0xcc, 0xa4, 0x3b, 0xab, 0x24, 0xf6, 0x4e, 0xdf, 0x6c, 0x86, 0xb0, 0xfa, 0x92, 0x1e, 0xaa, 0x40,
-	0xce, 0xec, 0x35, 0x79, 0x3b, 0x47, 0x3d, 0x54, 0x85, 0x79, 0x9f, 0x84, 0x26, 0x42, 0x79, 0x44,
-	0xdb, 0x30, 0x7e, 0xe5, 0xd5, 0x3a, 0x79, 0x6a, 0x6c, 0xe5, 0x54, 0x46, 0x6e, 0x97, 0xc6, 0xe3,
-	0x8f, 0x39, 0x28, 0x65, 0x33, 0xff, 0xdf, 0xa6, 0xfc, 0x7d, 0x58, 0x99, 0x2a, 0x72, 0x95, 0xe9,
-	0x69, 0x95, 0xca, 0x64, 0xb1, 0xcf, 0xbc, 0xa9, 0x85, 0x7f, 0xe5, 0xa6, 0xba, 0xf7, 0x9f, 0x9e,
-	0xd4, 0xad, 0x67, 0x27, 0x75, 0xeb, 0xb7, 0x93, 0xba, 0xf5, 0xe4, 0x45, 0x7d, 0xee, 0xd9, 0x8b,
-	0xfa, 0xdc, 0x2f, 0x2f, 0xea, 0x73, 0xf7, 0x3f, 0xec, 0x53, 0x31, 0x88, 0x7b, 0x4d, 0x97, 0x05,
-	0x2d, 0x97, 0xf1, 0x80, 0xf1, 0x16, 0xed, 0xb9, 0x5b, 0x7d, 0xd6, 0x1a, 0x6d, 0xb7, 0x02, 0xe6,
-	0xc5, 0x3e, 0xe1, 0xfa, 0xf7, 0x64, 0x2b, 0xf9, 0x3f, 0x69, 0xb7, 0xb7, 0xf4, 0x2f, 0x8a, 0x38,
-	0x1a, 0x12, 0xde, 0x5b, 0x54, 0xaf, 0xf2, 0xf6, 0x9f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xd4, 0x82,
-	0x92, 0x16, 0xc9, 0x0c, 0x00, 0x00,
+	// 1292 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x57, 0xcb, 0x6f, 0x1b, 0x45,
+	0x18, 0xf7, 0xda, 0xce, 0xc3, 0x9f, 0x1d, 0xc7, 0x99, 0xb4, 0xe0, 0x96, 0x62, 0xa7, 0x81, 0xd2,
+	0xb4, 0x25, 0xb6, 0xec, 0x80, 0x84, 0x7a, 0xa2, 0x0e, 0x95, 0x1a, 0xa0, 0x51, 0xb4, 0x69, 0x45,
+	0x69, 0x41, 0xab, 0xb1, 0x77, 0x62, 0x8f, 0xba, 0xbb, 0x63, 0xed, 0xcc, 0x5a, 0x4d, 0xcf, 0x20,
+	0x71, 0xe0, 0xd0, 0x3f, 0xa1, 0x07, 0xee, 0x9c, 0xb8, 0x73, 0x41, 0xaa, 0xc4, 0xa5, 0x47, 0xd4,
+	0x43, 0x40, 0xc9, 0x7f, 0xc0, 0x99, 0x03, 0x9a, 0xc7, 0xae, 0x37, 0x4e, 0x30, 0x6d, 0x25, 0xc4,
+	0x6d, 0xf6, 0x7b, 0xfe, 0xbe, 0xe7, 0xcc, 0xc2, 0x25, 0xda, 0xed, 0x35, 0x3d, 0xda, 0x1f, 0x88,
+	0x9e, 0x47, 0x49, 0x20, 0x78, 0xb3, 0x4b, 0xc8, 0xde, 0x7e, 0x73, 0xd4, 0xd2, 0x87, 0xc6, 0x30,
+	0x64, 0x82, 0xa1, 0x73, 0xb4, 0xdb, 0x6b, 0xa4, 0xc5, 0x1a, 0x9a, 0x3b, 0x6a, 0x9d, 0xaf, 0xf5,
+	0x19, 0xeb, 0x7b, 0xa4, 0xa9, 0x04, 0xbb, 0xd1, 0x5e, 0xd3, 0x8d, 0x42, 0x2c, 0x28, 0x0b, 0xb4,
+	0xea, 0xf9, 0xfa, 0x24, 0x5f, 0x50, 0x9f, 0x70, 0x81, 0xfd, 0xa1, 0x11, 0x38, 0xd3, 0x67, 0x7d,
+	0xa6, 0x8e, 0x4d, 0x79, 0xd2, 0xd4, 0xd5, 0x5f, 0xb2, 0x50, 0xdc, 0x54, 0xbe, 0x76, 0x05, 0x16,
+	0x04, 0xad, 0xc2, 0x82, 0xef, 0x87, 0x4e, 0xc8, 0x98, 0x70, 0x06, 0x98, 0x0f, 0xaa, 0xd6, 0x8a,
+	0xb5, 0x56, 0xb2, 0x8b, 0xbe, 0x1f, 0xda, 0x8c, 0x89, 0x5b, 0x98, 0x0f, 0x50, 0x03, 0x96, 0x3d,
+	0x2c, 0x08, 0x17, 0x8e, 0x42, 0xe7, 0x0c, 0x88, 0x44, 0x5c, 0xcd, 0xae, 0x58, 0x6b, 0x0b, 0xf6,
+	0x92, 0x66, 0x75, 0x24, 0xe7, 0x96, 0x62, 0xa0, 0x0f, 0xe0, 0x0d, 0x2d, 0x88, 0x7b, 0x82, 0x8e,
+	0x14, 0x68, 0xa7, 0xeb, 0xb1, 0xde, 0xc3, 0x6a, 0x4e, 0xa9, 0x9c, 0x51, 0xdc, 0x1b, 0x09, 0xb3,
+	0x23, 0x79, 0xe8, 0x53, 0x28, 0xe0, 0x48, 0x0c, 0x58, 0x48, 0xc5, 0x7e, 0x35, 0xbf, 0x62, 0xad,
+	0x15, 0xdb, 0xef, 0x37, 0xfe, 0x31, 0x3f, 0x0d, 0xe5, 0xf0, 0x46, 0xac, 0xb0, 0x4b, 0x84, 0x3d,
+	0x56, 0x47, 0xf7, 0x01, 0x05, 0xe4, 0x91, 0x70, 0x12, 0x8a, 0xc3, 0x89, 0xa8, 0xce, 0xbc, 0x86,
+	0xd1, 0x8a, 0xb4, 0x93, 0xa6, 0x5c, 0xcf, 0x7f, 0xf7, 0xb4, 0x9e, 0x59, 0xbd, 0x0b, 0xc5, 0x1d,
+	0xbc, 0xef, 0x31, 0xec, 0x6e, 0x09, 0xe2, 0xa3, 0xb7, 0x01, 0x86, 0xfa, 0xd3, 0xa1, 0xae, 0xc9,
+	0x61, 0xc1, 0x50, 0xb6, 0x5c, 0x74, 0x11, 0x4a, 0x31, 0xdb, 0xc5, 0x02, 0xab, 0xd4, 0x95, 0xec,
+	0xa2, 0xa1, 0x7d, 0x82, 0x05, 0x36, 0x66, 0xbf, 0xb5, 0x00, 0x36, 0x99, 0xef, 0x53, 0xe1, 0x93,
+	0x40, 0xa0, 0xf7, 0x60, 0xce, 0xc8, 0x68, 0x9b, 0x9d, 0xd2, 0x8b, 0x83, 0xfa, 0xfc, 0x83, 0x8d,
+	0xf6, 0xd7, 0xdd, 0x7d, 0x41, 0xec, 0x98, 0x89, 0xea, 0x50, 0x54, 0x09, 0x76, 0x82, 0xc8, 0x27,
+	0xa1, 0xa9, 0x0c, 0x28, 0xd2, 0xb6, 0xa4, 0xa0, 0x35, 0xa8, 0x8c, 0xb0, 0x47, 0x5d, 0x2c, 0x58,
+	0x28, 0x73, 0x21, 0x51, 0xca, 0x62, 0xe4, 0xed, 0x72, 0x42, 0xdf, 0x25, 0x62, 0xcb, 0x35, 0x38,
+	0xba, 0xb0, 0x3c, 0x86, 0xb1, 0x4b, 0xfb, 0x01, 0x16, 0x51, 0x48, 0xd0, 0x05, 0x28, 0xf0, 0xf8,
+	0x23, 0x8e, 0x32, 0x21, 0xa0, 0xcb, 0xb0, 0x38, 0x4e, 0x38, 0x0d, 0x5c, 0xf2, 0xc8, 0x20, 0x29,
+	0x27, 0xe4, 0x2d, 0x49, 0x35, 0x3e, 0x7e, 0xb4, 0xa0, 0x22, 0x4d, 0x13, 0x37, 0x15, 0xf1, 0x4d,
+	0x80, 0x5e, 0xf2, 0xa5, 0x5c, 0x14, 0xdb, 0x97, 0xa6, 0x54, 0x6c, 0xac, 0x6a, 0xa7, 0x14, 0xd1,
+	0x36, 0x40, 0x82, 0x8b, 0x57, 0xb3, 0x2b, 0xb9, 0xb5, 0x62, 0xbb, 0xf1, 0x52, 0x66, 0x92, 0x60,
+	0xed, 0x94, 0x05, 0x83, 0xf8, 0x87, 0x2c, 0x94, 0x6f, 0xfb, 0xe1, 0xdd, 0xa1, 0x8b, 0x05, 0xd9,
+	0x09, 0x19, 0xdb, 0x43, 0x1d, 0x98, 0x97, 0xf3, 0xe3, 0x11, 0xbc, 0x67, 0xd0, 0x5e, 0xfe, 0xb7,
+	0xfe, 0xba, 0xed, 0x87, 0x9f, 0x13, 0xbc, 0x67, 0xcf, 0xf9, 0xfa, 0x80, 0xde, 0x85, 0x72, 0x6c,
+	0x23, 0x95, 0xb6, 0xbc, 0x5d, 0x32, 0x02, 0x2a, 0x69, 0xe8, 0x2d, 0x28, 0x48, 0xa9, 0xa1, 0x74,
+	0x5b, 0xcd, 0xad, 0xe4, 0xd6, 0x4a, 0xb6, 0x74, 0xad, 0x61, 0xdc, 0x83, 0x25, 0xae, 0x52, 0xe9,
+	0xa4, 0xb2, 0xa7, 0x87, 0xe8, 0xda, 0x14, 0x3c, 0x93, 0xe9, 0xb7, 0x2b, 0x7c, 0xb2, 0x20, 0xd7,
+	0x60, 0x29, 0xae, 0x1e, 0x25, 0xdc, 0xb8, 0x9f, 0x51, 0xee, 0x2b, 0x29, 0x86, 0x82, 0x61, 0xd2,
+	0xf4, 0xab, 0x05, 0xe5, 0x4d, 0x16, 0x70, 0x12, 0xf0, 0x88, 0xeb, 0x35, 0xd3, 0x81, 0x42, 0xb2,
+	0x9f, 0x4c, 0x9e, 0xce, 0x37, 0xf4, 0x06, 0x6b, 0xc4, 0x1b, 0xac, 0x71, 0x27, 0x96, 0xe8, 0xcc,
+	0x3f, 0x3b, 0xa8, 0x67, 0x9e, 0xfc, 0x5e, 0xb7, 0xec, 0xb1, 0x1a, 0x42, 0x90, 0x97, 0x6b, 0xca,
+	0x0c, 0x8f, 0x3a, 0xa3, 0x07, 0x50, 0x19, 0xe2, 0x10, 0xf7, 0x06, 0x98, 0x06, 0xce, 0x80, 0x60,
+	0x97, 0x84, 0x26, 0xec, 0xab, 0x53, 0xc2, 0xde, 0x89, 0x55, 0x6e, 0x29, 0x8d, 0x4e, 0x5e, 0xba,
+	0xb3, 0x17, 0x87, 0xc7, 0xc9, 0x26, 0x9a, 0xe7, 0x16, 0x94, 0x6e, 0x53, 0xde, 0x25, 0x03, 0x3c,
+	0xa2, 0x2c, 0x0a, 0xd1, 0x57, 0x30, 0xaf, 0x3d, 0x39, 0x2d, 0x85, 0xa5, 0xd8, 0xbe, 0x38, 0xc5,
+	0x97, 0x71, 0x51, 0x3b, 0x3c, 0xa8, 0xcf, 0xe9, 0x73, 0xeb, 0xcf, 0x83, 0xfa, 0xe2, 0x3e, 0xf6,
+	0xbd, 0xeb, 0xab, 0xb1, 0x9d, 0x55, 0x7b, 0x4e, 0x1f, 0x5b, 0x29, 0xeb, 0x6d, 0x35, 0xa1, 0xaf,
+	0x6a, 0xbd, 0x7d, 0xc2, 0x7a, 0x3b, 0xb1, 0xde, 0x36, 0x21, 0x7d, 0x63, 0x01, 0x4a, 0x92, 0x7d,
+	0xf3, 0x91, 0x08, 0x69, 0xc0, 0x69, 0x4f, 0xce, 0x2f, 0x89, 0x3f, 0x4c, 0x23, 0x5a, 0x7a, 0x7e,
+	0x13, 0xb2, 0x6e, 0xc5, 0x63, 0x82, 0xba, 0x23, 0xb2, 0xaa, 0x23, 0xc6, 0x82, 0xba, 0x2d, 0x2f,
+	0x40, 0x21, 0xa1, 0xa8, 0x68, 0x4a, 0xf6, 0x98, 0xb0, 0xfa, 0x97, 0x05, 0xb3, 0x1a, 0x34, 0xfa,
+	0x02, 0x96, 0x26, 0xeb, 0xc8, 0xab, 0x96, 0x1a, 0xdb, 0x57, 0x28, 0xa4, 0x5d, 0x99, 0x28, 0x21,
+	0x97, 0x8b, 0x39, 0x99, 0x1a, 0x6e, 0x50, 0x16, 0xe2, 0xb1, 0xe1, 0xe8, 0x9c, 0x1e, 0x5f, 0x4e,
+	0x1f, 0x13, 0xb3, 0x0f, 0xe5, 0x54, 0xee, 0xd2, 0xc7, 0x04, 0x7d, 0x09, 0x15, 0xc9, 0x8a, 0xd4,
+	0xb0, 0x9b, 0x28, 0x75, 0x6b, 0x5d, 0x99, 0x82, 0xe8, 0xf8, 0x7a, 0x50, 0x9d, 0x65, 0xd9, 0x72,
+	0xbc, 0x53, 0x54, 0x53, 0x85, 0xef, 0x73, 0xb0, 0x38, 0x11, 0x00, 0xba, 0x72, 0x4a, 0x3f, 0xeb,
+	0x3d, 0x3b, 0xd9, 0x9d, 0xe8, 0x9e, 0xc6, 0xa7, 0xb6, 0xc6, 0x10, 0x87, 0x82, 0x62, 0xcf, 0xb4,
+	0x63, 0xe3, 0x25, 0x37, 0xd0, 0x8e, 0xd6, 0x52, 0xf0, 0x52, 0xdf, 0xe8, 0x4d, 0x79, 0xeb, 0x84,
+	0x38, 0xbe, 0x23, 0x16, 0xec, 0x59, 0xf9, 0xb9, 0xe5, 0xa2, 0x36, 0x9c, 0x3d, 0x8e, 0x8e, 0x27,
+	0x79, 0x91, 0x79, 0x5d, 0x3e, 0x06, 0x51, 0xaf, 0x04, 0x79, 0xf3, 0x68, 0xc9, 0xd4, 0x7a, 0x9b,
+	0xd1, 0x5d, 0xa5, 0xe8, 0xe3, 0x05, 0x77, 0x15, 0x96, 0xb4, 0xa4, 0x60, 0x02, 0x7b, 0x4e, 0x8f,
+	0x45, 0x81, 0xa8, 0xce, 0x2a, 0xd1, 0x45, 0xc5, 0xb8, 0x23, 0xe9, 0x9b, 0x92, 0x8c, 0x3e, 0x4b,
+	0xef, 0x93, 0x39, 0x15, 0xf5, 0xfa, 0x94, 0xa8, 0x4f, 0x36, 0x7b, 0x6a, 0xb1, 0xc4, 0x57, 0x6f,
+	0x16, 0x96, 0x4f, 0xc9, 0x0e, 0xba, 0x0c, 0x73, 0x23, 0x12, 0x72, 0xca, 0x02, 0x3d, 0x0d, 0x9d,
+	0x05, 0xb9, 0x2d, 0x5e, 0x1c, 0xd4, 0x67, 0x22, 0x1a, 0x88, 0x8f, 0xec, 0x98, 0x8b, 0xde, 0x81,
+	0x85, 0x21, 0x0e, 0x49, 0x20, 0xe4, 0x2d, 0xdc, 0x4d, 0xae, 0xe1, 0x92, 0x26, 0x6e, 0x2b, 0x1a,
+	0x5a, 0x87, 0xa2, 0x11, 0x52, 0xaf, 0xad, 0xdc, 0x29, 0xb7, 0x3a, 0x68, 0x01, 0xf5, 0xf4, 0x7a,
+	0x08, 0x55, 0xfd, 0x94, 0x3a, 0xe5, 0x39, 0xf3, 0x1a, 0x6f, 0x24, 0xb3, 0xe9, 0xce, 0x2a, 0x89,
+	0xed, 0xd3, 0x5f, 0x36, 0x43, 0x58, 0x3a, 0xa1, 0x87, 0xca, 0x90, 0x35, 0xef, 0x9a, 0xbc, 0x9d,
+	0xa5, 0x2e, 0xaa, 0x40, 0xce, 0x23, 0x81, 0x89, 0x50, 0x1e, 0xd1, 0x06, 0x8c, 0x6f, 0x79, 0xf5,
+	0x9c, 0x3c, 0x35, 0xb6, 0x85, 0x44, 0x46, 0xbe, 0x2e, 0x8d, 0xc7, 0x9f, 0xb2, 0x50, 0x4a, 0x67,
+	0xfe, 0xff, 0x4d, 0xf9, 0x87, 0xb0, 0x38, 0xd1, 0xe4, 0x2a, 0xd3, 0x93, 0x2a, 0xe5, 0xe3, 0xcd,
+	0x3e, 0xb5, 0x52, 0x33, 0xff, 0x49, 0xa5, 0x3a, 0x7b, 0xcf, 0x0e, 0x6b, 0x99, 0xe7, 0x87, 0xb5,
+	0xcc, 0x1f, 0x87, 0xb5, 0xcc, 0x93, 0xa3, 0x5a, 0xe6, 0xe9, 0x51, 0x2d, 0xf3, 0xf3, 0x51, 0xcd,
+	0x7a, 0x76, 0x54, 0xb3, 0x9e, 0x1f, 0xd5, 0x32, 0xbf, 0x1d, 0xd5, 0x32, 0xf7, 0x3f, 0xee, 0x53,
+	0x31, 0x88, 0xba, 0x8d, 0x1e, 0xf3, 0x9b, 0x3d, 0xc6, 0x7d, 0xc6, 0x9b, 0xb4, 0xdb, 0x5b, 0xef,
+	0xb3, 0xe6, 0x68, 0xa3, 0xe9, 0x33, 0x37, 0xf2, 0x08, 0xd7, 0xbf, 0x2a, 0xeb, 0xf1, 0xbf, 0x4a,
+	0xab, 0xb5, 0xae, 0x7f, 0x57, 0xc4, 0xfe, 0x90, 0xf0, 0xee, 0xac, 0xba, 0xa1, 0x37, 0xfe, 0x0e,
+	0x00, 0x00, 0xff, 0xff, 0x01, 0x07, 0xfb, 0x72, 0xd5, 0x0c, 0x00, 0x00,
 }
-
-func (m *ClientState) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ClientState) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ClientState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.NextAuthoritySet != nil {
-		{
-			size, err := m.NextAuthoritySet.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	if m.Authority != nil {
-		{
-			size, err := m.Authority.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x32
-	}
-	if m.BeefyActivationBlock != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.BeefyActivationBlock))
-		i--
-		dAtA[i] = 0x28
-	}
-	if m.LatestBeefyHeight != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.LatestBeefyHeight))
-		i--
-		dAtA[i] = 0x20
-	}
-	if len(m.MmrRootHash) > 0 {
-		i -= len(m.MmrRootHash)
-		copy(dAtA[i:], m.MmrRootHash)
-		i = encodeVarintBeefy(dAtA, i, uint64(len(m.MmrRootHash)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PayloadItem) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PayloadItem) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PayloadItem) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.PayloadData) > 0 {
-		i -= len(m.PayloadData)
-		copy(dAtA[i:], m.PayloadData)
-		i = encodeVarintBeefy(dAtA, i, uint64(len(m.PayloadData)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.PayloadId) > 0 {
-		i -= len(m.PayloadId)
-		copy(dAtA[i:], m.PayloadId)
-		i = encodeVarintBeefy(dAtA, i, uint64(len(m.PayloadId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Commitment) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Commitment) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Commitment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.ValidatorSetId != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.ValidatorSetId))
-		i--
-		dAtA[i] = 0x18
-	}
-	if m.BlockNumer != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.BlockNumer))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.Payload != nil {
-		{
-			size := m.Payload.Size()
-			i -= size
-			if _, err := m.Payload.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *CommitmentSignature) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *CommitmentSignature) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *CommitmentSignature) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.AuthorityIndex != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.AuthorityIndex))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.Signature) > 0 {
-		i -= len(m.Signature)
-		copy(dAtA[i:], m.Signature)
-		i = encodeVarintBeefy(dAtA, i, uint64(len(m.Signature)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *SignedCommitment) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *SignedCommitment) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *SignedCommitment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Signatures) > 0 {
-		for iNdEx := len(m.Signatures) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Signatures[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintBeefy(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if m.Commitment != nil {
-		{
-			size, err := m.Commitment.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MmrUpdateProof) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MmrUpdateProof) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MmrUpdateProof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.AuthoritiesProof) > 0 {
-		for iNdEx := len(m.AuthoritiesProof) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.AuthoritiesProof[iNdEx])
-			copy(dAtA[i:], m.AuthoritiesProof[iNdEx])
-			i = encodeVarintBeefy(dAtA, i, uint64(len(m.AuthoritiesProof[iNdEx])))
-			i--
-			dAtA[i] = 0x2a
-		}
-	}
-	if m.SignedCommitment != nil {
-		{
-			size, err := m.SignedCommitment.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.MmrProof) > 0 {
-		for iNdEx := len(m.MmrProof) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.MmrProof[iNdEx])
-			copy(dAtA[i:], m.MmrProof[iNdEx])
-			i = encodeVarintBeefy(dAtA, i, uint64(len(m.MmrProof[iNdEx])))
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if m.MmrLeafIndex != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.MmrLeafIndex))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.MmrLeaf != nil {
-		{
-			size, err := m.MmrLeaf.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ConsensusState) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ConsensusState) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ConsensusState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.ParachainHeader.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintBeefy(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x22
-	if len(m.Root) > 0 {
-		i -= len(m.Root)
-		copy(dAtA[i:], m.Root)
-		i = encodeVarintBeefy(dAtA, i, uint64(len(m.Root)))
-		i--
-		dAtA[i] = 0x12
-	}
-	n7, err7 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Timestamp, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Timestamp):])
-	if err7 != nil {
-		return 0, err7
-	}
-	i -= n7
-	i = encodeVarintBeefy(dAtA, i, uint64(n7))
-	i--
-	dAtA[i] = 0xa
-	return len(dAtA) - i, nil
-}
-
-func (m *Misbehaviour) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Misbehaviour) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Misbehaviour) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Header2 != nil {
-		{
-			size, err := m.Header2.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.Header1 != nil {
-		{
-			size, err := m.Header1.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *TimestampExtrinsic) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *TimestampExtrinsic) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *TimestampExtrinsic) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Extrinsic) > 0 {
-		i -= len(m.Extrinsic)
-		copy(dAtA[i:], m.Extrinsic)
-		i = encodeVarintBeefy(dAtA, i, uint64(len(m.Extrinsic)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.ExtrinsicProof) > 0 {
-		for iNdEx := len(m.ExtrinsicProof) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.ExtrinsicProof[iNdEx])
-			copy(dAtA[i:], m.ExtrinsicProof[iNdEx])
-			i = encodeVarintBeefy(dAtA, i, uint64(len(m.ExtrinsicProof[iNdEx])))
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if m.ExtrinsicIndex != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.ExtrinsicIndex))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Header) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Header) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Header) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.MmrUpdateProof != nil {
-		{
-			size, err := m.MmrUpdateProof.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	if m.MmrSize != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.MmrSize))
-		i--
-		dAtA[i] = 0x18
-	}
-	if len(m.MmrProofs) > 0 {
-		for iNdEx := len(m.MmrProofs) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.MmrProofs[iNdEx])
-			copy(dAtA[i:], m.MmrProofs[iNdEx])
-			i = encodeVarintBeefy(dAtA, i, uint64(len(m.MmrProofs[iNdEx])))
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if len(m.ParachainHeaders) > 0 {
-		for iNdEx := len(m.ParachainHeaders) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.ParachainHeaders[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintBeefy(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ParachainHeader) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ParachainHeader) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ParachainHeader) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Timestamp != nil {
-		{
-			size, err := m.Timestamp.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	if m.HeadsTotalCount != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.HeadsTotalCount))
-		i--
-		dAtA[i] = 0x30
-	}
-	if m.HeadsLeafIndex != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.HeadsLeafIndex))
-		i--
-		dAtA[i] = 0x28
-	}
-	if len(m.ParachainHeadsProof) > 0 {
-		for iNdEx := len(m.ParachainHeadsProof) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.ParachainHeadsProof[iNdEx])
-			copy(dAtA[i:], m.ParachainHeadsProof[iNdEx])
-			i = encodeVarintBeefy(dAtA, i, uint64(len(m.ParachainHeadsProof[iNdEx])))
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if m.ParaId != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.ParaId))
-		i--
-		dAtA[i] = 0x18
-	}
-	if m.MmrLeafPartial != nil {
-		{
-			size, err := m.MmrLeafPartial.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.ParachainHeader) > 0 {
-		i -= len(m.ParachainHeader)
-		copy(dAtA[i:], m.ParachainHeader)
-		i = encodeVarintBeefy(dAtA, i, uint64(len(m.ParachainHeader)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *BeefyMmrLeafPartial) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *BeefyMmrLeafPartial) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *BeefyMmrLeafPartial) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.BeefyNextAuthoritySet.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintBeefy(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x22
-	if m.ParentHash != nil {
-		{
-			size := m.ParentHash.Size()
-			i -= size
-			if _, err := m.ParentHash.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.ParentNumber != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.ParentNumber))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.Version != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.Version))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *BeefyAuthoritySet) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *BeefyAuthoritySet) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *BeefyAuthoritySet) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.AuthorityRoot != nil {
-		{
-			size := m.AuthorityRoot.Size()
-			i -= size
-			if _, err := m.AuthorityRoot.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.Len != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.Len))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.Id != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.Id))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *BeefyMmrLeaf) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *BeefyMmrLeaf) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *BeefyMmrLeaf) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.BeefyNextAuthoritySet.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintBeefy(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x2a
-	if m.ParachainHeads != nil {
-		{
-			size := m.ParachainHeads.Size()
-			i -= size
-			if _, err := m.ParachainHeads.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	if m.ParentHash != nil {
-		{
-			size := m.ParentHash.Size()
-			i -= size
-			if _, err := m.ParentHash.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintBeefy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.ParentNumber != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.ParentNumber))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.Version != 0 {
-		i = encodeVarintBeefy(dAtA, i, uint64(m.Version))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func encodeVarintBeefy(dAtA []byte, offset int, v uint64) int {
-	offset -= sovBeefy(v)
-	base := offset
-	for v >= 1<<7 {
-		dAtA[offset] = uint8(v&0x7f | 0x80)
-		v >>= 7
-		offset++
-	}
-	dAtA[offset] = uint8(v)
-	return base
-}
-func (m *ClientState) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.MmrRootHash)
-	if l > 0 {
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.LatestBeefyHeight != 0 {
-		n += 1 + sovBeefy(uint64(m.LatestBeefyHeight))
-	}
-	if m.BeefyActivationBlock != 0 {
-		n += 1 + sovBeefy(uint64(m.BeefyActivationBlock))
-	}
-	if m.Authority != nil {
-		l = m.Authority.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.NextAuthoritySet != nil {
-		l = m.NextAuthoritySet.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	return n
-}
-
-func (m *PayloadItem) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.PayloadId)
-	if l > 0 {
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	l = len(m.PayloadData)
-	if l > 0 {
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	return n
-}
-
-func (m *Commitment) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Payload != nil {
-		l = m.Payload.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.BlockNumer != 0 {
-		n += 1 + sovBeefy(uint64(m.BlockNumer))
-	}
-	if m.ValidatorSetId != 0 {
-		n += 1 + sovBeefy(uint64(m.ValidatorSetId))
-	}
-	return n
-}
-
-func (m *CommitmentSignature) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Signature)
-	if l > 0 {
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.AuthorityIndex != 0 {
-		n += 1 + sovBeefy(uint64(m.AuthorityIndex))
-	}
-	return n
-}
-
-func (m *SignedCommitment) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Commitment != nil {
-		l = m.Commitment.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if len(m.Signatures) > 0 {
-		for _, e := range m.Signatures {
-			l = e.Size()
-			n += 1 + l + sovBeefy(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *MmrUpdateProof) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.MmrLeaf != nil {
-		l = m.MmrLeaf.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.MmrLeafIndex != 0 {
-		n += 1 + sovBeefy(uint64(m.MmrLeafIndex))
-	}
-	if len(m.MmrProof) > 0 {
-		for _, b := range m.MmrProof {
-			l = len(b)
-			n += 1 + l + sovBeefy(uint64(l))
-		}
-	}
-	if m.SignedCommitment != nil {
-		l = m.SignedCommitment.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if len(m.AuthoritiesProof) > 0 {
-		for _, b := range m.AuthoritiesProof {
-			l = len(b)
-			n += 1 + l + sovBeefy(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *ConsensusState) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.Timestamp)
-	n += 1 + l + sovBeefy(uint64(l))
-	l = len(m.Root)
-	if l > 0 {
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	l = m.ParachainHeader.Size()
-	n += 1 + l + sovBeefy(uint64(l))
-	return n
-}
-
-func (m *Misbehaviour) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Header1 != nil {
-		l = m.Header1.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.Header2 != nil {
-		l = m.Header2.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	return n
-}
-
-func (m *TimestampExtrinsic) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.ExtrinsicIndex != 0 {
-		n += 1 + sovBeefy(uint64(m.ExtrinsicIndex))
-	}
-	if len(m.ExtrinsicProof) > 0 {
-		for _, b := range m.ExtrinsicProof {
-			l = len(b)
-			n += 1 + l + sovBeefy(uint64(l))
-		}
-	}
-	l = len(m.Extrinsic)
-	if l > 0 {
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	return n
-}
-
-func (m *Header) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.ParachainHeaders) > 0 {
-		for _, e := range m.ParachainHeaders {
-			l = e.Size()
-			n += 1 + l + sovBeefy(uint64(l))
-		}
-	}
-	if len(m.MmrProofs) > 0 {
-		for _, b := range m.MmrProofs {
-			l = len(b)
-			n += 1 + l + sovBeefy(uint64(l))
-		}
-	}
-	if m.MmrSize != 0 {
-		n += 1 + sovBeefy(uint64(m.MmrSize))
-	}
-	if m.MmrUpdateProof != nil {
-		l = m.MmrUpdateProof.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	return n
-}
-
-func (m *ParachainHeader) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.ParachainHeader)
-	if l > 0 {
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.MmrLeafPartial != nil {
-		l = m.MmrLeafPartial.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.ParaId != 0 {
-		n += 1 + sovBeefy(uint64(m.ParaId))
-	}
-	if len(m.ParachainHeadsProof) > 0 {
-		for _, b := range m.ParachainHeadsProof {
-			l = len(b)
-			n += 1 + l + sovBeefy(uint64(l))
-		}
-	}
-	if m.HeadsLeafIndex != 0 {
-		n += 1 + sovBeefy(uint64(m.HeadsLeafIndex))
-	}
-	if m.HeadsTotalCount != 0 {
-		n += 1 + sovBeefy(uint64(m.HeadsTotalCount))
-	}
-	if m.Timestamp != nil {
-		l = m.Timestamp.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	return n
-}
-
-func (m *BeefyMmrLeafPartial) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Version != 0 {
-		n += 1 + sovBeefy(uint64(m.Version))
-	}
-	if m.ParentNumber != 0 {
-		n += 1 + sovBeefy(uint64(m.ParentNumber))
-	}
-	if m.ParentHash != nil {
-		l = m.ParentHash.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	l = m.BeefyNextAuthoritySet.Size()
-	n += 1 + l + sovBeefy(uint64(l))
-	return n
-}
-
-func (m *BeefyAuthoritySet) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Id != 0 {
-		n += 1 + sovBeefy(uint64(m.Id))
-	}
-	if m.Len != 0 {
-		n += 1 + sovBeefy(uint64(m.Len))
-	}
-	if m.AuthorityRoot != nil {
-		l = m.AuthorityRoot.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	return n
-}
-
-func (m *BeefyMmrLeaf) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Version != 0 {
-		n += 1 + sovBeefy(uint64(m.Version))
-	}
-	if m.ParentNumber != 0 {
-		n += 1 + sovBeefy(uint64(m.ParentNumber))
-	}
-	if m.ParentHash != nil {
-		l = m.ParentHash.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	if m.ParachainHeads != nil {
-		l = m.ParachainHeads.Size()
-		n += 1 + l + sovBeefy(uint64(l))
-	}
-	l = m.BeefyNextAuthoritySet.Size()
-	n += 1 + l + sovBeefy(uint64(l))
-	return n
-}
-
-func sovBeefy(x uint64) (n int) {
-	return (math_bits.Len64(x|1) + 6) / 7
-}
-func sozBeefy(x uint64) (n int) {
-	return sovBeefy(uint64((x << 1) ^ uint64((int64(x) >> 63))))
-}
-func (m *ClientState) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ClientState: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClientState: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrRootHash", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.MmrRootHash = append(m.MmrRootHash[:0], dAtA[iNdEx:postIndex]...)
-			if m.MmrRootHash == nil {
-				m.MmrRootHash = []byte{}
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LatestBeefyHeight", wireType)
-			}
-			m.LatestBeefyHeight = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.LatestBeefyHeight |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BeefyActivationBlock", wireType)
-			}
-			m.BeefyActivationBlock = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.BeefyActivationBlock |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Authority == nil {
-				m.Authority = &BeefyAuthoritySet{}
-			}
-			if err := m.Authority.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NextAuthoritySet", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.NextAuthoritySet == nil {
-				m.NextAuthoritySet = &BeefyAuthoritySet{}
-			}
-			if err := m.NextAuthoritySet.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PayloadItem) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PayloadItem: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PayloadItem: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PayloadId", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PayloadId = append(m.PayloadId[:0], dAtA[iNdEx:postIndex]...)
-			if m.PayloadId == nil {
-				m.PayloadId = []byte{}
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PayloadData", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PayloadData = append(m.PayloadData[:0], dAtA[iNdEx:postIndex]...)
-			if m.PayloadData == nil {
-				m.PayloadData = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Commitment) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Commitment: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Commitment: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			var v [32]byte
-			m.Payload = &v
-			if err := m.Payload.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BlockNumer", wireType)
-			}
-			m.BlockNumer = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.BlockNumer |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorSetId", wireType)
-			}
-			m.ValidatorSetId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ValidatorSetId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *CommitmentSignature) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: CommitmentSignature: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CommitmentSignature: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Signature", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Signature = append(m.Signature[:0], dAtA[iNdEx:postIndex]...)
-			if m.Signature == nil {
-				m.Signature = []byte{}
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AuthorityIndex", wireType)
-			}
-			m.AuthorityIndex = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.AuthorityIndex |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SignedCommitment) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SignedCommitment: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SignedCommitment: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Commitment", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Commitment == nil {
-				m.Commitment = &Commitment{}
-			}
-			if err := m.Commitment.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Signatures", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Signatures = append(m.Signatures, &CommitmentSignature{})
-			if err := m.Signatures[len(m.Signatures)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MmrUpdateProof) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MmrUpdateProof: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MmrUpdateProof: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrLeaf", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.MmrLeaf == nil {
-				m.MmrLeaf = &BeefyMmrLeaf{}
-			}
-			if err := m.MmrLeaf.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrLeafIndex", wireType)
-			}
-			m.MmrLeafIndex = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.MmrLeafIndex |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrProof", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.MmrProof = append(m.MmrProof, make([]byte, postIndex-iNdEx))
-			copy(m.MmrProof[len(m.MmrProof)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SignedCommitment", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.SignedCommitment == nil {
-				m.SignedCommitment = &SignedCommitment{}
-			}
-			if err := m.SignedCommitment.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AuthoritiesProof", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.AuthoritiesProof = append(m.AuthoritiesProof, make([]byte, postIndex-iNdEx))
-			copy(m.AuthoritiesProof[len(m.AuthoritiesProof)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ConsensusState) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ConsensusState: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConsensusState: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Timestamp", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.Timestamp, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Root", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Root = append(m.Root[:0], dAtA[iNdEx:postIndex]...)
-			if m.Root == nil {
-				m.Root = []byte{}
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParachainHeader", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.ParachainHeader.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Misbehaviour) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Misbehaviour: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Misbehaviour: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Header1", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Header1 == nil {
-				m.Header1 = &Header{}
-			}
-			if err := m.Header1.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Header2", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Header2 == nil {
-				m.Header2 = &Header{}
-			}
-			if err := m.Header2.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *TimestampExtrinsic) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: TimestampExtrinsic: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TimestampExtrinsic: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExtrinsicIndex", wireType)
-			}
-			m.ExtrinsicIndex = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ExtrinsicIndex |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExtrinsicProof", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ExtrinsicProof = append(m.ExtrinsicProof, make([]byte, postIndex-iNdEx))
-			copy(m.ExtrinsicProof[len(m.ExtrinsicProof)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Extrinsic", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Extrinsic = append(m.Extrinsic[:0], dAtA[iNdEx:postIndex]...)
-			if m.Extrinsic == nil {
-				m.Extrinsic = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Header) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Header: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Header: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParachainHeaders", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ParachainHeaders = append(m.ParachainHeaders, &ParachainHeader{})
-			if err := m.ParachainHeaders[len(m.ParachainHeaders)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrProofs", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.MmrProofs = append(m.MmrProofs, make([]byte, postIndex-iNdEx))
-			copy(m.MmrProofs[len(m.MmrProofs)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrSize", wireType)
-			}
-			m.MmrSize = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.MmrSize |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrUpdateProof", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.MmrUpdateProof == nil {
-				m.MmrUpdateProof = &MmrUpdateProof{}
-			}
-			if err := m.MmrUpdateProof.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ParachainHeader) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ParachainHeader: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ParachainHeader: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParachainHeader", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ParachainHeader = append(m.ParachainHeader[:0], dAtA[iNdEx:postIndex]...)
-			if m.ParachainHeader == nil {
-				m.ParachainHeader = []byte{}
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MmrLeafPartial", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.MmrLeafPartial == nil {
-				m.MmrLeafPartial = &BeefyMmrLeafPartial{}
-			}
-			if err := m.MmrLeafPartial.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParaId", wireType)
-			}
-			m.ParaId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ParaId |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParachainHeadsProof", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ParachainHeadsProof = append(m.ParachainHeadsProof, make([]byte, postIndex-iNdEx))
-			copy(m.ParachainHeadsProof[len(m.ParachainHeadsProof)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HeadsLeafIndex", wireType)
-			}
-			m.HeadsLeafIndex = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.HeadsLeafIndex |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HeadsTotalCount", wireType)
-			}
-			m.HeadsTotalCount = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.HeadsTotalCount |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Timestamp", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Timestamp == nil {
-				m.Timestamp = &TimestampExtrinsic{}
-			}
-			if err := m.Timestamp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *BeefyMmrLeafPartial) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: BeefyMmrLeafPartial: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: BeefyMmrLeafPartial: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
-			}
-			m.Version = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Version |= uint8(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParentNumber", wireType)
-			}
-			m.ParentNumber = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ParentNumber |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParentHash", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			var v [32]byte
-			m.ParentHash = &v
-			if err := m.ParentHash.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BeefyNextAuthoritySet", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.BeefyNextAuthoritySet.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *BeefyAuthoritySet) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: BeefyAuthoritySet: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: BeefyAuthoritySet: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
-			}
-			m.Id = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Id |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Len", wireType)
-			}
-			m.Len = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Len |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AuthorityRoot", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			var v [32]byte
-			m.AuthorityRoot = &v
-			if err := m.AuthorityRoot.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *BeefyMmrLeaf) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: BeefyMmrLeaf: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: BeefyMmrLeaf: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
-			}
-			m.Version = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Version |= uint8(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParentNumber", wireType)
-			}
-			m.ParentNumber = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ParentNumber |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParentHash", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			var v [32]byte
-			m.ParentHash = &v
-			if err := m.ParentHash.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ParachainHeads", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			var v [32]byte
-			m.ParachainHeads = &v
-			if err := m.ParachainHeads.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BeefyNextAuthoritySet", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.BeefyNextAuthoritySet.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBeefy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBeefy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func skipBeefy(dAtA []byte) (n int, err error) {
-	l := len(dAtA)
-	iNdEx := 0
-	depth := 0
-	for iNdEx < l {
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return 0, ErrIntOverflowBeefy
-			}
-			if iNdEx >= l {
-				return 0, io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		wireType := int(wire & 0x7)
-		switch wireType {
-		case 0:
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return 0, ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return 0, io.ErrUnexpectedEOF
-				}
-				iNdEx++
-				if dAtA[iNdEx-1] < 0x80 {
-					break
-				}
-			}
-		case 1:
-			iNdEx += 8
-		case 2:
-			var length int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return 0, ErrIntOverflowBeefy
-				}
-				if iNdEx >= l {
-					return 0, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				length |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if length < 0 {
-				return 0, ErrInvalidLengthBeefy
-			}
-			iNdEx += length
-		case 3:
-			depth++
-		case 4:
-			if depth == 0 {
-				return 0, ErrUnexpectedEndOfGroupBeefy
-			}
-			depth--
-		case 5:
-			iNdEx += 4
-		default:
-			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
-		}
-		if iNdEx < 0 {
-			return 0, ErrInvalidLengthBeefy
-		}
-		if depth == 0 {
-			return iNdEx, nil
-		}
-	}
-	return 0, io.ErrUnexpectedEOF
-}
-
-var (
-	ErrInvalidLengthBeefy        = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowBeefy          = fmt.Errorf("proto: integer overflow")
-	ErrUnexpectedEndOfGroupBeefy = fmt.Errorf("proto: unexpected end of group")
-)
