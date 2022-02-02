@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -667,15 +666,16 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 			suite.Require().NoError(err)
 
 			// Setup a new path from C(controller) -> B(host)
-			// NOTE: Here the version metadata is overridden to include to the next host connection sequence (i.e. chainB's connection to chainC)
-			nextConnectionSeq := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetNextConnectionSequence(suite.chainB.GetContext())
-			TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
-				Version:                icatypes.Version,
-				ControllerConnectionId: ibctesting.FirstConnectionID,
-				HostConnectionId:       connectiontypes.FormatConnectionIdentifier(nextConnectionSeq),
-			}))
 			pathCToB = NewICAPath(suite.chainC, suite.chainB)
 			suite.coordinator.SetupConnections(pathCToB)
+
+			// NOTE: Here the version metadata is overridden to include to the next host connection sequence (i.e. chainB's connection to chainC)
+			// SetupICAPath() will set endpoint.ChannelConfig.Version to TestVersion
+			TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+				Version:                icatypes.Version,
+				ControllerConnectionId: pathCToB.EndpointA.ConnectionID,
+				HostConnectionId:       pathCToB.EndpointB.ConnectionID,
+			}))
 
 			err = SetupICAPath(pathCToB, TestOwnerAddress)
 			suite.Require().NoError(err)
