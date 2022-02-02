@@ -8,6 +8,13 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
+option (gogoproto.marshaler_all) = false;
+option (gogoproto.unmarshaler_all) = false;
+option (gogoproto.sizer_all) = false;
+option (gogoproto.goproto_registration) = true;
+option (gogoproto.messagename_all) = true;
+option (gogoproto.protosizer_all) =false;
+
 // ClientState from Tendermint tracks the current validator set, latest height,
 // and a possible frozen height.
 message ClientState {
