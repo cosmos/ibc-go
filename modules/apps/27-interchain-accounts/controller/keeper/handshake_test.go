@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"unsupported transaction type",
 			func() {
-				metadata.TxTypes = "invalid-tx-types"
+				metadata.TxType = "invalid-tx-types"
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
@@ -252,7 +252,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		{
 			"unsupported transaction type",
 			func() {
-				metadata.TxTypes = "invalid-tx-types"
+				metadata.TxType = "invalid-tx-types"
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)

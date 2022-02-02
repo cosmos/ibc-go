@@ -36,7 +36,7 @@ var (
 		ControllerConnectionId: ibctesting.FirstConnectionID,
 		HostConnectionId:       ibctesting.FirstConnectionID,
 		Encoding:               icatypes.EncodingProtobuf,
-		TxTypes:                icatypes.TxTypeSDKMultiMsg,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}))
 )
 

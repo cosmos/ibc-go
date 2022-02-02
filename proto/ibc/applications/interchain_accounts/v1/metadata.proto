@@ -20,6 +20,6 @@ message Metadata {
   string address = 4;
   // encoding defines the supported codec format
   string encoding = 5;
-  // tx_types defines the type of transactions the interchain account can execute
-  string tx_types = 6;
+  // tx_type defines the type of transactions the interchain account can execute
+  string tx_type = 6;
 }

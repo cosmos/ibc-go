@@ -16,14 +16,14 @@ const (
 )
 
 // NewMetadata creates and returns a new ICS27 Metadata instance
-func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, encoding, txTypes string) Metadata {
+func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, encoding, txType string) Metadata {
 	return Metadata{
 		Version:                version,
 		ControllerConnectionId: controllerConnectionID,
 		HostConnectionId:       hostConnectionID,
 		Address:                accAddress,
 		Encoding:               encoding,
-		TxTypes:                txTypes,
+		TxType:                 txType,
 	}
 }
 
@@ -33,8 +33,8 @@ func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, co
 		return sdkerrors.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
 	}
 
-	if !isSupportedTxTypes(metadata.TxTypes) {
-		return sdkerrors.Wrapf(ErrUnknownDataType, "unsupported transaction type %s", metadata.TxTypes)
+	if !isSupportedTxType(metadata.TxType) {
+		return sdkerrors.Wrapf(ErrUnknownDataType, "unsupported transaction type %s", metadata.TxType)
 	}
 
 	connection, err := channelKeeper.GetConnection(ctx, connectionHops[0])
@@ -65,8 +65,8 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 		return sdkerrors.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
 	}
 
-	if !isSupportedTxTypes(metadata.TxTypes) {
-		return sdkerrors.Wrapf(ErrUnknownDataType, "unsupported transaction type %s", metadata.TxTypes)
+	if !isSupportedTxType(metadata.TxType) {
+		return sdkerrors.Wrapf(ErrUnknownDataType, "unsupported transaction type %s", metadata.TxType)
 	}
 
 	connection, err := channelKeeper.GetConnection(ctx, connectionHops[0])
@@ -107,10 +107,10 @@ func getSupportedEncoding() []string {
 	return []string{EncodingProtobuf}
 }
 
-// isSupportedTxTypes returns true if the provided transaction types are supported, otherwise false
-func isSupportedTxTypes(txTypes string) bool {
-	for _, txType := range getSupportedTxTypes() {
-		if txType == txTypes {
+// isSupportedTxType returns true if the provided transaction type is supported, otherwise false
+func isSupportedTxType(txType string) bool {
+	for _, t := range getSupportedTxTypes() {
+		if t == txType {
 			return true
 		}
 	}

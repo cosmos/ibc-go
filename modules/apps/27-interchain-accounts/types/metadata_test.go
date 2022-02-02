@@ -28,7 +28,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                "",
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			true,
@@ -42,7 +42,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               "invalid-encoding-format",
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -56,7 +56,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                "invalid-tx-type",
+					TxType:                 "invalid-tx-type",
 				}
 			},
 			false,
@@ -70,7 +70,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -84,7 +84,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       "connection-10",
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -98,7 +98,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                " ",
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -112,7 +112,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -170,7 +170,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                "",
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			true,
@@ -184,7 +184,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               "invalid-encoding-format",
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -198,7 +198,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                "invalid-tx-type",
+					TxType:                 "invalid-tx-type",
 				}
 			},
 			false,
@@ -212,7 +212,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -226,7 +226,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       "connection-10",
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -240,7 +240,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                " ",
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
@@ -254,7 +254,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                TestOwnerAddress,
 					Encoding:               types.EncodingProtobuf,
-					TxTypes:                types.TxTypeSDKMultiMsg,
+					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
 			false,
