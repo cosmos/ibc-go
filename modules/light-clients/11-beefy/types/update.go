@@ -219,7 +219,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			return nil, nil, err
 		}
 
-		var leafIndex uint64
+		var leafIndex uint32
 
 		// given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
 		// calculate the leafIndex for this leaf.
@@ -233,7 +233,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 		mmrData := mmr.Leaf{
 			Hash:  crypto.Keccak256(mmrLeafBytes),
-			Index: leafIndex,
+			Index: uint64(leafIndex),
 		}
 
 		mmrLeaves = append(mmrLeaves, mmrData)

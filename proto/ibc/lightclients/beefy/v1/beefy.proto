@@ -14,20 +14,20 @@ message ClientState {
   option (gogoproto.goproto_getters) = false;
 
   // Latest mmr root hash
-  bytes mmr_root_hash = 3;
+  bytes mmr_root_hash = 1;
 
   // block number for the latest mmr_root_hash
-  uint32 latest_beefy_height = 4;
+  uint32 latest_beefy_height = 2;
 
   // block number that the beefy protocol was activated on the relay chain.
   // This shoould be the first block in the merkle-mountain-range tree.
-  uint64 beefy_activation_block = 5;
+  uint32 beefy_activation_block = 3;
 
   // authorities for the current round
-  BeefyAuthoritySet authority = 6;
+  BeefyAuthoritySet authority = 4;
 
   // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 7;
+  BeefyAuthoritySet next_authority_set = 5;
 }
 
 // Actual payload items
