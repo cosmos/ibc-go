@@ -252,6 +252,7 @@ A router could be used, or more simply a switch statement.
         if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
             return err
         }
+
         handleBankSendMsg(msgResponse)
 
     case stakingtypes.MsgDelegate:
@@ -259,6 +260,7 @@ A router could be used, or more simply a switch statement.
         if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
             return err
         }
+
         handleStakingDelegateMsg(msgResponse)
 
     case transfertypes.MsgTransfer:
@@ -266,6 +268,7 @@ A router could be used, or more simply a switch statement.
         if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
             return err
         }
+
         handleIBCTransferMsg(msgResponse)
  
     default:
