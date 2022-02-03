@@ -168,33 +168,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			},
 			false,
 		},
-		{
-			"metadata does not match previous active channel",
-			func() {
-				// construct mismatching metadata
-				metadata.Address = TestAccAddress.String()
-
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-
-				channel.Version = string(versionBytes)
-
-				// set active channel to CLOSED
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				channel := channeltypes.Channel{
-					State:          channeltypes.CLOSED,
-					Ordering:       channeltypes.ORDERED,
-					Counterparty:   counterparty,
-					ConnectionHops: []string{path.EndpointA.ConnectionID},
-					Version:        TestVersion,
-				}
-
-				path.EndpointA.SetChannel(channel)
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {

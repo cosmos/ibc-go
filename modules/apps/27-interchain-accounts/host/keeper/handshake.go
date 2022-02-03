@@ -48,7 +48,7 @@ func (k Keeper) OnChanOpenTry(
 		return "", err
 	}
 
-	activeChannelID, found := k.GetActiveChannelID(ctx, connectionHops[0], portID)
+	activeChannelID, found := k.GetActiveChannelID(ctx, connectionHops[0], counterparty.PortId)
 	if found {
 		channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 		if !found {
