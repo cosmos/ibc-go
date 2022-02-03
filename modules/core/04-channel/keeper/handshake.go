@@ -530,5 +530,7 @@ func (k Keeper) ChanCloseConfirm(
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
 
+	EmitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
+
 	return nil
 }

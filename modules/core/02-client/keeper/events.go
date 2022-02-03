@@ -14,6 +14,7 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 			types.EventTypeCreateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -22,7 +23,7 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 	})
 }
 
-// EmitUpdateClientEvent emits a begin block or update client event
+// EmitUpdateClientEvent emits an update client event
 func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState, consensusHeight exported.Height, headerStr string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -67,14 +68,26 @@ func EmitUpdateClientProposalEvent(ctx sdk.Context, clientID string, clientState
 	)
 }
 
-// EmitSubmitMisbehaviourEvent emits an event of client misbehaviour
-// TODO - For client misbehaviour event, can we just emit the event with client id and state, or do we need to do it with height and header?
+// EmitSubmitMisbehaviourEvent emits a client misbehaviour event
 func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+		),
+	)
+}
+
+// EmitSubmitMisbehaviourEventOnUpdate emits a client misbehaviour event on a client update event
+func EmitSubmitMisbehaviourEventOnUpdate(ctx sdk.Context, clientID string, clientState exported.ClientState, consensusHeight exported.Height, headerStr string) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSubmitMisbehaviour,
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
+			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
 		),
 	)
 }
