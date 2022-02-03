@@ -89,14 +89,14 @@ Replicate the transaction response format as provided by the current SDK verison
 When the SDK version changes, adjust the transaction response format to use the updated transaction response format. 
 Include the transaction response bytes in the result channel acknowledgement. 
 
-A test should be written to fail if the assumption of the transaction response data being included in consensus changes is no longer true. 
+A test has been [written](https://github.com/cosmos/ibc-go/blob/v3.0.0-beta1/modules/apps/27-interchain-accounts/host/ibc_module_test.go#L716-#L774) to fail if the `MsgResponse` is no longer included in consensus.
 
 ### Error acknowledgements
 
 As indicated above, the `abci.ResponseDeliverTx.Code` is determinstic. 
 Upon transaction execution errors, an error acknowledgement should be returned including the abci code. 
 
-A test has been [written](https://github.com/cosmos/ibc-go/commit/19b5b5fc957f59badfe65443e2273cccae1250cb#diff-1ab7757ba7e3780e299b0947629bc5367de0b41c6a93e918e2891b47c24b0189R41-R82) to fail if the ABCI code is no longer determinstic.
+A test has been [written](https://github.com/cosmos/ibc-go/blob/v3.0.0-beta1/modules/apps/27-interchain-accounts/host/types/ack_test.go#L41-#L82) to fail if the ABCI code is no longer determinstic.
 
 ## Consequences
 
