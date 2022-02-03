@@ -50,7 +50,7 @@ func (k Keeper) OnChanOpenTry(
 
 	activeChannelID, found := k.GetActiveChannelID(ctx, connectionHops[0], counterparty.PortId)
 	if found {
-		channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+		channel, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
 		if !found {
 			panic(fmt.Sprintf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
