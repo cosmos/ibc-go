@@ -23,7 +23,7 @@ func (cs ClientState) ClientType() string {
 
 // GetLatestHeight returns latest block height.
 func (cs ClientState) GetLatestHeight() exported.Height {
-	return clienttypes.NewHeight(0, cs.LatestBeefyHeight)
+	return clienttypes.NewHeight(0, uint64(cs.LatestBeefyHeight))
 }
 
 
@@ -259,7 +259,7 @@ func produceVerificationArgs(
 		return BeefyProof{}, nil, sdkerrors.Wrapf(commitmenttypes.ErrInvalidPrefix, "invalid prefix type %T, expected *MerklePrefix", prefix)
 	}
 
-	err = Decode(proof, &beefyProof)
+	err = DecodeFromBytes(proof, &beefyProof)
 	if err != nil {
 		return BeefyProof{}, nil, sdkerrors.Wrap(err, "proof couldn't be decoded into BeefyProof struct")
 	}
@@ -479,10 +479,6 @@ func (cs ClientState) VerifyNextSequenceRecv(
 }
 
 func (cs ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, newClient exported.ClientState, newConsState exported.ConsensusState, proofUpgradeClient, proofUpgradeConsState []byte) (exported.ClientState, exported.ConsensusState, error) {
-	panic("implement me")
-}
-
-func (cs ClientState) CheckHeaderAndUpdateState(context sdk.Context, codec codec.BinaryCodec, store sdk.KVStore, header exported.Header) (exported.ClientState, exported.ConsensusState, error) {
 	panic("implement me")
 }
 
