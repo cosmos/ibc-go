@@ -21,24 +21,24 @@ option (gogoproto.protosizer_all) =false;
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
-  // Block height when the client was frozen due to a misbehaviour
-  uint64 frozen_height = 2;
-
   // Latest mmr root hash
   bytes mmr_root_hash = 1;
 
   // block number for the latest mmr_root_hash
   uint32 latest_beefy_height = 2;
 
+  // Block height when the client was frozen due to a misbehaviour
+  uint64 frozen_height = 3;
+
   // block number that the beefy protocol was activated on the relay chain.
   // This shoould be the first block in the merkle-mountain-range tree.
-  uint32 beefy_activation_block = 3;
+  uint32 beefy_activation_block = 4;
 
   // authorities for the current round
-  BeefyAuthoritySet authority = 4;
+  BeefyAuthoritySet authority = 5;
 
   // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 5;
+  BeefyAuthoritySet next_authority_set = 6;
 }
 
 // Actual payload items

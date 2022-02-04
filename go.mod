@@ -159,3 +159,4 @@ replace github.com/ComposableFi/go-substrate-rpc-client/v4 => ../go-substrate-rp
 
 replace github.com/ChainSafe/go-schnorrkel v1.0.0 => github.com/ChainSafe/go-schnorrkel v0.0.0-20210222182958-bd440c890782
 
+replace github.com/vedhavyas/go-subkey => github.com/vedhavyas/go-subkey v1.0.2
