@@ -21,16 +21,33 @@ func TestDecodeParachainHeader(t *testing.T) {
 	if scaleErr != nil {
 		t.Errorf("error decoding parachain header: %s", err)
 	}
-	hash, err := substrateTypes.NewHashFromHexString("0x7edf044b273544342c4dc30a234c327405b3b03f2f20f53fc6a41d6d2765536d")
+	parentHash, err := hex.DecodeString("7edf044b273544342c4dc30a234c327405b3b03f2f20f53fc6a41d6d2765536d")
 	if err != nil {
 		panic(err)
 	}
-	if bytes.Equal(header.ParentHash[:], hash[:]) {
-		t.Errorf("error decoding parent hash")
+	if !bytes.Equal(header.ParentHash[:], parentHash[:]) {
+		t.Errorf("error decoding parent hash \n%v\n%v", header.ParentHash[:], parentHash[:])
+	}
+	extrinsicsRoot, err := hex.DecodeString("81004e468f3616573199929694b06fc4248c449621f1e04b7c1dc3135bc1f6e9")
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(header.ExtrinsicsRoot[:], extrinsicsRoot[:]) {
+		t.Errorf("error decoding ExtrinsicsRoot \n%v\n%v", header.ExtrinsicsRoot[:], extrinsicsRoot[:])
+	}
+
+	stateRoot, err := hex.DecodeString("efc4d9b628f9ddb17b542822e3df456b5431c62a005a67bb593d30da23f2e575")
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(header.StateRoot[:], stateRoot[:]) {
+		t.Errorf("error decoding StateRoot \n%v\n%v", header.StateRoot[:], stateRoot[:])
 	}
 
 	if header.Number != 14 {
-		t.Errorf("check block number from decoded header:  got: %d, want %d", header.Number, 1)
+		t.Errorf("check block number from decoded header:  got: %d, want %d", header.Number, 14)
 	}
 }
 
