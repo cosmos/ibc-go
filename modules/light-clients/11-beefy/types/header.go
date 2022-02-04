@@ -54,7 +54,7 @@ func (h Header) ConsensusState() *ConsensusState {
 		log.Fatal(err)
 	}
 
-	rootHash, err := parachainHeader.StateRoot.MarshalJSON()
+	rootHash := parachainHeader.StateRoot[:]
 	if err != nil {
 		log.Fatal(err)
 	}
