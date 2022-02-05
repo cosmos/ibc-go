@@ -14,7 +14,7 @@ import (
 // NOTE: this restriction is specific to this golang implementation of IBC. If
 // your use case demands a higher limit, please open an issue and we will consider
 // adjusting this restriction.
-const DefaultMaxCharacterLength = 64
+const DefaultMaxCharacterLength = 128
 
 // IsValidID defines regular expression to check if the string consist of
 // characters in one of the following categories only:
