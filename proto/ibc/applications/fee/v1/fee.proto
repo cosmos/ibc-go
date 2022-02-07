@@ -34,8 +34,9 @@ message Fee {
 // the refund address to which any unused funds are refunded,
 // and an optional list of relayers that are permitted to receive the fee.
 message IdentifiedPacketFee {
-  ibc.core.channel.v1.PacketId packet_id      = 1 [(gogoproto.nullable)     = false, (gogoproto.moretags) = "yaml:\"packet_id\""];
-  Fee                          fee            = 2 [(gogoproto.nullable) = false];
-  string                       refund_address = 3 [(gogoproto.moretags) = "yaml:\"refund_address\""];
-  repeated string              relayers       = 4;
+  ibc.core.channel.v1.PacketId packet_id = 1
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_id\""];
+  Fee             fee            = 2 [(gogoproto.nullable) = false];
+  string          refund_address = 3 [(gogoproto.moretags) = "yaml:\"refund_address\""];
+  repeated string relayers       = 4;
 }
