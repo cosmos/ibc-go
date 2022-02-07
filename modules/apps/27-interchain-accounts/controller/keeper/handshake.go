@@ -61,7 +61,7 @@ func (k Keeper) OnChanOpenInit(
 			return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
 		}
 
-		if !icatypes.IsPreviousMetadataEqual(version, metadata) {
+		if !icatypes.IsPreviousMetadataEqual(channel.Version, metadata) {
 			return sdkerrors.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
 		}
 	}
