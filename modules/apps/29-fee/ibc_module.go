@@ -37,22 +37,24 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	mwVersion, appVersion := channeltypes.SplitChannelVersion(version)
-	// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-	// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-	// application.
-	// If an invalid fee version was passed, we expect the underlying application to fail on its version negotiation.
-	if mwVersion == types.Version {
-		im.keeper.SetFeeEnabled(ctx, portID, channelID)
-	} else {
-		// middleware version is not the expected version for this midddleware. Pass the full version string along,
-		// if it not valid version for any other lower middleware, an error will be returned by base application.
-		appVersion = version
+	var versionMetadata types.Metadata
+	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
+		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
+		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
+		// application.
+		return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+			chanCap, counterparty, version)
 	}
+
+	if versionMetadata.Version != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s got %s", types.Version, versionMetadata.Version)
+	}
+
+	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 
 	// call underlying app's OnChanOpenInit callback with the appVersion
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, appVersion)
+		chanCap, counterparty, versionMetadata.AppVersion)
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -68,31 +70,34 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	cpMwVersion, cpAppVersion := channeltypes.SplitChannelVersion(counterpartyVersion)
-
-	// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-	// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-	// application.
-	// If an invalid fee version was passed, we expect the underlying application to fail on its version negotiation.
-	if cpMwVersion == types.Version {
-		im.keeper.SetFeeEnabled(ctx, portID, channelID)
-	} else {
-		// middleware versions are not the expected version for this midddleware. Pass the full version strings along,
-		// if it not valid version for any other lower middleware, an error will be returned by base application.
-		cpAppVersion = counterpartyVersion
+	var versionMetadata types.Metadata
+	if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
+		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
+		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
+		// application.
+		return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
 	}
 
+	if versionMetadata.Version != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s got %s", types.Version, versionMetadata.Version)
+	}
+
+	im.keeper.SetFeeEnabled(ctx, portID, channelID)
+
 	// call underlying app's OnChanOpenTry callback with the app versions
-	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, cpAppVersion)
+	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
 	if err != nil {
 		return "", err
 	}
 
-	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		return appVersion, nil
+	versionMetadata.AppVersion = appVersion
+
+	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+	if err != nil {
+		return "", err
 	}
 
-	return channeltypes.MergeChannelVersions(types.Version, appVersion), nil
+	return string(versionBytes), nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -104,17 +109,22 @@ func (im IBCModule) OnChanOpenAck(
 ) error {
 	// If handshake was initialized with fee enabled it must complete with fee enabled.
 	// If handshake was initialized with fee disabled it must complete with fee disabled.
-	cpAppVersion := counterpartyVersion
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		var cpFeeVersion string
-		cpFeeVersion, cpAppVersion = channeltypes.SplitChannelVersion(counterpartyVersion)
-
-		if cpFeeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, cpFeeVersion)
+		var versionMetadata types.Metadata
+		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
+			return sdkerrors.Wrap(types.ErrInvalidVersion, "failed to unmarshal ICS29 counterparty version metadata")
 		}
+
+		if versionMetadata.Version != types.Version {
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, versionMetadata.Version)
+		}
+
+		// call underlying app's OnChanOpenAck callback with the counterparty app version.
+		return im.app.OnChanOpenAck(ctx, portID, channelID, versionMetadata.AppVersion)
 	}
+
 	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, cpAppVersion)
+	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
