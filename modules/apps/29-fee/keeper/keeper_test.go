@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := channeltypes.MergeChannelVersions(types.Version, transfertypes.Version)
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: transfertypes.Version}))
 	path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
