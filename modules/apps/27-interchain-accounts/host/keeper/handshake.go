@@ -56,7 +56,7 @@ func (k Keeper) OnChanOpenTry(
 		}
 
 		if channel.State == channeltypes.OPEN {
-			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
+			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
 		if !icatypes.IsPreviousMetadataEqual(channel.Version, metadata) {
