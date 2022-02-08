@@ -27,7 +27,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	}{
 		{
 			"success - valid fee middleware and transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			true,
 		},
 		{
@@ -37,12 +37,12 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"invalid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: "invalid-ics29-1", AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
 			false,
 		},
 		{
 			"invalid transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: "invalid-ics20-1"})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
 			false,
 		},
 		{
@@ -101,7 +101,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	}{
 		{
 			"success - valid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			false,
 			true,
 		},
@@ -113,19 +113,19 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"success - crossing hellos: valid fee middleware",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			true,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: "invalid-ics29-1", AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
 			false,
 			false,
 		},
 		{
 			"invalid transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: "invalid-ics20-1"})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
 			false,
 			false,
 		},
@@ -193,19 +193,19 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	}{
 		{
 			"success",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			func(suite *FeeTestSuite) {},
 			true,
 		},
 		{
 			"invalid fee version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: "invalid-ics29-1", AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
 			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"invalid transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: "invalid-ics20-1"})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
 			func(suite *FeeTestSuite) {},
 			false,
 		},
@@ -217,7 +217,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"previous INIT set without fee, however counterparty set fee version", // note this can only happen with incompetent or malicious counterparty chain
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{Version: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			func(suite *FeeTestSuite) {
 				// do the first steps without fee version, then pass the fee version as counterparty version in ChanOpenACK
 				suite.path.EndpointA.ChannelConfig.Version = transfertypes.Version

@@ -841,7 +841,7 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `version` | [string](#string) |  | version defines the ICS29 fee version |
+| `fee_version` | [string](#string) |  | fee_version defines the ICS29 fee version |
 | `app_version` | [string](#string) |  | app_version defines the underlying application version, which may or may not be a JSON encoded bytestring |
 
 
