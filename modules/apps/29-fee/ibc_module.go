@@ -47,7 +47,7 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	if versionMetadata.Version != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s got %s", types.Version, versionMetadata.Version)
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.Version)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
