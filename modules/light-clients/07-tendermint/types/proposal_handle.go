@@ -50,6 +50,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		cs.FrozenHeight = clienttypes.ZeroHeight()
 
 	case exported.Expired:
+	case exported.Unknown:
 		if !cs.AllowUpdateAfterExpiry {
 			return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "client is not allowed to be unexpired")
 		}
