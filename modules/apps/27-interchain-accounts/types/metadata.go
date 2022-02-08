@@ -27,8 +27,8 @@ func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, 
 	}
 }
 
-// IsMetadataEqual compares a metadata to a pevious version string set in a channel struct.
-// It ensure all fields are equal except the Address string
+// IsPreviousMetadataEqual compares a metadata to a previous version string set in a channel struct.
+// It ensures all fields are equal except the Address string
 func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
 	var previousMetadata Metadata
 	if err := ModuleCdc.UnmarshalJSON([]byte(previousVersion), &previousMetadata); err != nil {
