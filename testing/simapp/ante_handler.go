@@ -17,6 +17,7 @@ type HandlerOptions struct {
 	IBCChannelkeeper channelkeeper.Keeper
 }
 
+// NewAnteHandler creates a new ante handler
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "account keeper is required for AnteHandler")
