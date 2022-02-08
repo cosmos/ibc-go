@@ -343,6 +343,9 @@ func (k Keeper) WriteAcknowledgement(
 	}
 
 	bz := acknowledgement.Acknowledgement()
+	if len(bz) == 0 {
+		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	}
 
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
