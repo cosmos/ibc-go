@@ -547,7 +547,7 @@ func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
 			checkHeight: clientHeight + 1,
 		},
 		{
-			name:        "get timestamp at client height + 2returns 0",
+			name:        "get timestamp at client height + 2 returns 0",
 			clientState: types.NewClientState("chainID", clientHeight),
 			checkHeight: clientHeight + 2,
 		},
