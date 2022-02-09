@@ -2,6 +2,7 @@ package mock
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -10,6 +11,9 @@ import (
 
 // MockIBCApp contains IBC application module callbacks as defined in 05-port.
 type MockIBCApp struct {
+	PortID       string
+	ScopedKeeper capabilitykeeper.ScopedKeeper
+
 	OnChanOpenInit func(
 		ctx sdk.Context,
 		order channeltypes.Order,
