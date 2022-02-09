@@ -24,6 +24,7 @@ type ICS4Wrapper interface {
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
+	HasPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) bool
 }
 
 // PortKeeper defines the expected IBC port keeper

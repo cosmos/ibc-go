@@ -72,6 +72,11 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (
 	return k.channelKeeper.GetNextSequenceSend(ctx, portID, channelID)
 }
 
+// HasPacketAcknowledgement wraps IBC ChannelKeeper's HasPacketAcknowledgement function
+func (k Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID string, seq uint64) bool {
+	return k.channelKeeper.HasPacketAcknowledgement(ctx, portID, channelID, seq)
+}
+
 // GetFeeAccount returns the ICS29 Fee ModuleAccount address
 func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 	return k.authKeeper.GetModuleAddress(types.ModuleName)
