@@ -7,6 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
+import "proofs.proto";
 
 option (gogoproto.marshaler_all) = false;
 option (gogoproto.unmarshaler_all) = false;
@@ -26,15 +27,18 @@ message ClientState {
   // block number for the latest mmr_root_hash
   uint32 latest_beefy_height = 2;
 
+  // Block height when the client was frozen due to a misbehaviour
+  uint64 frozen_height = 3;
+
   // block number that the beefy protocol was activated on the relay chain.
   // This shoould be the first block in the merkle-mountain-range tree.
-  uint32 beefy_activation_block = 3;
+  uint32 beefy_activation_block = 4;
 
   // authorities for the current round
-  BeefyAuthoritySet authority = 4;
+  BeefyAuthoritySet authority = 5;
 
   // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 5;
+  BeefyAuthoritySet next_authority_set = 6;
 }
 
 // Actual payload items
@@ -128,14 +132,11 @@ message Misbehaviour {
 
 // Timestamp extrinsic data
 message TimestampExtrinsic {
-  // index of timestamp extrinsic in merkle tree
-  uint32 extrinsic_index = 1;
-
   // merkle proof of inclusion in header.extrinsic_root
-  repeated bytes extrinsic_proof = 2;
+  repeated bytes extrinsic_proof = 1;
 
   // actual scale encoded timestamp extrinsic.
-  bytes extrinsic = 3;
+  bytes extrinsic = 2;
 }
 
 // Header contains the neccessary data to proove finality about IBC commitments
