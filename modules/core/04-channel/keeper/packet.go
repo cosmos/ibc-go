@@ -342,6 +342,10 @@ func (k Keeper) WriteAcknowledgement(
 		return types.ErrAcknowledgementExists
 	}
 
+	if acknowledgement == nil {
+		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be nil")
+	}
+
 	bz := acknowledgement.Acknowledgement()
 	if len(bz) == 0 {
 		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")

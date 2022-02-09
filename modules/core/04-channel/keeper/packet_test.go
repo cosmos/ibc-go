@@ -556,6 +556,16 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			},
 			false,
 		},
+		{
+			"acknowledgement is nil",
+			func() {
+				suite.coordinator.Setup(path)
+				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+				ack = nil
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			false,
+		},
 	}
 	for i, tc := range testCases {
 		tc := tc
