@@ -7,6 +7,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestEscrowTotal(t *testing.T) {
+	fee := Fee{
+		AckFee:     sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}),
+		RecvFee:    sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}),
+		TimeoutFee: sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}),
+	}
+
+	escrowTotal := fee.EscrowTotal()
+	require.Equal(t, sdk.NewInt(300), escrowTotal.AmountOf(sdk.DefaultBondDenom))
+}
+
 // TestFeeValidation tests Validate
 func TestFeeValidation(t *testing.T) {
 	var (
