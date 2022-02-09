@@ -85,3 +85,11 @@ type MockIBCApp struct {
 		relayer sdk.AccAddress,
 	) error
 }
+
+// NewMockIBCApp returns a MockIBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
+func NewMockIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *MockIBCApp {
+	return &MockIBCApp{
+		PortID:       portID,
+		ScopedKeeper: scopedKeeper,
+	}
+}
