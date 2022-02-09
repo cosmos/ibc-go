@@ -38,6 +38,9 @@
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
     - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
   
+- [ibc/applications/fee/v1/metadata.proto](#ibc/applications/fee/v1/metadata.proto)
+    - [Metadata](#ibc.applications.fee.v1.Metadata)
+  
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
     - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
     - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
@@ -807,6 +810,39 @@ RegisteredRelayerAddress contains the address and counterparty address for a spe
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 | `counterparty_address` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/fee/v1/metadata.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/metadata.proto
+
+
+
+<a name="ibc.applications.fee.v1.Metadata"></a>
+
+### Metadata
+Metadata defines the ICS29 channel specific metadata encoded into the channel version bytestring
+See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee_version` | [string](#string) |  | fee_version defines the ICS29 fee version |
+| `app_version` | [string](#string) |  | app_version defines the underlying application version, which may or may not be a JSON encoded bytestring |
 
 
 

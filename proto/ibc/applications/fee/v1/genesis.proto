@@ -10,7 +10,8 @@ import "ibc/core/channel/v1/channel.proto";
 
 // GenesisState defines the fee middleware genesis state
 message GenesisState {
-  repeated IdentifiedPacketFee      identified_fees      = 1 [(gogoproto.moretags) = "yaml:\"identified_fees\"", (gogoproto.nullable) = false];
+  repeated IdentifiedPacketFee identified_fees = 1
+      [(gogoproto.moretags) = "yaml:\"identified_fees\"", (gogoproto.nullable) = false];
   repeated FeeEnabledChannel        fee_enabled_channels = 2 [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\""];
   repeated RegisteredRelayerAddress registered_relayers  = 3 [(gogoproto.moretags) = "yaml:\"registered_relayers\""];
   repeated ForwardRelayerAddress    forward_relayers     = 4 [(gogoproto.moretags) = "yaml:\"forward_relayers\""];
@@ -31,5 +32,6 @@ message RegisteredRelayerAddress {
 // ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements
 message ForwardRelayerAddress {
   string                       address   = 1;
-  ibc.core.channel.v1.PacketId packet_id = 2 [(gogoproto.nullable)     = false, (gogoproto.moretags) = "yaml:\"packet_id\""];
+  ibc.core.channel.v1.PacketId packet_id = 2
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_id\""];
 }
