@@ -28,6 +28,39 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			"success", func() {}, true,
 		},
 		{
+			"success - fee exists in escrow", func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
+
+				escrowFee := types.NewIdentifiedPacketFee(
+					packetID,
+					types.Fee{RecvFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee},
+					suite.chainA.SenderAccount.GetAddress().String(),
+					[]string{},
+				)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), escrowFee)
+			}, true,
+		},
+		{
+			"invalid refund account in escorw", func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
+
+				escrowFee := types.NewIdentifiedPacketFee(
+					packetID,
+					types.Fee{RecvFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee},
+					suite.chainB.SenderAccount.GetAddress().String(),
+					[]string{},
+				)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), escrowFee)
+			}, false,
+		},
+		{
+			"packet acknowledgement already exists", func() {
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1, []byte("acknowledgementHash"))
+			}, false,
+		},
+		{
 			"fee not enabled on this channel", func() {
 				packetId.ChannelId = "disabled_channel"
 			}, false,

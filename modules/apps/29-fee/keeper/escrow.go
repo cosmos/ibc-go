@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
@@ -15,6 +16,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
 	}
+
 	// check if the refund account exists
 	refundAcc, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
 	if err != nil {
@@ -26,18 +28,31 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", refundAcc)
 	}
 
-	coins := identifiedFee.Fee.RecvFee
-	coins = coins.Add(identifiedFee.Fee.AckFee...)
-	coins = coins.Add(identifiedFee.Fee.TimeoutFee...)
+	if k.channelKeeper.HasPacketAcknowledgement(ctx, identifiedFee.PacketId.PortId, identifiedFee.PacketId.ChannelId, identifiedFee.PacketId.Sequence) {
+		return sdkerrors.Wrapf(channeltypes.ErrAcknowledgementExists, "failed to escrow fee for packet sequence %d", identifiedFee.PacketId.Sequence)
+	}
 
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(
-		ctx, refundAcc, types.ModuleName, coins,
-	); err != nil {
+	coins := identifiedFee.Fee.EscrowTotal()
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, refundAcc, types.ModuleName, coins); err != nil {
 		return err
+	}
+
+	// if fee exists in escrow:
+	// - refund addresses must be equal
+	// - add the existing packet fees
+	if feeInEscrow, found := k.GetFeeInEscrow(ctx, identifiedFee.PacketId); found {
+		if feeInEscrow.RefundAddress != identifiedFee.RefundAddress {
+			return sdkerrors.Wrapf(types.ErrInvalidRefundAddress, "expected %s, got %s", feeInEscrow.RefundAddress, identifiedFee.RefundAddress)
+		}
+
+		identifiedFee.Fee.AckFee.Add(feeInEscrow.Fee.AckFee...)
+		identifiedFee.Fee.RecvFee.Add(feeInEscrow.Fee.RecvFee...)
+		identifiedFee.Fee.TimeoutFee.Add(feeInEscrow.Fee.TimeoutFee...)
 	}
 
 	// Store fee in state for reference later
 	k.SetFeeInEscrow(ctx, identifiedFee)
+
 	return nil
 }
 
