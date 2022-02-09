@@ -3464,7 +3464,6 @@ Timestamp extrinsic data
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `extrinsic_index` | [uint32](#uint32) |  | index of timestamp extrinsic in merkle tree |
 | `extrinsic_proof` | [bytes](#bytes) | repeated | merkle proof of inclusion in header.extrinsic_root |
 | `extrinsic` | [bytes](#bytes) |  | actual scale encoded timestamp extrinsic. |
 

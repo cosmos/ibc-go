@@ -8,6 +8,7 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
+	"github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	substrateTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -21,8 +22,7 @@ const revisionNumber = 0
 // as an argument and returns a concrete substrate Header type.
 func DecodeParachainHeader(hb []byte) (substrateTypes.Header, error) {
 	h := substrateTypes.Header{}
-	dec := scale.NewDecoder(bytes.NewReader(hb))
-	err := dec.Decode(&h)
+	err := types.DecodeFromBytes(hb, &h)
 	if err != nil {
 		return substrateTypes.Header{}, err
 	}
@@ -31,18 +31,17 @@ func DecodeParachainHeader(hb []byte) (substrateTypes.Header, error) {
 
 // DecodeExtrinsicTimestamp decodes a scale encoded timestamp to a time.Time type
 func DecodeExtrinsicTimestamp(encodedExtrinsic []byte) (time.Time, error) {
-	extrinsic := substrateTypes.Extrinsic{}
-	dec := scale.NewDecoder(bytes.NewReader(encodedExtrinsic))
-	err := dec.Decode(&extrinsic)
-	if err != nil {
-		return time.Time{}, err
+	var extrinsic substrateTypes.Extrinsic
+	decodeErr := types.DecodeFromBytes(encodedExtrinsic, &extrinsic)
+	if decodeErr != nil {
+		return time.Time{}, decodeErr
 	}
 
-	t := time.Time{}
-	err = t.GobDecode(extrinsic.Method.Args)
-	if err != nil {
-		return time.Time{}, err
+	unix, unixDecodeErr := scale.NewDecoder(bytes.NewReader(extrinsic.Method.Args[:])).DecodeUintCompact()
+	if unixDecodeErr != nil {
+		return time.Time{}, unixDecodeErr
 	}
+	t := time.UnixMilli(unix.Int64())
 
 	return t, nil
 }
@@ -103,12 +102,12 @@ func (h Header) ValidateBasic() error {
 		}
 
 		rootHash := decHeader.ExtrinsicsRoot[:]
-		parachainProof := header.Timestamp.ExtrinsicProof
+		extrinsicsProof := header.Timestamp.ExtrinsicProof
 		extrinsic := header.Timestamp.Extrinsic
 
 		key := make([]byte, 4)
 		binary.LittleEndian.PutUint32(key, 0)
-		isVerified, err := trie.VerifyProof(parachainProof, rootHash, []trie.Pair{{Key: key, Value: extrinsic}})
+		isVerified, err := trie.VerifyProof(extrinsicsProof, rootHash, []trie.Pair{{Key: key, Value: extrinsic}})
 		if err != nil {
 			return fmt.Errorf("error verifying proof: %v", err.Error())
 		}

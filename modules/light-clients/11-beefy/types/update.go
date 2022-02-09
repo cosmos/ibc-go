@@ -1,7 +1,6 @@
 package types
 
 import (
-
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,13 +24,12 @@ func (b Keccak256) Hash(data []byte) ([]byte, error) {
 }
 
 // CheckHeaderAndUpdateState checks if the provided header(s) is valid, and if valid it will:
-// create the consensus state for the header.Height
+// create the consensus states for the header.Height
 // and update the client state if the header height is greater than the latest client state height
 // It returns an error if:
-// - the client or header provided are not parseable to tendermint types
+// - the client or header provided are not parseable to beefy types
 // - the header is invalid
-// - header height is less than or equal to the trusted header height
-// - header valset commit verification fails
+// - beefy valset commitment verification fails
 // - header timestamp is less than or equal to the consensus state timestamp
 //
 // UpdateClient may be used to either create a consensus state for:
@@ -40,10 +38,8 @@ func (b Keccak256) Hash(data []byte) ([]byte, error) {
 // If we are updating to a past height, a consensus state is created for that height to be persisted in client store
 // If we are updating to a future height, the consensus state is created and the client state is updated to reflect
 // the new latest height
-// UpdateClient must only be used to update within a single revision, thus header revision number and trusted height's revision
-// number must be the same. To update to a new revision, use a separate upgrade path
 //
-// 1. Reconstruct beefy-go::MmrLeaf using header.parachain_header_proof.mmr_leaf_partial
+// 1. Reconstruct MmrLeaf using header.parachain_header_proof.mmr_leaf_partial
 // 2. specifically ParachainHeads = calculate_root_hash(header.parachain_header_proof, (uint64(2087), parachain_header).encode())
 // 3. leaf_hash = keccak hash scale-encode recontructed MmrLeaf
 // 4. mmr_root_hash = mmr.calcutate_root_hash(header.parachain_header_proof.mmr_proofs, leaf_hash)
@@ -53,20 +49,13 @@ func (b Keccak256) Hash(data []byte) ([]byte, error) {
 // 7. beefy_go.verifyAuthority(header.mmr_update_proof.signatures, header.mmr_update_proof.authority_proof);
 // 8. update client_state.mmr_root_hash = header.mmr_update_proof.mmr_root_hash
 //
-//Misbehaviour Detection:
-// UpdateClient will detect implicit misbehaviour by enforcing certain invariants on any new update call and will return a frozen client.
-// 1. Any valid update that creates a different consensus state for an already existing height is evidence of misbehaviour and will freeze client.
-// 2. Any valid update that breaks time monotonicity with respect to its neighboring consensus states is evidence of misbehaviour and will freeze client.
-//
-//Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
-//
+//TODO: Misbehaviour Detection:
 //Pruning:
 // UpdateClient will additionally retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
 // becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
 func (cs *ClientState) CheckHeaderAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
-	header exported.Header,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, header exported.Header,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	beefyHeader, ok := header.(*Header)
 	if !ok {
@@ -83,10 +72,28 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			signedCommitment = beefyHeader.MmrUpdateProof.SignedCommitment
 		)
 
+		// checking signatures is expensive (667 authorities for kusama),
+		// we want to know if these sigs meet the minimum threshold before proceeding
+		// and are by a known authority set (the current one, or the next one)
+		if authoritiesThreshold(*cs.Authority) > uint32(len(signedCommitment.Signatures)) ||
+			authoritiesThreshold(*cs.NextAuthoritySet) > uint32(len(signedCommitment.Signatures)) {
+			// todo: error commitment isn't final
+			return nil, nil, nil
+		}
+
+		if signedCommitment.Commitment.ValidatorSetId != cs.Authority.Id &&
+			signedCommitment.Commitment.ValidatorSetId != cs.NextAuthoritySet.Id {
+			// todo: authority set is unknown
+			return nil, nil, nil
+		}
+
+		// beefy authorities are signing the hash of the scale-encoded Commitment
 		commitmentBytes, err := Encode(signedCommitment.Commitment)
 		if err != nil {
+			// todo: proper errors
 			return nil, nil, err
 		}
+
 		// take keccak hash of the commitment scale-encoded
 		commitmentHash := crypto.Keccak256(commitmentBytes)
 
@@ -95,14 +102,15 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 		for _, signature := range signedCommitment.Signatures {
 			// recover uncompressed public key from signature
-			pubkey, err := crypto.Ecrecover(commitmentHash, signature.Signature)
+			pubkey, err := crypto.SigToPub(commitmentHash, signature.Signature)
 
 			if err != nil {
+				// todo: error failed to recover signature!
 				return nil, nil, err
 			}
 
 			// convert public key to ethereum address.
-			address := crypto.Keccak256(pubkey[1:])[12:]
+			address := crypto.PubkeyToAddress(*pubkey)
 			authorityLeaf := merkle.Leaf{
 				Hash:  crypto.Keccak256(address[:]),
 				Index: signature.AuthorityIndex,
@@ -112,12 +120,17 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 		// flag for if the authority set has been updated
 		updatedAuthority := false
-		// assert that known authorities signed this commitment
+
+		// assert that known authorities signed this commitment, only 2 cases because we already
+		// made a prior check to assert that authorities are known
 		switch signedCommitment.Commitment.ValidatorSetId {
 		case cs.Authority.Id:
+			// here we construct a merkle proof, and verify that the public keys which produced this signature
+			// are part of the current round.
 			authoritiesProof := merkle.NewProof(authorityLeaves, proof, cs.Authority.Len, Keccak256{})
 			valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
 			if err != nil || !valid {
+				// todo: error unknown authority set!
 				return nil, nil, nil
 			}
 
@@ -126,6 +139,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			authoritiesProof := merkle.NewProof(authorityLeaves, proof, cs.NextAuthoritySet.Len, Keccak256{})
 			valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
 			if err != nil || !valid {
+				// todo: error unknown authority set!
 				return nil, nil, nil
 			}
 			updatedAuthority = true
@@ -138,6 +152,8 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			// checks for the right payloadId
 			// if reflect.DeepEqual(payload.PayloadId, []byte("mh")) {
 			// the next authorities are in the latest BeefyMmrLeaf
+
+			// scale encode the mmr leaf
 			mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
 			if err != nil {
 				return nil, nil, err
@@ -186,6 +202,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		// scale encode to get parachain heads leaf bytes
 		headsLeafBytes, err := Encode(paraIdAndHead)
 		if err != nil {
+			// todo: failed to encode para id
 			return nil, nil, err
 		}
 		headsLeaf := []merkle.Leaf{
@@ -195,11 +212,14 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			},
 		}
 		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, Keccak256{})
+		// todo: merkle.Proof.Root() should return fixed bytes
 		ParachainHeadsRoot, err := parachainHeadsProof.Root()
+		// not a fan of this but its golang
 		var ParachainHeads [32]byte
 		copy(ParachainHeads[:], ParachainHeadsRoot)
 
 		if err != nil {
+			// todo: invalid parachain heads proof!
 			return nil, nil, err
 		}
 
@@ -215,22 +235,14 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			},
 		}
 
+		// the mmr leafs are a scale-encoded 
 		mmrLeafBytes, err := Encode(mmrLeaf)
 		if err != nil {
+			// todo: error failed to encode MmrLeaf
 			return nil, nil, err
 		}
 
-		var leafIndex uint32
-
-		// given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
-		// calculate the leafIndex for this leaf.
-		if cs.BeefyActivationBlock == 0 {
-			// in this case the leaf index is the same as the block number.
-			leafIndex = parachainHeader.MmrLeafPartial.ParentNumber
-		} else {
-			// in this case the leaf index is activation block - current block number.
-			leafIndex = cs.BeefyActivationBlock - (parachainHeader.MmrLeafPartial.ParentNumber + 1)
-		}
+		leafIndex := cs.GetLeafIndexFor(parachainHeader.MmrLeafPartial.ParentNumber)
 
 		mmrData := mmr.Leaf{
 			Hash:  crypto.Keccak256(mmrLeafBytes),
@@ -242,6 +254,8 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 	mmrProof := mmr.NewProof(beefyHeader.MmrSize, beefyHeader.MmrProofs, mmrLeaves, Keccak256{})
 
+	// Given the proofs and the leaves, we should be able to verify that each parachain header was 
+	// indeed included in the leaves of our mmr root hash.
 	if !mmrProof.Verify(cs.MmrRootHash) {
 		return nil, nil, nil // error!, mmr proof is invalid
 	}
@@ -329,4 +343,24 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 	// newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
 	// return newClientState, consensusState, nil
 	return nil, nil, nil
+}
+
+// given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
+func (cs ClientState) GetLeafIndexFor(parentBlockNumber uint32) uint32 {
+	var leafIndex uint32
+
+	// calculate the leafIndex for this leaf.
+	if cs.BeefyActivationBlock == 0 {
+		// in this case the leaf index is the same as the block number - 1 (leaf index starts at 0)
+		leafIndex = parentBlockNumber
+	} else {
+		// in this case the leaf index is activation block - current block number.
+		leafIndex = cs.BeefyActivationBlock - (parentBlockNumber + 1)
+	}
+
+	return leafIndex
+}
+
+func authoritiesThreshold(authoritySet BeefyAuthoritySet) uint32 {
+	return 2*authoritySet.Len/3 + 1
 }
