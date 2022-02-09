@@ -54,7 +54,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 var SubModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 // UnpackAcknowledgement unpacks an Any into an Acknowledgement. It returns an error if the
-// acknowledgement can't be unpacked into a Acknowledgement.
+// Any can't be unpacked into a Acknowledgement.
 func UnpackAcknowledgement(any *codectypes.Any) (exported.Acknowledgement, error) {
 	if any == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
