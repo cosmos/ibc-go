@@ -53,7 +53,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#536](https://github.com/cosmos/ibc-go/pull/536) `GetSelfConsensusState` return type changed from bool to error.
 * (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Removes `CounterpartyHops` function from the ChannelKeeper.
 * (testing) [\#776](https://github.com/cosmos/ibc-go/pull/776) Adding helper fn to generate capability name for testing callbacks 
-
+* (channel) [\#882](https://github.com/cosmos/ibc-go/pull/882) The `WriteAcknowledgement` API now takes `exported.Acknowledgement` instead of a byte array
 
 ### State Machine Breaking
 
