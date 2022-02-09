@@ -71,8 +71,8 @@ type TestChain struct {
 // Time management is handled by the Coordinator in order to ensure synchrony between chains.
 // Each update of any chain increments the block header time for all chains by 5 seconds.
 //
-// NOTE: to use a custom sender privkey and account for testing purposes (i.e not), replace and
-// modify this constructor.
+// NOTE: to use a custom sender privkey and account for testing purposes, replace and modify this
+// constructor function.
 func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// generate validator private/public key
 	privVal := mock.NewPV()
