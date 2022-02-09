@@ -187,6 +187,13 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	panic("legacy solo machine is deprecated!")
 }
 
+// GetTimestampAtHeight panics!
+func (cs ClientState) GetTimestampAtHeight(
+	sdk.Context, sdk.KVStore, codec.BinaryCodec, exported.Height,
+) (uint64, error) {
+	panic("legacy solo machine is deprecated!")
+}
+
 // ClientType panics!
 func (ConsensusState) ClientType() string {
 	panic("legacy solo machine is deprecated!")

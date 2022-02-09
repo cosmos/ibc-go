@@ -527,3 +527,44 @@ func (suite *LocalhostTestSuite) TestVerifyNextSeqRecv() {
 		})
 	}
 }
+
+func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
+	testCases := []struct {
+		name        string
+		clientState *types.ClientState
+		malleate    func()
+		checkHeight exported.Height
+		expValue    int // this is always 0 for localhost client
+	}{
+		{
+			name:        "get timestamp at height returns 0",
+			clientState: types.NewClientState("chainID", clientHeight),
+			checkHeight: clientHeight,
+		},
+		{
+			name:        "get timestamp at client height + 1 returns 0",
+			clientState: types.NewClientState("chainID", clientHeight),
+			checkHeight: clientHeight + 1,
+		},
+		{
+			name:        "get timestamp at client height + 2returns 0",
+			clientState: types.NewClientState("chainID", clientHeight),
+			checkHeight: clientHeight + 2,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.malleate()
+
+			ts, err := tc.clientState.GetTimestampAtHeight(
+				suite.ctx, suite.store, suite.cdc, clientHeight,
+			)
+
+			suite.Require().Equal(tc.expValue, ts)
+		})
+	}
+}

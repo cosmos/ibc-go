@@ -39,6 +39,20 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return clienttypes.NewHeight(0, cs.Sequence)
 }
 
+// GetTimestampAtHeight returns 0.
+func (cs ClientState) GetTimestampAtHeight(
+	_ sdk.Context,
+	clientStore sdk.KVStore,
+	cdc codec.BinaryCodec,
+	height exported.Height,
+) (uint64, error) {
+	consensusState, err := GetConsensusState(clientStore, cdc, height)
+	if err != nil {
+		return 0, err
+	}
+	return consensusState.GetTimestamp(), nil
+}
+
 // Status returns the status of the solo machine client.
 // The client may be:
 // - Active: if frozen sequence is 0

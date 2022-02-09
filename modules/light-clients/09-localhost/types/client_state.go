@@ -42,6 +42,16 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.Height
 }
 
+// GetTimestampAtHeight returns 0. Localhost client has no consensus state.
+func (cs ClientState) GetTimestampAtHeight(
+	_ sdk.Context,
+	_ sdk.KVStore,
+	_ codec.BinaryCodec,
+	_ exported.Height,
+) (uint64, error) {
+	return 0, nil
+}
+
 // Status always returns Active. The localhost status cannot be changed.
 func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec,
 ) exported.Status {
