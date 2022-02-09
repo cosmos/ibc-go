@@ -39,7 +39,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return clienttypes.NewHeight(0, cs.Sequence)
 }
 
-// GetTimestampAtHeight returns 0.
+// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	_ sdk.Context,
 	clientStore sdk.KVStore,
@@ -48,7 +48,7 @@ func (cs ClientState) GetTimestampAtHeight(
 ) (uint64, error) {
 	consensusState, err := GetConsensusState(clientStore, cdc, height)
 	if err != nil {
-		return 0, err
+		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
 	}
 	return consensusState.GetTimestamp(), nil
 }
