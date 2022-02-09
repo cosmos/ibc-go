@@ -45,9 +45,9 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 			return sdkerrors.Wrapf(types.ErrInvalidRefundAddress, "expected %s, got %s", feeInEscrow.RefundAddress, identifiedFee.RefundAddress)
 		}
 
-		identifiedFee.Fee.AckFee.Add(feeInEscrow.Fee.AckFee...)
-		identifiedFee.Fee.RecvFee.Add(feeInEscrow.Fee.RecvFee...)
-		identifiedFee.Fee.TimeoutFee.Add(feeInEscrow.Fee.TimeoutFee...)
+		identifiedFee.Fee.AckFee = identifiedFee.Fee.AckFee.Add(feeInEscrow.Fee.AckFee...)
+		identifiedFee.Fee.RecvFee = identifiedFee.Fee.RecvFee.Add(feeInEscrow.Fee.RecvFee...)
+		identifiedFee.Fee.TimeoutFee = identifiedFee.Fee.TimeoutFee.Add(feeInEscrow.Fee.TimeoutFee...)
 	}
 
 	// Store fee in state for reference later
