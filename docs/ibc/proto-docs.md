@@ -222,12 +222,12 @@
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
     - [ClientStateData](#ibc.lightclients.solomachine.v1.ClientStateData)
+    - [ConflictingSignaturesHeader](#ibc.lightclients.solomachine.v1.ConflictingSignaturesHeader)
     - [ConnectionStateData](#ibc.lightclients.solomachine.v1.ConnectionStateData)
     - [ConsensusState](#ibc.lightclients.solomachine.v1.ConsensusState)
     - [ConsensusStateData](#ibc.lightclients.solomachine.v1.ConsensusStateData)
     - [Header](#ibc.lightclients.solomachine.v1.Header)
     - [HeaderData](#ibc.lightclients.solomachine.v1.HeaderData)
-    - [Misbehaviour](#ibc.lightclients.solomachine.v1.Misbehaviour)
     - [NextSequenceRecvData](#ibc.lightclients.solomachine.v1.NextSequenceRecvData)
     - [PacketAcknowledgementData](#ibc.lightclients.solomachine.v1.PacketAcknowledgementData)
     - [PacketCommitmentData](#ibc.lightclients.solomachine.v1.PacketCommitmentData)
@@ -242,12 +242,12 @@
     - [ChannelStateData](#ibc.lightclients.solomachine.v2.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v2.ClientState)
     - [ClientStateData](#ibc.lightclients.solomachine.v2.ClientStateData)
+    - [ConflictingSignaturesHeader](#ibc.lightclients.solomachine.v2.ConflictingSignaturesHeader)
     - [ConnectionStateData](#ibc.lightclients.solomachine.v2.ConnectionStateData)
     - [ConsensusState](#ibc.lightclients.solomachine.v2.ConsensusState)
     - [ConsensusStateData](#ibc.lightclients.solomachine.v2.ConsensusStateData)
     - [Header](#ibc.lightclients.solomachine.v2.Header)
     - [HeaderData](#ibc.lightclients.solomachine.v2.HeaderData)
-    - [Misbehaviour](#ibc.lightclients.solomachine.v2.Misbehaviour)
     - [NextSequenceRecvData](#ibc.lightclients.solomachine.v2.NextSequenceRecvData)
     - [PacketAcknowledgementData](#ibc.lightclients.solomachine.v2.PacketAcknowledgementData)
     - [PacketCommitmentData](#ibc.lightclients.solomachine.v2.PacketCommitmentData)
@@ -261,9 +261,9 @@
 - [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
     - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
     - [ConsensusState](#ibc.lightclients.tendermint.v1.ConsensusState)
+    - [DuplicateHeaderHeader](#ibc.lightclients.tendermint.v1.DuplicateHeaderHeader)
     - [Fraction](#ibc.lightclients.tendermint.v1.Fraction)
     - [Header](#ibc.lightclients.tendermint.v1.Header)
-    - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -3309,6 +3309,25 @@ ClientStateData returns the SignBytes data for client state verification.
 
 
 
+<a name="ibc.lightclients.solomachine.v1.ConflictingSignaturesHeader"></a>
+
+### ConflictingSignaturesHeader
+ConflictingSignaturesHeader defines misbehaviour for a solo machine which consists
+of a sequence and two signatures over different messages at that sequence.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `sequence` | [uint64](#uint64) |  |  |
+| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData) |  |  |
+| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData) |  |  |
+
+
+
+
+
+
 <a name="ibc.lightclients.solomachine.v1.ConnectionStateData"></a>
 
 ### ConnectionStateData
@@ -3391,25 +3410,6 @@ HeaderData returns the SignBytes data for update verification.
 | ----- | ---- | ----- | ----------- |
 | `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
 | `new_diversifier` | [string](#string) |  | header diversifier |
-
-
-
-
-
-
-<a name="ibc.lightclients.solomachine.v1.Misbehaviour"></a>
-
-### Misbehaviour
-Misbehaviour defines misbehaviour for a solo machine which consists
-of a sequence and two signatures over different messages at that sequence.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `sequence` | [uint64](#uint64) |  |  |
-| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData) |  |  |
-| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v1.SignatureAndData) |  |  |
 
 
 
@@ -3627,6 +3627,25 @@ ClientStateData returns the SignBytes data for client state verification.
 
 
 
+<a name="ibc.lightclients.solomachine.v2.ConflictingSignaturesHeader"></a>
+
+### ConflictingSignaturesHeader
+ConflictingSignaturesHeader defines misbehaviour for a solo machine which consists
+of a sequence and two signatures over different messages at that sequence.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `sequence` | [uint64](#uint64) |  |  |
+| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
+| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
+
+
+
+
+
+
 <a name="ibc.lightclients.solomachine.v2.ConnectionStateData"></a>
 
 ### ConnectionStateData
@@ -3709,25 +3728,6 @@ HeaderData returns the SignBytes data for update verification.
 | ----- | ---- | ----- | ----------- |
 | `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
 | `new_diversifier` | [string](#string) |  | header diversifier |
-
-
-
-
-
-
-<a name="ibc.lightclients.solomachine.v2.Misbehaviour"></a>
-
-### Misbehaviour
-Misbehaviour defines misbehaviour for a solo machine which consists
-of a sequence and two signatures over different messages at that sequence.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `sequence` | [uint64](#uint64) |  |  |
-| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
-| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 
 
 
@@ -3936,6 +3936,24 @@ ConsensusState defines the consensus state from Tendermint.
 
 
 
+<a name="ibc.lightclients.tendermint.v1.DuplicateHeaderHeader"></a>
+
+### DuplicateHeaderHeader
+DuplicateHeaderHeader is a wrapper over two conflicting Headers
+that implements Header interface expected by ICS-02
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
+| `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
+
+
+
+
+
+
 <a name="ibc.lightclients.tendermint.v1.Fraction"></a>
 
 ### Fraction
@@ -3976,24 +3994,6 @@ trusted validator set at the TrustedHeight.
 | `validator_set` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
 | `trusted_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `trusted_validators` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.tendermint.v1.Misbehaviour"></a>
-
-### Misbehaviour
-Misbehaviour is a wrapper over two conflicting Headers
-that implements Misbehaviour interface expected by ICS-02
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
-| `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 
 
 

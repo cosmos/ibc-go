@@ -133,6 +133,16 @@ func (suite *TypesTestSuite) TestPackHeader() {
 			true,
 		},
 		{
+			"solo machine conflicting signatures header",
+			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateConflictingSignaturesHeader(),
+			true,
+		},
+		{
+			"tendermint duplicate header header",
+			ibctmtypes.NewDuplicateHeaderHeader("tendermint", suite.chainA.LastHeader, suite.chainA.LastHeader),
+			true,
+		},
+		{
 			"nil",
 			nil,
 			false,
@@ -157,53 +167,6 @@ func (suite *TypesTestSuite) TestPackHeader() {
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 			suite.Require().Equal(testCases[i].header, cs, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
-	}
-}
-
-func (suite *TypesTestSuite) TestPackMisbehaviour() {
-	testCases := []struct {
-		name         string
-		misbehaviour exported.Misbehaviour
-		expPass      bool
-	}{
-		{
-			"solo machine misbehaviour",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateMisbehaviour(),
-			true,
-		},
-		{
-			"tendermint misbehaviour",
-			ibctmtypes.NewMisbehaviour("tendermint", suite.chainA.LastHeader, suite.chainA.LastHeader),
-			true,
-		},
-		{
-			"nil",
-			nil,
-			false,
-		},
-	}
-
-	testCasesAny := []caseAny{}
-
-	for _, tc := range testCases {
-		clientAny, err := types.PackMisbehaviour(tc.misbehaviour)
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
-
-		testCasesAny = append(testCasesAny, caseAny{tc.name, clientAny, tc.expPass})
-	}
-
-	for i, tc := range testCasesAny {
-		cs, err := types.UnpackMisbehaviour(tc.any)
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].misbehaviour, cs, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
 		}

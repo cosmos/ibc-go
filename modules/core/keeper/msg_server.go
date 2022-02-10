@@ -82,7 +82,7 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	misbehaviour, err := clienttypes.UnpackMisbehaviour(msg.Misbehaviour)
+	misbehaviour, err := clienttypes.UnpackHeader(msg.Misbehaviour)
 	if err != nil {
 		return nil, err
 	}

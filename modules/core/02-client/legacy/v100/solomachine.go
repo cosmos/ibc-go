@@ -97,7 +97,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 // CheckMisbehaviourAndUpdateState panics!
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Misbehaviour,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Header,
 ) (exported.ClientState, error) {
 	panic("legacy solo machine is deprecated!")
 }

@@ -10,49 +10,55 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Misbehaviour = &Misbehaviour{}
+var _ exported.Header = &ConflictingSignaturesHeader{}
 
 // ClientType is a Solo Machine light client.
-func (misbehaviour Misbehaviour) ClientType() string {
+func (h ConflictingSignaturesHeader) ClientType() string {
 	return exported.Solomachine
 }
 
-// GetClientID returns the ID of the client that committed a misbehaviour.
-func (misbehaviour Misbehaviour) GetClientID() string {
-	return misbehaviour.ClientId
+// GetClientID returns the ID of the client that committed a ConflictingSignaturesHeader.
+func (h ConflictingSignaturesHeader) GetClientID() string {
+	return h.ClientId
+}
+
+// GetHeight is added for compatibility between PRs.
+// TODO: Remove after GetHeight() is removed from Header interface.
+func (h ConflictingSignaturesHeader) GetHeight() exported.Height {
+	return nil
 }
 
 // Type implements Evidence interface.
-func (misbehaviour Misbehaviour) Type() string {
+func (h ConflictingSignaturesHeader) Type() string {
 	return exported.TypeClientMisbehaviour
 }
 
 // ValidateBasic implements Evidence interface.
-func (misbehaviour Misbehaviour) ValidateBasic() error {
-	if err := host.ClientIdentifierValidator(misbehaviour.ClientId); err != nil {
+func (h ConflictingSignaturesHeader) ValidateBasic() error {
+	if err := host.ClientIdentifierValidator(h.ClientId); err != nil {
 		return sdkerrors.Wrap(err, "invalid client identifier for solo machine")
 	}
 
-	if misbehaviour.Sequence == 0 {
+	if h.Sequence == 0 {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "sequence cannot be 0")
 	}
 
-	if err := misbehaviour.SignatureOne.ValidateBasic(); err != nil {
+	if err := h.SignatureOne.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "signature one failed basic validation")
 	}
 
-	if err := misbehaviour.SignatureTwo.ValidateBasic(); err != nil {
+	if err := h.SignatureTwo.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "signature two failed basic validation")
 	}
 
-	// misbehaviour signatures cannot be identical
-	if bytes.Equal(misbehaviour.SignatureOne.Signature, misbehaviour.SignatureTwo.Signature) {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signatures cannot be equal")
+	// ConflictingSignaturesHeader signatures cannot be identical
+	if bytes.Equal(h.SignatureOne.Signature, h.SignatureTwo.Signature) {
+		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "ConflictingSignaturesHeader signatures cannot be equal")
 	}
 
 	// message data signed cannot be identical
-	if bytes.Equal(misbehaviour.SignatureOne.Data, misbehaviour.SignatureTwo.Data) {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signature data must be signed over different messages")
+	if bytes.Equal(h.SignatureOne.Data, h.SignatureTwo.Data) {
+		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "ConflictingSignaturesHeader signature data must be signed over different messages")
 	}
 
 	return nil

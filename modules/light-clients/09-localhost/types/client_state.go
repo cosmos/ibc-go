@@ -92,7 +92,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 // Since localhost is the client of the running chain, misbehaviour cannot be submitted to it
 // Thus, CheckMisbehaviourAndUpdateState returns an error for localhost
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Misbehaviour,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Header,
 ) (exported.ClientState, error) {
 	return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "cannot submit misbehaviour to localhost client")
 }

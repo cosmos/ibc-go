@@ -229,8 +229,8 @@ func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 
 // NewMsgSubmitMisbehaviour creates a new MsgSubmitMisbehaviour instance.
 //nolint:interfacer
-func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.Misbehaviour, signer string) (*MsgSubmitMisbehaviour, error) {
-	anyMisbehaviour, err := PackMisbehaviour(misbehaviour)
+func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.Header, signer string) (*MsgSubmitMisbehaviour, error) {
+	anyMisbehaviour, err := PackHeader(misbehaviour)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +248,7 @@ func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	misbehaviour, err := UnpackMisbehaviour(msg.Misbehaviour)
+	misbehaviour, err := UnpackHeader(msg.Misbehaviour)
 	if err != nil {
 		return err
 	}
@@ -270,6 +270,6 @@ func (msg MsgSubmitMisbehaviour) GetSigners() []sdk.AccAddress {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var misbehaviour exported.Misbehaviour
+	var misbehaviour exported.Header
 	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
 }

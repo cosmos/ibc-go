@@ -32,7 +32,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterInterface(
 		"ibc.core.client.v1.Misbehaviour",
-		(*exported.Misbehaviour)(nil),
+		(*exported.Height)(nil),
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
@@ -154,36 +154,4 @@ func UnpackHeader(any *codectypes.Any) (exported.Header, error) {
 	}
 
 	return header, nil
-}
-
-// PackMisbehaviour constructs a new Any packed with the given misbehaviour value. It returns
-// an error if the misbehaviour can't be casted to a protobuf message or if the concrete
-// implemention is not registered to the protobuf codec.
-func PackMisbehaviour(misbehaviour exported.Misbehaviour) (*codectypes.Any, error) {
-	msg, ok := misbehaviour.(proto.Message)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", misbehaviour)
-	}
-
-	anyMisbhaviour, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
-	}
-
-	return anyMisbhaviour, nil
-}
-
-// UnpackMisbehaviour unpacks an Any into a Misbehaviour. It returns an error if the
-// Any can't be unpacked into a Misbehaviour.
-func UnpackMisbehaviour(any *codectypes.Any) (exported.Misbehaviour, error) {
-	if any == nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
-	}
-
-	misbehaviour, ok := any.GetCachedValue().(exported.Misbehaviour)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Misbehaviour %T", any)
-	}
-
-	return misbehaviour, nil
 }

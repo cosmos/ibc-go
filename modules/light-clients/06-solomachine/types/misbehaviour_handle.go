@@ -19,14 +19,14 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
 	clientStore sdk.KVStore,
-	misbehaviour exported.Misbehaviour,
+	header exported.Header,
 ) (exported.ClientState, error) {
 
-	soloMisbehaviour, ok := misbehaviour.(*Misbehaviour)
+	misbehaviour, ok := header.(*ConflictingSignaturesHeader)
 	if !ok {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrInvalidClientType,
-			"misbehaviour type %T, expected %T", misbehaviour, &Misbehaviour{},
+			"misbehaviour type %T, expected %T", header, &ConflictingSignaturesHeader{},
 		)
 	}
 
@@ -34,12 +34,12 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
 
 	// verify first signature
-	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureOne); err != nil {
+	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureOne); err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to verify signature one")
 	}
 
 	// verify second signature
-	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureTwo); err != nil {
+	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureTwo); err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to verify signature two")
 	}
 
@@ -50,7 +50,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 // verifySignatureAndData verifies that the currently registered public key has signed
 // over the provided data and that the data is valid. The data is valid if it can be
 // unmarshaled into the specified data type.
-func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misbehaviour *Misbehaviour, sigAndData *SignatureAndData) error {
+func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misbehaviour *ConflictingSignaturesHeader, sigAndData *SignatureAndData) error {
 
 	// do not check misbehaviour timestamp since we want to allow processing of past misbehaviour
 

@@ -59,7 +59,7 @@ type ClientState interface {
 	// Update and Misbehaviour functions
 
 	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
-	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) (ClientState, error)
+	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, error)
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
 	// Upgrade functions
@@ -191,14 +191,6 @@ type ConsensusState interface {
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64
 
-	ValidateBasic() error
-}
-
-// Misbehaviour defines counterparty misbehaviour for a specific consensus type
-type Misbehaviour interface {
-	proto.Message
-
-	ClientType() string
 	ValidateBasic() error
 }
 

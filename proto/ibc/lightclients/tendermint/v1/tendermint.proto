@@ -75,9 +75,9 @@ message ConsensusState {
   ];
 }
 
-// Misbehaviour is a wrapper over two conflicting Headers
-// that implements Misbehaviour interface expected by ICS-02
-message Misbehaviour {
+// DuplicateHeaderHeader is a wrapper over two conflicting Headers
+// that implements Header interface expected by ICS-02
+message DuplicateHeaderHeader {
   option (gogoproto.goproto_getters) = false;
 
   string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
