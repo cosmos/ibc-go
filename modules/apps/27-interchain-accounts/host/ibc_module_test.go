@@ -7,8 +7,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
+	tmstate "github.com/tendermint/tendermint/state"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
@@ -20,15 +24,26 @@ import (
 )
 
 var (
+	// TODO: Cosmos-SDK ADR-28: Update crypto.AddressHash() when sdk uses address.Module()
+	// https://github.com/cosmos/cosmos-sdk/issues/10225
+	//
 	// TestAccAddress defines a resuable bech32 address for testing purposes
-	// TODO: update crypto.AddressHash() when sdk uses address.Module()
-	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), TestPortID)
+	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), ibctesting.FirstConnectionID, TestPortID)
+
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID, _ = icatypes.GeneratePortID(TestOwnerAddress, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
+
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
-	TestVersion = icatypes.NewAppVersion(icatypes.VersionPrefix, TestAccAddress.String())
+	TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: ibctesting.FirstConnectionID,
+		HostConnectionId:       ibctesting.FirstConnectionID,
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}))
 )
 
 type InterchainAccountsTestSuite struct {
@@ -47,8 +62,8 @@ func TestICATestSuite(t *testing.T) {
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -57,21 +72,21 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointA.ChannelConfig.Version = icatypes.VersionPrefix
+	path.EndpointA.ChannelConfig.Version = TestVersion
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
 }
 
-func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
-	portID, err := icatypes.GeneratePortID(owner, endpoint.ConnectionID, endpoint.Counterparty.ConnectionID)
+func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		return err
 	}
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner); err != nil {
 		return err
 	}
 
@@ -88,7 +103,7 @@ func InitInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 
 // SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
 func SetupICAPath(path *ibctesting.Path, owner string) error {
-	if err := InitInterchainAccount(path.EndpointA, owner); err != nil {
+	if err := RegisterInterchainAccount(path.EndpointA, owner); err != nil {
 		return err
 	}
 
@@ -115,7 +130,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
 	suite.coordinator.SetupConnections(path)
 
 	// use chainB (host) for ChanOpenInit
-	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icatypes.VersionPrefix, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icatypes.Version, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icatypes.ModuleName)
 	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err := handler(suite.chainB.GetContext(), msg)
 
@@ -170,7 +185,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 			path.EndpointB.ChannelID = ibctesting.FirstChannelID
 
@@ -181,7 +196,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
-				Version:        "",
+				Version:        path.EndpointB.ChannelConfig.Version,
 			}
 
 			tc.malleate()
@@ -204,7 +219,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(TestVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
@@ -222,7 +236,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+	err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 	suite.Require().NoError(err)
 
 	err = path.EndpointB.ChanOpenTry()
@@ -286,7 +300,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 			path := NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
@@ -373,12 +387,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			err = cbs.OnChanCloseConfirm(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			activeChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().False(found)
-				suite.Require().Empty(activeChannelID)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -433,7 +443,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 			// send 100stake to interchain account wallet
 			amount, _ := sdk.ParseCoinsNormalized("100stake")
-			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID)
+			interchainAccountAddr, _ := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 			bankMsg := &banktypes.MsgSend{FromAddress: suite.chainB.SenderAccount.GetAddress().String(), ToAddress: interchainAccountAddr, Amount: amount}
 
 			_, err = suite.chainB.SendMsgs(bankMsg)
@@ -454,6 +464,22 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			}
 			packetData = icaPacketData.GetBytes()
 
+			// build expected ack
+			msgResponseBz, err := proto.Marshal(&banktypes.MsgSendResponse{})
+			suite.Require().NoError(err)
+
+			msgData := &sdk.MsgData{
+				MsgType: sdk.MsgTypeURL(msg),
+				Data:    msgResponseBz,
+			}
+
+			expectedTxResponse, err := proto.Marshal(&sdk.TxMsgData{
+				Data: []*sdk.MsgData{msgData},
+			})
+			suite.Require().NoError(err)
+
+			expectedAck := channeltypes.NewResultAcknowledgement(expectedTxResponse)
+
 			params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
@@ -472,7 +498,12 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			suite.Require().True(ok)
 
 			ack := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, nil)
-			suite.Require().Equal(tc.expAckSuccess, ack.Success())
+			if tc.expAckSuccess {
+				suite.Require().True(ack.Success())
+				suite.Require().Equal(expectedAck, ack)
+			} else {
+				suite.Require().False(ack.Success())
+			}
 
 		})
 	}
@@ -585,4 +616,159 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			}
 		})
 	}
+}
+
+func (suite *InterchainAccountsTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(ctx, ibctesting.FirstConnectionID, portID)
+	suite.Require().True(found)
+
+	msgBankSend := &banktypes.MsgSend{
+		FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
+		ToAddress:   interchainAccountAddr,
+		Amount:      amount,
+	}
+
+	res, err := suite.chainB.SendMsgs(msgBankSend)
+	suite.Require().NotEmpty(res)
+	suite.Require().NoError(err)
+}
+
+// TestControlAccountAfterChannelClose tests that a controller chain can control a registered interchain account after the currently active channel for that interchain account has been closed
+// by opening a new channel on the associated portID
+func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() {
+	// create channel + init interchain account on a particular port
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	// check that the account is working as expected
+	suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000))))
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(found)
+
+	tokenAmt := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)))
+	msg := &banktypes.MsgSend{
+		FromAddress: interchainAccountAddr,
+		ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+		Amount:      tokenAmt,
+	}
+
+	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
+	suite.Require().NoError(err)
+
+	icaPacketData := icatypes.InterchainAccountPacketData{
+		Type: icatypes.EXECUTE_TX,
+		Data: data,
+	}
+
+	params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+
+	chanCap, ok := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+	suite.Require().True(ok)
+
+	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), chanCap, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
+	suite.Require().NoError(err)
+	path.EndpointB.UpdateClient()
+
+	// relay the packet
+	packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
+	err = path.RelayPacket(packetRelay)
+	suite.Require().NoError(err) // relay committed
+
+	// check that the ica balance is updated
+	icaAddr, err := sdk.AccAddressFromBech32(interchainAccountAddr)
+	suite.Require().NoError(err)
+
+	hasBalance := suite.chainB.GetSimApp().BankKeeper.HasBalance(suite.chainB.GetContext(), icaAddr, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(5000)})
+	suite.Require().True(hasBalance)
+
+	// close the channel
+	err = path.EndpointA.SetChannelClosed()
+	suite.Require().NoError(err)
+	err = path.EndpointB.SetChannelClosed()
+	suite.Require().NoError(err)
+
+	// open a new channel on the same port
+	path.EndpointA.ChannelID = ""
+	path.EndpointB.ChannelID = ""
+	suite.coordinator.CreateChannels(path)
+
+	// try to control the interchain account again
+	chanCap, ok = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(path.EndpointA.Chain.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+	suite.Require().True(ok)
+
+	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), chanCap, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
+	suite.Require().NoError(err)
+	path.EndpointB.UpdateClient()
+
+	// relay the packet
+	packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
+	err = path.RelayPacket(packetRelay)
+	suite.Require().NoError(err) // relay committed
+
+	// check that the ica balance is updated
+	hasBalance = suite.chainB.GetSimApp().BankKeeper.HasBalance(suite.chainB.GetContext(), icaAddr, sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
+	suite.Require().True(hasBalance)
+}
+
+// The safety of including SDK MsgResponses in the acknowledgement rests
+// on the inclusion of the abcitypes.ResponseDeliverTx.Data in the
+// abcitypes.ResposneDeliverTx hash. If the abcitypes.ResponseDeliverTx.Data
+// gets removed from consensus they must no longer be used in the packet
+// acknowledgement.
+//
+// This test acts as an indicator that the abcitypes.ResponseDeliverTx.Data
+// may no longer be deterministic.
+func (suite *InterchainAccountsTestSuite) TestABCICodeDeterminism() {
+	msgResponseBz, err := proto.Marshal(&channeltypes.MsgChannelOpenInitResponse{})
+	suite.Require().NoError(err)
+
+	msgData := &sdk.MsgData{
+		MsgType: sdk.MsgTypeURL(&channeltypes.MsgChannelOpenInit{}),
+		Data:    msgResponseBz,
+	}
+
+	txResponse, err := proto.Marshal(&sdk.TxMsgData{
+		Data: []*sdk.MsgData{msgData},
+	})
+	suite.Require().NoError(err)
+
+	deliverTx := abcitypes.ResponseDeliverTx{
+		Data: txResponse,
+	}
+	responses := tmprotostate.ABCIResponses{
+		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+			&deliverTx,
+		},
+	}
+
+	differentMsgResponseBz, err := proto.Marshal(&channeltypes.MsgRecvPacketResponse{})
+	suite.Require().NoError(err)
+
+	differentMsgData := &sdk.MsgData{
+		MsgType: sdk.MsgTypeURL(&channeltypes.MsgRecvPacket{}),
+		Data:    differentMsgResponseBz,
+	}
+
+	differentTxResponse, err := proto.Marshal(&sdk.TxMsgData{
+		Data: []*sdk.MsgData{differentMsgData},
+	})
+	suite.Require().NoError(err)
+
+	differentDeliverTx := abcitypes.ResponseDeliverTx{
+		Data: differentTxResponse,
+	}
+
+	differentResponses := tmprotostate.ABCIResponses{
+		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+			&differentDeliverTx,
+		},
+	}
+
+	hash := tmstate.ABCIResponsesResultsHash(&responses)
+	differentHash := tmstate.ABCIResponsesResultsHash(&differentResponses)
+
+	suite.Require().NotEqual(hash, differentHash)
 }

@@ -1,10 +1,12 @@
 <!--
-order: 3
+order: 2
 -->
 
-# Building an ICA authentication module
+# Building an authentication module
 
-The controller module is used for account registration and packet sending. 
+Authentication modules play the role of the `Base Application` as described in [ICS30 IBC Middleware](https://github.com/cosmos/ibc/tree/master/spec/app/ics-030-middleware), and enable application developers to perform custom logic when working with the Interchain Accounts controller API. {synopsis}
+
+The controller submodule is used for account registration and packet sending. 
 It executes only logic required of all controllers of interchain accounts. 
 The type of authentication used to manage the interchain accounts remains unspecified. 
 There may exist many different types of authentication which are desirable for different use cases. 
@@ -108,9 +110,8 @@ func (im IBCModule) OnChanOpenTry(
     channelID string,
     chanCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
-    version,
     counterpartyVersion string,
-) error {
+) (string, error) {
     panic("UNIMPLEMENTED")
 }
 
@@ -142,53 +143,40 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
     panic("UNIMPLEMENTED")
 }
-
-// NegotiateAppVersion implements the IBCModule interface
-func (im IBCModule) NegotiateAppVersion(
-    ctx sdk.Context,
-    order channeltypes.Order,
-    connectionID string,
-    portID string,
-    counterparty channeltypes.Counterparty,
-    proposedVersion string,
-) (string, error) {
-    panic("UNIMPLEMENTED")
-}
 ```
 
-## `InitInterchainAccount`
+## `RegisterInterchainAccount`
 
-The authentication module can begin registering interchain accounts by calling `InitInterchainAccount`:
+The authentication module can begin registering interchain accounts by calling `RegisterInterchainAccount`:
 
 ```go
-if err := keeper.icaControllerKeeper.InitInterchainAccount(ctx, connectionID, counterpartyConnectionID, owner.String()); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String()); err != nil {
     return err
 }
 
 return nil
 ```
 
-## `TrySendTx`
+## `SendTx`
 
-The authentication module can attempt to send a packet by calling `TrySendTx`:
+The authentication module can attempt to send a packet by calling `SendTx`:
 ```go
 
 // Authenticate owner
 // perform custom logic
     
-// Lookup portID based on interchain account owner address
-portID, err := icatypes.GeneratePortID(owner.String(), connectionID, counterpartyConnectionID)
+// Construct controller portID based on interchain account owner address
+portID, err := icatypes.NewControllerPortID(owner.String())
 if err != nil {
     return err
 }
 
 channelID, found := keeper.icaControllerKeeper.GetActiveChannelID(ctx, portID)
 if !found {
-    return sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portId)
+    return sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 }
     
-// Obtain the channel capability. 
-// The channel capability should have been claimed by the authentication module in OnChanOpenInit
+// Obtain the channel capability, claimed in OnChanOpenInit
 chanCap, found := keeper.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 if !found {
     return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
@@ -210,11 +198,134 @@ packetData := icatypes.InterchainAccountPacketData{
     Data: data,
 }
 
-_, err = keeper.icaControllerKeeper.TrySendTx(ctx, chanCap, p, packetData)
+// Obtain timeout timestamp
+// An appropriate timeout timestamp must be determined based on the usage of the interchain account.
+// If the packet times out, the channel will be closed requiring a new channel to be created 
+timeoutTimestamp := obtainTimeoutTimestamp()
+
+// Send the interchain accounts packet, returning the packet sequence
+seq, err = keeper.icaControllerKeeper.SendTx(ctx, chanCap, portID, packetData, timeoutTimestamp)
 ```
 
 The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain. 
 If the host chain is using the ibc-go host chain submodule, `SerializeCosmosTx` should be used. If the `InterchainAccountPacketData.Data` is serialized using a format not support by the host chain, the packet will not be successfully received.  
+
+## `OnAcknowledgementPacket`
+
+Controller chains will be able to access the acknowledgement written into the host chain state once a relayer relays the acknowledgement. 
+The acknowledgement bytes will be passed to the auth module via the `OnAcknowledgementPacket` callback. 
+Auth modules are expected to know how to decode the acknowledgement. 
+
+If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
+
+Begin by unmarshaling the acknowledgement into sdk.TxMsgData:
+```go
+txMsgData := &sdk.TxMsgData{}
+if err := proto.Unmarshal(ack.Acknowledgement(), txMsgData); err != nil {
+    return err
+}
+```
+
+If the txMsgData.Data field is non nil, the host chain is using SDK version <= v0.45. 
+The auth module should interpret the txMsgData.Data as follows:
+
+```go
+switch len(txMsgData.Data) {
+case 0:
+    for _, msgData := range txMsgData.Data {
+        if err := handler(msgData); err != nil {
+            return err
+        }
+    }
+...
+}            
+```
+
+A handler will be needed to interpret what actions to perform based on the message type sent.
+A router could be used, or more simply a switch statement.
+
+```go
+func handler(msgData sdk.MsgData) error {
+switch msgData.TypeURL {
+case banktypes.MsgSend:
+    msgResponse := &banktypes.MsgSendResponse{}
+    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+        return err
+    }
+
+    handleBankSendMsg(msgResponse)
+
+case stakingtypes.MsgDelegate:
+    msgResponse := &stakingtypes.MsgDelegateResponse{}
+    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+        return err
+    }
+
+    handleStakingDelegateMsg(msgResponse)
+
+case transfertypes.MsgTransfer:
+    msgResponse := &transfertypes.MsgTransferResponse{}
+    if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+        return err
+    }
+
+    handleIBCTransferMsg(msgResponse)
+ 
+default:
+    return
+}
+```
+
+If the txMsgData.Data is empty, the host chain is using SDK version > v0.45.
+The auth module should interpret the txMsgData.Responses as follows:
+
+```go
+...
+// switch statement from above continued
+default:
+    for _, any := range txMsgData.MsgResponses {
+        if err := handleAny(any); err != nil {
+            return err
+        }
+    }
+}
+``` 
+
+A handler will be needed to interpret what actions to perform based on the type url of the Any. 
+A router could be used, or more simply a switch statement. 
+It may be possible to deduplicate logic between `handler` and `handleAny`.
+
+```go
+func handleAny(any *codectypes.Any) error {
+switch any.TypeURL {
+case banktypes.MsgSend:
+    msgResponse, err := unpackBankMsgSendResponse(any)
+    if err != nil {
+        return err
+    }
+
+    handleBankSendMsg(msgResponse)
+
+case stakingtypes.MsgDelegate:
+    msgResponse, err := unpackStakingDelegateResponse(any)
+    if err != nil {
+        return err
+    }
+
+    handleStakingDelegateMsg(msgResponse)
+
+    case transfertypes.MsgTransfer:
+    msgResponse, err := unpackIBCTransferMsgResponse(any)
+    if err != nil {
+        return err
+    }
+
+    handleIBCTransferMsg(msgResponse)
+ 
+default:
+    return
+}
+```
 
 ### Integration into `app.go` file
 
