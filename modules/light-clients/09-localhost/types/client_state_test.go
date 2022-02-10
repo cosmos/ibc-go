@@ -544,12 +544,12 @@ func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
 		{
 			name:        "get timestamp at client height + 1 returns 0",
 			clientState: types.NewClientState("chainID", clientHeight),
-			checkHeight: clientHeight + 1,
+			checkHeight: clientHeight.Increment(),
 		},
 		{
 			name:        "get timestamp at client height + 2 returns 0",
 			clientState: types.NewClientState("chainID", clientHeight),
-			checkHeight: clientHeight + 2,
+			checkHeight: clientHeight.Increment().Increment(),
 		},
 	}
 
@@ -564,6 +564,7 @@ func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
 				suite.ctx, suite.store, suite.cdc, clientHeight,
 			)
 
+			suite.Require().NoError(err)
 			suite.Require().Equal(tc.expValue, ts)
 		})
 	}
