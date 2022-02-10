@@ -24,8 +24,7 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 	k.DeleteForwardRelayerAddress(ctx, packetId)
 
 	ack := types.NewIncentivizedAcknowledgement(relayer, acknowledgement)
-	bz := ack.Acknowledgement()
 
 	// ics4Wrapper may be core IBC or higher-level middleware
-	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, bz)
+	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
