@@ -199,7 +199,6 @@ type Misbehaviour interface {
 	proto.Message
 
 	ClientType() string
-	GetClientID() string
 	ValidateBasic() error
 }
 

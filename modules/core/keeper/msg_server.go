@@ -87,7 +87,7 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 		return nil, err
 	}
 
-	if err := k.ClientKeeper.CheckMisbehaviourAndUpdateState(ctx, misbehaviour); err != nil {
+	if err := k.ClientKeeper.CheckMisbehaviourAndUpdateState(ctx, msg.ClientId, misbehaviour); err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to process misbehaviour for IBC client")
 	}
 
