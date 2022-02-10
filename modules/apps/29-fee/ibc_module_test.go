@@ -1,8 +1,6 @@
 package fee_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
@@ -28,38 +26,28 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		expPass bool
 	}{
 		{
-			"valid fee middleware and transfer version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			"success - valid fee middleware and transfer version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			true,
 		},
 		{
-			"fee version not included, only perform transfer logic",
+			"success - fee version not included, only perform transfer logic",
 			transfertypes.Version,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			channeltypes.MergeChannelVersions("otherfee28-1", transfertypes.Version),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
 			false,
 		},
 		{
 			"invalid transfer version",
-			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
-			false,
-		},
-		{
-			"incorrect wrapping delimiter",
-			fmt.Sprintf("%s//%s", types.Version, transfertypes.Version),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
 			false,
 		},
 		{
 			"transfer version not wrapped",
 			types.Version,
-			false,
-		},
-		{
-			"hanging delimiter",
-			fmt.Sprintf("%s:%s:", types.Version, transfertypes.Version),
 			false,
 		},
 	}
@@ -112,32 +100,32 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 		expPass   bool
 	}{
 		{
-			"valid fee middleware version",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			"success - valid fee middleware version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			false,
 			true,
 		},
 		{
-			"valid transfer version",
+			"success - valid transfer version",
 			transfertypes.Version,
 			false,
 			true,
 		},
 		{
-			"crossing hellos: valid fee middleware",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			"success - crossing hellos: valid fee middleware",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			true,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			channeltypes.MergeChannelVersions("wrongfee29-1", transfertypes.Version),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
 			false,
 			false,
 		},
 		{
 			"invalid transfer version",
-			channeltypes.MergeChannelVersions(types.Version, "wrongics20-1"),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
 			false,
 			false,
 		},
@@ -205,25 +193,31 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	}{
 		{
 			"success",
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			func(suite *FeeTestSuite) {},
 			true,
 		},
 		{
 			"invalid fee version",
-			channeltypes.MergeChannelVersions("fee29-A", transfertypes.Version),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
 			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"invalid transfer version",
-			channeltypes.MergeChannelVersions(types.Version, "ics20-4"),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
+			func(suite *FeeTestSuite) {},
+			false,
+		},
+		{
+			"invalid version fails to unmarshal metadata",
+			"invalid-version",
 			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
 			"previous INIT set without fee, however counterparty set fee version", // note this can only happen with incompetent or malicious counterparty chain
-			channeltypes.MergeChannelVersions(types.Version, transfertypes.Version),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
 			func(suite *FeeTestSuite) {
 				// do the first steps without fee version, then pass the fee version as counterparty version in ChanOpenACK
 				suite.path.EndpointA.ChannelConfig.Version = transfertypes.Version
@@ -271,13 +265,13 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		{
 			"success",
 			func(suite *FeeTestSuite) {
-				packetId := channeltypes.PacketId{
-					PortId:    suite.path.EndpointA.ChannelConfig.PortID,
-					ChannelId: suite.path.EndpointA.ChannelID,
-					Sequence:  1,
-				}
+				packetId := channeltypes.NewPacketId(
+					suite.path.EndpointA.ChannelID,
+					suite.path.EndpointA.ChannelConfig.PortID,
+					1,
+				)
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 			},
@@ -292,7 +286,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 
@@ -357,7 +351,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 			},
@@ -372,7 +366,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(&packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
 				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedFee)
 				suite.Require().NoError(err)
 
@@ -510,7 +504,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		ack                    []byte
-		identifiedFee          *types.IdentifiedPacketFee
+		identifiedFee          types.IdentifiedPacketFee
 		originalBalance        sdk.Coins
 		expectedBalance        sdk.Coins
 		expectedRelayerBalance sdk.Coins
@@ -524,7 +518,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success",
 			func() {
-				expectedRelayerBalance = identifiedFee.Fee.ReceiveFee.Add(identifiedFee.Fee.AckFee[0])
+				expectedRelayerBalance = identifiedFee.Fee.RecvFee.Add(identifiedFee.Fee.AckFee[0])
 			},
 			true,
 		},
@@ -603,7 +597,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			identifiedFee = types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
-					ReceiveFee: validCoins,
+					RecvFee:    validCoins,
 					AckFee:     validCoins2,
 					TimeoutFee: validCoins3,
 				},
@@ -658,7 +652,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	var (
 		relayerAddr     sdk.AccAddress
-		identifiedFee   *types.IdentifiedPacketFee
+		identifiedFee   types.IdentifiedPacketFee
 		originalBalance sdk.Coins
 		expectedBalance sdk.Coins
 	)
@@ -698,7 +692,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				expectedBalance = originalBalance.
-					Add(identifiedFee.Fee.ReceiveFee[0]).
+					Add(identifiedFee.Fee.RecvFee[0]).
 					Add(identifiedFee.Fee.AckFee[0]).
 					Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
 			},
@@ -737,7 +731,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			identifiedFee = types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
-					ReceiveFee: validCoins,
+					RecvFee:    validCoins,
 					AckFee:     validCoins2,
 					TimeoutFee: validCoins3,
 				},
@@ -754,7 +748,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			// default to success case
 			expectedBalance = originalBalance.
-				Add(identifiedFee.Fee.ReceiveFee[0]).
+				Add(identifiedFee.Fee.RecvFee[0]).
 				Add(identifiedFee.Fee.AckFee[0]).
 				Add(coin) // timeout refund from ics20 transfer
 

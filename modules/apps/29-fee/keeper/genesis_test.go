@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	counterparty := suite.chainB.SenderAccount.GetAddress().String()
 
 	genesisState := types.GenesisState{
-		IdentifiedFees: []*types.IdentifiedPacketFee{
+		IdentifiedFees: []types.IdentifiedPacketFee{
 			{
 				PacketId:      packetId,
 				Fee:           fee,
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	// check fee
 	identifiedFee, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeInEscrow(suite.chainA.GetContext(), packetId)
 	suite.Require().True(found)
-	suite.Require().Equal(genesisState.IdentifiedFees[0], &identifiedFee)
+	suite.Require().Equal(genesisState.IdentifiedFees[0], identifiedFee)
 
 	// check fee is enabled
 	isEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 		defaultAckFee,
 		defaultTimeoutFee,
 	}
-	identifiedPacketFee := &types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+	identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
 	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 	suite.Require().NoError(err)
 

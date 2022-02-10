@@ -10,7 +10,7 @@ import (
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
-func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.IdentifiedPacketFee) error {
+func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedPacketFee) error {
 	if !k.IsFeeEnabled(ctx, identifiedFee.PacketId.PortId, identifiedFee.PacketId.ChannelId) {
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
@@ -23,10 +23,10 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee *types.Identified
 
 	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
 	if hasRefundAcc == nil {
-		return sdkerrors.Wrap(types.ErrRefundAccNotFound, fmt.Sprintf("Account with address: %s not found", refundAcc))
+		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", refundAcc)
 	}
 
-	coins := identifiedFee.Fee.ReceiveFee
+	coins := identifiedFee.Fee.RecvFee
 	coins = coins.Add(identifiedFee.Fee.AckFee...)
 	coins = coins.Add(identifiedFee.Fee.TimeoutFee...)
 
@@ -46,7 +46,7 @@ func (k Keeper) DistributePacketFees(ctx sdk.Context, refundAcc, forwardRelayer 
 	// distribute fee for forward relaying
 	forward, err := sdk.AccAddressFromBech32(forwardRelayer)
 	if err == nil {
-		k.distributeFee(ctx, forward, feeInEscrow.Fee.ReceiveFee)
+		k.distributeFee(ctx, forward, feeInEscrow.Fee.RecvFee)
 	}
 
 	// distribute fee for reverse relaying
@@ -74,7 +74,7 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, refundAcc string,
 	}
 
 	// refund receive fee for unused forward relaying
-	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.ReceiveFee)
+	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.RecvFee)
 
 	// refund ack fee for unused reverse relaying
 	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.AckFee)
@@ -117,18 +117,15 @@ func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) e
 		// refund all fees to refund address
 		// Use SendCoins rather than the module account send functions since refund address may be a user account or module address.
 		// if any `SendCoins` call returns an error, we return error and stop iteration
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.ReceiveFee)
-		if err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.RecvFee); err != nil {
 			refundErr = err
 			return true
 		}
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.AckFee)
-		if err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.AckFee); err != nil {
 			refundErr = err
 			return true
 		}
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.TimeoutFee)
-		if err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.TimeoutFee); err != nil {
 			refundErr = err
 			return true
 		}

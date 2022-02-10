@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -10,7 +12,8 @@ import (
 
 // msg types
 const (
-	TypeMsgRegisterCounterpartyAddress = "registerCounterpartyAddress"
+	TypeMsgPayPacketFee      = "payPacketFee"
+	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
 )
 
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
@@ -28,7 +31,7 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
 	}
 
-	if msg.CounterpartyAddress == "" {
+	if strings.TrimSpace(msg.CounterpartyAddress) == "" {
 		return ErrCounterpartyAddressEmpty
 	}
 
@@ -58,20 +61,17 @@ func NewMsgPayPacketFee(fee Fee, sourcePortId, sourceChannelId, signer string, r
 // ValidateBasic performs a basic check of the MsgPayPacketFee fields
 func (msg MsgPayPacketFee) ValidateBasic() error {
 	// validate channelId
-	err := host.ChannelIdentifierValidator(msg.SourceChannelId)
-	if err != nil {
+	if err := host.ChannelIdentifierValidator(msg.SourceChannelId); err != nil {
 		return err
 	}
 
 	// validate portId
-	err = host.PortIdentifierValidator(msg.SourcePortId)
-	if err != nil {
+	if err := host.PortIdentifierValidator(msg.SourcePortId); err != nil {
 		return err
 	}
 
 	// signer check
-	_, err = sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
@@ -80,14 +80,8 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return ErrRelayersNotNil
 	}
 
-	// if any of the fee's are invalid return an error
-	if !msg.Fee.AckFee.IsValid() || !msg.Fee.ReceiveFee.IsValid() || !msg.Fee.TimeoutFee.IsValid() {
-		return sdkerrors.ErrInvalidCoins
-	}
-
-	// if all three fee's are zero or empty return an error
-	if msg.Fee.AckFee.IsZero() && msg.Fee.ReceiveFee.IsZero() && msg.Fee.TimeoutFee.IsZero() {
-		return sdkerrors.ErrInvalidCoins
+	if err := msg.Fee.Validate(); err != nil {
+		return err
 	}
 
 	return nil
@@ -100,6 +94,21 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
+}
+
+// Route implements sdk.Msg
+func (msg MsgPayPacketFee) Route() string {
+	return RouterKey
+}
+
+// Type implements sdk.Msg
+func (msg MsgPayPacketFee) Type() string {
+	return TypeMsgPayPacketFee
+}
+
+// GetSignBytes implements sdk.Msg.
+func (msg MsgPayPacketFee) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
 
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
@@ -117,8 +126,7 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
-	err = msg.IdentifiedPacketFee.Validate()
-	if err != nil {
+	if err = msg.IdentifiedPacketFee.Validate(); err != nil {
 		return sdkerrors.Wrap(err, "Invalid IdentifiedPacketFee")
 	}
 
@@ -135,8 +143,23 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) *IdentifiedPacketFee {
-	return &IdentifiedPacketFee{
+// Route implements sdk.Msg
+func (msg MsgPayPacketFeeAsync) Route() string {
+	return RouterKey
+}
+
+// Type implements sdk.Msg
+func (msg MsgPayPacketFeeAsync) Type() string {
+	return TypeMsgPayPacketFeeAsync
+}
+
+// GetSignBytes implements sdk.Msg.
+func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+}
+
+func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) IdentifiedPacketFee {
+	return IdentifiedPacketFee{
 		PacketId:      packetId,
 		Fee:           fee,
 		RefundAddress: refundAddr,
@@ -144,31 +167,25 @@ func NewIdentifiedPacketFee(packetId *channeltypes.PacketId, fee Fee, refundAddr
 	}
 }
 
+// Validate performs a stateless check of the IdentifiedPacketFee fields
 func (fee IdentifiedPacketFee) Validate() error {
 	// validate PacketId
-	err := fee.PacketId.Validate()
-	if err != nil {
+	if err := fee.PacketId.Validate(); err != nil {
 		return sdkerrors.Wrap(err, "Invalid PacketId")
 	}
 
-	_, err = sdk.AccAddressFromBech32(fee.RefundAddress)
+	_, err := sdk.AccAddressFromBech32(fee.RefundAddress)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
-	}
-
-	// if any of the fee's are invalid return an error
-	if !fee.Fee.AckFee.IsValid() || !fee.Fee.ReceiveFee.IsValid() || !fee.Fee.TimeoutFee.IsValid() {
-		return sdkerrors.ErrInvalidCoins
-	}
-
-	// if all three fee's are zero or empty return an error
-	if fee.Fee.AckFee.IsZero() && fee.Fee.ReceiveFee.IsZero() && fee.Fee.TimeoutFee.IsZero() {
-		return sdkerrors.ErrInvalidCoins
 	}
 
 	// enforce relayer is nil
 	if fee.Relayers != nil {
 		return ErrRelayersNotNil
+	}
+
+	if err := fee.Fee.Validate(); err != nil {
+		return err
 	}
 
 	return nil

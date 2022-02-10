@@ -29,7 +29,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgRegisterCounterpartyAddress is the request type for registering the counter party address
+// MsgRegisterCounterpartyAddress is the request type for registering the counterparty address
 type MsgRegisterCounterpartyAddress struct {
 	Address             string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 	CounterpartyAddress string `protobuf:"bytes,2,opt,name=counterparty_address,json=counterpartyAddress,proto3" json:"counterparty_address,omitempty" yaml:"counterparty_address"`
