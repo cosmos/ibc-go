@@ -141,7 +141,7 @@ func NewSubmitMisbehaviourCmd() *cobra.Command {
 			}
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			var misbehaviour exported.Header
+			var misbehaviour exported.Misbehaviour
 			clientID := args[0]
 			misbehaviourContentOrFileName := args[1]
 			if err := cdc.UnmarshalInterfaceJSON([]byte(misbehaviourContentOrFileName), &misbehaviour); err != nil {
