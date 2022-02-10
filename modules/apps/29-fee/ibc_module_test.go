@@ -483,15 +483,19 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				suite.Require().Equal(ack, result)
 
 			case tc.forwardRelayer:
+				packedAck, err := channeltypes.PackAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{1}))
+				suite.Require().NoError(err)
 				ack := types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					AppAcknowledgement:    packedAck,
 					ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
 				}
 				suite.Require().Equal(ack, result)
 
 			case !tc.forwardRelayer:
+				packedAck, err := channeltypes.PackAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{1}))
+				suite.Require().NoError(err)
 				ack := types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					AppAcknowledgement:    packedAck,
 					ForwardRelayerAddress: "",
 				}
 				suite.Require().Equal(ack, result)
@@ -527,9 +531,10 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
-
+				packedAck, err := channeltypes.PackAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{1}))
+				suite.Require().NoError(err)
 				ack = types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					AppAcknowledgement:    packedAck,
 					ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
 				}.Acknowledgement()
 
@@ -560,9 +565,10 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			"fail on distribute receive fee (blocked address)",
 			func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
-
+				packedAck, err := channeltypes.PackAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{1}))
+				suite.Require().NoError(err)
 				ack = types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					AppAcknowledgement:    packedAck,
 					ForwardRelayerAddress: blockedAddr.String(),
 				}.Acknowledgement()
 
@@ -608,10 +614,13 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			suite.Require().NoError(err)
 
 			relayerAddr := suite.chainB.SenderAccount.GetAddress()
+			ack1 := channeltypes.NewResultAcknowledgement([]byte{1})
+			packedAck, err := channeltypes.PackAcknowledgement(&ack1)
+			suite.Require().NoError(err)
 
 			// must be changed explicitly
 			ack = types.IncentivizedAcknowledgement{
-				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+				AppAcknowledgement:    packedAck,
 				ForwardRelayerAddress: relayerAddr.String(),
 			}.Acknowledgement()
 

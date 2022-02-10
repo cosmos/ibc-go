@@ -5,6 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+)
+
+var (
+	_ codectypes.UnpackInterfacesMessage = IncentivizedAcknowledgement{}
 )
 
 // NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
@@ -13,6 +18,11 @@ func NewIncentivizedAcknowledgement(relayer string, ack *codectypes.Any) Incenti
 		AppAcknowledgement:    ack,
 		ForwardRelayerAddress: relayer,
 	}
+}
+
+func (ack IncentivizedAcknowledgement) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var acknowledgement exported.Acknowledgement
+	return unpacker.UnpackAny(ack.AppAcknowledgement, &acknowledgement)
 }
 
 // Success implements the Acknowledgement interface. The acknowledgement is
