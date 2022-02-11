@@ -62,7 +62,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 	if misbehaving {
-		updated := cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore)
+		updated, _ := cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore) // no error
 		// NB: Hack to grab consState temporarily since we're only processing tm `Header`s here.
 		tmHeader := header.(*Header)
 		return updated, tmHeader.ConsensusState(), nil
@@ -201,9 +201,9 @@ func (cs ClientState) CheckForMisbehaviour(
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self persistence of consensus state
-) *ClientState {
+) (*ClientState, error) {
 	cs.FrozenHeight = FrozenHeight
-	return &cs
+	return &cs, nil
 }
 
 func (cs ClientState) checkHeader(
