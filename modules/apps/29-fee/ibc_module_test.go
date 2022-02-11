@@ -620,8 +620,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 
 			// default to success case
-			expectedBalance = originalBalance.
-				Add(identifiedFee.Fee.TimeoutFee[0])
+			expectedBalance = originalBalance.Add(identifiedFee.Fee.TimeoutFee[0])
 
 			// malleate test case
 			tc.malleate()

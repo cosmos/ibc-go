@@ -84,11 +84,11 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 
 			if tc.expPass {
-				feeInEscrow, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeInEscrow(suite.chainA.GetContext(), packetId)
+				feesInEscrow, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetId)
 				// check if the escrowed fee is set in state
-				suite.Require().True(feeInEscrow.Fee.AckFee.IsEqual(fee.AckFee))
-				suite.Require().True(feeInEscrow.Fee.RecvFee.IsEqual(fee.RecvFee))
-				suite.Require().True(feeInEscrow.Fee.TimeoutFee.IsEqual(fee.TimeoutFee))
+				suite.Require().True(feesInEscrow.PacketFees[0].Fee.AckFee.IsEqual(fee.AckFee))
+				suite.Require().True(feesInEscrow.PacketFees[0].Fee.RecvFee.IsEqual(fee.RecvFee))
+				suite.Require().True(feesInEscrow.PacketFees[0].Fee.TimeoutFee.IsEqual(fee.TimeoutFee))
 				// check if the fee is escrowed correctly
 				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(600)})
 				suite.Require().True(hasBalance)
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			// refundAcc balance after escrow
 			refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), refundAcc.String(), forwardRelayer, reverseRelayer, identifiedPacketFee)
+			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, []types.IdentifiedPacketFee{identifiedPacketFee})
 
 			if tc.expPass {
 				// there should no longer be a fee in escrow for this packet

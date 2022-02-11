@@ -223,15 +223,17 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
-	packetId := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-
-	identifiedPacketFee, found := im.keeper.GetFeeInEscrow(ctx, packetId)
+	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	identifiedPacketFees, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// return underlying callback if no fee found for given packetID
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
-	im.keeper.DistributePacketFees(ctx, identifiedPacketFee.RefundAddress, ack.ForwardRelayerAddress, relayer, identifiedPacketFee)
+	im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, identifiedPacketFees.PacketFees)
+
+	// removes the fee from the store as fee is now paid
+	im.keeper.DeleteFeesInEscrow(ctx, packetID)
 
 	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
