@@ -40,13 +40,13 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 	// Store fee in state for reference later
 	k.SetFeeInEscrow(ctx, identifiedFee)
 
-	// Emit event so that relayers know a packet is ready to be relayed
+	// Emit event so that relayers know an incentivized packet is ready to be relayed
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSendIncentivizedPacket,
 			sdk.NewAttribute(channeltypes.AttributeKeyPortID, identifiedFee.PacketId.PortId),
 			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, identifiedFee.PacketId.ChannelId),
-			sdk.NewAttribute(channeltypes.AttributeKeySequence, string(identifiedFee.PacketId.Sequence)),
+			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(identifiedFee.PacketId.Sequence)),
 		),
 	)
 
