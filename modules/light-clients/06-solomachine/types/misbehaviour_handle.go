@@ -30,21 +30,35 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		)
 	}
 
+	if err := cs.checkConflictingSignaturesHeader(ctx, cdc, clientStore, misbehaviour); err != nil {
+		return nil, err // inner errors are wrapped
+	}
+
+	cs.IsFrozen = true
+
+	return &cs, nil
+}
+
+func (cs ClientState) checkConflictingSignaturesHeader(
+	ctx sdk.Context,
+	cdc codec.BinaryCodec,
+	clientStore sdk.KVStore,
+	header *ConflictingSignaturesHeader,
+) error {
 	// NOTE: a check that the misbehaviour message data are not equal is done by
 	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
 
 	// verify first signature
-	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureOne); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature one")
+	if err := verifySignatureAndData(cdc, cs, header, header.SignatureOne); err != nil {
+		return sdkerrors.Wrap(err, "failed to verify signature one")
 	}
 
 	// verify second signature
-	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureTwo); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature two")
+	if err := verifySignatureAndData(cdc, cs, header, header.SignatureTwo); err != nil {
+		return sdkerrors.Wrap(err, "failed to verify signature two")
 	}
 
-	cs.IsFrozen = true
-	return &cs, nil
+	return nil
 }
 
 // verifySignatureAndData verifies that the currently registered public key has signed
@@ -70,7 +84,12 @@ func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misb
 		return err
 	}
 
-	sigData, err := UnmarshalSignatureData(cdc, sigAndData.Signature)
+	return verifySignature(cdc, clientState, data, sigAndData.Signature)
+
+}
+
+func verifySignature(cdc codec.BinaryCodec, clientState ClientState, data []byte, sigDataBz []byte) error {
+	sigData, err := UnmarshalSignatureData(cdc, sigDataBz)
 	if err != nil {
 		return err
 	}
@@ -80,10 +99,5 @@ func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misb
 		return err
 	}
 
-	if err := VerifySignature(publicKey, data, sigData); err != nil {
-		return err
-	}
-
-	return nil
-
+	return VerifySignature(publicKey, data, sigData)
 }
