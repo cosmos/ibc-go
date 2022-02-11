@@ -200,7 +200,7 @@ func (cs ClientState) CheckForMisbehaviour(
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self persistence of consensus state
 ) *ClientState {
 	cs.FrozenHeight = FrozenHeight
 	return &cs
