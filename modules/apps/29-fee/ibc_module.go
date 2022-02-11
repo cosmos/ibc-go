@@ -251,13 +251,13 @@ func (im IBCModule) OnTimeoutPacket(
 	}
 
 	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-	identifiedPacketFee, found := im.keeper.GetFeesInEscrow(ctx, packetID)
+	identifiedPacketFees, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// return underlying callback if fee not found for given packetID
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, identifiedPacketFee.PacketFees)
+	im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, identifiedPacketFees.PacketFees)
 
 	// removes the fee from the store as fee is now paid
 	im.keeper.DeleteFeesInEscrow(ctx, packetID)
