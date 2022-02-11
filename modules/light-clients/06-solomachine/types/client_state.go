@@ -46,11 +46,10 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	consensusState, err := GetConsensusState(clientStore, cdc, height)
-	if err != nil {
-		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
+	if !cs.GetLatestHeight().EQ(height) {
+		return 0, sdkerrors.Wrapf(ErrInvalidSequence, "not latest height (%s)", height)
 	}
-	return consensusState.GetTimestamp(), nil
+	return cs.ConsensusState.Timestamp, nil
 }
 
 // Status returns the status of the solo machine client.

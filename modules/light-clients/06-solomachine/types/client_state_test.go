@@ -5,7 +5,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
@@ -850,30 +849,27 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(tmPath)
+	// Single setup for all test cases.
+	suite.SetupTest()
 
 	testCases := []struct {
 		name        string
 		clientState *types.ClientState
-		// Write directly to store since solomachine isn't hooked up to the test app.
-		malleate func()
-		expValue uint64
-		expPass  bool
+		height      exported.Height
+		expValue    uint64
+		expPass     bool
 	}{
 		{
 			name:        "get timestamp at height exists",
 			clientState: suite.solomachine.ClientState(),
-			malleate: func() {
-				value, err := clienttypes.MarshalConsensusState(suite.chainA.Codec, suite.solomachine.ClientState().ConsensusState)
-				suite.Require().NoError(err)
-				suite.store.Set(host.ConsensusStateKey(consensusHeight), value)
-			},
-			expValue: suite.solomachine.ClientState().ConsensusState.Timestamp,
-			expPass:  true,
+			height:      suite.solomachine.ClientState().GetLatestHeight(),
+			expValue:    suite.solomachine.ClientState().ConsensusState.Timestamp,
+			expPass:     true,
 		},
 		{
 			name:        "get timestamp at height not exists",
 			clientState: suite.solomachine.ClientState(),
-			malleate:    func() {},
+			height:      suite.solomachine.ClientState().GetLatestHeight().Increment(),
 		},
 	}
 
@@ -881,13 +877,10 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			tc.malleate()
-
 			ctx := suite.chainA.GetContext()
 
 			ts, err := tc.clientState.GetTimestampAtHeight(
-				ctx, suite.store, suite.chainA.Codec, consensusHeight,
+				ctx, suite.store, suite.chainA.Codec, tc.height,
 			)
 
 			suite.Require().Equal(tc.expValue, ts)

@@ -49,7 +49,7 @@ func (cs ClientState) GetTimestampAtHeight(
 	_ codec.BinaryCodec,
 	_ exported.Height,
 ) (uint64, error) {
-	return 0, nil
+	return 0, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "localhost client has no consensus state")
 }
 
 // Status always returns Active. The localhost status cannot be changed.

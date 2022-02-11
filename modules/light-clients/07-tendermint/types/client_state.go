@@ -65,7 +65,7 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	// get latest consensus state from clientStore to check for expiry
+	// get consensus state at height from clientStore to check for expiry
 	consState, err := GetConsensusState(clientStore, cdc, height)
 	if err != nil {
 		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
