@@ -31,15 +31,12 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 		return err
 	}
 
-	var packetFees []types.IdentifiedPacketFee
+	packetFees := []types.IdentifiedPacketFee{identifiedFee}
 	if feesInEscrow, found := k.GetFeesInEscrow(ctx, identifiedFee.PacketId); found {
 		packetFees = append(packetFees, feesInEscrow.PacketFees...)
 	}
 
-	identifiedFees := types.IdentifiedPacketFees{
-		PacketFees: append(packetFees, identifiedFee), // append the new fee
-	}
-
+	identifiedFees := types.NewIdentifiedPacketFees(packetFees)
 	k.SetFeesInEscrow(ctx, identifiedFee.PacketId, identifiedFees)
 
 	return nil

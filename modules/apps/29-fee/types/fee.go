@@ -8,13 +8,13 @@ import (
 )
 
 // NewIdentifiedPacketFees creates and returns a new IdentifiedPacketFees struct
-func NewIdentifiedPacketFees(packetFees ...IdentifiedPacketFee) IdentifiedPacketFees {
+func NewIdentifiedPacketFees(packetFees []IdentifiedPacketFee) IdentifiedPacketFees {
 	return IdentifiedPacketFees{
 		PacketFees: packetFees,
 	}
 }
 
-// Total returns the total escrowable amount for a given Fee
+// Total returns the total amount for a given Fee
 func (f Fee) Total() sdk.Coins {
 	return f.RecvFee.Add(f.AckFee...).Add(f.TimeoutFee...)
 }
