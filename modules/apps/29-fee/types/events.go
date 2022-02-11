@@ -1,4 +1,6 @@
 package types
 
 // 29-fee events
-const ()
+const (
+	EventTypeSendIncentivizedPacket = "send_incentivized_packet"
+)
