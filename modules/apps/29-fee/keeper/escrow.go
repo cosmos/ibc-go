@@ -26,10 +26,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", refundAcc)
 	}
 
-	coins := identifiedFee.Fee.RecvFee
-	coins = coins.Add(identifiedFee.Fee.AckFee...)
-	coins = coins.Add(identifiedFee.Fee.TimeoutFee...)
-
+	coins := identifiedFee.Fee.Total()
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, refundAcc, types.ModuleName, coins); err != nil {
 		return err
 	}
@@ -72,24 +69,23 @@ func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, rev
 }
 
 // DistributePacketsFeesTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, refundAcc string, timeoutRelayer sdk.AccAddress, feeInEscrow types.IdentifiedPacketFee) {
-	// check if refundAcc address works
-	refundAddr, err := sdk.AccAddressFromBech32(refundAcc)
-	if err != nil {
-		panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", refundAcc))
+func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, feesInEscrow []types.IdentifiedPacketFee) {
+	for _, feeInEscrow := range feesInEscrow {
+		// check if refundAcc address works
+		refundAddr, err := sdk.AccAddressFromBech32(feeInEscrow.RefundAddress)
+		if err != nil {
+			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", feeInEscrow.RefundAddress))
+		}
+
+		// refund receive fee for unused forward relaying
+		k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.RecvFee)
+
+		// refund ack fee for unused reverse relaying
+		k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.AckFee)
+
+		// distribute fee for timeout relaying
+		k.distributeFee(ctx, timeoutRelayer, feeInEscrow.Fee.TimeoutFee)
 	}
-
-	// refund receive fee for unused forward relaying
-	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.RecvFee)
-
-	// refund ack fee for unused reverse relaying
-	k.distributeFee(ctx, refundAddr, feeInEscrow.Fee.AckFee)
-
-	// distribute fee for timeout relaying
-	k.distributeFee(ctx, timeoutRelayer, feeInEscrow.Fee.TimeoutFee)
-
-	// removes the fee from the store as fee is now paid
-	k.DeleteFeeInEscrow(ctx, feeInEscrow.PacketId)
 }
 
 // distributeFee will attempt to distribute the escrowed fee to the receiver address.

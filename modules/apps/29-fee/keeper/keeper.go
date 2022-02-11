@@ -259,6 +259,14 @@ func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId)
 	return k.MustUnmarshalFees(bz), true
 }
 
+// HasFeesInEscrow returns true if packet fees exist for the provided packetID
+func (k Keeper) HasFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId) bool {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyFeesInEscrow(packetID)
+
+	return store.Has(key)
+}
+
 // SetFeesInEscrow sets the given packet fees in escrow keyed by the packet identifier
 func (k Keeper) SetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId, fees types.IdentifiedPacketFees) {
 	store := ctx.KVStore(k.storeKey)

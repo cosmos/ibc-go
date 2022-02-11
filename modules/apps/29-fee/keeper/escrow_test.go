@@ -225,11 +225,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 	// refundAcc balance after escrow
 	refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-	suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnTimeout(suite.chainA.GetContext(), refundAcc.String(), timeoutRelayer, identifiedPacketFee)
-
-	// there should no longer be a fee in escrow for this packet
-	found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetId)
-	suite.Require().False(found)
+	suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnTimeout(suite.chainA.GetContext(), timeoutRelayer, []types.IdentifiedPacketFee{identifiedPacketFee})
 
 	// check if the timeoutRelayer has been paid
 	hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), timeoutRelayer, fee.TimeoutFee[0])
