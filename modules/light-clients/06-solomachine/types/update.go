@@ -104,7 +104,7 @@ func (cs ClientState) UpdateState(
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self storage of consensus state
-) *ClientState {
+) (*ClientState, error) {
 	cs.IsFrozen = true
-	return &cs
+	return &cs, nil
 }
