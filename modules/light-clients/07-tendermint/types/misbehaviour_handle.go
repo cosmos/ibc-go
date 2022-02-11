@@ -31,30 +31,47 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	if !ok {
 		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &DuplicateHeaderHeader{})
 	}
-
 	// The status of the client is checked in 02-client
+	misbehaving, err := cs.checkDuplicateHeaderHeader(ctx, cdc, clientStore, misbehaviour)
+	if err != nil {
+		return nil, err
+	}
 
+	// NB: Technically this check isn't required as checkDuplicateHeaderHeader() returns an error if misbehaviour header is not valid.
+	if misbehaving {
+		cs.FrozenHeight = FrozenHeight
+	}
+
+	return &cs, nil
+}
+
+func (cs ClientState) checkDuplicateHeaderHeader(
+	ctx sdk.Context,
+	cdc codec.BinaryCodec,
+	clientStore sdk.KVStore,
+	misbehaviour *DuplicateHeaderHeader,
+) (bool, error) {
 	// if heights are equal check that this is valid misbehaviour of a fork
 	// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
 	if misbehaviour.Header1.GetHeight().EQ(misbehaviour.Header2.GetHeight()) {
 		blockID1, err := tmtypes.BlockIDFromProto(&misbehaviour.Header1.SignedHeader.Commit.BlockID)
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "invalid block ID from header 1 in misbehaviour")
+			return false, sdkerrors.Wrap(err, "invalid block ID from header 1 in misbehaviour")
 		}
 		blockID2, err := tmtypes.BlockIDFromProto(&misbehaviour.Header2.SignedHeader.Commit.BlockID)
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
+			return false, sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
 		}
 
 		// Ensure that Commit Hashes are different
 		if bytes.Equal(blockID1.Hash, blockID2.Hash) {
-			return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
+			return false, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
 		}
 	} else {
 		// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
 		// Header2 time in order to be valid misbehaviour (violation of monotonic time).
 		if misbehaviour.Header1.SignedHeader.Header.Time.After(misbehaviour.Header2.SignedHeader.Header.Time) {
-			return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
+			return false, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
 		}
 	}
 
@@ -66,13 +83,13 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	// Get consensus bytes from clientStore
 	tmConsensusState1, err := GetConsensusState(clientStore, cdc, misbehaviour.Header1.TrustedHeight)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", misbehaviour.Header1)
+		return false, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", misbehaviour.Header1)
 	}
 
 	// Get consensus bytes from clientStore
 	tmConsensusState2, err := GetConsensusState(clientStore, cdc, misbehaviour.Header2.TrustedHeight)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", misbehaviour.Header2)
+		return false, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", misbehaviour.Header2)
 	}
 
 	// Check the validity of the two conflicting headers against their respective
@@ -83,17 +100,15 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	if err := checkMisbehaviourHeader(
 		&cs, tmConsensusState1, misbehaviour.Header1, ctx.BlockTime(),
 	); err != nil {
-		return nil, sdkerrors.Wrap(err, "verifying Header1 in Misbehaviour failed")
+		return false, sdkerrors.Wrap(err, "verifying Header1 in Misbehaviour failed")
 	}
 	if err := checkMisbehaviourHeader(
 		&cs, tmConsensusState2, misbehaviour.Header2, ctx.BlockTime(),
 	); err != nil {
-		return nil, sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
+		return false, sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 	}
 
-	cs.FrozenHeight = FrozenHeight
-
-	return &cs, nil
+	return true, nil
 }
 
 // checkMisbehaviourHeader checks that a Header in Misbehaviour is valid misbehaviour given
