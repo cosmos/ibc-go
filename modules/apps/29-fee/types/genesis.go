@@ -8,11 +8,12 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress) *GenesisState {
+func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress, forwardRelayers []*ForwardRelayerAddress) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
 		RegisteredRelayers: registeredRelayers,
+		ForwardRelayers:    forwardRelayers,
 	}
 }
 
@@ -22,6 +23,7 @@ func DefaultGenesisState() *GenesisState {
 		IdentifiedFees:     []IdentifiedPacketFee{},
 		FeeEnabledChannels: []*FeeEnabledChannel{},
 		RegisteredRelayers: []*RegisteredRelayerAddress{},
+		ForwardRelayers:    []*ForwardRelayerAddress{},
 	}
 }
 
@@ -55,6 +57,19 @@ func (gs GenesisState) Validate() error {
 
 		if rel.CounterpartyAddress == "" {
 			return ErrCounterpartyAddressEmpty
+		}
+	}
+
+	// Validate ForwardRelayers
+	for _, rel := range gs.ForwardRelayers {
+		_, err := sdk.AccAddressFromBech32(rel.Address)
+		if err != nil {
+			return sdkerrors.Wrap(err, "failed to convert forward relayer address into sdk.AccAddress")
+		}
+
+		err = rel.PacketId.Validate()
+		if err != nil {
+			return err
 		}
 	}
 
