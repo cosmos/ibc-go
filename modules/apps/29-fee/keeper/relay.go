@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
@@ -19,11 +20,17 @@ func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability,
 func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, acknowledgement []byte) error {
 	// retrieve the forward relayer that was stored in `onRecvPacket`
 	packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
+
+	// relayer address returned here is the
 	relayer, _ := k.GetForwardRelayerAddress(ctx, packetId)
+	forwardRelayer, found := k.GetCounterpartyAddress(ctx, relayer)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrCounterpartyAddressEmpty, "counterparty address not found for address: %s", forwardRelayer)
+	}
 
 	k.DeleteForwardRelayerAddress(ctx, packetId)
 
-	ack := types.NewIncentivizedAcknowledgement(relayer, acknowledgement)
+	ack := types.NewIncentivizedAcknowledgement(forwardRelayer, acknowledgement)
 
 	// ics4Wrapper may be core IBC or higher-level middleware
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)

@@ -13,15 +13,18 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String())
+			},
 			true,
 		},
 		{
-			"forward relayer address is successfully deleted",
+			"counterparty address not set",
 			func() {
 				suite.chainB.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
 			},
-			true,
+			false,
 		},
 	}
 
