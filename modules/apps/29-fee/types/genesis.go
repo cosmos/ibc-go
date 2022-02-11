@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -55,7 +57,7 @@ func (gs GenesisState) Validate() error {
 			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
 		}
 
-		if rel.CounterpartyAddress == "" {
+		if strings.TrimSpace(rel.CounterpartyAddress) == "" {
 			return ErrCounterpartyAddressEmpty
 		}
 	}
