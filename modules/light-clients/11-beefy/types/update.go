@@ -13,6 +13,11 @@ import (
 
 type Keccak256 struct{}
 
+type ParaIdAndHead struct {
+	ParaId uint32
+	Header []byte
+}
+
 func (b Keccak256) Merge(left, right interface{}) interface{} {
 	l := left.([]byte)
 	r := right.([]byte)
@@ -191,10 +196,6 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 	// verify parachain headers
 	for _, parachainHeader := range beefyHeader.ParachainHeaders {
-		type ParaIdAndHead struct {
-			ParaId uint32
-			Header []byte
-		}
 		paraIdAndHead := ParaIdAndHead{
 			ParaId: parachainHeader.ParaId,
 			Header: parachainHeader.ParachainHeader,
