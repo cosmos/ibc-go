@@ -28,6 +28,23 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			"success", func() {}, true,
 		},
 		{
+			"success with existing packet fee", func() {
+				fee := types.Fee{
+					RecvFee:    receiveFee,
+					AckFee:     ackFee,
+					TimeoutFee: timeoutFee,
+				}
+
+				identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
+
+				feesInEscrow := types.IdentifiedPacketFees{
+					PacketFees: []types.IdentifiedPacketFee{identifiedPacketFee},
+				}
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetId, feesInEscrow)
+			}, true,
+		},
+		{
 			"fee not enabled on this channel", func() {
 				packetId.ChannelId = "disabled_channel"
 			}, false,
@@ -84,7 +101,8 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 
 			if tc.expPass {
-				feesInEscrow, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetId)
+				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetId)
+				suite.Require().True(found)
 				// check if the escrowed fee is set in state
 				suite.Require().True(feesInEscrow.PacketFees[0].Fee.AckFee.IsEqual(fee.AckFee))
 				suite.Require().True(feesInEscrow.PacketFees[0].Fee.RecvFee.IsEqual(fee.RecvFee))
