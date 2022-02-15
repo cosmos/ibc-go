@@ -67,7 +67,6 @@ func (k Keeper) DistributePacketFees(ctx sdk.Context, refundAcc, forwardRelayer 
 
 // DistributePacketsFeesTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
 func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, refundAcc string, timeoutRelayer sdk.AccAddress, feeInEscrow types.IdentifiedPacketFee) {
-	// check if refundAcc address works
 	refundAddr, err := sdk.AccAddressFromBech32(refundAcc)
 	if err != nil {
 		panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", refundAcc))
@@ -90,7 +89,7 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, refundAcc string,
 // If the distribution fails for any reason (such as the receiving address being blocked),
 // the state changes will be discarded.
 func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.Coins) {
-	// cache context before trying to send to reverse relayer
+	// cache context before trying to distribute fees
 	cacheCtx, writeFn := ctx.CacheContext()
 
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)
