@@ -52,8 +52,7 @@ func (gs GenesisState) Validate() error {
 
 	// Validate RegisteredRelayers
 	for _, rel := range gs.RegisteredRelayers {
-		_, err := sdk.AccAddressFromBech32(rel.Address)
-		if err != nil {
+		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
 			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
 		}
 
@@ -64,13 +63,11 @@ func (gs GenesisState) Validate() error {
 
 	// Validate ForwardRelayers
 	for _, rel := range gs.ForwardRelayers {
-		_, err := sdk.AccAddressFromBech32(rel.Address)
-		if err != nil {
+		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
 			return sdkerrors.Wrap(err, "failed to convert forward relayer address into sdk.AccAddress")
 		}
 
-		err = rel.PacketId.Validate()
-		if err != nil {
+		if err := rel.PacketId.Validate(); err != nil {
 			return err
 		}
 	}

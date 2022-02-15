@@ -120,7 +120,7 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid RegisteredRelayers: invalid counterparty",
 			func() {
-				counterparty = ""
+				counterparty = " "
 			},
 			false,
 		},
