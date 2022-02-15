@@ -53,7 +53,7 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
 ```
 
 The host and controller submodule params only need to be set if you integrate those submodules. 
-If a chain chooses not to integrate a controller submodule, it does not need to set the controller params. 
+For example, if a chain chooses not to integrate a controller submodule, it does not need to set the controller params. 
 
 ## IBC Apps
 
