@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -8,11 +10,12 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress) *GenesisState {
+func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress, forwardRelayers []*ForwardRelayerAddress) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
 		RegisteredRelayers: registeredRelayers,
+		ForwardRelayers:    forwardRelayers,
 	}
 }
 
@@ -22,6 +25,7 @@ func DefaultGenesisState() *GenesisState {
 		IdentifiedFees:     []IdentifiedPacketFee{},
 		FeeEnabledChannels: []*FeeEnabledChannel{},
 		RegisteredRelayers: []*RegisteredRelayerAddress{},
+		ForwardRelayers:    []*ForwardRelayerAddress{},
 	}
 }
 
@@ -48,13 +52,23 @@ func (gs GenesisState) Validate() error {
 
 	// Validate RegisteredRelayers
 	for _, rel := range gs.RegisteredRelayers {
-		_, err := sdk.AccAddressFromBech32(rel.Address)
-		if err != nil {
+		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
 			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
 		}
 
-		if rel.CounterpartyAddress == "" {
+		if strings.TrimSpace(rel.CounterpartyAddress) == "" {
 			return ErrCounterpartyAddressEmpty
+		}
+	}
+
+	// Validate ForwardRelayers
+	for _, rel := range gs.ForwardRelayers {
+		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert forward relayer address into sdk.AccAddress")
+		}
+
+		if err := rel.PacketId.Validate(); err != nil {
+			return err
 		}
 	}
 
