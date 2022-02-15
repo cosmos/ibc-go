@@ -202,8 +202,9 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
 				suite.Require().True(hasBalance)
 			} else {
-				// check the module acc wallet still has forward relaying balance
-				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), fee.RecvFee[0])
+				// check if the refund acc has been refunded the timeoutFee & onRecvFee
+				expectedRefundAccBal := refundAccBal.Add(fee.TimeoutFee[0]).Add(fee.RecvFee[0])
+				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), refundAcc, expectedRefundAccBal)
 				suite.Require().True(hasBalance)
 			}
 		})

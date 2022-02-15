@@ -44,11 +44,12 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 
 // DistributePacketFees pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee.
 func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, feesInEscrow []types.IdentifiedPacketFee) {
+	// distribute fee for forward relaying
+	forwardAddr, fErr := sdk.AccAddressFromBech32(forwardRelayer)
+
 	for _, packetFee := range feesInEscrow {
-		// distribute fee for forward relaying
-		forward, err := sdk.AccAddressFromBech32(forwardRelayer)
-		if err == nil {
-			k.distributeFee(ctx, forward, packetFee.Fee.RecvFee)
+		if fErr == nil {
+			k.distributeFee(ctx, forwardAddr, packetFee.Fee.RecvFee)
 		}
 
 		// distribute fee for reverse relaying
@@ -58,6 +59,11 @@ func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, rev
 		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 		if err != nil {
 			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
+		}
+
+		if fErr != nil {
+			// refund onRecv fee as forward relayer is not valid address
+			k.distributeFee(ctx, refundAddr, packetFee.Fee.RecvFee)
 		}
 
 		// refund timeout fee for unused timeout
