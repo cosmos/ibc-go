@@ -232,7 +232,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 
 	im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, identifiedPacketFees.PacketFees)
 
-	// removes the fee from the store as fee is now paid
+	// removes the fees from the store as fees are now paid
 	im.keeper.DeleteFeesInEscrow(ctx, packetID)
 
 	// call underlying callback
