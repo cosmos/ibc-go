@@ -32,6 +32,10 @@ const (
 
 	// ForwardRelayerPrefix is the key prefix for forward relayer addresses stored in state for async acknowledgements
 	ForwardRelayerPrefix = "forwardRelayer"
+
+	AttributeKeyRecvFee    = "recv_fee"
+	AttributeKeyAckFee     = "ack_fee"
+	AttributeKeyTimeoutFee = "timeout_fee"
 )
 
 // FeeEnabledKey returns the key that stores a flag to determine if fee logic should

@@ -7,7 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
@@ -40,15 +39,7 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 	// Store fee in state for reference later
 	k.SetFeeInEscrow(ctx, identifiedFee)
 
-	// Emit event so that relayers know an incentivized packet is ready to be relayed
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSendIncentivizedPacket,
-			sdk.NewAttribute(channeltypes.AttributeKeyPortID, identifiedFee.PacketId.PortId),
-			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, identifiedFee.PacketId.ChannelId),
-			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(identifiedFee.PacketId.Sequence)),
-		),
-	)
+	EmitIncentivizedPacket(ctx, identifiedFee)
 
 	return nil
 }
