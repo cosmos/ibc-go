@@ -18,7 +18,6 @@ No genesis or in-place migrations are required when upgrading from v1 or v2 of i
 
 ## Chains
 
-
 ### ICS20
 
 The `transferkeeper.NewKeeper(...)` now takes in an ICS4Wrapper. 
