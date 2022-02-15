@@ -35,17 +35,38 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	res, err := suite.chainA.SendMsgs(msgs...)
 	suite.Require().NoError(err) // message committed
 
+	// after incentivizing the packets
+	originalChainASenderAccountBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	suite.Require().NoError(err)
 
 	// register counterparty address on chainB
-	//	msgRegister := types.NewMsgRegisterCounterpartyAddress(addr, counterpartyAddr)
-	//	_, err = suite.chainA.SendMsgs(msgRegister)
-	//	suite.Require().NoError(err) // message committed
+	// relayerAddress is address of sender account on chainB, but we will use it on chainA
+	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
+	relayerAddress := suite.chainB.SenderAccount.GetAddress()
+
+	msgRegister := types.NewMsgRegisterCounterpartyAddress(suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String())
+	_, err = suite.chainB.SendMsgs(msgRegister)
+	suite.Require().NoError(err) // message committed
 
 	// relay packet
 	err = path.RelayPacket(packet)
 	suite.Require().NoError(err) // relay committed
 
 	// ensure relayers got paid
+	// relayer for forward relay: chainB.SenderAccount
+	// relayer for reverse relay: chainA.SenderAccount
+
+	// check forward relay balance
+	suite.Require().Equal(
+		fee.RecvFee,
+		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+	)
+
+	suite.Require().Equal(
+		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
+		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance),
+	)
+
 }
