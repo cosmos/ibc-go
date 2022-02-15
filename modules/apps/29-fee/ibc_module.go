@@ -201,6 +201,7 @@ func (im IBCModule) OnRecvPacket(
 	// incase of async aknowledgement (ack == nil) store the ForwardRelayer address for use later
 	if ack == nil && found {
 		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), forwardRelayer)
+		return nil
 	}
 
 	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement())
