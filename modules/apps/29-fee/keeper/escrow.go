@@ -95,7 +95,7 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sd
 // If the distribution fails for any reason (such as the receiving address being blocked),
 // the state changes will be discarded.
 func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.Coins) {
-	// cache context before trying to send to reverse relayer
+	// cache context before trying to distribute fees
 	cacheCtx, writeFn := ctx.CacheContext()
 
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)

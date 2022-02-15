@@ -62,6 +62,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (testing) [\#904](https://github.com/cosmos/ibc-go/pull/904) Add `ParsePacketFromEvents` function to the testing package. Useful when sending/relaying packets via the testing package.
+* (testing) [\#893](https://github.com/cosmos/ibc-go/pull/893) Support custom private keys for testing.
 * (testing) [\#810](https://github.com/cosmos/ibc-go/pull/810) Additional testing function added to `Endpoint` type called `RecvPacketWithResult`. Performs the same functionality as the existing `RecvPacket` function but also returns the message result. `path.RelayPacket` no longer uses the provided acknowledgement argument and instead obtains the acknowledgement via MsgRecvPacket events.
 * (connection) [\#721](https://github.com/cosmos/ibc-go/pull/721) Simplify connection handshake error messages when unpacking client state.
 * (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
@@ -76,6 +78,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#432](https://github.com/cosmos/ibc-go/pull/432) Introduce `MockIBCApp` struct to the mock module. Allows the mock module to be reused to perform custom logic on each IBC App interface function. This might be useful when testing out IBC applications written as middleware. 
 * [\#380](https://github.com/cosmos/ibc-go/pull/380) Adding the Interchain Accounts module v1
 * [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
+* (channel) [\#895](https://github.com/cosmos/ibc-go/pull/895) Adding UnpackAcknowledgement and PackAcknowledgement helper functions to pack or unpack an Acknowledgement to and from a proto Any type 
+
 
 ### Bug Fixes
 
