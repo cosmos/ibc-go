@@ -80,3 +80,16 @@ func (suite *FeeTestSuite) CreateICS20Packet(coin sdk.Coin) channeltypes.Packet 
 		0,
 	)
 }
+
+func (suite *FeeTestSuite) CreateMockPacket() channeltypes.Packet {
+	return channeltypes.NewPacket(
+		ibcmock.MockPacketData,
+		suite.chainA.SenderAccount.GetSequence(),
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(0, 100),
+		0,
+	)
+}
