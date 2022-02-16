@@ -135,15 +135,15 @@ func (k Keeper) DisableAllChannels(ctx sdk.Context) {
 
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyRelayerAddress(address), []byte(counterpartyAddress))
+	store.Set(types.KeyRelayerAddress(address, channelID), []byte(counterpartyAddress))
 }
 
 // GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
-func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string, bool) {
+func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address, channelID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyRelayerAddress(address)
+	key := types.KeyRelayerAddress(address, channelID)
 
 	if !store.Has(key) {
 		return "", false
@@ -166,6 +166,7 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelay
 		addr := &types.RegisteredRelayerAddress{
 			Address:             keySplit[1],
 			CounterpartyAddress: string(iterator.Value()),
+			ChannelId:           keySplit[2],
 		}
 
 		registeredAddrArr = append(registeredAddrArr, addr)

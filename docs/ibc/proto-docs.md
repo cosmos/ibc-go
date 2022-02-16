@@ -829,6 +829,7 @@ RegisteredRelayerAddress contains the address and counterparty address for a spe
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 | `counterparty_address` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
 
 
 
@@ -1040,6 +1041,7 @@ MsgRegisterCounterpartyAddress is the request type for registering the counterpa
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 | `counterparty_address` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
 
 
 

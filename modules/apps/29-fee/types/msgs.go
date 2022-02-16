@@ -17,10 +17,11 @@ const (
 )
 
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
-func NewMsgRegisterCounterpartyAddress(address, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
+func NewMsgRegisterCounterpartyAddress(address, counterpartyAddress, channelID string) *MsgRegisterCounterpartyAddress {
 	return &MsgRegisterCounterpartyAddress{
 		Address:             address,
 		CounterpartyAddress: counterpartyAddress,
+		ChannelId:           channelID,
 	}
 }
 

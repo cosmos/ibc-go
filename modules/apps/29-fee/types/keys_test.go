@@ -12,8 +12,9 @@ import (
 func TestKeyRelayerAddress(t *testing.T) {
 	var (
 		relayerAddress = "relayer_address"
+		channelID      = "channel-0"
 	)
 
-	key := types.KeyRelayerAddress(relayerAddress)
-	require.Equal(t, string(key), fmt.Sprintf("%s/relayer_address", types.RelayerAddressKeyPrefix))
+	key := types.KeyRelayerAddress(relayerAddress, channelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.RelayerAddressKeyPrefix, relayerAddress, channelID))
 }

@@ -44,8 +44,8 @@ func FeeEnabledKey(portID, channelID string) []byte {
 }
 
 // KeyRelayerAddress returns the key for relayer address -> counteryparty address mapping
-func KeyRelayerAddress(address string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", RelayerAddressKeyPrefix, address))
+func KeyRelayerAddress(address, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", RelayerAddressKeyPrefix, address, channelID))
 }
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping

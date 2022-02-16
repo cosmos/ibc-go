@@ -18,7 +18,7 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	k.SetCounterpartyAddress(
-		ctx, msg.Address, msg.CounterpartyAddress,
+		ctx, msg.Address, msg.CounterpartyAddress, msg.ChannelId,
 	)
 
 	k.Logger(ctx).Info("Registering counterparty address for relayer.", "Address:", msg.Address, "Counterparty Address:", msg.CounterpartyAddress)
