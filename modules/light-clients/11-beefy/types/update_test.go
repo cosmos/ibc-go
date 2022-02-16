@@ -16,6 +16,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
 	// for creating storage keys
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/xxhash"
 )
@@ -66,13 +67,15 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic("error reading channel")
 			}
 
-			signedCommitment := &clientTypes.SignedCommitment{}
+			compactCommitment := &clientTypes.CompactSignedCommitment{}
 
 			// attempt to decode the SignedCommitments
-			err := types.DecodeFromHexString(msg.(string), signedCommitment)
+			err := types.DecodeFromHexString(msg.(string), compactCommitment)
 			if err != nil {
 				panic(err.Error())
 			}
+
+			signedCommitment := compactCommitment.Unpack()
 
 			// latest finalized block number
 			blockNumber := uint32(signedCommitment.Commitment.BlockNumber)
@@ -120,13 +123,11 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			if clientState == nil {
-				var authorityTreeRoot [32]byte
-				copy(authorityTreeRoot[:], authorityTree.Root())
-				var nextAuthorityTreeRoot [32]byte
-				copy(nextAuthorityTreeRoot[:], nextAuthorityTree.Root())
+				var authorityTreeRoot = bytes32(authorityTree.Root())
+				var nextAuthorityTreeRoot = bytes32(nextAuthorityTree.Root())
 
 				clientState = &types.ClientState{
-					MmrRootHash:          signedCommitment.Commitment.Payload[:],
+					MmrRootHash:          signedCommitment.Commitment.Payload[0].Value,
 					LatestBeefyHeight:    blockNumber,
 					BeefyActivationBlock: 0,
 					Authority: &types.BeefyAuthoritySet{
@@ -199,8 +200,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				for _, keyValue := range changes.Changes {
 					if keyValue.HasStorageData {
 						var paraId uint32
-						err := types.DecodeFromBytes(keyValue.StorageKey[40:], paraId)
-						if err == nil {
+						err := types.DecodeFromBytes(keyValue.StorageKey[40:], &paraId)
+						if err != nil {
 							panic(err)
 						}
 
@@ -215,7 +216,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 				finalizedBlocks[uint32(header.Number)] = heads
 
-				leafIndeces = append(leafIndeces, uint64(clientState.GetLeafIndexFor(uint32(header.Number)-1)))
+				leafIndeces = append(leafIndeces, uint64(clientState.GetLeafIndexForBlockNumber(uint32(header.Number))))
 			}
 
 			// check if finalizedBlocks has a leafIndex for signedCommitment.Commitment.BlockNumber
@@ -224,7 +225,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			// otherwise add it.
 
 			if finalizedBlocks[blockNumber] == nil {
-				leafIndeces = append(leafIndeces, uint64(clientState.GetLeafIndexFor(blockNumber)))
+				leafIndeces = append(leafIndeces, uint64(clientState.GetLeafIndexForBlockNumber(blockNumber)))
 			}
 
 			// fetch mmr proofs for leaves containing our target paraId
@@ -239,11 +240,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			var latestLeaf clientTypes.MmrLeaf
 
 			for _, v := range mmrBatchProof.Leaves {
-				if uint32(v.Index)+1 == blockNumber {
+				var leafBlockNumber = clientState.GetBlockNumberForLeaf(uint32(v.Index))
+				if leafBlockNumber == blockNumber {
 					// we need this (latest) leaf to construct the MmrUpdateProof
 					latestLeaf = v.Leaf
 				}
-				paraHeaders := finalizedBlocks[uint32(v.Index)+1]
+				paraHeaders := finalizedBlocks[leafBlockNumber]
 				// the latest mmr leaf doesn't contain our parachain header and as such
 				// we don't have a record for this leaf in our finalizedBlocks
 				if paraHeaders == nil {
@@ -329,9 +331,9 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				}
 			}
 
-			CommitmentPayload := bytes32(signedCommitment.Commitment.Payload[:])
+			CommitmentPayload := bytes32(signedCommitment.Commitment.Payload[0].Value)
 			ParachainHeads := bytes32(latestLeaf.ParachainHeads[:])
-			leafIndex := clientState.GetLeafIndexFor(blockNumber - 1)
+			leafIndex := clientState.GetLeafIndexForBlockNumber(blockNumber)
 
 			mmrUpdateProof := types.MmrUpdateProof{
 				MmrLeaf: &types.BeefyMmrLeaf{
@@ -438,7 +440,7 @@ func fetchParaIds(conn *client.SubstrateAPI, blockHash clientTypes.Hash) ([]uint
 		return nil, err
 	}
 
-	storageKey, err := clientTypes.CreateStorageKey(meta, "Paras", "parachains", nil, nil)
+	storageKey, err := clientTypes.CreateStorageKey(meta, "Paras", "Parachains", nil, nil)
 	if err != nil {
 		return nil, err
 	}
