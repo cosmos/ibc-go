@@ -236,14 +236,14 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			},
 		}
 
-		// the mmr leafs are a scale-encoded 
+		// the mmr leafs are a scale-encoded
 		mmrLeafBytes, err := Encode(mmrLeaf)
 		if err != nil {
 			// todo: error failed to encode MmrLeaf
 			return nil, nil, err
 		}
 
-		leafIndex := cs.GetLeafIndexFor(parachainHeader.MmrLeafPartial.ParentNumber)
+		leafIndex := cs.GetLeafIndexForBlockNumber(parachainHeader.MmrLeafPartial.ParentNumber)
 
 		mmrData := mmr.Leaf{
 			Hash:  crypto.Keccak256(mmrLeafBytes),
@@ -255,7 +255,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 	mmrProof := mmr.NewProof(beefyHeader.MmrSize, beefyHeader.MmrProofs, mmrLeaves, Keccak256{})
 
-	// Given the proofs and the leaves, we should be able to verify that each parachain header was 
+	// Given the proofs and the leaves, we should be able to verify that each parachain header was
 	// indeed included in the leaves of our mmr root hash.
 	if !mmrProof.Verify(cs.MmrRootHash) {
 		return nil, nil, nil // error!, mmr proof is invalid
@@ -346,17 +346,32 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 	return nil, nil, nil
 }
 
+func (cs ClientState) GetBlockNumberForLeaf(leafIndex uint32) uint32 {
+	var blockNumber uint32
+
+	// calculate the leafIndex for this leaf.
+	if cs.BeefyActivationBlock == 0 {
+		// in this case the leaf index is the same as the block number - 1 (leaf index starts at 0)
+		blockNumber = leafIndex + 1
+	} else {
+		// in this case the leaf index is activation block - current block number.
+		blockNumber = cs.BeefyActivationBlock + leafIndex
+	}
+
+	return blockNumber
+}
+
 // given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
-func (cs ClientState) GetLeafIndexFor(parentBlockNumber uint32) uint32 {
+func (cs ClientState) GetLeafIndexForBlockNumber(blockNumber uint32) uint32 {
 	var leafIndex uint32
 
 	// calculate the leafIndex for this leaf.
 	if cs.BeefyActivationBlock == 0 {
 		// in this case the leaf index is the same as the block number - 1 (leaf index starts at 0)
-		leafIndex = parentBlockNumber
+		leafIndex = blockNumber - 1
 	} else {
 		// in this case the leaf index is activation block - current block number.
-		leafIndex = cs.BeefyActivationBlock - (parentBlockNumber + 1)
+		leafIndex = cs.BeefyActivationBlock - (blockNumber + 1)
 	}
 
 	return leafIndex
