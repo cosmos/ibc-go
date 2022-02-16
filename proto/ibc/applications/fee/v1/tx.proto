@@ -6,7 +6,6 @@ option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
-import "ibc/core/channel/v1/channel.proto";
 
 // Msg defines the ibc/fee Msg service.
 service Msg {
