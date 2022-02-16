@@ -5,8 +5,8 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *KeeperTestSuite) TestEscrowPacketFee() {
@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			receiveFee = defaultReceiveFee
 			ackFee = defaultAckFee
 			timeoutFee = defaultTimeoutFee
-			packetId = channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, uint64(1))
+			packetId = channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(1))
 
 			tc.malleate()
 			fee := types.Fee{
@@ -140,7 +140,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			reverseRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 			forwardRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
-			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, validSeq)
+			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, validSeq)
 			fee := types.Fee{
 				RecvFee:    defaultReceiveFee,
 				AckFee:     defaultAckFee,
@@ -201,7 +201,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 
 	packetId := channeltypes.NewPacketId(
 		suite.path.EndpointA.ChannelID,
-		transfertypes.PortID,
+		suite.path.EndpointA.ChannelConfig.PortID,
 		1,
 	)
 
@@ -247,6 +247,8 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 }
 
 func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
+	suite.coordinator.Setup(suite.path)
+
 	// setup
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 
@@ -254,7 +256,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	prevBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
 
 	for i := 0; i < 5; i++ {
-		packetId := channeltypes.NewPacketId("channel-0", transfertypes.PortID, uint64(i))
+		packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(i))
 		fee := types.Fee{
 			RecvFee:    defaultReceiveFee,
 			AckFee:     defaultAckFee,
@@ -262,13 +264,13 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 		}
 
 		identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
-		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, "channel-0")
+		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 		err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 		suite.Require().NoError(err)
 	}
 
 	// send a packet over a different channel to ensure this fee is not refunded
-	packetId := channeltypes.NewPacketId("channel-1", transfertypes.PortID, 1)
+	packetId := channeltypes.NewPacketId("channel-1", ibctesting.MockFeePort, 1)
 	fee := types.Fee{
 		RecvFee:    defaultReceiveFee,
 		AckFee:     defaultAckFee,
@@ -276,12 +278,12 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	}
 
 	identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, "channel-1")
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, "channel-1")
 	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
 	suite.Require().NoError(err)
 
 	// check that refunding all fees on channel-0 refunds all fees except for fee on channel-1
-	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), transfertypes.PortID, "channel-0")
+	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 	suite.Require().NoError(err, "refund fees returned unexpected error")
 
 	// add fee sent to channel-1 to after balance to recover original balance
@@ -289,7 +291,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	suite.Require().Equal(prevBal, afterBal.Add(fee.RecvFee...).Add(fee.AckFee...).Add(fee.TimeoutFee...), "refund account not back to original balance after refunding all tokens")
 
 	// create escrow and then change module account balance to cause error on refund
-	packetId = channeltypes.NewPacketId("channel-0", transfertypes.PortID, uint64(6))
+	packetId = channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(6))
 
 	identifiedPacketFee = types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
 	err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
@@ -297,6 +299,6 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 
 	suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, fee.TimeoutFee)
 
-	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), transfertypes.PortID, "channel-0")
+	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 	suite.Require().Error(err, "refund fees returned no error with insufficient balance on module account")
 }
