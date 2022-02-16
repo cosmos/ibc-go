@@ -71,7 +71,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				if version != ibcmock.Version {
 					return fmt.Errorf("incorrect mock version")
 				}
-
 				return nil
 			}
 
@@ -117,31 +116,31 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	}{
 		{
 			"success - valid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
 			false,
 			true,
 		},
 		{
-			"success - valid transfer version",
-			transfertypes.Version,
+			"success - valid mock version",
+			ibcmock.Version,
 			false,
 			true,
 		},
 		{
 			"success - crossing hellos: valid fee middleware",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
 			true,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
 			false,
 			false,
 		},
 		{
-			"invalid transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
+			"invalid mock version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
 			false,
 			false,
 		},
@@ -152,9 +151,20 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 
 		suite.Run(tc.name, func() {
 			// reset suite
-			suite.SetupTest()
+			suite.SetupMockTest()
 			suite.coordinator.SetupConnections(suite.path)
 			suite.path.EndpointB.ChanOpenInit()
+
+			// setup mock callback
+			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+				portID, channelID string, chanCap *capabilitytypes.Capability,
+				counterparty channeltypes.Counterparty, counterpartyVersion string,
+			) (string, error) {
+				if counterpartyVersion != ibcmock.Version {
+					return "", fmt.Errorf("incorrect mock version")
+				}
+				return ibcmock.Version, nil
+			}
 
 			var (
 				chanCap *capabilitytypes.Capability
@@ -163,10 +173,10 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			)
 			if tc.crossing {
 				suite.path.EndpointA.ChanOpenInit()
-				chanCap, ok = suite.chainA.GetSimApp().ScopedTransferKeeper.GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
+				chanCap, ok = suite.chainA.GetSimApp().ScopedFeeMockKeeper.GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().True(ok)
 			} else {
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
+				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 			}
 
@@ -181,7 +191,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				Version:        tc.cpVersion,
 			}
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
@@ -209,19 +219,19 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	}{
 		{
 			"success",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
 			func(suite *FeeTestSuite) {},
 			true,
 		},
 		{
 			"invalid fee version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
 			func(suite *FeeTestSuite) {},
 			false,
 		},
 		{
-			"invalid transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
+			"invalid mock version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
 			func(suite *FeeTestSuite) {},
 			false,
 		},
@@ -233,11 +243,11 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"previous INIT set without fee, however counterparty set fee version", // note this can only happen with incompetent or malicious counterparty chain
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
 			func(suite *FeeTestSuite) {
 				// do the first steps without fee version, then pass the fee version as counterparty version in ChanOpenACK
-				suite.path.EndpointA.ChannelConfig.Version = transfertypes.Version
-				suite.path.EndpointB.ChannelConfig.Version = transfertypes.Version
+				suite.path.EndpointA.ChannelConfig.Version = ibcmock.Version
+				suite.path.EndpointB.ChannelConfig.Version = ibcmock.Version
 			},
 			false,
 		},
@@ -246,8 +256,18 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupMockTest()
 			suite.coordinator.SetupConnections(suite.path)
+
+			// setup mock callback
+			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenAck = func(
+				ctx sdk.Context, portID, channelID string, counterpartyVersion string,
+			) error {
+				if counterpartyVersion != ibcmock.Version {
+					return fmt.Errorf("incorrect mock version")
+				}
+				return nil
+			}
 
 			// malleate test case
 			tc.malleate(suite)
@@ -255,7 +275,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			suite.path.EndpointA.ChanOpenInit()
 			suite.path.EndpointB.ChanOpenTry()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
