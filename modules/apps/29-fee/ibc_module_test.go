@@ -396,7 +396,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupMockTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
