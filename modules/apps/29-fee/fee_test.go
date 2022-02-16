@@ -40,7 +40,7 @@ func (suite *FeeTestSuite) SetupTest() {
 	suite.path = path
 }
 
-// TODO: reanem to 'SetupTest' when the above function is removed
+// TODO: rename to 'SetupTest' when the above function is removed
 func (suite *FeeTestSuite) SetupMockTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
