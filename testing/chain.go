@@ -98,7 +98,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// generate genesis accounts
 	for i := 0; i < 9; i++ {
 		senderPrivKey := secp256k1.GenPrivKey()
-		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), uint64(i))
+		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
 		amount, ok := sdk.NewIntFromString("10000000000000000000")
 		require.True(t, ok)
 
