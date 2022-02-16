@@ -95,7 +95,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
 	}
 
-	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, chainID, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, chainID, sdk.DefaultPowerReduction, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
