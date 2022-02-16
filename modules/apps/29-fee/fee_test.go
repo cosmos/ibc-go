@@ -11,6 +11,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 type FeeTestSuite struct {
@@ -24,6 +25,7 @@ type FeeTestSuite struct {
 	path *ibctesting.Path
 }
 
+// TODO: remove and rename 'SetupMockTest' to 'SetupTest'
 func (suite *FeeTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -38,10 +40,26 @@ func (suite *FeeTestSuite) SetupTest() {
 	suite.path = path
 }
 
+// TODO: rename to 'SetupTest' when the above function is removed
+func (suite *FeeTestSuite) SetupMockTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+	path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	suite.path = path
+}
+
 func TestIBCFeeTestSuite(t *testing.T) {
 	suite.Run(t, new(FeeTestSuite))
 }
 
+// TODO: remove
 func (suite *FeeTestSuite) CreateICS20Packet(coin sdk.Coin) channeltypes.Packet {
 
 	fungibleTokenPacket := transfertypes.NewFungibleTokenPacketData(

@@ -1,6 +1,8 @@
 package fee_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
@@ -9,6 +11,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
@@ -26,27 +29,27 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		expPass bool
 	}{
 		{
-			"success - valid fee middleware and transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version})),
+			"success - valid fee middleware and mock version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
 			true,
 		},
 		{
-			"success - fee version not included, only perform transfer logic",
-			transfertypes.Version,
+			"success - fee version not included, only perform mock logic",
+			ibcmock.Version,
 			true,
 		},
 		{
 			"invalid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: transfertypes.Version})),
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
 			false,
 		},
 		{
-			"invalid transfer version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-ics20-1"})),
+			"invalid mock version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
 			false,
 		},
 		{
-			"transfer version not wrapped",
+			"mock version not wrapped",
 			types.Version,
 			false,
 		},
@@ -57,8 +60,21 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			// reset suite
-			suite.SetupTest()
+			suite.SetupMockTest()
 			suite.coordinator.SetupConnections(suite.path)
+
+			// setup mock callback
+			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+				portID, channelID string, chanCap *capabilitytypes.Capability,
+				counterparty channeltypes.Counterparty, version string,
+			) error {
+				if version != ibcmock.Version {
+					return fmt.Errorf("incorrect mock version")
+				}
+
+				return nil
+			}
+
 			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
@@ -70,10 +86,10 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				Version:        tc.version,
 			}
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
-			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, suite.path.EndpointA.ChannelID))
+			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
