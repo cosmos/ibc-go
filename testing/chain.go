@@ -37,7 +37,7 @@ import (
 )
 
 const (
-	MAX_ACCOUNTS = 9
+	MAX_ACCOUNTS = 10
 )
 
 type SenderAccount struct {
