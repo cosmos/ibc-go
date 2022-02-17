@@ -33,13 +33,13 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				Relayers:      nil,
 			},
 		},
-		FeeEnabledChannels: []*types.FeeEnabledChannel{
+		FeeEnabledChannels: []types.FeeEnabledChannel{
 			{
 				PortId:    ibctesting.MockFeePort,
 				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
-		RegisteredRelayers: []*types.RegisteredRelayerAddress{
+		RegisteredRelayers: []types.RegisteredRelayerAddress{
 			{
 				Address:             sender,
 				CounterpartyAddress: counterparty,

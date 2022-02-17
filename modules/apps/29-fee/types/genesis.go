@@ -8,7 +8,7 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []*FeeEnabledChannel, registeredRelayers []*RegisteredRelayerAddress) *GenesisState {
+func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
@@ -20,8 +20,8 @@ func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     []IdentifiedPacketFee{},
-		FeeEnabledChannels: []*FeeEnabledChannel{},
-		RegisteredRelayers: []*RegisteredRelayerAddress{},
+		FeeEnabledChannels: []FeeEnabledChannel{},
+		RegisteredRelayers: []RegisteredRelayerAddress{},
 	}
 }
 
