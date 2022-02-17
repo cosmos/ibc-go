@@ -78,7 +78,7 @@ func (cs ClientState) Status(
 	// get latest consensus state from clientStore to check for expiry
 	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
 	if err != nil {
-		return exported.Unknown
+		return exported.Expired
 	}
 
 	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
