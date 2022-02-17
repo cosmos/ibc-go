@@ -317,14 +317,14 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupMockTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
 
 			tc.setup(suite)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
@@ -333,12 +333,10 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			if tc.disabled {
 				suite.Require().True(
 					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID),
-
 					"fee is not disabled on original channel: %s", suite.path.EndpointA.ChannelID,
 				)
 				suite.Require().True(
 					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), "portID7", "channel-7"),
-
 					"fee is not disabled on other channel: %s", "channel-7",
 				)
 			} else {
@@ -397,14 +395,14 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupMockTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
 
 			tc.setup(suite)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
@@ -413,12 +411,10 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			if tc.disabled {
 				suite.Require().True(
 					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID),
-
 					"fee is not disabled on original channel: %s", suite.path.EndpointA.ChannelID,
 				)
 				suite.Require().True(
 					suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), "portID7", "channel-7"),
-
 					"fee is not disabled on other channel: %s", "channel-7",
 				)
 			} else {
@@ -541,7 +537,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			"no op success without a packet fee",
 			func() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetId)
 
 				ack = types.IncentivizedAcknowledgement{
 					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
@@ -635,8 +631,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 
 			// default to success case
-			expectedBalance = originalBalance.
-				Add(identifiedFee.Fee.TimeoutFee[0])
+			expectedBalance = originalBalance.Add(identifiedFee.Fee.TimeoutFee[0])
 
 			// malleate test case
 			tc.malleate()
@@ -695,7 +690,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				// delete packet fee
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetId)
 
 				expectedBalance = originalBalance
 			},
@@ -769,10 +764,11 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
 			if tc.expFeeDistributed {
-				suite.Require().Equal(
-					identifiedFee.Fee.TimeoutFee,
-					relayerBalance,
-				)
+				// there should no longer be a fee in escrow for this packet
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetId)
+				suite.Require().False(found)
+
+				suite.Require().Equal(identifiedFee.Fee.TimeoutFee, relayerBalance)
 			} else {
 				suite.Require().Empty(relayerBalance)
 			}
