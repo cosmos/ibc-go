@@ -107,7 +107,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 		for _, signature := range signedCommitment.Signatures {
 			// recover uncompressed public key from signature
-			pubkey, err := crypto.SigToPub(commitmentHash, signature.Signature)
+			pubkey, err := crypto.Ecrecover(commitmentHash, signature.Signature)
 
 			if err != nil {
 				// todo: error failed to recover signature!
@@ -115,7 +115,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			}
 
 			// convert public key to ethereum address.
-			address := crypto.PubkeyToAddress(*pubkey)
+			address := crypto.Keccak256(pubkey[1:])[12:]
 			authorityLeaf := merkle.Leaf{
 				Hash:  crypto.Keccak256(address[:]),
 				Index: signature.AuthorityIndex,
