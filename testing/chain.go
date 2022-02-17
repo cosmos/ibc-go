@@ -85,15 +85,31 @@ type TestChain struct {
 // NOTE: to use a custom sender privkey and account for testing purposes, replace and modify this
 // constructor function.
 func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
-	// generate validator private/public key
-	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
-	require.NoError(t, err)
+	// generate validators private/public key
+	var (
+		validatorsPerChain = 4
+		validators         []*tmtypes.Validator
+		signersByAddress   = make(map[string]tmtypes.PrivValidator, validatorsPerChain)
+	)
 
-	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
-	signers := []tmtypes.PrivValidator{privVal}
+	for i := 0; i < validatorsPerChain; i++ {
+		privVal := mock.NewPV()
+		pubKey, err := privVal.GetPubKey()
+		require.NoError(t, err)
+		validators = append(validators, tmtypes.NewValidator(pubKey, 1))
+		signersByAddress[pubKey.Address().String()] = privVal
+	}
+
+	// construct validator set;
+	// Note that the validators are sorted by voting power
+	// or, if equal, by address lexical order
+	valSet := tmtypes.NewValidatorSet(validators)
+
+	// create signers indexed by the valSet validators's order
+	signers := []tmtypes.PrivValidator{}
+	for _, val := range valSet.Validators {
+		signers = append(signers, signersByAddress[val.PubKey.Address().String()])
+	}
 
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
