@@ -31,6 +31,7 @@
 - [ibc/applications/fee/v1/fee.proto](#ibc/applications/fee/v1/fee.proto)
     - [Fee](#ibc.applications.fee.v1.Fee)
     - [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee)
+    - [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees)
   
 - [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
@@ -731,6 +732,21 @@ and an optional list of relayers that are permitted to receive the fee.
 | `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
 | `refund_address` | [string](#string) |  |  |
 | `relayers` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.IdentifiedPacketFees"></a>
+
+### IdentifiedPacketFees
+IdentifiedPacketFees contains a list of packet fees
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
 
 
 
