@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -12,6 +11,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 var (
@@ -34,6 +34,7 @@ type KeeperTestSuite struct {
 	queryClient types.QueryClient
 }
 
+// TODO: remove and rename 'SetupMockTest' to 'SetupTest'
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -52,28 +53,50 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
+// TODO: rename to 'SetupTest' when the above function is removed
+func (suite *KeeperTestSuite) SetupMockTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+	path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	suite.path = path
+
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().IBCFeeKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
 func (suite *KeeperTestSuite) TestFeeInEscrow() {
+	suite.SetupMockTest()
+	suite.coordinator.Setup(suite.path)
+
 	fee := types.Fee{RecvFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee}
 
 	// set some fees
 	for i := 1; i < 6; i++ {
-		packetId := channeltypes.NewPacketId(fmt.Sprintf("channel-1"), transfertypes.PortID, uint64(i))
+		packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(i))
 		fee := types.NewIdentifiedPacketFee(packetId, fee, suite.chainA.SenderAccount.GetAddress().String(), []string{})
 		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), fee)
 	}
 
 	// delete 1 fee
-	packetId := channeltypes.NewPacketId("channel-1", transfertypes.PortID, 3)
+	packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 3)
 	suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
 
 	// iterate over remaining fees
 	arr := []int64{}
 	expectedArr := []int64{1, 2, 4, 5}
-	suite.chainA.GetSimApp().IBCFeeKeeper.IterateChannelFeesInEscrow(suite.chainA.GetContext(), transfertypes.PortID, "channel-1", func(identifiedFee types.IdentifiedPacketFee) (stop bool) {
+	suite.chainA.GetSimApp().IBCFeeKeeper.IterateChannelFeesInEscrow(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, func(identifiedFee types.IdentifiedPacketFee) (stop bool) {
 		arr = append(arr, int64(identifiedFee.PacketId.Sequence))
 		return false
 	})
@@ -96,12 +119,12 @@ func (suite *KeeperTestSuite) TestDisableAllChannels() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
-	// setup channel
+	suite.SetupMockTest()
 	suite.coordinator.Setup(suite.path)
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, transfertypes.PortID, 1)
+	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
 	fee := types.Fee{
 		AckFee:     defaultAckFee,
 		RecvFee:    defaultReceiveFee,
@@ -127,11 +150,9 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
-	suite.SetupTest() // reset
-
 	validPortId := "ibcmoduleport"
 	// set two channels enabled
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortId, ibctesting.FirstChannelID)
 
 	expectedCh := []*types.FeeEnabledChannel{
@@ -140,7 +161,7 @@ func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 			ChannelId: ibctesting.FirstChannelID,
 		},
 		{
-			PortId:    transfertypes.PortID,
+			PortId:    ibctesting.MockFeePort,
 			ChannelId: ibctesting.FirstChannelID,
 		},
 	}
@@ -151,8 +172,6 @@ func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
-	suite.SetupTest() // reset
-
 	sender := suite.chainA.SenderAccount.GetAddress().String()
 	counterparty := suite.chainB.SenderAccount.GetAddress().String()
 
