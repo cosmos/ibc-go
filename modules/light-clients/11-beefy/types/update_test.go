@@ -113,7 +113,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			var nextAuthorityLeaves [][]byte
-			for _, v := range authorities {
+			for _, v := range nextAuthorities {
 				nextAuthorityLeaves = append(nextAuthorityLeaves, crypto.Keccak256(v))
 			}
 
@@ -233,6 +233,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
+
 
 			var parachainHeaders []*types.ParachainHeader
 
@@ -368,7 +369,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				MmrUpdateProof:   &mmrUpdateProof,
 			}
 
-			_, _, errs := clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
+ 			_, _, errs := clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
 			if errs != nil {
 				panic(errs)
 			}
