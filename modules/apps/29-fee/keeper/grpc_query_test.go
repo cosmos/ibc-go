@@ -67,12 +67,10 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketI() {
 			// populate RefundAddress field
 			identifiedPacketFee.RefundAddress = refundAcc.String()
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPacketId.PortId, validPacketId.ChannelId)
-
-			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
-			suite.Require().NoError(err)
-
 			tc.malleate()
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPacketId.PortId, validPacketId.ChannelId)
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), identifiedPacketFee)
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 			res, err := suite.queryClient.IncentivizedPacket(ctx, req)
@@ -125,8 +123,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 				expPackets = append(expPackets, &fee1, &fee2, &fee3)
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
-				for _, p := range expPackets {
-					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), *p)
+				for _, packetFee := range expPackets {
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), *packetFee)
 				}
 
 				req = &types.QueryIncentivizedPacketsRequest{
