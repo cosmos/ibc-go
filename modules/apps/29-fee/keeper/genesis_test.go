@@ -2,19 +2,16 @@ package keeper_test
 
 import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
-	suite.SetupTest()
-
 	// build PacketId & Fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	packetId := channeltypes.NewPacketId(
 		ibctesting.FirstChannelID,
-		transfertypes.PortID,
+		ibctesting.MockFeePort,
 		uint64(1),
 	)
 	fee := types.Fee{
@@ -38,7 +35,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		},
 		FeeEnabledChannels: []types.FeeEnabledChannel{
 			{
-				PortId:    transfertypes.PortID,
+				PortId:    ibctesting.MockFeePort,
 				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
@@ -58,7 +55,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().Equal(genesisState.IdentifiedFees[0], identifiedFee)
 
 	// check fee is enabled
-	isEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+	isEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 	suite.Require().True(isEnabled)
 
 	// check relayers
@@ -68,13 +65,12 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
-	suite.SetupTest()
 	// set fee enabled
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 
 	// setup & escrow the packet fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetID := channeltypes.NewPacketId(ibctesting.FirstChannelID, transfertypes.PortID, 1)
+	packetID := channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1)
 	fee := types.Fee{
 		RecvFee:    defaultReceiveFee,
 		AckFee:     defaultAckFee,
@@ -98,7 +94,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	// check fee enabled
 	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.FeeEnabledChannels[0].ChannelId)
-	suite.Require().Equal(transfertypes.PortID, genesisState.FeeEnabledChannels[0].PortId)
+	suite.Require().Equal(ibctesting.MockFeePort, genesisState.FeeEnabledChannels[0].PortId)
 
 	// check fee
 	suite.Require().Equal(packetID, genesisState.IdentifiedFees[0].PacketId)
