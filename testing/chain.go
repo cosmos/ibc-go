@@ -61,9 +61,9 @@ type TestChain struct {
 	SenderAccount authtypes.AccountI
 }
 
-// NewTestChain initializes a new TestChain instance with a single validator set using a
-// generated secp256k1 Tendermint private key. It also creates a sender BaseAccount to be used for
-// delivering transactions.
+// NewTestChainWithValSet initializes a new TestChain instance with the given validator set
+// and signer array. It also initializes 10 Sender accounts with a balance of 10000000000000000000 coins of
+// bond denom to use for tests.
 //
 // The first block height is committed to state in order to allow for client creations on
 // counterparty chains. The TestChain will return with a block height starting at 2.
@@ -73,6 +73,7 @@ type TestChain struct {
 //
 // NOTE: to use a custom sender privkey and account for testing purposes, replace and modify this
 // constructor function.
+<<<<<<< HEAD
 func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// generate validator private/public key
 	privVal := mock.NewPV()
@@ -89,6 +90,16 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	amount, ok := sdk.NewIntFromString("10000000000000000000")
 	require.True(t, ok)
+=======
+//
+// CONTRACT: Validator and signer array must be provided in the order expected by Tendermint.
+// i.e. sorted first by power and then lexicographically by address.
+func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, valSet *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator) *TestChain {
+  
+	genAccs := []authtypes.GenesisAccount{}
+	genBals := []banktypes.Balance{}
+	senderAccs := []SenderAccount{}
+>>>>>>> 98f4d3a (Create test chain with multiple validators (#942))
 
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
@@ -125,6 +136,38 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	coord.CommitBlock(chain)
 
 	return chain
+}
+
+// NewTestChain initializes a new test chain with a default of 4 validators
+// Use this function if the tests do not need custom control over the validator set
+func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+	// generate validators private/public key
+	var (
+		validatorsPerChain = 4
+		validators         []*tmtypes.Validator
+		signersByAddress   = make(map[string]tmtypes.PrivValidator, validatorsPerChain)
+	)
+
+	for i := 0; i < validatorsPerChain; i++ {
+		privVal := mock.NewPV()
+		pubKey, err := privVal.GetPubKey()
+		require.NoError(t, err)
+		validators = append(validators, tmtypes.NewValidator(pubKey, 1))
+		signersByAddress[pubKey.Address().String()] = privVal
+	}
+
+	// construct validator set;
+	// Note that the validators are sorted by voting power
+	// or, if equal, by address lexical order
+	valSet := tmtypes.NewValidatorSet(validators)
+
+	// create signers indexed by the valSet validators's order
+	signers := []tmtypes.PrivValidator{}
+	for _, val := range valSet.Validators {
+		signers = append(signers, signersByAddress[val.PubKey.Address().String()])
+	}
+
+	return NewTestChainWithValSet(t, coord, chainID, valSet, signers)
 }
 
 // GetContext returns the current context for the application.
