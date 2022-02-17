@@ -39,6 +39,8 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 	identifiedFees := types.NewIdentifiedPacketFees(packetFees)
 	k.SetFeesInEscrow(ctx, identifiedFee.PacketId, identifiedFees)
 
+	EmitIncentivizedPacket(ctx, identifiedFee)
+
 	return nil
 }
 
