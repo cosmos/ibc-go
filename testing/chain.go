@@ -36,7 +36,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
-const (
+var (
 	MAX_ACCOUNTS = 10
 )
 
