@@ -1,11 +1,15 @@
 package ibctesting_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/mock"
 )
@@ -44,4 +48,32 @@ func TestCreateSortedSignerArray(t *testing.T) {
 	// swap order
 	actual = ibctesting.CreateSortedSignerArray(privVal2, privVal1, validator2, validator1)
 	require.Equal(t, expected, actual)
+}
+
+func TestChangeValSet(t *testing.T) {
+	coord := ibctesting.NewCoordinator(t, 2)
+	chainA := coord.GetChain(ibctesting.GetChainID(1))
+	chainB := coord.GetChain(ibctesting.GetChainID(2))
+
+	path := ibctesting.NewPath(chainA, chainB)
+	coord.Setup(path)
+
+	amount, ok := sdk.NewIntFromString("10000000000000000000")
+	require.True(t, ok)
+
+	val := chainA.App.GetStakingKeeper().GetValidators(chainA.GetContext(), 1)
+
+	chainA.App.GetStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
+		amount, types.Unbonded, val[0], true)
+
+	res := chainA.App.EndBlock(abci.RequestEndBlock{Height: chainA.CurrentHeader.Height})
+	fmt.Printf("%#v\n", res)
+
+	chainA.App.Commit()
+	chainA.NextBlock()
+
+	path.EndpointB.UpdateClient()
+
+	path.EndpointB.UpdateClient()
+
 }
