@@ -542,7 +542,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			"no op success without a packet fee",
 			func() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetId)
 
 				ack = types.IncentivizedAcknowledgement{
 					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
@@ -632,8 +632,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 
 			// default to success case
-			expectedBalance = originalBalance.
-				Add(identifiedFee.Fee.TimeoutFee[0])
+			expectedBalance = originalBalance.Add(identifiedFee.Fee.TimeoutFee[0])
 
 			// malleate test case
 			tc.malleate()
@@ -692,7 +691,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				// delete packet fee
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetId)
 
 				expectedBalance = originalBalance.Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
 			},
@@ -777,10 +776,11 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
 			if tc.expFeeDistributed {
-				suite.Require().Equal(
-					identifiedFee.Fee.TimeoutFee,
-					relayerBalance,
-				)
+				// there should no longer be a fee in escrow for this packet
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetId)
+				suite.Require().False(found)
+
+				suite.Require().Equal(identifiedFee.Fee.TimeoutFee, relayerBalance)
 			} else {
 				suite.Require().Empty(relayerBalance)
 			}

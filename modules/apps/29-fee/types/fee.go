@@ -3,8 +3,21 @@ package types
 import (
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
+
+// NewIdentifiedPacketFees creates and returns a new IdentifiedPacketFees struct
+func NewIdentifiedPacketFees(packetFees []IdentifiedPacketFee) IdentifiedPacketFees {
+	return IdentifiedPacketFees{
+		PacketFees: packetFees,
+	}
+}
+
+// Total returns the total amount for a given Fee
+func (f Fee) Total() sdk.Coins {
+	return f.RecvFee.Add(f.AckFee...).Add(f.TimeoutFee...)
+}
 
 // Validate asserts that each Fee is valid and all three Fees are not empty or zero
 func (fee Fee) Validate() error {
