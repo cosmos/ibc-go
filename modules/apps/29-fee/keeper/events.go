@@ -17,9 +17,9 @@ func EmitIncentivizedPacket(ctx sdk.Context, identifiedFee types.IdentifiedPacke
 			sdk.NewAttribute(channeltypes.AttributeKeyPortID, identifiedFee.PacketId.PortId),
 			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, identifiedFee.PacketId.ChannelId),
 			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(identifiedFee.PacketId.Sequence)),
-			sdk.NewAttribute(types.AttributeKeyRecvFee, fmt.Sprint(identifiedFee.Fee.RecvFee)),
-			sdk.NewAttribute(types.AttributeKeyAckFee, fmt.Sprint(identifiedFee.Fee.AckFee)),
-			sdk.NewAttribute(types.AttributeKeyTimeoutFee, fmt.Sprint(identifiedFee.Fee.TimeoutFee)),
+			sdk.NewAttribute(types.AttributeKeyRecvFee, identifiedFee.Fee.RecvFee.String()),
+			sdk.NewAttribute(types.AttributeKeyAckFee, identifiedFee.Fee.AckFee.String()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutFee, identifiedFee.Fee.TimeoutFee.String()),
 		),
 	)
 }
