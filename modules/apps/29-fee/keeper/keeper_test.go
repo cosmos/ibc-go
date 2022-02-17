@@ -155,7 +155,7 @@ func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortId, ibctesting.FirstChannelID)
 
-	expectedCh := []*types.FeeEnabledChannel{
+	expectedCh := []types.FeeEnabledChannel{
 		{
 			PortId:    validPortId,
 			ChannelId: ibctesting.FirstChannelID,
@@ -177,7 +177,7 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
 
-	expectedAddr := []*types.RegisteredRelayerAddress{
+	expectedAddr := []types.RegisteredRelayerAddress{
 		{
 			Address:             sender,
 			CounterpartyAddress: counterparty,
