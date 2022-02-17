@@ -37,7 +37,7 @@ import (
 )
 
 var (
-	MAX_ACCOUNTS = 10
+	MaxAccounts = 10
 )
 
 type SenderAccount struct {
@@ -100,7 +100,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	senderAccs := []SenderAccount{}
 
 	// generate genesis accounts
-	for i := 0; i < MAX_ACCOUNTS; i++ {
+	for i := 0; i < MaxAccounts; i++ {
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
 		amount, ok := sdk.NewIntFromString("10000000000000000000")
