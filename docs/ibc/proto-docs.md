@@ -4482,7 +4482,7 @@ Commitment message signed by beefy validators
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `payload` | [bytes](#bytes) |  | array of payload items signed by Beefy validators |
+| `payload` | [PayloadItem](#ibc.lightclients.beefy.v1.PayloadItem) | repeated | array of payload items signed by Beefy validators |
 | `block_numer` | [uint32](#uint32) |  | block number for this commitment |
 | `validator_set_id` | [uint64](#uint64) |  | validator set that signed this commitment |
 
