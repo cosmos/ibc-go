@@ -158,13 +158,13 @@ func TestValidateGenesis(t *testing.T) {
 					Relayers:      nil,
 				},
 			},
-			FeeEnabledChannels: []*types.FeeEnabledChannel{
+			FeeEnabledChannels: []types.FeeEnabledChannel{
 				{
 					PortId:    portID,
 					ChannelId: channelID,
 				},
 			},
-			RegisteredRelayers: []*types.RegisteredRelayerAddress{
+			RegisteredRelayers: []types.RegisteredRelayerAddress{
 				{
 					Address:             sender,
 					CounterpartyAddress: counterparty,
