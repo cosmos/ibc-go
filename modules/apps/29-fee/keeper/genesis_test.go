@@ -2,25 +2,22 @@ package keeper_test
 
 import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
-	suite.SetupTest()
-
 	// build PacketId & Fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	packetId := channeltypes.NewPacketId(
 		ibctesting.FirstChannelID,
-		transfertypes.PortID,
+		ibctesting.MockFeePort,
 		uint64(1),
 	)
 	fee := types.Fee{
-		defaultReceiveFee,
-		defaultAckFee,
-		defaultTimeoutFee,
+		RecvFee:    defaultReceiveFee,
+		AckFee:     defaultAckFee,
+		TimeoutFee: defaultTimeoutFee,
 	}
 
 	// relayer addresses
@@ -36,13 +33,13 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				Relayers:      nil,
 			},
 		},
-		FeeEnabledChannels: []*types.FeeEnabledChannel{
+		FeeEnabledChannels: []types.FeeEnabledChannel{
 			{
-				PortId:    transfertypes.PortID,
+				PortId:    ibctesting.MockFeePort,
 				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
-		RegisteredRelayers: []*types.RegisteredRelayerAddress{
+		RegisteredRelayers: []types.RegisteredRelayerAddress{
 			{
 				Address:             sender,
 				CounterpartyAddress: counterparty,
@@ -58,7 +55,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().Equal(genesisState.IdentifiedFees[0], identifiedFee)
 
 	// check fee is enabled
-	isEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+	isEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 	suite.Require().True(isEnabled)
 
 	// check relayers
@@ -68,25 +65,20 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
-	suite.SetupTest()
 	// set fee enabled
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), transfertypes.PortID, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 
 	// setup & escrow the packet fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetId := channeltypes.NewPacketId(
-		ibctesting.FirstChannelID,
-		transfertypes.PortID,
-		uint64(1),
-	)
+	packetID := channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1)
 	fee := types.Fee{
-		defaultReceiveFee,
-		defaultAckFee,
-		defaultTimeoutFee,
+		RecvFee:    defaultReceiveFee,
+		AckFee:     defaultAckFee,
+		TimeoutFee: defaultTimeoutFee,
 	}
-	identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
-	err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), identifiedPacketFee)
-	suite.Require().NoError(err)
+
+	identifiedPacketFee := types.NewIdentifiedPacketFee(packetID, fee, refundAcc.String(), []string{})
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), identifiedPacketFee)
 
 	// relayer addresses
 	sender := suite.chainA.SenderAccount.GetAddress().String()
@@ -95,17 +87,17 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
 
 	// set forward relayer address
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainA.GetContext(), packetId, sender)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainA.GetContext(), packetID, sender)
 
 	// export genesis
 	genesisState := suite.chainA.GetSimApp().IBCFeeKeeper.ExportGenesis(suite.chainA.GetContext())
 
 	// check fee enabled
 	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.FeeEnabledChannels[0].ChannelId)
-	suite.Require().Equal(transfertypes.PortID, genesisState.FeeEnabledChannels[0].PortId)
+	suite.Require().Equal(ibctesting.MockFeePort, genesisState.FeeEnabledChannels[0].PortId)
 
 	// check fee
-	suite.Require().Equal(packetId, genesisState.IdentifiedFees[0].PacketId)
+	suite.Require().Equal(packetID, genesisState.IdentifiedFees[0].PacketId)
 	suite.Require().Equal(fee, genesisState.IdentifiedFees[0].Fee)
 	suite.Require().Equal(refundAcc.String(), genesisState.IdentifiedFees[0].RefundAddress)
 	suite.Require().Equal([]string(nil), genesisState.IdentifiedFees[0].Relayers)
@@ -116,5 +108,5 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	// check registered relayer addresses
 	suite.Require().Equal(sender, genesisState.ForwardRelayers[0].Address)
-	suite.Require().Equal(packetId, genesisState.ForwardRelayers[0].PacketId)
+	suite.Require().Equal(packetID, genesisState.ForwardRelayers[0].PacketId)
 }
