@@ -109,10 +109,6 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(&stakingGenesis)
 
 	totalSupply := sdk.NewCoins()
-	for _, b := range balances {
-		// add genesis acc tokens and delegated tokens to total supply
-		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(bondDenom, bondAmt))...)
-	}
 
 	// add bonded amount to bonded pool module account
 	balances = append(balances, banktypes.Balance{
@@ -121,13 +117,11 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	})
 
 	// update total supply
-	var bankGenesis banktypes.GenesisState
-	app.AppCodec().MustUnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenesis)
+	var bankGenesis *banktypes.GenesisState
+	app.AppCodec().MustUnmarshalJSON(genesisState[banktypes.ModuleName], bankGenesis)
 
-	bankGenesis.Balances = balances
-	bankGenesis.Supply = totalSupply
-
-	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(&bankGenesis)
+	bankGenesis = banktypes.NewGenesisState(bankGenesis.Params, balances, totalSupply, []banktypes.Metadata{})
+	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 	require.NoError(t, err)
