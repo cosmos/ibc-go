@@ -462,21 +462,18 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupMockTest()
 			suite.coordinator.Setup(suite.path)
-
-			// set up coin & ics20 packet
-			coin := ibctesting.TestCoin
 
 			// set up a different channel to make sure that the test will error if the destination channel of the packet is not fee enabled
 			suite.path.EndpointB.ChannelID = "channel-1"
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 			suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
 
-			packet := suite.CreateICS20Packet(coin)
+			packet := suite.CreateMockPacket()
 
 			// set up module and callbacks
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
@@ -491,19 +488,18 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			switch {
 			case !tc.feeEnabled:
-				ack := channeltypes.NewResultAcknowledgement([]byte{1})
-				suite.Require().Equal(ack, result)
+				suite.Require().Equal(ibcmock.MockAcknowledgement, result)
 
 			case tc.forwardRelayer:
 				ack := types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
 				}
 				suite.Require().Equal(ack, result)
 
 			case !tc.forwardRelayer:
 				ack := types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: "",
 				}
 				suite.Require().Equal(ack, result)
