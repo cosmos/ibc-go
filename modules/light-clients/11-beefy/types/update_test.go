@@ -67,10 +67,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic("error reading channel")
 			}
 
-			compactCommitment := &clientTypes.CompactSignedCommitment{}
+			compactCommitment := clientTypes.CompactSignedCommitment{}
 
 			// attempt to decode the SignedCommitments
-			err := types.DecodeFromHexString(msg.(string), compactCommitment)
+			err := types.DecodeFromHexString(msg.(string), &compactCommitment)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -104,8 +104,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			var authorityLeaves [][]byte
 			for _, v := range authorities {
-				hash := crypto.Keccak256(v)
-				authorityLeaves = append(authorityLeaves, hash)
+				authorityLeaves = append(authorityLeaves, crypto.Keccak256(v))
 			}
 			authorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(authorityLeaves)
 			if err != nil {
@@ -219,39 +218,17 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				leafIndeces = append(leafIndeces, uint64(clientState.GetLeafIndexForBlockNumber(uint32(header.Number))))
 			}
 
-			// check if finalizedBlocks has a leafIndex for signedCommitment.Commitment.BlockNumber
-			// ie check if the latest leaf in the mmr included one of our parachain headers,
-			// as we need the latest leaf to construct the MmrUpdateProof.
-			// otherwise add it.
-
-			if finalizedBlocks[blockNumber] == nil {
-				leafIndeces = append(leafIndeces, uint64(clientState.GetLeafIndexForBlockNumber(blockNumber)))
-			}
-
 			// fetch mmr proofs for leaves containing our target paraId
 			mmrBatchProof, err := relayApi.RPC.MMR.GenerateBatchProof(leafIndeces, blockHash)
 			if err != nil {
 				panic(err)
 			}
 
-
 			var parachainHeaders []*types.ParachainHeader
-
-			// track the latest leaf.
-			var latestLeaf clientTypes.MmrLeaf
 
 			for _, v := range mmrBatchProof.Leaves {
 				var leafBlockNumber = clientState.GetBlockNumberForLeaf(uint32(v.Index))
-				if leafBlockNumber == blockNumber {
-					// we need this (latest) leaf to construct the MmrUpdateProof
-					latestLeaf = v.Leaf
-				}
 				paraHeaders := finalizedBlocks[leafBlockNumber]
-				// the latest mmr leaf doesn't contain our parachain header and as such
-				// we don't have a record for this leaf in our finalizedBlocks
-				if paraHeaders == nil {
-					continue
-				}
 
 				var paraHeadsLeaves [][]byte
 				// index of our parachain header in the
@@ -311,12 +288,25 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				parachainHeaders = append(parachainHeaders, &header)
 			}
 
+			mmrProof, err := relayApi.RPC.MMR.GenerateProof(
+				uint64(clientState.GetLeafIndexForBlockNumber(blockNumber)),
+				blockHash,
+			)
+			if err != nil {
+				panic(err)
+			}
+			latestLeaf := mmrProof.Leaf
+
 			BeefyNextAuthoritySetRoot := bytes32(latestLeaf.BeefyNextAuthoritySet.Root[:])
 			parentHash := bytes32(latestLeaf.ParentNumberAndHash.Hash[:])
 
-			var proofItems [][]byte
+			var latestLeafMmrProof [][]byte
+			for i := 0; i < len(mmrProof.Proof.Items); i++ {
+				latestLeafMmrProof = append(latestLeafMmrProof, mmrProof.Proof.Items[i][:])
+			}
+			var mmrBatchProofItems [][]byte
 			for i := 0; i < len(mmrBatchProof.Proof.Items); i++ {
-				proofItems = append(proofItems, mmrBatchProof.Proof.Items[i][:])
+				mmrBatchProofItems = append(mmrBatchProofItems, mmrBatchProof.Proof.Items[i][:])
 			}
 			var signatures []*types.CommitmentSignature
 			var authorityIndeces []uint32
@@ -332,7 +322,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				}
 			}
 
-			CommitmentPayload := bytes32(signedCommitment.Commitment.Payload[0].Value)
+			CommitmentPayload := signedCommitment.Commitment.Payload[0]
 			ParachainHeads := bytes32(latestLeaf.ParachainHeads[:])
 			leafIndex := clientState.GetLeafIndexForBlockNumber(blockNumber)
 
@@ -349,11 +339,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					},
 				},
 				MmrLeafIndex: uint64(leafIndex),
-				MmrProof:     proofItems,
+				MmrProof:     latestLeafMmrProof,
 				SignedCommitment: &types.SignedCommitment{
 					Commitment: &types.Commitment{
-						Payload: &CommitmentPayload,
-						// Payload:        []*types.PayloadItem{{PayloadId: []byte("mh"), PayloadData: signedCommitment.Commitment.Payload[:]}},
+						Payload:        []*types.PayloadItem{{PayloadId: &CommitmentPayload.Id, PayloadData: CommitmentPayload.Value}},
 						BlockNumer:     uint32(signedCommitment.Commitment.BlockNumber),
 						ValidatorSetId: uint64(signedCommitment.Commitment.ValidatorSetID),
 					},
@@ -364,12 +353,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			header := types.Header{
 				ParachainHeaders: parachainHeaders,
-				MmrProofs:        proofItems,
+				MmrProofs:        mmrBatchProofItems,
 				MmrSize:          mmr.LeafIndexToMMRSize(uint64(leafIndex)),
 				MmrUpdateProof:   &mmrUpdateProof,
 			}
 
- 			_, _, errs := clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
+			_, _, errs := clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
 			if errs != nil {
 				panic(errs)
 			}
