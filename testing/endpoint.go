@@ -175,7 +175,9 @@ func (endpoint *Endpoint) ConnOpenInit() error {
 
 // ConnOpenTry will construct and execute a MsgConnectionOpenTry on the associated endpoint.
 func (endpoint *Endpoint) ConnOpenTry() error {
-	endpoint.UpdateClient()
+	if err := endpoint.UpdateClient(); err != nil {
+		return err
+	}
 
 	counterpartyClient, proofClient, proofConsensus, consensusHeight, proofInit, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
@@ -202,7 +204,9 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 
 // ConnOpenAck will construct and execute a MsgConnectionOpenAck on the associated endpoint.
 func (endpoint *Endpoint) ConnOpenAck() error {
-	endpoint.UpdateClient()
+	if err := endpoint.UpdateClient(); err != nil {
+		return err
+	}
 
 	counterpartyClient, proofClient, proofConsensus, consensusHeight, proofTry, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
@@ -218,7 +222,9 @@ func (endpoint *Endpoint) ConnOpenAck() error {
 
 // ConnOpenConfirm will construct and execute a MsgConnectionOpenConfirm on the associated endpoint.
 func (endpoint *Endpoint) ConnOpenConfirm() error {
-	endpoint.UpdateClient()
+	if err := endpoint.UpdateClient(); err != nil {
+		return err
+	}
 
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(connectionKey)
@@ -281,7 +287,9 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenTry() error {
-	endpoint.UpdateClient()
+	if err := endpoint.UpdateClient(); err != nil {
+		return err
+	}
 
 	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
@@ -312,7 +320,9 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 
 // ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenAck() error {
-	endpoint.UpdateClient()
+	if err := endpoint.UpdateClient(); err != nil {
+		return err
+	}
 
 	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
@@ -328,7 +338,9 @@ func (endpoint *Endpoint) ChanOpenAck() error {
 
 // ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenConfirm() error {
-	endpoint.UpdateClient()
+	if err := endpoint.UpdateClient(); err != nil {
+		return err
+	}
 
 	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
