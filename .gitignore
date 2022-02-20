@@ -22,6 +22,8 @@ dist
 tools-stamp
 buf-stamp
 artifacts
+testing/node*
+testing/gentxs
 
 # Data - ideally these don't exist
 baseapp/data/*
