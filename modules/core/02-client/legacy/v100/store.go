@@ -94,7 +94,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 			}
 
 			// add iteration keys so pruning will be successful
-			if err = addConsensusMetadata(ctx, clientStore, cdc, tmClientState); err != nil {
+			if err = addConsensusMetadata(ctx, clientStore, tmClientState); err != nil {
 				return err
 			}
 
@@ -154,7 +154,7 @@ func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 // addConsensusMetadata adds the iteration key and processed height for all tendermint consensus states
 // These keys were not included in the previous release of the IBC module. Adding the iteration keys allows
 // for pruning iteration.
-func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ibctmtypes.ClientState) error {
+func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, clientState *ibctmtypes.ClientState) error {
 	var heights []exported.Height
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 
