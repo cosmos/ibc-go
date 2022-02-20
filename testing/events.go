@@ -17,8 +17,8 @@ func ParseClientIDFromEvents(events sdk.Events) (string, error) {
 	for _, ev := range events {
 		if ev.Type == clienttypes.EventTypeCreateClient {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == clienttypes.AttributeKeyClientID {
-					return string(attr.Value), nil
+				if attr.Key == clienttypes.AttributeKeyClientID {
+					return attr.Value, nil
 				}
 			}
 		}
@@ -33,8 +33,8 @@ func ParseConnectionIDFromEvents(events sdk.Events) (string, error) {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == connectiontypes.AttributeKeyConnectionID {
-					return string(attr.Value), nil
+				if attr.Key == connectiontypes.AttributeKeyConnectionID {
+					return attr.Value, nil
 				}
 			}
 		}
@@ -48,8 +48,8 @@ func ParseChannelIDFromEvents(events sdk.Events) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == channeltypes.AttributeKeyChannelID {
-					return string(attr.Value), nil
+				if attr.Key == channeltypes.AttributeKeyChannelID {
+					return attr.Value, nil
 				}
 			}
 		}
@@ -65,12 +65,12 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 			packet := channeltypes.Packet{}
 			for _, attr := range ev.Attributes {
 
-				switch string(attr.Key) {
+				switch attr.Key {
 				case channeltypes.AttributeKeyData:
 					packet.Data = []byte(attr.Value)
 
 				case channeltypes.AttributeKeySequence:
-					seq, err := strconv.ParseUint(string(attr.Value), 10, 64)
+					seq, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
 						return channeltypes.Packet{}, err
 					}
@@ -78,19 +78,19 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 					packet.Sequence = seq
 
 				case channeltypes.AttributeKeySrcPort:
-					packet.SourcePort = string(attr.Value)
+					packet.SourcePort = attr.Value
 
 				case channeltypes.AttributeKeySrcChannel:
-					packet.SourceChannel = string(attr.Value)
+					packet.SourceChannel = attr.Value
 
 				case channeltypes.AttributeKeyDstPort:
-					packet.DestinationPort = string(attr.Value)
+					packet.DestinationPort = attr.Value
 
 				case channeltypes.AttributeKeyDstChannel:
-					packet.DestinationChannel = string(attr.Value)
+					packet.DestinationChannel = attr.Value
 
 				case channeltypes.AttributeKeyTimeoutHeight:
-					height, err := clienttypes.ParseHeight(string(attr.Value))
+					height, err := clienttypes.ParseHeight(attr.Value)
 					if err != nil {
 						return channeltypes.Packet{}, err
 					}
@@ -98,7 +98,7 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 					packet.TimeoutHeight = height
 
 				case channeltypes.AttributeKeyTimeoutTimestamp:
-					timestamp, err := strconv.ParseUint(string(attr.Value), 10, 64)
+					timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
 						return channeltypes.Packet{}, err
 					}
@@ -122,7 +122,7 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == channeltypes.AttributeKeyAck {
+				if attr.Key == channeltypes.AttributeKeyAck {
 					return []byte(attr.Value), nil
 				}
 			}

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"time"
@@ -428,7 +429,7 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 	)
 
 	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey()
+	altPubKey, err := altPrivVal.GetPubKey(context.TODO())
 	suite.Require().NoError(err)
 	altVal := tmtypes.NewValidator(altPubKey, 4)
 
@@ -688,7 +689,7 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 		if string(attr.Key) == clienttypes.AttributeKeyHeader {
 			contains = true
 
-			bz, err := hex.DecodeString(string(attr.Value))
+			bz, err := hex.DecodeString(attr.Value)
 			suite.Require().NoError(err)
 
 			emittedHeader, err := types.UnmarshalHeader(suite.chainA.App.AppCodec(), bz)
