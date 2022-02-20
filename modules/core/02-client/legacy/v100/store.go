@@ -12,7 +12,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	smtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
@@ -56,7 +55,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if bz == nil {
-			return clienttypes.ErrClientNotFound
+			return types.ErrClientNotFound
 		}
 
 		switch clientType {
@@ -73,7 +72,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 
 			updatedClientState := migrateSolomachine(clientState)
 
-			bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
+			bz, err := types.MarshalClientState(cdc, updatedClientState)
 			if err != nil {
 				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 			}
@@ -173,7 +172,7 @@ func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.Bi
 	for _, height := range heights {
 		// set the iteration key and processed height
 		// these keys were not included in the SDK v0.42.0 release
-		ibctmtypes.SetProcessedHeight(clientStore, height, clienttypes.GetSelfHeight(ctx))
+		ibctmtypes.SetProcessedHeight(clientStore, height, types.GetSelfHeight(ctx))
 		ibctmtypes.SetIterationKey(clientStore, height)
 	}
 
