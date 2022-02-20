@@ -30,7 +30,7 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	tmtime "github.com/tendermint/tendermint/libs/time"
 )
 
 var (
