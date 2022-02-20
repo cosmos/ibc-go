@@ -151,7 +151,7 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 	}
 
 	var getTxRes txtypes.GetTxResponse
-	s.Require().NoError(val.ClientCtx.JSONCodec.UnmarshalJSON(grpcJSON, &getTxRes))
+	s.Require().NoError(val.clientCtx.Codec.UnmarshalJSON(grpcJSON, &getTxRes))
 	s.Require().Equal(getTxRes.Tx.Body.Memo, "foobar")
 
 	// generate broadcast only txn.

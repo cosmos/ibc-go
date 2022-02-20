@@ -147,7 +147,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 		}
 	}
 
-	bz, err := clientCtx.JSONCodec.MarshalJSON(&expectedClientGenState)
+	bz, err := clientCtx.Codec.MarshalJSON(&expectedClientGenState)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
@@ -157,7 +157,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
 	suite.Require().NoError(err)
 
-	bz, err = clientCtx.JSONCodec.MarshalJSON(migrated)
+	bz, err = clientCtx.Codec.MarshalJSON(migrated)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
@@ -288,7 +288,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 
 		}
 	}
-	bz, err := clientCtx.JSONCodec.MarshalJSON(&expectedClientGenState)
+	bz, err := clientCtx.Codec.MarshalJSON(&expectedClientGenState)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
@@ -298,7 +298,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
 	suite.Require().NoError(err)
 
-	bz, err = clientCtx.JSONCodec.MarshalJSON(migrated)
+	bz, err = clientCtx.Codec.MarshalJSON(migrated)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
