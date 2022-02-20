@@ -169,7 +169,7 @@ type SimApp struct {
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
-	msgSvcRouter      *authmiddleware.MsgServiceRouter
+	MsgSvcRouter      *authmiddleware.MsgServiceRouter
 	legacyRouter      sdk.Router
 
 	invCheckPeriod uint
@@ -262,7 +262,7 @@ func NewSimApp(
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
 		legacyRouter:      authmiddleware.NewLegacyRouter(),
-		msgSvcRouter:      authmiddleware.NewMsgServiceRouter(interfaceRegistry),
+		MsgSvcRouter:      authmiddleware.NewMsgServiceRouter(interfaceRegistry),
 		invCheckPeriod:    invCheckPeriod,
 		keys:              keys,
 		tkeys:             tkeys,
@@ -328,7 +328,7 @@ func NewSimApp(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
-	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.msgSvcRouter, app.AccountKeeper)
+	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.MsgSvcRouter, app.AccountKeeper)
 
 	// register the proposal types
 	govRouter := oldgovtypes.NewRouter()
@@ -345,7 +345,7 @@ func NewSimApp(
 	*/
 	govKeeper := govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
-		&stakingKeeper, govRouter, app.msgSvcRouter, govConfig,
+		&stakingKeeper, govRouter, app.MsgSvcRouter, govConfig,
 	)
 
 	app.GovKeeper = *govKeeper.SetHooks(
@@ -371,13 +371,13 @@ func NewSimApp(
 		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper, app.msgSvcRouter,
+		scopedICAControllerKeeper, app.MsgSvcRouter,
 	)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAHostKeeper, app.msgSvcRouter,
+		app.AccountKeeper, scopedICAHostKeeper, app.MsgSvcRouter,
 	)
 
 	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
@@ -471,7 +471,7 @@ func NewSimApp(
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
 	app.mm.RegisterRoutes(app.legacyRouter, app.QueryRouter(), encodingConfig.Amino)
-	app.configurator = module.NewConfigurator(app.appCodec, app.msgSvcRouter, app.GRPCQueryRouter())
+	app.configurator = module.NewConfigurator(app.appCodec, app.MsgSvcRouter, app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
 	// add test gRPC service for testing gRPC queries in isolation
@@ -539,7 +539,7 @@ func (app *SimApp) setTxHandler(txConfig client.TxConfig, indexEventsStr []strin
 		Debug:            app.Trace(),
 		IndexEvents:      indexEvents,
 		LegacyRouter:     app.legacyRouter,
-		MsgServiceRouter: app.msgSvcRouter,
+		MsgServiceRouter: app.MsgSvcRouter,
 		AccountKeeper:    app.AccountKeeper,
 		BankKeeper:       app.BankKeeper,
 		FeegrantKeeper:   app.FeeGrantKeeper,
