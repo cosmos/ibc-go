@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -79,7 +78,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 
 	suite.privVal = ibctestingmock.NewPV()
 
-	pubKey, err := suite.privVal.GetPubKey(context.TODO())
+	pubKey, err := suite.privVal.GetPubKey(suite.ctx)
 	suite.Require().NoError(err)
 
 	heightMinus1 := clienttypes.NewHeight(0, height.RevisionHeight-1)

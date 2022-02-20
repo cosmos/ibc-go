@@ -31,7 +31,7 @@ func (suite *TendermintTestSuite) TestMisbehaviour() {
 
 func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey(context.TODO())
+	altPubKey, err := altPrivVal.GetPubKey(suite.ctx)
 	suite.Require().NoError(err)
 
 	revisionHeight := int64(height.RevisionHeight)
@@ -186,7 +186,7 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 					return err
 				}
 
-				tmCommit, err := tmtypes.MakeCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header1.Commit.Round, wrongVoteSet, altSigners, suite.now)
+				tmCommit, err := ibctesting.MakeCommit(context.Background(), *blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header1.Commit.Round, wrongVoteSet, altSigners, suite.now)
 				misbehaviour.Header1.Commit = tmCommit.ToProto()
 				return err
 			},
@@ -207,7 +207,7 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 					return err
 				}
 
-				tmCommit, err := tmtypes.MakeCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header2.Commit.Round, wrongVoteSet, altSigners, suite.now)
+				tmCommit, err := ibctesting.MakeCommit(context.Background(), *blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header2.Commit.Round, wrongVoteSet, altSigners, suite.now)
 				misbehaviour.Header2.Commit = tmCommit.ToProto()
 				return err
 			},
