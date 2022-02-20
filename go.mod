@@ -39,6 +39,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.2 // indirect
 	github.com/cosmos/btcutil v1.0.4 // indirect
+	github.com/cosmos/cosmos-proto v1.0.0-alpha7.0.20220208174455-213b76899fac // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/iavl v0.17.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect

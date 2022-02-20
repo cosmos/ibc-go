@@ -289,6 +289,8 @@ github.com/coreos/pkg v0.0.0-20160727233714-3ac0863d7acf/go.mod h1:E3G3o1h8I7cfc
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
 github.com/cosmos/btcutil v1.0.4 h1:n7C2ngKXo7UC9gNyMNLbzqz7Asuf+7Qv4gnX/rOdQ44=
 github.com/cosmos/btcutil v1.0.4/go.mod h1:Ffqc8Hn6TJUdDgHBwIZLtrLQC1KdJ9jGJl/TvgUaxbU=
+github.com/cosmos/cosmos-proto v1.0.0-alpha7.0.20220208174455-213b76899fac h1:xdD9S2oFjpSb1sdIRM5LXgQ2SWIQTXKY7xosnp+w1LA=
+github.com/cosmos/cosmos-proto v1.0.0-alpha7.0.20220208174455-213b76899fac/go.mod h1:TUpFbyjtKZ+dXmJ48nAVio0lw6dMXMsWhEa1ln4iSw4=
 github.com/cosmos/cosmos-sdk v0.45.1 h1:PY79YxPea5qlRLExRnzg8/rT1Scc8GGgRs22p7DX99Q=
 github.com/cosmos/cosmos-sdk v0.45.1/go.mod h1:XXS/asyCqWNWkx2rW6pSuen+EVcpAFxq6khrhnZgHaQ=
 github.com/cosmos/cosmos-sdk v0.46.0-alpha2.0.20220218134704-20e17ea71a9b h1:pezVz0v436NEHzo0RmaAlWEXUumAbsLpixvyOqW5jMY=
