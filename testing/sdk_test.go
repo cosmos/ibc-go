@@ -152,21 +152,8 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 		},
 	}
 
-	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.desc), func() {
-			txJSON, err := rest.GetRequest(tc.url)
-			s.Require().NoError(err)
 
-			var errResp rest.ErrorResponse
-			s.Require().NoError(val.ClientCtx.LegacyAmino.UnmarshalJSON(txJSON, &errResp))
 
-			s.Require().Contains(errResp.Error, errMsg)
-		})
-	}
-
-	// try fetching the txn using gRPC req, it will fetch info since it has proto codec.
-	grpcJSON, err := rest.GetRequest(fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", val.APIAddress, txRes.TxHash))
-	s.Require().NoError(err)
 
 	var getTxRes txtypes.GetTxResponse
 	s.Require().NoError(val.ClientCtx.JSONCodec.UnmarshalJSON(grpcJSON, &getTxRes))
@@ -185,11 +172,5 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 	s.Require().NoError(err)
 
 
-	// try to decode the txn using legacy rest, it fails.
-	res, err := rest.PostRequest(fmt.Sprintf("%s/txs/decode", val.APIAddress), "application/json", bz)
-	s.Require().NoError(err)
 
-	var errResp rest.ErrorResponse
-	s.Require().NoError(val.ClientCtx.LegacyAmino.UnmarshalJSON(res, &errResp))
-	s.Require().Contains(errResp.Error, errMsg)
 }
