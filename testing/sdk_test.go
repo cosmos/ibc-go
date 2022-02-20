@@ -124,8 +124,6 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	s.network.Cleanup()
 }
 
-
-
 // testQueryIBCTx is a helper function to test querying txs which:
 // - show an error message on legacy REST endpoints
 // - succeed using gRPC
@@ -152,9 +150,6 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 		},
 	}
 
-
-
-
 	var getTxRes txtypes.GetTxResponse
 	s.Require().NoError(val.ClientCtx.JSONCodec.UnmarshalJSON(grpcJSON, &getTxRes))
 	s.Require().Equal(getTxRes.Tx.Body.Memo, "foobar")
@@ -170,7 +165,5 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 	// encode the generated txn.
 	out, err = clitestutil.ExecTestCLICmd(val.ClientCtx, authcli.GetEncodeCommand(), []string{txFileName})
 	s.Require().NoError(err)
-
-
 
 }
