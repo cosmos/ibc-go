@@ -36,7 +36,7 @@ var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\[\]\<\>]+$`).MatchStri
 // ValidateFn function type to validate path and identifier bytestrings
 type ValidateFn func(string) error
 
-func defaultIdentifierValidator(id string, min, max int) error { 
+func defaultIdentifierValidator(id string, min, max int) error {
 	if strings.TrimSpace(id) == "" {
 		return sdkerrors.Wrap(ErrInvalidID, "identifier cannot be blank")
 	}
