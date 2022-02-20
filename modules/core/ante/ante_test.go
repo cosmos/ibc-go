@@ -456,7 +456,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			// reset suite
 			suite.SetupTest()
 
-			k := suite.chainB.App.GetIBCKeeper().ChannelKeeper
+			k := suite.chainB.App.GetIBCKeeper()
 			decorator := ante.NewAnteDecorator(k)
 
 			msgs := tc.malleate(suite)

@@ -4,15 +4,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
 )
 
 type AnteDecorator struct {
-	k channelkeeper.Keeper
+	k *keeper.Keeper
 }
 
-func NewAnteDecorator(k channelkeeper.Keeper) AnteDecorator {
+func NewAnteDecorator(k *keeper.Keeper) AnteDecorator {
 	return AnteDecorator{k: k}
 }
 
@@ -29,25 +29,25 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		for _, m := range tx.GetMsgs() {
 			switch msg := m.(type) {
 			case *channeltypes.MsgRecvPacket:
-				if _, found := ad.k.GetPacketReceipt(ctx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence()); found {
+				if response, err := ad.k.RecvPacket(ctx.Context(), msg); err != nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgAcknowledgement:
-				if commitment := ad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+				if response, err := ad.k.Acknowledgement(ctx.Context(), msg); err != nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgTimeout:
-				if commitment := ad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+				if response, err := ad.k.Timeout(ctx.Context(), msg); err != nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgTimeoutOnClose:
-				if commitment := ad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
+				if response, err := ad.k.TimeoutOnClose(ctx.Context(), msg); err != nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
 				}
 				packetMsgs += 1
