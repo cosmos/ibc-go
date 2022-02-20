@@ -20,7 +20,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
@@ -266,8 +265,6 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 	out, err = clitestutil.ExecTestCLICmd(val.ClientCtx, authcli.GetEncodeCommand(), []string{txFileName})
 	s.Require().NoError(err)
 
-	bz, err := val.ClientCtx.LegacyAmino.MarshalJSON(authrest.DecodeReq{Tx: string(out.Bytes())})
-	s.Require().NoError(err)
 
 	// try to decode the txn using legacy rest, it fails.
 	res, err := rest.PostRequest(fmt.Sprintf("%s/txs/decode", val.APIAddress), "application/json", bz)
