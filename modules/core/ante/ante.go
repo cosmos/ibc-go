@@ -30,27 +30,27 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 			switch msg := m.(type) {
 			case *channeltypes.MsgRecvPacket:
 				if _, found := ad.k.GetPacketReceipt(ctx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence()); found {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *channeltypes.MsgAcknowledgement:
 				if commitment := ad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *channeltypes.MsgTimeout:
 				if commitment := ad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *channeltypes.MsgTimeoutOnClose:
 				if commitment := ad.k.GetPacketCommitment(ctx, msg.Packet.GetSourcePort(), msg.Packet.GetSourceChannel(), msg.Packet.GetSequence()); len(commitment) == 0 {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
 				// do nothing here, as we want to avoid updating clients if it is batched with only redundant messages
