@@ -168,6 +168,7 @@ type SimApp struct {
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
+	msgSvcRouter      *authmiddleware.MsgServiceRouter
 
 	invCheckPeriod uint
 
