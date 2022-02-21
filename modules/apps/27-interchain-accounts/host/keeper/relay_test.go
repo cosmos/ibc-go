@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta2"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
@@ -133,7 +133,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().NoError(err)
 
 				msg := &govtypes.MsgSubmitProposal{
-					Content:        any,
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
 					Proposer:       interchainAccountAddr,
 				}
