@@ -316,14 +316,14 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		{
 			"module account balance insufficient",
 			func(suite *FeeTestSuite) {
-				packetId := channeltypes.PacketId{
+				packetID := channeltypes.PacketId{
 					PortId:    suite.path.EndpointA.ChannelConfig.PortID,
 					ChannelId: suite.path.EndpointA.ChannelID,
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(packetId, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetId, identifiedFee)
+				identifiedFee := types.NewIdentifiedPacketFee(packetID, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedFee)
 				suite.Require().NoError(err)
 
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)

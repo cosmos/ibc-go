@@ -277,16 +277,16 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	prevBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
 
 	for i := 0; i < 5; i++ {
-		packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(i))
+		packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(i))
 		fee := types.Fee{
 			RecvFee:    defaultReceiveFee,
 			AckFee:     defaultAckFee,
 			TimeoutFee: defaultTimeoutFee,
 		}
 
-		identifiedPacketFee := types.NewIdentifiedPacketFee(packetId, fee, refundAcc.String(), []string{})
+		identifiedPacketFee := types.NewIdentifiedPacketFee(packetID, fee, refundAcc.String(), []string{})
 		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-		err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetId, identifiedPacketFee)
+		err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedPacketFee)
 		suite.Require().NoError(err)
 	}
 
