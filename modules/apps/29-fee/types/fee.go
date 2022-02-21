@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund addres and relayers
@@ -19,6 +20,14 @@ func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
 // NewPacketFees creates and returns a new PacketFees struct including a list of type PacketFee
 func NewPacketFees(packetFees []PacketFee) PacketFees {
 	return PacketFees{
+		PacketFees: packetFees,
+	}
+}
+
+// NewIdentifiedPacketFees creates and returns a new IdentifiedPacketFees struct containing a packet ID and packet fees
+func NewIdentifiedPacketFees(packetID channeltypes.PacketId, packetFees []PacketFee) IdentifiedPacketFees {
+	return IdentifiedPacketFees{
+		PacketId:   packetID,
 		PacketFees: packetFees,
 	}
 }
