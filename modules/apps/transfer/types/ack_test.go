@@ -8,7 +8,8 @@ import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
 
-	//	tmstate "github.com/tendermint/tendermint/state"
+	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -74,12 +75,12 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 		},
 	}
 
-	//	hash := tmstate.ABCIResponsesResultsHash(&responses)
-	//	hashSameABCICode := tmstate.ABCIResponsesResultsHash(&responsesSameABCICode)
-	//	hashDifferentABCICode := tmstate.ABCIResponsesResultsHash(&responsesDifferentABCICode)
+	hash := ABCIResponsesResultsHash(&responses)
+	hashSameABCICode := ABCIResponsesResultsHash(&responsesSameABCICode)
+	hashDifferentABCICode := ABCIResponsesResultsHash(&responsesDifferentABCICode)
 
-	//	suite.Require().Equal(hash, hashSameABCICode)
-	//	suite.Require().NotEqual(hash, hashDifferentABCICode)
+	suite.Require().Equal(hash, hashSameABCICode)
+	suite.Require().NotEqual(hash, hashDifferentABCICode)
 }
 
 // TestAcknowledgementError will verify that only a constant string and
@@ -99,4 +100,8 @@ func (suite *TypesTestSuite) TestAcknowledgementError() {
 	suite.Require().Equal(ack, ackSameABCICode)
 	suite.Require().NotEqual(ack, ackDifferentABCICode)
 
+}
+
+func ABCIResponsesResultsHash(ar *tmstate.ABCIResponses) []byte {
+	return tmtypes.NewResults(ar.DeliverTxs).Hash()
 }

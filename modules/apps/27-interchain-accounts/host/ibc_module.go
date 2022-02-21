@@ -66,7 +66,7 @@ func (im IBCModule) OnChanOpenAck(
 	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-// OnChanOpenAck implements the IBCModule interface
+// OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
