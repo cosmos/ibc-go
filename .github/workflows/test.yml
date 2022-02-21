@@ -1,11 +1,11 @@
 name: Tests / Code Coverage
 #  Tests / Code Coverage workflow runs unit tests and uploads a code coverage report
-#  This workflow is run on pushes to main & every Pull Requests where a .go, .mod, .sum have been changed
+#  This workflow is run on pushes & every Pull Requests where a .go, .mod, .sum have been changed
 on:
   pull_request:
   push:
-    branches:
-      - main
+  workflow_dispatch:
+
 jobs:
   cleanup-runs:
     runs-on: ubuntu-latest
