@@ -306,8 +306,8 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 					1,
 				)
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(packetID, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedFee)
+				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 				suite.Require().NoError(err)
 			},
 			false,
@@ -321,8 +321,8 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(packetID, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedFee)
+				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 				suite.Require().NoError(err)
 
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
@@ -384,8 +384,8 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(packetID, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedFee)
+				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 				suite.Require().NoError(err)
 			},
 			false,
@@ -399,8 +399,8 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 					Sequence:  1,
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				identifiedFee := types.NewIdentifiedPacketFee(packetID, types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedFee)
+				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
+				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 				suite.Require().NoError(err)
 
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
@@ -531,7 +531,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		ack                    []byte
-		identifiedFee          types.IdentifiedPacketFee
+		packetFee              types.PacketFee
 		originalBalance        sdk.Coins
 		expectedBalance        sdk.Coins
 		expectedRelayerBalance sdk.Coins
@@ -545,7 +545,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success",
 			func() {
-				expectedRelayerBalance = identifiedFee.Fee.RecvFee.Add(identifiedFee.Fee.AckFee[0])
+				expectedRelayerBalance = packetFee.Fee.RecvFee.Add(packetFee.Fee.AckFee[0])
 			},
 			true,
 		},
@@ -593,7 +593,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 					ForwardRelayerAddress: blockedAddr.String(),
 				}.Acknowledgement()
 
-				expectedRelayerBalance = identifiedFee.Fee.AckFee
+				expectedRelayerBalance = packetFee.Fee.AckFee
 			},
 			true,
 		},
@@ -617,8 +617,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 			// escrow the packet fee
 			packetID := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
-			identifiedFee = types.NewIdentifiedPacketFee(
-				packetID,
+			packetFee = types.NewPacketFee(
 				types.Fee{
 					RecvFee:    validCoins,
 					AckFee:     validCoins2,
@@ -627,7 +626,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				[]string{},
 			)
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedFee)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 			suite.Require().NoError(err)
 
 			relayerAddr := suite.chainB.SenderAccount.GetAddress()
@@ -643,7 +642,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 
 			// default to success case
-			expectedBalance = originalBalance.Add(identifiedFee.Fee.TimeoutFee[0])
+			expectedBalance = originalBalance.Add(packetFee.Fee.TimeoutFee[0])
 
 			// malleate test case
 			tc.malleate()
@@ -674,7 +673,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	var (
 		relayerAddr     sdk.AccAddress
-		identifiedFee   types.IdentifiedPacketFee
+		packetFee       types.PacketFee
 		originalBalance sdk.Coins
 		expectedBalance sdk.Coins
 	)
@@ -714,8 +713,8 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				expectedBalance = originalBalance.
-					Add(identifiedFee.Fee.RecvFee[0]).
-					Add(identifiedFee.Fee.AckFee[0])
+					Add(packetFee.Fee.RecvFee[0]).
+					Add(packetFee.Fee.AckFee[0])
 			},
 			false,
 		},
@@ -740,8 +739,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			// must be explicitly changed
 			relayerAddr = suite.chainB.SenderAccount.GetAddress()
 
-			identifiedFee = types.NewIdentifiedPacketFee(
-				packetID,
+			packetFee = types.NewPacketFee(
 				types.Fee{
 					RecvFee:    validCoins,
 					AckFee:     validCoins2,
@@ -751,7 +749,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				[]string{},
 			)
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, identifiedFee)
+			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 			suite.Require().NoError(err)
 
 			// log original sender balance
@@ -760,8 +758,8 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			// default to success case
 			expectedBalance = originalBalance.
-				Add(identifiedFee.Fee.RecvFee[0]).
-				Add(identifiedFee.Fee.AckFee[0])
+				Add(packetFee.Fee.RecvFee[0]).
+				Add(packetFee.Fee.AckFee[0])
 
 			// malleate test case
 			tc.malleate()
@@ -780,7 +778,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
 				suite.Require().False(found)
 
-				suite.Require().Equal(identifiedFee.Fee.TimeoutFee, relayerBalance)
+				suite.Require().Equal(packetFee.Fee.TimeoutFee, relayerBalance)
 			} else {
 				suite.Require().Empty(relayerBalance)
 			}
