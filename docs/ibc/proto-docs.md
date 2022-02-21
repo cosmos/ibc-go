@@ -32,6 +32,8 @@
     - [Fee](#ibc.applications.fee.v1.Fee)
     - [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee)
     - [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees)
+    - [PacketFee](#ibc.applications.fee.v1.PacketFee)
+    - [PacketFees](#ibc.applications.fee.v1.PacketFees)
   
 - [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
@@ -741,12 +743,46 @@ and an optional list of relayers that are permitted to receive the fee.
 <a name="ibc.applications.fee.v1.IdentifiedPacketFees"></a>
 
 ### IdentifiedPacketFees
-IdentifiedPacketFees contains a list of packet fees
+IdentifiedPacketFees contains a PacketFree and associated PacketId
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `packet_fees` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated |  |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
+| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.PacketFee"></a>
+
+### PacketFee
+PacketFee contains the relayer fee, refund address and an optional list of relayers that are permitted to receive the
+fee
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
+| `refund_address` | [string](#string) |  |  |
+| `relayers` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.PacketFees"></a>
+
+### PacketFees
+PacketFees contains a list of type PacketFee
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated |  |
 
 
 

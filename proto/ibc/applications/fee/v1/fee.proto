@@ -41,8 +41,22 @@ message IdentifiedPacketFee {
   repeated string relayers       = 4;
 }
 
-// IdentifiedPacketFees contains a list of packet fees
+// PacketFee contains the relayer fee, refund address and an optional list of relayers that are permitted to receive the
+// fee
+message PacketFee {
+  Fee             fee            = 1 [(gogoproto.nullable) = false];
+  string          refund_address = 2 [(gogoproto.moretags) = "yaml:\"refund_address\""];
+  repeated string relayers       = 3;
+}
+
+// PacketFees contains a list of type PacketFee
+message PacketFees {
+  repeated PacketFee packet_fees = 1 [(gogoproto.moretags) = "yaml:\"packet_fees\"", (gogoproto.nullable) = false];
+}
+
+// IdentifiedPacketFees contains a PacketFree and associated PacketId
 message IdentifiedPacketFees {
-  repeated IdentifiedPacketFee packet_fees = 1
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_fees\""];
+  ibc.core.channel.v1.PacketId packet_id = 1
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_id\""];
+  repeated PacketFee packet_fees = 2 [(gogoproto.moretags) = "yaml:\"packet_fees\"", (gogoproto.nullable) = false];
 }
