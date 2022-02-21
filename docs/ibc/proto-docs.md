@@ -743,7 +743,7 @@ and an optional list of relayers that are permitted to receive the fee.
 <a name="ibc.applications.fee.v1.IdentifiedPacketFees"></a>
 
 ### IdentifiedPacketFees
-IdentifiedPacketFees contains a PacketFree and associated PacketId
+IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
 
 
 | Field | Type | Label | Description |
