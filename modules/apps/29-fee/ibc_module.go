@@ -205,7 +205,7 @@ func (im IBCModule) OnRecvPacket(
 	// if forwardRelayer is not found we refund recv_fee
 	forwardRelayer, _ := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
 
-	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement())
+	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
