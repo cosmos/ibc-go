@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 )
 
-// InitGenesis
+// InitGenesis initializes the fee middleware application state from a provided genesis state
 func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, fee := range state.IdentifiedFees {
 		k.SetFeeInEscrow(ctx, fee)
@@ -25,7 +25,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 }
 
-// ExportGenesis
+// ExportGenesis returns the fee middleware application exported genesis
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		IdentifiedFees:     k.GetAllIdentifiedPacketFees(ctx),

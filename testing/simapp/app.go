@@ -114,6 +114,11 @@ import (
 
 const appName = "SimApp"
 
+// IBC application testing ports
+const (
+	MockFeePort string = ibcmock.ModuleName + ibcfeetypes.ModuleName
+)
+
 var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
@@ -217,6 +222,7 @@ type SimApp struct {
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
 	ICAAuthModule ibcmock.IBCModule
+	FeeMockModule ibcmock.IBCModule
 
 	// the module manager
 	mm *module.Manager
@@ -288,7 +294,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
-	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + ibcfeetypes.ModuleName)
+	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
 
 	// seal capability keeper after scoping modules
@@ -371,11 +377,10 @@ func NewSimApp(
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
 
 	// create fee wrapped mock module
-	feeMockModule := ibcfee.NewIBCModule(
-		app.IBCFeeKeeper, ibcmock.NewIBCModule(
-			&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName+ibcfeetypes.ModuleName, scopedFeeMockKeeper),
-		),
-	)
+	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(MockFeePort, scopedFeeMockKeeper))
+	app.FeeMockModule = feeMockModule
+
+	feeWithMockModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, feeMockModule)
 
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
 
@@ -409,7 +414,7 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerIBCModule). // ica with mock auth module stack route to ica (top level of middleware stack)
 		AddRoute(ibctransfertypes.ModuleName, feeTransferModule).
 		AddRoute(ibcmock.ModuleName, mockIBCModule).
-		AddRoute(ibcmock.ModuleName+ibcfeetypes.ModuleName, feeMockModule)
+		AddRoute(MockFeePort, feeWithMockModule)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -559,6 +564,7 @@ func NewSimApp(
 	// note replicate if you do not need to test core IBC or light clients.
 	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
 	app.ScopedICAMockKeeper = scopedICAMockKeeper
+	app.ScopedFeeMockKeeper = scopedFeeMockKeeper
 
 	return app
 }
