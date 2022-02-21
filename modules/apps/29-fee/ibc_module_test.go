@@ -12,7 +12,6 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
 var (
@@ -694,7 +693,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
-				expectedBalance = originalBalance.Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
+				expectedBalance = originalBalance
 			},
 			false,
 		},
@@ -705,7 +704,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetId)
 
-				expectedBalance = originalBalance.Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
+				expectedBalance = originalBalance
 			},
 			false,
 		},
@@ -716,8 +715,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 				expectedBalance = originalBalance.
 					Add(identifiedFee.Fee.RecvFee[0]).
-					Add(identifiedFee.Fee.AckFee[0]).
-					Add(ibctesting.TestCoin) // timeout refund for ics20 transfer
+					Add(identifiedFee.Fee.AckFee[0])
 			},
 			false,
 		},
@@ -726,27 +724,18 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			// open incentivized channel
+			suite.SetupMockTest()
 			suite.coordinator.Setup(suite.path)
-
-			// set up coin & create ics20 packet
-			coin := ibctesting.TestCoin
-			packet := suite.CreateICS20Packet(coin)
-
-			// setup for ics20: fund chain A's escrow path so that tokens can be unescrowed upon timeout
-			escrow := transfertypes.GetEscrowAddress(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-			suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+			packet := suite.CreateMockPacket()
 
 			// set up module and callbacks
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
+			packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
 
 			// must be explicitly changed
 			relayerAddr = suite.chainB.SenderAccount.GetAddress()
@@ -772,8 +761,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			// default to success case
 			expectedBalance = originalBalance.
 				Add(identifiedFee.Fee.RecvFee[0]).
-				Add(identifiedFee.Fee.AckFee[0]).
-				Add(coin) // timeout refund from ics20 transfer
+				Add(identifiedFee.Fee.AckFee[0])
 
 			// malleate test case
 			tc.malleate()
