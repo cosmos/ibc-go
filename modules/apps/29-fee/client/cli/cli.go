@@ -25,14 +25,14 @@ func GetQueryCmd() *cobra.Command {
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        "ibc-fee",
-		Short:                      "", // TODO
+		Short:                      "Transaction subcommand for incentivizing relaying IBC packet",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	txCmd.AddCommand(
-	// TODO
+		NewPayPacketFeeAsyncTxCmd(),
 	)
 
 	return txCmd
