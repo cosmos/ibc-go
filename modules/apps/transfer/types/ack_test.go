@@ -101,6 +101,7 @@ func (suite *TypesTestSuite) TestAcknowledgementError() {
 	suite.Require().NotEqual(ack, ackDifferentABCICode)
 
 }
+
 func ABCIResponsesResultsHash(ar *tmstate.ABCIResponses) []byte {
 	return tmtypes.NewResults(ar.DeliverTxs).Hash()
 }
