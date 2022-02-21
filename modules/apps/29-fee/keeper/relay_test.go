@@ -64,3 +64,28 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
+	// open incentivized channel
+	suite.coordinator.Setup(suite.path)
+	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
+
+	// build packet
+	timeoutTimestamp := ^uint64(0)
+	packet := channeltypes.NewPacket(
+		[]byte("packetData"),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.ZeroHeight(),
+		timeoutTimestamp,
+	)
+
+	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+
+	err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	suite.Require().NoError(err)
+}
