@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"math/rand"
+	"crypto/rand"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"

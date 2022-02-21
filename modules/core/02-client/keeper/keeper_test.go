@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	"context"
-	"math/rand"
+	"crypto/rand"
 	"testing"
 	"time"
 

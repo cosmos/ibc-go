@@ -1,11 +1,11 @@
 package simapp
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
