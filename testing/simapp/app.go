@@ -414,7 +414,7 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerIBCModule). // ica with mock auth module stack route to ica (top level of middleware stack)
 		AddRoute(ibctransfertypes.ModuleName, feeTransferModule).
 		AddRoute(ibcmock.ModuleName, mockIBCModule).
-		AddRoute(ibcmock.ModuleName+ibcfeetypes.ModuleName, feeWithMockModule)
+		AddRoute(MockFeePort, feeWithMockModule)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -564,6 +564,7 @@ func NewSimApp(
 	// note replicate if you do not need to test core IBC or light clients.
 	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
 	app.ScopedICAMockKeeper = scopedICAMockKeeper
+	app.ScopedFeeMockKeeper = scopedFeeMockKeeper
 
 	return app
 }
