@@ -534,7 +534,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					ForwardRelayerAddress: "",
 					UnderlyingAppSuccess:  true,
 				}
-				suite.Require().Equal(ack, result)
+				suite.Require().Equal(expectedAck, result)
 			}
 		})
 	}
