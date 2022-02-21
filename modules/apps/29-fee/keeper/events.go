@@ -10,16 +10,16 @@ import (
 )
 
 // EmitIncentivizedPacket emits an event so that relayers know an incentivized packet is ready to be relayed
-func EmitIncentivizedPacket(ctx sdk.Context, identifiedFee types.IdentifiedPacketFee) {
+func EmitIncentivizedPacket(ctx sdk.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeIncentivizedPacket,
-			sdk.NewAttribute(channeltypes.AttributeKeyPortID, identifiedFee.PacketId.PortId),
-			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, identifiedFee.PacketId.ChannelId),
-			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(identifiedFee.PacketId.Sequence)),
-			sdk.NewAttribute(types.AttributeKeyRecvFee, identifiedFee.Fee.RecvFee.String()),
-			sdk.NewAttribute(types.AttributeKeyAckFee, identifiedFee.Fee.AckFee.String()),
-			sdk.NewAttribute(types.AttributeKeyTimeoutFee, identifiedFee.Fee.TimeoutFee.String()),
+			sdk.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
+			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, packetID.ChannelId),
+			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(packetID.Sequence)),
+			sdk.NewAttribute(types.AttributeKeyRecvFee, packetFee.Fee.RecvFee.String()),
+			sdk.NewAttribute(types.AttributeKeyAckFee, packetFee.Fee.AckFee.String()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutFee, packetFee.Fee.TimeoutFee.String()),
 		),
 	)
 }

@@ -11,13 +11,13 @@ import (
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
-func (k Keeper) EscrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId, identifiedFee types.IdentifiedPacketFee) error {
+func (k Keeper) EscrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) error {
 	if !k.IsFeeEnabled(ctx, packetID.PortId, packetID.ChannelId) {
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
 	}
 	// check if the refund account exists
-	refundAcc, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
+	refundAcc, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 	if err != nil {
 		return err
 	}
@@ -27,26 +27,26 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", refundAcc)
 	}
 
-	coins := identifiedFee.Fee.Total()
+	coins := packetFee.Fee.Total()
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, refundAcc, types.ModuleName, coins); err != nil {
 		return err
 	}
 
-	packetFees := []types.IdentifiedPacketFee{identifiedFee}
+	fees := []types.PacketFee{packetFee}
 	if feesInEscrow, found := k.GetFeesInEscrow(ctx, packetID); found {
-		packetFees = append(packetFees, feesInEscrow.PacketFees...)
+		fees = append(fees, feesInEscrow.PacketFees...)
 	}
 
-	identifiedFees := types.NewIdentifiedPacketFees(packetFees)
-	k.SetFeesInEscrow(ctx, packetID, identifiedFees)
+	packetFees := types.NewPacketFees(fees)
+	k.SetFeesInEscrow(ctx, packetID, packetFees)
 
-	EmitIncentivizedPacket(ctx, identifiedFee)
+	EmitIncentivizedPacket(ctx, packetID, packetFee)
 
 	return nil
 }
 
 // DistributePacketFees pays the acknowledgement fee & receive fee for a given packetId while refunding the timeout fee to the refund account associated with the Fee.
-func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, feesInEscrow []types.IdentifiedPacketFee) {
+func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, feesInEscrow []types.PacketFee) {
 	forwardAddr, _ := sdk.AccAddressFromBech32(forwardRelayer)
 
 	for _, packetFee := range feesInEscrow {
@@ -73,7 +73,7 @@ func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, rev
 }
 
 // DistributePacketsFeesTimeout pays the timeout fee for a given packetId while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, feesInEscrow []types.IdentifiedPacketFee) {
+func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, feesInEscrow []types.PacketFee) {
 	for _, feeInEscrow := range feesInEscrow {
 		// check if refundAcc address works
 		refundAddr, err := sdk.AccAddressFromBech32(feeInEscrow.RefundAddress)
@@ -113,8 +113,8 @@ func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) e
 
 	var refundErr error
 
-	k.IterateIdentifiedChannelFeesInEscrow(ctx, portID, channelID, func(identifiedFees types.IdentifiedPacketFees) (stop bool) {
-		for _, identifiedFee := range identifiedFees.PacketFees {
+	k.IteratePacketFeesInEscrow(ctx, portID, channelID, func(packetFees types.PacketFees) (stop bool) {
+		for _, identifiedFee := range packetFees.PacketFees {
 			refundAccAddr, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
 			if err != nil {
 				refundErr = err

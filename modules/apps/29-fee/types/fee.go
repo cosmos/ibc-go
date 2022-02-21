@@ -7,10 +7,28 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// NewIdentifiedPacketFees creates and returns a new IdentifiedPacketFees struct
-func NewIdentifiedPacketFees(packetFees []IdentifiedPacketFee) IdentifiedPacketFees {
-	return IdentifiedPacketFees{
+// NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund addres and relayers
+func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
+	return PacketFee{
+		Fee:           fee,
+		RefundAddress: refundAddr,
+		Relayers:      relayers,
+	}
+}
+
+// NewPacketFees creates and returns a new PacketFees struct including a list of type PacketFee
+func NewPacketFees(packetFees []PacketFee) PacketFees {
+	return PacketFees{
 		PacketFees: packetFees,
+	}
+}
+
+// NewFee creates and returns a new Fee struct encapsulating the receive, acknowledgement and timeout fees as sdk.Coins
+func NewFee(recvFee, ackFee, timeoutFee sdk.Coins) Fee {
+	return Fee{
+		RecvFee:    recvFee,
+		AckFee:     ackFee,
+		TimeoutFee: timeoutFee,
 	}
 }
 
