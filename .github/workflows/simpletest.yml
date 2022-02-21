@@ -1,0 +1,23 @@
+# This is a basic workflow that is manually triggered
+
+name: compile dig
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on: [push, pull_request, workflow_dispatch]
+
+# This workflow makes x86_64 binaries for mac, windows, and linux.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: dig 
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2.1.3
+        with: 
+          go-version: '^1.17'
+
+      - name: Compile dig
+        run: |
+          make test
