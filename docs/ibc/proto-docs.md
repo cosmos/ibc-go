@@ -341,7 +341,7 @@ It contains the raw acknowledgement bytes, as well as the forward relayer addres
 | ----- | ---- | ----- | ----------- |
 | `result` | [bytes](#bytes) |  |  |
 | `forward_relayer_address` | [string](#string) |  |  |
-| `successful` | [bool](#bool) |  |  |
+| `underlying_app_success` | [bool](#bool) |  |  |
 
 
 
