@@ -7,7 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta2"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1beta2 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta2"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
@@ -124,7 +125,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				testProposal := &govtypes.TextProposal{
+				testProposal := &govtypesv1beta1.TextProposal{
 					Title:       "IBC Gov Proposal",
 					Description: "tokens for all!",
 				}
@@ -132,7 +133,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				any, err := codectypes.NewAnyWithValue(testProposal)
 				suite.Require().NoError(err)
 
-				msg := &govtypes.MsgSubmitProposal{
+				msg := &govtypesv1beta1.MsgSubmitProposal{
+					Content:        any,
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
 					Proposer:       interchainAccountAddr,
 				}
@@ -158,22 +160,18 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				// Populate the gov keeper in advance with an active proposal
-				testProposal := &govtypes.TextProposal{
-					Title:       "IBC Gov Proposal",
-					Description: "tokens for all!",
-				}
+				testMsg := banktypes.NewMsgSend(suite.chainB.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))))
 
-				proposal, err := govtypes.NewProposal(testProposal, govtypes.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour))
+				proposal, err := govtypesv1beta2.NewProposal([]sdk.Msg{testMsg}, govtypesv1beta1.DefaultStartingProposalID, []byte{}, time.Now(), time.Now().Add(time.Hour))
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
 				suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
 
-				msg := &govtypes.MsgVote{
-					ProposalId: govtypes.DefaultStartingProposalID,
+				msg := &govtypesv1beta1.MsgVote{
+					ProposalId: govtypesv1beta1.DefaultStartingProposalID,
 					Voter:      interchainAccountAddr,
-					Option:     govtypes.OptionYes,
+					Option:     govtypesv1beta1.OptionYes,
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
