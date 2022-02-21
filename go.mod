@@ -7,19 +7,19 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 require (
 	github.com/armon/go-metrics v0.3.10
 	github.com/confio/ics23/go v0.6.6
+	github.com/cosmos/cosmos-proto v1.0.0-alpha7.0.20220208174455-213b76899fac
 	github.com/cosmos/cosmos-sdk v0.46.0-alpha2.0.20220218134704-20e17ea71a9b
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/rakyll/statik v0.1.7
-	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/tendermint v0.35.1
-	github.com/tendermint/tm-db v0.6.6
+	github.com/tendermint/tm-db v0.6.7-0.20220215234331-1cf56ef1580b
 	google.golang.org/genproto v0.0.0-20220118154757-00ab72f36ad5
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
@@ -43,11 +43,11 @@ require (
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.2 // indirect
 	github.com/cosmos/btcutil v1.0.4 // indirect
-	github.com/cosmos/cosmos-proto v1.0.0-alpha7.0.20220208174455-213b76899fac // indirect
 	github.com/cosmos/cosmos-sdk/api v0.1.0-alpha4 // indirect
 	github.com/cosmos/cosmos-sdk/db v1.0.0-beta.1.0.20220218134704-20e17ea71a9b // indirect
 	github.com/cosmos/cosmos-sdk/errors v1.0.0-beta.2 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
+	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.17.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
 	github.com/cosmos/ledger-go v0.9.2 // indirect
@@ -112,6 +112,7 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
+	github.com/regen-network/cosmos-proto v0.3.1 // indirect
 	github.com/rs/cors v1.8.2 // indirect
 	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/sasha-s/go-deadlock v0.2.1-0.20190427202633-1595213edefa // indirect
@@ -120,7 +121,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
-	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
