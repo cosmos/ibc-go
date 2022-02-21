@@ -327,15 +327,29 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) 
 }
 
 // GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
-func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFee {
+func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFees {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeInEscrowPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeesInEscrowPrefix))
 	defer iterator.Close()
 
-	var identifiedFees []types.IdentifiedPacketFee
+	var identifiedFees []types.IdentifiedPacketFees
 	for ; iterator.Valid(); iterator.Next() {
-		fee := k.MustUnmarshalFee(iterator.Value())
-		identifiedFees = append(identifiedFees, fee)
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		feesInEscrow := k.MustUnmarshalFees(iterator.Value())
+
+		channelID, portID := keySplit[2], keySplit[1]
+		seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+		if err != nil {
+			panic(err)
+		}
+
+		identifiedFee := types.IdentifiedPacketFees{
+			PacketId:   channeltypes.NewPacketId(channelID, portID, seq),
+			PacketFees: feesInEscrow.PacketFees,
+		}
+
+		identifiedFees = append(identifiedFees, identifiedFee)
 	}
 
 	return identifiedFees

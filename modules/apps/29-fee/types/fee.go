@@ -16,6 +16,25 @@ func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
 	}
 }
 
+// Validate performs basic stateless validation of the associated PacketFee
+func (p PacketFee) Validate() error {
+	_, err := sdk.AccAddressFromBech32(p.RefundAddress)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
+	}
+
+	// enforce relayer is nil
+	if p.Relayers != nil {
+		return ErrRelayersNotNil
+	}
+
+	if err := p.Fee.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // NewPacketFees creates and returns a new PacketFees struct including a list of type PacketFee
 func NewPacketFees(packetFees []PacketFee) PacketFees {
 	return PacketFees{
