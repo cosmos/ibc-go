@@ -7,11 +7,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
-func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedPacketFee) error {
-	if !k.IsFeeEnabled(ctx, identifiedFee.PacketId.PortId, identifiedFee.PacketId.ChannelId) {
+func (k Keeper) EscrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId, identifiedFee types.IdentifiedPacketFee) error {
+	if !k.IsFeeEnabled(ctx, packetID.PortId, packetID.ChannelId) {
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
 	}
@@ -32,12 +33,14 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, identifiedFee types.IdentifiedP
 	}
 
 	packetFees := []types.IdentifiedPacketFee{identifiedFee}
-	if feesInEscrow, found := k.GetFeesInEscrow(ctx, identifiedFee.PacketId); found {
+	if feesInEscrow, found := k.GetFeesInEscrow(ctx, packetID); found {
 		packetFees = append(packetFees, feesInEscrow.PacketFees...)
 	}
 
 	identifiedFees := types.NewIdentifiedPacketFees(packetFees)
-	k.SetFeesInEscrow(ctx, identifiedFee.PacketId, identifiedFees)
+	k.SetFeesInEscrow(ctx, packetID, identifiedFees)
+
+	EmitIncentivizedPacket(ctx, identifiedFee)
 
 	return nil
 }

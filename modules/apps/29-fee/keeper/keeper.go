@@ -98,16 +98,16 @@ func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 }
 
 // GetAllFeeEnabledChannels returns a list of all ics29 enabled channels containing portID & channelID that are stored in state
-func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []*types.FeeEnabledChannel {
+func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
 	defer iterator.Close()
 
-	var enabledChArr []*types.FeeEnabledChannel
+	var enabledChArr []types.FeeEnabledChannel
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		ch := &types.FeeEnabledChannel{
+		ch := types.FeeEnabledChannel{
 			PortId:    keySplit[1],
 			ChannelId: keySplit[2],
 		}
@@ -154,16 +154,16 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address, channelID strin
 }
 
 // GetAllRelayerAddresses returns all registered relayer addresses
-func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []*types.RegisteredRelayerAddress {
+func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.RelayerAddressKeyPrefix))
 	defer iterator.Close()
 
-	var registeredAddrArr []*types.RegisteredRelayerAddress
+	var registeredAddrArr []types.RegisteredRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		addr := &types.RegisteredRelayerAddress{
+		addr := types.RegisteredRelayerAddress{
 			Address:             keySplit[1],
 			CounterpartyAddress: string(iterator.Value()),
 			ChannelId:           keySplit[2],
@@ -194,12 +194,12 @@ func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.
 }
 
 // GetAllForwardRelayerAddresses returns all forward relayer addresses stored for async acknowledgements
-func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardRelayerAddress {
+func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []types.ForwardRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ForwardRelayerPrefix))
 	defer iterator.Close()
 
-	var forwardRelayerAddr []*types.ForwardRelayerAddress
+	var forwardRelayerAddr []types.ForwardRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
@@ -210,7 +210,7 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []*types.ForwardR
 
 		packetId := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
 
-		addr := &types.ForwardRelayerAddress{
+		addr := types.ForwardRelayerAddress{
 			Address:  string(iterator.Value()),
 			PacketId: packetId,
 		}
