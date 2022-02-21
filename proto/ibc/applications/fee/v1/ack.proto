@@ -11,4 +11,5 @@ import "gogoproto/gogo.proto";
 message IncentivizedAcknowledgement {
   bytes  result                  = 1;
   string forward_relayer_address = 2 [(gogoproto.moretags) = "yaml:\"forward_relayer_address\""];
+  bool successful = 3;
 }

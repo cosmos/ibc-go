@@ -10,6 +10,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
@@ -462,11 +463,18 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			true,
 		},
 		{
-			"source relayer is empty string",
+			"async write acknowledgement: ack is nil",
 			func() {
-				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), "")
+				// setup mock callback
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context,
+					packet channeltypes.Packet,
+					relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					return nil
+				}
 			},
-			false,
+			true,
 			true,
 		},
 		{
@@ -476,6 +484,14 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			},
 			true,
 			false,
+		},
+		{
+			"forward address is not found",
+			func() {
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), "")
+			},
+			false,
+			true,
 		},
 	}
 
@@ -510,17 +526,14 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			case !tc.feeEnabled:
 				suite.Require().Equal(ibcmock.MockAcknowledgement, result)
 
-			case tc.forwardRelayer:
-				ack := types.IncentivizedAcknowledgement{
-					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
-					ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-				}
-				suite.Require().Equal(ack, result)
+			case tc.forwardRelayer && result == nil:
+				suite.Require().Equal(nil, result)
 
 			case !tc.forwardRelayer:
 				ack := types.IncentivizedAcknowledgement{
 					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: "",
+					Successful:            true,
 				}
 				suite.Require().Equal(ack, result)
 			}

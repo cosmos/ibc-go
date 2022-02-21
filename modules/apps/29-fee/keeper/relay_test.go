@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				timeoutTimestamp,
 			)
 
-			ack := []byte("ack")
+			ack := channeltypes.NewResultAcknowledgement([]byte("success"))
 			chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
 			// malleate test case
