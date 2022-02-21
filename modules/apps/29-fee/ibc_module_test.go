@@ -557,7 +557,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetId)
 
 				ack = types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
 				}.Acknowledgement()
 
@@ -578,7 +578,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			"channel is not fee not enabled, success",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-				ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
 				expectedBalance = originalBalance
 			},
@@ -590,7 +590,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				ack = types.IncentivizedAcknowledgement{
-					Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: blockedAddr.String(),
 				}.Acknowledgement()
 
@@ -604,24 +604,20 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			suite.coordinator.Setup(suite.path)
+			packet := suite.CreateMockPacket()
+
 			expectedRelayerBalance = sdk.Coins{} // reset
 
-			// open incentivized channel
-			suite.coordinator.Setup(suite.path)
-
-			// set up coin & ics20 packet
-			coin := ibctesting.TestCoin
-			packet := suite.CreateICS20Packet(coin)
-
 			// set up module and callbacks
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
 			// escrow the packet fee
-			packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, suite.chainA.SenderAccount.GetSequence())
+			packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
 			identifiedFee = types.NewIdentifiedPacketFee(
 				packetId,
 				types.Fee{
@@ -639,7 +635,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 			// must be changed explicitly
 			ack = types.IncentivizedAcknowledgement{
-				Result:                channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement(),
+				Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 				ForwardRelayerAddress: relayerAddr.String(),
 			}.Acknowledgement()
 
