@@ -3,9 +3,9 @@ package simulation
 // DONTCOVER
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 

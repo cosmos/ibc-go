@@ -1,9 +1,9 @@
 package simapp
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 

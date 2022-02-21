@@ -1,8 +1,8 @@
 package simulation_test
 
 import (
-	"crypto/rand"
 	"encoding/json"
+	"math/rand"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"

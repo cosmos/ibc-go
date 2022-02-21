@@ -1,9 +1,9 @@
 package simulation
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/types/module"

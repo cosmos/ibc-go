@@ -1,7 +1,7 @@
 package simulation
 
 import (
-	"crypto/rand"
+	"math/rand"
 
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 

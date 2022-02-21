@@ -1,7 +1,7 @@
 package simulation_test
 
 import (
-	"crypto/rand"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
