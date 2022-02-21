@@ -36,6 +36,11 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 		return ErrCounterpartyAddressEmpty
 	}
 
+	// validate channelId
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
+		return err
+	}
+
 	return nil
 }
 

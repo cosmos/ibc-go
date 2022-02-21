@@ -11,13 +11,14 @@ import (
 )
 
 var (
-	validChannelID = "channel-1"
-	validPortID    = "validPortId"
-	invalidID      = "this identifier is too long to be used as a valid identifier"
-	validCoins     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	invalidCoins   = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdk.NewInt(-2)}}
-	validAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	invalidAddr    = "invalid_address"
+	validChannelID   = "channel-1"
+	invalidChannelID = "ch-1"
+	validPortID      = "validPortId"
+	invalidID        = "this identifier is too long to be used as a valid identifier"
+	validCoins       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	invalidCoins     = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdk.NewInt(-2)}}
+	validAddr        = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	invalidAddr      = "invalid_address"
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
@@ -31,6 +32,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 		{"validate with incorrect destination relayer address", NewMsgRegisterCounterpartyAddress(invalidAddr, validAddr, validChannelID), false},
 		{"invalid counterparty address", NewMsgRegisterCounterpartyAddress(validAddr, "", validChannelID), false},
 		{"invalid counterparty address: whitespaced empty string", NewMsgRegisterCounterpartyAddress(validAddr, " ", validChannelID), false},
+		{"invalid channelID", NewMsgRegisterCounterpartyAddress(validAddr, validAddr, invalidChannelID), false},
 	}
 
 	for i, tc := range testCases {
