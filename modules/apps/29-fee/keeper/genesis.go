@@ -17,7 +17,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 
 	for _, forwardAddr := range state.ForwardRelayers {
-		k.SetForwardRelayerAddress(ctx, forwardAddr.PacketId, forwardAddr.Address)
+		k.SetRelayerAddressForAsyncAck(ctx, forwardAddr.PacketId, forwardAddr.Address)
 	}
 
 	for _, enabledChan := range state.FeeEnabledChannels {

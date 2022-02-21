@@ -21,12 +21,14 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 	// retrieve the forward relayer that was stored in `onRecvPacket`
 	packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
 
-	// relayer address returned here is the
-	relayer, _ := k.GetForwardRelayerAddress(ctx, packetId)
-	forwardRelayer, found := k.GetCounterpartyAddress(ctx, relayer)
+	relayer, found := k.GetRelayerAddressForAsyncAck(ctx, packetId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCounterpartyAddressEmpty, "counterparty address not found for address: %s", forwardRelayer)
+		return sdkerrors.Wrapf(types.ErrRelayerNotFoundForAsyncAck, "No relayer address stored for async acknowledgement for packet with portID: %s, channelID: %s, sequence: %d", packetId.PortId, packetId.ChannelId, packetId.Sequence)
 	}
+
+	// it is possible that a relayer has not registered a counterparty address.
+	// if there is no registered counterparty address then write acknowledgement with empty relayer address and refund recv_fee.
+	forwardRelayer, _ := k.GetCounterpartyAddress(ctx, relayer)
 
 	k.DeleteForwardRelayerAddress(ctx, packetId)
 
