@@ -12,8 +12,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		k.SetFeeInEscrow(ctx, fee)
 	}
 
-	for _, addr := range state.RegisteredRelayers {
-		k.SetCounterpartyAddress(ctx, addr.Address, addr.CounterpartyAddress, addr.ChannelId)
+	for _, relayer := range state.RegisteredRelayers {
+		k.SetCounterpartyAddress(ctx, relayer.Address, relayer.CounterpartyAddress, relayer.ChannelId)
 	}
 
 	for _, forwardAddr := range state.ForwardRelayers {
