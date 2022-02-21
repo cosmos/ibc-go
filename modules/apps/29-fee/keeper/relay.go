@@ -18,7 +18,7 @@ func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability,
 // ICS29 WriteAcknowledgement is used for asynchronous acknowledgements
 func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, acknowledgement []byte) error {
 	// retrieve the forward relayer that was stored in `onRecvPacket`
-	packetId := channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence())
+	packetId := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
 	relayer, _ := k.GetForwardRelayerAddress(ctx, packetId)
 
 	k.DeleteForwardRelayerAddress(ctx, packetId)
