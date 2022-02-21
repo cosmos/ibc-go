@@ -529,7 +529,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				suite.Require().Equal(nil, result)
 
 			case !tc.forwardRelayer:
-				ack := types.IncentivizedAcknowledgement{
+				expectedAck := types.IncentivizedAcknowledgement{
 					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: "",
 					UnderlyingAppSuccess:  true,
