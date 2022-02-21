@@ -60,7 +60,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			// reset suite
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
 
 			// setup mock callback
@@ -151,7 +151,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 
 		suite.Run(tc.name, func() {
 			// reset suite
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
 			suite.path.EndpointB.ChanOpenInit()
 
@@ -256,7 +256,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
 
 			// setup mock callback
@@ -338,7 +338,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
@@ -416,7 +416,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
@@ -497,7 +497,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path)
 
 			// set up a different channel to make sure that the test will error if the destination channel of the packet is not fee enabled
@@ -737,7 +737,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path)
 			packet := suite.CreateMockPacket()
 
