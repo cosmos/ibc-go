@@ -43,6 +43,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			{
 				Address:             sender,
 				CounterpartyAddress: counterparty,
+				ChannelId:           ibctesting.FirstChannelID,
 			},
 		},
 	}
@@ -59,7 +60,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().True(isEnabled)
 
 	// check relayers
-	addr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainA.GetContext(), sender)
+	addr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainA.GetContext(), sender, ibctesting.FirstChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(genesisState.RegisteredRelayers[0].CounterpartyAddress, addr)
 }
@@ -84,7 +85,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	sender := suite.chainA.SenderAccount.GetAddress().String()
 	counterparty := suite.chainB.SenderAccount.GetAddress().String()
 	// set counterparty address
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty, ibctesting.FirstChannelID)
 
 	// set forward relayer address
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainA.GetContext(), packetID, sender)
