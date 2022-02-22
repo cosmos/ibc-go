@@ -25,7 +25,7 @@ func GetQueryCmd() *cobra.Command {
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        "ibc-fee",
-		Short:                      "Transaction subcommand for incentivizing relaying IBC packets",
+		Short:                      "Transaction subcommand for IBC relayer incentivization",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
