@@ -64,7 +64,9 @@ func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 
 	feesInEscrow, exists := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !exists {
-		return nil, status.Error(codes.NotFound, sdkerrors.Wrap(types.ErrFeeNotFound, req.PacketId.String()).Error())
+		return nil, status.Error(
+			codes.NotFound,
+			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error())
 	}
 
 	return &types.QueryIncentivizedPacketResponse{
