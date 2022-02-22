@@ -28,7 +28,7 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 		Use:     "pay-packet-fee [src-port] [src-channel] [sequence]",
 		Short:   "Pay a fee to incentivize an existing IBC packet",
 		Long:    strings.TrimSpace(`Pay a fee to incentivize an existing IBC packet.`),
-		Example: fmt.Sprintf("%s tx pay-packet-fee [src-port] [src-channel] [sequence] --recv-fee 10stake --ack-fee 10stake --timeout-fee 10stake", version.AppName),
+		Example: fmt.Sprintf("%s tx pay-packet-fee transfer channel-0 1 --recv-fee 10stake --ack-fee 10stake --timeout-fee 10stake", version.AppName),
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
