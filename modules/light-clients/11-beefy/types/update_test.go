@@ -174,7 +174,6 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-
 			changeSet, err := relayApi.RPC.State.QueryStorage(paraHeaderKeys, previousFinalizedHash, blockHash)
 			if err != nil {
 				panic(err)
@@ -226,7 +225,11 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			var parachainHeaders []*types.ParachainHeader
 
-			for _, v := range mmrBatchProof.Leaves {
+			var paraHeads = make([][]byte, len(mmrBatchProof.Leaves))
+
+			for i := 0; i < len(mmrBatchProof.Leaves); i++ {
+				v := mmrBatchProof.Leaves[i]
+				paraHeads[i] = v.Leaf.ParachainHeads[:]
 				var leafBlockNumber = clientState.GetBlockNumberForLeaf(uint32(v.Index))
 				paraHeaders := finalizedBlocks[leafBlockNumber]
 
@@ -300,13 +303,13 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			BeefyNextAuthoritySetRoot := bytes32(latestLeaf.BeefyNextAuthoritySet.Root[:])
 			parentHash := bytes32(latestLeaf.ParentNumberAndHash.Hash[:])
 
-			var latestLeafMmrProof [][]byte
+			var latestLeafMmrProof = make([][]byte, len(mmrProof.Proof.Items))
 			for i := 0; i < len(mmrProof.Proof.Items); i++ {
-				latestLeafMmrProof = append(latestLeafMmrProof, mmrProof.Proof.Items[i][:])
+				latestLeafMmrProof[i] = mmrProof.Proof.Items[i][:]
 			}
-			var mmrBatchProofItems [][]byte
+			var mmrBatchProofItems = make([][]byte, len(mmrBatchProof.Proof.Items))
 			for i := 0; i < len(mmrBatchProof.Proof.Items); i++ {
-				mmrBatchProofItems = append(mmrBatchProofItems, mmrBatchProof.Proof.Items[i][:])
+				mmrBatchProofItems[i] = mmrBatchProof.Proof.Items[i][:]
 			}
 			var signatures []*types.CommitmentSignature
 			var authorityIndeces []uint32
