@@ -24,8 +24,8 @@ const (
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
 
-	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
-	RelayerAddressKeyPrefix = "relayerAddress"
+	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
+	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
 
 	// FeeInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeeInEscrowPrefix = "feeInEscrow"
@@ -47,9 +47,9 @@ func FeeEnabledKey(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", FeeEnabledKeyPrefix, portID, channelID))
 }
 
-// KeyRelayerAddress returns the key for relayer address -> counteryparty address mapping
-func KeyRelayerAddress(address, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", RelayerAddressKeyPrefix, address, channelID))
+// KeyCounterpartyRelayer returns the key for relayer address -> counteryparty address mapping
+func KeyCounterpartyRelayer(address, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyRelayerAddressKeyPrefix, address, channelID))
 }
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
