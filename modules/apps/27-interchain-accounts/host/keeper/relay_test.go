@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta2"
 	"time"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta2"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -122,19 +122,18 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"interchain account successfully executes govtypes.MsgSubmitProposal",
 			func() {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				interchainAddrString, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				interchainAccAddr, err := sdk.AccAddressFromBech32(interchainAddrString)
 				suite.Require().True(found)
-
-				msg1, err := v1beta2.NewLegacyContent(v1beta1.NewTextProposal("Title", "description"), interchainAccountAddr)
-
-				any, err := codectypes.NewAnyWithValue(msg1)
 				suite.Require().NoError(err)
 
-				msg := &v1beta1.MsgSubmitProposal{
-					Content:        any,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
-					Proposer:       interchainAccountAddr,
-				}
+				content := v1beta1.NewTextProposal("Title", "description")
+
+				msg, err := v1beta1.NewMsgSubmitProposal(content,
+					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
+					interchainAccAddr,
+				)
+				suite.Require().NoError(err)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
 				suite.Require().NoError(err)
@@ -159,6 +158,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				// Populate the gov keeper in advance with an active proposal
 				msg1, err := v1beta2.NewLegacyContent(v1beta1.NewTextProposal("Title", "description"), interchainAccountAddr)
+				suite.Require().NoError(err)
 
 				proposal, err := v1beta2.NewProposal([]sdk.Msg{msg1}, 1, nil, time.Now(), time.Now())
 				suite.Require().NoError(err)
