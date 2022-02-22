@@ -116,7 +116,7 @@ func (im IBCModule) OnChanOpenAck(
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
 		}
 
 		// call underlying app's OnChanOpenAck callback with the counterparty app version.
