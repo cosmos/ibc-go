@@ -204,7 +204,7 @@ func (im IBCModule) OnRecvPacket(
 		return nil
 	}
 
-	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement())
+	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
