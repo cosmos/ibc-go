@@ -26,6 +26,7 @@ import (
 	ibcclientcli "github.com/cosmos/ibc-go/v3/modules/core/02-client/client/cli"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 	"github.com/cosmos/ibc-go/v3/testing/simapp/params"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
 
 /*
@@ -52,7 +53,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.cfg = cfg
 
 	var err error
-	s.network, err = network.New(s.T(), "", cfg)
+	s.network, err = network.New(s.T(), s.T().TempDir(), s.cfg)
 	s.Require().NoError(err)
 
 	kb := s.network.Validators[0].ClientCtx.Keyring
@@ -104,15 +105,15 @@ func DefaultConfig() network.Config {
 	encCfg := simapp.MakeTestEncodingConfig()
 
 	return network.Config{
-		Codec:             encCfg.Marshaler,
+		Codec:             encCfg.Codec,
 		TxConfig:          encCfg.TxConfig,
 		LegacyAmino:       encCfg.Amino,
 		InterfaceRegistry: encCfg.InterfaceRegistry,
 		AccountRetriever:  authtypes.AccountRetriever{},
 		AppConstructor:    NewAppConstructor(encCfg),
-		GenesisState:      simapp.ModuleBasics.DefaultGenesis(encCfg.Marshaler),
+		GenesisState:      simapp.ModuleBasics.DefaultGenesis(encCfg.Codec),
 		TimeoutCommit:     2 * time.Second,
-		ChainID:           "chain-" + "69",
+		ChainID:           "chain-" + tmrand.Str(6),
 		NumValidators:     4,
 		BondDenom:         sdk.DefaultBondDenom,
 		MinGasPrices:      fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
