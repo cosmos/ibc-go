@@ -2,14 +2,49 @@ package types_test
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"testing"
 
+	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
+
+func TestTrieProof(t *testing.T) {
+	key, err := hex.DecodeString("f0c365c3cf59d671eb72da0e7a4113c4bbd108c4899964f707fdaffb82636065")
+	if err != nil {
+		panic(err)
+	}
+	root, err := hex.DecodeString("5e1eb8e577ea88deaa94b456da24ab0c9f4c0c6d9372af1568edd7aeef3b4c4e")
+	if err != nil {
+		panic(err)
+	}
+	bytes1, err := hex.DecodeString("80fffd8028b54b9a0a90d41b7941c43e6a0597d5914e3b62bdcb244851b9fc806c28ea2480e2f0847174b6f8ea15133a8d70de58d1a6174b7542e8e12028154c611bc3ee5280ddd81bdda149a8bc6990d3548a719d4a90ddbe5ea4a598211aacf6afd0b23bf58038fe7e08c8e684bd600f25631f32e6510ed7d37f43fce0d5aa974009857aeb5b80aafc60caa3519d4b861e6b8da226266a15060e2071bba4184e194da61dfb208e80b34a4ee6e2f949f58b7cb7f4a7fb1aaea8cdc2a5cb27557d32da7096fdf157c58024a760a8f6c27928ae9e2fed9968bc5f6e17c3ae647398d8a615e5b2bb4b425f8085a0da830399f25fca4b653de654ffd3c92be39f3ae4f54e7c504961b5bd00cf80c2d44d371e5fc1f50227d7491ad65ad049630361cefb4ab1844831237609f08380c8ae6a1e8df858b43e050a3959a25b90d711413ee1a863622c3914d45250738980b5955ff982ab818fcba39b2d507a6723504cef4969fc7c722ee175df95a33ae280509bb016f2887d12137e73d26d7ddcd7f9c8ff458147cb9d309494655fe68de180009f8697d760fbe020564b07f407e6aad58ba9451b3d2d88b3ee03e12db7c47480952dcc0804e1120508a1753f1de4aa5b7481026a3320df8b48e918f0cecbaed380fff4f175da5ff30200fabfdc2bbdd45f864d84f339ec2432f80b5749ac35bbfc")
+	if err != nil {
+		panic(err)
+	}
+	bytes2, err := hex.DecodeString("9ec365c3cf59d671eb72da0e7a4113c41002505f0e7b9012096b41c4eb3aaf947f6ea429080000685f0f1f0515f462cdcf84e0f1d6045dfcbb2056145f077f010000")
+	if err != nil {
+		panic(err)
+	}
+	bytes3, err := hex.DecodeString("80050880149156720805d0ad098ae52fcffae34ff637b1d1f1a0fa8e7f94201b8615695580c1638f702aaa71e4b78cc8538ecae03e827bb494cc54279606b201ec071a5e24806d2a1e6d5236e1e13c5a5c84831f5f5383f97eba32df6f9faf80e32cf2f129bc")
+	if err != nil {
+		panic(err)
+	}
+	var proof = [][]byte{
+		bytes1, bytes2, bytes3,
+	}
+	trie := trie.NewEmptyTrie()
+	errd := trie.LoadFromProof(proof, root)
+	if errd != nil {
+		panic(err)
+	}
+	value :=  trie.Get(key)
+	fmt.Printf("value: %s\n", value)
+}
 
 func TestMultiLeafMmrProofs(t *testing.T) {
 	var opaqueLeaves []substrate.OpaqueLeafWithIndex
@@ -25,7 +60,7 @@ func TestMultiLeafMmrProofs(t *testing.T) {
 	for _, leaf := range opaqueLeaves {
 		leaves = append(leaves, mmr.Leaf{
 			Index: leaf.Index,
-			Hash: crypto.Keccak256(leaf.Leaf),
+			Hash:  crypto.Keccak256(leaf.Leaf),
 		})
 	}
 
@@ -42,9 +77,9 @@ func TestMultiLeafMmrProofs(t *testing.T) {
 
 	size := mmr.LeafIndexToMMRSize(uint64(batchProof.LeafCount - 1))
 
-	var proofItems [][]byte
-	for _, hash := range batchProof.Items {
-		proofItems = append(proofItems, hash[:])
+	var proofItems = make([][]byte, len(batchProof.Items))
+	for i := range batchProof.Items {
+		proofItems[i] = batchProof.Items[i][:]
 	}
 
 	expectedRoot := []byte{
@@ -57,8 +92,5 @@ func TestMultiLeafMmrProofs(t *testing.T) {
 		panic(cerr)
 	}
 
-	bytes.Equal(expectedRoot, root)
-
 	fmt.Printf("Are they equal?: %t\n\n", bytes.Equal(expectedRoot, root))
-
 }
