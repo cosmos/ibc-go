@@ -23,7 +23,7 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 
 	relayer, found := k.GetRelayerAddressForAsyncAck(ctx, packetId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrRelayerNotFoundForAsyncAck, "No relayer address stored for async acknowledgement for packet with portID: %s, channelID: %s, sequence: %d", packetId.PortId, packetId.ChannelId, packetId.Sequence)
+		return sdkerrors.Wrapf(types.ErrRelayerNotFoundForAsyncAck, "no relayer address stored for async acknowledgement for packet with portID: %s, channelID: %s, sequence: %d", packetId.PortId, packetId.ChannelId, packetId.Sequence)
 	}
 
 	// it is possible that a relayer has not registered a counterparty address.
