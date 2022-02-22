@@ -200,7 +200,7 @@ func (im IBCModule) OnRecvPacket(
 
 	// incase of async aknowledgement (ack == nil) store the ForwardRelayer address for use later
 	if ack == nil && found {
-		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), forwardRelayer)
+		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence()), forwardRelayer)
 		return nil
 	}
 
@@ -224,7 +224,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.DestinationChannel, packet.DestinationPort, packet.Sequence)
+	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 	identifiedPacketFees, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// return underlying callback if no fee found for given packetID
