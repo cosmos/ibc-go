@@ -10,6 +10,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
@@ -59,7 +60,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			// reset suite
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
 
 			// setup mock callback
@@ -150,7 +151,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 
 		suite.Run(tc.name, func() {
 			// reset suite
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
 			suite.path.EndpointB.ChanOpenInit()
 
@@ -255,7 +256,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
 
 			// setup mock callback
@@ -337,7 +338,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
@@ -415,7 +416,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			origBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress())
@@ -461,11 +462,18 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			true,
 		},
 		{
-			"source relayer is empty string",
+			"async write acknowledgement: ack is nil",
 			func() {
-				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), "", suite.path.EndpointB.ChannelID)
+				// setup mock callback
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context,
+					packet channeltypes.Packet,
+					relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					return nil
+				}
 			},
-			false,
+			true,
 			true,
 		},
 		{
@@ -476,12 +484,20 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			true,
 			false,
 		},
+		{
+			"forward address is not found",
+			func() {
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), "", suite.path.EndpointB.ChannelID)
+			},
+			false,
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path)
 
 			// set up a different channel to make sure that the test will error if the destination channel of the packet is not fee enabled
@@ -509,19 +525,16 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			case !tc.feeEnabled:
 				suite.Require().Equal(ibcmock.MockAcknowledgement, result)
 
-			case tc.forwardRelayer:
-				ack := types.IncentivizedAcknowledgement{
-					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
-					ForwardRelayerAddress: suite.chainB.SenderAccount.GetAddress().String(),
-				}
-				suite.Require().Equal(ack, result)
+			case tc.forwardRelayer && result == nil:
+				suite.Require().Equal(nil, result)
 
 			case !tc.forwardRelayer:
-				ack := types.IncentivizedAcknowledgement{
+				expectedAck := types.IncentivizedAcknowledgement{
 					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: "",
+					UnderlyingAppSuccess:  true,
 				}
-				suite.Require().Equal(ack, result)
+				suite.Require().Equal(expectedAck, result)
 			}
 		})
 	}
@@ -724,7 +737,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupMockTest()
+			suite.SetupTest()
 			suite.coordinator.Setup(suite.path)
 			packet := suite.CreateMockPacket()
 

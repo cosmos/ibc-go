@@ -5,10 +5,11 @@ import (
 )
 
 // NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
-func NewIncentivizedAcknowledgement(relayer string, ack []byte) IncentivizedAcknowledgement {
+func NewIncentivizedAcknowledgement(relayer string, ack []byte, success bool) IncentivizedAcknowledgement {
 	return IncentivizedAcknowledgement{
 		Result:                ack,
 		ForwardRelayerAddress: relayer,
+		UnderlyingAppSuccess:  success,
 	}
 }
 
@@ -16,7 +17,7 @@ func NewIncentivizedAcknowledgement(relayer string, ack []byte) IncentivizedAckn
 // considered successful if the forward relayer address is empty. Otherwise it is
 // considered a failed acknowledgement.
 func (ack IncentivizedAcknowledgement) Success() bool {
-	return ack.ForwardRelayerAddress != ""
+	return ack.UnderlyingAppSuccess
 }
 
 // Acknowledgement implements the Acknowledgement interface. It returns the
