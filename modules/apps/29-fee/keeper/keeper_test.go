@@ -109,21 +109,25 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 	}
 
 	// escrow the packet fee
-	identifiedPacketFee := types.NewIdentifiedPacketFee(packetID, fee, refundAcc.String(), []string{})
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), identifiedPacketFee)
+	packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
 
-	expectedFees := []types.IdentifiedPacketFee{
+	expectedFees := []types.IdentifiedPacketFees{
 		{
-			PacketId:      packetID,
-			Fee:           fee,
-			RefundAddress: refundAcc.String(),
-			Relayers:      nil,
+			PacketId: packetID,
+			PacketFees: []types.PacketFee{
+				{
+					Fee:           fee,
+					RefundAddress: refundAcc.String(),
+					Relayers:      nil,
+				},
+			},
 		},
 	}
 
-	fees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext())
-	suite.Require().Len(fees, len(expectedFees))
-	suite.Require().Equal(fees, expectedFees)
+	identifiedFees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext())
+	suite.Require().Len(identifiedFees, len(expectedFees))
+	suite.Require().Equal(identifiedFees, expectedFees)
 }
 
 func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
