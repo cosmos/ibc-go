@@ -5,18 +5,20 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
 var (
-	validChannelID = "channel-1"
-	validPortID    = "validPortId"
-	invalidID      = "this identifier is too long to be used as a valid identifier"
-	validCoins     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	invalidCoins   = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdk.NewInt(-2)}}
-	validAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	invalidAddr    = "invalid_address"
+	validChannelID   = "channel-1"
+	invalidChannelID = "ch-1"
+	validPortID      = "validPortId"
+	invalidID        = "this identifier is too long to be used as a valid identifier"
+	validCoins       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	invalidCoins     = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdk.NewInt(-2)}}
+	validAddr        = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	invalidAddr      = "invalid_address"
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
@@ -26,10 +28,11 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 		msg     *MsgRegisterCounterpartyAddress
 		expPass bool
 	}{
-		{"validate with correct sdk.AccAddress", NewMsgRegisterCounterpartyAddress(validAddr, validAddr), true},
-		{"validate with incorrect destination relayer address", NewMsgRegisterCounterpartyAddress(invalidAddr, validAddr), false},
-		{"invalid counterparty address", NewMsgRegisterCounterpartyAddress(validAddr, ""), false},
-		{"invalid counterparty address: whitespaced empty string", NewMsgRegisterCounterpartyAddress(validAddr, " "), false},
+		{"validate with correct sdk.AccAddress", NewMsgRegisterCounterpartyAddress(validAddr, validAddr, validChannelID), true},
+		{"validate with incorrect destination relayer address", NewMsgRegisterCounterpartyAddress(invalidAddr, validAddr, validChannelID), false},
+		{"invalid counterparty address", NewMsgRegisterCounterpartyAddress(validAddr, "", validChannelID), false},
+		{"invalid counterparty address: whitespaced empty string", NewMsgRegisterCounterpartyAddress(validAddr, " ", validChannelID), false},
+		{"invalid channelID", NewMsgRegisterCounterpartyAddress(validAddr, validAddr, invalidChannelID), false},
 	}
 
 	for i, tc := range testCases {
@@ -46,7 +49,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	// build message
-	msg := NewMsgRegisterCounterpartyAddress(addr.String(), "counterparty")
+	msg := NewMsgRegisterCounterpartyAddress(addr.String(), "counterparty", validChannelID)
 
 	// GetSigners
 	res := msg.GetSigners()

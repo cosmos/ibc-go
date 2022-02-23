@@ -33,11 +33,11 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 
 	// it is possible that a relayer has not registered a counterparty address.
 	// if there is no registered counterparty address then write acknowledgement with empty relayer address and refund recv_fee.
-	forwardRelayer, _ := k.GetCounterpartyAddress(ctx, relayer)
-
-	k.DeleteForwardRelayerAddress(ctx, packetId)
+	forwardRelayer, _ := k.GetCounterpartyAddress(ctx, relayer, packet.GetSourceChannel())
 
 	ack := types.NewIncentivizedAcknowledgement(forwardRelayer, acknowledgement.Acknowledgement(), acknowledgement.Success())
+
+	k.DeleteForwardRelayerAddress(ctx, packetId)
 
 	// ics4Wrapper may be core IBC or higher-level middleware
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
