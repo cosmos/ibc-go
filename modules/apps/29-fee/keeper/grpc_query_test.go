@@ -11,7 +11,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryIncentivizedPacketI() {
+func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 
 	var (
 		req *types.QueryIncentivizedPacketRequest
@@ -146,6 +146,111 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
 			res, err := suite.queryClient.IncentivizedPackets(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expPackets, res.IncentivizedPackets)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
+	var (
+		req        *types.QueryIncentivizedPacketsForChannelRequest
+		expPackets []*types.IdentifiedPacketFees
+	)
+
+	fee := types.Fee{
+		AckFee:     sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
+		RecvFee:    sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
+		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
+	}
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"empty pagination",
+			func() {
+				req = &types.QueryIncentivizedPacketsForChannelRequest{}
+			},
+			true,
+		},
+		{
+			"success",
+			func() {
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
+				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
+
+				expPackets = make([]*types.IdentifiedPacketFees, 3)
+				expPackets[0] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees)
+				expPackets[1] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees)
+				expPackets[2] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
+				for _, identifiedPacketFees := range expPackets {
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFee.PacketId, identifiedPacketFees.PacketFees)
+				}
+
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					Pagination: &query.PageRequest{
+						Limit:      5,
+						CountTotal: false,
+					},
+					PortId:      ibctesting.MockFeePort,
+					ChannelId:   ibctesting.FirstChannelID,
+					QueryHeight: 0,
+				}
+			},
+			true,
+		},
+		{
+			"no packets for specified channel",
+			func() {
+				// set packets on channel-0
+				// query with channel-10
+				refundAcc := suite.chainA.SenderAccount.GetAddress()
+				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
+
+				packets := make([]*types.IdentifiedPacketFees, 3)
+				packets[0] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees)
+				packets[1] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees)
+				packets[2] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
+				for _, identifiedPacketFees := range packets {
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFee.PacketId, identifiedPacketFees.PacketFees)
+				}
+
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					Pagination: &query.PageRequest{
+						Limit:      5,
+						CountTotal: false,
+					},
+					PortId:      ibctesting.MockFeePort,
+					ChannelId:   "channel-10",
+					QueryHeight: 0,
+				}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			tc.malleate()
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+
+			res, err := suite.queryClient.IncentivizedPacketsForChannel(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
