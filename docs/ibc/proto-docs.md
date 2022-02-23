@@ -1041,7 +1041,8 @@ This Msg can be used to pay for a packet at a specified sequence (instead of the
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | identified packet to pay fee for identified fee must contain the refund address which is also signer of this message |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier |
+| `packet_fee` | [PacketFee](#ibc.applications.fee.v1.PacketFee) |  | packet fee for incentivization |
 
 
 

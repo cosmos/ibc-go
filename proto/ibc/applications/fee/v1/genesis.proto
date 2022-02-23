@@ -30,7 +30,7 @@ message FeeEnabledChannel {
 message RegisteredRelayerAddress {
   string address              = 1;
   string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
-  string channel_id = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string channel_id           = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
 // ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements
