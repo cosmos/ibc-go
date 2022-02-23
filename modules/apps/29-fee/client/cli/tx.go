@@ -104,7 +104,7 @@ func NewRegisterCounterpartyAddress() *cobra.Command {
 		Use:     "register-counter-party [address] [counterparty-address] [channel-id]",
 		Short:   "Register a counterparty relayer address on a given channel.",
 		Long:    strings.TrimSpace(`Register a counterparty relayer address on a given channel.`),
-		Example: fmt.Sprintf("%s tx ibc-fee register-counter-party cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmoss1sp921a4tttgpln6rqhdqe0zzu6efqgucm0qdh channel-0", version.AppName),
+		Example: fmt.Sprintf("%s tx ibc-fee register-counterparty cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmoss1sp921a4tttgpln6rqhdqe0zzu6efqgucm0qdh channel-0", version.AppName),
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Print(args[0], args[1], args[2])
