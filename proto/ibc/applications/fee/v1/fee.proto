@@ -54,7 +54,7 @@ message PacketFees {
   repeated PacketFee packet_fees = 1 [(gogoproto.moretags) = "yaml:\"packet_fees\"", (gogoproto.nullable) = false];
 }
 
-// IdentifiedPacketFees contains a PacketFree and associated PacketId
+// IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
 message IdentifiedPacketFees {
   ibc.core.channel.v1.PacketId packet_id = 1
       [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_id\""];
