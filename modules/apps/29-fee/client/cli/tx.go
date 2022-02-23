@@ -83,9 +83,9 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 				TimeoutFee: timeoutFee,
 			}
 
-			identifiedPacketFee := types.NewIdentifiedPacketFee(packetID, fee, sender, relayers)
+			packetFee := types.NewPacketFee(fee, sender, relayers)
+			msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
-			msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

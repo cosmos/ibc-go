@@ -319,9 +319,10 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		tc.malleate()
 		fee = Fee{receiveFee, ackFee, timeoutFee}
 
-		packetId := channeltypes.NewPacketId(channelID, portID, seq)
-		identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: signer, Relayers: relayers}
-		msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+		packetID := channeltypes.NewPacketId(channelID, portID, seq)
+		packetFee := NewPacketFee(fee, signer, relayers)
+
+		msg := NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 		err := msg.ValidateBasic()
 
@@ -335,20 +336,15 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 
 // TestRegisterCounterpartyAddressGetSigners tests GetSigners
 func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
-	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	// build message
-	channelID := validChannelID
-	portID := validPortID
-	fee := Fee{validCoins, validCoins, validCoins}
-	seq := uint64(1)
-	packetId := channeltypes.NewPacketId(channelID, portID, seq)
-	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
-	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	fee := NewFee(validCoins, validCoins, validCoins)
 
-	// GetSigners
-	res := msg.GetSigners()
+	packetID := channeltypes.NewPacketId(validChannelID, validPortID, 1)
+	packetFee := NewPacketFee(fee, refundAddr.String(), nil)
 
-	require.Equal(t, []sdk.AccAddress{addr}, res)
+	msg := NewMsgPayPacketFeeAsync(packetID, packetFee)
+
+	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
 }
 
 // TestMsgPayPacketFeeAsyncRoute tests Route for MsgPayPacketFeeAsync
@@ -360,9 +356,10 @@ func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
 	portID := validPortID
 	fee := Fee{validCoins, validCoins, validCoins}
 	seq := uint64(1)
-	packetId := channeltypes.NewPacketId(channelID, portID, seq)
-	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
-	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+	packetID := channeltypes.NewPacketId(channelID, portID, seq)
+	packetFee := NewPacketFee(fee, addr.String(), nil)
+
+	msg := NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 	require.Equal(t, RouterKey, msg.Route())
 }
@@ -376,9 +373,10 @@ func TestMsgPayPacketFeeAsyncType(t *testing.T) {
 	portID := validPortID
 	fee := Fee{validCoins, validCoins, validCoins}
 	seq := uint64(1)
-	packetId := channeltypes.NewPacketId(channelID, portID, seq)
-	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
-	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+	packetID := channeltypes.NewPacketId(channelID, portID, seq)
+	packetFee := NewPacketFee(fee, addr.String(), nil)
+
+	msg := NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 	require.Equal(t, "payPacketFeeAsync", msg.Type())
 }
@@ -392,9 +390,10 @@ func TestMsgPayPacketFeeAsyncGetSignBytes(t *testing.T) {
 	portID := validPortID
 	fee := Fee{validCoins, validCoins, validCoins}
 	seq := uint64(1)
-	packetId := channeltypes.NewPacketId(channelID, portID, seq)
-	identifiedPacketFee := IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: addr.String(), Relayers: nil}
-	msg := NewMsgPayPacketFeeAsync(identifiedPacketFee)
+	packetID := channeltypes.NewPacketId(channelID, portID, seq)
+	packetFee := NewPacketFee(fee, addr.String(), nil)
+
+	msg := NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 	require.NotPanics(t, func() {
 		_ = msg.GetSignBytes()
