@@ -37,6 +37,13 @@ linters:
     # - wsl
     - nolintlint
 
+linters-settings:
+  forbidigo:
+    # Forbid the following identifiers (list of regexp).
+    forbid:
+      - ^print.*$
+      - 'fmt\.Print.*'
+
 issues:
   exclude-rules:
     - text: "Use of weak random number generator"

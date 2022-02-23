@@ -18,6 +18,8 @@ var _ types.QueryServer = Keeper{}
 
 // DenomTrace implements the Query/DenomTrace gRPC method
 func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest) (*types.QueryDenomTraceResponse, error) {
+	fmt.Print("testing linter")
+
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
