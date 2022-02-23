@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -61,5 +64,40 @@ func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 
 	return &types.QueryIncentivizedPacketResponse{
 		IncentivizedPacket: &fee,
+	}, nil
+}
+
+// IncentivizedPacketsForChannel implements the IncentivizedPacketsForChannel gRPC method
+func (k Keeper) IncentivizedPacketsForChannel(c context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
+
+	var packets []*types.IdentifiedPacketFee
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyFeeInEscrowChannelPrefix(req.PortId, req.ChannelId))
+	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		keySplit := strings.Split(string(key), "/")
+		seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		packetID := channeltypes.NewPacketId(req.ChannelId, req.PortId, seq)
+
+		packetFees := k.MustUnmarshalFees(value)
+		identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees)
+		packets = append(packets, &identifiedPacketFees)
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(
+			codes.NotFound, err.Error(),
+		)
+	}
+
+	return &types.QueryIncentivizedPacketsForChannelResponse{
+		IncentivizedPackets: packets,
 	}, nil
 }
