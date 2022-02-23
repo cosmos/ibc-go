@@ -13,15 +13,16 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+			},
 			true,
 		},
 		{
-			"forward relayer address is successfully deleted",
-			func() {
-				suite.chainB.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
-			},
-			true,
+			"relayer address not set for async WriteAcknowledgement",
+			func() {},
+			false,
 		},
 	}
 
@@ -56,7 +57,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				_, found := suite.chainB.GetSimApp().IBCFeeKeeper.GetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1))
+				_, found := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1))
 				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
