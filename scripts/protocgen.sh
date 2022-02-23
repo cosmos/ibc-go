@@ -32,8 +32,6 @@ buf protoc \
     --doc_out=./docs/ibc \
     --doc_opt=./docs/protodoc-markdown.tmpl,proto-docs.md \
     $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
-go mod tidy
-
 
 # move proto files to the right places
 cp -r github.com/cosmos/ibc-go/v*/modules/* modules/
