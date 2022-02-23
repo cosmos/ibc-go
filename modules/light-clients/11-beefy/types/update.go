@@ -1,6 +1,10 @@
 package types
 
 import (
+	"bytes"
+	"encoding/binary"
+	"fmt"
+
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,6 +16,11 @@ import (
 )
 
 type Keccak256 struct{}
+
+type ParaIdAndHead struct {
+	ParaId uint32
+	Header []byte
+}
 
 func (b Keccak256) Merge(left, right interface{}) interface{} {
 	l := left.([]byte)
@@ -88,7 +97,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		}
 
 		// beefy authorities are signing the hash of the scale-encoded Commitment
-		commitmentBytes, err := Encode(signedCommitment.Commitment)
+		commitmentBytes, err := Encode(&signedCommitment.Commitment)
 		if err != nil {
 			// todo: proper errors
 			return nil, nil, err
@@ -100,7 +109,8 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		// array of leaves in the authority merkle root.
 		var authorityLeaves []merkle.Leaf
 
-		for _, signature := range signedCommitment.Signatures {
+		for i := 0; i < len(signedCommitment.Signatures); i++ {
+			signature := signedCommitment.Signatures[i]
 			// recover uncompressed public key from signature
 			pubkey, err := crypto.SigToPub(commitmentHash, signature.Signature)
 
@@ -147,64 +157,58 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 		// only update if we have a higher block number.
 		if signedCommitment.Commitment.BlockNumer > cs.LatestBeefyHeight {
-			payload := signedCommitment.Commitment.Payload
-			// for _, payload := range signedCommitment.Commitment.Payload {
-			// checks for the right payloadId
-			// if reflect.DeepEqual(payload.PayloadId, []byte("mh")) {
-			// the next authorities are in the latest BeefyMmrLeaf
+			for _, payload := range signedCommitment.Commitment.Payload {
+				mmrRootId := []byte("mh")
+				// checks for the right payloadId
+				if bytes.Equal(payload.PayloadId[:], mmrRootId) {
+					// the next authorities are in the latest BeefyMmrLeaf
 
-			// scale encode the mmr leaf
-			mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
-			if err != nil {
-				return nil, nil, err
-			}
-			// we treat this leaf as the latest leaf in the mmr
-			mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
-			mmrLeaves := []mmr.Leaf{
-				{
-					Hash:  crypto.Keccak256(mmrLeafBytes),
-					Index: mmrUpdateProof.MmrLeafIndex,
-				},
-			}
-			mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
-			// verify that the leaf is valid, for the signed mmr-root-hash
-			if !mmrProof.Verify(payload[:]) {
-				return nil, nil, err // error!, mmr proof is invalid
-			}
-			// update the block_number
-			cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
-			// updates the mmr_root_hash
-			cs.MmrRootHash = payload[:]
-			// authority set has changed, rotate our view of the authorities
-			if updatedAuthority {
-				cs.Authority = cs.NextAuthoritySet
-				// mmr leaf has been verified, use it to update our view of the next authority set
-				cs.NextAuthoritySet = &mmrUpdateProof.MmrLeaf.BeefyNextAuthoritySet
-				// }
-				// break
-				// }
+					// scale encode the mmr leaf
+					mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
+					if err != nil {
+						return nil, nil, err
+					}
+					// we treat this leaf as the latest leaf in the mmr
+					mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
+					mmrLeaves := []mmr.Leaf{
+						{
+							Hash:  crypto.Keccak256(mmrLeafBytes),
+							Index: mmrUpdateProof.MmrLeafIndex,
+						},
+					}
+					mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
+					// verify that the leaf is valid, for the signed mmr-root-hash
+					if !mmrProof.Verify(payload.PayloadData[:]) {
+						return nil, nil, err // error!, mmr proof is invalid
+					}
+					// update the block_number
+					cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
+					// updates the mmr_root_hash
+					cs.MmrRootHash = payload.PayloadData[:]
+					// authority set has changed, rotate our view of the authorities
+					if updatedAuthority {
+						cs.Authority = cs.NextAuthoritySet
+						// mmr leaf has been verified, use it to update our view of the next authority set
+						cs.NextAuthoritySet = &mmrUpdateProof.MmrLeaf.BeefyNextAuthoritySet
+					}
+					break
+				}
 			}
 		}
 	}
 
-	var mmrLeaves []mmr.Leaf
+	var mmrLeaves = make([]mmr.Leaf, len(beefyHeader.ParachainHeaders))
+	var paraHeads = make([][]byte, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
-	for _, parachainHeader := range beefyHeader.ParachainHeaders {
-		type ParaIdAndHead struct {
-			ParaId uint32
-			Header []byte
-		}
-		paraIdAndHead := ParaIdAndHead{
-			ParaId: parachainHeader.ParaId,
-			Header: parachainHeader.ParachainHeader,
-		}
+	for i := 0; i < len(beefyHeader.ParachainHeaders); i++ {
+		// first we need to reconstruct the mmr leaf for this header
+		parachainHeader := beefyHeader.ParachainHeaders[i]
+		paraIdScale := make([]byte, 4)
+		// scale encode para_id
+		binary.LittleEndian.PutUint32(paraIdScale[:], parachainHeader.ParaId)
 		// scale encode to get parachain heads leaf bytes
-		headsLeafBytes, err := Encode(paraIdAndHead)
-		if err != nil {
-			// todo: failed to encode para id
-			return nil, nil, err
-		}
+		headsLeafBytes := append(paraIdScale, parachainHeader.ParachainHeader...)
 		headsLeaf := []merkle.Leaf{
 			{
 				Hash:  crypto.Keccak256(headsLeafBytes),
@@ -224,39 +228,46 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		}
 
 		mmrLeaf := BeefyMmrLeaf{
-			Version:        parachainHeader.MmrLeafPartial.Version,
-			ParentNumber:   parachainHeader.MmrLeafPartial.ParentNumber,
-			ParentHash:     parachainHeader.MmrLeafPartial.ParentHash,
-			ParachainHeads: &ParachainHeads,
+			Version:      parachainHeader.MmrLeafPartial.Version,
+			ParentNumber: parachainHeader.MmrLeafPartial.ParentNumber,
+			ParentHash:   parachainHeader.MmrLeafPartial.ParentHash,
 			BeefyNextAuthoritySet: BeefyAuthoritySet{
 				Id:            cs.NextAuthoritySet.Id,
 				AuthorityRoot: cs.NextAuthoritySet.AuthorityRoot,
 				Len:           cs.NextAuthoritySet.Len,
 			},
+			ParachainHeads: &ParachainHeads,
 		}
+		paraHeads[i] = ParachainHeadsRoot
 
-		// the mmr leafs are a scale-encoded 
+		// the mmr leafs are a scale-encoded
 		mmrLeafBytes, err := Encode(mmrLeaf)
 		if err != nil {
 			// todo: error failed to encode MmrLeaf
 			return nil, nil, err
 		}
 
-		leafIndex := cs.GetLeafIndexFor(parachainHeader.MmrLeafPartial.ParentNumber)
-
-		mmrData := mmr.Leaf{
-			Hash:  crypto.Keccak256(mmrLeafBytes),
-			Index: uint64(leafIndex),
+		mmrLeaves[i] = mmr.Leaf{
+			Hash: crypto.Keccak256(mmrLeafBytes),
+			// based on our knowledge of the beefy protocol, and the structure of mmrs
+			// we are be able to reconstruct the leaf index of this mmr leaf
+			// given the parent_number of this leaf, the beefy activation block
+			Index: uint64(cs.GetLeafIndexForBlockNumber(parachainHeader.MmrLeafPartial.ParentNumber + 1)),
 		}
-
-		mmrLeaves = append(mmrLeaves, mmrData)
 	}
 
 	mmrProof := mmr.NewProof(beefyHeader.MmrSize, beefyHeader.MmrProofs, mmrLeaves, Keccak256{})
 
-	// Given the proofs and the leaves, we should be able to verify that each parachain header was 
-	// indeed included in the leaves of our mmr root hash.
+	// Given the leaves, we should be able to verify that each parachain header was
+	// indeed included in the leaves of our mmr.
 	if !mmrProof.Verify(cs.MmrRootHash) {
+		root, err := mmrProof.CalculateRoot()
+		if err != nil {
+			// todo: error failed to encode MmrLeaf
+			panic(err)
+
+		}
+		fmt.Printf("failed to verify mmr leaf %v", root)
 		return nil, nil, nil // error!, mmr proof is invalid
 	}
 
@@ -345,17 +356,32 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 	return nil, nil, nil
 }
 
+func (cs ClientState) GetBlockNumberForLeaf(leafIndex uint32) uint32 {
+	var blockNumber uint32
+
+	// calculate the leafIndex for this leaf.
+	if cs.BeefyActivationBlock == 0 {
+		// in this case the leaf index is the same as the block number - 1 (leaf index starts at 0)
+		blockNumber = leafIndex + 1
+	} else {
+		// in this case the leaf index is activation block - current block number.
+		blockNumber = cs.BeefyActivationBlock + leafIndex
+	}
+
+	return blockNumber
+}
+
 // given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
-func (cs ClientState) GetLeafIndexFor(parentBlockNumber uint32) uint32 {
+func (cs ClientState) GetLeafIndexForBlockNumber(blockNumber uint32) uint32 {
 	var leafIndex uint32
 
 	// calculate the leafIndex for this leaf.
 	if cs.BeefyActivationBlock == 0 {
 		// in this case the leaf index is the same as the block number - 1 (leaf index starts at 0)
-		leafIndex = parentBlockNumber
+		leafIndex = blockNumber - 1
 	} else {
 		// in this case the leaf index is activation block - current block number.
-		leafIndex = cs.BeefyActivationBlock - (parentBlockNumber + 1)
+		leafIndex = cs.BeefyActivationBlock - (blockNumber + 1)
 	}
 
 	return leafIndex

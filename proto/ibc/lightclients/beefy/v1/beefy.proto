@@ -46,7 +46,7 @@ message PayloadItem {
   option (gogoproto.goproto_getters) = false;
 
   // 2-byte payload id
-  bytes payload_id = 1;
+  bytes payload_id = 1 [(gogoproto.customtype) = "[2]byte"];
 
   // arbitrary length payload data., eg mmr_root_hash
   bytes payload_data = 2;
@@ -57,7 +57,7 @@ message Commitment {
   option (gogoproto.goproto_getters) = false;
 
   // array of payload items signed by Beefy validators
-  bytes payload = 1 [(gogoproto.customtype) = "[32]byte"];
+  repeated PayloadItem payload = 1;
 
   // block number for this commitment
   uint32 block_numer = 2;
