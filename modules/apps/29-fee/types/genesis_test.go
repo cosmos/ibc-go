@@ -168,12 +168,16 @@ func TestValidateGenesis(t *testing.T) {
 		tc.malleate()
 
 		genState := types.GenesisState{
-			IdentifiedFees: []types.IdentifiedPacketFee{
+			IdentifiedFees: []types.IdentifiedPacketFees{
 				{
-					PacketId:      packetId,
-					Fee:           fee,
-					RefundAddress: refundAcc,
-					Relayers:      nil,
+					PacketId: packetId,
+					PacketFees: []types.PacketFee{
+						{
+							Fee:           fee,
+							RefundAddress: refundAcc,
+							Relayers:      nil,
+						},
+					},
 				},
 			},
 			FeeEnabledChannels: []types.FeeEnabledChannel{
