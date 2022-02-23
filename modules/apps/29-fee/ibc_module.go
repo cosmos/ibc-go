@@ -116,7 +116,7 @@ func (im IBCModule) OnChanOpenAck(
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
 		}
 
 		// call underlying app's OnChanOpenAck callback with the counterparty app version.
@@ -196,15 +196,16 @@ func (im IBCModule) OnRecvPacket(
 
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 
-	forwardRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
-
-	// incase of async aknowledgement (ack == nil) store the ForwardRelayer address for use later
-	if ack == nil && found {
-		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), forwardRelayer)
+	// incase of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
+	if ack == nil {
+		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence()), relayer.String())
 		return nil
 	}
 
-	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement())
+	// if forwardRelayer is not found we refund recv_fee
+	forwardRelayer, _ := im.keeper.GetCounterpartyAddress(ctx, relayer.String(), packet.GetSourceChannel())
+
+	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

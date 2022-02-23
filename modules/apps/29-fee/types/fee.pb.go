@@ -268,7 +268,7 @@ func (m *PacketFees) GetPacketFees() []PacketFee {
 	return nil
 }
 
-// IdentifiedPacketFees contains a PacketFree and associated PacketId
+// IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
 type IdentifiedPacketFees struct {
 	PacketId   types1.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id" yaml:"packet_id"`
 	PacketFees []PacketFee     `protobuf:"bytes,2,rep,name=packet_fees,json=packetFees,proto3" json:"packet_fees" yaml:"packet_fees"`

@@ -135,15 +135,15 @@ func (k Keeper) DisableAllChannels(ctx sdk.Context) {
 
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyRelayerAddress(address), []byte(counterpartyAddress))
+	store.Set(types.KeyCounterpartyRelayer(address, channelID), []byte(counterpartyAddress))
 }
 
 // GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
-func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string, bool) {
+func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address, channelID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyRelayerAddress(address)
+	key := types.KeyCounterpartyRelayer(address, channelID)
 
 	if !store.Has(key) {
 		return "", false
@@ -156,7 +156,7 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string,
 // GetAllRelayerAddresses returns all registered relayer addresses
 func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.RelayerAddressKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyRelayerAddressKeyPrefix))
 	defer iterator.Close()
 
 	var registeredAddrArr []types.RegisteredRelayerAddress
@@ -166,6 +166,7 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 		addr := types.RegisteredRelayerAddress{
 			Address:             keySplit[1],
 			CounterpartyAddress: string(iterator.Value()),
+			ChannelId:           keySplit[2],
 		}
 
 		registeredAddrArr = append(registeredAddrArr, addr)
@@ -174,14 +175,14 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 	return registeredAddrArr
 }
 
-// SetForwardRelayerAddress sets the forward relayer address during OnRecvPacket in case of async acknowledgement
-func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.PacketId, address string) {
+// SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement
+func (k Keeper) SetRelayerAddressForAsyncAck(ctx sdk.Context, packetId channeltypes.PacketId, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyForwardRelayerAddress(packetId), []byte(address))
 }
 
-// GetForwardRelayerAddress gets forward relayer address for a particular packet
-func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.PacketId) (string, bool) {
+// GetRelayerAddressForAsyncAck gets forward relayer address for a particular packet
+func (k Keeper) GetRelayerAddressForAsyncAck(ctx sdk.Context, packetId channeltypes.PacketId) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyForwardRelayerAddress(packetId)
 	if !store.Has(key) {

@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
@@ -34,27 +33,7 @@ type KeeperTestSuite struct {
 	queryClient types.QueryClient
 }
 
-// TODO: remove and rename 'SetupMockTest' to 'SetupTest'
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
-	path.EndpointA.ChannelConfig.Version = feeTransferVersion
-	path.EndpointB.ChannelConfig.Version = feeTransferVersion
-	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
-	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
-	suite.path = path
-
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().IBCFeeKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
-}
-
-// TODO: rename to 'SetupTest' when the above function is removed
-func (suite *KeeperTestSuite) SetupMockTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -77,7 +56,6 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestFeeInEscrow() {
-	suite.SetupMockTest()
 	suite.coordinator.Setup(suite.path)
 
 	fee := types.Fee{RecvFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee}
@@ -119,7 +97,6 @@ func (suite *KeeperTestSuite) TestDisableAllChannels() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
-	suite.SetupMockTest()
 	suite.coordinator.Setup(suite.path)
 
 	// escrow a fee
@@ -179,12 +156,13 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 	sender := suite.chainA.SenderAccount.GetAddress().String()
 	counterparty := suite.chainB.SenderAccount.GetAddress().String()
 
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty, ibctesting.FirstChannelID)
 
 	expectedAddr := []types.RegisteredRelayerAddress{
 		{
 			Address:             sender,
 			CounterpartyAddress: counterparty,
+			ChannelId:           ibctesting.FirstChannelID,
 		},
 	}
 

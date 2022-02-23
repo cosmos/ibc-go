@@ -13,15 +13,16 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+			},
 			true,
 		},
 		{
-			"forward relayer address is successfully deleted",
-			func() {
-				suite.chainB.GetSimApp().IBCFeeKeeper.SetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
-			},
-			true,
+			"relayer address not set for async WriteAcknowledgement",
+			func() {},
+			false,
 		},
 	}
 
@@ -46,7 +47,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				timeoutTimestamp,
 			)
 
-			ack := []byte("ack")
+			ack := channeltypes.NewResultAcknowledgement([]byte("success"))
 			chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
 			// malleate test case
@@ -56,11 +57,39 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				_, found := suite.chainB.GetSimApp().IBCFeeKeeper.GetForwardRelayerAddress(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1))
+				_, found := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1))
 				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
+	// open incentivized channel
+	suite.coordinator.Setup(suite.path)
+	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
+
+	// build packet
+	timeoutTimestamp := ^uint64(0)
+	packet := channeltypes.NewPacket(
+		[]byte("packetData"),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.ZeroHeight(),
+		timeoutTimestamp,
+	)
+
+	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+
+	err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	suite.Require().NoError(err)
+
+	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 }
