@@ -107,8 +107,6 @@ func NewRegisterCounterpartyAddress() *cobra.Command {
 		Example: fmt.Sprintf("%s tx ibc-fee register-counterparty cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmoss1sp921a4tttgpln6rqhdqe0zzu6efqgucm0qdh channel-0", version.AppName),
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Print(args[0], args[1], args[2])
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
