@@ -101,7 +101,7 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 // NewRegisterCounterpartyAddress returns the command to create a MsgRegisterCounterpartyAddress
 func NewRegisterCounterpartyAddress() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "register-counter-party [address] [counterparty-address] [channel-id]",
+		Use:     "register-counterparty [address] [counterparty-address] [channel-id]",
 		Short:   "Register a counterparty relayer address on a given channel.",
 		Long:    strings.TrimSpace(`Register a counterparty relayer address on a given channel.`),
 		Example: fmt.Sprintf("%s tx ibc-fee register-counterparty cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmoss1sp921a4tttgpln6rqhdqe0zzu6efqgucm0qdh channel-0", version.AppName),
