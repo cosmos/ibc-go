@@ -8,8 +8,8 @@ import (
 
 // InitGenesis initializes the fee middleware application state from a provided genesis state
 func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
-	for _, fee := range state.IdentifiedFees {
-		k.SetFeeInEscrow(ctx, fee)
+	for _, identifiedFees := range state.IdentifiedFees {
+		k.SetFeesInEscrow(ctx, identifiedFees.PacketId, types.NewPacketFees(identifiedFees.PacketFees))
 	}
 
 	for _, relayer := range state.RegisteredRelayers {
