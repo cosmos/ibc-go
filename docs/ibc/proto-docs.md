@@ -343,6 +343,7 @@ It contains the raw acknowledgement bytes, as well as the forward relayer addres
 | ----- | ---- | ----- | ----------- |
 | `result` | [bytes](#bytes) |  |  |
 | `forward_relayer_address` | [string](#string) |  |  |
+| `underlying_app_success` | [bool](#bool) |  |  |
 
 
 
@@ -865,6 +866,7 @@ RegisteredRelayerAddress contains the address and counterparty address for a spe
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 | `counterparty_address` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
 
 
 
@@ -1076,6 +1078,7 @@ MsgRegisterCounterpartyAddress is the request type for registering the counterpa
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  |  |
 | `counterparty_address` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
 
 
 
