@@ -112,14 +112,14 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testCasesAny := []caseRawBytes{}
 
 	for _, tc := range testCases {
-		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
+		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().codec, tc.msgs)
 		suite.Require().NoError(err, tc.name)
 
 		testCasesAny = append(testCasesAny, caseRawBytes{tc.name, bz, tc.expPass})
 	}
 
 	for i, tc := range testCasesAny {
-		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.bz)
+		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().codec, tc.bz)
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 			suite.Require().Equal(testCases[i].msgs, msgs, tc.name)
@@ -129,7 +129,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	}
 
 	// test deserializing unknown bytes
-	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
+	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().codec, []byte("invalid"))
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 }
