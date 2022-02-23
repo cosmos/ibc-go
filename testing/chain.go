@@ -139,6 +139,7 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 		TxConfig:       txConfig,
 		Codec:          app.AppCodec(),
 		Vals:           valSet,
+		NextVals:       valSet,
 		Signers:        signers,
 		SenderPrivKey:  senderAccs[0].SenderPrivKey,
 		SenderAccount:  senderAccs[0].SenderAccount,
@@ -270,11 +271,12 @@ func (chain *TestChain) NextBlock() {
 
 	chain.App.Commit()
 
-	chain.NextVals = ApplyValSetChanges(chain.t, chain.Vals, res.ValidatorUpdates)
-
 	// set the last header to the current header
 	// use nil trusted fields
 	chain.LastHeader = chain.CurrentTMClientHeader()
+
+	chain.Vals = chain.NextVals
+	chain.NextVals = ApplyValSetChanges(chain.t, chain.Vals, res.ValidatorUpdates)
 
 	// increment the current header
 	chain.CurrentHeader = tmproto.Header{
@@ -431,7 +433,7 @@ func (chain *TestChain) ExpireClient(amount time.Duration) {
 // CurrentTMClientHeader creates a TM header using the current header parameters
 // on the chain. The trusted fields in the header are set to nil.
 func (chain *TestChain) CurrentTMClientHeader() *ibctmtypes.Header {
-	return chain.CreateTMClientHeader(chain.ChainID, chain.CurrentHeader.Height, clienttypes.Height{}, chain.CurrentHeader.Time, chain.Vals, nil, chain.Signers)
+	return chain.CreateTMClientHeader(chain.ChainID, chain.CurrentHeader.Height, clienttypes.Height{}, chain.CurrentHeader.Time, chain.Vals, chain.NextVals, nil, chain.Signers)
 }
 
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
