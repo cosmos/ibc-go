@@ -74,5 +74,5 @@ message QueryIncentivizedPacketsForChannelRequest {
 // QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
 message QueryIncentivizedPacketsForChannelResponse {
   // Map of all incentivized_packets
-  repeated ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packets = 1;
+  repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1;
 }

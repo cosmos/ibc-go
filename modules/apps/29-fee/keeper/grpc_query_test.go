@@ -160,8 +160,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	var (
-		req        *types.QueryIncentivizedPacketsForChannelRequest
-		expPackets []*types.IdentifiedPacketFees
+		req                     *types.QueryIncentivizedPacketsForChannelRequest
+		expIdentifiedPacketFees []*types.IdentifiedPacketFees
 	)
 
 	fee := types.Fee{
@@ -189,14 +189,16 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
-				expPackets = make([]*types.IdentifiedPacketFees, 3)
-				expPackets[0] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees)
-				expPackets[1] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees)
-				expPackets[2] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees)
+				expIdentifiedPacketFees = make([]*types.IdentifiedPacketFees, 3)
+				identifiedFees1 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees.PacketFees)
+				identifiedFees2 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees.PacketFees)
+				identifiedFees3 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees.PacketFees)
+
+				expIdentifiedPacketFees = append(expIdentifiedPacketFees, &identifiedFees1, &identifiedFees2, &identifiedFees3)
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
-				for _, identifiedPacketFees := range expPackets {
-					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFee.PacketId, identifiedPacketFees.PacketFees)
+				for _, identifiedPacketFees := range expIdentifiedPacketFees {
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 				}
 
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
@@ -220,14 +222,16 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
-				packets := make([]*types.IdentifiedPacketFees, 3)
-				packets[0] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees)
-				packets[1] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees)
-				packets[2] = types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees)
+				identifiedFees := make([]*types.IdentifiedPacketFees, 3)
+				identifiedFees1 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees.PacketFees)
+				identifiedFees2 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees.PacketFees)
+				identifiedFees3 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees.PacketFees)
+
+				identifiedFees = append(identifiedFees, &identifiedFees1, &identifiedFees2, &identifiedFees3)
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
-				for _, identifiedPacketFees := range packets {
-					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFee.PacketId, identifiedPacketFees.PacketFees)
+				for _, identifiedPacketFees := range identifiedFees {
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 				}
 
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
@@ -255,7 +259,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(expPackets, res.IncentivizedPackets)
+				suite.Require().Equal(expIdentifiedPacketFees, res.IncentivizedPackets)
 			} else {
 				suite.Require().Error(err)
 			}
