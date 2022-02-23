@@ -1,11 +1,9 @@
 package ibctesting_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,11 +64,7 @@ func TestChangeValSet(t *testing.T) {
 	chainA.App.GetStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
 		amount, types.Unbonded, val[0], true)
 
-	res := chainA.App.EndBlock(abci.RequestEndBlock{Height: chainA.CurrentHeader.Height})
-	fmt.Printf("%#v\n", res)
-
-	chainA.App.Commit()
-	chainA.NextBlock()
+	coord.CommitBlock(chainA)
 
 	path.EndpointB.UpdateClient()
 
