@@ -23,14 +23,16 @@ var (
 
 func TestValidateGenesis(t *testing.T) {
 	var (
-		packetId     channeltypes.PacketId
-		fee          types.Fee
-		refundAcc    string
-		sender       string
-		counterparty string
-		portID       string
-		channelID    string
-		seq          uint64
+		packetId        channeltypes.PacketId
+		fee             types.Fee
+		refundAcc       string
+		sender          string
+		forwardAddr     string
+		counterparty    string
+		portID          string
+		channelID       string
+		packetChannelID string
+		seq             uint64
 	)
 
 	testCases := []struct {
@@ -118,7 +120,21 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid RegisteredRelayers: invalid counterparty",
 			func() {
-				counterparty = ""
+				counterparty = " "
+			},
+			false,
+		},
+		{
+			"invalid ForwardRelayerAddress: invalid forwardAddr",
+			func() {
+				forwardAddr = ""
+			},
+			false,
+		},
+		{
+			"invalid ForwardRelayerAddress: invalid packet",
+			func() {
+				packetChannelID = "1"
 			},
 			false,
 		},
@@ -127,6 +143,7 @@ func TestValidateGenesis(t *testing.T) {
 	for _, tc := range testCases {
 		portID = transfertypes.PortID
 		channelID = ibctesting.FirstChannelID
+		packetChannelID = ibctesting.FirstChannelID
 		seq = uint64(1)
 
 		// build PacketId & Fee
@@ -146,6 +163,7 @@ func TestValidateGenesis(t *testing.T) {
 		// relayer addresses
 		sender = addr1
 		counterparty = addr2
+		forwardAddr = addr2
 
 		tc.malleate()
 
@@ -168,6 +186,12 @@ func TestValidateGenesis(t *testing.T) {
 				{
 					Address:             sender,
 					CounterpartyAddress: counterparty,
+				},
+			},
+			ForwardRelayers: []types.ForwardRelayerAddress{
+				{
+					Address:  forwardAddr,
+					PacketId: channeltypes.NewPacketId(packetChannelID, portID, 1),
 				},
 			},
 		}
