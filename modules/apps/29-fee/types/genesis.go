@@ -10,7 +10,7 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress) *GenesisState {
+func NewGenesisState(identifiedFees []IdentifiedPacketFees, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
@@ -22,7 +22,7 @@ func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:     []IdentifiedPacketFee{},
+		IdentifiedFees:     []IdentifiedPacketFees{},
 		ForwardRelayers:    []ForwardRelayerAddress{},
 		FeeEnabledChannels: []FeeEnabledChannel{},
 		RegisteredRelayers: []RegisteredRelayerAddress{},
@@ -33,10 +33,15 @@ func DefaultGenesisState() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// Validate IdentifiedPacketFees
-	for _, fee := range gs.IdentifiedFees {
-		err := fee.Validate()
-		if err != nil {
+	for _, identifiedFees := range gs.IdentifiedFees {
+		if err := identifiedFees.PacketId.Validate(); err != nil {
 			return err
+		}
+
+		for _, packetFee := range identifiedFees.PacketFees {
+			if err := packetFee.Validate(); err != nil {
+				return err
+			}
 		}
 	}
 
