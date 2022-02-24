@@ -548,8 +548,6 @@ func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.Scope
 		require.NoError(chain.t, err)
 	}
 
-	chain.App.Commit()
-
 	chain.NextBlock()
 }
 
@@ -575,8 +573,6 @@ func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.Sc
 		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, capName)
 		require.NoError(chain.t, err)
 	}
-
-	chain.App.Commit()
 
 	chain.NextBlock()
 }
