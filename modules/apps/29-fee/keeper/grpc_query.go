@@ -24,22 +24,25 @@ func (k Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivi
 
 	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
 
-	var packets []*types.IdentifiedPacketFee
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeInEscrowPrefix))
-	_, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
-		result := k.MustUnmarshalFee(value)
-		packets = append(packets, &result)
+	var identifiedPackets []types.IdentifiedPacketFees
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeesInEscrowPrefix))
+	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		packetID, err := types.ParseKeyFeesInEscrow(types.FeesInEscrowPrefix + string(key))
+		if err != nil {
+			return err
+		}
+
+		packetFees := k.MustUnmarshalFees(value)
+		identifiedPackets = append(identifiedPackets, types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees))
 		return nil
 	})
 
 	if err != nil {
-		return nil, status.Error(
-			codes.NotFound, err.Error(),
-		)
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	return &types.QueryIncentivizedPacketsResponse{
-		IncentivizedPackets: packets,
+		IncentivizedPackets: identifiedPackets,
 	}, nil
 }
 
@@ -51,15 +54,14 @@ func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 
 	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
 
-	fee, exists := k.GetFeeInEscrow(ctx, req.PacketId)
+	feesInEscrow, exists := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !exists {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrFeeNotFound, req.PacketId.String()).Error(),
-		)
+			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error())
 	}
 
 	return &types.QueryIncentivizedPacketResponse{
-		IncentivizedPacket: &fee,
+		IncentivizedPacket: types.NewIdentifiedPacketFees(req.PacketId, feesInEscrow.PacketFees),
 	}, nil
 }

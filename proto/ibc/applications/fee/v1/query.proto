@@ -37,7 +37,7 @@ message QueryIncentivizedPacketsRequest {
 // QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
 message QueryIncentivizedPacketsResponse {
   // Map of all incentivized_packets
-  repeated ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packets = 1;
+  repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
@@ -51,5 +51,5 @@ message QueryIncentivizedPacketRequest {
 // QueryIncentivizedPacketsResponse is the response type for the incentivized packet RPC
 message QueryIncentivizedPacketResponse {
   // Incentivized_packet
-  ibc.applications.fee.v1.IdentifiedPacketFee incentivized_packet = 1;
+  ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packet = 1 [(gogoproto.nullable) = false];
 }
