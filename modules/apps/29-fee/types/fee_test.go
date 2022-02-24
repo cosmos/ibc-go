@@ -1,30 +1,42 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
+
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+)
+
+var (
+	// defaultRecvFee is the default packet receive fee used for testing purposes
+	defaultRecvFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)})
+
+	// defaultAckFee is the default packet acknowledgement fee used for testing purposes
+	defaultAckFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)})
+
+	// defaultTimeoutFee is the default packet timeout fee used for testing purposes
+	defaultTimeoutFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)})
+
+	// invalidFee is an invalid coin set used to trigger error cases for testing purposes
+	invalidFee = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdk.NewInt(-2)}}
+
+	// defaultAccAddress is the default account used for testing purposes
+	defaultAccAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 )
 
 func TestFeeTotal(t *testing.T) {
-	fee := Fee{
-		AckFee:     sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}),
-		RecvFee:    sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}),
-		TimeoutFee: sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}),
-	}
+	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	total := fee.Total()
-	require.Equal(t, sdk.NewInt(300), total.AmountOf(sdk.DefaultBondDenom))
+	require.Equal(t, sdk.NewInt(600), total.AmountOf(sdk.DefaultBondDenom))
 }
 
-// TestFeeValidation tests Validate
-func TestFeeValidation(t *testing.T) {
+func TestPacketFeeValidation(t *testing.T) {
 	var (
-		fee        Fee
-		ackFee     sdk.Coins
-		receiveFee sdk.Coins
-		timeoutFee sdk.Coins
+		packetFee types.PacketFee
 	)
 
 	testCases := []struct {
@@ -38,65 +50,69 @@ func TestFeeValidation(t *testing.T) {
 			true,
 		},
 		{
+			"should fail when refund address is invalid",
+			func() {
+				packetFee.RefundAddress = "invalid-address"
+			},
+			false,
+		},
+		{
 			"should fail when all fees are invalid",
 			func() {
-				ackFee = invalidCoins
-				receiveFee = invalidCoins
-				timeoutFee = invalidCoins
+				packetFee.Fee.AckFee = invalidFee
+				packetFee.Fee.RecvFee = invalidFee
+				packetFee.Fee.TimeoutFee = invalidFee
 			},
 			false,
 		},
 		{
 			"should fail with single invalid fee",
 			func() {
-				ackFee = invalidCoins
+				packetFee.Fee.AckFee = invalidFee
 			},
 			false,
 		},
 		{
 			"should fail with two invalid fees",
 			func() {
-				timeoutFee = invalidCoins
-				ackFee = invalidCoins
+				packetFee.Fee.TimeoutFee = invalidFee
+				packetFee.Fee.AckFee = invalidFee
 			},
 			false,
 		},
 		{
 			"should pass with two empty fees",
 			func() {
-				timeoutFee = sdk.Coins{}
-				ackFee = sdk.Coins{}
+				packetFee.Fee.TimeoutFee = sdk.Coins{}
+				packetFee.Fee.AckFee = sdk.Coins{}
 			},
 			true,
 		},
 		{
 			"should pass with one empty fee",
 			func() {
-				timeoutFee = sdk.Coins{}
+				packetFee.Fee.TimeoutFee = sdk.Coins{}
 			},
 			true,
 		},
 		{
 			"should fail if all fees are empty",
 			func() {
-				ackFee = sdk.Coins{}
-				receiveFee = sdk.Coins{}
-				timeoutFee = sdk.Coins{}
+				packetFee.Fee.AckFee = sdk.Coins{}
+				packetFee.Fee.RecvFee = sdk.Coins{}
+				packetFee.Fee.TimeoutFee = sdk.Coins{}
 			},
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		// build message
-		ackFee = validCoins
-		receiveFee = validCoins
-		timeoutFee = validCoins
+		fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+		packetFee = types.NewPacketFee(fee, defaultAccAddress, nil)
 
-		// malleate
-		tc.malleate()
-		fee = Fee{receiveFee, ackFee, timeoutFee}
-		err := fee.Validate()
+		tc.malleate() // malleate mutates test data
+
+		err := packetFee.Validate()
 
 		if tc.expPass {
 			require.NoError(t, err)
