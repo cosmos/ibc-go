@@ -321,7 +321,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 		return nil, err
 	}
 
-	// SignAndDeliver calls app.Commit()
+	// NextBlock app.Commit()
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
