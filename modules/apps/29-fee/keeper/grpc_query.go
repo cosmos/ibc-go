@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strconv"
-	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -30,17 +27,12 @@ func (k Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivi
 	var identifiedPackets []types.IdentifiedPacketFees
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeesInEscrowPrefix))
 	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
-		keySplit := strings.Split(string(key), "/")
-
-		channelID, portID := keySplit[2], keySplit[1]
-		seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+		packetID, err := types.ParseKeyFeesInEscrow(types.FeesInEscrowPrefix + string(key))
 		if err != nil {
-			panic(err)
+			return err
 		}
 
-		packetID := channeltypes.NewPacketId(channelID, portID, seq)
 		packetFees := k.MustUnmarshalFees(value)
-
 		identifiedPackets = append(identifiedPackets, types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees))
 		return nil
 	})
