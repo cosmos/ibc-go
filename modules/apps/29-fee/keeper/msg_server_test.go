@@ -119,12 +119,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
 		// build fee
-		packetId := channeltypes.NewPacketId(channelID, suite.path.EndpointA.ChannelConfig.PortID, seq)
-		identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+		packetID := channeltypes.NewPacketId(channelID, suite.path.EndpointA.ChannelConfig.PortID, seq)
+		packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
 
 		tc.malleate()
 
-		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee)
+		msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 		_, err := suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
