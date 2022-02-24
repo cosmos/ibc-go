@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			"success",
 			func() {
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
 				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
 				identifiedFees1 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees.PacketFees)
@@ -218,7 +218,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				// set packets on channel-0
 				// query with channel-10
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
-				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
 				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
 				var identifiedFees []*types.IdentifiedPacketFees
@@ -249,7 +249,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+			suite.SetupTest()             // reset
+			expIdentifiedPacketFees = nil // reset
+
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 

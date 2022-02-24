@@ -3,15 +3,13 @@ package keeper
 import (
 	"context"
 	"strconv"
-	"strings"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -76,13 +74,12 @@ func (k Keeper) IncentivizedPacketsForChannel(c context.Context, req *types.Quer
 	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
 
 	var packets []*types.IdentifiedPacketFees
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(string(types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId))+"/"))
 	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
-
-		keySplit := strings.Split(string(key), "/")
-		seq, err := strconv.ParseUint(keySplit[1], 10, 64)
+		// the key returned only includes the sequence
+		seq, err := strconv.ParseUint(string(key), 10, 64)
 		if err != nil {
-			return status.Error(codes.Internal, err.Error())
+			return err
 		}
 
 		packetID := channeltypes.NewPacketId(req.ChannelId, req.PortId, seq)
