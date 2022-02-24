@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
+import "ibc/core/channel/v1/channel.proto";
 
 // Msg defines the ibc/fee Msg service.
 service Msg {
@@ -32,6 +33,7 @@ message MsgRegisterCounterpartyAddress {
 
   string address              = 1;
   string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
+  string channel_id           = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
 // MsgRegisterCounterpartyAddressResponse defines the Msg/RegisterCounterypartyAddress response type
@@ -63,10 +65,11 @@ message MsgPayPacketFeeAsync {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // identified packet to pay fee for
-  // identified fee must contain the refund address which is also signer of this message
-  ibc.applications.fee.v1.IdentifiedPacketFee identified_packet_fee = 1
-      [(gogoproto.moretags) = "yaml:\"identified_packet_fee\"", (gogoproto.nullable) = false];
+  // unique packet identifier
+  ibc.core.channel.v1.PacketId packet_id = 1
+      [(gogoproto.moretags) = "yaml:\"packet_id\"", (gogoproto.nullable) = false];
+  // packet fee for incentivization
+  PacketFee packet_fee = 2 [(gogoproto.moretags) = "yaml:\"packet_fee\"", (gogoproto.nullable) = false];
 }
 
 // MsgPayPacketFeeAsyncResponse defines the response type for Msg/PayPacketFeeAsync

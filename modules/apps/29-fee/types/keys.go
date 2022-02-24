@@ -2,6 +2,10 @@ package types
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
@@ -24,8 +28,8 @@ const (
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
 
-	// RelayerAddressKeyPrefix is the key prefix for relayer address mapping
-	RelayerAddressKeyPrefix = "relayerAddress"
+	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
+	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
 
 	// FeeInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeeInEscrowPrefix = "feeInEscrow"
@@ -47,9 +51,9 @@ func FeeEnabledKey(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", FeeEnabledKeyPrefix, portID, channelID))
 }
 
-// KeyRelayerAddress returns the key for relayer address -> counteryparty address mapping
-func KeyRelayerAddress(address string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", RelayerAddressKeyPrefix, address))
+// KeyCounterpartyRelayer returns the key for relayer address -> counteryparty address mapping
+func KeyCounterpartyRelayer(address, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyRelayerAddressKeyPrefix, address, channelID))
 }
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
@@ -65,6 +69,24 @@ func KeyFeeInEscrow(packetID channeltypes.PacketId) []byte {
 // KeyFeesInEscrow returns the key for escrowed fees
 func KeyFeesInEscrow(packetID channeltypes.PacketId) []byte {
 	return []byte(fmt.Sprintf("%s/%d", KeyFeesInEscrowChannelPrefix(packetID.PortId, packetID.ChannelId), packetID.Sequence))
+}
+
+// ParseKeyFeesInEscrow parses the key used to store fees in escrow and returns the packet id
+func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 4 {
+		return channeltypes.PacketId{}, sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 4, len(keySplit),
+		)
+	}
+
+	seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+	if err != nil {
+		return channeltypes.PacketId{}, err
+	}
+
+	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+	return packetID, nil
 }
 
 // KeyFeeInEscrowChannelPrefix returns the key prefix for escrowed fees on the given channel

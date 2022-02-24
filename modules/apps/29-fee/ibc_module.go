@@ -116,7 +116,7 @@ func (im IBCModule) OnChanOpenAck(
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
 		}
 
 		// call underlying app's OnChanOpenAck callback with the counterparty app version.
@@ -196,13 +196,14 @@ func (im IBCModule) OnRecvPacket(
 
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 
-	forwardRelayer, found := im.keeper.GetCounterpartyAddress(ctx, relayer.String())
-
-	// incase of async aknowledgement (ack == nil) store the ForwardRelayer address for use later
-	if ack == nil && found {
-		im.keeper.SetForwardRelayerAddress(ctx, channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence()), forwardRelayer)
+	// incase of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
+	if ack == nil {
+		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence()), relayer.String())
 		return nil
 	}
+
+	// if forwardRelayer is not found we refund recv_fee
+	forwardRelayer, _ := im.keeper.GetCounterpartyAddress(ctx, relayer.String(), packet.GetSourceChannel())
 
 	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
@@ -225,13 +226,13 @@ func (im IBCModule) OnAcknowledgementPacket(
 	}
 
 	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-	identifiedPacketFees, found := im.keeper.GetFeesInEscrow(ctx, packetID)
+	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// return underlying callback if no fee found for given packetID
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
-	im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, identifiedPacketFees.PacketFees)
+	im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
 
 	// removes the fees from the store as fees are now paid
 	im.keeper.DeleteFeesInEscrow(ctx, packetID)
@@ -252,13 +253,13 @@ func (im IBCModule) OnTimeoutPacket(
 	}
 
 	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-	identifiedPacketFees, found := im.keeper.GetFeesInEscrow(ctx, packetID)
+	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// return underlying callback if fee not found for given packetID
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, identifiedPacketFees.PacketFees)
+	im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)
 
 	// removes the fee from the store as fee is now paid
 	im.keeper.DeleteFeesInEscrow(ctx, packetID)

@@ -10,11 +10,14 @@ import "ibc/core/channel/v1/channel.proto";
 
 // GenesisState defines the fee middleware genesis state
 message GenesisState {
-  repeated IdentifiedPacketFee identified_fees = 1
+  repeated IdentifiedPacketFees identified_fees = 1
       [(gogoproto.moretags) = "yaml:\"identified_fees\"", (gogoproto.nullable) = false];
-  repeated FeeEnabledChannel        fee_enabled_channels = 2 [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
-  repeated RegisteredRelayerAddress registered_relayers  = 3 [(gogoproto.moretags) = "yaml:\"registered_relayers\"", (gogoproto.nullable) = false];
-  repeated ForwardRelayerAddress    forward_relayers     = 4 [(gogoproto.moretags) = "yaml:\"forward_relayers\"", (gogoproto.nullable) = false];
+  repeated FeeEnabledChannel fee_enabled_channels = 2
+      [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
+  repeated RegisteredRelayerAddress registered_relayers = 3
+      [(gogoproto.moretags) = "yaml:\"registered_relayers\"", (gogoproto.nullable) = false];
+  repeated ForwardRelayerAddress forward_relayers = 4
+      [(gogoproto.moretags) = "yaml:\"forward_relayers\"", (gogoproto.nullable) = false];
 }
 
 // FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
@@ -27,6 +30,7 @@ message FeeEnabledChannel {
 message RegisteredRelayerAddress {
   string address              = 1;
   string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
+  string channel_id           = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
 // ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements

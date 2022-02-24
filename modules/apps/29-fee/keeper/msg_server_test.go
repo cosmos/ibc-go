@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
@@ -35,14 +36,14 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 		sender = suite.chainA.SenderAccount.GetAddress().String()
 		counterparty = suite.chainB.SenderAccount.GetAddress().String()
 		tc.malleate()
-		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty)
+		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty, ibctesting.FirstChannelID)
 
 		_, err := suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
 
-			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String())
+			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
 			suite.Require().Equal(counterparty, counterpartyAddress)
 		} else {
 			suite.Require().Error(err)
@@ -118,12 +119,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
 		// build fee
-		packetId := channeltypes.NewPacketId(channelID, suite.path.EndpointA.ChannelConfig.PortID, seq)
-		identifiedPacketFee := types.IdentifiedPacketFee{PacketId: packetId, Fee: fee, RefundAddress: refundAcc.String(), Relayers: []string{}}
+		packetID := channeltypes.NewPacketId(channelID, suite.path.EndpointA.ChannelConfig.PortID, seq)
+		packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
 
 		tc.malleate()
 
-		msg := types.NewMsgPayPacketFeeAsync(identifiedPacketFee)
+		msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 		_, err := suite.chainA.SendMsgs(msg)
 
 		if tc.expPass {

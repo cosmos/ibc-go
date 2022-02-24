@@ -135,15 +135,15 @@ func (k Keeper) DisableAllChannels(ctx sdk.Context) {
 
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress string) {
+func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyRelayerAddress(address), []byte(counterpartyAddress))
+	store.Set(types.KeyCounterpartyRelayer(address, channelID), []byte(counterpartyAddress))
 }
 
 // GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
-func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string, bool) {
+func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address, channelID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyRelayerAddress(address)
+	key := types.KeyCounterpartyRelayer(address, channelID)
 
 	if !store.Has(key) {
 		return "", false
@@ -156,7 +156,7 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address string) (string,
 // GetAllRelayerAddresses returns all registered relayer addresses
 func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.RelayerAddressKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyRelayerAddressKeyPrefix))
 	defer iterator.Close()
 
 	var registeredAddrArr []types.RegisteredRelayerAddress
@@ -166,6 +166,7 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 		addr := types.RegisteredRelayerAddress{
 			Address:             keySplit[1],
 			CounterpartyAddress: string(iterator.Value()),
+			ChannelId:           keySplit[2],
 		}
 
 		registeredAddrArr = append(registeredAddrArr, addr)
@@ -174,14 +175,14 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 	return registeredAddrArr
 }
 
-// SetForwardRelayerAddress sets the forward relayer address during OnRecvPacket in case of async acknowledgement
-func (k Keeper) SetForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.PacketId, address string) {
+// SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement
+func (k Keeper) SetRelayerAddressForAsyncAck(ctx sdk.Context, packetId channeltypes.PacketId, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyForwardRelayerAddress(packetId), []byte(address))
 }
 
-// GetForwardRelayerAddress gets forward relayer address for a particular packet
-func (k Keeper) GetForwardRelayerAddress(ctx sdk.Context, packetId channeltypes.PacketId) (string, bool) {
+// GetRelayerAddressForAsyncAck gets forward relayer address for a particular packet
+func (k Keeper) GetRelayerAddressForAsyncAck(ctx sdk.Context, packetId channeltypes.PacketId) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyForwardRelayerAddress(packetId)
 	if !store.Has(key) {
@@ -248,12 +249,12 @@ func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) 
 }
 
 // GetFeesInEscrow returns all escrowed packet fees for a given packetID
-func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId) (types.IdentifiedPacketFees, bool) {
+func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId) (types.PacketFees, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyFeesInEscrow(packetID)
 	bz := store.Get(key)
 	if bz == nil {
-		return types.IdentifiedPacketFees{}, false
+		return types.PacketFees{}, false
 	}
 
 	return k.MustUnmarshalFees(bz), true
@@ -268,7 +269,7 @@ func (k Keeper) HasFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId)
 }
 
 // SetFeesInEscrow sets the given packet fees in escrow keyed by the packet identifier
-func (k Keeper) SetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId, fees types.IdentifiedPacketFees) {
+func (k Keeper) SetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId, fees types.PacketFees) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalFees(fees)
 	store.Set(types.KeyFeesInEscrow(packetID), bz)
@@ -281,6 +282,21 @@ func (k Keeper) DeleteFeesInEscrow(ctx sdk.Context, packetID channeltypes.Packet
 	store.Delete(key)
 }
 
+// IteratePacketFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
+// if the callback returns true, then iteration is stopped.
+func (k Keeper) IteratePacketFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(packetFees types.PacketFees) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeesInEscrowChannelPrefix(portID, channelID))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		packetFees := k.MustUnmarshalFees(iterator.Value())
+		if cb(packetFees) {
+			break
+		}
+	}
+}
+
 // IterateChannelFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
 // if the callback returns true, then iteration is stopped.
 func (k Keeper) IterateChannelFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(identifiedFee types.IdentifiedPacketFee) (stop bool)) {
@@ -291,21 +307,6 @@ func (k Keeper) IterateChannelFeesInEscrow(ctx sdk.Context, portID, channelID st
 	for ; iterator.Valid(); iterator.Next() {
 		identifiedFee := k.MustUnmarshalFee(iterator.Value())
 		if cb(identifiedFee) {
-			break
-		}
-	}
-}
-
-// IterateIdentifiedChannelFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
-// if the callback returns true, then iteration is stopped.
-func (k Keeper) IterateIdentifiedChannelFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(identifiedFees types.IdentifiedPacketFees) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeesInEscrowChannelPrefix(portID, channelID))
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		identifiedFees := k.MustUnmarshalFees(iterator.Value())
-		if cb(identifiedFees) {
 			break
 		}
 	}
@@ -327,15 +328,26 @@ func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) 
 }
 
 // GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
-func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFee {
+func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFees {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeInEscrowPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeesInEscrowPrefix))
 	defer iterator.Close()
 
-	var identifiedFees []types.IdentifiedPacketFee
+	var identifiedFees []types.IdentifiedPacketFees
 	for ; iterator.Valid(); iterator.Next() {
-		fee := k.MustUnmarshalFee(iterator.Value())
-		identifiedFees = append(identifiedFees, fee)
+		packetID, err := types.ParseKeyFeesInEscrow(string(iterator.Key()))
+		if err != nil {
+			panic(err)
+		}
+
+		feesInEscrow := k.MustUnmarshalFees(iterator.Value())
+
+		identifiedFee := types.IdentifiedPacketFees{
+			PacketId:   packetID,
+			PacketFees: feesInEscrow.PacketFees,
+		}
+
+		identifiedFees = append(identifiedFees, identifiedFee)
 	}
 
 	return identifiedFees
@@ -357,14 +369,14 @@ func (k Keeper) MustUnmarshalFee(bz []byte) types.IdentifiedPacketFee {
 
 // MustMarshalFees attempts to encode a Fee object and returns the
 // raw encoded bytes. It panics on error.
-func (k Keeper) MustMarshalFees(fees types.IdentifiedPacketFees) []byte {
+func (k Keeper) MustMarshalFees(fees types.PacketFees) []byte {
 	return k.cdc.MustMarshal(&fees)
 }
 
 // MustUnmarshalFees attempts to decode and return a Fee object from
 // raw encoded bytes. It panics on error.
-func (k Keeper) MustUnmarshalFees(bz []byte) types.IdentifiedPacketFees {
-	var fees types.IdentifiedPacketFees
+func (k Keeper) MustUnmarshalFees(bz []byte) types.PacketFees {
+	var fees types.PacketFees
 	k.cdc.MustUnmarshal(bz, &fees)
 	return fees
 }

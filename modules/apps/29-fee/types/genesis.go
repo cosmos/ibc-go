@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -8,18 +10,20 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFee, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress) *GenesisState {
+func NewGenesisState(identifiedFees []IdentifiedPacketFees, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
 		RegisteredRelayers: registeredRelayers,
+		ForwardRelayers:    forwardRelayers,
 	}
 }
 
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:     []IdentifiedPacketFee{},
+		IdentifiedFees:     []IdentifiedPacketFees{},
+		ForwardRelayers:    []ForwardRelayerAddress{},
 		FeeEnabledChannels: []FeeEnabledChannel{},
 		RegisteredRelayers: []RegisteredRelayerAddress{},
 	}
@@ -29,10 +33,15 @@ func DefaultGenesisState() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// Validate IdentifiedPacketFees
-	for _, fee := range gs.IdentifiedFees {
-		err := fee.Validate()
-		if err != nil {
+	for _, identifiedFees := range gs.IdentifiedFees {
+		if err := identifiedFees.PacketId.Validate(); err != nil {
 			return err
+		}
+
+		for _, packetFee := range identifiedFees.PacketFees {
+			if err := packetFee.Validate(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -48,13 +57,23 @@ func (gs GenesisState) Validate() error {
 
 	// Validate RegisteredRelayers
 	for _, rel := range gs.RegisteredRelayers {
-		_, err := sdk.AccAddressFromBech32(rel.Address)
-		if err != nil {
+		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
 			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
 		}
 
-		if rel.CounterpartyAddress == "" {
+		if strings.TrimSpace(rel.CounterpartyAddress) == "" {
 			return ErrCounterpartyAddressEmpty
+		}
+	}
+
+	// Validate ForwardRelayers
+	for _, rel := range gs.ForwardRelayers {
+		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert forward relayer address into sdk.AccAddress")
+		}
+
+		if err := rel.PacketId.Validate(); err != nil {
+			return err
 		}
 	}
 
