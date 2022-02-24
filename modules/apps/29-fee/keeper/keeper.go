@@ -335,18 +335,15 @@ func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPa
 
 	var identifiedFees []types.IdentifiedPacketFees
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-
-		feesInEscrow := k.MustUnmarshalFees(iterator.Value())
-
-		channelID, portID := keySplit[2], keySplit[1]
-		seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+		packetID, err := types.ParseKeyFeesInEscrow(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
+		feesInEscrow := k.MustUnmarshalFees(iterator.Value())
+
 		identifiedFee := types.IdentifiedPacketFees{
-			PacketId:   channeltypes.NewPacketId(channelID, portID, seq),
+			PacketId:   packetID,
 			PacketFees: feesInEscrow.PacketFees,
 		}
 

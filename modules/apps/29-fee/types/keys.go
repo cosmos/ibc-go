@@ -2,6 +2,10 @@ package types
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
@@ -65,6 +69,24 @@ func KeyFeeInEscrow(packetID channeltypes.PacketId) []byte {
 // KeyFeesInEscrow returns the key for escrowed fees
 func KeyFeesInEscrow(packetID channeltypes.PacketId) []byte {
 	return []byte(fmt.Sprintf("%s/%d", KeyFeesInEscrowChannelPrefix(packetID.PortId, packetID.ChannelId), packetID.Sequence))
+}
+
+// ParseKeyFeesInEscrow parses the key used to store fees in escrow and returns the packet id
+func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 4 {
+		return channeltypes.PacketId{}, sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 4, len(keySplit),
+		)
+	}
+
+	seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+	if err != nil {
+		return channeltypes.PacketId{}, err
+	}
+
+	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+	return packetID, nil
 }
 
 // KeyFeeInEscrowChannelPrefix returns the key prefix for escrowed fees on the given channel
