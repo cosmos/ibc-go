@@ -30,8 +30,8 @@ type KeeperTestSuite struct {
 	chainB *ibctesting.TestChain
 	chainC *ibctesting.TestChain
 
-	path  *ibctesting.Path
-	path2 *ibctesting.Path
+	path     *ibctesting.Path
+	pathAToC *ibctesting.Path
 
 	queryClient types.QueryClient
 }
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	suite.path2 = path
+	suite.pathAToC = path
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().IBCFeeKeeper)

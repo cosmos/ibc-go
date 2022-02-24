@@ -498,8 +498,8 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			// setup path2 (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
-			suite.coordinator.Setup(suite.path2)
+			// setup pathAToC (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
+			suite.coordinator.Setup(suite.pathAToC)
 			// setup path for chainA -> chainB
 			suite.coordinator.Setup(suite.path)
 

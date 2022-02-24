@@ -33,8 +33,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 			suite.SetupTest()
 
 			// open incentivized channels
-			// setup path2 (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
-			suite.coordinator.Setup(suite.path2)
+			// setup pathAToC (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
+			suite.coordinator.Setup(suite.pathAToC)
 			// setup path for chainA -> chainB
 			suite.coordinator.Setup(suite.path)
 

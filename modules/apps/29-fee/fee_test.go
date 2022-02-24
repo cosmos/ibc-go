@@ -22,7 +22,7 @@ type FeeTestSuite struct {
 	chainC *ibctesting.TestChain
 
 	path  *ibctesting.Path
-	path2 *ibctesting.Path
+	pathAToC *ibctesting.Path
 }
 
 func (suite *FeeTestSuite) SetupTest() {
@@ -44,7 +44,7 @@ func (suite *FeeTestSuite) SetupTest() {
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	suite.path2 = path
+	suite.pathAToC = path
 }
 
 func TestIBCFeeTestSuite(t *testing.T) {
