@@ -203,7 +203,7 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	// if forwardRelayer is not found we refund recv_fee
-	forwardRelayer, _ := im.keeper.GetCounterpartyAddress(ctx, relayer.String(), packet.GetSourceChannel())
+	forwardRelayer, _ := im.keeper.GetCounterpartyAddress(ctx, relayer.String(), packet.GetDestChannel())
 
 	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }

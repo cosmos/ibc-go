@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 			func() {},
 		},
 		{
-			"success",
+			"counterparty is arbitrary string",
 			true,
 			func() { counterparty = "arbitrary-string" },
 		},

@@ -514,7 +514,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
 
 			// malleate test case
 			tc.malleate()
@@ -522,6 +522,16 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			result := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 
 			switch {
+			case tc.name == "success":
+				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
+
+				expectedAck := types.IncentivizedAcknowledgement{
+					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
+					ForwardRelayerAddress: forwardAddr,
+					UnderlyingAppSuccess:  true,
+				}
+				suite.Require().Equal(expectedAck, result)
+
 			case !tc.feeEnabled:
 				suite.Require().Equal(ibcmock.MockAcknowledgement, result)
 
@@ -534,11 +544,9 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				suite.Require().Equal(relayer, suite.chainA.SenderAccount.GetAddress().String())
 
 			case !tc.forwardRelayer:
-				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
-
 				expectedAck := types.IncentivizedAcknowledgement{
 					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
-					ForwardRelayerAddress: forwardAddr,
+					ForwardRelayerAddress: "",
 					UnderlyingAppSuccess:  true,
 				}
 				suite.Require().Equal(expectedAck, result)
