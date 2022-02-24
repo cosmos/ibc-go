@@ -946,7 +946,7 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packet` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | Incentivized_packet |
+| `incentivized_packet` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) |  | Incentivized_packet |
 
 
 
@@ -977,7 +977,7 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packets` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated | Map of all incentivized_packets |
+| `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | Map of all incentivized_packets |
 
 
 
@@ -1041,7 +1041,8 @@ This Msg can be used to pay for a packet at a specified sequence (instead of the
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `identified_packet_fee` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | identified packet to pay fee for identified fee must contain the refund address which is also signer of this message |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier |
+| `packet_fee` | [PacketFee](#ibc.applications.fee.v1.PacketFee) |  | packet fee for incentivization |
 
 
 
