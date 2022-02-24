@@ -76,11 +76,11 @@ func (k Keeper) IncentivizedPacketsForChannel(c context.Context, req *types.Quer
 	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
 
 	var packets []*types.IdentifiedPacketFees
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyFeeInEscrowChannelPrefix(req.PortId, req.ChannelId))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId))
 	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 
 		keySplit := strings.Split(string(key), "/")
-		seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+		seq, err := strconv.ParseUint(keySplit[1], 10, 64)
 		if err != nil {
 			return status.Error(codes.Internal, err.Error())
 		}

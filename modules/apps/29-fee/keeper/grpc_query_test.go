@@ -189,7 +189,6 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
-				expIdentifiedPacketFees = make([]*types.IdentifiedPacketFees, 3)
 				identifiedFees1 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees.PacketFees)
 				identifiedFees2 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees.PacketFees)
 				identifiedFees3 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees.PacketFees)
@@ -222,7 +221,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
-				identifiedFees := make([]*types.IdentifiedPacketFees, 3)
+				var identifiedFees []*types.IdentifiedPacketFees
 				identifiedFees1 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1), packetFees.PacketFees)
 				identifiedFees2 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 2), packetFees.PacketFees)
 				identifiedFees3 := types.NewIdentifiedPacketFees(channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 3), packetFees.PacketFees)
