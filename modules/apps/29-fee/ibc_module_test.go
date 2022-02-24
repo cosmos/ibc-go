@@ -498,7 +498,9 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			// setup path2 (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
 			suite.coordinator.Setup(suite.path2)
+			// setup path for chainA -> chainB
 			suite.coordinator.Setup(suite.path)
 
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
@@ -530,15 +532,6 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				// retrieve the forward relayer that was stored in `onRecvPacket`
 				relayer, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), packetId)
 				suite.Require().Equal(relayer, suite.chainA.SenderAccount.GetAddress().String())
-
-				chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
-				ack := channeltypes.NewResultAcknowledgement([]byte("success"))
-
-				err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
-				suite.Require().NoError(err)
-
-				packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-				suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 
 			case !tc.forwardRelayer:
 				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)

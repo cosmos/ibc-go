@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
@@ -14,7 +15,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 		{
 			"success",
 			func() {
-				suite.chainB.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointB.ChannelID, suite.path.EndpointB.ChannelConfig.PortID, 1), suite.chainA.SenderAccount.GetAddress().String())
 				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
 			},
 			true,
@@ -31,7 +32,10 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			// open incentivized channel
+			// open incentivized channels
+			// setup path2 (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
+			suite.coordinator.Setup(suite.path2)
+			// setup path for chainA -> chainB
 			suite.coordinator.Setup(suite.path)
 
 			// build packet
@@ -59,6 +63,10 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				suite.Require().NoError(err)
 				_, found := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1))
 				suite.Require().False(found)
+
+				expectedAck := types.NewIncentivizedAcknowledgement(suite.chainB.SenderAccount.GetAddress().String(), ack.Acknowledgement(), ack.Success())
+				commitedAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+				suite.Require().Equal(commitedAck, channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement()))
 			} else {
 				suite.Require().Error(err)
 			}
