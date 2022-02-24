@@ -498,12 +498,10 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			suite.coordinator.Setup(suite.path2)
 			suite.coordinator.Setup(suite.path)
 
-			// set up a different channel to make sure that the test will error if the destination channel of the packet is not fee enabled
-			suite.path.EndpointB.ChannelID = "channel-1"
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
-			suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
 
 			packet := suite.CreateMockPacket()
 
@@ -514,7 +512,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
+			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
 
 			// malleate test case
 			tc.malleate()
@@ -527,11 +525,27 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			case tc.forwardRelayer && result == nil:
 				suite.Require().Equal(nil, result)
+				packetId := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
+
+				// retrieve the forward relayer that was stored in `onRecvPacket`
+				relayer, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), packetId)
+				suite.Require().Equal(relayer, suite.chainA.SenderAccount.GetAddress().String())
+
+				chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+				ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+
+				err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+				suite.Require().NoError(err)
+
+				packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 
 			case !tc.forwardRelayer:
+				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+
 				expectedAck := types.IncentivizedAcknowledgement{
 					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
-					ForwardRelayerAddress: "",
+					ForwardRelayerAddress: forwardAddr,
 					UnderlyingAppSuccess:  true,
 				}
 				suite.Require().Equal(expectedAck, result)
