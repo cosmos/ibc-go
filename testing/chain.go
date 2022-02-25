@@ -36,8 +36,8 @@ import (
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
-const (
-	MAX_ACCOUNTS = 10
+var (
+	MaxAccounts = 10
 )
 
 type SenderAccount struct {
@@ -95,7 +95,7 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 	senderAccs := []SenderAccount{}
 
 	// generate genesis accounts
-	for i := 0; i < MAX_ACCOUNTS; i++ {
+	for i := 0; i < MaxAccounts; i++ {
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
 		amount, ok := sdk.NewIntFromString("10000000000000000000")
