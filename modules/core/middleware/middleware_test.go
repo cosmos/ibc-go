@@ -1,16 +1,18 @@
-package middleware_test
+package middleware
 
 import (
+	"context"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/middleware"
-	"github.com/stretchr/testify/suite"
-
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/mock"
+	"github.com/stretchr/testify/suite"
 )
 
 type MiddlewareTestSuite struct {
@@ -23,6 +25,12 @@ type MiddlewareTestSuite struct {
 	chainB *ibctesting.TestChain
 
 	path *ibctesting.Path
+
+	txHandler txtypes.Handler
+}
+
+//set TxHandler for test
+func (suite *MiddlewareTestSuite) setupTxHandler() {
 }
 
 // SetupTest creates a coordinator with 2 test chains.
@@ -455,32 +463,51 @@ func (suite *MiddlewareTestSuite) TestAnteDecorator() {
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupTest()
-
-			k := suite.chainB.App.GetIBCKeeper().ChannelKeeper
-			ibcMiddleware := middleware.I
-
 			msgs := tc.malleate(suite)
-
 			deliverCtx := suite.chainB.GetContext().WithIsCheckTx(false)
 			checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
+			txHandler := middleware.ComposeMiddlewares(noopTxHandler, IbcTxMiddleware(suite.chainB.App.GetIBCKeeper().ChannelKeeper))
 
 			// create multimsg tx
 			txBuilder := suite.chainB.TxConfig.NewTxBuilder()
 			err := txBuilder.SetMsgs(msgs...)
 			suite.Require().NoError(err)
-			tx := txBuilder.GetTx()
+			testTx := txBuilder.GetTx()
 
-			next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
+			// test DeliverTx
+			_, err = txHandler.DeliverTx(sdk.WrapSDKContext(deliverCtx), txtypes.Request{Tx: testTx})
+			suite.Require().NoError(err, "should not error on DeliverTx")
 
-			_, err = decorator.AnteHandle(deliverCtx, tx, false, next)
-			suite.Require().NoError(err, "antedecorator should not error on DeliverTx")
-
-			_, err = decorator.AnteHandle(checkCtx, tx, false, next)
+			// test CheckTx
+			_, _, err = txHandler.CheckTx(sdk.WrapSDKContext(checkCtx), txtypes.Request{Tx: testTx}, txtypes.RequestCheckTx{})
 			if tc.expPass {
-				suite.Require().NoError(err, "non-strict decorator did not pass as expected")
+				suite.Require().NoError(err, "did not pass as expected")
 			} else {
-				suite.Require().Error(err, "non-strict antehandler did not return error as expected")
+				suite.Require().Error(err, "did not return error as expected")
 			}
 		})
 	}
 }
+
+// customTxHandler is a test middleware that will run a custom function.
+type customTxHandler struct {
+	fn func(context.Context, tx.Request) (tx.Response, error)
+}
+
+var _ tx.Handler = customTxHandler{}
+
+func (h customTxHandler) DeliverTx(ctx context.Context, req tx.Request) (tx.Response, error) {
+	return h.fn(ctx, req)
+}
+func (h customTxHandler) CheckTx(ctx context.Context, req tx.Request, _ tx.RequestCheckTx) (tx.Response, tx.ResponseCheckTx, error) {
+	res, err := h.fn(ctx, req)
+	return res, tx.ResponseCheckTx{}, err
+}
+func (h customTxHandler) SimulateTx(ctx context.Context, req tx.Request) (tx.Response, error) {
+	return h.fn(ctx, req)
+}
+
+// noopTxHandler is a test middleware that returns an empty response.
+var noopTxHandler = customTxHandler{func(_ context.Context, _ tx.Request) (tx.Response, error) {
+	return tx.Response{}, nil
+}}
