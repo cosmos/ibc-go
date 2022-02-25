@@ -26,7 +26,7 @@ service Query {
         "{packet_id.sequence}";
   }
 
-  // TotalRecvFees returns the total receive fees for a packet
+  // TotalRecvFees returns the total receive fees for a packet given its identifier
   rpc TotalRecvFees(QueryTotalRecvFeesRequest) returns (QueryTotalRecvFeesResponse) {
     option (google.api.http).get = "/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/"
                                    "{packet_id.channel_id}/sequence/{packet_id.sequence}";
@@ -69,6 +69,7 @@ message QueryTotalRecvFeesRequest {
 
 // QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
 message QueryTotalRecvFeesResponse {
+  // the total packet receive fees
   repeated cosmos.base.v1beta1.Coin recv_fees = 1 [
     (gogoproto.moretags)     = "yaml:\"recv_fees\"",
     (gogoproto.nullable)     = false,
