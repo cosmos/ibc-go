@@ -498,12 +498,12 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			// setup pathAToC (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
+			suite.coordinator.Setup(suite.pathAToC)
+			// setup path for chainA -> chainB
 			suite.coordinator.Setup(suite.path)
 
-			// set up a different channel to make sure that the test will error if the destination channel of the packet is not fee enabled
-			suite.path.EndpointB.ChannelID = "channel-1"
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
-			suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
 
 			packet := suite.CreateMockPacket()
 
@@ -522,11 +522,26 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			result := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 
 			switch {
+			case tc.name == "success":
+				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
+
+				expectedAck := types.IncentivizedAcknowledgement{
+					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
+					ForwardRelayerAddress: forwardAddr,
+					UnderlyingAppSuccess:  true,
+				}
+				suite.Require().Equal(expectedAck, result)
+
 			case !tc.feeEnabled:
 				suite.Require().Equal(ibcmock.MockAcknowledgement, result)
 
 			case tc.forwardRelayer && result == nil:
 				suite.Require().Equal(nil, result)
+				packetId := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
+
+				// retrieve the forward relayer that was stored in `onRecvPacket`
+				relayer, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), packetId)
+				suite.Require().Equal(relayer, suite.chainA.SenderAccount.GetAddress().String())
 
 			case !tc.forwardRelayer:
 				expectedAck := types.IncentivizedAcknowledgement{
