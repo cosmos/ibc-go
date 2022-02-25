@@ -132,11 +132,9 @@ message Misbehaviour {
 
 // Timestamp extrinsic data
 message TimestampExtrinsic {
-  // merkle proof of inclusion in header.extrinsic_root
+  // trie merkle proof of inclusion in header.extrinsic_root
+  // this already encodes the actual extrinsic
   repeated bytes extrinsic_proof = 1;
-
-  // actual scale encoded timestamp extrinsic.
-  bytes extrinsic = 2;
 }
 
 // Header contains the neccessary data to proove finality about IBC commitments

@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"time"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -96,25 +95,21 @@ func (h Header) ValidateBasic() error {
 			return err
 		}
 
-		_, err = DecodeExtrinsicTimestamp(h.ParachainHeaders[0].Timestamp.Extrinsic)
-		if err != nil {
-			return err
-		}
-
 		rootHash := decHeader.ExtrinsicsRoot[:]
 		extrinsicsProof := header.Timestamp.ExtrinsicProof
-		extrinsic := header.Timestamp.Extrinsic
 
 		key := make([]byte, 4)
 		binary.LittleEndian.PutUint32(key, 0)
-		isVerified, err := trie.VerifyProof(extrinsicsProof, rootHash, []trie.Pair{{Key: key, Value: extrinsic}})
-		if err != nil {
-			return fmt.Errorf("error verifying proof: %v", err.Error())
+		trie := trie.NewEmptyTrie()
+		if err := trie.LoadFromProof(extrinsicsProof, rootHash); err != nil {
+			return err
 		}
 
-		if !isVerified {
-			return fmt.Errorf("unable to verify extrinsic inclusion")
+		if ext := trie.Get(key); len(ext) == 0 {
+			// todo: error
 		}
+
+		// todo: decode extrinsic.
 	}
 
 	return nil

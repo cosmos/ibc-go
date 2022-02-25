@@ -3464,8 +3464,7 @@ Timestamp extrinsic data
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `extrinsic_proof` | [bytes](#bytes) | repeated | merkle proof of inclusion in header.extrinsic_root |
-| `extrinsic` | [bytes](#bytes) |  | actual scale encoded timestamp extrinsic. |
+| `extrinsic_proof` | [bytes](#bytes) | repeated | trie merkle proof of inclusion in header.extrinsic_root this already encodes the actual extrinsic |
 
 
 
