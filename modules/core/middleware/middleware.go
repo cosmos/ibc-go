@@ -27,7 +27,7 @@ func IbcTxMiddleware(channelkeeper channelkeeper.Keeper) tx.Middleware {
 	}
 }
 
-func (itxh ibcTxHandler) setIbcTxHandler(ctx context.Context, req tx.Request, simulate bool) error {
+func (itxh ibcTxHandler) checkRedundancy(ctx context.Context, req tx.Request, simulate bool) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	// do not run redundancy check on DeliverTx or simulate
 	if (sdkCtx.IsCheckTx() || sdkCtx.IsReCheckTx()) && !simulate {
@@ -81,7 +81,7 @@ func (itxh ibcTxHandler) setIbcTxHandler(ctx context.Context, req tx.Request, si
 
 // CheckTx implements tx.Handler.CheckTx.
 func (itxh ibcTxHandler) CheckTx(ctx context.Context, req tx.Request, checkReq tx.RequestCheckTx) (tx.Response, tx.ResponseCheckTx, error) {
-	err := itxh.setIbcTxHandler(ctx, req, false)
+	err := itxh.checkRedundancy(ctx, req, false)
 	if err != nil {
 		return tx.Response{}, tx.ResponseCheckTx{}, err
 	}
@@ -91,7 +91,7 @@ func (itxh ibcTxHandler) CheckTx(ctx context.Context, req tx.Request, checkReq t
 
 // DeliverTx implements tx.Handler.DeliverTx.
 func (itxh ibcTxHandler) DeliverTx(ctx context.Context, req tx.Request) (tx.Response, error) {
-	err := itxh.setIbcTxHandler(ctx, req, false)
+	err := itxh.checkRedundancy(ctx, req, false)
 	if err != nil {
 		return tx.Response{}, err
 	}
@@ -100,7 +100,7 @@ func (itxh ibcTxHandler) DeliverTx(ctx context.Context, req tx.Request) (tx.Resp
 
 // SimulateTx implements tx.Handler.SimulateTx.
 func (itxh ibcTxHandler) SimulateTx(ctx context.Context, req tx.Request) (tx.Response, error) {
-	err := itxh.setIbcTxHandler(ctx, req, true)
+	err := itxh.checkRedundancy(ctx, req, true)
 	if err != nil {
 		return tx.Response{}, err
 	}
