@@ -1,4 +1,4 @@
-package middleware
+package middleware_test
 
 import (
 	"context"
@@ -13,6 +13,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/mock"
 	"github.com/stretchr/testify/suite"
+
+	ibcmiddleware "github.com/cosmos/ibc-go/v3/modules/core/middleware"
 )
 
 type MiddlewareTestSuite struct {
@@ -466,7 +468,7 @@ func (suite *MiddlewareTestSuite) TestAnteDecorator() {
 			msgs := tc.malleate(suite)
 			deliverCtx := suite.chainB.GetContext().WithIsCheckTx(false)
 			checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
-			txHandler := middleware.ComposeMiddlewares(noopTxHandler, IbcTxMiddleware(suite.chainB.App.GetIBCKeeper().ChannelKeeper))
+			txHandler := middleware.ComposeMiddlewares(noopTxHandler, ibcmiddleware.IbcTxMiddleware(suite.chainB.App.GetIBCKeeper().ChannelKeeper))
 
 			// create multimsg tx
 			txBuilder := suite.chainB.TxConfig.NewTxBuilder()
