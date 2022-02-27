@@ -537,18 +537,22 @@ func (app *SimApp) setTxHandler(txConfig client.TxConfig, indexEventsStr []strin
 	for _, e := range indexEventsStr {
 		indexEvents[e] = struct{}{}
 	}
-	txHandler, err := authmiddleware.NewDefaultTxHandler(authmiddleware.TxHandlerOptions{
-		Debug:            app.Trace(),
-		IndexEvents:      indexEvents,
-		LegacyRouter:     app.legacyRouter,
-		MsgServiceRouter: app.MsgSvcRouter,
-		AccountKeeper:    app.AccountKeeper,
-		BankKeeper:       app.BankKeeper,
-		FeegrantKeeper:   app.FeeGrantKeeper,
-		SignModeHandler:  txConfig.SignModeHandler(),
-		SigGasConsumer:   authmiddleware.DefaultSigVerificationGasConsumer,
-		TxDecoder:        txConfig.TxDecoder(),
+	txHandler, err := NewDefaultTxHandler(TxHandlerOptions{
+		TxHandlerOptions: authmiddleware.TxHandlerOptions{
+			Debug:            app.Trace(),
+			IndexEvents:      indexEvents,
+			LegacyRouter:     app.legacyRouter,
+			MsgServiceRouter: app.MsgSvcRouter,
+			AccountKeeper:    app.AccountKeeper,
+			BankKeeper:       app.BankKeeper,
+			FeegrantKeeper:   app.FeeGrantKeeper,
+			SignModeHandler:  txConfig.SignModeHandler(),
+			SigGasConsumer:   authmiddleware.DefaultSigVerificationGasConsumer,
+			TxDecoder:        txConfig.TxDecoder(),
+		},
+		ChannelKeeper: app.GetIBCKeeper().ChannelKeeper,
 	})
+
 	if err != nil {
 		panic(err)
 	}
