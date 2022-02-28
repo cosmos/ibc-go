@@ -72,9 +72,22 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (
 	return k.channelKeeper.GetNextSequenceSend(ctx, portID, channelID)
 }
 
-// GetFeeAccount returns the ICS29 Fee ModuleAccount address
+// GetFeeModuleAddress returns the ICS29 Fee ModuleAccount address
 func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 	return k.authKeeper.GetModuleAddress(types.ModuleName)
+}
+
+// lockFeeModule sets a flag to determine if fee handling logic should run for the given channel
+// identified by channel and port identifiers.
+func (k Keeper) lockFeeModule(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyLocked(), []byte{1})
+}
+
+// IsLocked indicates if the fee module is locked
+func (k Keeper) IsLocked(ctx sdk.Context) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.KeyLocked())
 }
 
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel

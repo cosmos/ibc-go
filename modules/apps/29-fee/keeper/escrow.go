@@ -109,25 +109,23 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.
 	}
 }
 
+// RefundFeesOnChannelClosure will refund all fees associated with the given port and channel identifiers.
+// If the escrow account runs out of balance then fee logic will be disabled for all channels as this
+// implies a severe bug.
 func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID string) error {
 	identifiedPacketFees := k.GetIdentifiedPacketFeesForChannel(ctx, portID, channelID)
 
 	for _, identifiedPacketFee := range identifiedPacketFees {
 		for _, packetFee := range identifiedPacketFee.PacketFees {
-			// error should only be non-nil if there is a bug in the code
-			// that causes module account to have insufficient funds to refund
-			// all escrowed fees on the channel.
-			// Disable all channels to allow for coordinated fix to the issue
-			// and mitigate/reverse damage.
-			// NOTE: Underlying application's packets will still go through, but
-			// fee module will be disabled for all channels
-			//
-			// if !k.bankKeeper.HasBalance(ctx) {
-			//	im.keeper.DisableAllChannels(ctx)
-			//}
+			if !k.bankKeeper.HasBalance(ctx, k.GetFeeModuleAddress(), packetFee.Fee.Total()) {
+				// Disable all channels to allow for coordinated fix to the issue
+				// and mitigate/reverse damage.
+				// NOTE: Underlying application's packets will still go through, but
+				// fee module will be disabled for all channels
+				k.DisableAllChannels(ctx)
+			}
 
 			refundAccAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
-
 			if err != nil {
 				return err
 			}
