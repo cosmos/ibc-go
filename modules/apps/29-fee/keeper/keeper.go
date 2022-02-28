@@ -282,34 +282,27 @@ func (k Keeper) DeleteFeesInEscrow(ctx sdk.Context, packetID channeltypes.Packet
 	store.Delete(key)
 }
 
-// IteratePacketFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
-// if the callback returns true, then iteration is stopped.
-func (k Keeper) IteratePacketFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(packetFees types.PacketFees) (stop bool)) {
+// GetIdentifiedPacketFeesForChannel returns all the currently escrowed fees on a given channel.
+func (k Keeper) GetIdentifiedPacketFeesForChannel(ctx sdk.Context, portID, channelID string) []types.IdentifiedPacketFees {
+	var identifiedPacketFees []types.IdentifiedPacketFees
+
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeesInEscrowChannelPrefix(portID, channelID))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
+		packetId, err := types.ParseKeyFeesInEscrow(string(iterator.Key()))
+		if err != nil {
+			panic(err)
+		}
+
 		packetFees := k.MustUnmarshalFees(iterator.Value())
-		if cb(packetFees) {
-			break
-		}
-	}
-}
 
-// IterateChannelFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
-// if the callback returns true, then iteration is stopped.
-func (k Keeper) IterateChannelFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(identifiedFee types.IdentifiedPacketFee) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeeInEscrowChannelPrefix(portID, channelID))
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		identifiedFee := k.MustUnmarshalFee(iterator.Value())
-		if cb(identifiedFee) {
-			break
-		}
+		identifiedFee := types.NewIdentifiedPacketFees(packetId, packetFees.PacketFees)
+		identifiedPacketFees = append(identifiedPacketFees, identifiedFee)
 	}
+
+	return identifiedPacketFees
 }
 
 // Deletes the fee associated with the given packetId

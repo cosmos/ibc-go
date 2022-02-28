@@ -109,37 +109,45 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.
 	}
 }
 
-func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) error {
+func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID string) error {
+	identifiedPacketFees := k.GetIdentifiedPacketFeesForChannel(ctx, portID, channelID)
 
-	var refundErr error
+	for _, identifiedPacketFee := range identifiedPacketFees {
+		for _, packetFee := range identifiedPacketFee.PacketFees {
+			// error should only be non-nil if there is a bug in the code
+			// that causes module account to have insufficient funds to refund
+			// all escrowed fees on the channel.
+			// Disable all channels to allow for coordinated fix to the issue
+			// and mitigate/reverse damage.
+			// NOTE: Underlying application's packets will still go through, but
+			// fee module will be disabled for all channels
+			//
+			// if !k.bankKeeper.HasBalance(ctx) {
+			//	im.keeper.DisableAllChannels(ctx)
+			//}
 
-	k.IteratePacketFeesInEscrow(ctx, portID, channelID, func(packetFees types.PacketFees) (stop bool) {
-		for _, identifiedFee := range packetFees.PacketFees {
-			refundAccAddr, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
+			refundAccAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+
 			if err != nil {
-				refundErr = err
-				return true
+				return err
 			}
 
 			// refund all fees to refund address
 			// Use SendCoins rather than the module account send functions since refund address may be a user account or module address.
 			// if any `SendCoins` call returns an error, we return error and stop iteration
-			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.RecvFee); err != nil {
-				refundErr = err
-				return true
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, packetFee.Fee.RecvFee); err != nil {
+				return err
 			}
-			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.AckFee); err != nil {
-				refundErr = err
-				return true
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, packetFee.Fee.AckFee); err != nil {
+				return err
 			}
-			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.TimeoutFee); err != nil {
-				refundErr = err
-				return true
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, packetFee.Fee.TimeoutFee); err != nil {
+				return err
 			}
 		}
 
-		return false
-	})
+		// k.DeletePacketFees(ctx, identifiedPacketFees.PacketId)
+	}
 
-	return refundErr
+	return nil
 }

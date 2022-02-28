@@ -259,7 +259,7 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 	suite.Require().True(hasBalance)
 }
 
-func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
+func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 	suite.coordinator.Setup(suite.path)
 
 	// setup
@@ -296,7 +296,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	suite.Require().NoError(err)
 
 	// check that refunding all fees on channel-0 refunds all fees except for fee on channel-1
-	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannelClosure(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 	suite.Require().NoError(err, "refund fees returned unexpected error")
 
 	// add fee sent to channel-1 to after balance to recover original balance
@@ -312,6 +312,6 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 
 	suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, fee.TimeoutFee)
 
-	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	err = suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannelClosure(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 	suite.Require().Error(err, "refund fees returned no error with insufficient balance on module account")
 }
