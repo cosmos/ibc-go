@@ -28,15 +28,19 @@ type KeeperTestSuite struct {
 	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
+	chainC *ibctesting.TestChain
 
-	path        *ibctesting.Path
+	path     *ibctesting.Path
+	pathAToC *ibctesting.Path
+
 	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
@@ -45,6 +49,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
 	suite.path = path
+
+	path = ibctesting.NewPath(suite.chainA, suite.chainC)
+	path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	suite.pathAToC = path
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().IBCFeeKeeper)
