@@ -76,28 +76,24 @@ func (k Keeper) IncentivizedPacketsForChannel(c context.Context, req *types.Quer
 	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
 
 	var packets []*types.IdentifiedPacketFees
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(string(types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId))+"/"))
+	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), keyPrefix)
 	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
-		// the key returned only includes the sequence
-		seq, err := strconv.ParseUint(string(key), 10, 64)
+		packetID, err := types.ParseKeyFeesInEscrow(string(keyPrefix) + string(key))
 		if err != nil {
 			return err
 		}
 
-		packetID := channeltypes.NewPacketId(req.ChannelId, req.PortId, seq)
 		packetFees := k.MustUnmarshalFees(value)
 
 		identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
-
 		packets = append(packets, &identifiedPacketFees)
 
 		return nil
 	})
 
 	if err != nil {
-		return nil, status.Error(
-			codes.NotFound, err.Error(),
-		)
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	return &types.QueryIncentivizedPacketsForChannelResponse{
