@@ -45,6 +45,12 @@ const (
 	AttributeKeyTimeoutFee = "timeout_fee"
 )
 
+// KeyLocked returns the key used to lock and unlock the fee module. This key is used
+// in the presence of a severe bug.
+func KeyLocked() []byte {
+	return []byte("locked")
+}
+
 // FeeEnabledKey returns the key that stores a flag to determine if fee logic should
 // be enabled for the given port and channel identifiers.
 func FeeEnabledKey(portID, channelID string) []byte {
