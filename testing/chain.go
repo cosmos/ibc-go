@@ -35,9 +35,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
-var (
-	MaxAccounts = 10
-)
+var MaxAccounts = 10
 
 type SenderAccount struct {
 	SenderPrivKey cryptotypes.PrivKey
@@ -50,7 +48,7 @@ type SenderAccount struct {
 // is used for delivering transactions through the application state.
 // NOTE: the actual application uses an empty chain-id for ease of testing.
 type TestChain struct {
-	t *testing.T
+	*testing.T
 
 	Coordinator   *Coordinator
 	App           TestingApp
@@ -134,7 +132,7 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 
 	// create an account to send transactions from
 	chain := &TestChain{
-		t:              t,
+		T:              t,
 		Coordinator:    coord,
 		ChainID:        chainID,
 		App:            app,
@@ -191,7 +189,7 @@ func (chain *TestChain) GetContext() sdk.Context {
 // their own SimApp.
 func (chain *TestChain) GetSimApp() *simapp.SimApp {
 	app, ok := chain.App.(*simapp.SimApp)
-	require.True(chain.t, ok)
+	require.True(chain.T, ok)
 
 	return app
 }
@@ -213,10 +211,10 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 	})
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	proof, err := chain.App.AppCodec().Marshal(&merkleProof)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	revision := clienttypes.ParseChainID(chain.ChainID)
 
@@ -237,10 +235,10 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 	})
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	proof, err := chain.App.AppCodec().Marshal(&merkleProof)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	revision := clienttypes.ParseChainID(chain.ChainID)
 
@@ -311,7 +309,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	chain.Coordinator.UpdateTimeForChain(chain)
 
 	_, r, err := simapp.SignAndDeliver(
-		chain.t,
+		chain.T,
 		chain.TxConfig,
 		chain.App.GetBaseApp(),
 		chain.GetContext().BlockHeader(),
@@ -340,7 +338,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 // expected to exist otherwise testing will fail.
 func (chain *TestChain) GetClientState(clientID string) exported.ClientState {
 	clientState, found := chain.App.GetIBCKeeper().ClientKeeper.GetClientState(chain.GetContext(), clientID)
-	require.True(chain.t, found)
+	require.True(chain.T, found)
 
 	return clientState
 }
@@ -372,7 +370,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
 	ack, found := chain.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	require.True(chain.t, found)
+	require.True(chain.T, found)
 
 	return ack
 }
@@ -447,7 +445,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		valSet      *tmproto.ValidatorSet
 		trustedVals *tmproto.ValidatorSet
 	)
-	require.NotNil(chain.t, tmValSet)
+	require.NotNil(chain.T, tmValSet)
 
 	vsetHash := tmValSet.Hash()
 	nextValHash := nextVals.Hash()
@@ -533,11 +531,11 @@ func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.Scope
 	if !ok {
 		// create capability using the IBC capability keeper
 		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), host.PortPath(portID))
-		require.NoError(chain.t, err)
+		require.NoError(chain.T, err)
 
 		// claim capability using the scopedKeeper
 		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
-		require.NoError(chain.t, err)
+		require.NoError(chain.T, err)
 	}
 
 	chain.NextBlock()
@@ -547,7 +545,7 @@ func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.Scope
 // exist, otherwise testing will fail.
 func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capability {
 	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
-	require.True(chain.t, ok)
+	require.True(chain.T, ok)
 
 	return cap
 }
@@ -561,9 +559,9 @@ func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.Sc
 	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), capName)
 	if !ok {
 		cap, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), capName)
-		require.NoError(chain.t, err)
+		require.NoError(chain.T, err)
 		err = scopedKeeper.ClaimCapability(chain.GetContext(), cap, capName)
-		require.NoError(chain.t, err)
+		require.NoError(chain.T, err)
 	}
 
 	chain.NextBlock()
@@ -573,7 +571,7 @@ func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.Sc
 // The capability must exist, otherwise testing will fail.
 func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabilitytypes.Capability {
 	cap, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
-	require.True(chain.t, ok)
+	require.True(chain.T, ok)
 
 	return cap
 }
