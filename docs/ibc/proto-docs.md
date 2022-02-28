@@ -948,7 +948,7 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packet` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) |  | Incentivized_packet |
+| `incentivized_packet` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) |  | Incentivized_packet |
 
 
 
@@ -1013,7 +1013,7 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packets` | [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee) | repeated | Map of all incentivized_packets |
+| `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | Map of all incentivized_packets |
 
 
 

@@ -44,6 +44,14 @@ func NewPacketFees(packetFees []PacketFee) PacketFees {
 	}
 }
 
+// NewIdentifiedPacketFees creates and returns a new IdentifiedPacketFees struct containing a packet ID and packet fees
+func NewIdentifiedPacketFees(packetID channeltypes.PacketId, packetFees []PacketFee) IdentifiedPacketFees {
+	return IdentifiedPacketFees{
+		PacketId:   packetID,
+		PacketFees: packetFees,
+	}
+}
+
 // NewFee creates and returns a new Fee struct encapsulating the receive, acknowledgement and timeout fees as sdk.Coins
 func NewFee(recvFee, ackFee, timeoutFee sdk.Coins) Fee {
 	return Fee{
@@ -81,12 +89,4 @@ func (fee Fee) Validate() error {
 	}
 
 	return nil
-}
-
-// NewIdentifiedPacketFees returns a IdentifiedPacketFees struct
-func NewIdentifiedPacketFees(packetID channeltypes.PacketId, packetFees []PacketFee) IdentifiedPacketFees {
-	return IdentifiedPacketFees{
-		PacketId:   packetID,
-		PacketFees: packetFees,
-	}
 }
