@@ -49,6 +49,7 @@ type Middleware interface {
 type ICS4Wrapper interface {
     SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet) error
     WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet, ack []byte) error
+    GetChannelVersion(ctx sdk.Context, portID, channelID string) (string, bool) 
 }
 ```
 
@@ -238,5 +239,22 @@ func SendPacket(appPacket channeltypes.Packet) {
     packet = doCustomLogic(app_packet)
 
     return ics4Keeper.SendPacket(packet)
+}
+
+// middleware must unwrap the channel version so the underlying application 
+// which calls this function receives the version it constructed.
+func GetUnwrappedChannelVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+    version, found := ics4Keeper.GetChannelVersion(ctx, portID, channelID)
+    if !found {
+        return "", false
+    }
+
+    // unwrap channel version
+    metadata, err := Unmarshal(version)
+    if err != nil {
+        panic() 
+    }
+
+    return metadata.AppVersion, true
 }
 ```
