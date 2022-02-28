@@ -244,7 +244,7 @@ func SendPacket(appPacket channeltypes.Packet) {
 // middleware must unwrap the channel version so the underlying application 
 // which calls this function receives the version it constructed.
 func GetUnwrappedChannelVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-    version, found := ics4Keeper.GetChannelVersion(ctx, portID, channelID)
+    version, found := ics4Keeper.GetUnwrappedChannelVersion(ctx, portID, channelID)
     if !found {
         return "", false
     }
