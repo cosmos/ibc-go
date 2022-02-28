@@ -37,7 +37,7 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
         // set ICS27 Host submodule params
         app.ICAHostKeeper.SetParams(ctx, icahosttypes.Params{
             HostEnabled: true, 
-            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...], 
+            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
         })
 
         // set ICS27 Controller submodule params
@@ -47,7 +47,8 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
         
         ...
 
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+        vm[icatypes.ModuleName] = 1
+        return app.mm.RunMigrations(ctx, app.configurator, vm)
     })
 
 ```
@@ -72,7 +73,7 @@ The migration code required may look like:
     // overwrite parameters as desired
     hostGenesisState.Params = icahosttypes.Params{
         HostEnabled: true, 
-        AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...], 
+        AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
     }
 
     icaGenesisState := icatypes.NewGenesisState(controllerGenesisState, hostGenesisState)
