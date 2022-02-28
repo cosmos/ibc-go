@@ -63,7 +63,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (middleware) [\#1022](https://github.com/cosmos/ibc-go/pull/1022) Add `GetUnwrappedChannelVersion` to the ICS4Wrapper interface. This function should be used by IBC applications to obtain their own version since the version set in the channel structure may be wrapped many times but middleware. 
+* (middleware) [\#1022](https://github.com/cosmos/ibc-go/pull/1022) Add `GetUnwrappedChannelVersion` to the ICS4Wrapper interface. This function should be used by IBC applications to obtain their own version since the version set in the channel structure may be wrapped many times by middleware. 
 * (testing) [\#942](https://github.com/cosmos/ibc-go/pull/942) `NewTestChain` will create 4 validators in validator set by default. A new constructor function `NewTestChainWithValSet` is provided for test writers who want custom control over the validator set of test chains.
 * (testing) [\#904](https://github.com/cosmos/ibc-go/pull/904) Add `ParsePacketFromEvents` function to the testing package. Useful when sending/relaying packets via the testing package.
 * (testing) [\#893](https://github.com/cosmos/ibc-go/pull/893) Support custom private keys for testing.
