@@ -11,7 +11,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
@@ -22,18 +21,14 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 
 	altVal := tmtypes.NewValidator(altPubKey, 4)
 
-	// Create bothValSet with both suite validator and altVal
-	bothValSet := tmtypes.NewValidatorSet(append(suite.valSet.Validators, altVal))
-	bothValsHash := bothValSet.Hash()
 	// Create alternative validator set with only altVal
 	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
 
-	_, suiteVal := suite.valSet.GetByIndex(0)
+	// Create bothValSet with both suite validator and altVal
+	bothValSet, bothSigners := getBothSigners(suite, altVal, altPrivVal)
+	bothValsHash := bothValSet.Hash()
 
-	// Create signer array and ensure it is in same order as bothValSet
-	bothSigners := ibctesting.CreateSortedSignerArray(altPrivVal, suite.privVal, altVal, suiteVal)
-
-	altSigners := []tmtypes.PrivValidator{altPrivVal}
+	altSigners := getAltSigners(altVal, altPrivVal)
 
 	heightMinus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)
 	heightMinus3 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-3)

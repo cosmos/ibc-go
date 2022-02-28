@@ -444,9 +444,12 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 
 	// Create signer array and ensure it is in same order as bothValSet
 	_, suiteVal := suite.valSet.GetByIndex(0)
-	bothSigners := ibctesting.CreateSortedSignerArray(altPrivVal, suite.privVal, altVal, suiteVal)
+	bothSigners := make(map[string]tmtypes.PrivValidator, 2)
+	bothSigners[suiteVal.Address.String()] = suite.privVal
+	bothSigners[altVal.Address.String()] = altPrivVal
 
-	altSigners := []tmtypes.PrivValidator{altPrivVal}
+	altSigners := make(map[string]tmtypes.PrivValidator, 1)
+	altSigners[altVal.Address.String()] = altPrivVal
 
 	// Create valid Misbehaviour by making a duplicate header that signs over different block time
 	altTime := suite.ctx.BlockTime().Add(time.Minute)
