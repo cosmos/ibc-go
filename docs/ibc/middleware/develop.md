@@ -49,7 +49,7 @@ type Middleware interface {
 type ICS4Wrapper interface {
     SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet) error
     WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet, ack []byte) error
-    GetChannelVersion(ctx sdk.Context, portID, channelID string) (string, bool) 
+    GetUnwrappedChannelVersion(ctx sdk.Context, portID, channelID string) (string, bool) 
 }
 ```
 
