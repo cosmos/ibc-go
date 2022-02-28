@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +11,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 var _ types.QueryServer = Keeper{}
