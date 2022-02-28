@@ -47,7 +47,6 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
         
         ...
 
-        vm[icatypes.ModuleName] = 1
         return app.mm.RunMigrations(ctx, app.configurator, vm)
     })
 
