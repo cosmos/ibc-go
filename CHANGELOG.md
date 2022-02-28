@@ -81,12 +81,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#432](https://github.com/cosmos/ibc-go/pull/432) Introduce `MockIBCApp` struct to the mock module. Allows the mock module to be reused to perform custom logic on each IBC App interface function. This might be useful when testing out IBC applications written as middleware. 
 * [\#380](https://github.com/cosmos/ibc-go/pull/380) Adding the Interchain Accounts module v1
 * [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
-* (channel) [\#895](https://github.com/cosmos/ibc-go/pull/895) Adding UnpackAcknowledgement and PackAcknowledgement helper functions to pack or unpack an Acknowledgement to and from a proto Any type 
-
 
 ### Bug Fixes
 
 * (testing) [\#884](https://github.com/cosmos/ibc-go/pull/884) Add and use in simapp a custom ante handler that rejects redundant transactions
+* (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 
 ## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
 
