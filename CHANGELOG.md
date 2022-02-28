@@ -40,7 +40,30 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
 
+<<<<<<< HEAD
 ## [v1.2.6](https://github.com/cosmos/ibc-go/releases/tag/v1.2.6) - 2022-02-03
+=======
+### Bug Fixes
+
+* (testing) [\#884](https://github.com/cosmos/ibc-go/pull/884) Add and use in simapp a custom ante handler that rejects redundant transactions
+* (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
+
+## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
+
+### Dependencies
+
+* [\#589](https://github.com/cosmos/ibc-go/pull/589) Bump SDK version to v0.44.5
+
+### Bug Fixes
+
+* (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
+
+## [v2.0.1](https://github.com/cosmos/ibc-go/releases/tag/v2.0.1) - 2021-12-05
+
+### Dependencies
+
+* [\#567](https://github.com/cosmos/ibc-go/pull/567) Bump SDK version to v0.44.4
+>>>>>>> 4545154 (bug: support base denoms with slashes (#978))
 
 ### Improvements
 
