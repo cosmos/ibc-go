@@ -124,12 +124,10 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChan
 // In this case, chain developers should investigate the issue, fix it,
 // and then re-enable the fee module in a coordinated upgrade.
 func (k Keeper) DisableAllChannels(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
+	channels := k.GetAllFeeEnabledChannels(ctx)
 
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
+	for _, channel := range channels {
+		k.DeleteFeeEnabled(ctx, channel.PortId, channel.ChannelId)
 	}
 }
 
