@@ -272,7 +272,7 @@ func (chain *TestChain) NextBlock() {
 	chain.LastHeader = chain.CurrentTMClientHeader()
 
 	chain.Vals = chain.NextVals
-	chain.NextVals = ApplyValSetChanges(chain.t, chain.Vals, res.ValidatorUpdates)
+	chain.NextVals = ApplyValSetChanges(chain.T, chain.Vals, res.ValidatorUpdates)
 
 	// increment the current header
 	chain.CurrentHeader = tmproto.Header{
