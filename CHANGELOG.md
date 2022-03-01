@@ -40,6 +40,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
 
+### Bug Fixes
+
+* (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
+
 ## [v1.2.6](https://github.com/cosmos/ibc-go/releases/tag/v1.2.6) - 2022-02-03
 
 ### Improvements
