@@ -15,7 +15,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
-	// TODO
+		GetCmdTotalRecvFees(),
 	)
 
 	return queryCmd
