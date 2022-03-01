@@ -65,3 +65,29 @@ func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 		IncentivizedPacket: types.NewIdentifiedPacketFees(req.PacketId, feesInEscrow.PacketFees),
 	}, nil
 }
+
+// TotalRecvFees implements the Query/TotalRecvFees gRPC method
+func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
+	if !found {
+		return nil, status.Errorf(
+			codes.NotFound,
+			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+		)
+	}
+
+	var recvFees sdk.Coins
+	for _, packetFee := range feesInEscrow.PacketFees {
+		recvFees = recvFees.Add(packetFee.Fee.RecvFee...)
+	}
+
+	return &types.QueryTotalRecvFeesResponse{
+		RecvFees: recvFees,
+	}, nil
+}
