@@ -162,13 +162,8 @@ func ValidatePrefixedDenom(denom string) error {
 
 // ValidateIBCDenom validates that the given denomination is either:
 //
-<<<<<<< HEAD
-//  - A valid base denomination (eg: 'uatom')
-//  - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-001-coin-source-tracing.md
-=======
 //  - A valid base denomination (eg: 'uatom' or 'gamm/pool/1' as in https://github.com/cosmos/ibc-go/issues/894)
 //  - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
->>>>>>> 4545154 (bug: support base denoms with slashes (#978))
 func ValidateIBCDenom(denom string) error {
 	if err := sdk.ValidateDenom(denom); err != nil {
 		return err
