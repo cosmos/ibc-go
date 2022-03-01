@@ -45,7 +45,7 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
         // create ICS27 Host submodule params
         hostParams := icahosttypes.Params{
             HostEnabled: true, 
-            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...], 
+            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
         }
         
         // initialize ICS27 module
@@ -53,7 +53,7 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
         
         ...
 
-        return app.mm.RunMigrations(ctx, app.configurator, vm)
+        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     })
 
 ```
