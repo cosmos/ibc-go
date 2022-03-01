@@ -230,26 +230,6 @@ func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetId channeltyp
 	store.Delete(key)
 }
 
-// Stores a Fee for a given packet in state
-func (k Keeper) SetFeeInEscrow(ctx sdk.Context, fee types.IdentifiedPacketFee) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.MustMarshalFee(&fee)
-	store.Set(types.KeyFeeInEscrow(fee.PacketId), bz)
-}
-
-// Gets a Fee for a given packet
-func (k Keeper) GetFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) (types.IdentifiedPacketFee, bool) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.KeyFeeInEscrow(packetId)
-	bz := store.Get(key)
-	if bz == nil {
-		return types.IdentifiedPacketFee{}, false
-	}
-	fee := k.MustUnmarshalFee(bz)
-
-	return fee, true
-}
-
 // GetFeesInEscrow returns all escrowed packet fees for a given packetID
 func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId) (types.PacketFees, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -299,36 +279,6 @@ func (k Keeper) IteratePacketFeesInEscrow(ctx sdk.Context, portID, channelID str
 	}
 }
 
-// IterateChannelFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
-// if the callback returns true, then iteration is stopped.
-func (k Keeper) IterateChannelFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(identifiedFee types.IdentifiedPacketFee) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeeInEscrowChannelPrefix(portID, channelID))
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		identifiedFee := k.MustUnmarshalFee(iterator.Value())
-		if cb(identifiedFee) {
-			break
-		}
-	}
-}
-
-// Deletes the fee associated with the given packetId
-func (k Keeper) DeleteFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.KeyFeeInEscrow(packetId)
-	store.Delete(key)
-}
-
-// HasFeeInEscrow returns true if there is a Fee still to be escrowed for a given packet
-func (k Keeper) HasFeeInEscrow(ctx sdk.Context, packetId channeltypes.PacketId) bool {
-	store := ctx.KVStore(k.storeKey)
-	key := types.KeyFeeInEscrow(packetId)
-
-	return store.Has(key)
-}
-
 // GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
 func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFees {
 	store := ctx.KVStore(k.storeKey)
@@ -353,20 +303,6 @@ func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPa
 	}
 
 	return identifiedFees
-}
-
-// MustMarshalFee attempts to encode a Fee object and returns the
-// raw encoded bytes. It panics on error.
-func (k Keeper) MustMarshalFee(fee *types.IdentifiedPacketFee) []byte {
-	return k.cdc.MustMarshal(fee)
-}
-
-// MustUnmarshalFee attempts to decode and return a Fee object from
-// raw encoded bytes. It panics on error.
-func (k Keeper) MustUnmarshalFee(bz []byte) types.IdentifiedPacketFee {
-	var fee types.IdentifiedPacketFee
-	k.cdc.MustUnmarshal(bz, &fee)
-	return fee
 }
 
 // MustMarshalFees attempts to encode a Fee object and returns the
