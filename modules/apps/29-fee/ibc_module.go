@@ -143,6 +143,10 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
+	if err := im.app.OnChanCloseInit(ctx, portID, channelID); err != nil {
+		return err
+	}
+
 	// delete fee enabled on channel
 	// and refund any remaining fees escrowed on channel
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
@@ -157,7 +161,8 @@ func (im IBCModule) OnChanCloseInit(
 	if err != nil {
 		im.keeper.DisableAllChannels(ctx)
 	}
-	return im.app.OnChanCloseInit(ctx, portID, channelID)
+
+	return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
