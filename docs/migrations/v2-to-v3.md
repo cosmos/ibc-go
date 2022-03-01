@@ -33,7 +33,7 @@ Please see the [ICS27 documentation](../apps/interchain-accounts/overview.md) fo
 If the chain will adopt ICS27, it must set the appropriate params during the execution of the upgrade handler in `app.go`: 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("v3",
-    func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+    func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
         // set the ICS27 consensus version so InitGenesis is not run
         fromVM[icatypes.ModuleName] = icamodule.ConsensusVersion()
 
