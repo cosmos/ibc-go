@@ -375,7 +375,7 @@ func (m *QueryTotalAckFeesRequest) GetPacketId() types.PacketId {
 
 // QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
 type QueryTotalAckFeesResponse struct {
-	// the total packet receive fees
+	// the total packet acknowledgement fees
 	AckFees github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=ack_fees,json=ackFees,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"ack_fees" yaml:"ack_fees"`
 }
 

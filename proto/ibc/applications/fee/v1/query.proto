@@ -97,7 +97,7 @@ message QueryTotalAckFeesRequest {
 
 // QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
 message QueryTotalAckFeesResponse {
-  // the total packet receive fees
+  // the total packet acknowledgement fees
   repeated cosmos.base.v1beta1.Coin ack_fees = 1 [
     (gogoproto.moretags)     = "yaml:\"ack_fees\"",
     (gogoproto.nullable)     = false,

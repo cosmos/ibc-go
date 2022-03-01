@@ -1013,7 +1013,7 @@ QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `ack_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet receive fees |
+| `ack_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet acknowledgement fees |
 
 
 
