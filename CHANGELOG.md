@@ -41,6 +41,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
 * [\#948](https://github.com/cosmos/ibc-go/pull/948) Bump ics23/go to v0.7
 
+### State Machine Breaking
+
+* (transfer) [\#818](https://github.com/cosmos/ibc-go/pull/818) Error acknowledgements returned from Transfer `OnRecvPacket` now include a deterministic ABCI code and error message.
+
 ### Features
 
 * [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
