@@ -45,10 +45,30 @@ const (
 	AttributeKeyTimeoutFee = "timeout_fee"
 )
 
-// FeeEnabledKey returns the key that stores a flag to determine if fee logic should
+// KeyFeeEnabled returns the key that stores a flag to determine if fee logic should
 // be enabled for the given port and channel identifiers.
-func FeeEnabledKey(portID, channelID string) []byte {
+func KeyFeeEnabled(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", FeeEnabledKeyPrefix, portID, channelID))
+}
+
+// ParseKeyFeeEnabled parses the key used to indicate if the fee logic should be
+// enabled for the given port and channel identifiers.
+func ParseKeyFeeEnabled(key string) (portID, channelID string, err error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 3 {
+		return "", "", sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 3, len(keySplit),
+		)
+	}
+
+	if keySplit[0] != FeeEnabledKeyPrefix {
+		return "", "", sdkerrors.Wrapf(sdkerrors.ErrLogic, "key prefix is incorrect: expected %s, got %s", FeeEnabledKeyPrefix, keySplit[0])
+	}
+
+	portID = keySplit[1]
+	channelID = keySplit[2]
+
+	return portID, channelID, nil
 }
 
 // KeyCounterpartyRelayer returns the key for relayer address -> counteryparty address mapping
