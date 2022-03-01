@@ -1073,7 +1073,7 @@ QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `timeout_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet receive fees |
+| `timeout_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet timeout fees |
 
 
 

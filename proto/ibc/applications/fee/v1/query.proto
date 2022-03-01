@@ -113,7 +113,7 @@ message QueryTotalTimeoutFeesRequest {
 
 // QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
 message QueryTotalTimeoutFeesResponse {
-  // the total packet receive fees
+  // the total packet timeout fees
   repeated cosmos.base.v1beta1.Coin timeout_fees = 1 [
     (gogoproto.moretags)     = "yaml:\"timeout_fees\"",
     (gogoproto.nullable)     = false,

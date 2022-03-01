@@ -467,7 +467,7 @@ func (m *QueryTotalTimeoutFeesRequest) GetPacketId() types.PacketId {
 
 // QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
 type QueryTotalTimeoutFeesResponse struct {
-	// the total packet receive fees
+	// the total packet timeout fees
 	TimeoutFees github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=timeout_fees,json=timeoutFees,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"timeout_fees" yaml:"timeout_fees"`
 }
 
