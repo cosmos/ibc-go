@@ -48,8 +48,12 @@
     - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
     - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
     - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
+    - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
+    - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
     - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
     - [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse)
+    - [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest)
+    - [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse)
   
     - [Query](#ibc.applications.fee.v1.Query)
   
@@ -964,6 +968,36 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 
 
 
+<a name="ibc.applications.fee.v1.QueryTotalAckFeesRequest"></a>
+
+### QueryTotalAckFeesRequest
+QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalAckFeesResponse"></a>
+
+### QueryTotalAckFeesResponse
+QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ack_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet acknowledgement fees |
+
+
+
+
+
+
 <a name="ibc.applications.fee.v1.QueryTotalRecvFeesRequest"></a>
 
 ### QueryTotalRecvFeesRequest
@@ -993,6 +1027,36 @@ QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
 
 
 
+
+<a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest"></a>
+
+### QueryTotalTimeoutFeesRequest
+QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse"></a>
+
+### QueryTotalTimeoutFeesResponse
+QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `timeout_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet timeout fees |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -1010,6 +1074,8 @@ Query provides defines the gRPC querier service.
 | `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packets|
 | `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the given packet | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
 | `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
 
  <!-- end services -->
 
