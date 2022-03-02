@@ -162,13 +162,17 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
+	if err := im.app.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+		return nil
+	}
+
 	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
 		return err
 	}
 
 	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnRecvPacket implements the IBCModule interface.

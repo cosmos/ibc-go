@@ -133,21 +133,6 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChan
 	return enabledChArr
 }
 
-// DisableAllChannels will disable the fee module for all channels.
-// Only called if the module enters into an invalid state
-// e.g. ModuleAccount has insufficient balance to refund users.
-// In this case, chain developers should investigate the issue, fix it,
-// and then re-enable the fee module in a coordinated upgrade.
-func (k Keeper) DisableAllChannels(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
-	}
-}
-
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
 func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
