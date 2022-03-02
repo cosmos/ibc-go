@@ -78,8 +78,8 @@ func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 }
 
 // EscrowAccountHasBalance verifies if the escrow account has the provided fee.
-func (k Keeper) EscrowAccountHasBalance(ctx sdk.Context, fee types.Fee) bool {
-	for _, coin := range fee.Total() {
+func (k Keeper) EscrowAccountHasBalance(ctx sdk.Context, coins sdk.Coins) bool {
+	for _, coin := range coins {
 		if !k.bankKeeper.HasBalance(ctx, k.GetFeeModuleAddress(), coin) {
 			return false
 		}
