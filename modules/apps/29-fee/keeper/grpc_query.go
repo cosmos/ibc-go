@@ -117,3 +117,29 @@ func (k Keeper) TotalAckFees(goCtx context.Context, req *types.QueryTotalAckFees
 		AckFees: ackFees,
 	}, nil
 }
+
+// TotalTimeoutFees implements the Query/TotalTimeoutFees gRPC method
+func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTimeoutFeesRequest) (*types.QueryTotalTimeoutFeesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
+	if !found {
+		return nil, status.Errorf(
+			codes.NotFound,
+			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+		)
+	}
+
+	var timeoutFees sdk.Coins
+	for _, packetFee := range feesInEscrow.PacketFees {
+		timeoutFees = timeoutFees.Add(packetFee.Fee.TimeoutFee...)
+	}
+
+	return &types.QueryTotalTimeoutFeesResponse{
+		TimeoutFees: timeoutFees,
+	}, nil
+}
