@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -162,12 +160,9 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 
 	var registeredAddrArr []types.RegisteredRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-
-		addr := types.RegisteredRelayerAddress{
-			Address:             keySplit[1],
-			CounterpartyAddress: string(iterator.Value()),
-			ChannelId:           keySplit[2],
+		addr, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()), string(iterator.Value()))
+		if err != nil {
+			panic(err)
 		}
 
 		registeredAddrArr = append(registeredAddrArr, addr)
@@ -265,7 +260,7 @@ func (k Keeper) HasFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId)
 	return store.Has(key)
 }
 
-// SetFeesInEscrow sets the given packet fees in escrow keyed by the packetID 
+// SetFeesInEscrow sets the given packet fees in escrow keyed by the packetID
 func (k Keeper) SetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId, fees types.PacketFees) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalFees(fees)
