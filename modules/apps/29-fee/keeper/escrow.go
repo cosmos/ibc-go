@@ -117,12 +117,15 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 
 	for _, identifiedPacketFee := range identifiedPacketFees {
 		for _, packetFee := range identifiedPacketFee.PacketFees {
-			if !k.bankKeeper.HasBalance(ctx, k.GetFeeModuleAddress(), packetFee.Fee.Total()) {
+			if !k.EscrowAccountHasBalance(ctx, packetFee.Fee) {
 				// Lock fee module logic to allow for coordinated fix to the issue
 				// and mitigate/reverse damage.
 				// NOTE: Underlying application's packets will still go through, but
 				// fee module will be disabled for all channels
 				lockFeeModule(ctx)
+
+				// return a nil error so state changes are committed but distribution stops
+				return nil
 			}
 
 			refundAccAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
