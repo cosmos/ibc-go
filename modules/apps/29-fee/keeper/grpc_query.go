@@ -66,12 +66,12 @@ func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 }
 
 // IncentivizedPacketsForChannel implements the IncentivizedPacketsForChannel gRPC method
-func (k Keeper) IncentivizedPacketsForChannel(c context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
+func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	var packets []*types.IdentifiedPacketFees
 	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
