@@ -66,6 +66,14 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+// helper function
+func lockFeeModule(chain *ibctesting.TestChain) {
+	ctx := chain.GetContext()
+	storeKey := chain.GetSimApp().GetKey(types.ModuleName)
+	store := ctx.KVStore(storeKey)
+	store.Set(types.KeyLocked(), []byte{1})
+}
+
 func (suite *KeeperTestSuite) TestFeeInEscrow() {
 	suite.coordinator.Setup(suite.path)
 
@@ -96,10 +104,7 @@ func (suite *KeeperTestSuite) TestIsLocked() {
 	ctx := suite.chainA.GetContext()
 	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
 
-	// lock fee module
-	storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
-	store := ctx.KVStore(storeKey)
-	store.Set(types.KeyLocked(), []byte{1})
+	lockFeeModule(suite.chainA)
 
 	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
 }
