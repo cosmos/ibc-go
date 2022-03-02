@@ -89,10 +89,12 @@ func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
 			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 4, len(keySplit),
 		)
 	}
+
 	seq, err := strconv.ParseUint(keySplit[3], 10, 64)
 	if err != nil {
 		return channeltypes.PacketId{}, err
 	}
+
 	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
 	return packetID, nil
 }
