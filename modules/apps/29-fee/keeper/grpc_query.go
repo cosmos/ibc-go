@@ -98,3 +98,78 @@ func (k Keeper) IncentivizedPacketsForChannel(c context.Context, req *types.Quer
 		IncentivizedPackets: packets,
 	}, nil
 }
+
+// TotalRecvFees implements the Query/TotalRecvFees gRPC method
+func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
+	if !found {
+		return nil, status.Errorf(
+			codes.NotFound,
+			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+		)
+	}
+
+	var recvFees sdk.Coins
+	for _, packetFee := range feesInEscrow.PacketFees {
+		recvFees = recvFees.Add(packetFee.Fee.RecvFee...)
+	}
+
+	return &types.QueryTotalRecvFeesResponse{
+		RecvFees: recvFees,
+	}, nil
+}
+
+// TotalAckFees implements the Query/TotalAckFees gRPC method
+func (k Keeper) TotalAckFees(goCtx context.Context, req *types.QueryTotalAckFeesRequest) (*types.QueryTotalAckFeesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
+	if !found {
+		return nil, status.Errorf(
+			codes.NotFound,
+			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+		)
+	}
+
+	var ackFees sdk.Coins
+	for _, packetFee := range feesInEscrow.PacketFees {
+		ackFees = ackFees.Add(packetFee.Fee.AckFee...)
+	}
+
+	return &types.QueryTotalAckFeesResponse{
+		AckFees: ackFees,
+	}, nil
+}
+
+// TotalTimeoutFees implements the Query/TotalTimeoutFees gRPC method
+func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTimeoutFeesRequest) (*types.QueryTotalTimeoutFeesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
+	if !found {
+		return nil, status.Errorf(
+			codes.NotFound,
+			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+		)
+	}
+
+	var timeoutFees sdk.Coins
+	for _, packetFee := range feesInEscrow.PacketFees {
+		timeoutFees = timeoutFees.Add(packetFee.Fee.TimeoutFee...)
+	}
+
+	return &types.QueryTotalTimeoutFeesResponse{
+		TimeoutFees: timeoutFees,
+	}, nil
+}

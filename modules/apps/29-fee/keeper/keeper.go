@@ -81,20 +81,20 @@ func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 // identified by channel and port identifiers.
 func (k Keeper) SetFeeEnabled(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.FeeEnabledKey(portID, channelID), []byte{1})
+	store.Set(types.KeyFeeEnabled(portID, channelID), []byte{1})
 }
 
 // DeleteFeeEnabled deletes the fee enabled flag for a given portID and channelID
 func (k Keeper) DeleteFeeEnabled(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.FeeEnabledKey(portID, channelID))
+	store.Delete(types.KeyFeeEnabled(portID, channelID))
 }
 
 // IsFeeEnabled returns whether fee handling logic should be run for the given port. It will check the
 // fee enabled flag for the given port and channel identifiers
 func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.FeeEnabledKey(portID, channelID)) != nil
+	return store.Get(types.KeyFeeEnabled(portID, channelID)) != nil
 }
 
 // GetAllFeeEnabledChannels returns a list of all ics29 enabled channels containing portID & channelID that are stored in state
@@ -105,11 +105,13 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChan
 
 	var enabledChArr []types.FeeEnabledChannel
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-
+		portID, channelID, err := types.ParseKeyFeeEnabled(string(iterator.Key()))
+		if err != nil {
+			panic(err)
+		}
 		ch := types.FeeEnabledChannel{
-			PortId:    keySplit[1],
-			ChannelId: keySplit[2],
+			PortId:    portID,
+			ChannelId: channelID,
 		}
 
 		enabledChArr = append(enabledChArr, ch)

@@ -6,6 +6,8 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types1 "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	types "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -359,6 +361,282 @@ func (m *QueryIncentivizedPacketsForChannelResponse) GetIncentivizedPackets() []
 	return nil
 }
 
+// QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
+type QueryTotalRecvFeesRequest struct {
+	// the packet identifier for the associated fees
+	PacketId types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id"`
+}
+
+func (m *QueryTotalRecvFeesRequest) Reset()         { *m = QueryTotalRecvFeesRequest{} }
+func (m *QueryTotalRecvFeesRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryTotalRecvFeesRequest) ProtoMessage()    {}
+func (*QueryTotalRecvFeesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0638a8a78ca2503c, []int{6}
+}
+func (m *QueryTotalRecvFeesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryTotalRecvFeesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryTotalRecvFeesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryTotalRecvFeesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryTotalRecvFeesRequest.Merge(m, src)
+}
+func (m *QueryTotalRecvFeesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryTotalRecvFeesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryTotalRecvFeesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryTotalRecvFeesRequest proto.InternalMessageInfo
+
+func (m *QueryTotalRecvFeesRequest) GetPacketId() types.PacketId {
+	if m != nil {
+		return m.PacketId
+	}
+	return types.PacketId{}
+}
+
+// QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
+type QueryTotalRecvFeesResponse struct {
+	// the total packet receive fees
+	RecvFees github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=recv_fees,json=recvFees,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"recv_fees" yaml:"recv_fees"`
+}
+
+func (m *QueryTotalRecvFeesResponse) Reset()         { *m = QueryTotalRecvFeesResponse{} }
+func (m *QueryTotalRecvFeesResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryTotalRecvFeesResponse) ProtoMessage()    {}
+func (*QueryTotalRecvFeesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0638a8a78ca2503c, []int{7}
+}
+func (m *QueryTotalRecvFeesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryTotalRecvFeesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryTotalRecvFeesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryTotalRecvFeesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryTotalRecvFeesResponse.Merge(m, src)
+}
+func (m *QueryTotalRecvFeesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryTotalRecvFeesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryTotalRecvFeesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryTotalRecvFeesResponse proto.InternalMessageInfo
+
+func (m *QueryTotalRecvFeesResponse) GetRecvFees() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.RecvFees
+	}
+	return nil
+}
+
+// QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc
+type QueryTotalAckFeesRequest struct {
+	// the packet identifier for the associated fees
+	PacketId types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id"`
+}
+
+func (m *QueryTotalAckFeesRequest) Reset()         { *m = QueryTotalAckFeesRequest{} }
+func (m *QueryTotalAckFeesRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryTotalAckFeesRequest) ProtoMessage()    {}
+func (*QueryTotalAckFeesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0638a8a78ca2503c, []int{8}
+}
+func (m *QueryTotalAckFeesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryTotalAckFeesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryTotalAckFeesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryTotalAckFeesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryTotalAckFeesRequest.Merge(m, src)
+}
+func (m *QueryTotalAckFeesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryTotalAckFeesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryTotalAckFeesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryTotalAckFeesRequest proto.InternalMessageInfo
+
+func (m *QueryTotalAckFeesRequest) GetPacketId() types.PacketId {
+	if m != nil {
+		return m.PacketId
+	}
+	return types.PacketId{}
+}
+
+// QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
+type QueryTotalAckFeesResponse struct {
+	// the total packet acknowledgement fees
+	AckFees github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=ack_fees,json=ackFees,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"ack_fees" yaml:"ack_fees"`
+}
+
+func (m *QueryTotalAckFeesResponse) Reset()         { *m = QueryTotalAckFeesResponse{} }
+func (m *QueryTotalAckFeesResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryTotalAckFeesResponse) ProtoMessage()    {}
+func (*QueryTotalAckFeesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0638a8a78ca2503c, []int{9}
+}
+func (m *QueryTotalAckFeesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryTotalAckFeesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryTotalAckFeesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryTotalAckFeesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryTotalAckFeesResponse.Merge(m, src)
+}
+func (m *QueryTotalAckFeesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryTotalAckFeesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryTotalAckFeesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryTotalAckFeesResponse proto.InternalMessageInfo
+
+func (m *QueryTotalAckFeesResponse) GetAckFees() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.AckFees
+	}
+	return nil
+}
+
+// QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
+type QueryTotalTimeoutFeesRequest struct {
+	// the packet identifier for the associated fees
+	PacketId types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id"`
+}
+
+func (m *QueryTotalTimeoutFeesRequest) Reset()         { *m = QueryTotalTimeoutFeesRequest{} }
+func (m *QueryTotalTimeoutFeesRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryTotalTimeoutFeesRequest) ProtoMessage()    {}
+func (*QueryTotalTimeoutFeesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0638a8a78ca2503c, []int{10}
+}
+func (m *QueryTotalTimeoutFeesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryTotalTimeoutFeesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryTotalTimeoutFeesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryTotalTimeoutFeesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryTotalTimeoutFeesRequest.Merge(m, src)
+}
+func (m *QueryTotalTimeoutFeesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryTotalTimeoutFeesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryTotalTimeoutFeesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryTotalTimeoutFeesRequest proto.InternalMessageInfo
+
+func (m *QueryTotalTimeoutFeesRequest) GetPacketId() types.PacketId {
+	if m != nil {
+		return m.PacketId
+	}
+	return types.PacketId{}
+}
+
+// QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
+type QueryTotalTimeoutFeesResponse struct {
+	// the total packet timeout fees
+	TimeoutFees github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=timeout_fees,json=timeoutFees,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"timeout_fees" yaml:"timeout_fees"`
+}
+
+func (m *QueryTotalTimeoutFeesResponse) Reset()         { *m = QueryTotalTimeoutFeesResponse{} }
+func (m *QueryTotalTimeoutFeesResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryTotalTimeoutFeesResponse) ProtoMessage()    {}
+func (*QueryTotalTimeoutFeesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0638a8a78ca2503c, []int{11}
+}
+func (m *QueryTotalTimeoutFeesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryTotalTimeoutFeesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryTotalTimeoutFeesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryTotalTimeoutFeesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryTotalTimeoutFeesResponse.Merge(m, src)
+}
+func (m *QueryTotalTimeoutFeesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryTotalTimeoutFeesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryTotalTimeoutFeesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryTotalTimeoutFeesResponse proto.InternalMessageInfo
+
+func (m *QueryTotalTimeoutFeesResponse) GetTimeoutFees() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.TimeoutFees
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryIncentivizedPacketsRequest)(nil), "ibc.applications.fee.v1.QueryIncentivizedPacketsRequest")
 	proto.RegisterType((*QueryIncentivizedPacketsResponse)(nil), "ibc.applications.fee.v1.QueryIncentivizedPacketsResponse")
@@ -366,6 +644,12 @@ func init() {
 	proto.RegisterType((*QueryIncentivizedPacketResponse)(nil), "ibc.applications.fee.v1.QueryIncentivizedPacketResponse")
 	proto.RegisterType((*QueryIncentivizedPacketsForChannelRequest)(nil), "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest")
 	proto.RegisterType((*QueryIncentivizedPacketsForChannelResponse)(nil), "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse")
+	proto.RegisterType((*QueryTotalRecvFeesRequest)(nil), "ibc.applications.fee.v1.QueryTotalRecvFeesRequest")
+	proto.RegisterType((*QueryTotalRecvFeesResponse)(nil), "ibc.applications.fee.v1.QueryTotalRecvFeesResponse")
+	proto.RegisterType((*QueryTotalAckFeesRequest)(nil), "ibc.applications.fee.v1.QueryTotalAckFeesRequest")
+	proto.RegisterType((*QueryTotalAckFeesResponse)(nil), "ibc.applications.fee.v1.QueryTotalAckFeesResponse")
+	proto.RegisterType((*QueryTotalTimeoutFeesRequest)(nil), "ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest")
+	proto.RegisterType((*QueryTotalTimeoutFeesResponse)(nil), "ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse")
 }
 
 func init() {
@@ -373,49 +657,67 @@ func init() {
 }
 
 var fileDescriptor_0638a8a78ca2503c = []byte{
-	// 658 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0xcd, 0x6b, 0x13, 0x4f,
-	0x18, 0xc7, 0x33, 0x7d, 0xfb, 0xfd, 0x3a, 0xf5, 0x34, 0x2d, 0xb4, 0x04, 0xbb, 0x4d, 0x23, 0x6a,
-	0x2c, 0x64, 0x86, 0xa4, 0x88, 0x2d, 0x88, 0x48, 0x2a, 0xc1, 0x9c, 0xac, 0x39, 0x7a, 0x89, 0xfb,
-	0x32, 0xd9, 0x0c, 0x26, 0x3b, 0xdb, 0xcc, 0x66, 0xa1, 0x8d, 0xb9, 0x14, 0x44, 0x90, 0x22, 0x82,
-	0x7f, 0x8d, 0x67, 0x2f, 0x3d, 0x49, 0xc1, 0x8b, 0x27, 0x91, 0xc4, 0xb3, 0x7f, 0x83, 0xcc, 0xec,
-	0x24, 0x5d, 0x48, 0x56, 0x93, 0xda, 0xdb, 0xee, 0x3c, 0x6f, 0xdf, 0xf9, 0x3c, 0xcf, 0xcc, 0xc0,
-	0x5b, 0xcc, 0xb2, 0x89, 0xe9, 0xfb, 0x4d, 0x66, 0x9b, 0x01, 0xe3, 0x9e, 0x20, 0x75, 0x4a, 0x49,
-	0x58, 0x20, 0x47, 0x1d, 0xda, 0x3e, 0xc6, 0x7e, 0x9b, 0x07, 0x1c, 0xad, 0x33, 0xcb, 0xc6, 0x71,
-	0x27, 0x5c, 0xa7, 0x14, 0x87, 0x85, 0xf4, 0x9a, 0xcb, 0x5d, 0xae, 0x7c, 0x88, 0xfc, 0x8a, 0xdc,
-	0xd3, 0xdb, 0x49, 0x39, 0x65, 0x54, 0xe4, 0x72, 0xd3, 0xe5, 0xdc, 0x6d, 0x52, 0x62, 0xfa, 0x8c,
-	0x98, 0x9e, 0xc7, 0x03, 0x9d, 0x37, 0x96, 0xc0, 0xe6, 0x6d, 0x4a, 0xec, 0x86, 0xe9, 0x79, 0xb4,
-	0x29, 0x83, 0xf5, 0xa7, 0x76, 0xd9, 0xb1, 0xb9, 0x68, 0x71, 0x41, 0x2c, 0x53, 0xd0, 0x48, 0x2b,
-	0x09, 0x0b, 0x16, 0x0d, 0xcc, 0x02, 0xf1, 0x4d, 0x97, 0x79, 0x2a, 0x5f, 0xe4, 0x9b, 0x3d, 0x03,
-	0x70, 0xeb, 0xb9, 0x74, 0xa9, 0x78, 0x36, 0xf5, 0x02, 0x16, 0xb2, 0x13, 0xea, 0x1c, 0x9a, 0xf6,
-	0x2b, 0x1a, 0x88, 0x2a, 0x3d, 0xea, 0x50, 0x11, 0xa0, 0x32, 0x84, 0x97, 0x71, 0x1b, 0x20, 0x03,
-	0x72, 0x2b, 0xc5, 0x3b, 0x38, 0x2a, 0x82, 0x65, 0x11, 0x1c, 0x01, 0xd1, 0x45, 0xf0, 0xa1, 0xe9,
-	0x52, 0x1d, 0x5b, 0x8d, 0x45, 0xa2, 0x6d, 0x78, 0x43, 0x39, 0xd6, 0x1a, 0x94, 0xb9, 0x8d, 0x60,
-	0x63, 0x2e, 0x03, 0x72, 0x0b, 0xd5, 0x15, 0xb5, 0xf6, 0x54, 0x2d, 0x65, 0xdf, 0x01, 0x98, 0x49,
-	0x96, 0x23, 0x7c, 0xee, 0x09, 0x8a, 0xea, 0x70, 0x8d, 0xc5, 0xcc, 0x35, 0x3f, 0xb2, 0x6f, 0x80,
-	0xcc, 0x7c, 0x6e, 0xa5, 0x98, 0xc7, 0x09, 0x1d, 0xc1, 0x15, 0x47, 0xc6, 0xd4, 0xd9, 0x30, 0x63,
-	0x99, 0x52, 0x51, 0x5a, 0x38, 0xff, 0xbe, 0x95, 0xaa, 0xae, 0xb2, 0xf1, 0x7a, 0xd9, 0x37, 0x00,
-	0x1a, 0x09, 0x62, 0x86, 0x68, 0x1e, 0xc3, 0xe5, 0xa8, 0x7a, 0x8d, 0x39, 0x9a, 0xcc, 0xa6, 0xaa,
-	0x2f, 0x3b, 0x84, 0x87, 0x6d, 0x09, 0x25, 0x13, 0xe9, 0x55, 0x71, 0x74, 0xbd, 0xff, 0x7d, 0xfd,
-	0x3f, 0x0d, 0x94, 0xb7, 0xc9, 0x3d, 0x1a, 0x31, 0x71, 0xe0, 0xea, 0x04, 0x26, 0x5a, 0xd2, 0x95,
-	0x90, 0xa0, 0x71, 0x24, 0xd9, 0x2f, 0x00, 0xde, 0x4b, 0x6a, 0x4f, 0x99, 0xb7, 0x0f, 0xa2, 0xfd,
-	0x5e, 0xf7, 0xdc, 0xac, 0xc3, 0xff, 0x7c, 0xde, 0x56, 0x88, 0x25, 0x9d, 0xe5, 0xea, 0x92, 0xfc,
-	0xad, 0x38, 0x68, 0x13, 0x42, 0x8d, 0x58, 0xda, 0xe6, 0x95, 0x6d, 0x59, 0xaf, 0x4c, 0x40, 0xbb,
-	0x30, 0x8e, 0xf6, 0x3d, 0x80, 0x3b, 0xd3, 0x6c, 0x48, 0x53, 0x7e, 0x79, 0x8d, 0x93, 0x37, 0x71,
-	0xe6, 0x8a, 0x9f, 0x17, 0xe1, 0xa2, 0x12, 0x84, 0x3e, 0x01, 0xb8, 0x3a, 0x41, 0x15, 0xda, 0x4b,
-	0xac, 0xf2, 0x97, 0x73, 0x9c, 0xde, 0xbf, 0x42, 0x64, 0xb4, 0xf1, 0x6c, 0xfe, 0xf4, 0xeb, 0xcf,
-	0x8f, 0x73, 0x77, 0xd1, 0x6d, 0xa2, 0xef, 0xaf, 0xd1, 0xbd, 0x35, 0x89, 0x07, 0x3a, 0x9b, 0x83,
-	0x68, 0x3c, 0x1d, 0x7a, 0x30, 0xab, 0x80, 0xa1, 0xf2, 0xbd, 0xd9, 0x03, 0xb5, 0xf0, 0x53, 0xa0,
-	0x94, 0xbf, 0x46, 0x27, 0xd3, 0x28, 0x27, 0x72, 0xb0, 0x48, 0x77, 0x74, 0xa4, 0xb1, 0x9e, 0xbb,
-	0xde, 0xe8, 0xb2, 0x8d, 0xd9, 0x2e, 0x47, 0xaf, 0x47, 0x84, 0x14, 0xea, 0xd9, 0x34, 0x6e, 0x1f,
-	0xae, 0xf5, 0xd0, 0x2f, 0x00, 0x37, 0xff, 0x38, 0x60, 0xa8, 0x34, 0x73, 0x6b, 0xc6, 0x8e, 0x5b,
-	0xfa, 0xe0, 0x9f, 0x72, 0x68, 0x5e, 0x4f, 0x14, 0xae, 0x47, 0xe8, 0xe1, 0x54, 0x8d, 0x26, 0xdd,
-	0x11, 0xa0, 0x6e, 0x0c, 0x47, 0xe9, 0xd9, 0x79, 0xdf, 0x00, 0x17, 0x7d, 0x03, 0xfc, 0xe8, 0x1b,
-	0xe0, 0xc3, 0xc0, 0x48, 0x5d, 0x0c, 0x8c, 0xd4, 0xb7, 0x81, 0x91, 0x7a, 0x71, 0xdf, 0x65, 0x41,
-	0xa3, 0x63, 0x61, 0x9b, 0xb7, 0x88, 0x7e, 0xa6, 0x98, 0x65, 0xe7, 0x5d, 0x4e, 0xc2, 0x5d, 0xd2,
-	0xe2, 0x4e, 0xa7, 0x49, 0x45, 0x54, 0xb6, 0xb8, 0x9f, 0x97, 0x95, 0x83, 0x63, 0x9f, 0x0a, 0x6b,
-	0x49, 0xbd, 0x56, 0xbb, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xb2, 0x99, 0x5b, 0xc8, 0x93, 0x07,
-	0x00, 0x00,
+	// 956 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xcf, 0x6f, 0xdc, 0x44,
+	0x14, 0xce, 0xa4, 0xa1, 0x4d, 0x66, 0x83, 0xa8, 0x26, 0x95, 0x9a, 0x5a, 0x8d, 0x93, 0x1a, 0x01,
+	0xa1, 0xd2, 0x7a, 0x94, 0x8d, 0x0a, 0x2d, 0x42, 0x08, 0x92, 0x2a, 0x90, 0x13, 0x65, 0xd5, 0x13,
+	0x02, 0x6d, 0xbd, 0xe3, 0x59, 0x67, 0x94, 0x5d, 0x8f, 0xbb, 0xf6, 0x1a, 0xb6, 0x69, 0x90, 0xa8,
+	0x14, 0x21, 0xa1, 0x0a, 0x21, 0x21, 0x71, 0xe0, 0x1f, 0x40, 0xe2, 0x3f, 0xe0, 0xc0, 0xbd, 0x27,
+	0x54, 0x89, 0x0b, 0xa7, 0x82, 0x12, 0xce, 0x1c, 0x10, 0x07, 0x8e, 0x68, 0x7e, 0xd8, 0xeb, 0xe0,
+	0x75, 0xb1, 0xd3, 0xcd, 0x29, 0xf6, 0xbc, 0xf7, 0xe6, 0x7d, 0xdf, 0xf7, 0xc6, 0xdf, 0x64, 0xe1,
+	0x8b, 0xac, 0x4d, 0xb0, 0x13, 0x04, 0x5d, 0x46, 0x9c, 0x88, 0x71, 0x3f, 0xc4, 0x1d, 0x4a, 0x71,
+	0xbc, 0x86, 0xef, 0x0e, 0x68, 0x7f, 0x68, 0x07, 0x7d, 0x1e, 0x71, 0x74, 0x91, 0xb5, 0x89, 0x9d,
+	0x4d, 0xb2, 0x3b, 0x94, 0xda, 0xf1, 0x9a, 0x71, 0xc1, 0xe3, 0x1e, 0x97, 0x39, 0x58, 0x3c, 0xa9,
+	0x74, 0xe3, 0xb2, 0xc7, 0xb9, 0xd7, 0xa5, 0xd8, 0x09, 0x18, 0x76, 0x7c, 0x9f, 0x47, 0xba, 0x48,
+	0x45, 0x4d, 0xc2, 0xc3, 0x1e, 0x0f, 0x71, 0xdb, 0x09, 0x45, 0xa3, 0x36, 0x8d, 0x9c, 0x35, 0x4c,
+	0x38, 0xf3, 0x75, 0xfc, 0x6a, 0x36, 0x2e, 0x51, 0xa4, 0x59, 0x81, 0xe3, 0x31, 0x5f, 0x6e, 0xa6,
+	0x73, 0xaf, 0x14, 0xa1, 0x17, 0xf8, 0x32, 0x29, 0x84, 0xf7, 0x29, 0x26, 0x3b, 0x8e, 0xef, 0xd3,
+	0xae, 0x08, 0xeb, 0x47, 0x95, 0x62, 0x3d, 0x04, 0x70, 0xf9, 0x03, 0xd1, 0x68, 0xdb, 0x27, 0xd4,
+	0x8f, 0x58, 0xcc, 0xee, 0x51, 0xf7, 0x96, 0x43, 0x76, 0x69, 0x14, 0x36, 0xe9, 0xdd, 0x01, 0x0d,
+	0x23, 0xb4, 0x05, 0xe1, 0xa8, 0xfb, 0x22, 0x58, 0x01, 0xab, 0xb5, 0xc6, 0xcb, 0xb6, 0x82, 0x6a,
+	0x0b, 0xa8, 0xb6, 0x12, 0x4c, 0x43, 0xb5, 0x6f, 0x39, 0x1e, 0xd5, 0xb5, 0xcd, 0x4c, 0x25, 0xba,
+	0x02, 0xe7, 0x65, 0x62, 0x6b, 0x87, 0x32, 0x6f, 0x27, 0x5a, 0x9c, 0x5e, 0x01, 0xab, 0x33, 0xcd,
+	0x9a, 0x5c, 0x7b, 0x4f, 0x2e, 0x59, 0x5f, 0x02, 0xb8, 0x52, 0x0c, 0x27, 0x0c, 0xb8, 0x1f, 0x52,
+	0xd4, 0x81, 0x17, 0x58, 0x26, 0xdc, 0x0a, 0x54, 0x7c, 0x11, 0xac, 0x9c, 0x59, 0xad, 0x35, 0xea,
+	0x76, 0xc1, 0xc4, 0xec, 0x6d, 0x57, 0xd4, 0x74, 0x58, 0xb2, 0xe3, 0x16, 0xa5, 0xe1, 0xc6, 0xcc,
+	0xa3, 0x27, 0xcb, 0x53, 0xcd, 0x05, 0x96, 0xef, 0x67, 0x1d, 0x00, 0x68, 0x16, 0x80, 0x49, 0xa4,
+	0x79, 0x1b, 0xce, 0xa9, 0xee, 0x2d, 0xe6, 0x6a, 0x65, 0x96, 0x64, 0x7f, 0xa1, 0xba, 0x9d, 0x48,
+	0x1d, 0x0b, 0x4d, 0x44, 0xd6, 0xb6, 0xab, 0xfb, 0xcd, 0x06, 0xfa, 0xbd, 0x8c, 0x28, 0x5f, 0x14,
+	0xcf, 0x28, 0xd5, 0xc4, 0x85, 0x0b, 0x63, 0x34, 0xd1, 0x90, 0x4e, 0x24, 0x09, 0xca, 0x4b, 0x62,
+	0xfd, 0x0c, 0xe0, 0xab, 0x45, 0xe3, 0xd9, 0xe2, 0xfd, 0x4d, 0xc5, 0x77, 0xd2, 0xe7, 0xe6, 0x22,
+	0x3c, 0x17, 0xf0, 0xbe, 0x94, 0x58, 0xa8, 0x33, 0xd7, 0x3c, 0x2b, 0x5e, 0xb7, 0x5d, 0xb4, 0x04,
+	0xa1, 0x96, 0x58, 0xc4, 0xce, 0xc8, 0xd8, 0x9c, 0x5e, 0x19, 0x23, 0xed, 0x4c, 0x5e, 0xda, 0xaf,
+	0x00, 0xbc, 0x5a, 0x86, 0x90, 0x56, 0xf9, 0xce, 0x04, 0x4f, 0xde, 0xf8, 0x33, 0xf7, 0x31, 0xbc,
+	0x24, 0xf1, 0xdc, 0xe6, 0x91, 0xd3, 0x6d, 0x52, 0x12, 0xcb, 0xd4, 0x49, 0x9d, 0x36, 0xeb, 0x3b,
+	0x00, 0x8d, 0x71, 0xfb, 0x6b, 0x7e, 0xf7, 0xe1, 0x5c, 0x9f, 0x92, 0xb8, 0xd5, 0xa1, 0x34, 0x21,
+	0x75, 0xe9, 0xd8, 0xc0, 0x92, 0x51, 0x6d, 0x72, 0xe6, 0x6f, 0xdc, 0x14, 0x9b, 0xff, 0xf5, 0x64,
+	0xf9, 0xfc, 0xd0, 0xe9, 0x75, 0xdf, 0xb0, 0xd2, 0x4a, 0xeb, 0x87, 0xdf, 0x96, 0x57, 0x3d, 0x16,
+	0xed, 0x0c, 0xda, 0x36, 0xe1, 0x3d, 0xac, 0x4d, 0x4d, 0xfd, 0xa9, 0x87, 0xee, 0x2e, 0x8e, 0x86,
+	0x01, 0x0d, 0xe5, 0x26, 0x61, 0x73, 0xb6, 0xaf, 0x51, 0x58, 0x1f, 0xc1, 0xc5, 0x11, 0xb6, 0x77,
+	0xc8, 0xee, 0x64, 0xa9, 0x7f, 0x0b, 0xb2, 0xd2, 0xa6, 0xdb, 0x6b, 0xe6, 0x43, 0x38, 0xeb, 0x90,
+	0xdd, 0x92, 0xc4, 0x37, 0x35, 0xf1, 0x17, 0x14, 0xf1, 0xa4, 0xb0, 0x1a, 0xef, 0x73, 0x8e, 0x82,
+	0x60, 0xdd, 0x81, 0x97, 0x47, 0xb8, 0x6e, 0xb3, 0x1e, 0xe5, 0x83, 0x68, 0xb2, 0xd4, 0xbf, 0x07,
+	0x70, 0xa9, 0xa0, 0x85, 0xa6, 0x7f, 0x00, 0xe0, 0x7c, 0xa4, 0xd6, 0x4b, 0x6a, 0xf0, 0xae, 0xd6,
+	0x60, 0x41, 0x69, 0x90, 0x2d, 0xae, 0xa6, 0x43, 0x2d, 0x1a, 0xe1, 0x69, 0xfc, 0x54, 0x83, 0xcf,
+	0x49, 0xa4, 0xe8, 0x47, 0x00, 0x17, 0xc6, 0x7c, 0x94, 0xe8, 0x7a, 0xe1, 0x47, 0xf6, 0x3f, 0xd7,
+	0x98, 0x71, 0xe3, 0x04, 0x95, 0x4a, 0x1e, 0xab, 0xfe, 0xe0, 0x97, 0x3f, 0xbe, 0x99, 0x7e, 0x05,
+	0xbd, 0x84, 0xf5, 0xa5, 0x9b, 0x5e, 0xb6, 0xe3, 0xec, 0x00, 0x3d, 0x9c, 0x86, 0x28, 0xbf, 0x1d,
+	0x7a, 0xbd, 0x2a, 0x80, 0x04, 0xf9, 0xf5, 0xea, 0x85, 0x1a, 0xf8, 0x03, 0x20, 0x91, 0xdf, 0x47,
+	0xf7, 0xca, 0x20, 0xc7, 0xc2, 0x57, 0xf1, 0x5e, 0x7a, 0xda, 0x6c, 0x6d, 0xbb, 0xfb, 0xe9, 0xff,
+	0x0f, 0x99, 0xd8, 0xc8, 0x79, 0xf7, 0x71, 0x28, 0x80, 0xfa, 0x84, 0x66, 0xe3, 0xc9, 0xda, 0x3e,
+	0xfa, 0x13, 0xc0, 0xa5, 0xa7, 0xfa, 0x2b, 0xda, 0xa8, 0x3c, 0x9a, 0xdc, 0x6d, 0x63, 0x6c, 0x3e,
+	0xd3, 0x1e, 0x5a, 0xaf, 0x9b, 0x52, 0xae, 0xb7, 0xd0, 0x9b, 0xa5, 0x06, 0x8d, 0xf7, 0x52, 0x81,
+	0xf6, 0x32, 0x72, 0xa0, 0x7f, 0x00, 0x7c, 0xfe, 0x98, 0xc1, 0xa2, 0xc6, 0xd3, 0xc1, 0x8d, 0x73,
+	0x7b, 0x63, 0xbd, 0x52, 0x8d, 0x26, 0xf0, 0x99, 0x24, 0xf0, 0x29, 0x8a, 0x73, 0x04, 0x22, 0x91,
+	0xdf, 0x4a, 0x4d, 0xfa, 0x94, 0x66, 0xfd, 0x37, 0x80, 0xf3, 0x59, 0x83, 0x45, 0x6b, 0x25, 0x58,
+	0x1c, 0xf7, 0x7a, 0xa3, 0x51, 0xa5, 0x44, 0xf3, 0xde, 0x97, 0xbc, 0x3f, 0x41, 0x83, 0x02, 0xde,
+	0x89, 0x47, 0x9f, 0x12, 0xed, 0x83, 0x69, 0x78, 0xfe, 0xbf, 0xe6, 0x8a, 0xae, 0x95, 0xe0, 0x91,
+	0xf7, 0x7b, 0xe3, 0xb5, 0xaa, 0x65, 0x5a, 0x82, 0xcf, 0xd5, 0xb7, 0xbe, 0x87, 0x86, 0x05, 0x1a,
+	0x64, 0x3d, 0xfa, 0x74, 0x74, 0xd8, 0x78, 0xff, 0xd1, 0xa1, 0x09, 0x1e, 0x1f, 0x9a, 0xe0, 0xf7,
+	0x43, 0x13, 0x7c, 0x7d, 0x64, 0x4e, 0x3d, 0x3e, 0x32, 0xa7, 0x7e, 0x3d, 0x32, 0xa7, 0x3e, 0xbc,
+	0x96, 0xbf, 0x10, 0x58, 0x9b, 0xd4, 0x3d, 0x8e, 0xe3, 0x75, 0xdc, 0xe3, 0xee, 0xa0, 0x4b, 0x43,
+	0x85, 0xb9, 0x71, 0xa3, 0x2e, 0x60, 0xcb, 0x3b, 0xa2, 0x7d, 0x56, 0xfe, 0x4c, 0x59, 0xff, 0x37,
+	0x00, 0x00, 0xff, 0xff, 0x54, 0xbb, 0x0e, 0x52, 0xac, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -437,6 +739,12 @@ type QueryClient interface {
 	IncentivizedPacket(ctx context.Context, in *QueryIncentivizedPacketRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketResponse, error)
 	// Gets all incentivized packets for a specific channel
 	IncentivizedPacketsForChannel(ctx context.Context, in *QueryIncentivizedPacketsForChannelRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketsForChannelResponse, error)
+	// TotalRecvFees returns the total receive fees for a packet given its identifier
+	TotalRecvFees(ctx context.Context, in *QueryTotalRecvFeesRequest, opts ...grpc.CallOption) (*QueryTotalRecvFeesResponse, error)
+	// TotalAckFees returns the total acknowledgement fees for a packet given its identifier
+	TotalAckFees(ctx context.Context, in *QueryTotalAckFeesRequest, opts ...grpc.CallOption) (*QueryTotalAckFeesResponse, error)
+	// TotalTimeoutFees returns the total timeout fees for a packet given its identifier
+	TotalTimeoutFees(ctx context.Context, in *QueryTotalTimeoutFeesRequest, opts ...grpc.CallOption) (*QueryTotalTimeoutFeesResponse, error)
 }
 
 type queryClient struct {
@@ -474,6 +782,33 @@ func (c *queryClient) IncentivizedPacketsForChannel(ctx context.Context, in *Que
 	return out, nil
 }
 
+func (c *queryClient) TotalRecvFees(ctx context.Context, in *QueryTotalRecvFeesRequest, opts ...grpc.CallOption) (*QueryTotalRecvFeesResponse, error) {
+	out := new(QueryTotalRecvFeesResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Query/TotalRecvFees", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) TotalAckFees(ctx context.Context, in *QueryTotalAckFeesRequest, opts ...grpc.CallOption) (*QueryTotalAckFeesResponse, error) {
+	out := new(QueryTotalAckFeesResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Query/TotalAckFees", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) TotalTimeoutFees(ctx context.Context, in *QueryTotalTimeoutFeesRequest, opts ...grpc.CallOption) (*QueryTotalTimeoutFeesResponse, error) {
+	out := new(QueryTotalTimeoutFeesResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Query/TotalTimeoutFees", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Gets all incentivized packets
@@ -483,6 +818,12 @@ type QueryServer interface {
 	IncentivizedPacket(context.Context, *QueryIncentivizedPacketRequest) (*QueryIncentivizedPacketResponse, error)
 	// Gets all incentivized packets for a specific channel
 	IncentivizedPacketsForChannel(context.Context, *QueryIncentivizedPacketsForChannelRequest) (*QueryIncentivizedPacketsForChannelResponse, error)
+	// TotalRecvFees returns the total receive fees for a packet given its identifier
+	TotalRecvFees(context.Context, *QueryTotalRecvFeesRequest) (*QueryTotalRecvFeesResponse, error)
+	// TotalAckFees returns the total acknowledgement fees for a packet given its identifier
+	TotalAckFees(context.Context, *QueryTotalAckFeesRequest) (*QueryTotalAckFeesResponse, error)
+	// TotalTimeoutFees returns the total timeout fees for a packet given its identifier
+	TotalTimeoutFees(context.Context, *QueryTotalTimeoutFeesRequest) (*QueryTotalTimeoutFeesResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -497,6 +838,15 @@ func (*UnimplementedQueryServer) IncentivizedPacket(ctx context.Context, req *Qu
 }
 func (*UnimplementedQueryServer) IncentivizedPacketsForChannel(ctx context.Context, req *QueryIncentivizedPacketsForChannelRequest) (*QueryIncentivizedPacketsForChannelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IncentivizedPacketsForChannel not implemented")
+}
+func (*UnimplementedQueryServer) TotalRecvFees(ctx context.Context, req *QueryTotalRecvFeesRequest) (*QueryTotalRecvFeesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TotalRecvFees not implemented")
+}
+func (*UnimplementedQueryServer) TotalAckFees(ctx context.Context, req *QueryTotalAckFeesRequest) (*QueryTotalAckFeesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TotalAckFees not implemented")
+}
+func (*UnimplementedQueryServer) TotalTimeoutFees(ctx context.Context, req *QueryTotalTimeoutFeesRequest) (*QueryTotalTimeoutFeesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TotalTimeoutFees not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -557,6 +907,60 @@ func _Query_IncentivizedPacketsForChannel_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_TotalRecvFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryTotalRecvFeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).TotalRecvFees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.applications.fee.v1.Query/TotalRecvFees",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).TotalRecvFees(ctx, req.(*QueryTotalRecvFeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_TotalAckFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryTotalAckFeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).TotalAckFees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.applications.fee.v1.Query/TotalAckFees",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).TotalAckFees(ctx, req.(*QueryTotalAckFeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_TotalTimeoutFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryTotalTimeoutFeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).TotalTimeoutFees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.applications.fee.v1.Query/TotalTimeoutFees",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).TotalTimeoutFees(ctx, req.(*QueryTotalTimeoutFeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.applications.fee.v1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -572,6 +976,18 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IncentivizedPacketsForChannel",
 			Handler:    _Query_IncentivizedPacketsForChannel_Handler,
+		},
+		{
+			MethodName: "TotalRecvFees",
+			Handler:    _Query_TotalRecvFees_Handler,
+		},
+		{
+			MethodName: "TotalAckFees",
+			Handler:    _Query_TotalAckFees_Handler,
+		},
+		{
+			MethodName: "TotalTimeoutFees",
+			Handler:    _Query_TotalTimeoutFees_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -817,6 +1233,216 @@ func (m *QueryIncentivizedPacketsForChannelResponse) MarshalToSizedBuffer(dAtA [
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryTotalRecvFeesRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryTotalRecvFeesRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryTotalRecvFeesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.PacketId.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryTotalRecvFeesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryTotalRecvFeesResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryTotalRecvFeesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RecvFees) > 0 {
+		for iNdEx := len(m.RecvFees) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.RecvFees[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryTotalAckFeesRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryTotalAckFeesRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryTotalAckFeesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.PacketId.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryTotalAckFeesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryTotalAckFeesResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryTotalAckFeesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AckFees) > 0 {
+		for iNdEx := len(m.AckFees) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.AckFees[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryTotalTimeoutFeesRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryTotalTimeoutFeesRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryTotalTimeoutFeesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.PacketId.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryTotalTimeoutFeesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryTotalTimeoutFeesResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryTotalTimeoutFeesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.TimeoutFees) > 0 {
+		for iNdEx := len(m.TimeoutFees) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.TimeoutFees[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -916,6 +1542,84 @@ func (m *QueryIncentivizedPacketsForChannelResponse) Size() (n int) {
 	_ = l
 	if len(m.IncentivizedPackets) > 0 {
 		for _, e := range m.IncentivizedPackets {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryTotalRecvFeesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.PacketId.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryTotalRecvFeesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.RecvFees) > 0 {
+		for _, e := range m.RecvFees {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryTotalAckFeesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.PacketId.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryTotalAckFeesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.AckFees) > 0 {
+		for _, e := range m.AckFees {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryTotalTimeoutFeesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.PacketId.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryTotalTimeoutFeesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.TimeoutFees) > 0 {
+		for _, e := range m.TimeoutFees {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -1532,6 +2236,507 @@ func (m *QueryIncentivizedPacketsForChannelResponse) Unmarshal(dAtA []byte) erro
 			}
 			m.IncentivizedPackets = append(m.IncentivizedPackets, &IdentifiedPacketFees{})
 			if err := m.IncentivizedPackets[len(m.IncentivizedPackets)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryTotalRecvFeesRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryTotalRecvFeesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryTotalRecvFeesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PacketId", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.PacketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryTotalRecvFeesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryTotalRecvFeesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryTotalRecvFeesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RecvFees", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RecvFees = append(m.RecvFees, types1.Coin{})
+			if err := m.RecvFees[len(m.RecvFees)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryTotalAckFeesRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryTotalAckFeesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryTotalAckFeesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PacketId", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.PacketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryTotalAckFeesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryTotalAckFeesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryTotalAckFeesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AckFees", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AckFees = append(m.AckFees, types1.Coin{})
+			if err := m.AckFees[len(m.AckFees)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryTotalTimeoutFeesRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryTotalTimeoutFeesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryTotalTimeoutFeesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PacketId", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.PacketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryTotalTimeoutFeesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryTotalTimeoutFeesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryTotalTimeoutFeesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutFees", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TimeoutFees = append(m.TimeoutFees, types1.Coin{})
+			if err := m.TimeoutFees[len(m.TimeoutFees)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
