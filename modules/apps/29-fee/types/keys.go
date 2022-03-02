@@ -109,7 +109,7 @@ func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
 	return packetID, nil
 }
 
-// ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packet id
+// ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packetID
 func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 4 {
