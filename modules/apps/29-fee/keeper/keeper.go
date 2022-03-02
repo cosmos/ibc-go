@@ -77,6 +77,17 @@ func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 	return k.authKeeper.GetModuleAddress(types.ModuleName)
 }
 
+// EscrowAccountHasBalance verifies if the escrow account has the provided fee.
+func (k Keeper) EscrowAccountHasBalance(ctx sdk.Context, fee types.Fee) bool {
+	for _, coin := range fee.Total() {
+		if !k.bankKeeper.HasBalance(ctx, k.GetFeeModuleAddress(), coin) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // SetFeeEnabled sets a flag to determine if fee handling logic should run for the given channel
 // identified by channel and port identifiers.
 func (k Keeper) SetFeeEnabled(ctx sdk.Context, portID, channelID string) {

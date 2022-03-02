@@ -66,6 +66,27 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
+	fee := types.Fee{
+		AckFee:     defaultAckFee,
+		RecvFee:    defaultReceiveFee,
+		TimeoutFee: defaultTimeoutFee,
+	}
+
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee))
+
+	// set fee in escrow account
+	err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+	suite.Require().Nil(err)
+
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee))
+
+	// increase ack fee
+	fee.AckFee = fee.AckFee.Add(defaultAckFee...)
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee))
+
+}
+
 func (suite *KeeperTestSuite) TestFeeInEscrow() {
 	suite.coordinator.Setup(suite.path)
 
