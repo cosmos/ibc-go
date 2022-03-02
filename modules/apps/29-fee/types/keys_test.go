@@ -11,6 +11,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
+var (
+	validPacketID = channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1)
+)
+
 func TestKeyCounterpartyRelayer(t *testing.T) {
 	var (
 		relayerAddress = "relayer_address"
@@ -21,8 +25,45 @@ func TestKeyCounterpartyRelayer(t *testing.T) {
 	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.CounterpartyRelayerAddressKeyPrefix, relayerAddress, channelID))
 }
 
+func TestParseKeyFeeEnabled(t *testing.T) {
+	testCases := []struct {
+		name    string
+		key     string
+		expPass bool
+	}{
+		{
+			"success",
+			string(types.KeyFeeEnabled(ibctesting.MockPort, ibctesting.FirstChannelID)),
+			true,
+		},
+		{
+			"incorrect key - key split has incorrect length",
+			string(types.KeyFeesInEscrow(validPacketID)),
+			false,
+		},
+		{
+			"incorrect key - key split has incorrect length",
+			fmt.Sprintf("%s/%s/%s", "fee", ibctesting.MockPort, ibctesting.FirstChannelID),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		portID, channelID, err := types.ParseKeyFeeEnabled(tc.key)
+
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, ibctesting.MockPort, portID)
+			require.Equal(t, ibctesting.FirstChannelID, channelID)
+		} else {
+			require.Error(t, err)
+			require.Empty(t, portID)
+			require.Empty(t, channelID)
+		}
+	}
+}
+
 func TestParseKeyFeesInEscrow(t *testing.T) {
-	validPacketID := channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1)
 
 	testCases := []struct {
 		name    string
@@ -36,7 +77,7 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 		},
 		{
 			"incorrect key - key split has incorrect length",
-			string(types.FeeEnabledKey(validPacketID.PortId, validPacketID.ChannelId)),
+			string(types.KeyFeeEnabled(validPacketID.PortId, validPacketID.ChannelId)),
 			false,
 		},
 		{
