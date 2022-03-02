@@ -113,12 +113,12 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 		},
 		{
 			"incorrect key - key split has incorrect length",
-			string(types.KeyFeeEnabled(validPacketID.PortId, validPacketID.ChannelId)),
+			"forwardRelayer/transfer/channel-0",
 			false,
 		},
 		{
-			"incorrect key - sequence cannot be parsed",
-			fmt.Sprintf("%s/%s", types.KeyFeesInEscrowChannelPrefix(validPacketID.PortId, validPacketID.ChannelId), "sequence"),
+			"incorrect key - sequence is not correct",
+			"forwardRelayer/transfer/channel-0/sequence",
 			false,
 		},
 	}
