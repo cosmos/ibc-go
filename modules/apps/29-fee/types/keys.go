@@ -78,7 +78,7 @@ func KeyCounterpartyRelayer(address, channelID string) []byte {
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
 func KeyForwardRelayerAddress(packetId channeltypes.PacketId) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%d/", ForwardRelayerPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
+	return []byte(fmt.Sprintf("%s/%s/%s/%d", ForwardRelayerPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
 }
 
 // KeyFeeInEscrow returns the key for escrowed fees
@@ -105,6 +105,22 @@ func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
 		return channeltypes.PacketId{}, err
 	}
 
+	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+	return packetID, nil
+}
+
+// ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packet id
+func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 4 {
+		return channeltypes.PacketId{}, sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 4, len(keySplit),
+		)
+	}
+	seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+	if err != nil {
+		return channeltypes.PacketId{}, err
+	}
 	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
 	return packetID, nil
 }

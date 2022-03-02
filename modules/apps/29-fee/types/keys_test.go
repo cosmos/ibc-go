@@ -88,11 +88,47 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		packetId, err := types.ParseKeyFeesInEscrow(tc.key)
+		packetID, err := types.ParseKeyFeesInEscrow(tc.key)
 
 		if tc.expPass {
 			require.NoError(t, err)
-			require.Equal(t, validPacketID, packetId)
+			require.Equal(t, validPacketID, packetID)
+		} else {
+			require.Error(t, err)
+		}
+	}
+}
+
+func TestParseKeyForwardRelayerAddress(t *testing.T) {
+
+	testCases := []struct {
+		name    string
+		key     string
+		expPass bool
+	}{
+		{
+			"success",
+			string(types.KeyForwardRelayerAddress(validPacketID)),
+			true,
+		},
+		{
+			"incorrect key - key split has incorrect length",
+			string(types.KeyFeeEnabled(validPacketID.PortId, validPacketID.ChannelId)),
+			false,
+		},
+		{
+			"incorrect key - sequence cannot be parsed",
+			fmt.Sprintf("%s/%s", types.KeyFeesInEscrowChannelPrefix(validPacketID.PortId, validPacketID.ChannelId), "sequence"),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		packetID, err := types.ParseKeyForwardRelayerAddress(tc.key)
+
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, validPacketID, packetID)
 		} else {
 			require.Error(t, err)
 		}
