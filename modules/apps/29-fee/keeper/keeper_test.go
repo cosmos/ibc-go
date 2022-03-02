@@ -92,6 +92,18 @@ func (suite *KeeperTestSuite) TestFeeInEscrow() {
 	suite.Require().Equal(expectedArr, arr, "did not retrieve expected fees during iteration")
 }
 
+func (suite *KeeperTestSuite) TestIsLocked() {
+	ctx := suite.chainA.GetContext()
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
+
+	// lock fee module
+	storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
+	store := ctx.KVStore(storeKey)
+	store.Set(types.KeyLocked(), []byte{1})
+
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
+}
+
 func (suite *KeeperTestSuite) TestDisableAllChannels() {
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), "port1", "channel1")
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), "port2", "channel2")
