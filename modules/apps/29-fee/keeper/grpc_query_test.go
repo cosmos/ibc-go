@@ -246,7 +246,6 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 		expPass  bool
 	}{
 		{
-
 			"success",
 			func() {},
 			true,
@@ -285,6 +284,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 			res, err := suite.queryClient.TotalRecvFees(ctx, req)
+
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
