@@ -25,7 +25,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
 type IncentivizedAcknowledgement struct {
-	// the acknowledgement result bytes
+	// the underlying app acknowledgement result bytes
 	Result []byte `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	// the relayer address which submits the recv packet message
 	ForwardRelayerAddress string `protobuf:"bytes,2,opt,name=forward_relayer_address,json=forwardRelayerAddress,proto3" json:"forward_relayer_address,omitempty" yaml:"forward_relayer_address"`
