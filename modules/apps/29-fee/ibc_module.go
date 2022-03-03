@@ -234,6 +234,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 		// if the fee keeper is locked then fee logic should be skipped
 		// this may occur in the presence of a severe bug which leads invalid state
 		// the fee keeper will be unlocked after manual intervention
+		// the acknowledgement has been unmarshalled into an ics29 acknowledgement
+		// since the counterparty is still sending incentivized acknowledgements
+		// for fee enabled channels
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
