@@ -341,14 +341,13 @@
 
 ### IncentivizedAcknowledgement
 IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
-It contains the raw acknowledgement bytes, as well as the forward relayer address
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `result` | [bytes](#bytes) |  |  |
-| `forward_relayer_address` | [string](#string) |  |  |
-| `underlying_app_success` | [bool](#bool) |  |  |
+| `result` | [bytes](#bytes) |  | the acknowledgement result bytes |
+| `forward_relayer_address` | [string](#string) |  | the relayer address which submits the recv packet message |
+| `underlying_app_success` | [bool](#bool) |  | success flag of the base application callback |
 
 
 
@@ -709,16 +708,14 @@ CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 <a name="ibc.applications.fee.v1.Fee"></a>
 
 ### Fee
-Fee implements the ics29 Fee interface
-See Fee Payment Middleware spec:
-https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middleware-contract
+Fee defines the ICS29 receive, acknowledgement and timeout fees
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `recv_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `recv_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet receive fee |
+| `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet acknowledgement fee |
+| `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet timeout fee |
 
 
 
@@ -733,8 +730,8 @@ IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
-| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated |  |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of the channel ID, port ID and sequence |
+| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated | list of packet fees |
 
 
 
@@ -744,15 +741,14 @@ IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
 <a name="ibc.applications.fee.v1.PacketFee"></a>
 
 ### PacketFee
-PacketFee contains the relayer fee, refund address and an optional list of relayers that are permitted to receive the
-fee
+PacketFee contains ICS29 relayer fees, refund address and optional list of permitted relayers
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `refund_address` | [string](#string) |  |  |
-| `relayers` | [string](#string) | repeated |  |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  | fee encapsulates the recv, ack and timeout fees associated with an IBC packet |
+| `refund_address` | [string](#string) |  | the refund address for unspent fees |
+| `relayers` | [string](#string) | repeated | optional list of relayers permitted to receive fees |
 
 
 
@@ -767,7 +763,7 @@ PacketFees contains a list of type PacketFee
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated |  |
+| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated | list of packet fees |
 
 
 
@@ -798,8 +794,8 @@ FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  |  |
-| `channel_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
 
 
 
@@ -809,13 +805,13 @@ FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 <a name="ibc.applications.fee.v1.ForwardRelayerAddress"></a>
 
 ### ForwardRelayerAddress
-ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements
+ForwardRelayerAddress contains the forward relayer address and PacketId used for async acknowledgements
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  |  |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
+| `address` | [string](#string) |  | the forward relayer address |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifer comprised of the channel ID, port ID and sequence |
 
 
 
@@ -825,15 +821,15 @@ ForwardRelayerAddress contains the forward relayer address and packetId used for
 <a name="ibc.applications.fee.v1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the fee middleware genesis state
+GenesisState defines the ICS29 fee middleware genesis state
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `identified_fees` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated |  |
-| `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated |  |
-| `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated |  |
-| `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated |  |
+| `identified_fees` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified packet fees |
+| `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
+| `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated | list of registered relayer addresses |
+| `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated | list of forward relayer addresses |
 
 
 
@@ -848,9 +844,9 @@ RegisteredRelayerAddress contains the address and counterparty address for a spe
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  |  |
-| `counterparty_address` | [string](#string) |  |  |
-| `channel_id` | [string](#string) |  |  |
+| `address` | [string](#string) |  | the relayer address |
+| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
+| `channel_id` | [string](#string) |  | unique channel identifier |
 
 
 
@@ -909,13 +905,13 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketRequest"></a>
 
 ### QueryIncentivizedPacketRequest
-QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | PacketID |
-| `query_height` | [uint64](#uint64) |  | Height to query at |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of channel ID, port ID and sequence |
+| `query_height` | [uint64](#uint64) |  | block height at which to query |
 
 
 
@@ -925,12 +921,12 @@ QueryIncentivizedPacketRequest is the request type for querying for all incentiv
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketResponse"></a>
 
 ### QueryIncentivizedPacketResponse
-QueryIncentivizedPacketsResponse is the response type for the incentivized packet RPC
+QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packet` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) |  | Incentivized_packet |
+| `incentivized_packet` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) |  | the identified fees for the incentivized packet |
 
 
 
@@ -940,13 +936,13 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsRequest"></a>
 
 ### QueryIncentivizedPacketsRequest
-QueryIncentivizedPacketsRequest is the request type for querying for all incentivized packets
+QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
-| `query_height` | [uint64](#uint64) |  | Height to query at |
+| `query_height` | [uint64](#uint64) |  | block height at which to query |
 
 
 
@@ -956,12 +952,12 @@ QueryIncentivizedPacketsRequest is the request type for querying for all incenti
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsResponse"></a>
 
 ### QueryIncentivizedPacketsResponse
-QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
+QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPackets rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | Map of all incentivized_packets |
+| `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified fees for incentivized packets |
 
 
 
@@ -1067,12 +1063,12 @@ QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees
 <a name="ibc.applications.fee.v1.Query"></a>
 
 ### Query
-Query provides defines the gRPC querier service.
+Query defines the ICS29 gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packets|
-| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the given packet | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | IncentivizedPackets returns all incentivized packets and their associated fees | GET|/ibc/apps/fee/v1/incentivized_packets|
+| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | IncentivizedPacket returns all packet fees for a packet given its identifier | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
 | `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
 | `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
 | `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
@@ -1091,18 +1087,18 @@ Query provides defines the gRPC querier service.
 <a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
 
 ### MsgPayPacketFee
-MsgPayPacketFee defines the request type PayPacketFee RPC
+MsgPayPacketFee defines the request type for the PayPacketFee rpc
 This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 paid for
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `source_port_id` | [string](#string) |  | source channel port identifier |
-| `source_channel_id` | [string](#string) |  | source channel unique identifier |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  | fee encapsulates the recv, ack and timeout fees associated with an IBC packet |
+| `source_port_id` | [string](#string) |  | the source port unique identifier |
+| `source_channel_id` | [string](#string) |  | the source channel unique identifer |
 | `signer` | [string](#string) |  | account address to refund fee if necessary |
-| `relayers` | [string](#string) | repeated |  |
+| `relayers` | [string](#string) | repeated | optional list of relayers permitted to the receive packet fees |
 
 
 
@@ -1112,14 +1108,14 @@ paid for
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
 
 ### MsgPayPacketFeeAsync
-MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
+MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier |
-| `packet_fee` | [PacketFee](#ibc.applications.fee.v1.PacketFee) |  | packet fee for incentivization |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifer comprised of the channel ID, port ID and sequence |
+| `packet_fee` | [PacketFee](#ibc.applications.fee.v1.PacketFee) |  | the packet fee associated with a particular IBC packet |
 
 
 
@@ -1129,7 +1125,7 @@ This Msg can be used to pay for a packet at a specified sequence (instead of the
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
 
 ### MsgPayPacketFeeAsyncResponse
-MsgPayPacketFeeAsyncResponse defines the response type for Msg/PayPacketFeeAsync
+MsgPayPacketFeeAsyncResponse defines the response type for the PayPacketFeeAsync rpc
 
 
 
@@ -1139,7 +1135,7 @@ MsgPayPacketFeeAsyncResponse defines the response type for Msg/PayPacketFeeAsync
 <a name="ibc.applications.fee.v1.MsgPayPacketFeeResponse"></a>
 
 ### MsgPayPacketFeeResponse
-MsgPayPacketFeeResponse defines the response type for Msg/PayPacketFee
+MsgPayPacketFeeResponse defines the response type for the PayPacketFee rpc
 
 
 
@@ -1149,14 +1145,14 @@ MsgPayPacketFeeResponse defines the response type for Msg/PayPacketFee
 <a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
 
 ### MsgRegisterCounterpartyAddress
-MsgRegisterCounterpartyAddress is the request type for registering the counterparty address
+MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  |  |
-| `counterparty_address` | [string](#string) |  |  |
-| `channel_id` | [string](#string) |  |  |
+| `address` | [string](#string) |  | the relayer address |
+| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
+| `channel_id` | [string](#string) |  | unique channel identifier |
 
 
 
@@ -1166,7 +1162,7 @@ MsgRegisterCounterpartyAddress is the request type for registering the counterpa
 <a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse"></a>
 
 ### MsgRegisterCounterpartyAddressResponse
-MsgRegisterCounterpartyAddressResponse defines the Msg/RegisterCounterypartyAddress response type
+MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
 
 
 
@@ -1182,13 +1178,13 @@ MsgRegisterCounterpartyAddressResponse defines the Msg/RegisterCounterypartyAddr
 <a name="ibc.applications.fee.v1.Msg"></a>
 
 ### Msg
-Msg defines the ibc/fee Msg service.
+Msg defines the ICS29 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
-| `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence | |
-| `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet | |
+| `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
+| `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
 
  <!-- end services -->
 

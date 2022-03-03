@@ -11,15 +11,14 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";
 
-// Query provides defines the gRPC querier service.
+// Query defines the ICS29 gRPC querier service.
 service Query {
-  // Gets all incentivized packets
+  // IncentivizedPackets returns all incentivized packets and their associated fees
   rpc IncentivizedPackets(QueryIncentivizedPacketsRequest) returns (QueryIncentivizedPacketsResponse) {
     option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets";
   }
 
-  // Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the
-  // given packet
+  // IncentivizedPacket returns all packet fees for a packet given its identifier
   rpc IncentivizedPacket(QueryIncentivizedPacketRequest) returns (QueryIncentivizedPacketResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
@@ -45,31 +44,31 @@ service Query {
   }
 }
 
-// QueryIncentivizedPacketsRequest is the request type for querying for all incentivized packets
+// QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc
 message QueryIncentivizedPacketsRequest {
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
-  // Height to query at
+  // block height at which to query
   uint64 query_height = 2;
 }
 
-// QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
+// QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPackets rpc
 message QueryIncentivizedPacketsResponse {
-  // Map of all incentivized_packets
+  // list of identified fees for incentivized packets
   repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+// QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc
 message QueryIncentivizedPacketRequest {
-  // PacketID
+  // unique packet identifier comprised of channel ID, port ID and sequence
   ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.nullable) = false];
-  // Height to query at
+  // block height at which to query
   uint64 query_height = 2;
 }
 
-// QueryIncentivizedPacketsResponse is the response type for the incentivized packet RPC
+// QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
 message QueryIncentivizedPacketResponse {
-  // Incentivized_packet
+  // the identified fees for the incentivized packet
   ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packet = 1 [(gogoproto.nullable) = false];
 }
 

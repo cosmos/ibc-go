@@ -33,11 +33,11 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// QueryIncentivizedPacketsRequest is the request type for querying for all incentivized packets
+// QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc
 type QueryIncentivizedPacketsRequest struct {
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	// Height to query at
+	// block height at which to query
 	QueryHeight uint64 `protobuf:"varint,2,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
 }
 
@@ -88,9 +88,9 @@ func (m *QueryIncentivizedPacketsRequest) GetQueryHeight() uint64 {
 	return 0
 }
 
-// QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
+// QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPackets rpc
 type QueryIncentivizedPacketsResponse struct {
-	// Map of all incentivized_packets
+	// list of identified fees for incentivized packets
 	IncentivizedPackets []IdentifiedPacketFees `protobuf:"bytes,1,rep,name=incentivized_packets,json=incentivizedPackets,proto3" json:"incentivized_packets"`
 }
 
@@ -134,11 +134,11 @@ func (m *QueryIncentivizedPacketsResponse) GetIncentivizedPackets() []Identified
 	return nil
 }
 
-// QueryIncentivizedPacketRequest is the request type for querying for all incentivized packets
+// QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc
 type QueryIncentivizedPacketRequest struct {
-	// PacketID
+	// unique packet identifier comprised of channel ID, port ID and sequence
 	PacketId types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id"`
-	// Height to query at
+	// block height at which to query
 	QueryHeight uint64 `protobuf:"varint,2,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
 }
 
@@ -189,9 +189,9 @@ func (m *QueryIncentivizedPacketRequest) GetQueryHeight() uint64 {
 	return 0
 }
 
-// QueryIncentivizedPacketsResponse is the response type for the incentivized packet RPC
+// QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
 type QueryIncentivizedPacketResponse struct {
-	// Incentivized_packet
+	// the identified fees for the incentivized packet
 	IncentivizedPacket IdentifiedPacketFees `protobuf:"bytes,1,opt,name=incentivized_packet,json=incentivizedPacket,proto3" json:"incentivized_packet"`
 }
 
@@ -598,10 +598,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Gets all incentivized packets
+	// IncentivizedPackets returns all incentivized packets and their associated fees
 	IncentivizedPackets(ctx context.Context, in *QueryIncentivizedPacketsRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketsResponse, error)
-	// Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the
-	// given packet
+	// IncentivizedPacket returns all packet fees for a packet given its identifier
 	IncentivizedPacket(ctx context.Context, in *QueryIncentivizedPacketRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketResponse, error)
 	// TotalRecvFees returns the total receive fees for a packet given its identifier
 	TotalRecvFees(ctx context.Context, in *QueryTotalRecvFeesRequest, opts ...grpc.CallOption) (*QueryTotalRecvFeesResponse, error)
@@ -666,10 +665,9 @@ func (c *queryClient) TotalTimeoutFees(ctx context.Context, in *QueryTotalTimeou
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Gets all incentivized packets
+	// IncentivizedPackets returns all incentivized packets and their associated fees
 	IncentivizedPackets(context.Context, *QueryIncentivizedPacketsRequest) (*QueryIncentivizedPacketsResponse, error)
-	// Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the
-	// given packet
+	// IncentivizedPacket returns all packet fees for a packet given its identifier
 	IncentivizedPacket(context.Context, *QueryIncentivizedPacketRequest) (*QueryIncentivizedPacketResponse, error)
 	// TotalRecvFees returns the total receive fees for a packet given its identifier
 	TotalRecvFees(context.Context, *QueryTotalRecvFeesRequest) (*QueryTotalRecvFeesResponse, error)
