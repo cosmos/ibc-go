@@ -75,6 +75,26 @@ func lockFeeModule(chain *ibctesting.TestChain) {
 	store.Set(types.KeyLocked(), []byte{1})
 }
 
+func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
+	fee := types.Fee{
+		AckFee:     defaultAckFee,
+		RecvFee:    defaultReceiveFee,
+		TimeoutFee: defaultTimeoutFee,
+	}
+
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
+
+	// set fee in escrow account
+	err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+	suite.Require().Nil(err)
+
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
+
+	// increase ack fee
+	fee.AckFee = fee.AckFee.Add(defaultAckFee...)
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
+}
+
 func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	suite.coordinator.Setup(suite.path)
 
