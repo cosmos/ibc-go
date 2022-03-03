@@ -25,6 +25,11 @@ func TestKeyCounterpartyRelayer(t *testing.T) {
 	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.CounterpartyRelayerAddressKeyPrefix, relayerAddress, channelID))
 }
 
+func TestKeyFeesInEscrow(t *testing.T) {
+	key := types.KeyFeesInEscrow(validPacketID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s/%d", types.FeesInEscrowPrefix, ibctesting.MockFeePort, ibctesting.FirstChannelID, 1))
+}
+
 func TestParseKeyFeeEnabled(t *testing.T) {
 	testCases := []struct {
 		name    string
