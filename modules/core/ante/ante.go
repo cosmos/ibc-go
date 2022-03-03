@@ -31,24 +31,32 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 			case *channeltypes.MsgRecvPacket:
 				if response, err := ad.k.RecvPacket(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
+				} else if err != nil {
+					return ctx, err
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgAcknowledgement:
 				if response, err := ad.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
+				} else if err != nil {
+					return ctx, err
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgTimeout:
 				if response, err := ad.k.Timeout(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
+				} else if err != nil {
+					return ctx, err
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgTimeoutOnClose:
 				if response, err := ad.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
 					redundancies += 1
+				} else if err != nil {
+					return ctx, err
 				}
 				packetMsgs += 1
 
@@ -61,7 +69,6 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 				// even if they get batched with redundant packet messages.
 				return next(ctx, tx, simulate)
 			}
-
 		}
 
 		// only return error if all packet messages are redundant

@@ -8,9 +8,9 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/ante"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	"github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 type AnteTestSuite struct {
@@ -42,6 +42,109 @@ func TestAnteTestSuite(t *testing.T) {
 	suite.Run(t, new(AnteTestSuite))
 }
 
+// createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
+func (suite *AnteTestSuite) createRecvPacketMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(1, 0), 0)
+
+	err := suite.path.EndpointA.SendPacket(packet)
+	suite.Require().NoError(err)
+
+	if isRedundant {
+		err = suite.path.EndpointB.RecvPacket(packet)
+		suite.Require().NoError(err)
+	}
+
+	err = suite.path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+
+	return channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+}
+
+// createAcknowledgementMessage creates an Acknowledgement message for a packet sent from chain B to chain A.
+func (suite *AnteTestSuite) createAcknowledgementMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
+		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		clienttypes.NewHeight(1, 0), 0)
+
+	err := suite.path.EndpointB.SendPacket(packet)
+	suite.Require().NoError(err)
+	err = suite.path.EndpointA.RecvPacket(packet)
+	suite.Require().NoError(err)
+
+	if isRedundant {
+		err = suite.path.EndpointB.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+		suite.Require().NoError(err)
+	}
+
+	packetKey := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+
+	return channeltypes.NewMsgAcknowledgement(packet, ibctesting.MockAcknowledgement, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+}
+
+// createTimeoutMessage creates an Timeout message for a packet sent from chain B to chain A.
+func (suite *AnteTestSuite) createTimeoutMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
+	height := suite.chainA.LastHeader.GetHeight()
+	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
+		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		timeoutHeight, 0)
+
+	err := suite.path.EndpointB.SendPacket(packet)
+	suite.Require().NoError(err)
+
+	suite.coordinator.CommitNBlocks(suite.chainA, 3)
+
+	err = suite.path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	if isRedundant {
+		err = suite.path.EndpointB.TimeoutPacket(packet)
+		suite.Require().NoError(err)
+	}
+
+	packetKey := host.PacketReceiptKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+
+	return channeltypes.NewMsgTimeout(packet, sequenceNumber, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+}
+
+// createTimeoutOnCloseMessage creates an TimeoutOnClose message for a packet sent from chain B to chain A.
+func (suite *AnteTestSuite) createTimeoutOnCloseMessage(sequenceNumber uint64, isRedundant bool) sdk.Msg {
+	height := suite.chainA.LastHeader.GetHeight()
+	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
+	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
+		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		timeoutHeight, 0)
+
+	err := suite.path.EndpointB.SendPacket(packet)
+	suite.Require().NoError(err)
+	err = suite.path.EndpointA.SetChannelClosed()
+	suite.Require().NoError(err)
+
+	if isRedundant {
+		err = suite.path.EndpointB.TimeoutOnClose(packet)
+		suite.Require().NoError(err)
+	}
+
+	packetKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+
+	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
+	proofClosed, _ := suite.chainA.QueryProof(channelKey)
+
+	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+}
+
 func (suite *AnteTestSuite) TestAnteDecorator() {
 	testCases := []struct {
 		name     string
@@ -49,401 +152,240 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		expPass  bool
 	}{
 		{
-			"success on single msg",
+			"success on one non-redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				packet := channeltypes.NewPacket([]byte(mock.MockPacketData), 1,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-					clienttypes.NewHeight(1, 0), 0)
-
-				return []sdk.Msg{channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer")}
+				return []sdk.Msg{suite.createRecvPacketMessage(1, false)}
 			},
 			true,
 		},
 		{
-			"success on multiple msgs",
+			"success on one non-redundant Acknowledgement message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createAcknowledgementMessage(1, false)}
+			},
+			true,
+		},
+		{
+			"success on one non-redundant Timeout message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createTimeoutMessage(1, false)}
+			},
+			true,
+		},
+		{
+			"success on one non-redundant TimeoutOnClose message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createTimeoutOnCloseMessage(uint64(1), false)}
+			},
+			true,
+		},
+		{
+			"success on three non-redundant messages of each type",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
-				for i := 1; i <= 5; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+				// from A to B
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), false))
 				}
-				return msgs
-			},
-			true,
-		},
-		{
-			"success on multiple msgs: 1 fresh recv packet",
-			func(suite *AnteTestSuite) []sdk.Msg {
-				var msgs []sdk.Msg
 
-				for i := 1; i <= 5; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					err := suite.path.EndpointA.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					// receive all sequences except packet 3
-					if i != 3 {
-						err = suite.path.EndpointB.RecvPacket(packet)
-						suite.Require().NoError(err)
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), false))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), false))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), false))
 					}
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
-
 				return msgs
 			},
 			true,
 		},
 		{
-			"success on multiple mixed msgs",
+			"success on three redundant messages of each type and one non-redundant Timeout message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
+				// from A to B
 				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-					err := suite.path.EndpointA.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
 				}
-				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-					err := suite.path.EndpointB.SendPacket(packet)
-					suite.Require().NoError(err)
 
-					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 4; i <= 6; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-					err := suite.path.EndpointB.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					msgs = append(msgs, channeltypes.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+				// from B to A
+				for i := 1; i <= 7; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), true))
+					case i == 4:
+						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), false))
+					case i >= 5 && i <= 7:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), true))
+					}
 				}
 				return msgs
 			},
 			true,
 		},
 		{
-			"success on multiple mixed msgs: 1 fresh packet of each type",
+			"success on two redundant messages and one non-redundant message for each type",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
+				// from A to B
 				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-					err := suite.path.EndpointA.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					// receive all sequences except packet 3
-					if i != 3 {
-
-						err := suite.path.EndpointB.RecvPacket(packet)
-						suite.Require().NoError(err)
-					}
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), i != 2))
 				}
-				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-					err := suite.path.EndpointB.SendPacket(packet)
-					suite.Require().NoError(err)
 
-					// receive all acks except ack 2
-					if i != 2 {
-						err = suite.path.EndpointA.RecvPacket(packet)
-						suite.Require().NoError(err)
-						err = suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
-						suite.Require().NoError(err)
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), i != 2))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), i != 5))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), i != 8))
 					}
-
-					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 4; i <= 6; i++ {
-					height := suite.chainA.LastHeader.GetHeight()
-					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						timeoutHeight, 0)
-					err := suite.path.EndpointB.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					// timeout packet
-					suite.coordinator.CommitNBlocks(suite.chainA, 3)
-
-					// timeout packets except sequence 5
-					if i != 5 {
-						suite.path.EndpointB.UpdateClient()
-						err = suite.path.EndpointB.TimeoutPacket(packet)
-						suite.Require().NoError(err)
-					}
-
-					msgs = append(msgs, channeltypes.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
 				}
 				return msgs
 			},
 			true,
 		},
 		{
-			"success on multiple mixed msgs: only 1 fresh msg in total",
-			func(suite *AnteTestSuite) []sdk.Msg {
-				var msgs []sdk.Msg
-
-				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					// receive all packets
-					suite.path.EndpointA.SendPacket(packet)
-					suite.path.EndpointB.RecvPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					// receive all acks
-					suite.path.EndpointB.SendPacket(packet)
-					suite.path.EndpointA.RecvPacket(packet)
-					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
-
-					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 4; i < 5; i++ {
-					height := suite.chainA.LastHeader.GetHeight()
-					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						timeoutHeight, 0)
-
-					// do not timeout packet, timeout msg is fresh
-					suite.path.EndpointB.SendPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgTimeout(packet, uint64(i), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				return msgs
-			},
-			true,
-		},
-		{
-			"success on single update client msg",
+			"success on one UpdateClient message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 			},
 			true,
 		},
 		{
-			"success on multiple update clients",
+			"success on three UpdateClient messages",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
 			},
 			true,
 		},
 		{
-			"success on multiple update clients and fresh packet message",
+			"success on multiple redundant Updateclient messages and 1 non-redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
-
-				packet := channeltypes.NewPacket([]byte(mock.MockPacketData), 1,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-					clienttypes.NewHeight(1, 0), 0)
-
-				return append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+				return []sdk.Msg{
+					&clienttypes.MsgUpdateClient{},
+					&clienttypes.MsgUpdateClient{},
+					&clienttypes.MsgUpdateClient{},
+					suite.createRecvPacketMessage(uint64(1), false),
+				}
 			},
 			true,
 		},
 		{
-			"success of tx with different msg type even if all packet messages are redundant",
+			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 
 				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					// receive all packets
-					suite.path.EndpointA.SendPacket(packet)
-					suite.path.EndpointB.RecvPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					// receive all acks
-					suite.path.EndpointB.SendPacket(packet)
-					suite.path.EndpointA.RecvPacket(packet)
-					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
-
-					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 4; i < 6; i++ {
-					height := suite.chainA.LastHeader.GetHeight()
-					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						timeoutHeight, 0)
-
-					err := suite.path.EndpointB.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					// timeout packet
-					suite.coordinator.CommitNBlocks(suite.chainA, 3)
-
-					suite.path.EndpointB.UpdateClient()
-					suite.path.EndpointB.TimeoutPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
 				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{})
-
 				return msgs
 			},
 			true,
 		},
 		{
-			"no success on multiple mixed message: all are redundant",
+			"no success on one redundant RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createRecvPacketMessage(uint64(1), true)}
+			},
+			false,
+		},
+		{
+			"no success on three redundant messages of each type",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
+				// from A to B
 				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					// receive all packets
-					suite.path.EndpointA.SendPacket(packet)
-					suite.path.EndpointB.RecvPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
 				}
-				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
 
-					// receive all acks
-					suite.path.EndpointB.SendPacket(packet)
-					suite.path.EndpointA.RecvPacket(packet)
-					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
-
-					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 4; i < 6; i++ {
-					height := suite.chainA.LastHeader.GetHeight()
-					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						timeoutHeight, 0)
-
-					err := suite.path.EndpointB.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					// timeout packet
-					suite.coordinator.CommitNBlocks(suite.chainA, 3)
-
-					suite.path.EndpointB.UpdateClient()
-					suite.path.EndpointB.TimeoutPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), true))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), true))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), true))
+					}
 				}
 				return msgs
 			},
 			false,
 		},
 		{
-			"no success if msgs contain update clients and redundant packet messages",
+			"no success on three UpdateClient messages and three redundant messages of each type",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
 
+				// from A to B
 				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
-
-					// receive all packets
-					suite.path.EndpointA.SendPacket(packet)
-					suite.path.EndpointB.RecvPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
+					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
 				}
-				for i := 1; i <= 3; i++ {
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						clienttypes.NewHeight(1, 0), 0)
 
-					// receive all acks
-					suite.path.EndpointB.SendPacket(packet)
-					suite.path.EndpointA.RecvPacket(packet)
-					suite.path.EndpointB.AcknowledgePacket(packet, mock.MockAcknowledgement.Acknowledgement())
-
-					msgs = append(msgs, channeltypes.NewMsgAcknowledgement(packet, []byte("ack"), []byte("proof"), clienttypes.NewHeight(0, 1), "signer"))
-				}
-				for i := 4; i < 6; i++ {
-					height := suite.chainA.LastHeader.GetHeight()
-					timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
-					packet := channeltypes.NewPacket([]byte(mock.MockPacketData), uint64(i),
-						suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-						suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-						timeoutHeight, 0)
-
-					err := suite.path.EndpointB.SendPacket(packet)
-					suite.Require().NoError(err)
-
-					// timeout packet
-					suite.coordinator.CommitNBlocks(suite.chainA, 3)
-
-					suite.path.EndpointB.UpdateClient()
-					suite.path.EndpointB.TimeoutPacket(packet)
-
-					msgs = append(msgs, channeltypes.NewMsgTimeoutOnClose(packet, uint64(i), []byte("proof"), []byte("channelProof"), clienttypes.NewHeight(0, 1), "signer"))
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(uint64(i), true))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(uint64(i), true))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(uint64(i), true))
+					}
 				}
 				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one non-redundant message and one invalid message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+					clienttypes.NewHeight(1, 0), 0)
+
+				return []sdk.Msg{
+					suite.createRecvPacketMessage(uint64(1), false),
+					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"),
+				}
+			},
+			false,
+		},
+		{
+			"no success on one non-redundant and one redundant message in the same block",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msg := suite.createRecvPacketMessage(uint64(1), false)
+
+				// run check tx with non-redundant message
+				k := suite.chainB.App.GetIBCKeeper()
+				decorator := ante.NewAnteDecorator(k)
+				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
+				next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
+				txBuilder := suite.chainB.TxConfig.NewTxBuilder()
+				err := txBuilder.SetMsgs([]sdk.Msg{msg}...)
+				suite.Require().NoError(err)
+				tx := txBuilder.GetTx()
+
+				_, err = decorator.AnteHandle(checkCtx, tx, false, next)
+				suite.Require().NoError(err)
+
+				return []sdk.Msg{msg}
 			},
 			false,
 		},
