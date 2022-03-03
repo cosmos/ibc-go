@@ -69,7 +69,7 @@ func KeyCounterpartyRelayer(address, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyRelayerAddressKeyPrefix, address, channelID))
 }
 
-// ParseKeyCounterpartyRelayer returns the registered relayer address -> counterparty address mapping
+// ParseKeyCounterpartyRelayer returns the registered relayer address and channelID given the used to store the counterpartyrelayer address
 func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, error error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {
