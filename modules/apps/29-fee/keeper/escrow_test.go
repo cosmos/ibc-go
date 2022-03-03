@@ -170,17 +170,6 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 
 			},
 		},
-		{
-			"fee module is locked, no distribution occurs", func() {
-				lockFeeModule(suite.chainA)
-			},
-			func() {
-				// check the module acc wallet still has the fee
-				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), fee.Total()[0])
-				suite.Require().True(hasBalance)
-
-			},
-		},
 	}
 
 	for _, tc := range testCases {
