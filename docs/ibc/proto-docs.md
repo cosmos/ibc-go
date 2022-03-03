@@ -30,7 +30,6 @@
   
 - [ibc/applications/fee/v1/fee.proto](#ibc/applications/fee/v1/fee.proto)
     - [Fee](#ibc.applications.fee.v1.Fee)
-    - [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee)
     - [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees)
     - [PacketFee](#ibc.applications.fee.v1.PacketFee)
     - [PacketFees](#ibc.applications.fee.v1.PacketFees)
@@ -47,12 +46,16 @@
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
     - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
     - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
+    - [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest)
+    - [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse)
     - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
     - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
     - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
     - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
     - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
     - [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse)
+    - [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest)
+    - [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse)
   
     - [Query](#ibc.applications.fee.v1.Query)
   
@@ -724,27 +727,6 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 
 
 
-<a name="ibc.applications.fee.v1.IdentifiedPacketFee"></a>
-
-### IdentifiedPacketFee
-IdentifiedPacketFee contains the relayer fee along with the associated metadata needed to process it.
-This includes the PacketId identifying the packet the fee is paying for,
-the refund address to which any unused funds are refunded,
-and an optional list of relayers that are permitted to receive the fee.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `refund_address` | [string](#string) |  |  |
-| `relayers` | [string](#string) | repeated |  |
-
-
-
-
-
-
 <a name="ibc.applications.fee.v1.IdentifiedPacketFees"></a>
 
 ### IdentifiedPacketFees
@@ -957,6 +939,40 @@ QueryIncentivizedPacketsResponse is the response type for the incentivized packe
 
 
 
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest"></a>
+
+### QueryIncentivizedPacketsForChannelRequest
+QueryIncentivizedPacketsForChannelRequest is the request type for querying for all incentivized packets
+for a specific channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+| `query_height` | [uint64](#uint64) |  | Height to query at |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse"></a>
+
+### QueryIncentivizedPacketsForChannelResponse
+QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | Map of all incentivized_packets |
+
+
+
+
+
+
 <a name="ibc.applications.fee.v1.QueryIncentivizedPacketsRequest"></a>
 
 ### QueryIncentivizedPacketsRequest
@@ -1047,6 +1063,36 @@ QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
 
 
 
+
+<a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest"></a>
+
+### QueryTotalTimeoutFeesRequest
+QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse"></a>
+
+### QueryTotalTimeoutFeesResponse
+QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `timeout_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet timeout fees |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -1063,8 +1109,10 @@ Query provides defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | Gets all incentivized packets | GET|/ibc/apps/fee/v1/incentivized_packets|
 | `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | Gets the fees expected for submitting the ReceivePacket, AcknowledgementPacket, and TimeoutPacket messages for the given packet | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `IncentivizedPacketsForChannel` | [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest) | [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse) | Gets all incentivized packets for a specific channel | GET|/ibc/apps/fee/v1/incentivized_packets/{port_id}/{channel_id}|
 | `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
 | `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
 
  <!-- end services -->
 

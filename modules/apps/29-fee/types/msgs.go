@@ -162,36 +162,3 @@ func (msg MsgPayPacketFeeAsync) Type() string {
 func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
-
-func NewIdentifiedPacketFee(packetId channeltypes.PacketId, fee Fee, refundAddr string, relayers []string) IdentifiedPacketFee {
-	return IdentifiedPacketFee{
-		PacketId:      packetId,
-		Fee:           fee,
-		RefundAddress: refundAddr,
-		Relayers:      relayers,
-	}
-}
-
-// Validate performs a stateless check of the IdentifiedPacketFee fields
-func (fee IdentifiedPacketFee) Validate() error {
-	// validate PacketId
-	if err := fee.PacketId.Validate(); err != nil {
-		return sdkerrors.Wrap(err, "Invalid PacketId")
-	}
-
-	_, err := sdk.AccAddressFromBech32(fee.RefundAddress)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
-	}
-
-	// enforce relayer is nil
-	if fee.Relayers != nil {
-		return ErrRelayersNotNil
-	}
-
-	if err := fee.Fee.Validate(); err != nil {
-		return err
-	}
-
-	return nil
-}

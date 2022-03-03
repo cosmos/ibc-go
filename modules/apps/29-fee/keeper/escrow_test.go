@@ -179,10 +179,6 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, []types.PacketFee{packetFee, packetFee})
 
 			if tc.expPass {
-				// there should no longer be a fee in escrow for this packet
-				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeeInEscrow(suite.chainA.GetContext(), packetID)
-				suite.Require().False(found)
-
 				// check if the reverse relayer is paid
 				hasBalance := suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), reverseRelayer, fee.AckFee[0].Add(fee.AckFee[0]))
 				suite.Require().True(hasBalance)
