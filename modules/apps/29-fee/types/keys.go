@@ -31,18 +31,11 @@ const (
 	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
 
-	// FeeInEscrowPrefix is the key prefix for fee in escrow mapping
-	FeeInEscrowPrefix = "feeInEscrow"
-
 	// FeesInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeesInEscrowPrefix = "feesInEscrow"
 
 	// ForwardRelayerPrefix is the key prefix for forward relayer addresses stored in state for async acknowledgements
 	ForwardRelayerPrefix = "forwardRelayer"
-
-	AttributeKeyRecvFee    = "recv_fee"
-	AttributeKeyAckFee     = "ack_fee"
-	AttributeKeyTimeoutFee = "timeout_fee"
 )
 
 // KeyFeeEnabled returns the key that stores a flag to determine if fee logic should
@@ -78,12 +71,25 @@ func KeyCounterpartyRelayer(address, channelID string) []byte {
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
 func KeyForwardRelayerAddress(packetId channeltypes.PacketId) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%d/", ForwardRelayerPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
+	return []byte(fmt.Sprintf("%s/%s/%s/%d", ForwardRelayerPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
 }
 
-// KeyFeeInEscrow returns the key for escrowed fees
-func KeyFeeInEscrow(packetID channeltypes.PacketId) []byte {
-	return []byte(fmt.Sprintf("%s/%d", KeyFeeInEscrowChannelPrefix(packetID.PortId, packetID.ChannelId), packetID.Sequence))
+// ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packetID
+func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 4 {
+		return channeltypes.PacketId{}, sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 4, len(keySplit),
+		)
+	}
+
+	seq, err := strconv.ParseUint(keySplit[3], 10, 64)
+	if err != nil {
+		return channeltypes.PacketId{}, err
+	}
+
+	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+	return packetID, nil
 }
 
 // KeyFeesInEscrow returns the key for escrowed fees
@@ -107,11 +113,6 @@ func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
 
 	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
 	return packetID, nil
-}
-
-// KeyFeeInEscrowChannelPrefix returns the key prefix for escrowed fees on the given channel
-func KeyFeeInEscrowChannelPrefix(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/packet", FeeInEscrowPrefix, portID, channelID))
 }
 
 // KeyFeesInEscrowChannelPrefix returns the key prefix for escrowed fees on the given channel

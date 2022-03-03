@@ -30,7 +30,6 @@
   
 - [ibc/applications/fee/v1/fee.proto](#ibc/applications/fee/v1/fee.proto)
     - [Fee](#ibc.applications.fee.v1.Fee)
-    - [IdentifiedPacketFee](#ibc.applications.fee.v1.IdentifiedPacketFee)
     - [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees)
     - [PacketFee](#ibc.applications.fee.v1.PacketFee)
     - [PacketFees](#ibc.applications.fee.v1.PacketFees)
@@ -722,27 +721,6 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment#fee-middl
 | `recv_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.IdentifiedPacketFee"></a>
-
-### IdentifiedPacketFee
-IdentifiedPacketFee contains the relayer fee along with the associated metadata needed to process it.
-This includes the PacketId identifying the packet the fee is paying for,
-the refund address to which any unused funds are refunded,
-and an optional list of relayers that are permitted to receive the fee.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  |  |
-| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  |  |
-| `refund_address` | [string](#string) |  |  |
-| `relayers` | [string](#string) | repeated |  |
 
 
 
