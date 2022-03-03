@@ -221,13 +221,20 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
+	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
 	ack := new(types.IncentivizedAcknowledgement)
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
+	}
+
+	if im.keeper.IsLocked(ctx) {
+		// if the fee keeper is locked then fee logic should be skipped
+		// this may occur in the presence of a severe bug which leads invalid state
+		// the fee keeper will be unlocked after manual intervention
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
 	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
@@ -253,6 +260,9 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	// if the fee keeper is locked then fee logic should be skipped
+	// this may occur in the presence of a severe bug which leads invalid state
+	// the fee keeper will be unlocked after manual intervention
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}

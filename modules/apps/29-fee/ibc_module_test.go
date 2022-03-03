@@ -616,7 +616,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				lockFeeModule(suite.chainA)
 
-				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 				expectedBalance = originalBalance
 			},
 			true,
