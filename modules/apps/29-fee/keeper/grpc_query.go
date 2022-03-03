@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 )
@@ -66,11 +65,42 @@ func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 	}, nil
 }
 
-// TotalRecvFees implements the Query/TotalRecvFees gRPC method
-func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+// IncentivizedPacketsForChannel implements the IncentivizedPacketsForChannel gRPC method
+func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
+
+	var packets []*types.IdentifiedPacketFees
+	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), keyPrefix)
+	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		packetID, err := types.ParseKeyFeesInEscrow(string(keyPrefix) + string(key))
+		if err != nil {
+			return err
+		}
+
+		packetFees := k.MustUnmarshalFees(value)
+
+		identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
+		packets = append(packets, &identifiedPacketFees)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	return &types.QueryIncentivizedPacketsForChannelResponse{
+		IncentivizedPackets: packets,
+	}, nil
+}
+
+// TotalRecvFees implements the Query/TotalRecvFees gRPC method
+func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

@@ -25,6 +25,12 @@ service Query {
         "{packet_id.sequence}";
   }
 
+  // Gets all incentivized packets for a specific channel
+  rpc IncentivizedPacketsForChannel(QueryIncentivizedPacketsForChannelRequest)
+      returns (QueryIncentivizedPacketsForChannelResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets/{port_id}/{channel_id}";
+  }
+
   // TotalRecvFees returns the total receive fees for a packet given its identifier
   rpc TotalRecvFees(QueryTotalRecvFeesRequest) returns (QueryTotalRecvFeesResponse) {
     option (google.api.http).get = "/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/"
@@ -70,6 +76,23 @@ message QueryIncentivizedPacketRequest {
 message QueryIncentivizedPacketResponse {
   // the identified fees for the incentivized packet
   ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packet = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryIncentivizedPacketsForChannelRequest defines the request type for querying for all incentivized packets
+// for a specific channel
+message QueryIncentivizedPacketsForChannelRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  string                                port_id    = 2;
+  string                                channel_id = 3;
+  // Height to query at
+  uint64 query_height = 4;
+}
+
+// QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC
+message QueryIncentivizedPacketsForChannelResponse {
+  // Map of all incentivized_packets
+  repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1;
 }
 
 // QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
