@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -66,30 +67,48 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestFeeInEscrow() {
-	suite.coordinator.Setup(suite.path)
-
-	fee := types.Fee{RecvFee: defaultReceiveFee, AckFee: defaultAckFee, TimeoutFee: defaultTimeoutFee}
-
-	// set some fees
-	for i := 1; i < 6; i++ {
-		packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(i))
-		fee := types.NewIdentifiedPacketFee(packetId, fee, suite.chainA.SenderAccount.GetAddress().String(), []string{})
-		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeInEscrow(suite.chainA.GetContext(), fee)
+func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
+	fee := types.Fee{
+		AckFee:     defaultAckFee,
+		RecvFee:    defaultReceiveFee,
+		TimeoutFee: defaultTimeoutFee,
 	}
 
-	// delete 1 fee
-	packetId := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 3)
-	suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeInEscrow(suite.chainA.GetContext(), packetId)
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
 
-	// iterate over remaining fees
-	arr := []int64{}
-	expectedArr := []int64{1, 2, 4, 5}
-	suite.chainA.GetSimApp().IBCFeeKeeper.IterateChannelFeesInEscrow(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, func(identifiedFee types.IdentifiedPacketFee) (stop bool) {
-		arr = append(arr, int64(identifiedFee.PacketId.Sequence))
-		return false
-	})
-	suite.Require().Equal(expectedArr, arr, "did not retrieve expected fees during iteration")
+	// set fee in escrow account
+	err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+	suite.Require().Nil(err)
+
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
+
+	// increase ack fee
+	fee.AckFee = fee.AckFee.Add(defaultAckFee...)
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
+
+}
+
+func (suite *KeeperTestSuite) TestFeesInEscrow() {
+	suite.coordinator.Setup(suite.path)
+
+	// escrow five fees for packet sequence 1
+	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
+	fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+
+	for i := 1; i < 6; i++ {
+		packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
+		suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
+	}
+
+	// retrieve the fees in escrow and assert the length of PacketFees
+	feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
+	suite.Require().True(found)
+	suite.Require().Len(feesInEscrow.PacketFees, 5, fmt.Sprintf("expected length 5, but got %d", len(feesInEscrow.PacketFees)))
+
+	// delete fees for packet sequence 1
+	suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
+	hasFeesInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+	suite.Require().False(hasFeesInEscrow)
 }
 
 func (suite *KeeperTestSuite) TestDisableAllChannels() {

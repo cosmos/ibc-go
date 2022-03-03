@@ -5,10 +5,11 @@ package ibc.applications.fee.v1;
 option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
-import "ibc/applications/fee/v1/fee.proto";
 import "google/api/annotations.proto";
-import "ibc/core/channel/v1/channel.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "ibc/applications/fee/v1/fee.proto";
+import "ibc/core/channel/v1/channel.proto";
 
 // Query provides defines the gRPC querier service.
 service Query {
@@ -23,6 +24,30 @@ service Query {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
         "{packet_id.sequence}";
+  }
+
+  // Gets all incentivized packets for a specific channel
+  rpc IncentivizedPacketsForChannel(QueryIncentivizedPacketsForChannelRequest)
+      returns (QueryIncentivizedPacketsForChannelResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets/{port_id}/{channel_id}";
+  }
+
+  // TotalRecvFees returns the total receive fees for a packet given its identifier
+  rpc TotalRecvFees(QueryTotalRecvFeesRequest) returns (QueryTotalRecvFeesResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/"
+                                   "{packet_id.channel_id}/sequence/{packet_id.sequence}";
+  }
+
+  // TotalAckFees returns the total acknowledgement fees for a packet given its identifier
+  rpc TotalAckFees(QueryTotalAckFeesRequest) returns (QueryTotalAckFeesResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/"
+                                   "{packet_id.channel_id}/sequence/{packet_id.sequence}";
+  }
+
+  // TotalTimeoutFees returns the total timeout fees for a packet given its identifier
+  rpc TotalTimeoutFees(QueryTotalTimeoutFeesRequest) returns (QueryTotalTimeoutFeesResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/"
+                                   "{packet_id.channel_id}/sequence/{packet_id.sequence}";
   }
 }
 
@@ -52,4 +77,69 @@ message QueryIncentivizedPacketRequest {
 message QueryIncentivizedPacketResponse {
   // Incentivized_packet
   ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packet = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryIncentivizedPacketsForChannelRequest is the request type for querying for all incentivized packets
+// for a specific channel
+message QueryIncentivizedPacketsForChannelRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  string                                port_id    = 2;
+  string                                channel_id = 3;
+  // Height to query at
+  uint64 query_height = 4;
+}
+
+// QueryIncentivizedPacketsResponse is the response type for the incentivized packets RPC
+message QueryIncentivizedPacketsForChannelResponse {
+  // Map of all incentivized_packets
+  repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1;
+}
+
+// QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
+message QueryTotalRecvFeesRequest {
+  // the packet identifier for the associated fees
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
+message QueryTotalRecvFeesResponse {
+  // the total packet receive fees
+  repeated cosmos.base.v1beta1.Coin recv_fees = 1 [
+    (gogoproto.moretags)     = "yaml:\"recv_fees\"",
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc
+message QueryTotalAckFeesRequest {
+  // the packet identifier for the associated fees
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
+message QueryTotalAckFeesResponse {
+  // the total packet acknowledgement fees
+  repeated cosmos.base.v1beta1.Coin ack_fees = 1 [
+    (gogoproto.moretags)     = "yaml:\"ack_fees\"",
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
+message QueryTotalTimeoutFeesRequest {
+  // the packet identifier for the associated fees
+  ibc.core.channel.v1.PacketId packet_id = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
+message QueryTotalTimeoutFeesResponse {
+  // the total packet timeout fees
+  repeated cosmos.base.v1beta1.Coin timeout_fees = 1 [
+    (gogoproto.moretags)     = "yaml:\"timeout_fees\"",
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
