@@ -70,19 +70,15 @@ func KeyCounterpartyRelayer(address, channelID string) []byte {
 }
 
 // ParseKeyCounterpartyRelayer returns the registered relayer address -> counterparty address mapping
-func ParseKeyCounterpartyRelayer(key string, counterpartyAddress string) (RegisteredRelayerAddress, error) {
+func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, error error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {
-		return RegisteredRelayerAddress{}, sdkerrors.Wrapf(
+		return "", "", sdkerrors.Wrapf(
 			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 3, len(keySplit),
 		)
 	}
 
-	return RegisteredRelayerAddress{
-		Address:             keySplit[1],
-		CounterpartyAddress: counterpartyAddress,
-		ChannelId:           keySplit[2],
-	}, nil
+	return keySplit[1], keySplit[2], nil
 }
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping

@@ -171,9 +171,15 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 
 	var registeredAddrArr []types.RegisteredRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
-		addr, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()), string(iterator.Value()))
+		address, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
 		if err != nil {
 			panic(err)
+		}
+
+		addr := types.RegisteredRelayerAddress{
+			Address:             address,
+			CounterpartyAddress: string(iterator.Value()),
+			ChannelId:           channelID,
 		}
 
 		registeredAddrArr = append(registeredAddrArr, addr)

@@ -164,12 +164,13 @@ func TestParseKeyCounterpartyRelayer(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		registeredAddr, err := types.ParseKeyCounterpartyRelayer(tc.key, counterpartyRelayerAddress)
+		address, channelID, err := types.ParseKeyCounterpartyRelayer(tc.key)
 		validRegisteredAddr := types.RegisteredRelayerAddress{relayerAddress, counterpartyRelayerAddress, ibctesting.FirstChannelID}
 
 		if tc.expPass {
 			require.NoError(t, err)
-			require.Equal(t, validRegisteredAddr, registeredAddr)
+			require.Equal(t, validRegisteredAddr.Address, address)
+			require.Equal(t, validRegisteredAddr.ChannelId, channelID)
 		} else {
 			require.Error(t, err)
 		}
