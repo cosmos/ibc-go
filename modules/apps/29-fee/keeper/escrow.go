@@ -96,6 +96,15 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sd
 // If the distribution fails for any reason (such as the receiving address being blocked),
 // the state changes will be discarded.
 func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.Coins) {
+	if !k.EscrowAccountHasBalance(ctx, fee) {
+		// if the escrow account does not have sufficient funds then there must exist a severe bug
+		// the fee module should be locked until manual intervention fixes the issue
+		// a locked fee module will simply skip fee logic, all channels will temporarily function as
+		// fee disabled channels
+		k.lockFeeModule(ctx)
+		return
+	}
+
 	// cache context before trying to distribute fees
 	cacheCtx, writeFn := ctx.CacheContext()
 
