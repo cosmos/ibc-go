@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -173,12 +171,15 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 
 	var registeredAddrArr []types.RegisteredRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
+		address, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
+		if err != nil {
+			panic(err)
+		}
 
 		addr := types.RegisteredRelayerAddress{
-			Address:             keySplit[1],
+			Address:             address,
 			CounterpartyAddress: string(iterator.Value()),
-			ChannelId:           keySplit[2],
+			ChannelId:           channelID,
 		}
 
 		registeredAddrArr = append(registeredAddrArr, addr)

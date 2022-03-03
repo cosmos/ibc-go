@@ -64,9 +64,21 @@ func ParseKeyFeeEnabled(key string) (portID, channelID string, err error) {
 	return portID, channelID, nil
 }
 
-// KeyCounterpartyRelayer returns the key for relayer address -> counteryparty address mapping
+// KeyCounterpartyRelayer returns the key for relayer address -> counterparty address mapping
 func KeyCounterpartyRelayer(address, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyRelayerAddressKeyPrefix, address, channelID))
+}
+
+// ParseKeyCounterpartyRelayer returns the registered relayer address and channelID used to store the counterpartyrelayer address
+func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, error error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 3 {
+		return "", "", sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 3, len(keySplit),
+		)
+	}
+
+	return keySplit[1], keySplit[2], nil
 }
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping

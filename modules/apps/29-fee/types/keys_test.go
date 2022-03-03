@@ -139,3 +139,38 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 		}
 	}
 }
+
+func TestParseKeyCounterpartyRelayer(t *testing.T) {
+	var (
+		relayerAddress = "relayer_address"
+	)
+
+	testCases := []struct {
+		name    string
+		key     string
+		expPass bool
+	}{
+		{
+			"success",
+			string(types.KeyCounterpartyRelayer(relayerAddress, ibctesting.FirstChannelID)),
+			true,
+		},
+		{
+			"incorrect key - key split has incorrect length",
+			"relayerAddress/relayer_address/transfer/channel-0",
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		address, channelID, err := types.ParseKeyCounterpartyRelayer(tc.key)
+
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, relayerAddress, address)
+			require.Equal(t, ibctesting.FirstChannelID, channelID)
+		} else {
+			require.Error(t, err)
+		}
+	}
+}
