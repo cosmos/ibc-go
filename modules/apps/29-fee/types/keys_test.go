@@ -142,8 +142,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 
 func TestParseKeyCounterpartyRelayer(t *testing.T) {
 	var (
-		relayerAddress             = "relayer_address"
-		counterpartyRelayerAddress = "counterparty_address"
+		relayerAddress = "relayer_address"
 	)
 
 	testCases := []struct {
@@ -165,12 +164,11 @@ func TestParseKeyCounterpartyRelayer(t *testing.T) {
 
 	for _, tc := range testCases {
 		address, channelID, err := types.ParseKeyCounterpartyRelayer(tc.key)
-		validRegisteredAddr := types.RegisteredRelayerAddress{relayerAddress, counterpartyRelayerAddress, ibctesting.FirstChannelID}
 
 		if tc.expPass {
 			require.NoError(t, err)
-			require.Equal(t, validRegisteredAddr.Address, address)
-			require.Equal(t, validRegisteredAddr.ChannelId, channelID)
+			require.Equal(t, relayerAddress, address)
+			require.Equal(t, ibctesting.FirstChannelID, channelID)
 		} else {
 			require.Error(t, err)
 		}
