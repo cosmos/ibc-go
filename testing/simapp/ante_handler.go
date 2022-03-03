@@ -13,7 +13,7 @@ import (
 type HandlerOptions struct {
 	ante.HandlerOptions
 
-	IBCkeeper *keeper.Keeper
+	IBCKeeper *keeper.Keeper
 }
 
 // NewAnteHandler creates a new ante handler
@@ -48,7 +48,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, sigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		ibcante.NewAnteDecorator(options.IBCkeeper),
+		ibcante.NewAnteDecorator(options.IBCKeeper),
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
