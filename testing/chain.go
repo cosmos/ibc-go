@@ -262,6 +262,10 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 
 // NextBlock sets the last header to the current header and increments the current header to be
 // at the next block height. It does not update the time as that is handled by the Coordinator.
+// It will call Endblock and Commit and apply the validator set changes to the next validators
+// of the next block being created. This follows the Tendermint protocol of applying valset changes
+// returned on block `n` to the validators of block `n+2`.
+// It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
 	res := chain.App.EndBlock(abci.RequestEndBlock{Height: chain.CurrentHeader.Height})
 
@@ -271,6 +275,8 @@ func (chain *TestChain) NextBlock() {
 	// use nil trusted fields
 	chain.LastHeader = chain.CurrentTMClientHeader()
 
+	// val set changes returned from previous block get applied to the next validators
+	// of this block. See tendermint spec for details.
 	chain.Vals = chain.NextVals
 	chain.NextVals = ApplyValSetChanges(chain.T, chain.Vals, res.ValidatorUpdates)
 
@@ -317,7 +323,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 		return nil, err
 	}
 
-	// NextBlock app.Commit()
+	// NextBlock calls app.Commit()
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
