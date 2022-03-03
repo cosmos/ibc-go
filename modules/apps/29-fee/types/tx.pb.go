@@ -200,7 +200,7 @@ var xxx_messageInfo_MsgPayPacketFeeResponse proto.InternalMessageInfo
 // MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 // This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 type MsgPayPacketFeeAsync struct {
-	// unique packet identifer comprised of the channel ID, port ID and sequence
+	// unique packet identifier comprised of the channel ID, port ID and sequence
 	PacketId types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id" yaml:"packet_id"`
 	// the packet fee associated with a particular IBC packet
 	PacketFee PacketFee `protobuf:"bytes,2,opt,name=packet_fee,json=packetFee,proto3" json:"packet_fee" yaml:"packet_fee"`

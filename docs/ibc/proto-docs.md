@@ -1151,7 +1151,7 @@ This Msg can be used to pay for a packet at a specified sequence (instead of the
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifer comprised of the channel ID, port ID and sequence |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of the channel ID, port ID and sequence |
 | `packet_fee` | [PacketFee](#ibc.applications.fee.v1.PacketFee) |  | the packet fee associated with a particular IBC packet |
 
 
