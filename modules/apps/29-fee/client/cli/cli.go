@@ -16,6 +16,8 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		GetCmdTotalRecvFees(),
+		GetCmdTotalAckFees(),
+		GetCmdTotalTimeoutFees(),
 	)
 
 	return queryCmd
