@@ -395,7 +395,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil // no-op
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
@@ -473,7 +473,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil // no-op
+		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
 	}
@@ -541,7 +541,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil // no-op
+		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
 	}
@@ -612,7 +612,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil // no-op
+		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}

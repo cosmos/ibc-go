@@ -2049,7 +2049,7 @@ ResponseResultType defines the possible outcomes of the execution of a message
 | Name | Number | Description |
 | ---- | ------ | ----------- |
 | RESPONSE_RESULT_UNSPECIFIED | 0 | Default zero value enumeration |
-| RESPONSE_RESULT_NOOP | 1 | The message was not executed (because, for example, the packet had already been relayed) |
+| RESPONSE_RESULT_NOOP | 1 | The message did not call the IBC application callbacks (because, for example, the packet had already been relayed) |
 | RESPONSE_RESULT_SUCCESS | 2 | The message was executed successfully |
 
 

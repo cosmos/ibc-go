@@ -35,7 +35,7 @@ type ResponseResultType int32
 const (
 	// Default zero value enumeration
 	UNSPECIFIED ResponseResultType = 0
-	// The message was not executed (because, for example, the packet had already been relayed)
+	// The message did not call the IBC application callbacks (because, for example, the packet had already been relayed)
 	NOOP ResponseResultType = 1
 	// The message was executed successfully
 	SUCCESS ResponseResultType = 2
