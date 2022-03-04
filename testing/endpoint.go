@@ -476,7 +476,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	proofClosed, _ := endpoint.Counterparty.QueryProof(channelKey)
 
 	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
-	require.True(endpoint.Chain.t, found)
+	require.True(endpoint.Chain.T, found)
 
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
 		packet, nextSeqRecv,

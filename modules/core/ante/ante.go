@@ -29,34 +29,42 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		for _, m := range tx.GetMsgs() {
 			switch msg := m.(type) {
 			case *channeltypes.MsgRecvPacket:
-				if response, err := ad.k.RecvPacket(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
-					redundancies += 1
-				} else if err != nil {
+				response, err := ad.k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
+				if err != nil {
 					return ctx, err
+				}
+				if response.Result == channeltypes.NOOP {
+					redundancies += 1
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgAcknowledgement:
-				if response, err := ad.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
-					redundancies += 1
-				} else if err != nil {
+				response, err := ad.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
+				if err != nil {
 					return ctx, err
+				}
+				if response.Result == channeltypes.NOOP {
+					redundancies += 1
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgTimeout:
-				if response, err := ad.k.Timeout(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
-					redundancies += 1
-				} else if err != nil {
+				response, err := ad.k.Timeout(sdk.WrapSDKContext(ctx), msg)
+				if err != nil {
 					return ctx, err
+				}
+				if response.Result == channeltypes.NOOP {
+					redundancies += 1
 				}
 				packetMsgs += 1
 
 			case *channeltypes.MsgTimeoutOnClose:
-				if response, err := ad.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg); err == nil && response.Result == channeltypes.NOOP {
-					redundancies += 1
-				} else if err != nil {
+				response, err := ad.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg)
+				if err != nil {
 					return ctx, err
+				}
+				if response.Result == channeltypes.NOOP {
+					redundancies += 1
 				}
 				packetMsgs += 1
 

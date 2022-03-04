@@ -503,7 +503,7 @@ func NewSimApp(
 				FeegrantKeeper:  app.FeeGrantKeeper,
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			IBCkeeper: app.IBCKeeper,
+			IBCKeeper: app.IBCKeeper,
 		},
 	)
 	if err != nil {
