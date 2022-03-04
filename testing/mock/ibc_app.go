@@ -41,6 +41,7 @@ type MockIBCApp struct {
 		portID,
 		channelID string,
 		counterpartyVersion string,
+		counterpartyChannelID string,
 	) error
 
 	OnChanOpenConfirm func(
