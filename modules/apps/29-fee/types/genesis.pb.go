@@ -24,12 +24,16 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the fee middleware genesis state
+// GenesisState defines the ICS29 fee middleware genesis state
 type GenesisState struct {
-	IdentifiedFees     []IdentifiedPacketFees     `protobuf:"bytes,1,rep,name=identified_fees,json=identifiedFees,proto3" json:"identified_fees" yaml:"identified_fees"`
-	FeeEnabledChannels []FeeEnabledChannel        `protobuf:"bytes,2,rep,name=fee_enabled_channels,json=feeEnabledChannels,proto3" json:"fee_enabled_channels" yaml:"fee_enabled_channels"`
+	// list of identified packet fees
+	IdentifiedFees []IdentifiedPacketFees `protobuf:"bytes,1,rep,name=identified_fees,json=identifiedFees,proto3" json:"identified_fees" yaml:"identified_fees"`
+	// list of fee enabled channels
+	FeeEnabledChannels []FeeEnabledChannel `protobuf:"bytes,2,rep,name=fee_enabled_channels,json=feeEnabledChannels,proto3" json:"fee_enabled_channels" yaml:"fee_enabled_channels"`
+	// list of registered relayer addresses
 	RegisteredRelayers []RegisteredRelayerAddress `protobuf:"bytes,3,rep,name=registered_relayers,json=registeredRelayers,proto3" json:"registered_relayers" yaml:"registered_relayers"`
-	ForwardRelayers    []ForwardRelayerAddress    `protobuf:"bytes,4,rep,name=forward_relayers,json=forwardRelayers,proto3" json:"forward_relayers" yaml:"forward_relayers"`
+	// list of forward relayer addresses
+	ForwardRelayers []ForwardRelayerAddress `protobuf:"bytes,4,rep,name=forward_relayers,json=forwardRelayers,proto3" json:"forward_relayers" yaml:"forward_relayers"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -95,7 +99,9 @@ func (m *GenesisState) GetForwardRelayers() []ForwardRelayerAddress {
 
 // FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
 type FeeEnabledChannel struct {
-	PortId    string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
+	// unique port identifier
+	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
+	// unique channel identifier
 	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
 }
 
@@ -148,9 +154,12 @@ func (m *FeeEnabledChannel) GetChannelId() string {
 
 // RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
 type RegisteredRelayerAddress struct {
-	Address             string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// the relayer address
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// the counterparty relayer address
 	CounterpartyAddress string `protobuf:"bytes,2,opt,name=counterparty_address,json=counterpartyAddress,proto3" json:"counterparty_address,omitempty" yaml:"counterparty_address"`
-	ChannelId           string `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// unique channel identifier
+	ChannelId string `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
 }
 
 func (m *RegisteredRelayerAddress) Reset()         { *m = RegisteredRelayerAddress{} }
@@ -207,9 +216,11 @@ func (m *RegisteredRelayerAddress) GetChannelId() string {
 	return ""
 }
 
-// ForwardRelayerAddress contains the forward relayer address and packetId used for async acknowledgements
+// ForwardRelayerAddress contains the forward relayer address and PacketId used for async acknowledgements
 type ForwardRelayerAddress struct {
-	Address  string         `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// the forward relayer address
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// unique packet identifer comprised of the channel ID, port ID and sequence
 	PacketId types.PacketId `protobuf:"bytes,2,opt,name=packet_id,json=packetId,proto3" json:"packet_id" yaml:"packet_id"`
 }
 
