@@ -52,6 +52,7 @@ type IBCModule interface {
 		portID,
 		channelID string,
 		counterpartyVersion string,
+		counterpartyChannelID string,
 	) error
 
 	// OnChanOpenConfirm will perform custom CONFIRM logic and may error to abort the handshake.

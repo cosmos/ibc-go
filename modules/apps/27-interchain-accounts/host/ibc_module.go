@@ -62,6 +62,7 @@ func (im IBCModule) OnChanOpenAck(
 	portID,
 	channelID string,
 	counterpartyVersion string,
+	counterpartyChannelID string,
 ) error {
 	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
