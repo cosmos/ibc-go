@@ -24,11 +24,13 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
-// It contains the raw acknowledgement bytes, as well as the forward relayer address
 type IncentivizedAcknowledgement struct {
-	Result                []byte `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	// the underlying app acknowledgement result bytes
+	Result []byte `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	// the relayer address which submits the recv packet message
 	ForwardRelayerAddress string `protobuf:"bytes,2,opt,name=forward_relayer_address,json=forwardRelayerAddress,proto3" json:"forward_relayer_address,omitempty" yaml:"forward_relayer_address"`
-	UnderlyingAppSuccess  bool   `protobuf:"varint,3,opt,name=underlying_app_success,json=underlyingAppSuccess,proto3" json:"underlying_app_success,omitempty" yaml:"underlying_app_successl"`
+	// success flag of the base application callback
+	UnderlyingAppSuccess bool `protobuf:"varint,3,opt,name=underlying_app_success,json=underlyingAppSuccess,proto3" json:"underlying_app_success,omitempty" yaml:"underlying_app_successl"`
 }
 
 func (m *IncentivizedAcknowledgement) Reset()         { *m = IncentivizedAcknowledgement{} }

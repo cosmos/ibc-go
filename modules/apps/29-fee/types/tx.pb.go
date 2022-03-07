@@ -29,11 +29,14 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgRegisterCounterpartyAddress is the request type for registering the counterparty address
+// MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
 type MsgRegisterCounterpartyAddress struct {
-	Address             string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// the relayer address
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// the counterparty relayer address
 	CounterpartyAddress string `protobuf:"bytes,2,opt,name=counterparty_address,json=counterpartyAddress,proto3" json:"counterparty_address,omitempty" yaml:"counterparty_address"`
-	ChannelId           string `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// unique channel identifier
+	ChannelId string `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
 }
 
 func (m *MsgRegisterCounterpartyAddress) Reset()         { *m = MsgRegisterCounterpartyAddress{} }
@@ -69,7 +72,7 @@ func (m *MsgRegisterCounterpartyAddress) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRegisterCounterpartyAddress proto.InternalMessageInfo
 
-// MsgRegisterCounterpartyAddressResponse defines the Msg/RegisterCounterypartyAddress response type
+// MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
 type MsgRegisterCounterpartyAddressResponse struct {
 }
 
@@ -108,17 +111,19 @@ func (m *MsgRegisterCounterpartyAddressResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRegisterCounterpartyAddressResponse proto.InternalMessageInfo
 
-// MsgPayPacketFee defines the request type PayPacketFee RPC
+// MsgPayPacketFee defines the request type for the PayPacketFee rpc
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 // paid for
 type MsgPayPacketFee struct {
+	// fee encapsulates the recv, ack and timeout fees associated with an IBC packet
 	Fee Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee"`
-	// source channel port identifier
+	// the source port unique identifier
 	SourcePortId string `protobuf:"bytes,2,opt,name=source_port_id,json=sourcePortId,proto3" json:"source_port_id,omitempty" yaml:"source_port_id"`
-	// source channel unique identifier
+	// the source channel unique identifer
 	SourceChannelId string `protobuf:"bytes,3,opt,name=source_channel_id,json=sourceChannelId,proto3" json:"source_channel_id,omitempty" yaml:"source_channel_id"`
 	// account address to refund fee if necessary
-	Signer   string   `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
+	Signer string `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
+	// optional list of relayers permitted to the receive packet fees
 	Relayers []string `protobuf:"bytes,5,rep,name=relayers,proto3" json:"relayers,omitempty"`
 }
 
@@ -155,7 +160,7 @@ func (m *MsgPayPacketFee) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgPayPacketFee proto.InternalMessageInfo
 
-// MsgPayPacketFeeResponse defines the response type for Msg/PayPacketFee
+// MsgPayPacketFeeResponse defines the response type for the PayPacketFee rpc
 type MsgPayPacketFeeResponse struct {
 }
 
@@ -192,12 +197,12 @@ func (m *MsgPayPacketFeeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgPayPacketFeeResponse proto.InternalMessageInfo
 
-// MsgPayPacketFeeAsync defines the request type PayPacketFeeAsync RPC
+// MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 // This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 type MsgPayPacketFeeAsync struct {
-	// unique packet identifier
+	// unique packet identifier comprised of the channel ID, port ID and sequence
 	PacketId types.PacketId `protobuf:"bytes,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id" yaml:"packet_id"`
-	// packet fee for incentivization
+	// the packet fee associated with a particular IBC packet
 	PacketFee PacketFee `protobuf:"bytes,2,opt,name=packet_fee,json=packetFee,proto3" json:"packet_fee" yaml:"packet_fee"`
 }
 
@@ -234,7 +239,7 @@ func (m *MsgPayPacketFeeAsync) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgPayPacketFeeAsync proto.InternalMessageInfo
 
-// MsgPayPacketFeeAsyncResponse defines the response type for Msg/PayPacketFeeAsync
+// MsgPayPacketFeeAsyncResponse defines the response type for the PayPacketFeeAsync rpc
 type MsgPayPacketFeeAsyncResponse struct {
 }
 
@@ -347,10 +352,12 @@ type MsgClient interface {
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
 	// incentivize the relaying of the packet at the next sequence
+	// NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows
+	// initiates the lifecycle of the incentivized packet
 	PayPacketFee(ctx context.Context, in *MsgPayPacketFee, opts ...grpc.CallOption) (*MsgPayPacketFeeResponse, error)
 	// PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync
 	// PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to
-	// incentivize the relaying of a known packet
+	// incentivize the relaying of a known packet (i.e. at a particular sequence)
 	PayPacketFeeAsync(ctx context.Context, in *MsgPayPacketFeeAsync, opts ...grpc.CallOption) (*MsgPayPacketFeeAsyncResponse, error)
 }
 
@@ -400,10 +407,12 @@ type MsgServer interface {
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
 	// incentivize the relaying of the packet at the next sequence
+	// NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows
+	// initiates the lifecycle of the incentivized packet
 	PayPacketFee(context.Context, *MsgPayPacketFee) (*MsgPayPacketFeeResponse, error)
 	// PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync
 	// PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to
-	// incentivize the relaying of a known packet
+	// incentivize the relaying of a known packet (i.e. at a particular sequence)
 	PayPacketFeeAsync(context.Context, *MsgPayPacketFeeAsync) (*MsgPayPacketFeeAsyncResponse, error)
 }
 
