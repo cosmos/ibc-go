@@ -52,6 +52,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
+<<<<<<< HEAD
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 
 ## [v2.0.3](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2022-02-03
@@ -59,6 +60,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
+=======
+* (modules/core/04-channel) [\#994](https://github.com/cosmos/ibc-go/pull/944) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+>>>>>>> fc452ac (call packet.GetSequence() rather than passing the func as argument (#995))
 
 ## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
 
