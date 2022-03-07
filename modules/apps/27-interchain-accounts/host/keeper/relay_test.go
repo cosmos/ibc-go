@@ -160,7 +160,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg1, err := v1beta2.NewLegacyContent(v1beta1.NewTextProposal("Title", "description"), interchainAccountAddr)
 				suite.Require().NoError(err)
 
-				proposal, err := v1beta2.NewProposal([]sdk.Msg{msg1}, 1, nil, time.Now(), time.Now())
+				proposal, err := v1beta2.NewProposal([]sdk.Msg{msg1}, 1, "testing, 1,2,3", time.Now(), time.Now())
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
