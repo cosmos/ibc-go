@@ -2,12 +2,12 @@ package keeper
 
 import (
 	"github.com/armon/go-metrics"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v2/modules/core/exported"
+
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // ClientUpdateProposal will retrieve the subject and substitute client.
@@ -70,14 +70,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeUpdateClientProposal,
-			sdk.NewAttribute(types.AttributeKeySubjectClientID, p.SubjectClientId),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
-		),
-	)
+	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, clientState)
 
 	return nil
 }

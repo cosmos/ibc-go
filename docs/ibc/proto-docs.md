@@ -4,6 +4,25 @@
 
 ## Table of Contents
 
+- [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
+    - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
+  
+- [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
+    - [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel)
+    - [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState)
+    - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
+    - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
+    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
+  
+- [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
+    - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
+  
+- [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
+    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
+    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
+  
+    - [Type](#ibc.applications.interchain_accounts.v1.Type)
+  
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
     - [Params](#ibc.applications.transfer.v1.Params)
@@ -12,6 +31,8 @@
     - [GenesisState](#ibc.applications.transfer.v1.GenesisState)
   
 - [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
+    - [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest)
+    - [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse)
     - [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest)
     - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
     - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
@@ -191,12 +212,6 @@
   
     - [Msg](#ibc.core.connection.v1.Msg)
   
-- [ibc/core/port/v1/query.proto](#ibc/core/port/v1/query.proto)
-    - [QueryAppVersionRequest](#ibc.core.port.v1.QueryAppVersionRequest)
-    - [QueryAppVersionResponse](#ibc.core.port.v1.QueryAppVersionResponse)
-  
-    - [Query](#ibc.core.port.v1.Query)
-  
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
@@ -251,6 +266,238 @@
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/account.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/account.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccount"></a>
+
+### InterchainAccount
+An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
+| `account_owner` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/genesis.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.ActiveChannel"></a>
+
+### ActiveChannel
+ActiveChannel contains a connection ID, port ID and associated active channel ID
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.ControllerGenesisState"></a>
+
+### ControllerGenesisState
+ControllerGenesisState defines the interchain accounts controller genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
+| `ports` | [string](#string) | repeated |  |
+| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain accounts genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState) |  |  |
+| `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.HostGenesisState"></a>
+
+### HostGenesisState
+HostGenesisState defines the interchain accounts host genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
+| `port` | [string](#string) |  |  |
+| `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
+
+### RegisteredInterchainAccount
+RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  |  |
+| `account_address` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/metadata.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/metadata.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.Metadata"></a>
+
+### Metadata
+Metadata defines a set of protocol specific data encoded into the ICS27 channel version bytestring
+See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [string](#string) |  | version defines the ICS27 protocol version |
+| `controller_connection_id` | [string](#string) |  | controller_connection_id is the connection identifier associated with the controller chain |
+| `host_connection_id` | [string](#string) |  | host_connection_id is the connection identifier associated with the host chain |
+| `address` | [string](#string) |  | address defines the interchain account address to be fulfilled upon the OnChanOpenTry handshake step NOTE: the address field is empty on the OnChanOpenInit handshake step |
+| `encoding` | [string](#string) |  | encoding defines the supported codec format |
+| `tx_type` | [string](#string) |  | tx_type defines the type of transactions the interchain account can execute |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/packet.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
+
+### CosmosTx
+CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
+
+### InterchainAccountPacketData
+InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `memo` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.applications.interchain_accounts.v1.Type"></a>
+
+### Type
+Type defines a classification of message issued from a controller chain to its associated interchain accounts
+host
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
+| TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
 
 
 
@@ -343,6 +590,38 @@ GenesisState defines the ibc-transfer genesis state
 <p align="right"><a href="#top">Top</a></p>
 
 ## ibc/applications/transfer/v1/query.proto
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
+
+### QueryDenomHashRequest
+QueryDenomHashRequest is the request type for the Query/DenomHash RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
+
+### QueryDenomHashResponse
+QueryDenomHashResponse is the response type for the Query/DenomHash RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+
+
+
 
 
 
@@ -452,6 +731,7 @@ Query provides defines the gRPC querier service.
 | `DenomTrace` | [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/apps/transfer/v1/denom_traces/{hash}|
 | `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
 | `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
+| `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
 
  <!-- end services -->
 
@@ -627,7 +907,7 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 | `sender` | [string](#string) |  | the sender address |
 | `receiver` | [string](#string) |  | the recipient address on the destination chain |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp (in nanoseconds) relative to the current block timestamp. The timeout is disabled when set to 0. |
+| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
 
 
 
@@ -1608,6 +1888,11 @@ is called by a relayer on Chain A.
 MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  |  |
+
+
 
 
 
@@ -1616,14 +1901,15 @@ MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 ### MsgChannelOpenTry
 MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
-on Chain B.
+on Chain B. The version field within the Channel field has been deprecated. Its
+value will be ignored by core IBC.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
 | `previous_channel_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the channel identifier of the previous channel in state INIT |
-| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
+| `channel` | [Channel](#ibc.core.channel.v1.Channel) |  | NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC. |
 | `counterparty_version` | [string](#string) |  |  |
 | `proof_init` | [bytes](#bytes) |  |  |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
@@ -2893,67 +3179,6 @@ Msg defines the ibc/connection Msg service.
 | `ConnectionOpenTry` | [MsgConnectionOpenTry](#ibc.core.connection.v1.MsgConnectionOpenTry) | [MsgConnectionOpenTryResponse](#ibc.core.connection.v1.MsgConnectionOpenTryResponse) | ConnectionOpenTry defines a rpc handler method for MsgConnectionOpenTry. | |
 | `ConnectionOpenAck` | [MsgConnectionOpenAck](#ibc.core.connection.v1.MsgConnectionOpenAck) | [MsgConnectionOpenAckResponse](#ibc.core.connection.v1.MsgConnectionOpenAckResponse) | ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck. | |
 | `ConnectionOpenConfirm` | [MsgConnectionOpenConfirm](#ibc.core.connection.v1.MsgConnectionOpenConfirm) | [MsgConnectionOpenConfirmResponse](#ibc.core.connection.v1.MsgConnectionOpenConfirmResponse) | ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm. | |
-
- <!-- end services -->
-
-
-
-<a name="ibc/core/port/v1/query.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/core/port/v1/query.proto
-
-
-
-<a name="ibc.core.port.v1.QueryAppVersionRequest"></a>
-
-### QueryAppVersionRequest
-QueryAppVersionRequest is the request type for the Query/AppVersion RPC method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | port unique identifier |
-| `connection_id` | [string](#string) |  | connection unique identifier |
-| `ordering` | [ibc.core.channel.v1.Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
-| `counterparty` | [ibc.core.channel.v1.Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
-| `proposed_version` | [string](#string) |  | proposed version |
-
-
-
-
-
-
-<a name="ibc.core.port.v1.QueryAppVersionResponse"></a>
-
-### QueryAppVersionResponse
-QueryAppVersionResponse is the response type for the Query/AppVersion RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | port id associated with the request identifiers |
-| `version` | [string](#string) |  | supported app version |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="ibc.core.port.v1.Query"></a>
-
-### Query
-Query defines the gRPC querier service
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `AppVersion` | [QueryAppVersionRequest](#ibc.core.port.v1.QueryAppVersionRequest) | [QueryAppVersionResponse](#ibc.core.port.v1.QueryAppVersionResponse) | AppVersion queries an IBC Port and determines the appropriate application version to be used | |
 
  <!-- end services -->
 

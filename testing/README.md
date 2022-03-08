@@ -155,8 +155,8 @@ func TestKeeperTestSuite(t *testing.T) {
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2) // initializes 2 test chains
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0)) // convenience and readability
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1)) // convenience and readability
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1)) // convenience and readability
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
 }
 
 ```
@@ -255,8 +255,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/simapp"
-	ibctesting "github.com/cosmos/ibc-go/v2/testing"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -294,12 +294,26 @@ When writing IBC applications acting as middleware, it might be desirable to tes
 This can be done by wiring a middleware stack in the app.go file using existing applications as middleware and IBC base applications.
 The mock module may also be leveraged to act as a base application in the instance that such an application is not available for testing or causes dependency concerns. 
 
-The mock module contains a `MockIBCApp`. This struct contains a function field for every IBC App Module callback. 
+The mock IBC module contains a `MockIBCApp`. This struct contains a function field for every IBC App Module callback. 
 Each of these functions can be individually set to mock expected behaviour of a base application. 
 
 For example, if one wanted to test that the base application cannot affect the outcome of the `OnChanOpenTry` callback, the mock module base application callback could be updated as such:
 ```go
     mockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, portID, channelID, version string) error {
 			return fmt.Errorf("mock base app must not be called for OnChanOpenTry")
+	}
+```
+
+Using a mock module as a base application in a middleware stack may require adding the module to your `SimApp`. 
+This is because IBC will route to the top level IBC module of a middleware stack, so a module which never
+sits at the top of middleware stack will need to be accessed via a public field in `SimApp`
+
+This might look like:
+```go
+    suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+		portID, channelID string, chanCap *capabilitytypes.Capability,
+		counterparty channeltypes.Counterparty, version string,
+	) error {
+		return fmt.Errorf("mock ica auth fails")
 	}
 ```

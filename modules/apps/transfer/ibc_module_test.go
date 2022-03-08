@@ -4,10 +4,11 @@ import (
 	"math"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v2/testing"
+
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
@@ -136,11 +137,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}, false,
 		},
 		{
-			"invalid version", func() {
-				channel.Version = "version"
-			}, false,
-		},
-		{
 			"invalid counterparty version", func() {
 				counterpartyVersion = "version"
 			}, false,
@@ -178,14 +174,16 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, counterpartyVersion,
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal("", version)
 			}
 
 		})

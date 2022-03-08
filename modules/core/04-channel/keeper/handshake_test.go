@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v2/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v2/testing"
+
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 type testCase = struct {
@@ -166,6 +167,19 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			previousChannelID = path.EndpointB.ChannelID
 			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
 		}, true},
+		{"previous channel with invalid version, crossing hello", func() {
+			suite.coordinator.SetupConnections(path)
+			path.SetChannelOrdered()
+
+			// modify channel version
+			path.EndpointA.ChannelConfig.Version = "invalid version"
+
+			err := suite.coordinator.ChanOpenInitOnBothChains(path)
+			suite.Require().NoError(err)
+
+			previousChannelID = path.EndpointB.ChannelID
+			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
+		}, false},
 		{"previous channel with invalid state", func() {
 			suite.coordinator.SetupConnections(path)
 
@@ -272,7 +286,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 
 			channelID, cap, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
-				path.EndpointB.ChannelConfig.PortID, previousChannelID, portCap, counterparty, path.EndpointB.ChannelConfig.Version, path.EndpointA.ChannelConfig.Version,
+				path.EndpointB.ChannelConfig.PortID, previousChannelID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
