@@ -23,4 +23,8 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
 This is an API breaking change and as such IBC application developers will have to update any calls to `WriteAcknowledgement`. 
 
+## IBC Light Clients
 
+The `CheckMisbehaviourAndUpdateState` function has been modified. The client state return value has been removed. 
+
+Light clients **must** set the updated client state in the client store before returning for valid misbehaviour.
