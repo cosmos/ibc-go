@@ -116,7 +116,7 @@ Core IBC will set this version in the TRYOPEN channel.
 
 ### `OnChanOpenAck` will take additional `counterpartyChannelID` argument
 The `OnChanOpenAck` application callback has been modified.
-The arguments now includes the counterparty channel id.
+The arguments now include the counterparty channel id.
 
 ### `NegotiateAppVersion` removed from `IBCModule` interface
 
