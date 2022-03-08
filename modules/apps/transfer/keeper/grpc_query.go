@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -79,5 +79,32 @@ func (q Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 
 	return &types.QueryParamsResponse{
 		Params: &params,
+	}, nil
+}
+
+// DenomHash implements the Query/DenomHash gRPC method
+func (q Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	// Convert given request trace path to DenomTrace struct to confirm the path in a valid denom trace format
+	denomTrace := types.ParseDenomTrace(req.Trace)
+	if err := denomTrace.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	denomHash := denomTrace.Hash()
+	found := q.HasDenomTrace(ctx, denomHash)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			sdkerrors.Wrap(types.ErrTraceNotFound, req.Trace).Error(),
+		)
+	}
+
+	return &types.QueryDenomHashResponse{
+		Hash: denomHash.String(),
 	}, nil
 }

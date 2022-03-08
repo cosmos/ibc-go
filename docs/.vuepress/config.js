@@ -41,6 +41,10 @@ module.exports = {
       {
         "label": "v1.2.0",
         "key": "v1.2.0"
+      },
+      {
+        "label": "v2.0.0",
+        "key": "v2.0.0"
       }      
     ],
     topbar: {
@@ -92,15 +96,72 @@ module.exports = {
               directory: false,
               path: "/ibc/proto-docs.html"
             },
+            {
+              title: "Roadmap",
+              directory: false,
+              path: "/roadmap/roadmap.html"
+            },
+          ]
+        },
+        {
+          title: "IBC Application Modules",
+          children: [
+            {
+              title: "Interchain Accounts",
+              directory: true,
+              path: "/app-modules",
+              children: [
+                {
+                    title: "Overview",
+                    directory: false,
+                    path: "/app-modules/interchain-accounts/overview.html"
+                }, 
+                {
+                  title: "Authentication Modules",
+                  directory: false,
+                  path: "/app-modules/interchain-accounts/auth-modules.html"
+                },
+                {
+                  title: "Active Channels",
+                  directory: false,
+                  path: "/app-modules/interchain-accounts/active-channels.html"
+                },
+                {
+                    title: "Integration",
+                    directory: false,
+                    path: "/app-modules/interchain-accounts/integration.html"
+                },
+                {
+                  title: "Parameters",
+                  directory: false,
+                  path: "/app-modules/interchain-accounts/parameters.html"
+                },
+                {
+                  title: "Transactions",
+                  directory: false,
+                  path: "/app-modules/interchain-accounts/transactions.html"
+                },
+            ]
+            },
           ]
         },
         {
           title: "Migrations",
           children: [
             {
-              title: "v0.43 SDK to IBC-Go v1.0.0",
+              title: "SDK v0.43 to IBC-Go v1",
               directory: false,
-              path: "/migrations/ibc-migration-043.html"
+              path: "/migrations/sdk-to-v1.html"
+            },
+            {
+              title: "IBC-Go v1 to v2",
+              directory: false,
+              path: "/migrations/v1-to-v2.html"
+            },
+            {
+              title: "IBC-Go v2 to v3",
+              directory: false,
+              path: "/migrations/v2-to-v3.html"
             },
           ]
         },

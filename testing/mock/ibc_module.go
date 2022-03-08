@@ -2,16 +2,16 @@ package mock
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v2/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // IBCModule implements the ICS26 callbacks for testing/mock.
@@ -49,18 +49,18 @@ func (im IBCModule) OnChanOpenInit(
 // OnChanOpenTry implements the IBCModule interface.
 func (im IBCModule) OnChanOpenTry(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version, counterpartyVersion string,
-) error {
+	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string,
+) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
-		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version, counterpartyVersion)
-
+		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
 	}
+
 	// Claim channel capability passed back by IBC module
 	if err := im.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return Version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface.
@@ -106,12 +106,13 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	}
 
 	// set state by claiming capability to check if revert happens return
-	_, err := im.scopedKeeper.NewCapability(ctx, MockRecvCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
+	capName := GetMockRecvCanaryCapabilityName(packet)
+	if _, err := im.scopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
+
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
@@ -127,8 +128,8 @@ func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes
 		return im.IBCApp.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	_, err := im.scopedKeeper.NewCapability(ctx, MockAckCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
+	capName := GetMockAckCanaryCapabilityName(packet)
+	if _, err := im.scopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -143,8 +144,8 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 		return im.IBCApp.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	_, err := im.scopedKeeper.NewCapability(ctx, MockTimeoutCanaryCapabilityName+strconv.Itoa(int(packet.GetSequence())))
-	if err != nil {
+	capName := GetMockTimeoutCanaryCapabilityName(packet)
+	if _, err := im.scopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -153,22 +154,17 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	return nil
 }
 
-// NegotiateAppVersion implements the IBCModule interface.
-func (im IBCModule) NegotiateAppVersion(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionID string,
-	portID string,
-	counterparty channeltypes.Counterparty,
-	proposedVersion string,
-) (string, error) {
-	if im.IBCApp.NegotiateAppVersion != nil {
-		return im.IBCApp.NegotiateAppVersion(ctx, order, connectionID, portID, counterparty, proposedVersion)
-	}
+// GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
+func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
+	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
+}
 
-	if proposedVersion != Version { // allow testing of error scenarios
-		return "", errors.New("failed to negotiate app version")
-	}
+// GetMockAckCanaryCapabilityName generates a capability name for OnAcknowledgementPacket functionality.
+func GetMockAckCanaryCapabilityName(packet channeltypes.Packet) string {
+	return fmt.Sprintf("%s%s%s%s", MockAckCanaryCapabilityName, packet.GetSourcePort(), packet.GetSourceChannel(), strconv.Itoa(int(packet.GetSequence())))
+}
 
-	return Version, nil
+// GetMockTimeoutCanaryCapabilityName generates a capability name for OnTimeoutacket functionality.
+func GetMockTimeoutCanaryCapabilityName(packet channeltypes.Packet) string {
+	return fmt.Sprintf("%s%s%s%s", MockTimeoutCanaryCapabilityName, packet.GetSourcePort(), packet.GetSourceChannel(), strconv.Itoa(int(packet.GetSequence())))
 }
