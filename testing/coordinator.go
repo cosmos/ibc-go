@@ -189,6 +189,7 @@ func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 	for i := uint64(0); i < n; i++ {
 		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+		chain.App.EndBlock(abci.RequestEndBlock{Height: chain.CurrentHeader.Height})
 		chain.App.Commit()
 		chain.NextBlock()
 		coord.IncrementTime()
