@@ -68,7 +68,7 @@ For ICS27 it is also necessary to [manually add store upgrades](https://docs.cos
 ```go
 if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
     storeUpgrades := store.StoreUpgrades{
-        Added: []string{icatypes.ModuleName},
+        Added: []string{icacontrollertypes.StoreKey, icahosttypes.StoreKey},
     }
 
     app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
@@ -113,6 +113,10 @@ The return signature now includes the application version.
 IBC applications must perform application version negoitation in `OnChanOpenTry` using the counterparty version. 
 The negotiated application version then must be returned in `OnChanOpenTry` to core IBC.
 Core IBC will set this version in the TRYOPEN channel.
+
+### `OnChanOpenAck` will take additional `counterpartyChannelID` argument
+The `OnChanOpenAck` application callback has been modified.
+The arguments now include the counterparty channel id.
 
 ### `NegotiateAppVersion` removed from `IBCModule` interface
 
