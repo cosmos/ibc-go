@@ -4,12 +4,14 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/ante"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -145,6 +147,30 @@ func (suite *AnteTestSuite) createTimeoutOnCloseMessage(sequenceNumber uint64, i
 	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
+func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
+	endpoint := suite.path.EndpointB
+
+	// ensure counterparty has committed state
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
+
+	var header exported.Header
+
+	switch endpoint.ClientConfig.GetClientType() {
+	case exported.Tendermint:
+		header, _ = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+
+	default:
+	}
+
+	msg, err := clienttypes.NewMsgUpdateClient(
+		endpoint.ClientID, header,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+	require.NoError(endpoint.Chain.T, err)
+
+	return msg
+}
+
 func (suite *AnteTestSuite) TestAnteDecorator() {
 	testCases := []struct {
 		name     string
@@ -152,37 +178,45 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		expPass  bool
 	}{
 		{
-			"success on one non-redundant RecvPacket message",
+			"success on one new RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createRecvPacketMessage(1, false)}
 			},
 			true,
 		},
 		{
-			"success on one non-redundant Acknowledgement message",
+			"success on one new Acknowledgement message",
 			func(suite *AnteTestSuite) []sdk.Msg {
+				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createAcknowledgementMessage(1, false)}
 			},
 			true,
 		},
 		{
-			"success on one non-redundant Timeout message",
+			"success on one new Timeout message",
 			func(suite *AnteTestSuite) []sdk.Msg {
+				// the Timeout message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createTimeoutMessage(1, false)}
 			},
 			true,
 		},
 		{
-			"success on one non-redundant TimeoutOnClose message",
+			"success on one new TimeoutOnClose message",
 			func(suite *AnteTestSuite) []sdk.Msg {
+				// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createTimeoutOnCloseMessage(uint64(1), false)}
 			},
 			true,
 		},
 		{
-			"success on three non-redundant messages of each type",
+			"success on three new messages of each type",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
+
+				// none of the messages of each type has been submitted to the chain yet,
+				// the first message is succeed and the next two of each type will be rejected
+				// because they are redundant.
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
@@ -205,9 +239,14 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			true,
 		},
 		{
-			"success on three redundant messages of each type and one non-redundant Timeout message",
+			"success on three redundant messages of RecvPacket, Acknowledgement and TimeoutOnClose, and one new Timeout message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
+
+				// we pass three messages of RecvPacket, Acknowledgement and TimeoutOnClose that
+				// are all redundant (i.e. those messages have already been submitted and
+				// processed by the chain). But these messages will not be rejected because the
+				// Timeout message is new.
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
@@ -230,9 +269,14 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			true,
 		},
 		{
-			"success on two redundant messages and one non-redundant message for each type",
+			"success on one new message and two redundant messages of each type",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
+
+				// For each type there is a new message and two messages that are redundant
+				// (i.e. they have been already submitted and processed by the chain). But all
+				// the redundant messages will not be rejected because there is a new message
+				// of each type.
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
@@ -255,26 +299,26 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			true,
 		},
 		{
-			"success on one UpdateClient message",
+			"success on one new UpdateClient message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				return []sdk.Msg{&clienttypes.MsgUpdateClient{}}
+				return []sdk.Msg{suite.createUpdateClientMessage()}
 			},
 			true,
 		},
 		{
-			"success on three UpdateClient messages",
+			"success on three new UpdateClient messages",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				return []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
+				return []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
 			},
 			true,
 		},
 		{
-			"success on multiple redundant Updateclient messages and 1 non-redundant RecvPacket message",
+			"success on three new Updateclient messages and one new RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{
-					&clienttypes.MsgUpdateClient{},
-					&clienttypes.MsgUpdateClient{},
-					&clienttypes.MsgUpdateClient{},
+					suite.createUpdateClientMessage(),
+					suite.createUpdateClientMessage(),
+					suite.createUpdateClientMessage(),
 					suite.createRecvPacketMessage(uint64(1), false),
 				}
 			},
@@ -283,7 +327,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		{
 			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
+				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
 					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
@@ -328,9 +372,22 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			false,
 		},
 		{
-			"no success on three UpdateClient messages and three redundant messages of each type",
+			"no success on one new UpdateClient message and three redundant RecvPacket messages",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}, &clienttypes.MsgUpdateClient{}}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
+
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(uint64(i), true))
+				}
+
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on three new UpdateClient messages and three redundant messages of each type",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msgs := []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
 
 				// from A to B
 				for i := 1; i <= 3; i++ {
@@ -353,7 +410,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			false,
 		},
 		{
-			"no success on one non-redundant message and one invalid message",
+			"no success on one new message and one invalid message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
 					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
@@ -368,7 +425,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			false,
 		},
 		{
-			"no success on one non-redundant and one redundant message in the same block",
+			"no success on one new message and one redundant message in the same block",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				msg := suite.createRecvPacketMessage(uint64(1), false)
 

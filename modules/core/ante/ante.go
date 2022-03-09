@@ -16,10 +16,11 @@ func NewAnteDecorator(k *keeper.Keeper) AnteDecorator {
 	return AnteDecorator{k: k}
 }
 
-// AnteDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages and all packet messages
-// are redundant. If the transaction is just a single UpdateClient message, or the multimsg transaction contains some other message type, then the antedecorator returns no error
-// and continues processing to ensure these transactions are included.
-// This will ensure that relayers do not waste fees on multiMsg transactions when another relayer has already submitted all packets, by rejecting the tx at the mempool layer.
+// AnteDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages
+// and all packet messages are redundant. If the transaction is just a single UpdateClient message, or the multimsg transaction
+// contains some other message type, then the antedecorator returns no error and continues processing to ensure these transactions
+// are included. This will ensure that relayers do not waste fees on multiMsg transactions when another relayer has already submitted
+// all packets, by rejecting the tx at the mempool layer.
 func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	// do not run redundancy check on DeliverTx or simulate
 	if (ctx.IsCheckTx() || ctx.IsReCheckTx()) && !simulate {
@@ -69,7 +70,10 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 				packetMsgs += 1
 
 			case *clienttypes.MsgUpdateClient:
-				// do nothing here, as we want to avoid updating clients if it is batched with only redundant messages
+				_, err := ad.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
+				if err != nil {
+					return ctx, err
+				}
 
 			default:
 				// if the multiMsg tx has a msg that is not a packet msg or update msg, then we will not return error
