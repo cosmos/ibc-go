@@ -22,11 +22,11 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	misbehaviour exported.Misbehaviour,
 ) (exported.ClientState, error) {
 
-	soloMisbehaviour, ok := misbehaviour.(*DuplicateSignatureHeader)
+	soloMisbehaviour, ok := misbehaviour.(*DuplicateSignatures)
 	if !ok {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrInvalidClientType,
-			"misbehaviour type %T, expected %T", misbehaviour, &DuplicateSignatureHeader{},
+			"misbehaviour type %T, expected %T", misbehaviour, &DuplicateSignatures{},
 		)
 	}
 
@@ -50,7 +50,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 // verifySignatureAndData verifies that the currently registered public key has signed
 // over the provided data and that the data is valid. The data is valid if it can be
 // unmarshaled into the specified data type.
-func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misbehaviour *DuplicateSignatureHeader, sigAndData *SignatureAndData) error {
+func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misbehaviour *DuplicateSignatures, sigAndData *SignatureAndData) error {
 
 	// do not check misbehaviour timestamp since we want to allow processing of past misbehaviour
 

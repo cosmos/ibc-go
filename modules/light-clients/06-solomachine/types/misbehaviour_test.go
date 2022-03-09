@@ -19,91 +19,91 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 
 		testCases := []struct {
 			name                 string
-			malleateMisbehaviour func(duplicateSigHeader *types.DuplicateSignatureHeader)
+			malleateMisbehaviour func(duplicateSigHeader *types.DuplicateSignatures)
 			expPass              bool
 		}{
 			{
 				"valid misbehaviour",
-				func(*types.DuplicateSignatureHeader) {},
+				func(*types.DuplicateSignatures) {},
 				true,
 			},
 			{
 				"invalid client ID",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.ClientId = "(badclientid)"
 				},
 				false,
 			},
 			{
 				"sequence is zero",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.Sequence = 0
 				},
 				false,
 			},
 			{
 				"signature one sig is empty",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.SignatureOne.Signature = []byte{}
 				},
 				false,
 			},
 			{
 				"signature two sig is empty",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.SignatureTwo.Signature = []byte{}
 				},
 				false,
 			},
 			{
 				"signature one data is empty",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.SignatureOne.Data = nil
 				},
 				false,
 			},
 			{
 				"signature two data is empty",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.SignatureTwo.Data = []byte{}
 				},
 				false,
 			},
 			{
 				"signatures are identical",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.SignatureTwo.Signature = duplicateSigHeader.SignatureOne.Signature
 				},
 				false,
 			},
 			{
 				"data signed is identical",
-				func(duplicateSigHeader *types.DuplicateSignatureHeader) {
+				func(duplicateSigHeader *types.DuplicateSignatures) {
 					duplicateSigHeader.SignatureTwo.Data = duplicateSigHeader.SignatureOne.Data
 				},
 				false,
 			},
 			{
 				"data type for SignatureOne is unspecified",
-				func(misbehaviour *types.DuplicateSignatureHeader) {
+				func(misbehaviour *types.DuplicateSignatures) {
 					misbehaviour.SignatureOne.DataType = types.UNSPECIFIED
 				}, false,
 			},
 			{
 				"data type for SignatureTwo is unspecified",
-				func(misbehaviour *types.DuplicateSignatureHeader) {
+				func(misbehaviour *types.DuplicateSignatures) {
 					misbehaviour.SignatureTwo.DataType = types.UNSPECIFIED
 				}, false,
 			},
 			{
 				"timestamp for SignatureOne is zero",
-				func(misbehaviour *types.DuplicateSignatureHeader) {
+				func(misbehaviour *types.DuplicateSignatures) {
 					misbehaviour.SignatureOne.Timestamp = 0
 				}, false,
 			},
 			{
 				"timestamp for SignatureTwo is zero",
-				func(misbehaviour *types.DuplicateSignatureHeader) {
+				func(misbehaviour *types.DuplicateSignatures) {
 					misbehaviour.SignatureTwo.Timestamp = 0
 				}, false,
 			},

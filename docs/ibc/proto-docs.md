@@ -245,7 +245,7 @@
     - [ConnectionStateData](#ibc.lightclients.solomachine.v2.ConnectionStateData)
     - [ConsensusState](#ibc.lightclients.solomachine.v2.ConsensusState)
     - [ConsensusStateData](#ibc.lightclients.solomachine.v2.ConsensusStateData)
-    - [DuplicateSignatureHeader](#ibc.lightclients.solomachine.v2.DuplicateSignatureHeader)
+    - [DuplicateSignatures](#ibc.lightclients.solomachine.v2.DuplicateSignatures)
     - [Header](#ibc.lightclients.solomachine.v2.Header)
     - [HeaderData](#ibc.lightclients.solomachine.v2.HeaderData)
     - [NextSequenceRecvData](#ibc.lightclients.solomachine.v2.NextSequenceRecvData)
@@ -3680,10 +3680,10 @@ verification.
 
 
 
-<a name="ibc.lightclients.solomachine.v2.DuplicateSignatureHeader"></a>
+<a name="ibc.lightclients.solomachine.v2.DuplicateSignatures"></a>
 
-### DuplicateSignatureHeader
-DuplicateSignatureHeader defines misbehaviour for a solo machine which consists
+### DuplicateSignatures
+DuplicateSignatures defines misbehaviour for a solo machine which consists
 of a sequence and two signatures over different messages at that sequence.
 
 
