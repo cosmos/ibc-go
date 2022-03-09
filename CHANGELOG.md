@@ -671,6 +671,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Client Breaking Changes
 
 * (02-client/cli) [\#196](https://github.com/cosmos/ibc-go/pull/196) Rename `node-state` cli command to `self-consensus-state`.
+* (02-client/cli) [\#897](https://github.com/cosmos/ibc-go/pull/897) Remove `GetClientID()` from `Misbehaviour` interface. Submit client misbehaviour cli command requires an explicit client id now.
 
 ## IBC in the Cosmos SDK Repository
 

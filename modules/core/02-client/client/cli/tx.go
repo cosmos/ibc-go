@@ -12,12 +12,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // NewCreateClientCmd defines the command to create a new IBC light client.
@@ -86,10 +86,10 @@ func NewCreateClientCmd() *cobra.Command {
 // NewUpdateClientCmd defines the command to update an IBC client.
 func NewUpdateClientCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:     "update [client-id] [path/to/client_msg.json]",
-		Short:   "update existing client with a client message",
-		Long:    "update existing client with a client message, for example a header, misbehaviour or batch update",
-		Example: fmt.Sprintf("%s tx ibc %s update [client-id] [path/to/client_msg.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
+		Use:     "update [client-id] [path/to/header.json]",
+		Short:   "update existing client with a header",
+		Long:    "update existing client with a header",
+		Example: fmt.Sprintf("%s tx ibc %s update [client-id] [path/to/header.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -100,22 +100,22 @@ func NewUpdateClientCmd() *cobra.Command {
 
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			var clientMsg exported.ClientMessage
-			clientMsgContentOrFileName := args[1]
-			if err := cdc.UnmarshalInterfaceJSON([]byte(clientMsgContentOrFileName), &clientMsg); err != nil {
+			var header exported.Header
+			headerContentOrFileName := args[1]
+			if err := cdc.UnmarshalInterfaceJSON([]byte(headerContentOrFileName), &header); err != nil {
 
 				// check for file path if JSON input is not provided
-				contents, err := ioutil.ReadFile(clientMsgContentOrFileName)
+				contents, err := ioutil.ReadFile(headerContentOrFileName)
 				if err != nil {
 					return fmt.Errorf("neither JSON input nor path to .json file for header were provided: %w", err)
 				}
 
-				if err := cdc.UnmarshalInterfaceJSON(contents, &clientMsg); err != nil {
+				if err := cdc.UnmarshalInterfaceJSON(contents, &header); err != nil {
 					return fmt.Errorf("error unmarshalling header file: %w", err)
 				}
 			}
 
-			msg, err := types.NewMsgUpdateClient(clientID, clientMsg, clientCtx.GetFromAddress().String())
+			msg, err := types.NewMsgUpdateClient(clientID, header, clientCtx.GetFromAddress().String())
 			if err != nil {
 				return err
 			}
@@ -127,8 +127,6 @@ func NewUpdateClientCmd() *cobra.Command {
 
 // NewSubmitMisbehaviourCmd defines the command to submit a misbehaviour to prevent
 // future updates.
-// Deprecated: NewSubmitMisbehaviourCmd is deprecated and will be removed in a future release.
-// Please use NewUpdateClientCmd instead.
 func NewSubmitMisbehaviourCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "misbehaviour [clientID] [path/to/misbehaviour.json]",
@@ -143,7 +141,7 @@ func NewSubmitMisbehaviourCmd() *cobra.Command {
 			}
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			var misbehaviour exported.ClientMessage
+			var misbehaviour exported.Misbehaviour
 			clientID := args[0]
 			misbehaviourContentOrFileName := args[1]
 			if err := cdc.UnmarshalInterfaceJSON([]byte(misbehaviourContentOrFileName), &misbehaviour); err != nil {
@@ -251,12 +249,12 @@ func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 				return err
 			}
 
-			title, err := cmd.Flags().GetString(govcli.FlagTitle) //nolint:staticcheck // need this till full govv1 conversion.
+			title, err := cmd.Flags().GetString(govcli.FlagTitle)
 			if err != nil {
 				return err
 			}
 
-			description, err := cmd.Flags().GetString(govcli.FlagDescription) //nolint:staticcheck // need this till full govv1 conversion.
+			description, err := cmd.Flags().GetString(govcli.FlagDescription)
 			if err != nil {
 				return err
 			}
@@ -290,8 +288,8 @@ func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")             //nolint:staticcheck // need this till full govv1 conversion.
-	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal") //nolint:staticcheck // need this till full govv1 conversion.
+	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
 
 	return cmd
@@ -322,12 +320,12 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 			}
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			title, err := cmd.Flags().GetString(govcli.FlagTitle) //nolint:staticcheck // need this till full govv1 conversion.
+			title, err := cmd.Flags().GetString(govcli.FlagTitle)
 			if err != nil {
 				return err
 			}
 
-			description, err := cmd.Flags().GetString(govcli.FlagDescription) //nolint:staticcheck // need this till full govv1 conversion.
+			description, err := cmd.Flags().GetString(govcli.FlagDescription)
 			if err != nil {
 				return err
 			}
@@ -389,8 +387,8 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")             //nolint:staticcheck // need this till full govv1 conversion.
-	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal") //nolint:staticcheck // need this till full govv1 conversion.
+	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
 
 	return cmd

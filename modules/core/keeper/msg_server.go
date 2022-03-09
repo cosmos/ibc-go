@@ -4,22 +4,21 @@ import (
 	"context"
 
 	metrics "github.com/armon/go-metrics"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	coretypes "github.com/cosmos/ibc-go/v5/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
 )
 
-var (
-	_ clienttypes.MsgServer     = Keeper{}
-	_ connectiontypes.MsgServer = Keeper{}
-	_ channeltypes.MsgServer    = Keeper{}
-)
+var _ clienttypes.MsgServer = Keeper{}
+var _ connectiontypes.MsgServer = Keeper{}
+var _ channeltypes.MsgServer = Keeper{}
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
 func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
@@ -46,12 +45,12 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
+	header, err := clienttypes.UnpackHeader(msg.Header)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, clientMsg); err != nil {
+	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, header); err != nil {
 		return nil, err
 	}
 
@@ -80,18 +79,16 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 }
 
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
-// Warning: DEPRECATED
-// This handler is redudant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
 func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
+	misbehaviour, err := clienttypes.UnpackMisbehaviour(msg.Misbehaviour)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, misbehaviour); err != nil {
-		return nil, err
+	if err := k.ClientKeeper.CheckMisbehaviourAndUpdateState(ctx, msg.ClientId, misbehaviour); err != nil {
+		return nil, sdkerrors.Wrap(err, "failed to process misbehaviour for IBC client")
 	}
 
 	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil
@@ -118,7 +115,7 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 	}
 
 	if _, err := k.ConnectionKeeper.ConnOpenTry(
-		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
+		ctx, msg.PreviousConnectionId, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
 		connectiontypes.ProtoVersionsToExported(msg.CounterpartyVersions), msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
 		msg.ProofHeight, msg.ConsensusHeight,
 	); err != nil {
@@ -188,17 +185,15 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	}
 
 	// Perform application logic callback
-	version, err := cbs.OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.Channel.Version)
-	if err != nil {
+	if err = cbs.OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.Channel.Version); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open init callback failed")
 	}
 
 	// Write channel into state
-	k.ChannelKeeper.WriteOpenInitChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
+	k.ChannelKeeper.WriteOpenInitChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, msg.Channel.Version)
 
 	return &channeltypes.MsgChannelOpenInitResponse{
 		ChannelId: channelID,
-		Version:   version,
 	}, nil
 }
 
@@ -221,7 +216,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	}
 
 	// Perform 04-channel verification
-	channelID, cap, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId,
+	channelID, cap, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, msg.PreviousChannelId,
 		portCap, msg.Channel.Counterparty, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
 	)
 	if err != nil {
@@ -237,9 +232,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	return &channeltypes.MsgChannelOpenTryResponse{
-		Version: version,
-	}, nil
+	return &channeltypes.MsgChannelOpenTryResponse{}, nil
 }
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.
@@ -268,7 +261,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	}
 
 	// Perform application logic callback
-	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
+	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open ack callback failed")
 	}
 
@@ -402,7 +395,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
+		return &channeltypes.MsgRecvPacketResponse{}, nil // no-op
 	default:
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
@@ -442,7 +435,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		)
 	}()
 
-	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+	return &channeltypes.MsgRecvPacketResponse{}, nil
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
@@ -480,7 +473,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
+		return &channeltypes.MsgTimeoutResponse{}, nil // no-op
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
 	}
@@ -510,7 +503,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		)
 	}()
 
-	return &channeltypes.MsgTimeoutResponse{Result: channeltypes.SUCCESS}, nil
+	return &channeltypes.MsgTimeoutResponse{}, nil
 }
 
 // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
@@ -548,7 +541,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
+		return &channeltypes.MsgTimeoutOnCloseResponse{}, nil // no-op
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
 	}
@@ -581,7 +574,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		)
 	}()
 
-	return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.SUCCESS}, nil
+	return &channeltypes.MsgTimeoutOnCloseResponse{}, nil
 }
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
@@ -619,7 +612,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
+		return &channeltypes.MsgAcknowledgementResponse{}, nil // no-op
 	default:
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}
@@ -643,5 +636,5 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 		)
 	}()
 
-	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
+	return &channeltypes.MsgAcknowledgementResponse{}, nil
 }
