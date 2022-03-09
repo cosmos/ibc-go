@@ -22,12 +22,12 @@ func (ds DuplicateSignatures) GetClientID() string {
 	return ds.ClientId
 }
 
-// Type implements Evidence interface.
+// Type implements Misbehaviour interface.
 func (ds DuplicateSignatures) Type() string {
 	return exported.TypeClientMisbehaviour
 }
 
-// ValidateBasic implements Evidence interface.
+// ValidateBasic implements Misbehaviour interface.
 func (ds DuplicateSignatures) ValidateBasic() error {
 	if err := host.ClientIdentifierValidator(ds.ClientId); err != nil {
 		return sdkerrors.Wrap(err, "invalid client identifier for solo machine")
