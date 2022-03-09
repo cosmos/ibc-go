@@ -154,7 +154,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 
 // CreateMisbehaviour constructs testing misbehaviour for the solo machine client
 // by signing over two different data bytes at the same sequence.
-func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
+func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.DuplicateSignatureHeader {
 	path := solo.GetClientStatePath("counterparty")
 	dataOne, err := solomachinetypes.ClientStateDataBytes(solo.cdc, path, solo.ClientState())
 	require.NoError(solo.t, err)
@@ -204,7 +204,7 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
 		Timestamp: solo.Time,
 	}
 
-	return &solomachinetypes.Misbehaviour{
+	return &solomachinetypes.DuplicateSignatureHeader{
 		ClientId:     solo.ClientID,
 		Sequence:     solo.Sequence,
 		SignatureOne: &signatureOne,
