@@ -12,14 +12,14 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Misbehaviour = &Misbehaviour{}
+var _ exported.Misbehaviour = &ConflictingHeaders{}
 
 // Use the same FrozenHeight for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)
 
-// NewMisbehaviour creates a new Misbehaviour instance.
-func NewMisbehaviour(clientID string, header1, header2 *Header) *Misbehaviour {
-	return &Misbehaviour{
+// NewConflictingHeaders creates a new ConflictingHeaders instance.
+func NewConflictingHeaders(clientID string, header1, header2 *Header) *ConflictingHeaders {
+	return &ConflictingHeaders{
 		ClientId: clientID,
 		Header1:  header1,
 		Header2:  header2,
@@ -27,19 +27,19 @@ func NewMisbehaviour(clientID string, header1, header2 *Header) *Misbehaviour {
 }
 
 // ClientType is Tendermint light client
-func (misbehaviour Misbehaviour) ClientType() string {
+func (misbehaviour ConflictingHeaders) ClientType() string {
 	return exported.Tendermint
 }
 
 // GetClientID returns the ID of the client that committed a misbehaviour.
-func (misbehaviour Misbehaviour) GetClientID() string {
+func (misbehaviour ConflictingHeaders) GetClientID() string {
 	return misbehaviour.ClientId
 }
 
 // GetTime returns the timestamp at which misbehaviour occurred. It uses the
 // maximum value from both headers to prevent producing an invalid header outside
 // of the misbehaviour age range.
-func (misbehaviour Misbehaviour) GetTime() time.Time {
+func (misbehaviour ConflictingHeaders) GetTime() time.Time {
 	t1, t2 := misbehaviour.Header1.GetTime(), misbehaviour.Header2.GetTime()
 	if t1.After(t2) {
 		return t1
@@ -47,8 +47,8 @@ func (misbehaviour Misbehaviour) GetTime() time.Time {
 	return t2
 }
 
-// ValidateBasic implements Misbehaviour interface
-func (misbehaviour Misbehaviour) ValidateBasic() error {
+// ValidateBasic implements ConflictingHeaders interface
+func (misbehaviour ConflictingHeaders) ValidateBasic() error {
 	if misbehaviour.Header1 == nil {
 		return sdkerrors.Wrap(ErrInvalidHeader, "misbehaviour Header1 cannot be nil")
 	}

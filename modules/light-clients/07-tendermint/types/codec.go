@@ -23,6 +23,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations(
 		(*exported.Misbehaviour)(nil),
-		&Misbehaviour{},
+		&ConflictingHeaders{},
 	)
 }

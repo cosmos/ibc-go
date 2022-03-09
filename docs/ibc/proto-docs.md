@@ -260,10 +260,10 @@
   
 - [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
     - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
+    - [ConflictingHeaders](#ibc.lightclients.tendermint.v1.ConflictingHeaders)
     - [ConsensusState](#ibc.lightclients.tendermint.v1.ConsensusState)
     - [Fraction](#ibc.lightclients.tendermint.v1.Fraction)
     - [Header](#ibc.lightclients.tendermint.v1.Header)
-    - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -3919,6 +3919,24 @@ and a possible frozen height.
 
 
 
+<a name="ibc.lightclients.tendermint.v1.ConflictingHeaders"></a>
+
+### ConflictingHeaders
+ConflictingHeaders is a wrapper over two conflicting Headers
+that implements Header interface expected by ICS-02
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
+| `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
+
+
+
+
+
+
 <a name="ibc.lightclients.tendermint.v1.ConsensusState"></a>
 
 ### ConsensusState
@@ -3976,24 +3994,6 @@ trusted validator set at the TrustedHeight.
 | `validator_set` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
 | `trusted_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `trusted_validators` | [tendermint.types.ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.tendermint.v1.Misbehaviour"></a>
-
-### Misbehaviour
-Misbehaviour is a wrapper over two conflicting Headers
-that implements Misbehaviour interface expected by ICS-02
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
-| `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 
 
 
