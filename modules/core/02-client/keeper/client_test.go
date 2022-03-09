@@ -650,7 +650,7 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 
 			tc.misbehaviour.ClientId = clientID
 
-			err = suite.keeper.CheckMisbehaviourAndUpdateState(suite.ctx, tc.misbehaviour)
+			err = suite.keeper.CheckMisbehaviourAndUpdateState(suite.ctx, clientID, tc.misbehaviour)
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
