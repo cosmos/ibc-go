@@ -255,13 +255,6 @@ func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
 	if err := misbehaviour.ValidateBasic(); err != nil {
 		return err
 	}
-	if misbehaviour.GetClientID() != msg.ClientId {
-		return sdkerrors.Wrapf(
-			ErrInvalidMisbehaviour,
-			"misbehaviour client-id doesn't match client-id from message (%s ≠ %s)",
-			misbehaviour.GetClientID(), msg.ClientId,
-		)
-	}
 
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
