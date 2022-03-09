@@ -41,12 +41,13 @@ func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 }
 
 // EmitUpdateClientEvent emits an upgrade client event
-func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientType string) {
+func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpgradeClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

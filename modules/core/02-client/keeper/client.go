@@ -158,13 +158,13 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
-	err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
-		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState)
-	if err != nil {
+	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
+		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState,
+	); err != nil {
 		return sdkerrors.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID)
+	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
@@ -177,7 +177,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		)
 	}()
 
-	EmitUpgradeClientEvent(ctx, clientID, upgradedClient.ClientType())
+	EmitUpgradeClientEvent(ctx, clientID, upgradedClient)
 
 	return nil
 }
