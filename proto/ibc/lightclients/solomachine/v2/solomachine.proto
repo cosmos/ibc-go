@@ -48,9 +48,9 @@ message Header {
   string              new_diversifier = 5 [(gogoproto.moretags) = "yaml:\"new_diversifier\""];
 }
 
-// Misbehaviour defines misbehaviour for a solo machine which consists
+// DuplicateSignatures defines misbehaviour for a solo machine which consists
 // of a sequence and two signatures over different messages at that sequence.
-message Misbehaviour {
+message DuplicateSignatures {
   option (gogoproto.goproto_getters) = false;
   string           client_id         = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
   uint64           sequence          = 2;

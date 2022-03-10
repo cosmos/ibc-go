@@ -1,52 +1,57 @@
-package solomachine
+package types
 
 import (
 	"bytes"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.ClientMessage = &Misbehaviour{}
+var _ exported.Misbehaviour = &DuplicateSignatures{}
 
 // ClientType is a Solo Machine light client.
-func (misbehaviour Misbehaviour) ClientType() string {
+func (ds DuplicateSignatures) ClientType() string {
 	return exported.Solomachine
 }
 
+// GetClientID returns the ID of the client that committed a misbehaviour.
+func (ds DuplicateSignatures) GetClientID() string {
+	return ds.ClientId
+}
+
 // Type implements Misbehaviour interface.
-func (misbehaviour Misbehaviour) Type() string {
+func (ds DuplicateSignatures) Type() string {
 	return exported.TypeClientMisbehaviour
 }
 
 // ValidateBasic implements Misbehaviour interface.
-func (misbehaviour Misbehaviour) ValidateBasic() error {
-	if err := host.ClientIdentifierValidator(misbehaviour.ClientId); err != nil {
+func (ds DuplicateSignatures) ValidateBasic() error {
+	if err := host.ClientIdentifierValidator(ds.ClientId); err != nil {
 		return sdkerrors.Wrap(err, "invalid client identifier for solo machine")
 	}
 
-	if misbehaviour.Sequence == 0 {
+	if ds.Sequence == 0 {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "sequence cannot be 0")
 	}
 
-	if err := misbehaviour.SignatureOne.ValidateBasic(); err != nil {
+	if err := ds.SignatureOne.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "signature one failed basic validation")
 	}
 
-	if err := misbehaviour.SignatureTwo.ValidateBasic(); err != nil {
+	if err := ds.SignatureTwo.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "signature two failed basic validation")
 	}
 
 	// misbehaviour signatures cannot be identical
-	if bytes.Equal(misbehaviour.SignatureOne.Signature, misbehaviour.SignatureTwo.Signature) {
+	if bytes.Equal(ds.SignatureOne.Signature, ds.SignatureTwo.Signature) {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signatures cannot be equal")
 	}
 
 	// message data signed cannot be identical
-	if bytes.Equal(misbehaviour.SignatureOne.Data, misbehaviour.SignatureTwo.Data) {
+	if bytes.Equal(ds.SignatureOne.Data, ds.SignatureTwo.Data) {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signature data must be signed over different messages")
 	}
 
@@ -61,8 +66,8 @@ func (sd SignatureAndData) ValidateBasic() error {
 	if len(sd.Data) == 0 {
 		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "data for signature cannot be empty")
 	}
-	if len(sd.Path) == 0 {
-		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "path for signature cannot be empty")
+	if sd.DataType == UNSPECIFIED {
+		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "data type cannot be UNSPECIFIED")
 	}
 	if sd.Timestamp == 0 {
 		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "timestamp cannot be 0")

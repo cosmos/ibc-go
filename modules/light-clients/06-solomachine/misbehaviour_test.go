@@ -1,108 +1,109 @@
-package solomachine_test
+package types_test
 
 import (
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestMisbehaviour() {
 	misbehaviour := suite.solomachine.CreateMisbehaviour()
 
 	suite.Require().Equal(exported.Solomachine, misbehaviour.ClientType())
+	suite.Require().Equal(suite.solomachine.ClientID, misbehaviour.GetClientID())
 }
 
 func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name                 string
-			malleateMisbehaviour func(misbehaviour *solomachine.Misbehaviour)
+			malleateMisbehaviour func(duplicateSigHeader *types.DuplicateSignatures)
 			expPass              bool
 		}{
 			{
 				"valid misbehaviour",
-				func(*solomachine.Misbehaviour) {},
+				func(*types.DuplicateSignatures) {},
 				true,
 			},
 			{
 				"invalid client ID",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.ClientId = "(badclientid)"
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.ClientId = "(badclientid)"
 				},
 				false,
 			},
 			{
 				"sequence is zero",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.Sequence = 0
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.Sequence = 0
 				},
 				false,
 			},
 			{
 				"signature one sig is empty",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureOne.Signature = []byte{}
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.SignatureOne.Signature = []byte{}
 				},
 				false,
 			},
 			{
 				"signature two sig is empty",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureTwo.Signature = []byte{}
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.SignatureTwo.Signature = []byte{}
 				},
 				false,
 			},
 			{
 				"signature one data is empty",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureOne.Data = nil
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.SignatureOne.Data = nil
 				},
 				false,
 			},
 			{
 				"signature two data is empty",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureTwo.Data = []byte{}
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.SignatureTwo.Data = []byte{}
 				},
 				false,
 			},
 			{
 				"signatures are identical",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureTwo.Signature = misbehaviour.SignatureOne.Signature
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.SignatureTwo.Signature = duplicateSigHeader.SignatureOne.Signature
 				},
 				false,
 			},
 			{
 				"data signed is identical",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
+				func(duplicateSigHeader *types.DuplicateSignatures) {
+					duplicateSigHeader.SignatureTwo.Data = duplicateSigHeader.SignatureOne.Data
 				},
 				false,
 			},
 			{
-				"data path for SignatureOne is unspecified",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureOne.Path = []byte{}
+				"data type for SignatureOne is unspecified",
+				func(misbehaviour *types.DuplicateSignatures) {
+					misbehaviour.SignatureOne.DataType = types.UNSPECIFIED
 				}, false,
 			},
 			{
-				"data path for SignatureTwo is unspecified",
-				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureTwo.Path = []byte{}
+				"data type for SignatureTwo is unspecified",
+				func(misbehaviour *types.DuplicateSignatures) {
+					misbehaviour.SignatureTwo.DataType = types.UNSPECIFIED
 				}, false,
 			},
 			{
 				"timestamp for SignatureOne is zero",
-				func(misbehaviour *solomachine.Misbehaviour) {
+				func(misbehaviour *types.DuplicateSignatures) {
 					misbehaviour.SignatureOne.Timestamp = 0
 				}, false,
 			},
 			{
 				"timestamp for SignatureTwo is zero",
-				func(misbehaviour *solomachine.Misbehaviour) {
+				func(misbehaviour *types.DuplicateSignatures) {
 					misbehaviour.SignatureTwo.Timestamp = 0
 				}, false,
 			},
@@ -113,7 +114,7 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 
 			suite.Run(tc.name, func() {
 
-				misbehaviour := sm.CreateMisbehaviour()
+				misbehaviour := solomachine.CreateMisbehaviour()
 				tc.malleateMisbehaviour(misbehaviour)
 
 				err := misbehaviour.ValidateBasic()
