@@ -17,11 +17,6 @@ func (misbehaviour Misbehaviour) ClientType() string {
 	return exported.Solomachine
 }
 
-// GetClientID returns the ID of the client that committed a misbehaviour.
-func (misbehaviour Misbehaviour) GetClientID() string {
-	return misbehaviour.ClientId
-}
-
 // Type implements Misbehaviour interface.
 func (misbehaviour Misbehaviour) Type() string {
 	return exported.TypeClientMisbehaviour
