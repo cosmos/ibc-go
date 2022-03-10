@@ -10,48 +10,48 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Misbehaviour = &Misbehaviour{}
+var _ exported.Misbehaviour = &DuplicateSignatures{}
 
 // ClientType is a Solo Machine light client.
-func (misbehaviour Misbehaviour) ClientType() string {
+func (ds DuplicateSignatures) ClientType() string {
 	return exported.Solomachine
 }
 
 // GetClientID returns the ID of the client that committed a misbehaviour.
-func (misbehaviour Misbehaviour) GetClientID() string {
-	return misbehaviour.ClientId
+func (ds DuplicateSignatures) GetClientID() string {
+	return ds.ClientId
 }
 
-// Type implements Evidence interface.
-func (misbehaviour Misbehaviour) Type() string {
+// Type implements Misbehaviour interface.
+func (ds DuplicateSignatures) Type() string {
 	return exported.TypeClientMisbehaviour
 }
 
-// ValidateBasic implements Evidence interface.
-func (misbehaviour Misbehaviour) ValidateBasic() error {
-	if err := host.ClientIdentifierValidator(misbehaviour.ClientId); err != nil {
+// ValidateBasic implements Misbehaviour interface.
+func (ds DuplicateSignatures) ValidateBasic() error {
+	if err := host.ClientIdentifierValidator(ds.ClientId); err != nil {
 		return sdkerrors.Wrap(err, "invalid client identifier for solo machine")
 	}
 
-	if misbehaviour.Sequence == 0 {
+	if ds.Sequence == 0 {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "sequence cannot be 0")
 	}
 
-	if err := misbehaviour.SignatureOne.ValidateBasic(); err != nil {
+	if err := ds.SignatureOne.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "signature one failed basic validation")
 	}
 
-	if err := misbehaviour.SignatureTwo.ValidateBasic(); err != nil {
+	if err := ds.SignatureTwo.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "signature two failed basic validation")
 	}
 
 	// misbehaviour signatures cannot be identical
-	if bytes.Equal(misbehaviour.SignatureOne.Signature, misbehaviour.SignatureTwo.Signature) {
+	if bytes.Equal(ds.SignatureOne.Signature, ds.SignatureTwo.Signature) {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signatures cannot be equal")
 	}
 
 	// message data signed cannot be identical
-	if bytes.Equal(misbehaviour.SignatureOne.Data, misbehaviour.SignatureTwo.Data) {
+	if bytes.Equal(ds.SignatureOne.Data, ds.SignatureTwo.Data) {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signature data must be signed over different messages")
 	}
 
