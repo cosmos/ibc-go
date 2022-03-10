@@ -62,10 +62,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	app, genesisState := DefaultTestingAppInit()
 
 	// set genesis accounts
-	var authGenesis *authtypes.GenesisState
-	app.AppCodec().MustUnmarshalJSON(genesisState[authtypes.ModuleName], authGenesis)
-
-	authGenesis = authtypes.NewGenesisState(authGenesis.Params, genAccs)
+	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
 
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
@@ -100,13 +97,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	var stakingGenesis stakingtypes.GenesisState
 	app.AppCodec().MustUnmarshalJSON(genesisState[stakingtypes.ModuleName], &stakingGenesis)
 
-	stakingGenesis.Validators = validators
-	stakingGenesis.Delegations = delegations
-
 	bondDenom := stakingGenesis.Params.BondDenom
-
-	// set validators and delegations
-	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(&stakingGenesis)
 
 	totalSupply := sdk.NewCoins()
 
@@ -116,11 +107,12 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 		Coins:   sdk.Coins{sdk.NewCoin(bondDenom, bondAmt.Mul(sdk.NewInt(int64(len(valSet.Validators)))))},
 	})
 
-	// update total supply
-	var bankGenesis *banktypes.GenesisState
-	app.AppCodec().MustUnmarshalJSON(genesisState[banktypes.ModuleName], bankGenesis)
+	// set validators and delegations
+	stakingGenesis = *stakingtypes.NewGenesisState(stakingGenesis.Params, validators, delegations)
+	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(&stakingGenesis)
 
-	bankGenesis = banktypes.NewGenesisState(bankGenesis.Params, balances, totalSupply, []banktypes.Metadata{})
+	// update total supply
+	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{})
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
