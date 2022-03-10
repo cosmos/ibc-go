@@ -434,7 +434,6 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		trustedVals *tmproto.ValidatorSet
 	)
 	require.NotNil(chain.T, tmValSet)
-	require.NotNil(chain.T, tmTrustedVals)
 
 	vsetHash := tmValSet.Hash()
 
@@ -454,6 +453,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
 	}
+
 	hhash := tmHeader.Hash()
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
 	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
@@ -466,14 +466,14 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		Commit: commit.ToProto(),
 	}
 
-	valSet, err = tmValSet.ToProto()
-	if err != nil {
-		panic(err)
+	if tmValSet != nil {
+		valSet, err = tmValSet.ToProto()
+		require.NoError(chain.T, err)
 	}
 
-	trustedVals, err = tmTrustedVals.ToProto()
-	if err != nil {
-		panic(err)
+	if tmTrustedVals != nil {
+		trustedVals, err = tmTrustedVals.ToProto()
+		require.NoError(chain.T, err)
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.
