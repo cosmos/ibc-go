@@ -80,7 +80,8 @@ message ConsensusState {
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
-  string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
+  // ClientID is deprecated
+  string client_id = 1 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_id\""];
   Header header_1  = 2 [(gogoproto.customname) = "Header1", (gogoproto.moretags) = "yaml:\"header_1\""];
   Header header_2  = 3 [(gogoproto.customname) = "Header2", (gogoproto.moretags) = "yaml:\"header_2\""];
 }
