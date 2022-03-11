@@ -46,8 +46,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 * (testing) [\#939](https://github.com/cosmos/ibc-go/pull/939) Support custom power reduction for testing.
 * (modules/core/05-port) [\#1086](https://github.com/cosmos/ibc-go/pull/1086) Added `counterpartyChannelID` argument to IBCModule.OnChanOpenAck
-* (channel) [\#848](https://github.com/cosmos/ibc-go/pull/848) Added `ChannelId` to MsgChannelOpenInitResponse
-* (testing) [\#813](https://github.com/cosmos/ibc-go/pull/813) The `ack` argument to the testing function `RelayPacket` has been removed as it is no longer needed.
+* (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Remove `GetClientID` function from 06-solomachine `Misbehaviour` type.
+* (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Deprecate `ClientId` field in 06-solomachine `Misbehaviour` type. 
+* (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Remove `GetClientID` function from 07-tendermint `Misbehaviour` type.
+* (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Deprecate `ClientId` field in 07-tendermint `Misbehaviour` type.
+* (channel( [\#848](https://github.com/cosmos/ibc-go/pull/848) Added `ChannelId` to MsgChannelOpenInitResponse
+* (testing( [\#813](https://github.com/cosmos/ibc-go/pull/813) The `ack` argument to the testing function `RelayPacket` has been removed as it is no longer needed.
 * (testing) [\#774](https://github.com/cosmos/ibc-go/pull/774) Added `ChainID` arg to `SetupWithGenesisValSet` on the testing app. `Coordinator` generated ChainIDs now starts at index 1
 * (transfer) [\#675](https://github.com/cosmos/ibc-go/pull/675) Transfer `NewKeeper` now takes in an ICS4Wrapper. The ICS4Wrapper may be the IBC Channel Keeper when ICS20 is not used in a middleware stack. The ICS4Wrapper is required for applications wishing to connect middleware to ICS20.
 * (core) [\#650](https://github.com/cosmos/ibc-go/pull/650) Modify `OnChanOpenTry` IBC application module callback to return the negotiated app version. The version passed into the `MsgChanOpenTry` has been deprecated and will be ignored by core IBC.
