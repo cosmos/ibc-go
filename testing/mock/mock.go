@@ -2,7 +2,6 @@ package mock
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -10,13 +9,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 
 var (
 	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
-	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("mock failed acknowledgement"))
+	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement("mock failed acknowledgement")
 	MockPacketData                  = []byte("mock packet data")
 	MockFailPacketData              = []byte("mock failed packet data")
 	MockAsyncPacketData             = []byte("mock async packet data")
@@ -70,6 +70,9 @@ func (AppModuleBasic) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, 
 	return nil
 }
 
+// RegisterRESTRoutes implements AppModuleBasic interface.
+func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {}
+
 // RegisterGRPCGatewayRoutes implements AppModuleBasic interface.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
@@ -86,7 +89,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for the mock module.
 type AppModule struct {
 	AppModuleBasic
-	ibcApps    []*IBCApp
+	ibcApps    []*MockIBCApp
 	portKeeper PortKeeper
 }
 
@@ -124,10 +127,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 		if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
 			// bind mock portID
 			cap := am.portKeeper.BindPort(ctx, ibcApp.PortID)
-			err := ibcApp.ScopedKeeper.ClaimCapability(ctx, cap, host.PortPath(ibcApp.PortID))
-			if err != nil {
-				panic(err)
-			}
+			ibcApp.ScopedKeeper.ClaimCapability(ctx, cap, host.PortPath(ibcApp.PortID))
 		}
 	}
 

@@ -3,25 +3,25 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
 )
 
-type RedundantRelayDecorator struct {
+type AnteDecorator struct {
 	k *keeper.Keeper
 }
 
-func NewRedundantRelayDecorator(k *keeper.Keeper) RedundantRelayDecorator {
-	return RedundantRelayDecorator{k: k}
+func NewAnteDecorator(k *keeper.Keeper) AnteDecorator {
+	return AnteDecorator{k: k}
 }
 
-// RedundantRelayDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages
+// AnteDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages
 // and all packet messages are redundant. If the transaction is just a single UpdateClient message, or the multimsg transaction
 // contains some other message type, then the antedecorator returns no error and continues processing to ensure these transactions
 // are included. This will ensure that relayers do not waste fees on multiMsg transactions when another relayer has already submitted
 // all packets, by rejecting the tx at the mempool layer.
-func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	// do not run redundancy check on DeliverTx or simulate
 	if (ctx.IsCheckTx() || ctx.IsReCheckTx()) && !simulate {
 		// keep track of total packet messages and number of redundancies across `RecvPacket`, `AcknowledgePacket`, and `TimeoutPacket/OnClose`
@@ -30,47 +30,47 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		for _, m := range tx.GetMsgs() {
 			switch msg := m.(type) {
 			case *channeltypes.MsgRecvPacket:
-				response, err := rrd.k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
+				response, err := ad.k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies++
+					redundancies += 1
 				}
-				packetMsgs++
+				packetMsgs += 1
 
 			case *channeltypes.MsgAcknowledgement:
-				response, err := rrd.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
+				response, err := ad.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies++
+					redundancies += 1
 				}
-				packetMsgs++
+				packetMsgs += 1
 
 			case *channeltypes.MsgTimeout:
-				response, err := rrd.k.Timeout(sdk.WrapSDKContext(ctx), msg)
+				response, err := ad.k.Timeout(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies++
+					redundancies += 1
 				}
-				packetMsgs++
+				packetMsgs += 1
 
 			case *channeltypes.MsgTimeoutOnClose:
-				response, err := rrd.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg)
+				response, err := ad.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies++
+					redundancies += 1
 				}
-				packetMsgs++
+				packetMsgs += 1
 
 			case *clienttypes.MsgUpdateClient:
-				_, err := rrd.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
+				_, err := ad.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}

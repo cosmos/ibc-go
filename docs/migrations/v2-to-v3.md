@@ -58,8 +58,8 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
 
 ```
 
-The host and controller submodule params only need to be set if the chain integrates those submodules. 
-For example, if a chain chooses not to integrate a controller submodule, it may pass empty params into `InitModule`.
+The host and controller submodule params only need to be set if you integrate those submodules. 
+For example, if a chain chooses not to integrate a controller submodule, it does not need to set the controller params. 
 
 #### Add `StoreUpgrades` for ICS27 module
 
@@ -76,9 +76,6 @@ if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Heigh
 ```
 
 This ensures that the new module's stores are added to the multistore before the migrations begin. 
-The host and controller submodule keys only need to be added if the chain integrates those submodules.
-For example, if a chain chooses not to integrate a controller submodule, it does not need to add the controller key to the `Added` field.
-
 
 ### Genesis migrations
 
@@ -103,7 +100,7 @@ The migration code required may look like:
     icaGenesisState := icatypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
     // set new ics27 genesis state
-    appState[icatypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(icaGenesisState)
+    appState[icatypes.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(icaGenesisState)
 ```
 
 ### Ante decorator

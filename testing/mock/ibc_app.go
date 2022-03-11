@@ -5,12 +5,12 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// IBCApp contains IBC application module callbacks as defined in 05-port.
-type IBCApp struct {
+// MockIBCApp contains IBC application module callbacks as defined in 05-port.
+type MockIBCApp struct {
 	PortID       string
 	ScopedKeeper capabilitykeeper.ScopedKeeper
 
@@ -23,7 +23,7 @@ type IBCApp struct {
 		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
-	) (string, error)
+	) error
 
 	OnChanOpenTry func(
 		ctx sdk.Context,
@@ -87,9 +87,9 @@ type IBCApp struct {
 	) error
 }
 
-// NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
-func NewIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *IBCApp {
-	return &IBCApp{
+// NewMockIBCApp returns a MockIBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
+func NewMockIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *MockIBCApp {
+	return &MockIBCApp{
 		PortID:       portID,
 		ScopedKeeper: scopedKeeper,
 	}

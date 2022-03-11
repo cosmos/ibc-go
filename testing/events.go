@@ -6,9 +6,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
@@ -64,8 +64,9 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 		if ev.Type == channeltypes.EventTypeSendPacket {
 			packet := channeltypes.Packet{}
 			for _, attr := range ev.Attributes {
+
 				switch string(attr.Key) {
-				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
+				case channeltypes.AttributeKeyData:
 					packet.Data = attr.Value
 
 				case channeltypes.AttributeKeySequence:
@@ -121,7 +122,7 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == channeltypes.AttributeKeyAck { //nolint:staticcheck // DEPRECATED
+				if string(attr.Key) == channeltypes.AttributeKeyAck {
 					return attr.Value, nil
 				}
 			}
