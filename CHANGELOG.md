@@ -54,7 +54,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Removes `CounterpartyHops` function from the ChannelKeeper.
 * (testing) [\#776](https://github.com/cosmos/ibc-go/pull/776) Adding helper fn to generate capability name for testing callbacks 
 * (channel) [\#882](https://github.com/cosmos/ibc-go/pull/882) The `WriteAcknowledgement` API now takes `exported.Acknowledgement` instead of a byte array
-* (06-solomachine) [\#1093](https://github.com/cosmos/ibc-go/pull/1093) Renaming `06-solomachine` type `Misbehaviour` to `DuplicateSignatures`
 
 ### State Machine Breaking
 

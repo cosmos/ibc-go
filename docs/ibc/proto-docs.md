@@ -322,9 +322,9 @@
     - [ConnectionStateData](#ibc.lightclients.solomachine.v2.ConnectionStateData)
     - [ConsensusState](#ibc.lightclients.solomachine.v2.ConsensusState)
     - [ConsensusStateData](#ibc.lightclients.solomachine.v2.ConsensusStateData)
-    - [DuplicateSignatures](#ibc.lightclients.solomachine.v2.DuplicateSignatures)
     - [Header](#ibc.lightclients.solomachine.v2.Header)
     - [HeaderData](#ibc.lightclients.solomachine.v2.HeaderData)
+    - [Misbehaviour](#ibc.lightclients.solomachine.v2.Misbehaviour)
     - [NextSequenceRecvData](#ibc.lightclients.solomachine.v2.NextSequenceRecvData)
     - [PacketAcknowledgementData](#ibc.lightclients.solomachine.v2.PacketAcknowledgementData)
     - [PacketCommitmentData](#ibc.lightclients.solomachine.v2.PacketCommitmentData)
@@ -4764,25 +4764,6 @@ verification.
 
 
 
-<a name="ibc.lightclients.solomachine.v2.DuplicateSignatures"></a>
-
-### DuplicateSignatures
-DuplicateSignatures defines misbehaviour for a solo machine which consists
-of a sequence and two signatures over different messages at that sequence.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `sequence` | [uint64](#uint64) |  |  |
-| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
-| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
-
-
-
-
-
-
 <a name="ibc.lightclients.solomachine.v2.Header"></a>
 
 ### Header
@@ -4812,6 +4793,25 @@ HeaderData returns the SignBytes data for update verification.
 | ----- | ---- | ----- | ----------- |
 | `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
 | `new_diversifier` | [string](#string) |  | header diversifier |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v2.Misbehaviour"></a>
+
+### Misbehaviour
+Misbehaviour defines misbehaviour for a solo machine which consists
+of a sequence and two signatures over different messages at that sequence.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `sequence` | [uint64](#uint64) |  |  |
+| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
+| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 
 
 
