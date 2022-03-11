@@ -4808,7 +4808,7 @@ of a sequence and two signatures over different messages at that sequence.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `sequence` | [uint64](#uint64) |  |  |
 | `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 | `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |

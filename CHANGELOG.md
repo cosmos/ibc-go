@@ -42,7 +42,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#709](https://github.com/cosmos/ibc-go/pull/709) Replace github.com/pkg/errors with stdlib errors
 
 ### API Breaking
- 
+
+* (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Remove `GetClientID` function from 06-solomachine `Misbehaviour` type.
+* (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Deprecate `ClientId` field in 06-solomachine `Misbehaviour` type. 
 * (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Remove `GetClientID` function from 07-tendermint `Misbehaviour` type.
 * (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Deprecate `ClientId` field in 07-tendermint `Misbehaviour` type.
 * (channel( [\#848](https://github.com/cosmos/ibc-go/pull/848) Added `ChannelId` to MsgChannelOpenInitResponse
