@@ -23,9 +23,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
-	smHeader := msg.(*Header)
-	clientState, consensusState := update(&cs, smHeader)
-	return clientState, consensusState, nil
+	return cs.UpdateState(ctx, cdc, clientStore, msg)
 }
 
 // VerifyClientMessage checks if the Solo Machine update signature(s) is valid.
@@ -86,16 +84,19 @@ func (cs ClientState) VerifyClientMessage(cdc codec.BinaryCodec, clientMsg expor
 	return nil
 }
 
-// update the consensus state to the new public key and an incremented sequence
-func update(clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
+// UpdateState updates the consensus state to the new public key and an incremented sequence.
+func (cs ClientState) UpdateState(
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
+	header exported.Header,
+) (exported.ClientState, exported.ConsensusState, error) {
+	smHeader := header.(*Header)
 	consensusState := &ConsensusState{
-		PublicKey:   header.NewPublicKey,
-		Diversifier: header.NewDiversifier,
-		Timestamp:   header.Timestamp,
+		PublicKey:   smHeader.NewPublicKey,
+		Diversifier: smHeader.NewDiversifier,
+		Timestamp:   smHeader.Timestamp,
 	}
 
-	// increment sequence number
-	clientState.Sequence++
-	clientState.ConsensusState = consensusState
-	return clientState, consensusState
+	cs.Sequence++
+	cs.ConsensusState = consensusState
+	return &cs, consensusState, nil
 }
