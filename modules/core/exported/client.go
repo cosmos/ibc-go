@@ -58,8 +58,8 @@ type ClientState interface {
 
 	// Update and Misbehaviour functions
 
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
-	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) (ClientState, error)
+	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
+	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
 	// Upgrade functions
@@ -194,21 +194,11 @@ type ConsensusState interface {
 	ValidateBasic() error
 }
 
-// Misbehaviour defines counterparty misbehaviour for a specific consensus type
-type Misbehaviour interface {
+// TODO: comment
+type ClientMessage interface {
 	proto.Message
 
 	ClientType() string
-	GetClientID() string
-	ValidateBasic() error
-}
-
-// Header is the consensus state update information
-type Header interface {
-	proto.Message
-
-	ClientType() string
-	GetHeight() Height
 	ValidateBasic() error
 }
 
