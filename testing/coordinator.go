@@ -211,11 +211,7 @@ func (coord *Coordinator) ConnOpenInitOnBothChains(path *Path) error {
 		return err
 	}
 
-	if err := path.EndpointB.UpdateClient(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.UpdateClient()
 }
 
 // ChanOpenInitOnBothChains initializes a channel on the source chain and counterparty chain
@@ -236,9 +232,5 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(path *Path) error {
 		return err
 	}
 
-	if err := path.EndpointB.UpdateClient(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.UpdateClient()
 }
