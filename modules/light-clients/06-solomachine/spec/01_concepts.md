@@ -133,7 +133,6 @@ If the update is successful:
 An update by a governance proposal will only succeed if:
 
 - the substitute provided is parseable to solo machine client state
-- the `AllowUpdateAfterProposal` client parameter is set to `true`
 - the new consensus state public key does not equal the current consensus state public key
 
 If the update is successful:

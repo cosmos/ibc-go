@@ -23,13 +23,6 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	_ sdk.KVStore, substituteClient exported.ClientState,
 ) (exported.ClientState, error) {
 
-	if !cs.AllowUpdateAfterProposal {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrUpdateClientFailed,
-			"solo machine client is not allowed to updated with a proposal",
-		)
-	}
-
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
 		return nil, sdkerrors.Wrapf(

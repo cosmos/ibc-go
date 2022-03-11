@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/legacy/v100"
+	v100 "github.com/cosmos/ibc-go/v3/modules/core/02-client/legacy/v100"
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -71,7 +71,6 @@ func (suite *LegacyTestSuite) TestMigrateStoreSolomachine() {
 				Diversifier: clientState.ConsensusState.Diversifier,
 				Timestamp:   clientState.ConsensusState.Timestamp,
 			},
-			AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
 		}
 
 		// set client state

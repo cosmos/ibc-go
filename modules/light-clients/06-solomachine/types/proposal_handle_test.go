@@ -22,14 +22,7 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 			expPass  bool
 		}{
 			{
-				"valid substitute", func() {
-					subjectClientState.AllowUpdateAfterProposal = true
-				}, true,
-			},
-			{
-				"subject not allowed to be updated", func() {
-					subjectClientState.AllowUpdateAfterProposal = false
-				}, false,
+				"valid substitute", func() {}, true,
 			},
 			{
 				"substitute is not the solo machine", func() {
@@ -61,7 +54,6 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.SetupTest()
 
 				subjectClientState = solomachine.ClientState()
-				subjectClientState.AllowUpdateAfterProposal = true
 				substitute := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "substitute", "testing", 5)
 				substituteClientState = substitute.ClientState()
 

@@ -130,15 +130,11 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 
 			tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
 			suite.Require().True(ok)
-			tmClientState.AllowUpdateAfterMisbehaviour = true
-			tmClientState.AllowUpdateAfterExpiry = true
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 
 			tmClientState, ok = substituteClientState.(*ibctmtypes.ClientState)
 			suite.Require().True(ok)
-			tmClientState.AllowUpdateAfterMisbehaviour = true
-			tmClientState.AllowUpdateAfterExpiry = true
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
 
 			tc.malleate()
