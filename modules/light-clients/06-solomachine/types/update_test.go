@@ -181,10 +181,10 @@ func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
+func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
-		clientState *types.ClientState
 		clientMsg   exported.Header // TODO: Update to ClientMessage interface
+		clientState *types.ClientState
 	)
 
 	// test singlesig and multisig public keys
@@ -198,7 +198,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"successful header",
 				func() {
-					clientState = solomachine.ClientState()
 					clientMsg = solomachine.CreateHeader()
 				},
 				true,
@@ -206,7 +205,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"successful misbehaviour",
 				func() {
-					clientState = solomachine.ClientState()
 					clientMsg = solomachine.CreateMisbehaviour()
 				},
 				true,
@@ -214,7 +212,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid client message type",
 				func() {
-					clientState = solomachine.ClientState()
 					clientMsg = &ibctmtypes.Header{}
 				},
 				false,
@@ -222,7 +219,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"wrong sequence in header",
 				func() {
-					clientState = solomachine.ClientState()
 					// store in temp before assigning to interface type
 					h := solomachine.CreateHeader()
 					h.Sequence++
@@ -233,7 +229,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid header Signature",
 				func() {
-					clientState = solomachine.ClientState()
 					h := solomachine.CreateHeader()
 					h.Signature = suite.GetInvalidProof()
 					clientMsg = h
@@ -242,7 +237,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid timestamp in header",
 				func() {
-					clientState = solomachine.ClientState()
 					h := solomachine.CreateHeader()
 					h.Timestamp--
 					clientMsg = h
@@ -251,7 +245,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"signature uses wrong sequence",
 				func() {
-					clientState = solomachine.ClientState()
+
 					solomachine.Sequence++
 					clientMsg = solomachine.CreateHeader()
 				},
@@ -316,19 +310,75 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 				false,
 			},
 			{
-				"consensus state public key is nil",
+				"consensus state public key is nil - header",
 				func() {
-					cs := solomachine.ClientState()
-					cs.ConsensusState.PublicKey = nil
-					clientState = cs
+					clientState.ConsensusState.PublicKey = nil
 					clientMsg = solomachine.CreateHeader()
+				},
+				false,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				clientState = solomachine.ClientState()
+
+				// setup test
+				tc.setup()
+
+				err := clientState.VerifyClientMessage(suite.chainA.Codec, clientMsg)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
+	var (
+		clientMsg   exported.Header // TODO: Update to ClientMessage interface
+		clientState *types.ClientState
+	)
+
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+
+		testCases := []struct {
+			name    string
+			setup   func()
+			expPass bool
+		}{
+			{
+				"successful misbehaviour",
+				func() {
+					clientMsg = solomachine.CreateMisbehaviour()
+				},
+				true,
+			},
+			{
+				"invalid client message type",
+				func() {
+					clientMsg = &ibctmtypes.Header{}
+				},
+				false,
+			},
+			{
+				"consensus state pubkey is nil",
+				func() {
+					clientState.ConsensusState.PublicKey = nil
+					clientMsg = solomachine.CreateMisbehaviour()
 				},
 				false,
 			},
 			{
 				"invalid SignatureOne SignatureData",
 				func() {
-					clientState = solomachine.ClientState()
 					m := solomachine.CreateMisbehaviour()
 
 					m.SignatureOne.Signature = suite.GetInvalidProof()
@@ -338,7 +388,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid SignatureTwo SignatureData",
 				func() {
-					clientState = solomachine.ClientState()
 					m := solomachine.CreateMisbehaviour()
 
 					m.SignatureTwo.Signature = suite.GetInvalidProof()
@@ -348,7 +397,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid SignatureOne timestamp",
 				func() {
-					clientState = solomachine.ClientState()
 					m := solomachine.CreateMisbehaviour()
 
 					m.SignatureOne.Timestamp = 1000000000000
@@ -358,7 +406,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid SignatureTwo timestamp",
 				func() {
-					clientState = solomachine.ClientState()
 					m := solomachine.CreateMisbehaviour()
 
 					m.SignatureTwo.Timestamp = 1000000000000
@@ -368,8 +415,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid first signature data",
 				func() {
-					clientState = solomachine.ClientState()
-
 					// store in temp before assigning to interface type
 					m := solomachine.CreateMisbehaviour()
 
@@ -396,8 +441,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"invalid second signature data",
 				func() {
-					clientState = solomachine.ClientState()
-
 					// store in temp before assigning to interface type
 					m := solomachine.CreateMisbehaviour()
 
@@ -424,7 +467,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"wrong pubkey generates first signature",
 				func() {
-					clientState = solomachine.ClientState()
 					badMisbehaviour := solomachine.CreateMisbehaviour()
 
 					// update public key to a new one
@@ -439,7 +481,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"wrong pubkey generates second signature",
 				func() {
-					clientState = solomachine.ClientState()
 					badMisbehaviour := solomachine.CreateMisbehaviour()
 
 					// update public key to a new one
@@ -454,7 +495,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 			{
 				"signatures sign over different sequence",
 				func() {
-					clientState = solomachine.ClientState()
 
 					// store in temp before assigning to interface type
 					m := solomachine.CreateMisbehaviour()
@@ -501,22 +541,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessage() {
 				},
 				false,
 			},
-			{
-				"consensus state pubkey is nil",
-				func() {
-					cs := solomachine.ClientState()
-					cs.ConsensusState.PublicKey = nil
-					clientState = cs
-					clientMsg = solomachine.CreateMisbehaviour()
-				},
-				false,
-			},
 		}
 
 		for _, tc := range testCases {
 			tc := tc
 
 			suite.Run(tc.name, func() {
+				clientState = solomachine.ClientState()
+
 				// setup test
 				tc.setup()
 
