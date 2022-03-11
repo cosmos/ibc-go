@@ -39,14 +39,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
+* [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
+* [\#948](https://github.com/cosmos/ibc-go/pull/948) Bump ics23/go to v0.7
 * (core) [\#709](https://github.com/cosmos/ibc-go/pull/709) Replace github.com/pkg/errors with stdlib errors
 
 ### API Breaking
- 
-* (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Remove `GetClientID` function from 07-tendermint `Misbehaviour` type.
-* (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Deprecate `ClientId` field in 07-tendermint `Misbehaviour` type.
-* (channel( [\#848](https://github.com/cosmos/ibc-go/pull/848) Added `ChannelId` to MsgChannelOpenInitResponse
-* (testing( [\#813](https://github.com/cosmos/ibc-go/pull/813) The `ack` argument to the testing function `RelayPacket` has been removed as it is no longer needed.
+* (testing) [\#939](https://github.com/cosmos/ibc-go/pull/939) Support custom power reduction for testing.
+* (modules/core/05-port) [\#1086](https://github.com/cosmos/ibc-go/pull/1086) Added `counterpartyChannelID` argument to IBCModule.OnChanOpenAck
+* (channel) [\#848](https://github.com/cosmos/ibc-go/pull/848) Added `ChannelId` to MsgChannelOpenInitResponse
+* (testing) [\#813](https://github.com/cosmos/ibc-go/pull/813) The `ack` argument to the testing function `RelayPacket` has been removed as it is no longer needed.
 * (testing) [\#774](https://github.com/cosmos/ibc-go/pull/774) Added `ChainID` arg to `SetupWithGenesisValSet` on the testing app. `Coordinator` generated ChainIDs now starts at index 1
 * (transfer) [\#675](https://github.com/cosmos/ibc-go/pull/675) Transfer `NewKeeper` now takes in an ICS4Wrapper. The ICS4Wrapper may be the IBC Channel Keeper when ICS20 is not used in a middleware stack. The ICS4Wrapper is required for applications wishing to connect middleware to ICS20.
 * (core) [\#650](https://github.com/cosmos/ibc-go/pull/650) Modify `OnChanOpenTry` IBC application module callback to return the negotiated app version. The version passed into the `MsgChanOpenTry` has been deprecated and will be ignored by core IBC.
@@ -55,7 +56,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#536](https://github.com/cosmos/ibc-go/pull/536) `GetSelfConsensusState` return type changed from bool to error.
 * (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Removes `CounterpartyHops` function from the ChannelKeeper.
 * (testing) [\#776](https://github.com/cosmos/ibc-go/pull/776) Adding helper fn to generate capability name for testing callbacks 
+* (testing) [\#892](https://github.com/cosmos/ibc-go/pull/892) IBC Mock modules store the scoped keeper and portID within the IBCMockApp. They also maintain reference to the AppModule to update the AppModule's list of IBC applications it references. Allows for the mock module to be reused as a base application in middleware stacks.
 * (channel) [\#882](https://github.com/cosmos/ibc-go/pull/882) The `WriteAcknowledgement` API now takes `exported.Acknowledgement` instead of a byte array
+* (modules/core/ante) [\#950](https://github.com/cosmos/ibc-go/pull/950) Replaces the channel keeper with the IBC keeper in the IBC `AnteDecorator` in order to execute the entire message and be able to reject redundant messages that are in the same block as the non-redundant messages.
 
 ### State Machine Breaking
 
@@ -63,13 +66,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (interchain-accounts) [\#1037](https://github.com/cosmos/ibc-go/pull/1037) Add a function `InitModule` to the interchain accounts `AppModule`. This function should be called within the upgrade handler when adding the interchain accounts module to a chain. It should be called in place of InitGenesis (set the consensus version in the version map).
+* (testing) [\#942](https://github.com/cosmos/ibc-go/pull/942) `NewTestChain` will create 4 validators in validator set by default. A new constructor function `NewTestChainWithValSet` is provided for test writers who want custom control over the validator set of test chains.
+* (testing) [\#904](https://github.com/cosmos/ibc-go/pull/904) Add `ParsePacketFromEvents` function to the testing package. Useful when sending/relaying packets via the testing package.
+* (testing) [\#893](https://github.com/cosmos/ibc-go/pull/893) Support custom private keys for testing.
 * (testing) [\#810](https://github.com/cosmos/ibc-go/pull/810) Additional testing function added to `Endpoint` type called `RecvPacketWithResult`. Performs the same functionality as the existing `RecvPacket` function but also returns the message result. `path.RelayPacket` no longer uses the provided acknowledgement argument and instead obtains the acknowledgement via MsgRecvPacket events.
 * (connection) [\#721](https://github.com/cosmos/ibc-go/pull/721) Simplify connection handshake error messages when unpacking client state.
 * (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
 * [\#383](https://github.com/cosmos/ibc-go/pull/383) Adds helper functions for merging and splitting middleware versions from the underlying app version.
 * (modules/core/05-port) [\#288](https://github.com/cosmos/ibc-go/issues/288) Making the 05-port keeper function IsBound public. The IsBound function checks if the provided portID is already binded to a module.
 * (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Adds `GetChannelConnection` to the ChannelKeeper. This function returns the connectionID and connection state associated with a channel. 
-* (channel) [\647](https://github.com/cosmos/ibc-go/pull/647) Reorganizes channel handshake handling to set channel state after IBC application callbacks. 
+* (channel) [\#647](https://github.com/cosmos/ibc-go/pull/647) Reorganizes channel handshake handling to set channel state after IBC application callbacks. 
 * (client) [\#724](https://github.com/cosmos/ibc-go/pull/724) `IsRevisionFormat` and `IsClientIDFormat` have been updated to disallow newlines before the dash used to separate the chainID and revision number, and the client type and client sequence. 
 
 ### Features
@@ -81,6 +88,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (testing) [\#884](https://github.com/cosmos/ibc-go/pull/884) Add and use in simapp a custom ante handler that rejects redundant transactions
+* (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
+* (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
+* (modules/core/04-channel) [\#994](https://github.com/cosmos/ibc-go/pull/944) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
 
 ## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
 
