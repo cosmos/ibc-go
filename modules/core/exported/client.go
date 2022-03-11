@@ -198,8 +198,8 @@ type ConsensusState interface {
 type ClientMessage interface {
 	proto.Message
 
-	ClientType() string
 	GetHeight() Height
+	ClientType() string
 	ValidateBasic() error
 }
 

@@ -3759,7 +3759,7 @@ of a sequence and two signatures over different messages at that sequence.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `sequence` | [uint64](#uint64) |  |  |
 | `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 | `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
@@ -4026,7 +4026,7 @@ that implements Misbehaviour interface expected by ICS-02
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 
