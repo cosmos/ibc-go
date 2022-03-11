@@ -199,6 +199,7 @@ type ClientMessage interface {
 	proto.Message
 
 	ClientType() string
+	GetHeight() Height
 	ValidateBasic() error
 }
 

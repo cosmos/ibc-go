@@ -79,7 +79,7 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 
 // CheckHeaderAndUpdateState updates the localhost client. It only needs access to the context
 func (cs *ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Header,
+	ctx sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	// use the chain ID from context since the localhost client is from the running chain (i.e self).
 	cs.ChainId = ctx.ChainID()
@@ -92,7 +92,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 // Since localhost is the client of the running chain, misbehaviour cannot be submitted to it
 // Thus, CheckMisbehaviourAndUpdateState returns an error for localhost
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Misbehaviour,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, error) {
 	return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "cannot submit misbehaviour to localhost client")
 }

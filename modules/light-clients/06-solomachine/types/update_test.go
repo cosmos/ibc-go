@@ -13,7 +13,7 @@ import (
 func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 	var (
 		clientState exported.ClientState
-		header      exported.Header
+		header     exported.ClientMessage 
 	)
 
 	// test singlesig and multisig public keys

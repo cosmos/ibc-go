@@ -139,8 +139,8 @@ func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, e
 	return any, nil
 }
 
-// UnpackHeader unpacks an Any into a Header. It returns an error if the
-// consensus state can't be unpacked into a Header.
+// UnpackClientMessage unpacks an Any into a ClientMessage. It returns an error if the
+// consensus state can't be unpacked into a ClientMessage.
 func UnpackClientMessage(any *codectypes.Any) (exported.ClientMessage, error) {
 	if any == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")

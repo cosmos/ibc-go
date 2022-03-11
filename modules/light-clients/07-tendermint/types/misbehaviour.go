@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Misbehaviour = &Misbehaviour{}
+var _ exported.ClientMessage = &Misbehaviour{}
 
 // Use the same FrozenHeight for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)
@@ -128,5 +128,11 @@ func validCommit(chainID string, blockID tmtypes.BlockID, commit *tmproto.Commit
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "validator set did not commit to header")
 	}
 
+	return nil
+}
+
+// TODO: Remove GetHeight()
+// GetHeight implements the curret exported.Header interface, to be updated
+func (misbehaviour Misbehaviour) GetHeight() exported.Height {
 	return nil
 }
