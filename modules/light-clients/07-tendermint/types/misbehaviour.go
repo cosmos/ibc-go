@@ -31,11 +31,6 @@ func (misbehaviour Misbehaviour) ClientType() string {
 	return exported.Tendermint
 }
 
-// GetClientID returns the ID of the client that committed a misbehaviour.
-func (misbehaviour Misbehaviour) GetClientID() string {
-	return misbehaviour.ClientId
-}
-
 // GetTime returns the timestamp at which misbehaviour occurred. It uses the
 // maximum value from both headers to prevent producing an invalid header outside
 // of the misbehaviour age range.
