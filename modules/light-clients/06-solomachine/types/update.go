@@ -84,6 +84,31 @@ func (cs ClientState) VerifyClientMessage(cdc codec.BinaryCodec, clientMsg expor
 	return nil
 }
 
+// CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
+func (cs ClientState) CheckForMisbehaviour(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
+	msg exported.Header, // TODO: Update to exported.ClientMessage
+) bool {
+	var foundMisbehaviour bool
+	switch msg.(type) {
+	case *Header:
+		foundMisbehaviour = false
+	case *Misbehaviour:
+		foundMisbehaviour = true
+	}
+
+	return foundMisbehaviour
+}
+
+// UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
+// as it does not perform any misbehaviour checks.
+func (cs ClientState) UpdateStateOnMisbehaviour(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self storage of consensus state
+) (*ClientState, error) {
+	cs.IsFrozen = true
+	return &cs, nil
+}
+
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
 func (cs ClientState) UpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
