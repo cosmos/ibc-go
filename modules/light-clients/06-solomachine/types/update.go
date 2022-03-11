@@ -23,6 +23,11 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
+	foundMisbehaviour := cs.CheckForMisbehaviour(ctx, cdc, clientStore, msg)
+	if foundMisbehaviour {
+		return cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore)
+	}
+
 	return cs.UpdateState(ctx, cdc, clientStore, msg)
 }
 
@@ -104,9 +109,9 @@ func (cs ClientState) CheckForMisbehaviour(
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self storage of consensus state
-) (*ClientState, error) {
+) (*ClientState, exported.ConsensusState, error) {
 	cs.IsFrozen = true
-	return &cs, nil
+	return &cs, cs.ConsensusState, nil
 }
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
