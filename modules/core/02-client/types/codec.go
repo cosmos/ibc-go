@@ -124,7 +124,9 @@ func UnpackConsensusState(any *codectypes.Any) (exported.ConsensusState, error) 
 	return consensusState, nil
 }
 
-//TODO: comment
+// PackClientMessage constructs a new Any packed with the given value. It returns
+// an error if the value can't be casted to a protobuf message or if the concrete
+// implemention is not registered to the protobuf codec.
 func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, error) {
 	msg, ok := clientMessage.(proto.Message)
 	if !ok {

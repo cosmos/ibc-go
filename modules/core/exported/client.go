@@ -194,7 +194,7 @@ type ConsensusState interface {
 	ValidateBasic() error
 }
 
-// TODO: comment
+// ClientMessage is an interface used for Header and Misbehaviour implementations
 type ClientMessage interface {
 	proto.Message
 
