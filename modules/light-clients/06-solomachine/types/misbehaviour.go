@@ -22,6 +22,12 @@ func (misbehaviour Misbehaviour) Type() string {
 	return exported.TypeClientMisbehaviour
 }
 
+// TODO: Remove GetHeight() when new interface type ClientMessage is introduced
+// GetHeight implements the exported.Header interface
+func (misbehaviour Misbehaviour) GetHeight() exported.Height {
+	return nil
+}
+
 // ValidateBasic implements Misbehaviour interface.
 func (misbehaviour Misbehaviour) ValidateBasic() error {
 	if err := host.ClientIdentifierValidator(misbehaviour.ClientId); err != nil {

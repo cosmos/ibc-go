@@ -17,61 +17,72 @@ import (
 // - the currently registered public key did not provide the update signature
 func (cs ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
-	header exported.Header,
+	msg exported.Header, // TODO: Update to exported.ClientMessage
 ) (exported.ClientState, exported.ConsensusState, error) {
-	smHeader, ok := header.(*Header)
-	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "header type %T, expected  %T", header, &Header{},
-		)
-	}
-
-	if err := checkHeader(cdc, &cs, smHeader); err != nil {
+	if err := cs.VerifyClientMessage(cdc, msg); err != nil {
 		return nil, nil, err
 	}
 
+	smHeader := msg.(*Header)
 	clientState, consensusState := update(&cs, smHeader)
 	return clientState, consensusState, nil
 }
 
-// checkHeader checks if the Solo Machine update signature is valid.
-func checkHeader(cdc codec.BinaryCodec, clientState *ClientState, header *Header) error {
-	// assert update sequence is current sequence
-	if header.Sequence != clientState.Sequence {
-		return sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader,
-			"header sequence does not match the client state sequence (%d != %d)", header.Sequence, clientState.Sequence,
-		)
-	}
+// VerifyClientMessage checks if the Solo Machine update signature(s) is valid.
+func (cs ClientState) VerifyClientMessage(cdc codec.BinaryCodec, clientMsg exported.Header) error {
+	switch msg := clientMsg.(type) {
+	case *Header:
+		// assert update sequence is current sequence
+		if msg.Sequence != cs.Sequence {
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidHeader,
+				"header sequence does not match the client state sequence (%d != %d)", msg.Sequence, cs.Sequence,
+			)
+		}
 
-	// assert update timestamp is not less than current consensus state timestamp
-	if header.Timestamp < clientState.ConsensusState.Timestamp {
-		return sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader,
-			"header timestamp is less than to the consensus state timestamp (%d < %d)", header.Timestamp, clientState.ConsensusState.Timestamp,
-		)
-	}
+		// assert update timestamp is not less than current consensus state timestamp
+		if msg.Timestamp < cs.ConsensusState.Timestamp {
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidHeader,
+				"header timestamp is less than to the consensus state timestamp (%d < %d)", msg.Timestamp, cs.ConsensusState.Timestamp,
+			)
+		}
 
-	// assert currently registered public key signed over the new public key with correct sequence
-	data, err := HeaderSignBytes(cdc, header)
-	if err != nil {
-		return err
-	}
+		// assert currently registered public key signed over the new public key with correct sequence
+		data, err := HeaderSignBytes(cdc, msg)
+		if err != nil {
+			return err
+		}
 
-	sigData, err := UnmarshalSignatureData(cdc, header.Signature)
-	if err != nil {
-		return err
-	}
+		sigData, err := UnmarshalSignatureData(cdc, msg.Signature)
+		if err != nil {
+			return err
+		}
 
-	publicKey, err := clientState.ConsensusState.GetPubKey()
-	if err != nil {
-		return err
-	}
+		publicKey, err := cs.ConsensusState.GetPubKey()
+		if err != nil {
+			return err
+		}
 
-	if err := VerifySignature(publicKey, data, sigData); err != nil {
-		return sdkerrors.Wrap(ErrInvalidHeader, err.Error())
-	}
+		if err := VerifySignature(publicKey, data, sigData); err != nil {
+			return sdkerrors.Wrap(ErrInvalidHeader, err.Error())
+		}
+	case *Misbehaviour:
+		// NOTE: a check that the misbehaviour message data are not equal is done by
+		// misbehaviour.ValidateBasic which is called by the 02-client keeper.
+		// verify first signature
+		if err := verifySignatureAndData(cdc, cs, msg, msg.SignatureOne); err != nil {
+			return sdkerrors.Wrap(err, "failed to verify signature one")
+		}
 
+		// verify second signature
+		if err := verifySignatureAndData(cdc, cs, msg, msg.SignatureTwo); err != nil {
+			return sdkerrors.Wrap(err, "failed to verify signature two")
+		}
+
+	default:
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected type %T, got type %T", Header{}, msg)
+	}
 	return nil
 }
 
