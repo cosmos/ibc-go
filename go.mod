@@ -6,13 +6,8 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 
 require (
 	github.com/armon/go-metrics v0.3.10
-<<<<<<< HEAD
 	github.com/confio/ics23/go v0.7.0
-	github.com/cosmos/cosmos-sdk v0.45.0
-=======
-	github.com/confio/ics23/go v0.6.6
 	github.com/cosmos/cosmos-sdk v0.45.1
->>>>>>> c378ff3 (build(deps): bump github.com/cosmos/cosmos-sdk from 0.45.0 to 0.45.1 (#851))
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
