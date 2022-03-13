@@ -58,7 +58,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		}
 	}
 
-	if err := validateClientMessage(&cs, ctx, clientStore, cdc, nil, misbehaviour, ctx.BlockTime()); err != nil {
+	if err := cs.ValidateClientMessage(ctx, clientStore, cdc, nil, misbehaviour, ctx.BlockTime()); err != nil {
 		return nil, err
 	}
 

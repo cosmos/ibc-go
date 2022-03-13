@@ -84,7 +84,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		)
 	}
 
-	if err := validateClientMessage(&cs, ctx, clientStore, cdc, trustedConsState, tmHeader, ctx.BlockTime()); err != nil {
+	if err := cs.ValidateClientMessage(ctx, clientStore, cdc, trustedConsState, tmHeader, ctx.BlockTime()); err != nil {
 		return nil, nil, err
 	}
 
@@ -162,9 +162,9 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 	return nil
 }
 
-// validateClientMessage checks if the clientMessage is of type Header or Misbehaviour and validates the message
-func validateClientMessage(
-	clientState *ClientState, ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, consState *ConsensusState,
+// ValidateClientMessage checks if the clientMessage is of type Header or Misbehaviour and validates the message
+func (cs *ClientState) ValidateClientMessage(
+	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, consState *ConsensusState,
 	header exported.ClientMessage, currentTimestamp time.Time,
 ) error {
 	switch header.(type) {
@@ -208,7 +208,7 @@ func validateClientMessage(
 			)
 		}
 
-		chainID := clientState.GetChainID()
+		chainID := cs.GetChainID()
 		// If chainID is in revision format, then set revision number of chainID with the revision number
 		// of the header we are verifying
 		// This is useful if the update is at a previous revision rather than an update to the latest revision
@@ -239,7 +239,7 @@ func validateClientMessage(
 		err = light.Verify(
 			&signedHeader,
 			tmTrustedValidators, tmSignedHeader, tmValidatorSet,
-			clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift, clientState.TrustLevel.ToTendermint(),
+			cs.TrustingPeriod, currentTimestamp, cs.MaxClockDrift, cs.TrustLevel.ToTendermint(),
 		)
 		if err != nil {
 			return sdkerrors.Wrap(err, "failed to verify header")
@@ -269,12 +269,12 @@ func validateClientMessage(
 		// misbehaviour.ValidateBasic by the client keeper and msg.ValidateBasic
 		// by the base application.
 		if err := checkMisbehaviourHeader(
-			clientState, tmConsensusState1, misbehaviour.Header1, ctx.BlockTime(),
+			cs, tmConsensusState1, misbehaviour.Header1, ctx.BlockTime(),
 		); err != nil {
 			return sdkerrors.Wrap(err, "verifying Header1 in Misbehaviour failed")
 		}
 		if err := checkMisbehaviourHeader(
-			clientState, tmConsensusState2, misbehaviour.Header2, ctx.BlockTime(),
+			cs, tmConsensusState2, misbehaviour.Header2, ctx.BlockTime(),
 		); err != nil {
 			return sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 		}
