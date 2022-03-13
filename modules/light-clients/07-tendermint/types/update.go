@@ -250,8 +250,7 @@ func (cs *ClientState) ValidateClientMessage(
 	return nil
 }
 
-// TODO: comment
-// CheckForMisbehaviour
+// CheckForMisbehaviour returns true with an optional error if a misbehaviour is found for the given Header or Misbehaviour type
 func (cs ClientState) CheckForMisbehaviour(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
 	msg exported.ClientMessage,
