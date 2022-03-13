@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta2"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -157,19 +157,19 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().True(found)
 
 				// Populate the gov keeper in advance with an active proposal
-				msg1, err := v1beta2.NewLegacyContent(v1beta1.NewTextProposal("Title", "description"), interchainAccountAddr)
+				msg1, err := govv1.NewLegacyContent(v1beta1.NewTextProposal("Title", "description"), interchainAccountAddr)
 				suite.Require().NoError(err)
 
-				proposal, err := v1beta2.NewProposal([]sdk.Msg{msg1}, 1, "testing, 1,2,3", time.Now(), time.Now())
+				proposal, err := govv1.NewProposal([]sdk.Msg{msg1}, 1, "testing, 1,2,3", time.Now(), time.Now())
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
 				suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
 
-				msg := &v1beta2.MsgVote{
-					ProposalId: v1beta2.DefaultStartingProposalID,
+				msg := &govv1.MsgVote{
+					ProposalId: govv1.DefaultStartingProposalID,
 					Voter:      interchainAccountAddr,
-					Option:     v1beta2.OptionYes,
+					Option:     govv1.OptionYes,
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})

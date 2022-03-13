@@ -65,7 +65,7 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	oldgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	newgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta2"
+	newgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
