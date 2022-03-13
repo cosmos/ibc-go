@@ -72,9 +72,9 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
-	foundMisbehaviour := cs.CheckForMisbehaviour(ctx, cdc, clientStore, header)
+	foundMisbehaviour, err := cs.CheckForMisbehaviour(ctx, cdc, clientStore, header)
 	if foundMisbehaviour {
-		return cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore)
+		return cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore), nil, err
 	}
 
 	// Check the earliest consensus state to see if it is expired, if so then set the prune height
@@ -255,7 +255,7 @@ func (cs *ClientState) ValidateClientMessage(
 func (cs ClientState) CheckForMisbehaviour(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
 	msg exported.ClientMessage,
-) bool {
+) (bool, error) {
 	switch msg.(type) {
 	case *Header:
 		tmHeader := msg.(*Header)
@@ -269,12 +269,12 @@ func (cs ClientState) CheckForMisbehaviour(
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
 			if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
-				return false
+				return false, nil
 			}
 
 			// A consensus state already exists for this height, but it does not match the provided header.
 			// The assumption is that Header has already been validated. Thus we can return true as misbehaviour is present
-			return true
+			return true, nil
 		}
 
 		// Check that consensus state timestamps are monotonic
@@ -283,34 +283,51 @@ func (cs ClientState) CheckForMisbehaviour(
 		// if previous consensus state exists, check consensus state time is greater than previous consensus state time
 		// if previous consensus state is not before current consensus state return true
 		if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
-			return true
+			return true, nil
 		}
 		// if next consensus state exists, check consensus state time is less than next consensus state time
 		// if next consensus state is not after current consensus state return true
 		if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
-			return true
+			return true, nil
 		}
 	case *Misbehaviour:
+		tmMisbehaviour := msg.(*Misbehaviour)
+
+		// if heights are equal check that this is valid misbehaviour of a fork
+		// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
+		if tmMisbehaviour.Header1.GetHeight().EQ(tmMisbehaviour.Header2.GetHeight()) {
+			blockID1, err := tmtypes.BlockIDFromProto(&tmMisbehaviour.Header1.SignedHeader.Commit.BlockID)
+			if err != nil {
+				return true, sdkerrors.Wrap(err, "invalid block ID from header 1 in misbehaviour")
+			}
+			blockID2, err := tmtypes.BlockIDFromProto(&tmMisbehaviour.Header2.SignedHeader.Commit.BlockID)
+			if err != nil {
+				return true, sdkerrors.Wrap(err, "invalid block ID from header 2 in misbehaviour")
+			}
+
+			// Ensure that Commit Hashes are different
+			if bytes.Equal(blockID1.Hash, blockID2.Hash) {
+				return true, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
+			}
+		} else {
+			// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
+			// Header2 time in order to be valid misbehaviour (violation of monotonic time).
+			if tmMisbehaviour.Header1.SignedHeader.Header.Time.After(tmMisbehaviour.Header2.SignedHeader.Header.Time) {
+				return true, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
+			}
+		}
 	}
 
-	return false
+	return false, nil
 }
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(
 	_ sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
-) (*ClientState, exported.ConsensusState, error) {
-	// get latest consensus state from clientStore to check for expiry
-	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
-	if err != nil {
-		// if the client state does not have an associated consensus state for its latest height
-		// then it must be expired
-		return &cs, nil, err
-	}
-
+) *ClientState {
 	cs.FrozenHeight = FrozenHeight
-	return &cs, consState, nil
+	return &cs
 }
 
 // update the consensus state from a new header and set processed time metadata
