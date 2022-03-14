@@ -362,6 +362,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				true,
 			},
 			{
+				"old misbehaviour is successful (timestamp is less than current consensus state)",
+				func() {
+					clientState = solomachine.ClientState()
+					solomachine.Time = solomachine.Time - 5
+					clientMsg = solomachine.CreateMisbehaviour()
+				}, true,
+			},
+			{
 				"invalid client message type",
 				func() {
 					clientMsg = &ibctmtypes.Header{}
