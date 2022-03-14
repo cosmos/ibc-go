@@ -79,7 +79,7 @@ func (cs ClientState) VerifyClientMessage(cdc codec.BinaryCodec, clientMsg expor
 		}
 
 	default:
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected type %T, got type %T", Header{}, msg)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type of %T or %T, got type %T", Header{}, Misbehaviour{}, msg)
 	}
 	return nil
 }
