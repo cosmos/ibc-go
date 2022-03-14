@@ -130,13 +130,6 @@ message Misbehaviour {
   Header header_2 = 3 [(gogoproto.customname) = "Header2", (gogoproto.moretags) = "yaml:\"header_2\""];
 }
 
-// Timestamp extrinsic data
-message TimestampExtrinsic {
-  // trie merkle proof of inclusion in header.extrinsic_root
-  // this already encodes the actual extrinsic
-  repeated bytes extrinsic_proof = 1;
-}
-
 // Header contains the neccessary data to proove finality about IBC commitments
 message Header {
   option (gogoproto.goproto_getters) = false;
@@ -176,8 +169,9 @@ message ParachainHeader {
   // total number of para heads in parachain_heads_root
   uint32 heads_total_count = 6;
 
-  // data needed to provide timestamp for ConsensusState
-  TimestampExtrinsic timestamp = 7;
+  // trie merkle proof of inclusion in header.extrinsic_root
+  // this already encodes the actual extrinsic
+  repeated bytes extrinsic_proof = 7;
 }
 
 // Partial data for MmrLeaf

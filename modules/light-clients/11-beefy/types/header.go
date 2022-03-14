@@ -57,14 +57,12 @@ func (h Header) ConsensusState() *ConsensusState {
 		log.Fatal(err)
 	}
 
-	timestamp, err := DecodeExtrinsicTimestamp(h.ParachainHeaders[0].Timestamp.Extrinsic)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return &ConsensusState{
 		Root:      rootHash,
-		Timestamp: timestamp,
 	}
 }
 
