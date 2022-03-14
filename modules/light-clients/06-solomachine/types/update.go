@@ -23,7 +23,14 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
-	smHeader := msg.(*Header)
+	// TODO: Remove this type assertion, replace with misbehaviour checking and update state
+	smHeader, ok := msg.(*Header)
+	if !ok {
+		return nil, nil, sdkerrors.Wrapf(
+			clienttypes.ErrInvalidHeader, "expected %T, got %T", &Header{}, msg,
+		)
+	}
+
 	clientState, consensusState := update(&cs, smHeader)
 	return clientState, consensusState, nil
 }
@@ -81,7 +88,7 @@ func (cs ClientState) VerifyClientMessage(cdc codec.BinaryCodec, clientMsg expor
 		}
 
 	default:
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected type %T, got type %T", Header{}, msg)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type of %T or %T, got type %T", Header{}, Misbehaviour{}, msg)
 	}
 	return nil
 }
