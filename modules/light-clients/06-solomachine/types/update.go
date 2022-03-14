@@ -94,15 +94,11 @@ func (cs ClientState) CheckForMisbehaviour(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
 	msg exported.Header, // TODO: Update to exported.ClientMessage
 ) bool {
-	var foundMisbehaviour bool
-	switch msg.(type) {
-	case *Header:
-		foundMisbehaviour = false
-	case *Misbehaviour:
-		foundMisbehaviour = true
+	if _, ok := msg.(*Misbehaviour); ok {
+		return true
 	}
 
-	return foundMisbehaviour
+	return false
 }
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour

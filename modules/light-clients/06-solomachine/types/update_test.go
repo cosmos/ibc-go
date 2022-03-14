@@ -181,6 +181,93 @@ func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 	}
 }
 
+func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
+	var (
+		clientMsg   exported.Header // TODO: Update to ClientMessage interface
+		clientState exported.ClientState
+	)
+
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		testCases := []struct {
+			name     string
+			malleate func()
+			expPass  bool
+		}{
+			{
+				"success",
+				func() {
+					clientMsg = solomachine.CreateMisbehaviour()
+				},
+				true,
+			},
+			{
+				"normal header returns false",
+				func() {
+					clientMsg = solomachine.CreateHeader()
+				},
+				false,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				clientState = solomachine.ClientState()
+
+				tc.malleate()
+
+				// TODO: Remove type assertion when ClientState interface includes CheckForMisbehaviour
+				smClientState, ok := clientState.(*types.ClientState)
+				if ok {
+					foundMisbehaviour := smClientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, nil, clientMsg)
+
+					if tc.expPass {
+						suite.Require().True(foundMisbehaviour)
+					} else {
+						suite.Require().False(foundMisbehaviour)
+					}
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		testCases := []struct {
+			name     string
+			malleate func()
+			expPass  bool
+		}{
+			{
+				"success",
+				func() {},
+				true,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				clientState := solomachine.ClientState()
+
+				tc.malleate()
+
+				// TODO: Update to pass client store and make assertions on state changes
+				cs, _, _ := clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, nil)
+
+				if tc.expPass {
+					suite.Require().True(cs.IsFrozen)
+				}
+			})
+		}
+	}
+}
+
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
 		clientMsg   exported.Header // TODO: Update to ClientMessage interface
