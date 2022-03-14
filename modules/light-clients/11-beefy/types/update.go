@@ -17,11 +17,6 @@ import (
 
 type Keccak256 struct{}
 
-type ParaIdAndHead struct {
-	ParaId uint32
-	Header []byte
-}
-
 func (b Keccak256) Merge(left, right interface{}) interface{} {
 	l := left.([]byte)
 	r := right.([]byte)
@@ -77,7 +72,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 	if beefyHeader.MmrUpdateProof != nil {
 		var (
 			mmrUpdateProof   = beefyHeader.MmrUpdateProof
-			proof            = beefyHeader.MmrUpdateProof.AuthoritiesProof
+			authoritiesProof = beefyHeader.MmrUpdateProof.AuthoritiesProof
 			signedCommitment = beefyHeader.MmrUpdateProof.SignedCommitment
 		)
 
@@ -137,7 +132,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		case cs.Authority.Id:
 			// here we construct a merkle proof, and verify that the public keys which produced this signature
 			// are part of the current round.
-			authoritiesProof := merkle.NewProof(authorityLeaves, proof, cs.Authority.Len, Keccak256{})
+			authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, Keccak256{})
 			valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
 			if err != nil || !valid {
 				// todo: error unknown authority set!
@@ -146,7 +141,7 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 
 		// new authority set has kicked in
 		case cs.NextAuthoritySet.Id:
-			authoritiesProof := merkle.NewProof(authorityLeaves, proof, cs.NextAuthoritySet.Len, Keccak256{})
+			authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, Keccak256{})
 			valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
 			if err != nil || !valid {
 				// todo: error unknown authority set!
@@ -198,7 +193,8 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 	}
 
 	var mmrLeaves = make([]mmr.Leaf, len(beefyHeader.ParachainHeaders))
-	var paraHeads = make([][]byte, len(beefyHeader.ParachainHeaders))
+	// for debug purposes
+	var mmrLeavesRaw = make([]BeefyMmrLeaf, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
 	for i := 0; i < len(beefyHeader.ParachainHeaders); i++ {
@@ -238,7 +234,8 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 			},
 			ParachainHeads: &ParachainHeads,
 		}
-		paraHeads[i] = ParachainHeadsRoot
+		// for debug purposes
+		mmrLeavesRaw[i] = mmrLeaf
 
 		// the mmr leafs are a scale-encoded
 		mmrLeafBytes, err := Encode(mmrLeaf)

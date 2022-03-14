@@ -308,7 +308,6 @@
     - [ParachainHeader](#ibc.lightclients.beefy.v1.ParachainHeader)
     - [PayloadItem](#ibc.lightclients.beefy.v1.PayloadItem)
     - [SignedCommitment](#ibc.lightclients.beefy.v1.SignedCommitment)
-    - [TimestampExtrinsic](#ibc.lightclients.beefy.v1.TimestampExtrinsic)
   
 - [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
     - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
@@ -4592,7 +4591,7 @@ data needed to prove parachain header inclusion in mmr.
 | `parachain_heads_proof` | [bytes](#bytes) | repeated | proofs for our header in the parachain heads root |
 | `heads_leaf_index` | [uint32](#uint32) |  | leaf index for parachain heads proof |
 | `heads_total_count` | [uint32](#uint32) |  | total number of para heads in parachain_heads_root |
-| `timestamp` | [TimestampExtrinsic](#ibc.lightclients.beefy.v1.TimestampExtrinsic) |  | data needed to provide timestamp for ConsensusState |
+| `extrinsic_proof` | [bytes](#bytes) | repeated | trie merkle proof of inclusion in header.extrinsic_root this already encodes the actual extrinsic |
 
 
 
@@ -4625,21 +4624,6 @@ signed commitment data
 | ----- | ---- | ----- | ----------- |
 | `commitment` | [Commitment](#ibc.lightclients.beefy.v1.Commitment) |  | commitment data being signed |
 | `signatures` | [CommitmentSignature](#ibc.lightclients.beefy.v1.CommitmentSignature) | repeated | gotten from rpc subscription |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.TimestampExtrinsic"></a>
-
-### TimestampExtrinsic
-Timestamp extrinsic data
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `extrinsic_proof` | [bytes](#bytes) | repeated | trie merkle proof of inclusion in header.extrinsic_root this already encodes the actual extrinsic |
 
 
 
