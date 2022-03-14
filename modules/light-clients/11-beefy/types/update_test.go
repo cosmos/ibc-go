@@ -31,7 +31,7 @@ const PARA_ID = 2000
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
 
-	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:65353")
+	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
 	if err != nil {
 		panic(err)
 	}
