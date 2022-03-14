@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -110,35 +111,10 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return &cs, consState, nil
 	}
 
-	// Check the earliest consensus state to see if it is expired, if so then set the prune height
-	// so that we can delete consensus state and all associated metadata.
-	var (
-		pruneHeight exported.Height
-		pruneError  error
-	)
-	pruneCb := func(height exported.Height) bool {
-		consState, err := GetConsensusState(clientStore, cdc, height)
-		// this error should never occur
-		if err != nil {
-			pruneError = err
-			return true
-		}
-		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
-			pruneHeight = height
-		}
-		return true
+	newClientState, consensusState, err := cs.UpdateState(ctx, cdc, clientStore, tmHeader)
+	if err != nil {
+		return nil, nil, err
 	}
-	IterateConsensusStateAscending(clientStore, pruneCb)
-	if pruneError != nil {
-		return nil, nil, pruneError
-	}
-	// if pruneHeight is set, delete consensus state and metadata
-	if pruneHeight != nil {
-		deleteConsensusState(clientStore, pruneHeight)
-		deleteConsensusMetadata(clientStore, pruneHeight)
-	}
-
-	newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
 	return newClientState, consensusState, nil
 }
 
@@ -244,11 +220,24 @@ func checkValidity(
 	return nil
 }
 
-// update the consensus state from a new header and set processed time metadata
-func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
+// UpdateState sets the consensus state associated with the provided header and sets the consensus metadata.
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) (*ClientState, *ConsensusState, error) {
+	header, ok := msg.(*Header)
+	if !ok {
+		panic(fmt.Sprintf("client state can only be updated with a Header: expected %T, got %T)", &Header{}, msg))
+	}
+
+	// check for duplicate update
+	if consensusState, err := GetConsensusState(clientStore, cdc, header.GetHeight()); err != nil {
+		// perform no-op
+		return &cs, consensusState, nil
+	}
+
+	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+
 	height := header.GetHeight().(clienttypes.Height)
-	if height.GT(clientState.LatestHeight) {
-		clientState.LatestHeight = height
+	if height.GT(cs.LatestHeight) {
+		cs.LatestHeight = height
 	}
 	consensusState := &ConsensusState{
 		Timestamp:          header.GetTime(),
@@ -259,5 +248,37 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 	// set metadata for this consensus state
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
-	return clientState, consensusState
+	return &cs, consensusState, nil
+}
+
+// pruneOldestConsensusState attempts to prune the oldest consensus state. The consensus state will only be pruned
+// if it is expired.
+func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
+	// Check the earliest consensus state to see if it is expired, if so then set the prune height
+	// so that we can delete consensus state and all associated metadata.
+	var (
+		pruneHeight exported.Height
+		pruneError  error
+	)
+	pruneCb := func(height exported.Height) bool {
+		consState, err := GetConsensusState(clientStore, cdc, height)
+		// this error should never occur
+		if err != nil {
+			pruneError = err
+			return true
+		}
+		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+			pruneHeight = height
+		}
+		return true
+	}
+	IterateConsensusStateAscending(clientStore, pruneCb)
+	if pruneError != nil {
+		panic(pruneError)
+	}
+	// if pruneHeight is set, delete consensus state and metadata
+	if pruneHeight != nil {
+		deleteConsensusState(clientStore, pruneHeight)
+		deleteConsensusMetadata(clientStore, pruneHeight)
+	}
 }
