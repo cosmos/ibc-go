@@ -328,7 +328,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.Codec, clientMsg)
+				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, nil, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -560,7 +560,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.Codec, clientMsg)
+				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, nil, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
