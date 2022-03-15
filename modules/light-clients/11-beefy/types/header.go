@@ -7,9 +7,8 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
-	"github.com/ComposableFi/go-substrate-rpc-client/v4/types"
-	substrateTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
+	ics02 "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
@@ -19,19 +18,19 @@ const revisionNumber = 0
 
 // DecodeParachainHeader decodes an encoded substrate header to a concrete Header type. It takes encoded bytes
 // as an argument and returns a concrete substrate Header type.
-func DecodeParachainHeader(hb []byte) (substrateTypes.Header, error) {
-	h := substrateTypes.Header{}
-	err := types.DecodeFromBytes(hb, &h)
+func DecodeParachainHeader(hb []byte) (substrate.Header, error) {
+	h := substrate.Header{}
+	err := substrate.DecodeFromBytes(hb, &h)
 	if err != nil {
-		return substrateTypes.Header{}, err
+		return substrate.Header{}, err
 	}
 	return h, nil
 }
 
 // DecodeExtrinsicTimestamp decodes a scale encoded timestamp to a time.Time type
 func DecodeExtrinsicTimestamp(encodedExtrinsic []byte) (time.Time, error) {
-	var extrinsic substrateTypes.Extrinsic
-	decodeErr := types.DecodeFromBytes(encodedExtrinsic, &extrinsic)
+	var extrinsic substrate.Extrinsic
+	decodeErr := substrate.DecodeFromBytes(encodedExtrinsic, &extrinsic)
 	if decodeErr != nil {
 		return time.Time{}, decodeErr
 	}
@@ -62,7 +61,7 @@ func (h Header) ConsensusState() *ConsensusState {
 	}
 
 	return &ConsensusState{
-		Root:      rootHash,
+		Root: rootHash,
 	}
 }
 
@@ -79,7 +78,7 @@ func (h Header) GetHeight() exported.Height {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return clienttypes.NewHeight(revisionNumber, uint64(parachainHeader.Number))
+	return ics02.NewHeight(revisionNumber, uint64(parachainHeader.Number))
 }
 
 // ValidateBasic calls the SignedHeader ValidateBasic function and checks
@@ -94,7 +93,7 @@ func (h Header) ValidateBasic() error {
 		}
 
 		rootHash := decHeader.ExtrinsicsRoot[:]
-		extrinsicsProof := header.Timestamp.ExtrinsicProof
+		extrinsicsProof := header.ExtrinsicProof
 
 		key := make([]byte, 4)
 		binary.LittleEndian.PutUint32(key, 0)
