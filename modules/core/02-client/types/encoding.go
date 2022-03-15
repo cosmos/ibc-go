@@ -91,7 +91,7 @@ func MarshalClientMessage(cdc codec.BinaryCodec, clientMessage exported.ClientMe
 	return cdc.MarshalInterface(clientMessage)
 }
 
-// MustMarshalClientMessage attempts to encode a Header object and returns the
+// MustMarshalClientMessage attempts to encode a ClientMessage object and returns the
 // raw encoded bytes. It panics on error.
 func MustMarshalClientMessage(cdc codec.BinaryCodec, clientMessage exported.ClientMessage) []byte {
 	bz, err := MarshalClientMessage(cdc, clientMessage)
