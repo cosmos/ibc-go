@@ -102,6 +102,33 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
 
+## [v1.4.0](https://github.com/cosmos/ibc-go/releases/tag/v1.4.0) - 2022-03-15
+
+### Dependencies
+
+* [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
+
+## [v1.3.0](https://github.com/cosmos/ibc-go/releases/tag/v1.3.0) - 2022-03-15
+
+### Dependencies
+
+* [\#1073](https://github.com/cosmos/ibc-go/pull/1073) Bump SDK version to v0.44.6
+* [\#948](https://github.com/cosmos/ibc-go/pull/948) Bump ics23/go to v0.7
+
+### State Machine Breaking
+
+* (transfer) [\#818](https://github.com/cosmos/ibc-go/pull/818) Error acknowledgements returned from Transfer `OnRecvPacket` now include a deterministic ABCI code and error message.
+
+### Features
+
+* [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
+
+### Bug Fixes
+
+* (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
+* (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
+* (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
 ## [v1.2.6](https://github.com/cosmos/ibc-go/releases/tag/v1.2.6) - 2022-01-25
 
 ### Improvements
