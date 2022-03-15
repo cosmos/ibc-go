@@ -45,7 +45,7 @@ func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 		height1         clienttypes.Height
 		consensusState2 exported.ConsensusState
 		height2         clienttypes.Height
-		misbehaviour    exported.Misbehaviour
+		misbehaviour   exported.ClientMessage 
 		timestamp       time.Time
 		expPass         bool
 	}{
