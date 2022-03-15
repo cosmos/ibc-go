@@ -253,14 +253,8 @@ A router could be used, or more simply a switch statement.
 
 ```go
 func handler(msgData sdk.MsgData) error {
-sdkMsgs := []sdk.Msg{
-	&banktypes.MsgSend{}, 
-	&stakingtypes.MsgDelegate{}, 
-	&transfertypes.MsgTransfer{},
-}
-
 switch msgData.MsgType {
-case sdk.MsgTypeURL(sdkMsgs[0]):
+case sdk.MsgTypeURL(&banktypes.MsgSend{}):
     msgResponse := &banktypes.MsgSendResponse{}
     if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
         return err
@@ -268,7 +262,7 @@ case sdk.MsgTypeURL(sdkMsgs[0]):
 
     handleBankSendMsg(msgResponse)
 
-case sdk.MsgTypeURL(sdkMsgs[1]):
+case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
     msgResponse := &stakingtypes.MsgDelegateResponse{}
     if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
         return err
@@ -276,7 +270,7 @@ case sdk.MsgTypeURL(sdkMsgs[1]):
 
     handleStakingDelegateMsg(msgResponse)
 
-case sdk.MsgTypeURL(sdkMsgs[2]):
+case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
     msgResponse := &transfertypes.MsgTransferResponse{}
     if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
         return err
