@@ -10,7 +10,7 @@ import (
 func (suite *SoloMachineTestSuite) TestCheckMisbehaviourAndUpdateState() {
 	var (
 		clientState  exported.ClientState
-		misbehaviour exported.Misbehaviour
+		misbehaviour exported.ClientMessage
 	)
 
 	// test singlesig and multisig public keys

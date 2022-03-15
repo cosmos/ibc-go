@@ -691,7 +691,7 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 			bz, err := hex.DecodeString(string(attr.Value))
 			suite.Require().NoError(err)
 
-			emittedHeader, err := types.UnmarshalHeader(suite.chainA.App.AppCodec(), bz)
+			emittedHeader, err := types.UnmarshalClientMessage(suite.chainA.App.AppCodec(), bz)
 			suite.Require().NoError(err)
 			suite.Require().Equal(header, emittedHeader)
 		}
