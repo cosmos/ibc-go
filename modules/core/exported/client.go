@@ -194,7 +194,9 @@ type ConsensusState interface {
 	ValidateBasic() error
 }
 
-// ClientMessage is an interface used for Header and Misbehaviour implementations
+// ClientMessage is an interface used to update an IBC client.
+// The update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces
+// a change to state of the IBC client
 type ClientMessage interface {
 	proto.Message
 
