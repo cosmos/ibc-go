@@ -131,7 +131,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	var header exported.Header
+	var header exported.ClientMessage
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:

@@ -19,7 +19,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
 	clientStore sdk.KVStore,
-	misbehaviour exported.Misbehaviour,
+	misbehaviour exported.ClientMessage,
 ) (exported.ClientState, error) {
 
 	soloMisbehaviour, ok := misbehaviour.(*Misbehaviour)

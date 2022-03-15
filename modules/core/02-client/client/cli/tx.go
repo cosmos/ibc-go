@@ -100,7 +100,7 @@ func NewUpdateClientCmd() *cobra.Command {
 
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			var header exported.Header
+			var header exported.ClientMessage
 			headerContentOrFileName := args[1]
 			if err := cdc.UnmarshalInterfaceJSON([]byte(headerContentOrFileName), &header); err != nil {
 
@@ -141,7 +141,7 @@ func NewSubmitMisbehaviourCmd() *cobra.Command {
 			}
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			var misbehaviour exported.Misbehaviour
+			var misbehaviour exported.ClientMessage
 			clientID := args[0]
 			misbehaviourContentOrFileName := args[1]
 			if err := cdc.UnmarshalInterfaceJSON([]byte(misbehaviourContentOrFileName), &misbehaviour); err != nil {

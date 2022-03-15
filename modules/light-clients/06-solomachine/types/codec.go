@@ -22,11 +22,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&ConsensusState{},
 	)
 	registry.RegisterImplementations(
-		(*exported.Header)(nil),
+		(*exported.ClientMessage)(nil),
 		&Header{},
 	)
 	registry.RegisterImplementations(
-		(*exported.Misbehaviour)(nil),
+		(*exported.ClientMessage)(nil),
 		&Misbehaviour{},
 	)
 }

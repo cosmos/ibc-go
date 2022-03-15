@@ -45,7 +45,7 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	header, err := clienttypes.UnpackHeader(msg.Header)
+	header, err := clienttypes.UnpackClientMessage(msg.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	misbehaviour, err := clienttypes.UnpackMisbehaviour(msg.Misbehaviour)
+	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
 	if err != nil {
 		return nil, err
 	}

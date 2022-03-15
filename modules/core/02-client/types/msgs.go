@@ -5,8 +5,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // message types for the IBC client
@@ -30,11 +30,11 @@ var (
 )
 
 // NewMsgCreateClient creates a new MsgCreateClient instance
-//
 //nolint:interfacer
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
 ) (*MsgCreateClient, error) {
+
 	anyClientState, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err
@@ -64,6 +64,9 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	}
 	if err := clientState.Validate(); err != nil {
 		return err
+	}
+	if clientState.ClientType() == exported.Localhost {
+		return sdkerrors.Wrap(ErrInvalidClient, "localhost client can only be created on chain initialization")
 	}
 	consensusState, err := UnpackConsensusState(msg.ConsensusState)
 	if err != nil {
@@ -100,18 +103,17 @@ func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 }
 
 // NewMsgUpdateClient creates a new MsgUpdateClient instance
-//
 //nolint:interfacer
-func NewMsgUpdateClient(id string, clientMsg exported.ClientMessage, signer string) (*MsgUpdateClient, error) {
-	anyClientMsg, err := PackClientMessage(clientMsg)
+func NewMsgUpdateClient(id string, header exported.ClientMessage, signer string) (*MsgUpdateClient, error) {
+	anyHeader, err := PackClientMessage(header)
 	if err != nil {
 		return nil, err
 	}
 
 	return &MsgUpdateClient{
-		ClientId:      id,
-		ClientMessage: anyClientMsg,
-		Signer:        signer,
+		ClientId: id,
+		Header:   anyHeader,
+		Signer:   signer,
 	}, nil
 }
 
@@ -121,12 +123,15 @@ func (msg MsgUpdateClient) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	clientMsg, err := UnpackClientMessage(msg.ClientMessage)
+	header, err := UnpackClientMessage(msg.Header)
 	if err != nil {
 		return err
 	}
-	if err := clientMsg.ValidateBasic(); err != nil {
+	if err := header.ValidateBasic(); err != nil {
 		return err
+	}
+	if msg.ClientId == exported.Localhost {
+		return sdkerrors.Wrap(ErrInvalidClient, "localhost client is only updated on ABCI BeginBlock")
 	}
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
@@ -142,16 +147,14 @@ func (msg MsgUpdateClient) GetSigners() []sdk.AccAddress {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var clientMsg exported.ClientMessage
-	return unpacker.UnpackAny(msg.ClientMessage, &clientMsg)
+	var header exported.ClientMessage
+	return unpacker.UnpackAny(msg.Header, &header)
 }
 
 // NewMsgUpgradeClient creates a new MsgUpgradeClient instance
-//
-//nolint:interfacer
+// nolint: interfacer
 func NewMsgUpgradeClient(clientID string, clientState exported.ClientState, consState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte, signer string,
-) (*MsgUpgradeClient, error) {
+	proofUpgradeClient, proofUpgradeConsState []byte, signer string) (*MsgUpgradeClient, error) {
 	anyClient, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err
@@ -225,7 +228,6 @@ func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 }
 
 // NewMsgSubmitMisbehaviour creates a new MsgSubmitMisbehaviour instance.
-//
 //nolint:interfacer
 func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.ClientMessage, signer string) (*MsgSubmitMisbehaviour, error) {
 	anyMisbehaviour, err := PackClientMessage(misbehaviour)
