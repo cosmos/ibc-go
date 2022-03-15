@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Misbehaviour = &Misbehaviour{}
+var _ exported.ClientMessage = &Misbehaviour{}
 
 // ClientType is a Solo Machine light client.
 func (misbehaviour Misbehaviour) ClientType() string {
@@ -20,12 +20,6 @@ func (misbehaviour Misbehaviour) ClientType() string {
 // Type implements Misbehaviour interface.
 func (misbehaviour Misbehaviour) Type() string {
 	return exported.TypeClientMisbehaviour
-}
-
-// TODO: Remove GetHeight() when new interface type ClientMessage is introduced
-// GetHeight implements the exported.Header interface
-func (misbehaviour Misbehaviour) GetHeight() exported.Height {
-	return nil
 }
 
 // ValidateBasic implements Misbehaviour interface.
@@ -74,5 +68,11 @@ func (sd SignatureAndData) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "timestamp cannot be 0")
 	}
 
+	return nil
+}
+
+// TODO: Remove GetHeight()
+// GetHeight implements the curret exported.Header interface, to be updated
+func (misbehaviour Misbehaviour) GetHeight() exported.Height {
 	return nil
 }

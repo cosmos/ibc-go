@@ -17,7 +17,7 @@ import (
 // - the currently registered public key did not provide the update signature
 func (cs ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
-	msg exported.Header, // TODO: Update to exported.ClientMessage
+	msg exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	if err := cs.VerifyClientMessage(ctx, cdc, clientStore, msg); err != nil {
 		return nil, nil, err
@@ -36,7 +36,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 }
 
 // VerifyClientMessage checks if the Solo Machine update signature(s) is valid.
-func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.Header) error {
+func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	switch msg := clientMsg.(type) {
 	case *Header:
 		return cs.verifyHeader(ctx, cdc, clientStore, msg)

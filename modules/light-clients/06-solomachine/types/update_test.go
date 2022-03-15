@@ -13,7 +13,7 @@ import (
 func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 	var (
 		clientState exported.ClientState
-		header      exported.Header
+		header      exported.ClientMessage
 	)
 
 	// test singlesig and multisig public keys
@@ -183,7 +183,7 @@ func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
-		clientMsg   exported.Header // TODO: Update to ClientMessage interface
+		clientMsg   exported.ClientMessage
 		clientState *types.ClientState
 	)
 
@@ -342,7 +342,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 	var (
-		clientMsg   exported.Header // TODO: Update to ClientMessage interface
+		clientMsg   exported.ClientMessage
 		clientState *types.ClientState
 	)
 
