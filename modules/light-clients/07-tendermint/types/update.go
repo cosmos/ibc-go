@@ -207,7 +207,6 @@ func checkValidity(
 	return nil
 }
 
-// UpdateState sets the consensus state associated with the provided header and sets the consensus metadata.
 // UpdateState may be used to either create a consensus state for:
 // - a future height greater than the latest client state height
 // - a past height that was skipped during bisection
