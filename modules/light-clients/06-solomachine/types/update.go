@@ -35,7 +35,9 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	return clientState, consensusState, nil
 }
 
-// VerifyClientMessage checks if the Solo Machine update signature(s) is valid.
+// VerifyClientMessage introspects the provided ClientMessage and checks its validity
+// A Solomachine Header is considered valid if the currently registered public key has signed over the new public key with the correct sequence
+// A Solomachine Misbehaviour is considered valid if duplicate signatures of the current public key are found on two different messages at a given sequence
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	switch msg := clientMsg.(type) {
 	case *Header:
