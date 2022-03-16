@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"time"
 
@@ -218,10 +217,10 @@ func checkValidity(
 // UpdateState must only be used to update within a single revision, thus header revision number and trusted height's revision
 // number must be the same. To update to a new revision, use a separate upgrade path
 // UpdateState will prune the oldest consensus state if it is expired.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) (*ClientState, *ConsensusState, error) {
-	header, ok := msg.(*Header)
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) (*ClientState, *ConsensusState, error) {
+	header, ok := clientMsg.(*Header)
 	if !ok {
-		panic(fmt.Sprintf("client state can only be updated with a Header: expected %T, got %T)", &Header{}, msg))
+		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, header)
 	}
 
 	// check for duplicate update
