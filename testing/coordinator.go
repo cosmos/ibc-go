@@ -117,7 +117,8 @@ func (coord *Coordinator) CreateConnections(path *Path) {
 	require.NoError(coord.T, err)
 
 	// ensure counterparty is up to date
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	require.NoError(coord.T, err)
 }
 
 // CreateMockChannels constructs and executes channel handshake messages to create OPEN
@@ -158,7 +159,8 @@ func (coord *Coordinator) CreateChannels(path *Path) {
 	require.NoError(coord.T, err)
 
 	// ensure counterparty is up to date
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	require.NoError(coord.T, err)
 }
 
 // GetChain returns the TestChain using the given chainID and returns an error if it does
@@ -209,11 +211,7 @@ func (coord *Coordinator) ConnOpenInitOnBothChains(path *Path) error {
 		return err
 	}
 
-	if err := path.EndpointB.UpdateClient(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.UpdateClient()
 }
 
 // ChanOpenInitOnBothChains initializes a channel on the source chain and counterparty chain
@@ -234,9 +232,5 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(path *Path) error {
 		return err
 	}
 
-	if err := path.EndpointB.UpdateClient(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.UpdateClient()
 }

@@ -33,17 +33,23 @@ Please see the [ICS27 documentation](../apps/interchain-accounts/overview.md) fo
 If the chain will adopt ICS27, it must set the appropriate params during the execution of the upgrade handler in `app.go`: 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("v3",
-    func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-        // set ICS27 Host submodule params
-        app.ICAHostKeeper.SetParams(ctx, icahosttypes.Params{
-            HostEnabled: true, 
-            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...], 
-        })
-
-        // set ICS27 Controller submodule params
-        app.ICAControllerKeeper.SetParams(ctx, icacontrollertypes.Params{
+    func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+        // set the ICS27 consensus version so InitGenesis is not run
+        fromVM[icatypes.ModuleName] = icamodule.ConsensusVersion()
+        
+        // create ICS27 Controller submodule params
+        controllerParams := icacontrollertypes.Params{
             ControllerEnabled: true, 
-        })
+        }
+
+        // create ICS27 Host submodule params
+        hostParams := icahosttypes.Params{
+            HostEnabled: true, 
+            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
+        }
+        
+        // initialize ICS27 module
+        icamodule.InitModule(ctx, controllerParams, hostParams)
         
         ...
 
@@ -52,8 +58,27 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
 
 ```
 
-The host and controller submodule params only need to be set if you integrate those submodules. 
-For example, if a chain chooses not to integrate a controller submodule, it does not need to set the controller params. 
+The host and controller submodule params only need to be set if the chain integrates those submodules. 
+For example, if a chain chooses not to integrate a controller submodule, it may pass empty params into `InitModule`.
+
+#### Add `StoreUpgrades` for ICS27 module
+
+For ICS27 it is also necessary to [manually add store upgrades](https://docs.cosmos.network/v0.44/core/upgrade.html#add-storeupgrades-for-new-modules) for the new ICS27 module and then configure the store loader to apply those upgrades in `app.go`:
+
+```go
+if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+    storeUpgrades := store.StoreUpgrades{
+        Added: []string{icacontrollertypes.StoreKey, icahosttypes.StoreKey},
+    }
+
+    app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+}
+```
+
+This ensures that the new module's stores are added to the multistore before the migrations begin. 
+The host and controller submodule keys only need to be added if the chain integrates those submodules.
+For example, if a chain chooses not to integrate a controller submodule, it does not need to add the controller key to the `Added` field.
+
 
 ### Genesis migrations
 
@@ -72,13 +97,29 @@ The migration code required may look like:
     // overwrite parameters as desired
     hostGenesisState.Params = icahosttypes.Params{
         HostEnabled: true, 
-        AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...], 
+        AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
     }
 
     icaGenesisState := icatypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
     // set new ics27 genesis state
     appState[icatypes.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(icaGenesisState)
+```
+
+### Ante decorator
+
+The field of type `channelkeeper.Keeper` in the `AnteDecorator` structure has been replaced with a field of type `*keeper.Keeper`:
+
+```diff
+type AnteDecorator struct {
+-    k channelkeeper.Keeper
++    k *keeper.Keeper
+}
+
+- func NewAnteDecorator(k channelkeeper.Keeper) AnteDecorator {
++ func NewAnteDecorator(k *keeper.Keeper) AnteDecorator {
+    return AnteDecorator{k: k}
+}
 ```
 
 ## IBC Apps
@@ -91,6 +132,10 @@ The return signature now includes the application version.
 IBC applications must perform application version negoitation in `OnChanOpenTry` using the counterparty version. 
 The negotiated application version then must be returned in `OnChanOpenTry` to core IBC.
 Core IBC will set this version in the TRYOPEN channel.
+
+### `OnChanOpenAck` will take additional `counterpartyChannelID` argument
+The `OnChanOpenAck` application callback has been modified.
+The arguments now include the counterparty channel id.
 
 ### `NegotiateAppVersion` removed from `IBCModule` interface
 
