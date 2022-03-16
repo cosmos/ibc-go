@@ -13,7 +13,7 @@ import (
 func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 	var (
 		clientState exported.ClientState
-		header      exported.Header
+		header      exported.ClientMessage
 	)
 
 	// test singlesig and multisig public keys
@@ -181,96 +181,9 @@ func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
-	var (
-		clientMsg   exported.Header // TODO: Update to ClientMessage interface
-		clientState exported.ClientState
-	)
-
-	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-		testCases := []struct {
-			name     string
-			malleate func()
-			expPass  bool
-		}{
-			{
-				"success",
-				func() {
-					clientMsg = solomachine.CreateMisbehaviour()
-				},
-				true,
-			},
-			{
-				"normal header returns false",
-				func() {
-					clientMsg = solomachine.CreateHeader()
-				},
-				false,
-			},
-		}
-
-		for _, tc := range testCases {
-			tc := tc
-
-			suite.Run(tc.name, func() {
-				clientState = solomachine.ClientState()
-
-				tc.malleate()
-
-				// TODO: Remove type assertion when ClientState interface includes CheckForMisbehaviour
-				smClientState, ok := clientState.(*types.ClientState)
-				if ok {
-					foundMisbehaviour := smClientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, nil, clientMsg)
-
-					if tc.expPass {
-						suite.Require().True(foundMisbehaviour)
-					} else {
-						suite.Require().False(foundMisbehaviour)
-					}
-				}
-			})
-		}
-	}
-}
-
-func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
-	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-		testCases := []struct {
-			name     string
-			malleate func()
-			expPass  bool
-		}{
-			{
-				"success",
-				func() {},
-				true,
-			},
-		}
-
-		for _, tc := range testCases {
-			tc := tc
-
-			suite.Run(tc.name, func() {
-				clientState := solomachine.ClientState()
-
-				tc.malleate()
-
-				// TODO: Update to pass client store and make assertions on state changes
-				cs, _, _ := clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, nil)
-
-				if tc.expPass {
-					suite.Require().True(cs.IsFrozen)
-				}
-			})
-		}
-	}
-}
-
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
-		clientMsg   exported.Header // TODO: Update to ClientMessage interface
+		clientMsg   exported.ClientMessage
 		clientState *types.ClientState
 	)
 
@@ -415,7 +328,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.Codec, clientMsg)
+				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -429,7 +342,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 	var (
-		clientMsg   exported.Header // TODO: Update to ClientMessage interface
+		clientMsg   exported.ClientMessage
 		clientState *types.ClientState
 	)
 
@@ -447,6 +360,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					clientMsg = solomachine.CreateMisbehaviour()
 				},
 				true,
+			},
+			{
+				"old misbehaviour is successful (timestamp is less than current consensus state)",
+				func() {
+					clientState = solomachine.ClientState()
+					solomachine.Time = solomachine.Time - 5
+					clientMsg = solomachine.CreateMisbehaviour()
+				}, true,
 			},
 			{
 				"invalid client message type",
@@ -639,12 +560,147 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.Codec, clientMsg)
+				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestUpdateState() {
+	var (
+		clientState exported.ClientState
+		clientMsg   exported.ClientMessage
+	)
+
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+
+		testCases := []struct {
+			name    string
+			setup   func()
+			expPass bool
+		}{
+			{
+				"successful update",
+				func() {
+					clientState = solomachine.ClientState()
+					clientMsg = solomachine.CreateHeader()
+				},
+				true,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				// setup test
+				tc.setup()
+
+				clientState, ok := clientState.(*types.ClientState)
+				if ok {
+					cs, consensusState, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+
+					if tc.expPass {
+						suite.Require().NoError(err)
+						suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, cs.(*types.ClientState).ConsensusState.PublicKey)
+						suite.Require().Equal(false, cs.(*types.ClientState).IsFrozen)
+						suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, cs.(*types.ClientState).Sequence)
+						suite.Require().Equal(consensusState, cs.(*types.ClientState).ConsensusState)
+					} else {
+						suite.Require().Error(err)
+						suite.Require().Nil(clientState)
+						suite.Require().Nil(consensusState)
+					}
+				}
+
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
+	var (
+		clientMsg exported.ClientMessage
+	)
+
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		testCases := []struct {
+			name     string
+			malleate func()
+			expPass  bool
+		}{
+			{
+				"success",
+				func() {
+					clientMsg = solomachine.CreateMisbehaviour()
+				},
+				true,
+			},
+			{
+				"normal header returns false",
+				func() {
+					clientMsg = solomachine.CreateHeader()
+				},
+				false,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				clientState := solomachine.ClientState()
+
+				tc.malleate()
+
+				foundMisbehaviour := clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+
+				if tc.expPass {
+					suite.Require().True(foundMisbehaviour)
+				} else {
+					suite.Require().False(foundMisbehaviour)
+				}
+
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		testCases := []struct {
+			name     string
+			malleate func()
+			expPass  bool
+		}{
+			{
+				"success",
+				func() {},
+				true,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				clientState := solomachine.ClientState()
+
+				tc.malleate()
+
+				cs, _, _ := clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store)
+
+				if tc.expPass {
+					suite.Require().True(cs.IsFrozen)
 				}
 			})
 		}

@@ -57,7 +57,7 @@ func (k Keeper) CreateClient(
 }
 
 // UpdateClient updates the consensus state and the state root from a provided header.
-func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) error {
+func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.ClientMessage) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
@@ -85,7 +85,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		// Marshal the Header as an Any and encode the resulting bytes to hex.
 		// This prevents the event value from containing invalid UTF-8 characters
 		// which may cause data to be lost when JSON encoding/decoding.
-		headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
+		headerStr = hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, header))
 		// set default consensus height with header height
 		consensusHeight = header.GetHeight()
 
@@ -158,37 +158,33 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
-	updatedClientState, updatedConsState, err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
-		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState)
-	if err != nil {
+	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
+		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState,
+	); err != nil {
 		return sdkerrors.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.SetClientState(ctx, clientID, updatedClientState)
-	k.SetClientConsensusState(ctx, clientID, updatedClientState.GetLatestHeight(), updatedConsState)
-
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", updatedClientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", "client", "upgrade"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, updatedClientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientType, upgradedClient.ClientType()),
 				telemetry.NewLabel(types.LabelClientID, clientID),
 			},
 		)
 	}()
 
-	// emitting events in the keeper emits for client upgrades
-	EmitUpgradeClientEvent(ctx, clientID, updatedClientState)
+	EmitUpgradeClientEvent(ctx, clientID, upgradedClient)
 
 	return nil
 }
 
 // CheckMisbehaviourAndUpdateState checks for client misbehaviour and freezes the
 // client if so.
-func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, clientID string, misbehaviour exported.Misbehaviour) error {
+func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, clientID string, misbehaviour exported.ClientMessage) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot check misbehaviour for client with ID %s", clientID)

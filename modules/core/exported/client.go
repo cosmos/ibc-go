@@ -58,8 +58,8 @@ type ClientState interface {
 
 	// Update and Misbehaviour functions
 
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
-	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Misbehaviour) (ClientState, error)
+	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
+	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
 	// Upgrade functions
@@ -68,6 +68,7 @@ type ClientState interface {
 	// height of the current revision is somehow encoded in the proof verification process.
 	// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
 	// may be cancelled or modified before the last planned height.
+	// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 	VerifyUpgradeAndUpdateState(
 		ctx sdk.Context,
 		cdc codec.BinaryCodec,
@@ -76,7 +77,7 @@ type ClientState interface {
 		newConsState ConsensusState,
 		proofUpgradeClient,
 		proofUpgradeConsState []byte,
-	) (ClientState, ConsensusState, error)
+	) error
 	// Utility function that zeroes out any client customizable fields in client state
 	// Ledger enforced fields are maintained while all custom fields are zero values
 	// Used to verify upgrades
@@ -194,20 +195,14 @@ type ConsensusState interface {
 	ValidateBasic() error
 }
 
-// Misbehaviour defines counterparty misbehaviour for a specific consensus type
-type Misbehaviour interface {
+// ClientMessage is an interface used to update an IBC client.
+// The update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces
+// a change to state of the IBC client
+type ClientMessage interface {
 	proto.Message
 
-	ClientType() string
-	ValidateBasic() error
-}
-
-// Header is the consensus state update information
-type Header interface {
-	proto.Message
-
-	ClientType() string
 	GetHeight() Height
+	ClientType() string
 	ValidateBasic() error
 }
 

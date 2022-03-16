@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#709](https://github.com/cosmos/ibc-go/pull/709) Replace github.com/pkg/errors with stdlib errors
 
 ### API Breaking
+
+* (02-client) [\#598](https://github.com/cosmos/ibc-go/pull/598) The client state and consensus state return value has been removed from `VerifyUpgradeAndUpdateState`. Light client implementations must update the client state and consensus state after verifying a valid client upgrade. 
 * (testing) [\#939](https://github.com/cosmos/ibc-go/pull/939) Support custom power reduction for testing.
 * (modules/core/05-port) [\#1086](https://github.com/cosmos/ibc-go/pull/1086) Added `counterpartyChannelID` argument to IBCModule.OnChanOpenAck
 * (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Remove `GetClientID` function from 06-solomachine `Misbehaviour` type.
@@ -63,6 +65,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#892](https://github.com/cosmos/ibc-go/pull/892) IBC Mock modules store the scoped keeper and portID within the IBCMockApp. They also maintain reference to the AppModule to update the AppModule's list of IBC applications it references. Allows for the mock module to be reused as a base application in middleware stacks.
 * (channel) [\#882](https://github.com/cosmos/ibc-go/pull/882) The `WriteAcknowledgement` API now takes `exported.Acknowledgement` instead of a byte array
 * (modules/core/ante) [\#950](https://github.com/cosmos/ibc-go/pull/950) Replaces the channel keeper with the IBC keeper in the IBC `AnteDecorator` in order to execute the entire message and be able to reject redundant messages that are in the same block as the non-redundant messages.
+* (modules/core/exported) [\#1107](https://github.com/cosmos/ibc-go/pull/1107) Merging the `Header` and `Misbehaviour` interfaces into a single `ClientMessage` type
+
 
 ### State Machine Breaking
 
