@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#709](https://github.com/cosmos/ibc-go/pull/709) Replace github.com/pkg/errors with stdlib errors
 
 ### API Breaking
+
+* (02-client) [\#598](https://github.com/cosmos/ibc-go/pull/598) The client state and consensus state return value has been removed from `VerifyUpgradeAndUpdateState`. Light client implementations must update the client state and consensus state after verifying a valid client upgrade. 
 * (testing) [\#939](https://github.com/cosmos/ibc-go/pull/939) Support custom power reduction for testing.
 * (modules/core/05-port) [\#1086](https://github.com/cosmos/ibc-go/pull/1086) Added `counterpartyChannelID` argument to IBCModule.OnChanOpenAck
 * (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Remove `GetClientID` function from 06-solomachine `Misbehaviour` type.

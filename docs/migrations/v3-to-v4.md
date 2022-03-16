@@ -1,4 +1,4 @@
-# Migrating from ibc-go v3 to v4
+# Migrating from ibc-go v2 to v3
 
 This document is intended to highlight significant changes which may require more information than presented in the CHANGELOG.
 Any changes that must be done by a user of ibc-go should be documented here.
@@ -18,115 +18,13 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
-### Migration to fix support for base denoms with slashes
-
-As part of [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0), [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) and [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) some [migration handler code sample was documented](https://github.com/cosmos/ibc-go/blob/main/docs/migrations/support-denoms-with-slashes.md#upgrade-proposal) that needs to run in order to correct the trace information of coins transferred using ICS20 whose base denom contains slashes.
-
-Based on feedback from the community we add now an improved solution to run the same migration that does not require copying a large piece of code over from the migration document, but instead requires only adding a one-line upgrade handler.
-
-If the chain will migrate to supporting base denoms with slashes, it must set the appropriate params during the execution of the upgrade handler in `app.go`: 
-```go
-app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
-    func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-        // transfer module consensus version has been bumped to 2
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    })
-
-```
-
-If a chain receives coins of a base denom with slashes before it upgrades to supporting it, the receive may pass however the trace information will be incorrect.
-
-E.g. If a base denom of `testcoin/testcoin/testcoin` is sent to a chain that does not support slashes in the base denom, the receive will be successful. However, the trace information stored on the receiving chain will be: `Trace: "transfer/{channel-id}/testcoin/testcoin", BaseDenom: "testcoin"`.
-
-This incorrect trace information must be corrected when the chain does upgrade to fully supporting denominations with slashes.
-
-## IBC Apps
-
-### ICS03 - Connection
-
-Crossing hellos have been removed from 03-connection handshake negotiation. 
-`PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated and is no longer used by core IBC.
-
-`NewMsgConnectionOpenTry` no longer takes in the `PreviousConnectionId` as crossing hellos are no longer supported. A non-empty `PreviousConnectionId` will fail basic validation for this message.
-
-### ICS04 - Channel 
+### IS04 - Channel 
 
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
 This is an API breaking change and as such IBC application developers will have to update any calls to `WriteAcknowledgement`. 
 
-The `OnChanOpenInit` application callback has been modified.
-The return signature now includes the application version as detailed in the latest IBC [spec changes](https://github.com/cosmos/ibc/pull/629).
+## IBC Light Clients
 
-The `NewErrorAcknowledgement` method signature has changed.
-It now accepts an `error` rather than a `string`. This was done in order to prevent accidental state changes.
-All error acknowledgements now contain a deterministic ABCI code and error message. It is the responsibility of the application developer to emit error details in events.
+The `VerifyUpgradeAndUpdateState` function has been modified. The client state and consensus state return value has been removed. 
 
-Crossing hellos have been removed from 04-channel handshake negotiation. 
-IBC Applications no longer need to account from already claimed capabilities in the `OnChanOpenTry` callback. The capability provided by core IBC must be able to be claimed with error. 
-`PreviousChannelId` in `MsgChannelOpenTry` has been deprecated and is no longer used by core IBC.
-
-`NewMsgChannelOpenTry` no longer takes in the `PreviousChannelId` as crossing hellos are no longer supported. A non-empty `PreviousChannelId` will fail basic validation for this message. 
-
-### ICS27 - Interchain Accounts
-
-The `RegisterInterchainAccount` API has been modified to include an additional `version` argument. This change has been made in order to support ICS29 fee middleware, for relayer incentivization of ICS27 packets.
-Consumers of the `RegisterInterchainAccount` are now expected to build the appropriate JSON encoded version string themselves and pass it accordingly. 
-This should be constructed within the interchain accounts authentication module which leverages the APIs exposed via the interchain accounts `controllerKeeper`. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
-
-The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
-
-```go
-icaMetadata := icatypes.Metadata{
-    Version:                icatypes.Version,
-    ControllerConnectionId: controllerConnectionID,
-    HostConnectionId:       hostConnectionID,
-    Encoding:               icatypes.EncodingProtobuf,
-    TxType:                 icatypes.TxTypeSDKMultiMsg,
-}
-
-appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
-if err != nil {
-    return err
-}
-
-if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, string(appVersion)); err != nil {
-    return err
-}
-```
-
-Similarly, if the application stack is configured to route through ICS29 fee middleware and a fee enabled channel is desired, construct the appropriate ICS29 `Metadata` type:
-
-```go
-icaMetadata := icatypes.Metadata{
-    Version:                icatypes.Version,
-    ControllerConnectionId: controllerConnectionID,
-    HostConnectionId:       hostConnectionID,
-    Encoding:               icatypes.EncodingProtobuf,
-    TxType:                 icatypes.TxTypeSDKMultiMsg,
-}
-
-appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
-if err != nil {
-    return err
-}
-
-feeMetadata := feetypes.Metadata{
-    AppVersion: string(appVersion),
-    FeeVersion: feetypes.Version,
-}
-
-feeEnabledVersion, err := feetypes.ModuleCdc.MarshalJSON(&feeMetadata)
-if err != nil {
-    return err
-}
-
-if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, string(feeEnabledVersion)); err != nil {
-    return err
-}
-```
-
-## Relayers
-
-When using the `DenomTrace` gRPC, the full IBC denomination with the `ibc/` prefix may now be passed in.
-
-Crossing hellos are no longer supported by core IBC for 03-connection and 04-channel. The handshake should be completed in the logical 4 step process (INIT, TRY, ACK, CONFIRM).
+Light clients **must** set the updated client state and consensus state in the client store after verifying a valid client upgrade.

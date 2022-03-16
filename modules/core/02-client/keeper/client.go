@@ -158,30 +158,26 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
-	updatedClientState, updatedConsState, err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
-		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState)
-	if err != nil {
+	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
+		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState,
+	); err != nil {
 		return sdkerrors.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.SetClientState(ctx, clientID, updatedClientState)
-	k.SetClientConsensusState(ctx, clientID, updatedClientState.GetLatestHeight(), updatedConsState)
-
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", updatedClientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", "client", "upgrade"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, updatedClientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientType, upgradedClient.ClientType()),
 				telemetry.NewLabel(types.LabelClientID, clientID),
 			},
 		)
 	}()
 
-	// emitting events in the keeper emits for client upgrades
-	EmitUpgradeClientEvent(ctx, clientID, updatedClientState)
+	EmitUpgradeClientEvent(ctx, clientID, upgradedClient)
 
 	return nil
 }

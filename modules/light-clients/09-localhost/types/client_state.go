@@ -138,8 +138,8 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 func (cs ClientState) VerifyUpgradeAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
-) (exported.ClientState, exported.ConsensusState, error) {
-	return nil, nil, sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
+) error {
+	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }
 
 // VerifyClientState verifies that the localhost client state is stored locally
