@@ -23,16 +23,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
-	// TODO: Remove this type assertion, replace with misbehaviour checking and update state
-	smHeader, ok := msg.(*Header)
-	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "expected %T, got %T", &Header{}, msg,
-		)
-	}
-
-	clientState, consensusState := update(&cs, smHeader)
-	return clientState, consensusState, nil
+	return cs.UpdateState(ctx, cdc, clientStore, msg)
 }
 
 // VerifyClientMessage introspects the provided ClientMessage and checks its validity
@@ -105,16 +96,16 @@ func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec,
 	return nil
 }
 
-// update the consensus state to the new public key and an incremented sequence
-func update(clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
+// UpdateState updates the consensus state to the new public key and an incremented sequence.
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
+	smHeader := clientMsg.(*Header)
 	consensusState := &ConsensusState{
-		PublicKey:   header.NewPublicKey,
-		Diversifier: header.NewDiversifier,
-		Timestamp:   header.Timestamp,
+		PublicKey:   smHeader.NewPublicKey,
+		Diversifier: smHeader.NewDiversifier,
+		Timestamp:   smHeader.Timestamp,
 	}
 
-	// increment sequence number
-	clientState.Sequence++
-	clientState.ConsensusState = consensusState
-	return clientState, consensusState
+	cs.Sequence++
+	cs.ConsensusState = consensusState
+	return &cs, consensusState, nil
 }

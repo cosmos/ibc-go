@@ -328,7 +328,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, nil, clientMsg)
+				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -560,13 +560,66 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				// setup test
 				tc.setup()
 
-				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, nil, clientMsg)
+				err := clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
 				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestUpdateState() {
+	var (
+		clientState exported.ClientState
+		clientMsg   exported.ClientMessage
+	)
+
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+
+		testCases := []struct {
+			name    string
+			setup   func()
+			expPass bool
+		}{
+			{
+				"successful update",
+				func() {
+					clientState = solomachine.ClientState()
+					clientMsg = solomachine.CreateHeader()
+				},
+				true,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				// setup test
+				tc.setup()
+
+				clientState, ok := clientState.(*types.ClientState)
+				if ok {
+					cs, consensusState, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+
+					if tc.expPass {
+						suite.Require().NoError(err)
+						suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, cs.(*types.ClientState).ConsensusState.PublicKey)
+						suite.Require().Equal(false, cs.(*types.ClientState).IsFrozen)
+						suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, cs.(*types.ClientState).Sequence)
+						suite.Require().Equal(consensusState, cs.(*types.ClientState).ConsensusState)
+					} else {
+						suite.Require().Error(err)
+						suite.Require().Nil(clientState)
+						suite.Require().Nil(consensusState)
+					}
+				}
+
 			})
 		}
 	}
