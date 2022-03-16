@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Header = &Header{}
+var _ exported.ClientMessage = &Header{}
 
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {

@@ -57,7 +57,7 @@ func (k Keeper) CreateClient(
 }
 
 // UpdateClient updates the consensus state and the state root from a provided header.
-func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) error {
+func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.ClientMessage) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
@@ -85,7 +85,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 		// Marshal the Header as an Any and encode the resulting bytes to hex.
 		// This prevents the event value from containing invalid UTF-8 characters
 		// which may cause data to be lost when JSON encoding/decoding.
-		headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
+		headerStr = hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, header))
 		// set default consensus height with header height
 		consensusHeight = header.GetHeight()
 
@@ -184,16 +184,16 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 
 // CheckMisbehaviourAndUpdateState checks for client misbehaviour and freezes the
 // client if so.
-func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour exported.Misbehaviour) error {
-	clientState, found := k.GetClientState(ctx, misbehaviour.GetClientID())
+func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, clientID string, misbehaviour exported.ClientMessage) error {
+	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot check misbehaviour for client with ID %s", misbehaviour.GetClientID())
+		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot check misbehaviour for client with ID %s", clientID)
 	}
 
-	clientStore := k.ClientStore(ctx, misbehaviour.GetClientID())
+	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot process misbehaviour for client (%s) with status %s", misbehaviour.GetClientID(), status)
+		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot process misbehaviour for client (%s) with status %s", clientID, status)
 	}
 
 	if err := misbehaviour.ValidateBasic(); err != nil {
@@ -205,8 +205,8 @@ func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour ex
 		return err
 	}
 
-	k.SetClientState(ctx, misbehaviour.GetClientID(), clientState)
-	k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", misbehaviour.GetClientID())
+	k.SetClientState(ctx, clientID, clientState)
+	k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
@@ -214,12 +214,12 @@ func (k Keeper) CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour ex
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(types.LabelClientType, misbehaviour.ClientType()),
-				telemetry.NewLabel(types.LabelClientID, misbehaviour.GetClientID()),
+				telemetry.NewLabel(types.LabelClientID, clientID),
 			},
 		)
 	}()
 
-	EmitSubmitMisbehaviourEvent(ctx, misbehaviour.GetClientID(), clientState)
+	EmitSubmitMisbehaviourEvent(ctx, clientID, clientState)
 
 	return nil
 }

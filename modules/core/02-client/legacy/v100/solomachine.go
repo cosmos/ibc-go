@@ -90,14 +90,14 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 
 // CheckHeaderAndUpdateState panics!
 func (cs *ClientState) CheckHeaderAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Header,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	panic("legacy solo machine is deprecated!")
 }
 
 // CheckMisbehaviourAndUpdateState panics!
 func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.Misbehaviour,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, error) {
 	panic("legacy solo machine is deprecated!")
 }

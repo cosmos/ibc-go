@@ -650,7 +650,7 @@ func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
 
 			tc.misbehaviour.ClientId = clientID
 
-			err = suite.keeper.CheckMisbehaviourAndUpdateState(suite.ctx, tc.misbehaviour)
+			err = suite.keeper.CheckMisbehaviourAndUpdateState(suite.ctx, clientID, tc.misbehaviour)
 
 			if tc.expPass {
 				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
@@ -691,7 +691,7 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 			bz, err := hex.DecodeString(string(attr.Value))
 			suite.Require().NoError(err)
 
-			emittedHeader, err := types.UnmarshalHeader(suite.chainA.App.AppCodec(), bz)
+			emittedHeader, err := types.UnmarshalClientMessage(suite.chainA.App.AppCodec(), bz)
 			suite.Require().NoError(err)
 			suite.Require().Equal(header, emittedHeader)
 		}
