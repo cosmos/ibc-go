@@ -29,14 +29,6 @@ import (
 // - header timestamp is past the trusting period in relation to the consensus state
 // - header timestamp is less than or equal to the consensus state timestamp
 //
-// UpdateClient may be used to either create a consensus state for:
-// - a future height greater than the latest client state height
-// - a past height that was skipped during bisection
-// If we are updating to a past height, a consensus state is created for that height to be persisted in client store
-// If we are updating to a future height, the consensus state is created and the client state is updated to reflect
-// the new latest height
-// UpdateClient must only be used to update within a single revision, thus header revision number and trusted height's revision
-// number must be the same. To update to a new revision, use a separate upgrade path
 // Tendermint client validity checking uses the bisection algorithm described
 // in the [Tendermint spec](https://github.com/tendermint/spec/blob/master/spec/consensus/light-client.md).
 //
@@ -46,10 +38,6 @@ import (
 // 2. Any valid update that breaks time monotonicity with respect to its neighboring consensus states is evidence of misbehaviour and will freeze client.
 // Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
 //
-// Pruning:
-// UpdateClient will additionally retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
-// that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
-// becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
 func (cs ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
 	header exported.ClientMessage,
@@ -221,6 +209,15 @@ func checkValidity(
 }
 
 // UpdateState sets the consensus state associated with the provided header and sets the consensus metadata.
+// UpdateState may be used to either create a consensus state for:
+// - a future height greater than the latest client state height
+// - a past height that was skipped during bisection
+// If we are updating to a past height, a consensus state is created for that height to be persisted in client store
+// If we are updating to a future height, the consensus state is created and the client state is updated to reflect
+// the new latest height
+// UpdateState must only be used to update within a single revision, thus header revision number and trusted height's revision
+// number must be the same. To update to a new revision, use a separate upgrade path
+// UpdateState will prune the oldest consensus state if it is expired.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) (*ClientState, *ConsensusState, error) {
 	header, ok := msg.(*Header)
 	if !ok {
@@ -251,8 +248,9 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	return &cs, consensusState, nil
 }
 
-// pruneOldestConsensusState attempts to prune the oldest consensus state. The consensus state will only be pruned
-// if it is expired.
+// pruneOldestConsensusState will retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
+// that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
+// becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
 func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
 	// Check the earliest consensus state to see if it is expired, if so then set the prune height
 	// so that we can delete consensus state and all associated metadata.
