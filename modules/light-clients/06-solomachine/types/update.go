@@ -23,6 +23,11 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
+	foundMisbehaviour := cs.CheckForMisbehaviour(ctx, cdc, clientStore, msg)
+	if foundMisbehaviour {
+		return cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore)
+	}
+
 	return cs.UpdateState(ctx, cdc, clientStore, msg)
 }
 
@@ -108,4 +113,22 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	cs.Sequence++
 	cs.ConsensusState = consensusState
 	return &cs, consensusState, nil
+}
+
+// CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
+func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, clientMsg exported.ClientMessage) bool {
+	if _, ok := clientMsg.(*Misbehaviour); ok {
+		return true
+	}
+
+	return false
+}
+
+// UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
+// as it does not perform any misbehaviour checks.
+func (cs ClientState) UpdateStateOnMisbehaviour(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self storage of consensus state
+) (*ClientState, exported.ConsensusState, error) {
+	cs.IsFrozen = true
+	return &cs, cs.ConsensusState, nil
 }
