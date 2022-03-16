@@ -31,7 +31,7 @@ const PARA_ID = 2000
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
 
-	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:65353")
+	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
 	if err != nil {
 		panic(err)
 	}
@@ -179,7 +179,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				panic(err)
 			}
 
-			// double map that holds block numbers, for which our parachain header
+			// double map that holds block numbers, for which parachain header
 			// was included in the mmr leaf, seeing as our parachain headers might not make it into
 			// every relay chain block.
 			// Map<BlockNumber, Map<ParaId, Header>>
