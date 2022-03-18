@@ -594,6 +594,14 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				},
 				true,
 			},
+			{
+				"invalid type misbehaviour",
+				func() {
+					clientState = solomachine.ClientState()
+					clientMsg = solomachine.CreateMisbehaviour()
+				},
+				false,
+			},
 		}
 
 		for _, tc := range testCases {
@@ -615,7 +623,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 						suite.Require().Equal(consensusState, cs.(*types.ClientState).ConsensusState)
 					} else {
 						suite.Require().Error(err)
-						suite.Require().Nil(clientState)
+						suite.Require().Nil(cs)
 						suite.Require().Nil(consensusState)
 					}
 				}
