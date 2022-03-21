@@ -448,3 +448,113 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	consKey = types.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }
+
+func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
+	var (
+		path          *ibctesting.Path
+		clientMessage exported.ClientMessage
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"valid update no misbehaviour",
+			func() {},
+			false,
+		},
+		{
+			"valid fork misbehaviour",
+			func() {
+				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+
+				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+
+				header2.Header.Time = header2.Header.Time.Add(time.Minute)
+
+				clientMessage = &types.Misbehaviour{
+					Header1:  header1,
+					Header2:  header2,
+					ClientId: chainID,
+				}
+			},
+			true,
+		},
+		{
+			"consensus state already exists, already updated",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
+
+				consensusState := &types.ConsensusState{
+					Timestamp:          header.GetTime(),
+					Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+					NextValidatorsHash: header.Header.NextValidatorsHash,
+				}
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage.GetHeight(), consensusState)
+			},
+			false,
+		},
+		{
+			"consensus state already exists, app hash divergence",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
+
+				consensusState := &types.ConsensusState{
+					Timestamp:          header.GetTime(),
+					Root:               commitmenttypes.NewMerkleRoot([]byte{}),
+					NextValidatorsHash: header.Header.NextValidatorsHash,
+				}
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage.GetHeight(), consensusState)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			// reset suite to create fresh application state
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			err := path.EndpointA.CreateClient()
+			suite.Require().NoError(err)
+
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			clientState := path.EndpointA.GetClientState()
+
+			// TODO: remove casting when 'UpdateState' is an interface function.
+			tmClientState, ok := clientState.(*types.ClientState)
+			suite.Require().True(ok)
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			foundMisbehaviour := tmClientState.CheckForMisbehaviour(
+				suite.chainA.GetContext(),
+				suite.chainA.App.AppCodec(),
+				clientStore, // pass in clientID prefixed clientStore
+				clientMessage,
+			)
+
+			if tc.expPass {
+				suite.Require().True(foundMisbehaviour)
+			} else {
+				suite.Require().False(foundMisbehaviour)
+			}
+		})
+	}
+}
