@@ -17,38 +17,48 @@ import (
 // - the currently registered public key did not provide the update signature
 func (cs ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
-	header exported.ClientMessage,
+	msg exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
-	smHeader, ok := header.(*Header)
-	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "header type %T, expected  %T", header, &Header{},
-		)
-	}
-
-	if err := checkHeader(cdc, &cs, smHeader); err != nil {
+	if err := cs.VerifyClientMessage(ctx, cdc, clientStore, msg); err != nil {
 		return nil, nil, err
 	}
 
-	clientState, consensusState := update(&cs, smHeader)
-	return clientState, consensusState, nil
+	foundMisbehaviour := cs.CheckForMisbehaviour(ctx, cdc, clientStore, msg)
+	if foundMisbehaviour {
+		return cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore)
+	}
+
+	return cs.UpdateState(ctx, cdc, clientStore, msg)
 }
 
-// checkHeader checks if the Solo Machine update signature is valid.
-func checkHeader(cdc codec.BinaryCodec, clientState *ClientState, header *Header) error {
+// VerifyClientMessage introspects the provided ClientMessage and checks its validity
+// A Solomachine Header is considered valid if the currently registered public key has signed over the new public key with the correct sequence
+// A Solomachine Misbehaviour is considered valid if duplicate signatures of the current public key are found on two different messages at a given sequence
+func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+	switch msg := clientMsg.(type) {
+	case *Header:
+		return cs.verifyHeader(ctx, cdc, clientStore, msg)
+	case *Misbehaviour:
+		return cs.verifyMisbehaviour(ctx, cdc, clientStore, msg)
+	default:
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type of %T or %T, got type %T", Header{}, Misbehaviour{}, msg)
+	}
+}
+
+func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header *Header) error {
 	// assert update sequence is current sequence
-	if header.Sequence != clientState.Sequence {
+	if header.Sequence != cs.Sequence {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader,
-			"header sequence does not match the client state sequence (%d != %d)", header.Sequence, clientState.Sequence,
+			"header sequence does not match the client state sequence (%d != %d)", header.Sequence, cs.Sequence,
 		)
 	}
 
 	// assert update timestamp is not less than current consensus state timestamp
-	if header.Timestamp < clientState.ConsensusState.Timestamp {
+	if header.Timestamp < cs.ConsensusState.Timestamp {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader,
-			"header timestamp is less than to the consensus state timestamp (%d < %d)", header.Timestamp, clientState.ConsensusState.Timestamp,
+			"header timestamp is less than to the consensus state timestamp (%d < %d)", header.Timestamp, cs.ConsensusState.Timestamp,
 		)
 	}
 
@@ -63,7 +73,7 @@ func checkHeader(cdc codec.BinaryCodec, clientState *ClientState, header *Header
 		return err
 	}
 
-	publicKey, err := clientState.ConsensusState.GetPubKey()
+	publicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
 		return err
 	}
@@ -75,16 +85,50 @@ func checkHeader(cdc codec.BinaryCodec, clientState *ClientState, header *Header
 	return nil
 }
 
-// update the consensus state to the new public key and an incremented sequence
-func update(clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
-	consensusState := &ConsensusState{
-		PublicKey:   header.NewPublicKey,
-		Diversifier: header.NewDiversifier,
-		Timestamp:   header.Timestamp,
+func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, misbehaviour *Misbehaviour) error {
+	// NOTE: a check that the misbehaviour message data are not equal is done by
+	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
+	// verify first signature
+	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureOne); err != nil {
+		return sdkerrors.Wrap(err, "failed to verify signature one")
 	}
 
-	// increment sequence number
-	clientState.Sequence++
-	clientState.ConsensusState = consensusState
-	return clientState, consensusState
+	// verify second signature
+	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureTwo); err != nil {
+		return sdkerrors.Wrap(err, "failed to verify signature two")
+	}
+
+	return nil
+}
+
+// UpdateState updates the consensus state to the new public key and an incremented sequence.
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
+	smHeader := clientMsg.(*Header)
+	consensusState := &ConsensusState{
+		PublicKey:   smHeader.NewPublicKey,
+		Diversifier: smHeader.NewDiversifier,
+		Timestamp:   smHeader.Timestamp,
+	}
+
+	cs.Sequence++
+	cs.ConsensusState = consensusState
+	return &cs, consensusState, nil
+}
+
+// CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
+func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, clientMsg exported.ClientMessage) bool {
+	if _, ok := clientMsg.(*Misbehaviour); ok {
+		return true
+	}
+
+	return false
+}
+
+// UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
+// as it does not perform any misbehaviour checks.
+func (cs ClientState) UpdateStateOnMisbehaviour(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self storage of consensus state
+) (*ClientState, exported.ConsensusState, error) {
+	cs.IsFrozen = true
+	return &cs, cs.ConsensusState, nil
 }

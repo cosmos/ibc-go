@@ -457,7 +457,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 		// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 		upgradedClient = upgradedClient.ZeroCustomFields()
 
-		clientState, consensusState, err := cs.VerifyUpgradeAndUpdateState(
+		err := cs.VerifyUpgradeAndUpdateState(
 			suite.chainA.GetContext(),
 			suite.cdc,
 			clientStore,
@@ -469,14 +469,15 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 		if tc.expPass {
 			suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
+
+			clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			suite.Require().NotNil(clientState, "verify upgrade failed on valid case: %s", tc.name)
+
+			consensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
 			suite.Require().NotNil(consensusState, "verify upgrade failed on valid case: %s", tc.name)
+			suite.Require().True(found)
 		} else {
 			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
-			suite.Require().Nil(clientState, "verify upgrade passed on invalid case: %s", tc.name)
-
-			suite.Require().Nil(consensusState, "verify upgrade passed on invalid case: %s", tc.name)
-
 		}
 	}
 }
