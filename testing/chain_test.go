@@ -3,11 +3,11 @@ package ibctesting_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func TestChangeValSet(t *testing.T) {

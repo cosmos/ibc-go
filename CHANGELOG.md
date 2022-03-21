@@ -38,6 +38,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
+* (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
+
+## [v3.0.0](https://github.com/cosmos/ibc-go/releases/tag/v3.0.0) - 2022-03-15
+
+### Dependencies
+
 * [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
 * [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
 * [\#948](https://github.com/cosmos/ibc-go/pull/948) Bump ics23/go to v0.7
@@ -54,6 +70,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Deprecate `ClientId` field in 07-tendermint `Misbehaviour` type.
 * (channel( [\#848](https://github.com/cosmos/ibc-go/pull/848) Added `ChannelId` to MsgChannelOpenInitResponse
 * (testing( [\#813](https://github.com/cosmos/ibc-go/pull/813) The `ack` argument to the testing function `RelayPacket` has been removed as it is no longer needed.
+* (testing) [\#1003](https://github.com/cosmos/ibc-go/pull/1003) `CreateTMClientHeader` takes an additional `nextVals *tmtypes.ValidatorSet` as an argument
+* (testing) [\#939](https://github.com/cosmos/ibc-go/pull/939) Support custom power reduction for testing.
+* (modules/core/05-port) [\#1086](https://github.com/cosmos/ibc-go/pull/1086) Added `counterpartyChannelID` argument to IBCModule.OnChanOpenAck
 * (testing) [\#774](https://github.com/cosmos/ibc-go/pull/774) Added `ChainID` arg to `SetupWithGenesisValSet` on the testing app. `Coordinator` generated ChainIDs now starts at index 1
 * (transfer) [\#675](https://github.com/cosmos/ibc-go/pull/675) Transfer `NewKeeper` now takes in an ICS4Wrapper. The ICS4Wrapper may be the IBC Channel Keeper when ICS20 is not used in a middleware stack. The ICS4Wrapper is required for applications wishing to connect middleware to ICS20.
 * (core) [\#650](https://github.com/cosmos/ibc-go/pull/650) Modify `OnChanOpenTry` IBC application module callback to return the negotiated app version. The version passed into the `MsgChanOpenTry` has been deprecated and will be ignored by core IBC.
@@ -67,7 +86,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/ante) [\#950](https://github.com/cosmos/ibc-go/pull/950) Replaces the channel keeper with the IBC keeper in the IBC `AnteDecorator` in order to execute the entire message and be able to reject redundant messages that are in the same block as the non-redundant messages.
 * (modules/core/exported) [\#1107](https://github.com/cosmos/ibc-go/pull/1107) Merging the `Header` and `Misbehaviour` interfaces into a single `ClientMessage` type
 
-
 ### State Machine Breaking
 
 * (transfer) [\#818](https://github.com/cosmos/ibc-go/pull/818) Error acknowledgements returned from Transfer `OnRecvPacket` now include a deterministic ABCI code and error message.
@@ -75,6 +93,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (interchain-accounts) [\#1037](https://github.com/cosmos/ibc-go/pull/1037) Add a function `InitModule` to the interchain accounts `AppModule`. This function should be called within the upgrade handler when adding the interchain accounts module to a chain. It should be called in place of InitGenesis (set the consensus version in the version map).
+* (testing) [\#1003](https://github.com/cosmos/ibc-go/pull/1003) Testing chain's `Signer` fields has changed from `[]tmtypes.PrivValidator` to `map[string]tmtypes.PrivValidator` to accomodate valset updates changing the order of the ValidatorSet.
+* (testing) [\#1003](https://github.com/cosmos/ibc-go/pull/1003) `SignAndDeliver` will now just deliver the transaction without creating and committing a block. Thus, it requires that `BeginBlock` MUST be called before `SignAndDeliver`
+* (testing) [\#1003](https://github.com/cosmos/ibc-go/pull/1003) `NextBlock` will now call `EndBlock` and `Commit` internally and apply validator updates to the `NextVals` of `TestChain` and the `NextValsHash` of the current header. Test writers can now make changes to validator set and have them reflected in the `TestChain` and handled appropriately in `UpdateClient`
 * (testing) [\#942](https://github.com/cosmos/ibc-go/pull/942) `NewTestChain` will create 4 validators in validator set by default. A new constructor function `NewTestChainWithValSet` is provided for test writers who want custom control over the validator set of test chains.
 * (testing) [\#904](https://github.com/cosmos/ibc-go/pull/904) Add `ParsePacketFromEvents` function to the testing package. Useful when sending/relaying packets via the testing package.
 * (testing) [\#893](https://github.com/cosmos/ibc-go/pull/893) Support custom private keys for testing.
@@ -98,7 +119,40 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#884](https://github.com/cosmos/ibc-go/pull/884) Add and use in simapp a custom ante handler that rejects redundant transactions
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
-* (modules/core/04-channel) [\#994](https://github.com/cosmos/ibc-go/pull/944) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+* (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
+## [v2.2.0](https://github.com/cosmos/ibc-go/releases/tag/v2.2.0) - 2022-03-15
+
+### Dependencies
+
+* [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
+
+## [v2.1.0](https://github.com/cosmos/ibc-go/releases/tag/v2.1.0) - 2022-03-15
+
+### Dependencies
+
+* [\#1084](https://github.com/cosmos/ibc-go/pull/1084) Bump SDK version to v0.44.6
+* [\#948](https://github.com/cosmos/ibc-go/pull/948) Bump ics23/go to v0.7
+
+### State Machine Breaking
+
+* (transfer) [\#818](https://github.com/cosmos/ibc-go/pull/818) Error acknowledgements returned from Transfer `OnRecvPacket` now include a deterministic ABCI code and error message.
+
+### Features
+
+* [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
+
+### Bug Fixes
+
+* (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
+* (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
+* (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
+## [v2.0.3](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2022-02-03
+
+### Improvements
+
+* (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
 
 ## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
 
@@ -140,6 +194,39 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
+
+## [v1.4.0](https://github.com/cosmos/ibc-go/releases/tag/v1.4.0) - 2022-03-15
+
+### Dependencies
+
+* [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
+
+## [v1.3.0](https://github.com/cosmos/ibc-go/releases/tag/v1.3.0) - 2022-03-15
+
+### Dependencies
+
+* [\#1073](https://github.com/cosmos/ibc-go/pull/1073) Bump SDK version to v0.44.6
+* [\#948](https://github.com/cosmos/ibc-go/pull/948) Bump ics23/go to v0.7
+
+### State Machine Breaking
+
+* (transfer) [\#818](https://github.com/cosmos/ibc-go/pull/818) Error acknowledgements returned from Transfer `OnRecvPacket` now include a deterministic ABCI code and error message.
+
+### Features
+
+* [\#679](https://github.com/cosmos/ibc-go/pull/679) New CLI command `query ibc-transfer denom-hash <denom trace>` to get the denom hash for a denom trace; this might be useful for debug
+
+### Bug Fixes
+
+* (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
+* (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
+* (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
+## [v1.2.6](https://github.com/cosmos/ibc-go/releases/tag/v1.2.6) - 2022-02-03
+
+### Improvements
+
+* (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
 
 ## [v1.2.5](https://github.com/cosmos/ibc-go/releases/tag/v1.2.5) - 2021-12-15
 
@@ -197,6 +284,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](https://github.com/tendermint/tendermint) from v0.34.12 to v0.34.13.
+
+## [v1.1.6](https://github.com/cosmos/ibc-go/releases/tag/v1.1.6) - 2022-01-25
+
+### Improvements
+
+* (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
 
 ## [v1.1.5](https://github.com/cosmos/ibc-go/releases/tag/v1.1.5) - 2021-12-15
 
