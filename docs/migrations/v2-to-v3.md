@@ -48,7 +48,6 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
 			hostParams := icahosttypes.Params{
 					HostEnabled: true,
                     // here you can add any transaction supported by your host chain, and ica controllers will be able to make
-                    // those transactions on your chain.
 					AllowMessages: []string{
 						"/cosmos.authz.v1beta1.MsgExec",
 						"/cosmos.authz.v1beta1.MsgGrant",
