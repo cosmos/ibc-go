@@ -42,11 +42,38 @@ app.UpgradeKeeper.SetUpgradeHandler("v3",
             ControllerEnabled: true, 
         }
 
-        // create ICS27 Host submodule params
+        // create ICS27 Host submodule params 
         hostParams := icahosttypes.Params{
             HostEnabled: true, 
-            AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend", ...}, 
-        }
+			hostParams := icahosttypes.Params{
+					HostEnabled: true,
+                    // here you can add any transaction supported by your chain, and ica controllers will be able to make
+                    // those transactions on your chain.
+					AllowMessages: []string{
+						"/cosmos.authz.v1beta1.MsgExec",
+						"/cosmos.authz.v1beta1.MsgGrant",
+						"/cosmos.authz.v1beta1.MsgRevoke",
+						"/cosmos.bank.v1beta1.MsgSend",
+						"/cosmos.bank.v1beta1.MsgMultiSend",
+						"/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
+						"/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
+						"/cosmos.distribution.v1beta1.MsgFundCommunityPool",
+						"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+						"/cosmos.feegrant.v1beta1.MsgGrantAllowance",
+						"/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
+						"/cosmos.gov.v1beta1.MsgVoteWeighted",
+						"/cosmos.gov.v1beta1.MsgSubmitProposal",
+						"/cosmos.gov.v1beta1.MsgDeposit",
+						"/cosmos.gov.v1beta1.MsgVote",
+						"/cosmos.staking.v1beta1.MsgEditValidator",
+						"/cosmos.staking.v1beta1.MsgDelegate",
+						"/cosmos.staking.v1beta1.MsgUndelegate",
+						"/cosmos.staking.v1beta1.MsgBeginRedelegate",
+						"/cosmos.staking.v1beta1.MsgCreateValidator",
+						"/cosmos.vesting.v1beta1.MsgCreateVestingAccount",
+						"/ibc.applications.transfer.v1.MsgTransfer",
+					},
+                }
         
         // initialize ICS27 module
         icamodule.InitModule(ctx, controllerParams, hostParams)
