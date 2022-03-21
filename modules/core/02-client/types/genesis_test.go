@@ -55,8 +55,11 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	val := tmtypes.NewValidator(pubKey, 10)
 	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{val})
 
+	signers := make(map[string]tmtypes.PrivValidator)
+	signers[val.Address.String()] = privVal
+
 	heightMinus1 := types.NewHeight(0, height-1)
-	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, []tmtypes.PrivValidator{privVal})
+	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, valSet, signers)
 
 	testCases := []struct {
 		name     string
