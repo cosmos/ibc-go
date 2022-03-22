@@ -46,10 +46,10 @@ When the development team has determined a release is ready to enter the RC phas
 ### RC 
 
 RC's are release candidates. Final releases should contain little to no changes in comparison to the latest RC. Changes included in between RC releases should be limited to:
-- improved testing
+- Improved testing
 - UX additions
-- bug fixes
-- highly requested changes by the community
+- Bug fixes
+- Highly requested changes by the community
 
 A release should not be finalized until the development team and the external community have done sufficient integration tests on the targeted release. 
 
