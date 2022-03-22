@@ -507,42 +507,48 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			},
 			true,
 		},
-		// {
-		// 	"next consensus state exists and time is before update consensus state time",
-		// 	func() {
-		// 		header, ok := clientMessage.(*types.Header)
-		// 		suite.Require().True(ok)
+		{
+			"next consensus state exists and header time is after next consensus state time",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
 
-		// 		consensusState := &types.ConsensusState{
-		// 			Timestamp:          header.GetTime().Add(time.Hour),
-		// 			Root:               commitmenttypes.NewMerkleRoot([]byte{}),
-		// 			NextValidatorsHash: header.Header.NextValidatorsHash,
-		// 		}
+				// commit block and update client, adding a new consensus state
+				suite.coordinator.CommitBlock(suite.chainB)
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 
-		// 		nextHeight := clienttypes.NewHeight(header.GetHeight().GetRevisionNumber(), header.TrustedHeight.GetRevisionHeight()+5)
-		// 		suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, nextHeight, consensusState)
-		// 	},
-		// 	true,
-		// },
-		// {
-		// 	"valid fork misbehaviour",
-		// 	func() {
-		// 		header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-		// 		suite.Require().NoError(err)
+				// increase timestamp of current header
+				header.Header.Time = header.Header.Time.Add(time.Hour)
+			},
+			true,
+		},
+		{
+			"valid fork misbehaviour",
+			func() {
+				// create first header
+				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
 
-		// 		header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-		// 		suite.Require().NoError(err)
+				suite.coordinator.CommitBlock(suite.chainB)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 
-		// 		header2.SignedHeader.Commit.BlockID.Hash = tmhash.Sum([]byte("misbehaviour"))
+				// create second header
+				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
 
-		// 		clientMessage = &types.Misbehaviour{
-		// 			Header1:  header1,
-		// 			Header2:  header2,
-		// 			ClientId: chainID,
-		// 		}
-		// 	},
-		// 	true,
-		// },
+				// assign the same height
+				header2.Header.Height = header1.Header.Height
+
+				clientMessage = &types.Misbehaviour{
+					Header1:  header1,
+					Header2:  header2,
+					ClientId: chainID,
+				}
+			},
+			true,
+		},
 		{
 			"valid time violation misbehaviour",
 			func() {
@@ -550,6 +556,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				suite.Require().NoError(err)
 
 				suite.coordinator.CommitBlock(suite.chainB)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 
 				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
