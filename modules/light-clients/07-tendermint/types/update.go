@@ -169,81 +169,7 @@ func (cs *ClientState) VerifyClientMessage(
 ) error {
 	switch header.(type) {
 	case *Header:
-		header := header.(*Header)
-
-		if err := checkTrustedHeader(header, consState); err != nil {
-			return err
-		}
-
-		// UpdateClient only accepts updates with a header at the same revision
-		// as the trusted consensus state
-		if header.GetHeight().GetRevisionNumber() != header.TrustedHeight.RevisionNumber {
-			return sdkerrors.Wrapf(
-				ErrInvalidHeaderHeight,
-				"header height revision %d does not match trusted header revision %d",
-				header.GetHeight().GetRevisionNumber(), header.TrustedHeight.RevisionNumber,
-			)
-		}
-
-		tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
-		if err != nil {
-			return sdkerrors.Wrap(err, "trusted validator set in not tendermint validator set type")
-		}
-
-		tmSignedHeader, err := tmtypes.SignedHeaderFromProto(header.SignedHeader)
-		if err != nil {
-			return sdkerrors.Wrap(err, "signed header in not tendermint signed header type")
-		}
-
-		tmValidatorSet, err := tmtypes.ValidatorSetFromProto(header.ValidatorSet)
-		if err != nil {
-			return sdkerrors.Wrap(err, "validator set in not tendermint validator set type")
-		}
-
-		// assert header height is newer than consensus state
-		if header.GetHeight().LTE(header.TrustedHeight) {
-			return sdkerrors.Wrapf(
-				clienttypes.ErrInvalidHeader,
-				"header height ≤ consensus state height (%s ≤ %s)", header.GetHeight(), header.TrustedHeight,
-			)
-		}
-
-		chainID := cs.GetChainID()
-		// If chainID is in revision format, then set revision number of chainID with the revision number
-		// of the header we are verifying
-		// This is useful if the update is at a previous revision rather than an update to the latest revision
-		// of the client.
-		// The chainID must be set correctly for the previous revision before attempting verification.
-		// Updates for previous revisions are not supported if the chainID is not in revision format.
-		if clienttypes.IsRevisionFormat(chainID) {
-			chainID, _ = clienttypes.SetRevisionNumber(chainID, header.GetHeight().GetRevisionNumber())
-		}
-
-		// Construct a trusted header using the fields in consensus state
-		// Only Height, Time, and NextValidatorsHash are necessary for verification
-		trustedHeader := tmtypes.Header{
-			ChainID:            chainID,
-			Height:             int64(header.TrustedHeight.RevisionHeight),
-			Time:               consState.Timestamp,
-			NextValidatorsHash: consState.NextValidatorsHash,
-		}
-		signedHeader := tmtypes.SignedHeader{
-			Header: &trustedHeader,
-		}
-
-		// Verify next header with the passed-in trustedVals
-		// - asserts trusting period not passed
-		// - assert header timestamp is not past the trusting period
-		// - assert header timestamp is past latest stored consensus state timestamp
-		// - assert that a TrustLevel proportion of TrustedValidators signed new Commit
-		err = light.Verify(
-			&signedHeader,
-			tmTrustedValidators, tmSignedHeader, tmValidatorSet,
-			cs.TrustingPeriod, currentTimestamp, cs.MaxClockDrift, cs.TrustLevel.ToTendermint(),
-		)
-		if err != nil {
-			return sdkerrors.Wrap(err, "failed to verify header")
-		}
+		return verifyHeader(ctx, cs, clientStore, cdc, consState, header, currentTimestamp)
 	case *Misbehaviour:
 		misbehaviour := header.(*Misbehaviour)
 		// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
@@ -278,6 +204,92 @@ func (cs *ClientState) VerifyClientMessage(
 		); err != nil {
 			return sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 		}
+	}
+
+	return nil
+}
+
+//TODO: comment
+// verifyHeader
+func verifyHeader(
+	ctx sdk.Context, clientState *ClientState, clientStore sdk.KVStore, cdc codec.BinaryCodec, consState *ConsensusState,
+	tmHeader exported.ClientMessage, currentTimestamp time.Time,
+) error {
+	// TODO: check ok
+	header := tmHeader.(*Header)
+
+	if err := checkTrustedHeader(header, consState); err != nil {
+		return err
+	}
+
+	// UpdateClient only accepts updates with a header at the same revision
+	// as the trusted consensus state
+	if header.GetHeight().GetRevisionNumber() != header.TrustedHeight.RevisionNumber {
+		return sdkerrors.Wrapf(
+			ErrInvalidHeaderHeight,
+			"header height revision %d does not match trusted header revision %d",
+			header.GetHeight().GetRevisionNumber(), header.TrustedHeight.RevisionNumber,
+		)
+	}
+
+	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
+	if err != nil {
+		return sdkerrors.Wrap(err, "trusted validator set in not tendermint validator set type")
+	}
+
+	tmSignedHeader, err := tmtypes.SignedHeaderFromProto(header.SignedHeader)
+	if err != nil {
+		return sdkerrors.Wrap(err, "signed header in not tendermint signed header type")
+	}
+
+	tmValidatorSet, err := tmtypes.ValidatorSetFromProto(header.ValidatorSet)
+	if err != nil {
+		return sdkerrors.Wrap(err, "validator set in not tendermint validator set type")
+	}
+
+	// assert header height is newer than consensus state
+	if header.GetHeight().LTE(header.TrustedHeight) {
+		return sdkerrors.Wrapf(
+			clienttypes.ErrInvalidHeader,
+			"header height ≤ consensus state height (%s ≤ %s)", header.GetHeight(), header.TrustedHeight,
+		)
+	}
+
+	chainID := clientState.GetChainID()
+	// If chainID is in revision format, then set revision number of chainID with the revision number
+	// of the header we are verifying
+	// This is useful if the update is at a previous revision rather than an update to the latest revision
+	// of the client.
+	// The chainID must be set correctly for the previous revision before attempting verification.
+	// Updates for previous revisions are not supported if the chainID is not in revision format.
+	if clienttypes.IsRevisionFormat(chainID) {
+		chainID, _ = clienttypes.SetRevisionNumber(chainID, header.GetHeight().GetRevisionNumber())
+	}
+
+	// Construct a trusted header using the fields in consensus state
+	// Only Height, Time, and NextValidatorsHash are necessary for verification
+	trustedHeader := tmtypes.Header{
+		ChainID:            chainID,
+		Height:             int64(header.TrustedHeight.RevisionHeight),
+		Time:               consState.Timestamp,
+		NextValidatorsHash: consState.NextValidatorsHash,
+	}
+	signedHeader := tmtypes.SignedHeader{
+		Header: &trustedHeader,
+	}
+
+	// Verify next header with the passed-in trustedVals
+	// - asserts trusting period not passed
+	// - assert header timestamp is not past the trusting period
+	// - assert header timestamp is past latest stored consensus state timestamp
+	// - assert that a TrustLevel proportion of TrustedValidators signed new Commit
+	err = light.Verify(
+		&signedHeader,
+		tmTrustedValidators, tmSignedHeader, tmValidatorSet,
+		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift, clientState.TrustLevel.ToTendermint(),
+	)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to verify header")
 	}
 
 	return nil
