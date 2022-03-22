@@ -466,25 +466,6 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			false,
 		},
 		{
-			"valid fork misbehaviour",
-			func() {
-				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-				suite.Require().NoError(err)
-
-				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-				suite.Require().NoError(err)
-
-				header2.Header.Time = header2.Header.Time.Add(time.Minute)
-
-				clientMessage = &types.Misbehaviour{
-					Header1:  header1,
-					Header2:  header2,
-					ClientId: chainID,
-				}
-			},
-			true,
-		},
-		{
 			"consensus state already exists, already updated",
 			func() {
 				header, ok := clientMessage.(*types.Header)
@@ -501,7 +482,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			false,
 		},
 		{
-			"consensus state already exists, app hash divergence",
+			"consensus state already exists, app hash mismatch",
 			func() {
 				header, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
@@ -513,6 +494,73 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				}
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage.GetHeight(), consensusState)
+			},
+			true,
+		},
+		{
+			"previous consensus state exists and header time is before previous consensus state time",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
+
+				header.Header.Time = header.GetTime().Add(-time.Hour)
+			},
+			true,
+		},
+		// {
+		// 	"next consensus state exists and time is before update consensus state time",
+		// 	func() {
+		// 		header, ok := clientMessage.(*types.Header)
+		// 		suite.Require().True(ok)
+
+		// 		consensusState := &types.ConsensusState{
+		// 			Timestamp:          header.GetTime().Add(time.Hour),
+		// 			Root:               commitmenttypes.NewMerkleRoot([]byte{}),
+		// 			NextValidatorsHash: header.Header.NextValidatorsHash,
+		// 		}
+
+		// 		nextHeight := clienttypes.NewHeight(header.GetHeight().GetRevisionNumber(), header.TrustedHeight.GetRevisionHeight()+5)
+		// 		suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, nextHeight, consensusState)
+		// 	},
+		// 	true,
+		// },
+		// {
+		// 	"valid fork misbehaviour",
+		// 	func() {
+		// 		header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+		// 		suite.Require().NoError(err)
+
+		// 		header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+		// 		suite.Require().NoError(err)
+
+		// 		header2.SignedHeader.Commit.BlockID.Hash = tmhash.Sum([]byte("misbehaviour"))
+
+		// 		clientMessage = &types.Misbehaviour{
+		// 			Header1:  header1,
+		// 			Header2:  header2,
+		// 			ClientId: chainID,
+		// 		}
+		// 	},
+		// 	true,
+		// },
+		{
+			"valid time violation misbehaviour",
+			func() {
+				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+
+				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+
+				header1.Header.Time = header1.Header.Time.Add(time.Hour)
+
+				clientMessage = &types.Misbehaviour{
+					Header1:  header1,
+					Header2:  header2,
+					ClientId: chainID,
+				}
 			},
 			true,
 		},
