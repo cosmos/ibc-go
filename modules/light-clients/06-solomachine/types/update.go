@@ -121,12 +121,6 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
-	// set default consensus height with header height
-	consensusHeight := smHeader.GetHeight()
-	if cs.ClientType() != exported.Localhost {
-		clientStore.Set(host.ConsensusStateKey(consensusHeight), clienttypes.MustMarshalConsensusState(cdc, consensusState))
-	}
-
 	return &cs, consensusState, nil
 }
 
