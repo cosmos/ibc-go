@@ -105,6 +105,7 @@ func (im IBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
+	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
 	// If handshake was initialized with fee enabled it must complete with fee enabled.
@@ -120,11 +121,11 @@ func (im IBCModule) OnChanOpenAck(
 		}
 
 		// call underlying app's OnChanOpenAck callback with the counterparty app version.
-		return im.app.OnChanOpenAck(ctx, portID, channelID, versionMetadata.AppVersion)
+		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, versionMetadata.AppVersion)
 	}
 
 	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion)
+	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
