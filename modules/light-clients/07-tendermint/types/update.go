@@ -262,7 +262,7 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 	return clientState, consensusState
 }
 
-// CheckForMisbehaviour -
+// CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
 	switch msg := msg.(type) {
 	case *Header:
