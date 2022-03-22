@@ -261,7 +261,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenAck = func(
-				ctx sdk.Context, portID, channelID string, counterpartyVersion string,
+				ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
 			) error {
 				if counterpartyVersion != ibcmock.Version {
 					return fmt.Errorf("incorrect mock version")
@@ -281,7 +281,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, tc.cpVersion)
+			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.path.EndpointA.Counterparty.ChannelID, tc.cpVersion)
 			if tc.expPass {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 			} else {
