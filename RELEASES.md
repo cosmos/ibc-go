@@ -29,7 +29,7 @@ It is never advisable to use a non-final release in production.
 
 ### Alpha
 
-Alpha releases are intended to make available new features as soon as they are functional. No correctness guarentees are made and alpha releases **may** contain serious security vulnerabilities, bugs, and lack of user tooling. Alpha releases may be made with known bugs and security vulnerabilities (so long as they don't affect the core functionality).
+Alpha releases are intended to make available new features as soon as they are functional. No correctness guarentees are made and alpha releases **may** contain serious security vulnerabilities, bugs, and lack of user tooling, so long as they don't affect the core functionality. 
 
 Initial users of alpha releases are expected to be advanced, patient, and capable of handling unusual errors. Very basic integration testing will be performed by the ibc-go development team before alpha releases.  
 
