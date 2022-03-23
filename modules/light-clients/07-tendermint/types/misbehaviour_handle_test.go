@@ -440,15 +440,12 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid fork misbehaviour", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				// TODO: unsure if it should be + 1. The trusted height corresponds to the trusted consensus state
-				// but the check is consState.NextValsHash == trustedVals.Hash(), so it should be + 1 since
-				// historical info stores the validator set entering the block?
-				trustedVals, found := suite.chainA.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
 				suite.Require().True(found)
 
 				misbehaviour = &types.Misbehaviour{
-					Header1: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, trustedHeight, suite.chainA.CurrentHeader.Time.Add(time.Minute), suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
-					Header2: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, trustedHeight, suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
+					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
 				}
 			},
 			true,
