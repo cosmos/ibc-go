@@ -489,7 +489,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 
 				consensusState := &types.ConsensusState{
 					Timestamp:          header.GetTime(),
-					Root:               commitmenttypes.NewMerkleRoot([]byte{}),
+					Root:               commitmenttypes.NewMerkleRoot([]byte{}), // empty bytes
 					NextValidatorsHash: header.Header.NextValidatorsHash,
 				}
 
@@ -503,6 +503,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				header, ok := clientMessage.(*types.Header)
 				suite.Require().True(ok)
 
+				// offset header timestamp before previous consensus state timestamp
 				header.Header.Time = header.GetTime().Add(-time.Hour)
 			},
 			true,
@@ -526,20 +527,19 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		{
 			"valid fork misbehaviour",
 			func() {
-				// create first header
 				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
+				// commit block and update client
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				// create second header
 				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
-				// assign the same height
-				header2.Header.Height = header1.Header.Height
+				// assign the same height, each header will have a different commit hash
+				header1.Header.Height = header2.Header.Height
 
 				clientMessage = &types.Misbehaviour{
 					Header1:  header1,
@@ -555,6 +555,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
+				// commit block and update client
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
@@ -562,7 +563,9 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
-				header1.Header.Time = header1.Header.Time.Add(time.Hour)
+				// set Height(Header1) > Height(Header2), ValidateBasic ensures Height(Header1) >= Height(Header2)
+				// timestamp of Header1 is before Header2, therefore causing of a violation of monotonic time.
+				header1.Header.Height = header1.Header.Height + 42
 
 				clientMessage = &types.Misbehaviour{
 					Header1:  header1,
