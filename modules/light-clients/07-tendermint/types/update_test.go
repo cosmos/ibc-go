@@ -525,7 +525,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			true,
 		},
 		{
-			"valid fork misbehaviour",
+			"valid fork misbehaviour returns true",
 			func() {
 				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
@@ -544,33 +544,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				clientMessage = &types.Misbehaviour{
 					Header1:  header1,
 					Header2:  header2,
-					ClientId: chainID,
-				}
-			},
-			true,
-		},
-		{
-			"valid time violation misbehaviour",
-			func() {
-				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-				suite.Require().NoError(err)
-
-				// commit block and update client
-				suite.coordinator.CommitBlock(suite.chainB)
-				err = path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
-
-				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-				suite.Require().NoError(err)
-
-				// set Height(Header1) > Height(Header2), ValidateBasic ensures Height(Header1) >= Height(Header2)
-				// timestamp of Header1 is before Header2, therefore causing of a violation of monotonic time.
-				header1.Header.Height = header1.Header.Height + 42
-
-				clientMessage = &types.Misbehaviour{
-					Header1:  header1,
-					Header2:  header2,
-					ClientId: chainID,
+					ClientId: path.EndpointA.ClientID,
 				}
 			},
 			true,
