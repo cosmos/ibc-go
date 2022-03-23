@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -13,12 +12,6 @@ import (
 )
 
 func (suite *TendermintTestSuite) TestVerifyHeader() {
-	var (
-		tmConsState *types.ConsensusState
-		clientStore sdk.KVStore
-		blockTime   time.Time
-	)
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -49,19 +42,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		tmClientState, ok := clientState.(*types.ClientState)
 		suite.Require().True(ok)
 
-		consState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, header.TrustedHeight)
-		suite.Require().True(ok)
-
-		tmConsState, ok = consState.(*types.ConsensusState)
-		suite.Require().True(ok)
-
-		clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-		blockTime = suite.chainA.GetContext().BlockTime()
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 		tc.malleate()
 
-		err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), tmConsState, header, blockTime)
+		err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), header)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -90,7 +75,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 	//	revisionHeight := int64(height.RevisionHeight)
 
 	// create modified heights to use for test-cases
-	heightPlus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+1)
+	//heightPlus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+1)
 	//heightPlus5 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+5)
 	//heightMinus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)
 	//heightMinus3 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-3)
