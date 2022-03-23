@@ -164,9 +164,9 @@ func (cs *ClientState) VerifyClientMessage(
 		return verifyHeader(ctx, cs, clientStore, cdc, msg, ctx.BlockTime())
 	case *Misbehaviour:
 		return cs.verifyMisbehaviour(ctx, clientStore, cdc, msg)
+	default:
+		return clienttypes.ErrInvalidClientType
 	}
-
-	return nil
 }
 
 //TODO: comment
