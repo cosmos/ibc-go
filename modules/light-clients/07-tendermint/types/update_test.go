@@ -90,7 +90,27 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				heightMinus1 := clienttypes.NewHeight(trustedHeight.RevisionNumber, trustedHeight.RevisionHeight-1)
 
 				// Make new header at height less than latest client state
-				header = suite.chainA.CreateTMClientHeader(chainID, int64(heightMinus1.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, int64(heightMinus1.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+			},
+			expPass: false,
+		},
+		{
+			name: "unsuccessful verify header: header basic validation failed",
+			malleate: func() {
+				// cause header to fail validatebasic by changing commit height to mismatch header height
+				header.SignedHeader.Commit.Height = revisionHeight - 1
+			},
+			expPass: false,
+		},
+		{
+			name: "unsuccessful verify header: header timestamp is not past last client timestamp",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
+				suite.Require().True(found)
+
+				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.clientTime, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
 			expPass: false,
 		},
