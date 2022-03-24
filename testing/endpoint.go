@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/require"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -490,6 +491,85 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	)
 
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
+}
+
+// UpgradeChain performs a IBC client upgrade using the provided client state.
+// The chainID within the client state will have its revision number incremented by 1.
+// The counterparty client will be upgraded if it exists.
+func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) error {
+	// increment revision number in chainID
+	revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
+	newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
+	if err != nil {
+		// current chainID is not in revision format
+		newChainID = clientState.ChainId + "-1"
+	}
+
+	clientState.ChainId = newChainID
+
+	// set upgraded client state
+	bz := clienttypes.MustMarshalClientState(endpoint.Chain.App.AppCodec(), clientState)
+	endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradedClient(endpoint.Chain.GetContext(), endpoint.Chain.GetContext().BlockHeight(), bz)
+
+	// set upgraded consensus state
+	consensusState := &ibctmtypes.ConsensusState{
+		Timestamp:          endpoint.Chain.GetContext().BlockTime(),
+		NextValidatorsHash: endpoint.Chain.GetContext().BlockHeader().NextValidatorsHash,
+	}
+
+	bz = clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), consensusState)
+	endpoint.Chain.GetSimApp().IBCKeeper.ClientKeeper.SetUpgradedConsensusState(endpoint.Chain.GetContext(), endpoint.Chain.GetContext().BlockHeight(), bz)
+
+	// commit changes so they are stored in state
+	endpoint.Chain.NextBlock()
+
+	endpoint.Chain.ChainID = newChainID
+	endpoint.Chain.CurrentHeader.ChainID = newChainID
+
+	if endpoint.Counterparty.ClientID != "" {
+
+	}
+
+	return nil
+}
+
+func (endpoint *Endpoint) UpgradeClient(upgradeHeight int64) error {
+	// ensure our client is up to date
+	err := endpoint.UpdateClient()
+	if err != nil {
+		return err
+	}
+
+	clientStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedClient(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
+	require.True(endpoint.Chain.T, found)
+
+	clientState := clienttypes.MustUnmarshalClientState(endpoint.Counterparty.Chain.App.AppCodec(), clientStateBz)
+
+	consensusStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedConsensusState(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
+	require.True(endpoint.Chain.T, found)
+
+	consensusState := clienttypes.MustUnmarshalConsensusState(endpoint.Counterparty.Chain.App.AppCodec(), consensusStateBz)
+
+	// query proof for the client state on the counterparty
+	clientKey := upgradetypes.UpgradedClientKey(upgradeHeight)
+	proofUpgradeClient, _ := endpoint.Counterparty.QueryProof(clientKey)
+
+	// query proof for the consensus state on the counterparty
+	consensusKey := upgradetypes.UpgradedConsStateKey(upgradeHeight)
+	proofUpgradeConsState, _ := endpoint.Counterparty.QueryProof(consensusKey)
+
+	// upgrade counterparty client
+	msg, err := clienttypes.NewMsgUpgradeClient(
+		endpoint.Counterparty.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+	require.NoError(endpoint.Chain.T, err)
+
+	if _, err := endpoint.Chain.SendMsgs(msg); err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 // SetChannelClosed sets a channel state to CLOSED.
