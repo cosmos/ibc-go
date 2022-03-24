@@ -84,7 +84,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		)
 	}
 
-	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, trustedConsState, tmHeader, ctx.BlockTime()); err != nil {
+	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, trustedConsState, tmHeader); err != nil {
 		return nil, nil, err
 	}
 
@@ -165,11 +165,11 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and validates the message
 func (cs *ClientState) VerifyClientMessage(
 	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, consState *ConsensusState,
-	header exported.ClientMessage, currentTimestamp time.Time,
+	header exported.ClientMessage,
 ) error {
 	switch header.(type) {
 	case *Header:
-		return verifyHeader(ctx, cs, clientStore, cdc, consState, header, currentTimestamp)
+		return verifyHeader(ctx, cs, clientStore, cdc, consState, header, ctx.BlockTime())
 	case *Misbehaviour:
 		misbehaviour := header.(*Misbehaviour)
 		// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
