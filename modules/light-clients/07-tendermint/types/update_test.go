@@ -262,7 +262,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 		suite.Run(fmt.Sprintf("Case: %s", tc.name), func() {
 			suite.SetupTest() // reset metadata writes
 			// Create bothValSet with both suite validator and altVal. Would be valid update
-			//			bothValSet, bothSigners = getBothSigners(suite, altVal, altPrivVal)
+			//bothValSet, bothSigners = getBothSigners(suite, altVal, altPrivVal)
 
 			consStateHeight = height // must be explicitly changed
 			// setup test
@@ -356,6 +356,23 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				heightMinus3 := clienttypes.NewHeight(trustedHeight.RevisionNumber, trustedHeight.RevisionHeight-3)
 
 				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height-1, heightMinus3, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+			},
+			expPass: true,
+		},
+		{
+			name: "successful update with future height and different validator set",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				// Create bothValSet with both suite validator and altVal
+				bothValSet := tmtypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
+				bothSigners := suite.chainB.Signers
+				bothSigners[altVal.Address.String()] = altPrivVal
+
+				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+5, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, bothValSet, trustedVals, bothSigners)
 			},
 			expPass: true,
 		},
