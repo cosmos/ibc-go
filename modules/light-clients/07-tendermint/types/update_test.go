@@ -318,10 +318,9 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 
 func (suite *TendermintTestSuite) TestVerifyHeader() {
 	var (
-		path          *ibctesting.Path
-		tmConsState   *types.ConsensusState
-		header        *ibctmtypes.Header
-		tmClientState *types.ClientState
+		path        *ibctesting.Path
+		tmConsState *types.ConsensusState
+		header      *ibctmtypes.Header
 	)
 
 	// Setup different validators and signers for testing different types of updates
@@ -443,7 +442,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 		tc.malleate()
 
-		tmClientState, ok = clientState.(*types.ClientState)
+		tmClientState, ok := clientState.(*types.ClientState)
 		suite.Require().True(ok)
 
 		err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), tmConsState, header)
