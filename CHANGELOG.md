@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (testing) [\#1169](https://github.com/cosmos/ibc-go/pull/1169) Add `UpgradeChain` and `UpgradeClient` helper functions to the testing `Endpoint` structure.
+
 ### Features
 
 ### Bug Fixes
