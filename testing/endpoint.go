@@ -493,7 +493,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
-// UpgradeChain performs a IBC client upgrade using the provided client state.
+// UpgradeChain performs an IBC client upgrade using the provided client state.
 // The chainID within the client state will have its revision number incremented by 1.
 // The counterparty client will be upgraded if it exists.
 func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) error {
@@ -507,18 +507,21 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) erro
 
 	clientState.ChainId = newChainID
 
+	ctx := endpoint.Chain.GetContext()
+	upgradeHeight := ctx.BlockHeight()
+
 	// set upgraded client state
 	bz := clienttypes.MustMarshalClientState(endpoint.Chain.App.AppCodec(), clientState)
-	endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradedClient(endpoint.Chain.GetContext(), endpoint.Chain.GetContext().BlockHeight(), bz)
+	endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradedClient(ctx, upgradeHeight, bz)
 
 	// set upgraded consensus state
 	consensusState := &ibctmtypes.ConsensusState{
-		Timestamp:          endpoint.Chain.GetContext().BlockTime(),
-		NextValidatorsHash: endpoint.Chain.GetContext().BlockHeader().NextValidatorsHash,
+		Timestamp:          ctx.BlockTime(),
+		NextValidatorsHash: ctx.BlockHeader().NextValidatorsHash,
 	}
 
 	bz = clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), consensusState)
-	endpoint.Chain.GetSimApp().IBCKeeper.ClientKeeper.SetUpgradedConsensusState(endpoint.Chain.GetContext(), endpoint.Chain.GetContext().BlockHeight(), bz)
+	endpoint.Chain.GetSimApp().IBCKeeper.ClientKeeper.SetUpgradedConsensusState(ctx, upgradeHeight, bz)
 
 	// commit changes so they are stored in state
 	endpoint.Chain.NextBlock()
@@ -527,7 +530,9 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) erro
 	endpoint.Chain.CurrentHeader.ChainID = newChainID
 
 	if endpoint.Counterparty.ClientID != "" {
-
+		if err := endpoint.Counterparty.UpgradeClient(upgradeHeight); err != nil {
+			return err
+		}
 	}
 
 	return nil
