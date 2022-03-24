@@ -14,146 +14,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-func (suite *TendermintTestSuite) TestVerifyHeader() {
-	var (
-		path          *ibctesting.Path
-		tmConsState   *types.ConsensusState
-		header        *ibctmtypes.Header
-		tmClientState *types.ClientState
-	)
-
-	// Setup different validators and signers for testing different types of updates
-	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey()
-	suite.Require().NoError(err)
-
-	revisionHeight := int64(height.RevisionHeight)
-
-	// create modified heights to use for test-cases
-	altVal := tmtypes.NewValidator(altPubKey, revisionHeight)
-	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			name:     "success",
-			malleate: func() {},
-			expPass:  true,
-		},
-		{
-			name: "successful verify header for header with a previous height",
-			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
-
-				heightMinus3 := clienttypes.NewHeight(trustedHeight.RevisionNumber, trustedHeight.RevisionHeight-3)
-
-				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height-1, heightMinus3, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
-			},
-			expPass: true,
-		},
-		{
-			name: "unsuccessful verify header with next height: update header mismatches nextValSetHash",
-			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-
-				// this will err as altValSet.Hash() != consState.NextValidatorsHash
-				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, altValSet, suite.chainB.Signers)
-			},
-			expPass: false,
-		},
-		{
-			name: "unsuccessful verify header: header height revision and trusted height revision mismatch",
-			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
-
-				header = suite.chainA.CreateTMClientHeader(chainIDRevision1, 3, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
-			},
-			expPass: false,
-		},
-		{
-			name: "unsuccessful verify header: header height < consensus height",
-			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
-
-				heightMinus1 := clienttypes.NewHeight(trustedHeight.RevisionNumber, trustedHeight.RevisionHeight-1)
-
-				// Make new header at height less than latest client state
-				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, int64(heightMinus1.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
-			},
-			expPass: false,
-		},
-		{
-			name: "unsuccessful verify header: header basic validation failed",
-			malleate: func() {
-				// cause header to fail validatebasic by changing commit height to mismatch header height
-				header.SignedHeader.Commit.Height = revisionHeight - 1
-			},
-			expPass: false,
-		},
-		{
-			name: "unsuccessful verify header: header timestamp is not past last client timestamp",
-			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-				suite.Require().True(found)
-
-				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.clientTime, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
-			},
-			expPass: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.SetupTest()
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-		err := path.EndpointA.CreateClient()
-		suite.Require().NoError(err)
-
-		// ensure counterparty state is committed
-		suite.coordinator.CommitBlock(suite.chainB)
-		header, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-		suite.Require().NoError(err)
-
-		clientState := path.EndpointA.GetClientState()
-
-		consState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, header.TrustedHeight)
-		suite.Require().True(ok)
-
-		tmConsState, ok = consState.(*types.ConsensusState)
-		suite.Require().True(ok)
-
-		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-		tc.malleate()
-
-		tmClientState, ok = clientState.(*types.ClientState)
-		suite.Require().True(ok)
-
-		err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), tmConsState, header)
-
-		if tc.expPass {
-			suite.Require().NoError(err)
-		} else {
-			suite.Require().Error(err)
-		}
-	}
-}
-
 func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 	var (
 		clientState     *types.ClientState
@@ -453,6 +313,146 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				suite.Require().Nil(consensusState, "invalid test case %d passed: %s", i, tc.name)
 			}
 		})
+	}
+}
+
+func (suite *TendermintTestSuite) TestVerifyHeader() {
+	var (
+		path          *ibctesting.Path
+		tmConsState   *types.ConsensusState
+		header        *ibctmtypes.Header
+		tmClientState *types.ClientState
+	)
+
+	// Setup different validators and signers for testing different types of updates
+	altPrivVal := ibctestingmock.NewPV()
+	altPubKey, err := altPrivVal.GetPubKey()
+	suite.Require().NoError(err)
+
+	revisionHeight := int64(height.RevisionHeight)
+
+	// create modified heights to use for test-cases
+	altVal := tmtypes.NewValidator(altPubKey, revisionHeight)
+	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
+	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+			expPass:  true,
+		},
+		{
+			name: "successful verify header for header with a previous height",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				heightMinus3 := clienttypes.NewHeight(trustedHeight.RevisionNumber, trustedHeight.RevisionHeight-3)
+
+				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height-1, heightMinus3, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+			},
+			expPass: true,
+		},
+		{
+			name: "unsuccessful verify header with next height: update header mismatches nextValSetHash",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				// this will err as altValSet.Hash() != consState.NextValidatorsHash
+				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, altValSet, suite.chainB.Signers)
+			},
+			expPass: false,
+		},
+		{
+			name: "unsuccessful verify header: header height revision and trusted height revision mismatch",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				header = suite.chainA.CreateTMClientHeader(chainIDRevision1, 3, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+			},
+			expPass: false,
+		},
+		{
+			name: "unsuccessful verify header: header height < consensus height",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				heightMinus1 := clienttypes.NewHeight(trustedHeight.RevisionNumber, trustedHeight.RevisionHeight-1)
+
+				// Make new header at height less than latest client state
+				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, int64(heightMinus1.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+			},
+			expPass: false,
+		},
+		{
+			name: "unsuccessful verify header: header basic validation failed",
+			malleate: func() {
+				// cause header to fail validatebasic by changing commit height to mismatch header height
+				header.SignedHeader.Commit.Height = revisionHeight - 1
+			},
+			expPass: false,
+		},
+		{
+			name: "unsuccessful verify header: header timestamp is not past last client timestamp",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
+				suite.Require().True(found)
+
+				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.clientTime, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+			},
+			expPass: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.SetupTest()
+		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+		err := path.EndpointA.CreateClient()
+		suite.Require().NoError(err)
+
+		// ensure counterparty state is committed
+		suite.coordinator.CommitBlock(suite.chainB)
+		header, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+		suite.Require().NoError(err)
+
+		clientState := path.EndpointA.GetClientState()
+
+		consState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, header.TrustedHeight)
+		suite.Require().True(ok)
+
+		tmConsState, ok = consState.(*types.ConsensusState)
+		suite.Require().True(ok)
+
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+		tc.malleate()
+
+		tmClientState, ok = clientState.(*types.ClientState)
+		suite.Require().True(ok)
+
+		err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), tmConsState, header)
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+		} else {
+			suite.Require().Error(err)
+		}
 	}
 }
 
