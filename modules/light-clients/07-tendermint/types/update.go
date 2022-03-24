@@ -263,7 +263,7 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 	return clientState, consensusState
 }
 
-// UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called on misbehaviour
+// UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
 	cs.FrozenHeight = FrozenHeight
