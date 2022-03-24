@@ -497,6 +497,10 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 // The chainID within the client state will have its revision number incremented by 1.
 // The counterparty client will be upgraded if it exists.
 func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) error {
+	if endpoint.Counterparty.ClientID == "" {
+		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
+	}
+
 	// increment revision number in chainID
 	revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 	newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
@@ -506,6 +510,7 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) erro
 	}
 
 	clientState.ChainId = newChainID
+	clientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
 
 	ctx := endpoint.Chain.GetContext()
 	upgradeHeight := ctx.BlockHeight()
@@ -523,28 +528,24 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) erro
 	bz = clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), consensusState)
 	endpoint.Chain.GetSimApp().IBCKeeper.ClientKeeper.SetUpgradedConsensusState(ctx, upgradeHeight, bz)
 
-	// commit changes so they are stored in state
-	endpoint.Chain.NextBlock()
+	// ensure our client is up to date
+	// changes are commited in UpdateClient()
+	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+		return err
+	}
 
+	// update our chainID so future commits use the correct chainID
 	endpoint.Chain.ChainID = newChainID
 	endpoint.Chain.CurrentHeader.ChainID = newChainID
 
-	if endpoint.Counterparty.ClientID != "" {
-		if err := endpoint.Counterparty.UpgradeClient(upgradeHeight); err != nil {
-			return err
-		}
+	if err := endpoint.Counterparty.upgradeClient(upgradeHeight); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (endpoint *Endpoint) UpgradeClient(upgradeHeight int64) error {
-	// ensure our client is up to date
-	err := endpoint.UpdateClient()
-	if err != nil {
-		return err
-	}
-
+func (endpoint *Endpoint) upgradeClient(upgradeHeight int64) error {
 	clientStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedClient(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
 	require.True(endpoint.Chain.T, found)
 
@@ -565,7 +566,7 @@ func (endpoint *Endpoint) UpgradeClient(upgradeHeight int64) error {
 
 	// upgrade counterparty client
 	msg, err := clienttypes.NewMsgUpgradeClient(
-		endpoint.Counterparty.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
+		endpoint.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	require.NoError(endpoint.Chain.T, err)
 
@@ -574,7 +575,6 @@ func (endpoint *Endpoint) UpgradeClient(upgradeHeight int64) error {
 	}
 
 	return nil
-
 }
 
 // SetChannelClosed sets a channel state to CLOSED.
