@@ -511,9 +511,6 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
 
-			// ensure counterparty state is committed
-			suite.coordinator.CommitBlock(suite.chainB)
-
 			tc.malleate()
 
 			clientState := path.EndpointA.GetClientState()
