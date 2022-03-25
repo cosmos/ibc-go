@@ -209,8 +209,14 @@ func (cs *ClientState) VerifyClientMessage(
 	return nil
 }
 
-//TODO: comment
-// verifyHeader
+// verifyHeader returns an error if:
+// - the client or header provided are not parseable to tendermint types
+// - the header is invalid
+// - header height is less than or equal to the trusted header height
+// - header revision is not equal to trusted header revision
+// - header valset commit verification fails
+// - header timestamp is past the trusting period in relation to the consensus state
+// - header timestamp is less than or equal to the consensus state timestamp
 func verifyHeader(
 	ctx sdk.Context, clientState *ClientState, clientStore sdk.KVStore, cdc codec.BinaryCodec, consState *ConsensusState,
 	tmHeader exported.ClientMessage, currentTimestamp time.Time,
