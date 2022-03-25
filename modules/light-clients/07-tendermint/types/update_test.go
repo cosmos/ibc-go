@@ -21,26 +21,26 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 		consStateHeight clienttypes.Height
 		newHeader       *types.Header
 		currentTime     time.Time
-		//bothValSet      *tmtypes.ValidatorSet
-		//bothSigners map[string]tmtypes.PrivValidator
+		bothValSet      *tmtypes.ValidatorSet
+		bothSigners     map[string]tmtypes.PrivValidator
 	)
 
 	// Setup different validators and signers for testing different types of updates
-	//altPrivVal := ibctestingmock.NewPV()
-	//altPubKey, err := altPrivVal.GetPubKey()
-	//suite.Require().NoError(err)
+	altPrivVal := ibctestingmock.NewPV()
+	altPubKey, err := altPrivVal.GetPubKey()
+	suite.Require().NoError(err)
 
-	//	revisionHeight := int64(height.RevisionHeight)
+	revisionHeight := int64(height.RevisionHeight)
 
 	// create modified heights to use for test-cases
-	//heightPlus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+1)
-	//heightPlus5 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+5)
-	//heightMinus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)
-	//heightMinus3 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-3)
-	//altVal := tmtypes.NewValidator(altPubKey, revisionHeight)
+	heightPlus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+1)
+	// heightPlus5 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+5)
+	// heightMinus1 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-1)
+	heightMinus3 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-3)
+	altVal := tmtypes.NewValidator(altPubKey, revisionHeight)
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	//altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
-	//altSigners := getAltSigners(altVal, altPrivVal)
+	//	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	// altSigners := getAltSigners(altVal, altPrivVal)
 
 	testCases := []struct {
 		name      string
@@ -48,66 +48,64 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 		expFrozen bool
 		expPass   bool
 	}{
-		/*
-			{
-				name: "successful update for a previous revision",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					consStateHeight = heightMinus3
-					newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision0, int64(height.RevisionHeight), heightMinus3, suite.headerTime, bothValSet, bothValSet, suite.valSet, bothSigners)
-					currentTime = suite.now
-				},
-				expPass: true,
+		{
+			name: "successful update for a previous revision",
+			setup: func(suite *TendermintTestSuite) {
+				clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				consStateHeight = heightMinus3
+				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision0, int64(height.RevisionHeight), heightMinus3, suite.headerTime, bothValSet, bothValSet, suite.valSet, bothSigners)
+				currentTime = suite.now
 			},
-			{
-				name: "successful update with identical header to a previous update",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					currentTime = suite.now
-					ctx := suite.chainA.GetContext().WithBlockTime(currentTime)
-					// Store the header's consensus state in client store before UpdateClient call
-					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, heightPlus1, newHeader.ConsensusState())
-				},
-				expFrozen: false,
-				expPass:   true,
+			expPass: true,
+		},
+		{
+			name: "successful update with identical header to a previous update",
+			setup: func(suite *TendermintTestSuite) {
+				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
+				currentTime = suite.now
+				ctx := suite.chainA.GetContext().WithBlockTime(currentTime)
+				// Store the header's consensus state in client store before UpdateClient call
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, heightPlus1, newHeader.ConsensusState())
 			},
-			{
-				name: "unsuccessful update to a future revision",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainIDRevision0, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 1, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					currentTime = suite.now
-				},
-				expPass: false,
+			expFrozen: false,
+			expPass:   true,
+		},
+		{
+			name: "unsuccessful update to a future revision",
+			setup: func(suite *TendermintTestSuite) {
+				clientState = types.NewClientState(chainIDRevision0, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 1, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
+				currentTime = suite.now
 			},
-			{
-				name: "unsuccessful update: header height revision and trusted height revision mismatch",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 3, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					currentTime = suite.now
-				},
-				expFrozen: false,
-				expPass:   false,
+			expPass: false,
+		},
+		{
+			name: "unsuccessful update: header height revision and trusted height revision mismatch",
+			setup: func(suite *TendermintTestSuite) {
+				clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 3, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
+				currentTime = suite.now
 			},
-			{
-				name: "unsuccessful update: trusting period has passed since last client timestamp",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					// make current time pass trusting period from last timestamp on clientstate
-					currentTime = suite.now.Add(trustingPeriod)
-				},
-				expFrozen: false,
-				expPass:   false,
+			expFrozen: false,
+			expPass:   false,
+		},
+		{
+			name: "unsuccessful update: trusting period has passed since last client timestamp",
+			setup: func(suite *TendermintTestSuite) {
+				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
+				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
+				// make current time pass trusting period from last timestamp on clientstate
+				currentTime = suite.now.Add(trustingPeriod)
 			},
-		*/
+			expFrozen: false,
+			expPass:   false,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -115,7 +113,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 		suite.Run(fmt.Sprintf("Case: %s", tc.name), func() {
 			suite.SetupTest() // reset metadata writes
 			// Create bothValSet with both suite validator and altVal. Would be valid update
-			//bothValSet, bothSigners = getBothSigners(suite, altVal, altPrivVal)
+			bothValSet, bothSigners = getBothSigners(suite, altVal, altPrivVal)
 
 			consStateHeight = height // must be explicitly changed
 			// setup test
