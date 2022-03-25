@@ -63,7 +63,7 @@ Using Interchain Accounts, a service could be built in which a user sends tokens
 | 1.06 | A chain shall have the ability to export the Interchain Accounts host genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/genesis_test.go#L46) | `Implemented` | 
 | 1.07 | A chain shall have the ability to initialize the Interchain Accounts host genesis state. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/genesis_test.go#L10) | `Implemented` | 
 | 1.08 | A chain shall have the ability to set the Interchain Accounts host parameters when upgrading. | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/module_test.go#L33) | `Implemented` | 
-| 1.09 | The host chain shall have the ability to whitelist what types of messages or transactions that it chooses to facilitate (e.g. it can decide that registered interchain accounts cannot execute staking messages). | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/main/modules/apps/27-interchain-accounts/host/keeper/params_test.go#L5) | `Implemented` | 
+| 1.09 | The host chain shall have the ability to whitelist what types of messages or transactions that it chooses to facilitate (e.g. it can decide that registered interchain accounts cannot execute staking messages). | [Acceptance tests](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/keeper/params_test.go#L5) | `Implemented` | 
 
 ### 2 - Registration
 
