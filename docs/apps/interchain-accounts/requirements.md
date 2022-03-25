@@ -90,7 +90,7 @@ Using Interchain Accounts, a service could be built in which a user sends tokens
 
 # Non-functional requirements
 
-## Security
+## 5 - Security
 
 | ID | Description | Verification | Status |  
 | -- | ----------- | ------------ | ------ | 
