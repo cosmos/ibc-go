@@ -4,6 +4,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
@@ -594,30 +596,43 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				},
 				true,
 			},
+			{
+				"invalid type misbehaviour",
+				func() {
+					clientState = solomachine.ClientState()
+					clientMsg = solomachine.CreateMisbehaviour()
+				},
+				false,
+			},
 		}
 
 		for _, tc := range testCases {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-				// setup test
-				tc.setup()
+				tc.setup() // setup test
 
+				// TODO: remove casting when 'UpdateState' is an interface function.
 				clientState, ok := clientState.(*types.ClientState)
-				if ok {
-					cs, consensusState, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				suite.Require().True(ok)
 
-					if tc.expPass {
-						suite.Require().NoError(err)
-						suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, cs.(*types.ClientState).ConsensusState.PublicKey)
-						suite.Require().Equal(false, cs.(*types.ClientState).IsFrozen)
-						suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, cs.(*types.ClientState).Sequence)
-						suite.Require().Equal(consensusState, cs.(*types.ClientState).ConsensusState)
-					} else {
-						suite.Require().Error(err)
-						suite.Require().Nil(clientState)
-						suite.Require().Nil(consensusState)
-					}
+				_, _, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+
+					clientStateBz := suite.store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(clientStateBz)
+
+					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					suite.Require().False(newClientState.(*types.ClientState).IsFrozen)
+					suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, newClientState.(*types.ClientState).Sequence)
+					suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, newClientState.(*types.ClientState).ConsensusState.PublicKey)
+					suite.Require().Equal(clientMsg.(*types.Header).NewDiversifier, newClientState.(*types.ClientState).ConsensusState.Diversifier)
+					suite.Require().Equal(clientMsg.(*types.Header).Timestamp, newClientState.(*types.ClientState).ConsensusState.Timestamp)
+				} else {
+					suite.Require().Error(err)
 				}
 
 			})
@@ -697,10 +712,15 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 
 				tc.malleate()
 
-				cs, _, _ := clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store)
+				clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store)
 
 				if tc.expPass {
-					suite.Require().True(cs.IsFrozen)
+					clientStateBz := suite.store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(clientStateBz)
+
+					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					suite.Require().True(newClientState.(*types.ClientState).IsFrozen)
 				}
 			})
 		}
