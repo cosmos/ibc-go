@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"reflect"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -125,7 +124,7 @@ func (cs *ClientState) VerifyClientMessage(
 ) error {
 	switch header.(type) {
 	case *Header:
-		return cs.verifyHeader(ctx, clientStore, cdc, header, ctx.BlockTime())
+		return cs.verifyHeader(ctx, clientStore, cdc, header)
 	case *Misbehaviour:
 		misbehaviour := header.(*Misbehaviour)
 		// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
@@ -175,10 +174,12 @@ func (cs *ClientState) VerifyClientMessage(
 // - header timestamp is less than or equal to the consensus state timestamp
 func (cs *ClientState) verifyHeader(
 	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
-	tmHeader exported.ClientMessage, currentTimestamp time.Time,
+	tmHeader exported.ClientMessage,
 ) error {
 	// TODO: check ok
 	header := tmHeader.(*Header)
+
+	currentTimestamp := ctx.BlockTime()
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
 	consState, err := GetConsensusState(clientStore, cdc, header.TrustedHeight)
