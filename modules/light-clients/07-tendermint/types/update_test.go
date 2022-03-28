@@ -231,7 +231,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 			expPass: true,
 		},
 		{
-			name: "successful verify header: header  with next height and different validator set",
+			name: "successful verify header: header with next height and different validator set",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
