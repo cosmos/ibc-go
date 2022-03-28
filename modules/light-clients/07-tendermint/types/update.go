@@ -154,14 +154,14 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 	return nil
 }
 
-// VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and validates the message
+// VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
 	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
 	header exported.ClientMessage,
 ) error {
 	switch header.(type) {
 	case *Header:
-		return verifyHeader(ctx, cs, clientStore, cdc, header, ctx.BlockTime())
+		return cs.verifyHeader(ctx, clientStore, cdc, header, ctx.BlockTime())
 	case *Misbehaviour:
 		misbehaviour := header.(*Misbehaviour)
 		// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
@@ -209,8 +209,8 @@ func (cs *ClientState) VerifyClientMessage(
 // - header valset commit verification fails
 // - header timestamp is past the trusting period in relation to the consensus state
 // - header timestamp is less than or equal to the consensus state timestamp
-func verifyHeader(
-	ctx sdk.Context, clientState *ClientState, clientStore sdk.KVStore, cdc codec.BinaryCodec,
+func (cs *ClientState) verifyHeader(
+	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
 	tmHeader exported.ClientMessage, currentTimestamp time.Time,
 ) error {
 	// TODO: check ok
@@ -259,7 +259,7 @@ func verifyHeader(
 		)
 	}
 
-	chainID := clientState.GetChainID()
+	chainID := cs.GetChainID()
 	// If chainID is in revision format, then set revision number of chainID with the revision number
 	// of the header we are verifying
 	// This is useful if the update is at a previous revision rather than an update to the latest revision
@@ -290,7 +290,7 @@ func verifyHeader(
 	err = light.Verify(
 		&signedHeader,
 		tmTrustedValidators, tmSignedHeader, tmValidatorSet,
-		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift, clientState.TrustLevel.ToTendermint(),
+		cs.TrustingPeriod, currentTimestamp, cs.MaxClockDrift, cs.TrustLevel.ToTendermint(),
 	)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to verify header")
