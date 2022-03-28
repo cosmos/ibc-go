@@ -204,8 +204,10 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
 				suite.Require().True(found)
 
+				// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 
+				// commit some blocks so that the created Header now has a previous height as the BlockHeight
 				suite.coordinator.CommitNBlocks(suite.chainB, 5)
 
 				err = path.EndpointA.UpdateClient()
@@ -226,7 +228,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				bothSigners := suite.chainB.Signers
 				bothSigners[altVal.Address.String()] = altPrivVal
 
-				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+5, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, bothValSet, trustedVals, bothSigners)
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+5, trustedHeight, suite.chainB.CurrentHeader.Time, bothValSet, suite.chainB.NextVals, trustedVals, bothSigners)
 			},
 			expPass: true,
 		},
