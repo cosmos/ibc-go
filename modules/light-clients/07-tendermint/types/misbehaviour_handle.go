@@ -27,12 +27,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	clientStore sdk.KVStore,
 	misbehaviour exported.ClientMessage,
 ) (exported.ClientState, error) {
-	tmMisbehaviour, ok := misbehaviour.(*Misbehaviour)
-	if !ok {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &Misbehaviour{})
-	}
-
-	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, tmMisbehaviour); err != nil {
+	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, misbehaviour); err != nil {
 		return nil, err
 	}
 

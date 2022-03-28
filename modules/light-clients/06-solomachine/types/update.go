@@ -6,6 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
@@ -89,12 +90,12 @@ func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec,
 	// NOTE: a check that the misbehaviour message data are not equal is done by
 	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
 	// verify first signature
-	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureOne); err != nil {
+	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureOne); err != nil {
 		return sdkerrors.Wrap(err, "failed to verify signature one")
 	}
 
 	// verify second signature
-	if err := verifySignatureAndData(cdc, cs, misbehaviour, misbehaviour.SignatureTwo); err != nil {
+	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureTwo); err != nil {
 		return sdkerrors.Wrap(err, "failed to verify signature two")
 	}
 
@@ -103,7 +104,12 @@ func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec,
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
-	smHeader := clientMsg.(*Header)
+	smHeader, ok := clientMsg.(*Header)
+	if !ok {
+		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected %T got %T", Header{}, clientMsg)
+	}
+
+	// create new solomachine ConsensusState
 	consensusState := &ConsensusState{
 		PublicKey:   smHeader.NewPublicKey,
 		Diversifier: smHeader.NewDiversifier,
@@ -112,6 +118,9 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	cs.Sequence++
 	cs.ConsensusState = consensusState
+
+	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
+
 	return &cs, consensusState, nil
 }
 
@@ -126,9 +135,10 @@ func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
 // as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, // prematurely include args for self storage of consensus state
-) (*ClientState, exported.ConsensusState, error) {
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) (*ClientState, exported.ConsensusState, error) {
 	cs.IsFrozen = true
+
+	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
+
 	return &cs, cs.ConsensusState, nil
 }

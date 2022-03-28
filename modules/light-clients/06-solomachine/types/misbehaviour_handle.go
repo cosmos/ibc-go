@@ -34,12 +34,12 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
 
 	// verify first signature
-	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureOne); err != nil {
+	if err := cs.verifySignatureAndData(cdc, soloMisbehaviour, soloMisbehaviour.SignatureOne); err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to verify signature one")
 	}
 
 	// verify second signature
-	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureTwo); err != nil {
+	if err := cs.verifySignatureAndData(cdc, soloMisbehaviour, soloMisbehaviour.SignatureTwo); err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to verify signature two")
 	}
 
@@ -50,7 +50,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 // verifySignatureAndData verifies that the currently registered public key has signed
 // over the provided data and that the data is valid. The data is valid if it can be
 // unmarshaled into the specified data type.
-func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misbehaviour *Misbehaviour, sigAndData *SignatureAndData) error {
+func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour *Misbehaviour, sigAndData *SignatureAndData) error {
 
 	// do not check misbehaviour timestamp since we want to allow processing of past misbehaviour
 
@@ -62,7 +62,7 @@ func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misb
 	data, err := MisbehaviourSignBytes(
 		cdc,
 		misbehaviour.Sequence, sigAndData.Timestamp,
-		clientState.ConsensusState.Diversifier,
+		cs.ConsensusState.Diversifier,
 		sigAndData.DataType,
 		sigAndData.Data,
 	)
@@ -75,7 +75,7 @@ func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misb
 		return err
 	}
 
-	publicKey, err := clientState.ConsensusState.GetPubKey()
+	publicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
 		return err
 	}
