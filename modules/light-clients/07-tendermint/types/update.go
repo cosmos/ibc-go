@@ -126,40 +126,10 @@ func (cs *ClientState) VerifyClientMessage(
 	case *Header:
 		return cs.verifyHeader(ctx, clientStore, cdc, msg)
 	case *Misbehaviour:
-		// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
-		// Retrieve trusted consensus states for each Header in misbehaviour
-		// and unmarshal from clientStore
-
-		// Get consensus bytes from clientStore
-		tmConsensusState1, err := GetConsensusState(clientStore, cdc, msg.Header1.TrustedHeight)
-		if err != nil {
-			return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", msg.Header1)
-		}
-
-		// Get consensus bytes from clientStore
-		tmConsensusState2, err := GetConsensusState(clientStore, cdc, msg.Header2.TrustedHeight)
-		if err != nil {
-			return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", msg.Header2)
-		}
-
-		// Check the validity of the two conflicting headers against their respective
-		// trusted consensus states
-		// NOTE: header height and commitment root assertions are checked in
-		// misbehaviour.ValidateBasic by the client keeper and msg.ValidateBasic
-		// by the base application.
-		if err := checkMisbehaviourHeader(
-			cs, tmConsensusState1, msg.Header1, ctx.BlockTime(),
-		); err != nil {
-			return sdkerrors.Wrap(err, "verifying Header1 in Misbehaviour failed")
-		}
-		if err := checkMisbehaviourHeader(
-			cs, tmConsensusState2, msg.Header2, ctx.BlockTime(),
-		); err != nil {
-			return sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
-		}
+		return cs.verifyMisbehaviour(ctx, clientStore, cdc, msg)
+	default:
+		return clienttypes.ErrInvalidClientType
 	}
-
-	return nil
 }
 
 // verifyHeader returns an error if:
