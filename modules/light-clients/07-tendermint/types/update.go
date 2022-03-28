@@ -285,14 +285,6 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	}
 }
 
-// UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
-// as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
-	cs.FrozenHeight = FrozenHeight
-
-	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
-}
-
 // CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
 	switch msg := msg.(type) {
@@ -336,4 +328,12 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 	}
 
 	return false
+}
+
+// UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
+// as it does not perform any misbehaviour checks.
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
+	cs.FrozenHeight = FrozenHeight
+
+	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 }
