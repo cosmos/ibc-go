@@ -5,7 +5,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -480,55 +479,5 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 		} else {
 			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
 		}
-	}
-}
-
-func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
-	var (
-		path *ibctesting.Path
-	)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"success",
-			func() {},
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			// reset suite to create fresh application state
-			suite.SetupTest()
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-			err := path.EndpointA.CreateClient()
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			clientState := path.EndpointA.GetClientState()
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-			// TODO: remove casting when 'UpdateState' is an interface function.
-			tmClientState, ok := clientState.(*types.ClientState)
-			suite.Require().True(ok)
-
-			tmClientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore)
-
-			if tc.expPass {
-				clientStateBz := clientStore.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
-
-				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-				suite.Require().Equal(frozenHeight, newClientState.(*types.ClientState).FrozenHeight)
-			}
-		})
 	}
 }

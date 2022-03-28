@@ -6,6 +6,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	types "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
@@ -181,7 +182,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 	revisionHeight := int64(height.RevisionHeight)
 
 	// create modified heights to use for test-cases
-	altVal := tmtypes.NewValidator(altPubKey, 10)
+	altVal := tmtypes.NewValidator(altPubKey, 100)
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
 	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
 	altSigners := getAltSigners(altVal, altPrivVal)
@@ -204,8 +205,10 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
 				suite.Require().True(found)
 
+				// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 
+				// commit some blocks so that the created Header now has a previous height as the BlockHeight
 				suite.coordinator.CommitNBlocks(suite.chainB, 5)
 
 				err = path.EndpointA.UpdateClient()
@@ -226,12 +229,12 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				bothSigners := suite.chainB.Signers
 				bothSigners[altVal.Address.String()] = altPrivVal
 
-				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+5, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, bothValSet, trustedVals, bothSigners)
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+5, trustedHeight, suite.chainB.CurrentHeader.Time, bothValSet, suite.chainB.NextVals, trustedVals, bothSigners)
 			},
 			expPass: true,
 		},
 		{
-			name: "successful verify header: header  with next height and different validator set",
+			name: "successful verify header: header with next height and different validator set",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
@@ -243,7 +246,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				bothSigners := suite.chainB.Signers
 				bothSigners[altVal.Address.String()] = altPrivVal
 
-				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, bothValSet, trustedVals, bothSigners)
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, bothValSet, suite.chainB.NextVals, trustedVals, bothSigners)
 			},
 			expPass: true,
 		},
@@ -615,4 +618,197 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// check iteration key metadata is not pruned
 	consKey = types.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
+}
+
+func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
+	var (
+		path          *ibctesting.Path
+		clientMessage exported.ClientMessage
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"valid update no misbehaviour",
+			func() {},
+			false,
+		},
+		{
+			"consensus state already exists, already updated",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
+
+				consensusState := &types.ConsensusState{
+					Timestamp:          header.GetTime(),
+					Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+					NextValidatorsHash: header.Header.NextValidatorsHash,
+				}
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage.GetHeight(), consensusState)
+			},
+			false,
+		},
+		{
+			"consensus state already exists, app hash mismatch",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
+
+				consensusState := &types.ConsensusState{
+					Timestamp:          header.GetTime(),
+					Root:               commitmenttypes.NewMerkleRoot([]byte{}), // empty bytes
+					NextValidatorsHash: header.Header.NextValidatorsHash,
+				}
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage.GetHeight(), consensusState)
+			},
+			true,
+		},
+		{
+			"previous consensus state exists and header time is before previous consensus state time",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
+
+				// offset header timestamp before previous consensus state timestamp
+				header.Header.Time = header.GetTime().Add(-time.Hour)
+			},
+			true,
+		},
+		{
+			"next consensus state exists and header time is after next consensus state time",
+			func() {
+				header, ok := clientMessage.(*types.Header)
+				suite.Require().True(ok)
+
+				// commit block and update client, adding a new consensus state
+				suite.coordinator.CommitBlock(suite.chainB)
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// increase timestamp of current header
+				header.Header.Time = header.Header.Time.Add(time.Hour)
+			},
+			true,
+		},
+		{
+			"valid fork misbehaviour returns true",
+			func() {
+				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+
+				// commit block and update client
+				suite.coordinator.CommitBlock(suite.chainB)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+
+				// assign the same height, each header will have a different commit hash
+				header1.Header.Height = header2.Header.Height
+
+				clientMessage = &types.Misbehaviour{
+					Header1:  header1,
+					Header2:  header2,
+					ClientId: path.EndpointA.ClientID,
+				}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			// reset suite to create fresh application state
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			err := path.EndpointA.CreateClient()
+			suite.Require().NoError(err)
+
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			clientState := path.EndpointA.GetClientState()
+
+			// TODO: remove casting when 'UpdateState' is an interface function.
+			tmClientState, ok := clientState.(*types.ClientState)
+			suite.Require().True(ok)
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			foundMisbehaviour := tmClientState.CheckForMisbehaviour(
+				suite.chainA.GetContext(),
+				suite.chainA.App.AppCodec(),
+				clientStore, // pass in clientID prefixed clientStore
+				clientMessage,
+			)
+
+			if tc.expPass {
+				suite.Require().True(foundMisbehaviour)
+			} else {
+				suite.Require().False(foundMisbehaviour)
+			}
+		})
+	}
+}
+
+func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
+	var (
+		path *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			// reset suite to create fresh application state
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			err := path.EndpointA.CreateClient()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			clientState := path.EndpointA.GetClientState()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			// TODO: remove casting when 'UpdateState' is an interface function.
+			tmClientState, ok := clientState.(*types.ClientState)
+			suite.Require().True(ok)
+
+			tmClientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore)
+
+			if tc.expPass {
+				clientStateBz := clientStore.Get(host.ClientStateKey())
+				suite.Require().NotEmpty(clientStateBz)
+
+				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+				suite.Require().Equal(frozenHeight, newClientState.(*types.ClientState).FrozenHeight)
+			}
+		})
+	}
 }
