@@ -66,10 +66,10 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	}
 
 	// get consensus state from clientStore
-	trustedConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
-	if err != nil {
+	trustedConsState, found := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
+	if !found {
 		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
+			clienttypes.ErrConsensusStateNotFound, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
 		)
 	}
 
@@ -259,10 +259,10 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	)
 
 	pruneCb := func(height exported.Height) bool {
-		consState, err := GetConsensusState(clientStore, cdc, height)
+		consState, found := GetConsensusState(clientStore, cdc, height)
 		// this error should never occur
-		if err != nil {
-			pruneError = err
+		if !found {
+			pruneError = sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height)
 			return true
 		}
 

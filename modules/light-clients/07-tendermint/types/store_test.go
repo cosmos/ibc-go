@@ -65,15 +65,16 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			tc.malleate() // change vars as necessary
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			consensusState, err := types.GetConsensusState(store, suite.chainA.Codec, height)
+			consensusState, found := types.GetConsensusState(store, suite.chainA.Codec, height)
 
 			if tc.expPass {
-				suite.Require().NoError(err)
+				suite.Require().True(found)
+
 				expConsensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, height)
 				suite.Require().True(found)
 				suite.Require().Equal(expConsensusState, consensusState)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().False(found)
 				suite.Require().Nil(consensusState)
 			}
 		})

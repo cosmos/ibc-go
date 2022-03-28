@@ -64,15 +64,15 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 	// and unmarshal from clientStore
 
 	// Get consensus bytes from clientStore
-	tmConsensusState1, err := GetConsensusState(clientStore, cdc, tmMisbehaviour.Header1.TrustedHeight)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", tmMisbehaviour.Header1)
+	tmConsensusState1, found := GetConsensusState(clientStore, cdc, tmMisbehaviour.Header1.TrustedHeight)
+	if !found {
+		return nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", tmMisbehaviour.Header1)
 	}
 
 	// Get consensus bytes from clientStore
-	tmConsensusState2, err := GetConsensusState(clientStore, cdc, tmMisbehaviour.Header2.TrustedHeight)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", tmMisbehaviour.Header2)
+	tmConsensusState2, found := GetConsensusState(clientStore, cdc, tmMisbehaviour.Header2.TrustedHeight)
+	if !found {
+		return nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", tmMisbehaviour.Header2)
 	}
 
 	// Check the validity of the two conflicting headers against their respective
