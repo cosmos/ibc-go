@@ -23,15 +23,16 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		name     string
 		malleate func()
 		expPass  bool
+		expPanic bool
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, true, false,
 		},
 		{
 			"consensus state not found", func() {
 				// use height with no consensus state set
 				height = height.(clienttypes.Height).Increment()
-			}, false,
+			}, false, false,
 		},
 		{
 			"not a consensus state interface", func() {
@@ -39,7 +40,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				clientStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalClientState(&types.ClientState{})
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
-			}, false,
+			}, false, true,
 		},
 		{
 			"invalid consensus state (solomachine)", func() {
@@ -47,7 +48,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				consensusStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalConsensusState(&solomachinetypes.ConsensusState{})
 				store.Set(host.ConsensusStateKey(height), consensusStateBz)
-			}, false,
+			}, false, true,
 		},
 	}
 
@@ -63,6 +64,15 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			height = clientState.GetLatestHeight()
 
 			tc.malleate() // change vars as necessary
+
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+					types.GetConsensusState(store, suite.chainA.Codec, height)
+				})
+
+				return
+			}
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			consensusState, found := types.GetConsensusState(store, suite.chainA.Codec, height)
