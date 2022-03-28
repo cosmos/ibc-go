@@ -715,52 +715,61 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 				suite.now,
 				false,
 			},
-			{
-				"first valset has too much change",
-				types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
-				types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
-				height,
-				types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
-				height,
-				&types.Misbehaviour{
-					Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, altValSet, altValSet, bothValSet, altSigners),
-					Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), bothValSet, bothValSet, bothValSet, bothSigners),
-					ClientId: chainID,
-				},
-				suite.now,
-				false,
-			},
-			{
-				"second valset has too much change",
-				types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
-				types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
-				height,
-				types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
-				height,
-				&types.Misbehaviour{
-					Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, bothValSet, bothValSet, bothValSet, bothSigners),
-					Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), altValSet, altValSet, bothValSet, altSigners),
-					ClientId: chainID,
-				},
-				suite.now,
-				false,
-			},
-			{
-				"both valsets have too much change",
-				types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
-				types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
-				height,
-				types.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot(tmhash.Sum([]byte("app_hash"))), bothValsHash),
-				height,
-				&types.Misbehaviour{
-					Header1:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now, altValSet, altValSet, bothValSet, altSigners),
-					Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+1), height, suite.now.Add(time.Minute), altValSet, altValSet, bothValSet, altSigners),
-					ClientId: chainID,
-				},
-				suite.now,
-				false,
-			},
 		*/
+		{
+			"first valset has too much change", func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				misbehaviour = &types.Misbehaviour{
+					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.altValSet, suite.chainB.NextVals, trustedVals, suite.altSigners),
+					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+				}
+			}, false,
+		},
+		{
+			"second valset has too much change", func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				misbehaviour = &types.Misbehaviour{
+					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.altValSet, suite.chainB.NextVals, trustedVals, suite.altSigners),
+				}
+			}, false,
+		},
+		{
+			"both valsets have too much change", func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				misbehaviour = &types.Misbehaviour{
+					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.altValSet, suite.chainB.NextVals, trustedVals, suite.altSigners),
+					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.altValSet, suite.chainB.NextVals, trustedVals, suite.altSigners),
+				}
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
