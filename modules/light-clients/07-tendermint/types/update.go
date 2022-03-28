@@ -76,15 +76,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		conflictingHeader = true
 	}
 
-	// get consensus state from clientStore
-	trustedConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
-		)
-	}
-
-	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, trustedConsState, tmHeader); err != nil {
+	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, tmHeader); err != nil {
 		return nil, nil, err
 	}
 
@@ -164,12 +156,12 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and validates the message
 func (cs *ClientState) VerifyClientMessage(
-	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, consState *ConsensusState,
+	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
 	header exported.ClientMessage,
 ) error {
 	switch header.(type) {
 	case *Header:
-		return verifyHeader(ctx, cs, clientStore, cdc, consState, header, ctx.BlockTime())
+		return verifyHeader(ctx, cs, clientStore, cdc, header, ctx.BlockTime())
 	case *Misbehaviour:
 		misbehaviour := header.(*Misbehaviour)
 		// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
@@ -218,11 +210,17 @@ func (cs *ClientState) VerifyClientMessage(
 // - header timestamp is past the trusting period in relation to the consensus state
 // - header timestamp is less than or equal to the consensus state timestamp
 func verifyHeader(
-	ctx sdk.Context, clientState *ClientState, clientStore sdk.KVStore, cdc codec.BinaryCodec, consState *ConsensusState,
+	ctx sdk.Context, clientState *ClientState, clientStore sdk.KVStore, cdc codec.BinaryCodec,
 	tmHeader exported.ClientMessage, currentTimestamp time.Time,
 ) error {
 	// TODO: check ok
 	header := tmHeader.(*Header)
+
+	// Retrieve trusted consensus states for each Header in misbehaviour
+	consState, err := GetConsensusState(clientStore, cdc, header.TrustedHeight)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.TrustedHeight)
+	}
 
 	if err := checkTrustedHeader(header, consState); err != nil {
 		return err

@@ -58,7 +58,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		}
 	}
 
-	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, nil, misbehaviour); err != nil {
+	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, misbehaviour); err != nil {
 		return nil, err
 	}
 
