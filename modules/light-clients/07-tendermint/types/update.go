@@ -285,6 +285,51 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	}
 }
 
+// CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
+func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
+	switch msg := msg.(type) {
+	case *Header:
+		tmHeader := msg
+		consState := tmHeader.ConsensusState()
+
+		// Check if the Client store already has a consensus state for the header's height
+		// If the consensus state exists, and it matches the header then we return early
+		// since header has already been submitted in a previous UpdateClient.
+		prevConsState, _ := GetConsensusState(clientStore, cdc, tmHeader.GetHeight())
+		if prevConsState != nil {
+			// This header has already been submitted and the necessary state is already stored
+			// in client store, thus we can return early without further validation.
+			if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
+				return false
+			}
+
+			// A consensus state already exists for this height, but it does not match the provided header.
+			// The assumption is that Header has already been validated. Thus we can return true as misbehaviour is present
+			return true
+		}
+
+		// Check that consensus state timestamps are monotonic
+		prevCons, prevOk := GetPreviousConsensusState(clientStore, cdc, tmHeader.GetHeight())
+		nextCons, nextOk := GetNextConsensusState(clientStore, cdc, tmHeader.GetHeight())
+		// if previous consensus state exists, check consensus state time is greater than previous consensus state time
+		// if previous consensus state is not before current consensus state return true
+		if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
+			return true
+		}
+		// if next consensus state exists, check consensus state time is less than next consensus state time
+		// if next consensus state is not after current consensus state return true
+		if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
+			return true
+		}
+	case *Misbehaviour:
+		// The correctness of Misbehaviour ClientMessage types is ensured by calling VerifyClientMessage prior to this function
+		// Thus, here we can return true, as ClientMessage is of type Misbehaviour
+		return true
+	}
+
+	return false
+}
+
 // UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
