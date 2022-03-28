@@ -43,9 +43,6 @@ type TendermintTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 
-	altValSet  *tmtypes.ValidatorSet
-	altSigners map[string]tmtypes.PrivValidator
-
 	// TODO: deprecate usage in favor of testing package
 	ctx        sdk.Context
 	cdc        codec.Codec
@@ -66,19 +63,6 @@ func (suite *TendermintTestSuite) SetupTest() {
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-
-	// Setup different validators and signers for testing different types of updates
-	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey()
-	suite.Require().NoError(err)
-
-	// create modified heights to use for test-cases
-	altVal := tmtypes.NewValidator(altPubKey, 100)
-
-	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	suite.altValSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
-
-	suite.altSigners = getAltSigners(altVal, altPrivVal)
 
 	// TODO: deprecate usage in favor of testing package
 	checkTx := false
