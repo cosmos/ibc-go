@@ -120,28 +120,26 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
 	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
-	header exported.ClientMessage,
+	clientMsg exported.ClientMessage,
 ) error {
-	switch header.(type) {
+	switch msg := clientMsg.(type) {
 	case *Header:
-		return cs.verifyHeader(ctx, clientStore, cdc, header)
+		return cs.verifyHeader(ctx, clientStore, cdc, msg)
 	case *Misbehaviour:
-		misbehaviour := header.(*Misbehaviour)
 		// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
-
 		// Retrieve trusted consensus states for each Header in misbehaviour
 		// and unmarshal from clientStore
 
 		// Get consensus bytes from clientStore
-		tmConsensusState1, err := GetConsensusState(clientStore, cdc, misbehaviour.Header1.TrustedHeight)
+		tmConsensusState1, err := GetConsensusState(clientStore, cdc, msg.Header1.TrustedHeight)
 		if err != nil {
-			return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", misbehaviour.Header1)
+			return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", msg.Header1)
 		}
 
 		// Get consensus bytes from clientStore
-		tmConsensusState2, err := GetConsensusState(clientStore, cdc, misbehaviour.Header2.TrustedHeight)
+		tmConsensusState2, err := GetConsensusState(clientStore, cdc, msg.Header2.TrustedHeight)
 		if err != nil {
-			return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", misbehaviour.Header2)
+			return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", msg.Header2)
 		}
 
 		// Check the validity of the two conflicting headers against their respective
@@ -150,12 +148,12 @@ func (cs *ClientState) VerifyClientMessage(
 		// misbehaviour.ValidateBasic by the client keeper and msg.ValidateBasic
 		// by the base application.
 		if err := checkMisbehaviourHeader(
-			cs, tmConsensusState1, misbehaviour.Header1, ctx.BlockTime(),
+			cs, tmConsensusState1, msg.Header1, ctx.BlockTime(),
 		); err != nil {
 			return sdkerrors.Wrap(err, "verifying Header1 in Misbehaviour failed")
 		}
 		if err := checkMisbehaviourHeader(
-			cs, tmConsensusState2, misbehaviour.Header2, ctx.BlockTime(),
+			cs, tmConsensusState2, msg.Header2, ctx.BlockTime(),
 		); err != nil {
 			return sdkerrors.Wrap(err, "verifying Header2 in Misbehaviour failed")
 		}
@@ -174,11 +172,8 @@ func (cs *ClientState) VerifyClientMessage(
 // - header timestamp is less than or equal to the consensus state timestamp
 func (cs *ClientState) verifyHeader(
 	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
-	tmHeader exported.ClientMessage,
+	header *Header,
 ) error {
-	// TODO: check ok
-	header := tmHeader.(*Header)
-
 	currentTimestamp := ctx.BlockTime()
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
