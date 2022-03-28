@@ -636,7 +636,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			}, false,
 		},
 		{
-			"invalid misbehavior misbehaviour from different chain", func() {
+			"invalid misbehaviour: misbehaviour from different chain", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
