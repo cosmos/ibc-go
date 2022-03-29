@@ -71,14 +71,13 @@ func (ccs ClientConsensusStates) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 // NewGenesisState creates a GenesisState instance.
 func NewGenesisState(
 	clients []IdentifiedClientState, clientsConsensus ClientsConsensusStates, clientsMetadata []IdentifiedGenesisMetadata,
-	params Params, createLocalhost bool, nextClientSequence uint64,
+	params Params, nextClientSequence uint64,
 ) GenesisState {
 	return GenesisState{
 		Clients:            clients,
 		ClientsConsensus:   clientsConsensus,
 		ClientsMetadata:    clientsMetadata,
 		Params:             params,
-		CreateLocalhost:    createLocalhost,
 		NextClientSequence: nextClientSequence,
 	}
 }
@@ -89,7 +88,6 @@ func DefaultGenesisState() GenesisState {
 		Clients:            []IdentifiedClientState{},
 		ClientsConsensus:   ClientsConsensusStates{},
 		Params:             DefaultParams(),
-		CreateLocalhost:    false,
 		NextClientSequence: 0,
 	}
 }
@@ -199,10 +197,6 @@ func (gs GenesisState) Validate() error {
 
 		}
 
-	}
-
-	if gs.CreateLocalhost && !gs.Params.IsAllowedClient(exported.Localhost) {
-		return fmt.Errorf("localhost client is not registered on the allowlist")
 	}
 
 	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {
