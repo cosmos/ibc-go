@@ -9,7 +9,7 @@ Accepted
 
 ## Context
 
-The fee module maintains an escrow account for each of the fees escrowed to incentivize packet relays. 
+The fee module maintains an escrow account for all fees escrowed to incentivize packet relays. 
 It also tracks each packet fee escrowed separately from the escrow account. This is because the escrow account only maintains a total balance. It has no reference for which coins belonged to which packet fee. 
 In the presence of a severe bug, it is possible the escrow balance will become out of sync with the packet fees marked as escrowed.
 The ICS29 module should be capable of elegantly handling such a scenario.
