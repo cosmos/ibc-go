@@ -64,11 +64,7 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 		return nil, false
 	}
 
-	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
-	if err != nil {
-		panic(err)
-	}
-
+	consensusStateI := clienttypes.MustUnmarshalConsensusState(cdc, bz)
 	return consensusStateI.(*ConsensusState), true
 }
 
