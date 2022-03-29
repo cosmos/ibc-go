@@ -56,8 +56,8 @@ func SetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 	clientStore.Set(key, val)
 }
 
-// GetConsensusState retrieves the consensus state from the client prefixed
-// store. An error is returned if the consensus state does not exist.
+// GetConsensusState retrieves the consensus state from the client prefixed store.
+// If the ConsensusState does not exist in state for the provided height a nil value and false boolean flag is returned
 func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
 	bz := store.Get(host.ConsensusStateKey(height))
 	if bz == nil {
