@@ -91,7 +91,7 @@ func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore sdk.KVSto
 	// Get consensus bytes from clientStore
 	tmConsensusState2, found := GetConsensusState(clientStore, cdc, misbehaviour.Header2.TrustedHeight)
 	if !found {
-		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", misbehaviour.Header2)
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", misbehaviour.Header2.TrustedHeight)
 	}
 
 	// Check the validity of the two conflicting headers against their respective
