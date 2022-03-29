@@ -24,6 +24,7 @@ import (
 	hosttypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 var (
@@ -98,6 +99,23 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	return AppModule{
 		controllerKeeper: controllerKeeper,
 		hostKeeper:       hostKeeper,
+	}
+}
+
+// InitModule will initialize the interchain accounts moudule. It should only be
+// called once and as an alternative to InitGenesis.
+func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
+	if am.controllerKeeper != nil {
+		am.controllerKeeper.SetParams(ctx, controllerParams)
+	}
+
+	if am.hostKeeper != nil {
+		am.hostKeeper.SetParams(ctx, hostParams)
+
+		cap := am.hostKeeper.BindPort(ctx, types.PortID)
+		if err := am.hostKeeper.ClaimCapability(ctx, cap, ibchost.PortPath(types.PortID)); err != nil {
+			panic(fmt.Sprintf("could not claim port capability: %v", err))
+		}
 	}
 }
 

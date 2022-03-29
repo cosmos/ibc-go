@@ -234,6 +234,8 @@ func CheckBalance(t *testing.T, app *SimApp, addr sdk.AccAddress, balances sdk.C
 
 // SignAndDeliver signs and delivers a transaction. No simulation occurs as the
 // ibc testing package causes checkState and deliverState to diverge in block time.
+//
+// CONTRACT: BeginBlock must be called before this function.
 func SignAndDeliver(
 	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
 	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
@@ -251,8 +253,7 @@ func SignAndDeliver(
 	)
 	require.NoError(t, err)
 
-	// Simulate a sending a transaction and committing a block
-	app.BeginBlock(abci.RequestBeginBlock{Header: header})
+	// Simulate a sending a transaction
 	gInfo, res, err := app.Deliver(txCfg.TxEncoder(), tx)
 
 	if expPass {
@@ -262,9 +263,6 @@ func SignAndDeliver(
 		require.Error(t, err)
 		require.Nil(t, res)
 	}
-
-	app.EndBlock(abci.RequestEndBlock{})
-	app.Commit()
 
 	return gInfo, res, err
 }
