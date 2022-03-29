@@ -23,7 +23,7 @@ Manual intervention will be needed to unlock the fee module.
 
 ### Sending side
 
-Special behaviour will have to be accounted for in `OnAcknowledgementPacket`. Since the counterparty will continue to send incentivized acknowledgements for fee enabled channels, the acknowledgement will need to be unmarshalled into an incentivized acknowledgement before calling the underlying application `OnAcknowledgePacket` callback. 
+Special behaviour will have to be accounted for in `OnAcknowledgementPacket`. Since the counterparty will continue to send incentivized acknowledgements for fee enabled channels, the acknowledgement will still need to be unmarshalled into an incentivized acknowledgement before calling the underlying application `OnAcknowledgePacket` callback. 
 
 When distributing fees, a cached context should be used. If the escrow account balance would become negative, the current state changes should be discarded and the fee module should be locked using the uncached context. This prevents fees from being partially distributed for a given packetID.
 
