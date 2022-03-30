@@ -80,14 +80,14 @@ func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore sdk.KVSto
 	// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
-	tmConsensusState1, err := GetConsensusState(clientStore, cdc, misbehaviour.Header1.TrustedHeight)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", misbehaviour.Header1.TrustedHeight)
+	tmConsensusState1, found := GetConsensusState(clientStore, cdc, misbehaviour.Header1.TrustedHeight)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header1 at TrustedHeight: %s", misbehaviour.Header1.TrustedHeight)
 	}
 
-	tmConsensusState2, err := GetConsensusState(clientStore, cdc, misbehaviour.Header2.TrustedHeight)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", misbehaviour.Header2.TrustedHeight)
+	tmConsensusState2, found := GetConsensusState(clientStore, cdc, misbehaviour.Header2.TrustedHeight)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header2 at TrustedHeight: %s", misbehaviour.Header2.TrustedHeight)
 	}
 
 	// Check the validity of the two conflicting headers against their respective

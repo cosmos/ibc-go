@@ -62,9 +62,9 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	// starting from initial height and ending on the latest height (inclusive)
 	height := substituteClientState.GetLatestHeight()
 
-	consensusState, err := GetConsensusState(substituteClientStore, cdc, height)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "unable to retrieve latest consensus state for substitute client")
+	consensusState, found := GetConsensusState(substituteClientStore, cdc, height)
+	if !found {
+		return nil, sdkerrors.Wrap(clienttypes.ErrConsensusStateNotFound, "unable to retrieve latest consensus state for substitute client")
 	}
 
 	setConsensusState(subjectClientStore, cdc, consensusState, height)
