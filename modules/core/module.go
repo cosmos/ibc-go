@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
 	clientkeeper "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
@@ -164,6 +165,7 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	ibcclient.BeginBlocker(ctx, am.keeper.ClientKeeper)
 }
 
 // EndBlock returns the end blocker for the ibc module. It returns no validator
