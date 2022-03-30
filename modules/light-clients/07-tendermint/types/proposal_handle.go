@@ -87,6 +87,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	// no validation is necessary since the substitute is verified to be Active
 	// in 02-client.
+	setClientState(subjectClientStore, cdc, &cs)
 
 	return &cs, nil
 }
