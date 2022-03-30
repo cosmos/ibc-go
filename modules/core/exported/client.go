@@ -56,8 +56,10 @@ type ClientState interface {
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
-	// Update and Misbehaviour functions
+	// UpdateStateOnMisbehaviour updates state upon misbehaviour
+	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore)
 
+	// Update and Misbehaviour functions
 	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
 	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
