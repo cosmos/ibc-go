@@ -81,7 +81,7 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 func (cs *ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
-	return cs.UpdateState(ctx, cdc, clientStore, header)
+	return cs, nil, cs.UpdateState(ctx, cdc, clientStore, header)
 }
 
 // VerifyHeader is a no-op.
@@ -101,12 +101,12 @@ func (cs *ClientState) CheckForMisbehaviour(
 // UpdateState updates the localhost client. It only needs access to the context
 func (cs *ClientState) UpdateState(
 	ctx sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
-) (exported.ClientState, exported.ConsensusState, error) {
+) error {
 	// use the chain ID from context since the localhost client is from the running chain (i.e self).
 	cs.ChainId = ctx.ChainID()
 	revision := clienttypes.ParseChainID(cs.ChainId)
 	cs.Height = clienttypes.NewHeight(revision, uint64(ctx.BlockHeight()))
-	return cs, nil, nil
+	return nil
 }
 
 // UpdateStateOnMisbehaviour returns an error (no misbehaviour case).

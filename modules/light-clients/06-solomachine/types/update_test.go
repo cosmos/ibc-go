@@ -612,11 +612,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 			suite.Run(tc.name, func() {
 				tc.setup() // setup test
 
-				// TODO: remove casting when 'UpdateState' is an interface function.
-				clientState, ok := clientState.(*types.ClientState)
-				suite.Require().True(ok)
-
-				_, _, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
