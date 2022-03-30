@@ -94,8 +94,8 @@ func (cs *ClientState) VerifyHeader(
 // CheckForMisbehaviour returns false.
 func (cs *ClientState) CheckForMisbehaviour(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
-) (bool, error) {
-	return false, nil
+) bool {
+	return false
 }
 
 // UpdateState updates the localhost client. It only needs access to the context
