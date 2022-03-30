@@ -59,7 +59,7 @@ type ClientState interface {
 	// VerifyClientMessage verifies a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
 	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
 
-	// UpdateState updates and stores the ClientState and associated ConsensusState using the provided ClientMessage Header
+	// UpdateState updates and stores the ClientState and associated ConsensusState using the provided KVStore and ClientMessage Header
 	// An error is returned if ClientMessage is of type Misbehaviour
 	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
 
