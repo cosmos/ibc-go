@@ -1,4 +1,4 @@
-package solomachine
+package types
 
 import (
 	"reflect"
@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // CheckSubstituteAndUpdateState verifies that the subject is allowed to be updated by
@@ -21,36 +21,46 @@ import (
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	_ sdk.KVStore, substituteClient exported.ClientState,
-) error {
+) (exported.ClientState, error) {
+
 	if !cs.AllowUpdateAfterProposal {
-		return sdkerrors.Wrapf(clienttypes.ErrUpdateClientFailed, "solo machine client is not allowed to updated with a proposal")
+		return nil, sdkerrors.Wrapf(
+			clienttypes.ErrUpdateClientFailed,
+			"solo machine client is not allowed to updated with a proposal",
+		)
 	}
 
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "substitute client state type %T, expected  %T", substituteClient, &ClientState{})
+		return nil, sdkerrors.Wrapf(
+			clienttypes.ErrInvalidClientType, "substitute client state type %T, expected  %T", substituteClient, &ClientState{},
+		)
 	}
 
 	subjectPublicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to get consensus public key")
+		return nil, sdkerrors.Wrap(err, "failed to get consensus public key")
 	}
 
 	substitutePublicKey, err := substituteClientState.ConsensusState.GetPubKey()
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to get substitute client public key")
+		return nil, sdkerrors.Wrap(err, "failed to get substitute client public key")
 	}
 
 	if reflect.DeepEqual(subjectPublicKey, substitutePublicKey) {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "subject and substitute have the same public key")
+		return nil, sdkerrors.Wrapf(
+			clienttypes.ErrInvalidHeader, "subject and substitute have the same public key",
+		)
 	}
 
+	clientState := &cs
+
 	// update to substitute parameters
-	cs.Sequence = substituteClientState.Sequence
-	cs.ConsensusState = substituteClientState.ConsensusState
-	cs.IsFrozen = false
+	clientState.Sequence = substituteClientState.Sequence
+	clientState.ConsensusState = substituteClientState.ConsensusState
+	clientState.IsFrozen = false
 
-	setClientState(subjectClientStore, cdc, &cs)
+	setClientState(subjectClientStore, cdc, clientState)
 
-	return nil
+	return clientState, nil
 }
