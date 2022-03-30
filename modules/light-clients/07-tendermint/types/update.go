@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"reflect"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -65,15 +64,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		conflictingHeader = true
 	}
 
-	// get consensus state from clientStore
-	trustedConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
-		)
-	}
-
-	if err := checkValidity(&cs, trustedConsState, tmHeader, ctx.BlockTime()); err != nil {
+	if err := cs.VerifyClientMessage(ctx, cdc, clientStore, tmHeader); err != nil {
 		return nil, nil, err
 	}
 
@@ -126,12 +117,41 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 	return nil
 }
 
-// checkValidity checks if the Tendermint header is valid.
-// CONTRACT: consState.Height == header.TrustedHeight
-func checkValidity(
-	clientState *ClientState, consState *ConsensusState,
-	header *Header, currentTimestamp time.Time,
+// VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
+func (cs *ClientState) VerifyClientMessage(
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
+	clientMsg exported.ClientMessage,
 ) error {
+	switch msg := clientMsg.(type) {
+	case *Header:
+		return cs.verifyHeader(ctx, clientStore, cdc, msg)
+	case *Misbehaviour:
+		return cs.verifyMisbehaviour(ctx, clientStore, cdc, msg)
+	default:
+		return clienttypes.ErrInvalidClientType
+	}
+}
+
+// verifyHeader returns an error if:
+// - the client or header provided are not parseable to tendermint types
+// - the header is invalid
+// - header height is less than or equal to the trusted header height
+// - header revision is not equal to trusted header revision
+// - header valset commit verification fails
+// - header timestamp is past the trusting period in relation to the consensus state
+// - header timestamp is less than or equal to the consensus state timestamp
+func (cs *ClientState) verifyHeader(
+	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
+	header *Header,
+) error {
+	currentTimestamp := ctx.BlockTime()
+
+	// Retrieve trusted consensus states for each Header in misbehaviour
+	consState, err := GetConsensusState(clientStore, cdc, header.TrustedHeight)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.TrustedHeight)
+	}
+
 	if err := checkTrustedHeader(header, consState); err != nil {
 		return err
 	}
@@ -169,7 +189,7 @@ func checkValidity(
 		)
 	}
 
-	chainID := clientState.GetChainID()
+	chainID := cs.GetChainID()
 	// If chainID is in revision format, then set revision number of chainID with the revision number
 	// of the header we are verifying
 	// This is useful if the update is at a previous revision rather than an update to the latest revision
@@ -200,11 +220,12 @@ func checkValidity(
 	err = light.Verify(
 		&signedHeader,
 		tmTrustedValidators, tmSignedHeader, tmValidatorSet,
-		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift, clientState.TrustLevel.ToTendermint(),
+		cs.TrustingPeriod, currentTimestamp, cs.MaxClockDrift, cs.TrustLevel.ToTendermint(),
 	)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to verify header")
 	}
+
 	return nil
 }
 
@@ -283,6 +304,51 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 		deleteConsensusState(clientStore, pruneHeight)
 		deleteConsensusMetadata(clientStore, pruneHeight)
 	}
+}
+
+// CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
+func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
+	switch msg := msg.(type) {
+	case *Header:
+		tmHeader := msg
+		consState := tmHeader.ConsensusState()
+
+		// Check if the Client store already has a consensus state for the header's height
+		// If the consensus state exists, and it matches the header then we return early
+		// since header has already been submitted in a previous UpdateClient.
+		prevConsState, _ := GetConsensusState(clientStore, cdc, tmHeader.GetHeight())
+		if prevConsState != nil {
+			// This header has already been submitted and the necessary state is already stored
+			// in client store, thus we can return early without further validation.
+			if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
+				return false
+			}
+
+			// A consensus state already exists for this height, but it does not match the provided header.
+			// The assumption is that Header has already been validated. Thus we can return true as misbehaviour is present
+			return true
+		}
+
+		// Check that consensus state timestamps are monotonic
+		prevCons, prevOk := GetPreviousConsensusState(clientStore, cdc, tmHeader.GetHeight())
+		nextCons, nextOk := GetNextConsensusState(clientStore, cdc, tmHeader.GetHeight())
+		// if previous consensus state exists, check consensus state time is greater than previous consensus state time
+		// if previous consensus state is not before current consensus state return true
+		if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
+			return true
+		}
+		// if next consensus state exists, check consensus state time is less than next consensus state time
+		// if next consensus state is not after current consensus state return true
+		if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
+			return true
+		}
+	case *Misbehaviour:
+		// The correctness of Misbehaviour ClientMessage types is ensured by calling VerifyClientMessage prior to this function
+		// Thus, here we can return true, as ClientMessage is of type Misbehaviour
+		return true
+	}
+
+	return false
 }
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
