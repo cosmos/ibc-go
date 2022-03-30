@@ -88,7 +88,7 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 	panic("legacy solo machine is deprecated!")
 }
 
-// VerifyClientMessage panics
+// VerifyClientMessage panics!
 func (cs *ClientState) VerifyClientMessage(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
 ) error {
