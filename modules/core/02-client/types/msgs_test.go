@@ -19,14 +19,16 @@ type TypesTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
+	chainA      *ibctesting.TestChain
+	chainB      *ibctesting.TestChain
+	solomachine *ibctesting.Solomachine
 }
 
 func (suite *TypesTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
 }
 
 func TestTypesTestSuite(t *testing.T) {

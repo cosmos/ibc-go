@@ -9,17 +9,19 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	solomachinetypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 const (
-	chainID         = "chainID"
-	tmClientID0     = "07-tendermint-0"
-	tmClientID1     = "07-tendermint-1"
-	invalidClientID = "myclient-0"
-	clientID        = tmClientID0
+	chainID             = "chainID"
+	tmClientID0         = "07-tendermint-0"
+	tmClientID1         = "07-tendermint-1"
+	invalidClientID     = "myclient-0"
+	soloMachineClientID = "06-solomachine-0"
+	clientID            = tmClientID0
 
 	height = 10
 )
@@ -105,6 +107,23 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				2,
 			),
 			expPass: true,
+		},
+		{
+			name: "invalid client type",
+			genState: types.NewGenesisState(
+				[]types.IdentifiedClientState{
+					types.NewIdentifiedClientState(
+						soloMachineClientID, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
+					),
+					types.NewIdentifiedClientState(tmClientID0, solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}, false)),
+				},
+				nil,
+				nil,
+				types.NewParams(exported.Tendermint),
+				false,
+				0,
+			),
+			expPass: false,
 		},
 		{
 			name: "invalid clientid",
