@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/require"
 
@@ -496,14 +497,21 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 // UpgradeChain performs an IBC client upgrade using the provided client state.
 // The chainID within the client state will have its revision number incremented by 1.
 // The counterparty client will be upgraded if it exists.
-func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) error {
+func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err error) {
 	if endpoint.Counterparty.ClientID == "" {
 		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
 	}
 
+	// the upgrade will be perfromed in 2 blocks
+	// the current block will commit the upgradeClientState into state
+	// the next block will commit the upgradeConsensusState into state via begin blocker
+	// the upgrade height will be used to update the counterparty client and perform the upgrade
+	upgradeHeight := endpoint.Chain.GetContext().BlockHeight() + 2
+
 	// increment revision number in chainID
-	revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
-	newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
+	oldChainID := clientState.ChainId
+	revisionNumber := clienttypes.ParseChainID(oldChainID)
+	newChainID, err := clienttypes.SetRevisionNumber(oldChainID, revisionNumber+1)
 	if err != nil {
 		// current chainID is not in revision format
 		newChainID = clientState.ChainId + "-1"
@@ -511,41 +519,81 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) erro
 
 	clientState.ChainId = newChainID
 	clientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
+	upgradeName := fmt.Sprintf("upgrade chain %s to %s", oldChainID, newChainID)
 
-	ctx := endpoint.Chain.GetContext()
-	upgradeHeight := ctx.BlockHeight()
-
-	// set upgraded client state
-	bz := clienttypes.MustMarshalClientState(endpoint.Chain.App.AppCodec(), clientState)
-	endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradedClient(ctx, upgradeHeight, bz)
-
-	// set upgraded consensus state
-	consensusState := &ibctmtypes.ConsensusState{
-		Timestamp:          ctx.BlockTime(),
-		NextValidatorsHash: ctx.BlockHeader().NextValidatorsHash,
+	upgradePlan := upgradetypes.Plan{
+		Name:   upgradeName,
+		Height: upgradeHeight,
 	}
 
-	bz = clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), consensusState)
-	endpoint.Chain.GetSimApp().IBCKeeper.ClientKeeper.SetUpgradedConsensusState(ctx, upgradeHeight, bz)
-
-	// ensure our client is up to date
-	// changes are commited in UpdateClient()
-	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+	// construct upgrade proposal
+	upgradeProposal, err := clienttypes.NewUpgradeProposal(upgradeName, "testing chain is being upgraded to a new chainID with an incermented revision", upgradePlan, clientState)
+	if err != nil {
 		return err
 	}
 
-	// update our chainID so future commits use the correct chainID
-	endpoint.Chain.ChainID = newChainID
-	endpoint.Chain.CurrentHeader.ChainID = newChainID
-
-	if err := endpoint.Counterparty.upgradeClient(upgradeHeight); err != nil {
+	// schedule upgrade
+	if err := endpoint.Chain.GetSimApp().IBCKeeper.ClientKeeper.HandleUpgradeProposal(endpoint.Chain.GetContext(), upgradeProposal.(*clienttypes.UpgradeProposal)); err != nil {
 		return err
 	}
+
+	// commit current block with client state set in state
+	// begin block will be called on upgradeHeight - 1
+	// which will cause the upgrade consensus state to be set
+	endpoint.Chain.NextBlock()
+
+	defer func() {
+		if r := recover(); r != nil {
+			if err = endpoint.Counterparty.upgradeClient(upgradeHeight); err != nil {
+				return
+			}
+
+			endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradeHandler(
+				upgradeName,
+				func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+					// no-op upgrade handler
+					return fromVM, nil
+				},
+			)
+
+			// update our chainID so future commits use the correct chainID
+			endpoint.Chain.ChainID = newChainID
+			endpoint.Chain.CurrentHeader.ChainID = newChainID
+		}
+	}()
+
+	// perform upgrade
+	endpoint.Chain.NextBlock()
+
+	// 'UpdateClient' will commit upgradeHeight - 1 which will allow
+	// the counterparty light client to be upgraded
 
 	return nil
 }
 
 func (endpoint *Endpoint) upgradeClient(upgradeHeight int64) error {
+	var msg sdk.Msg
+
+	// update client to latest state
+	header, err := endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+	msg, err = clienttypes.NewMsgUpdateClient(
+		endpoint.ClientID, header,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+	require.NoError(endpoint.Chain.T, err)
+
+	defer func() {
+		if r := recover(); r != nil {
+			// TODO: Remove
+			// This is a short term hack to account for
+			// sendMsgs() calling BeginBlock again causing a second panic
+			// https://github.com/cosmos/ibc-go/issues/1013
+		}
+	}()
+
+	err = endpoint.Chain.sendMsgs(msg)
+	require.NoError(endpoint.Chain.T, err)
+
 	clientStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedClient(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
 	require.True(endpoint.Chain.T, found)
 
@@ -565,7 +613,7 @@ func (endpoint *Endpoint) upgradeClient(upgradeHeight int64) error {
 	proofUpgradeConsState, _ := endpoint.Counterparty.QueryProof(consensusKey)
 
 	// upgrade counterparty client
-	msg, err := clienttypes.NewMsgUpgradeClient(
+	msg, err = clienttypes.NewMsgUpgradeClient(
 		endpoint.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	require.NoError(endpoint.Chain.T, err)
