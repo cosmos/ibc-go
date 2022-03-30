@@ -22,11 +22,6 @@ func (cs ConsensusState) GetTimestamp() uint64 {
 	return cs.Timestamp
 }
 
-// GetRoot returns nil since solo machines do not have roots.
-func (cs ConsensusState) GetRoot() exported.Root {
-	return nil
-}
-
 // GetPubKey unmarshals the public key into a cryptotypes.PubKey type.
 // An error is returned if the public key is nil or the cached value
 // is not a PubKey.
