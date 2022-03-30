@@ -497,6 +497,10 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 // UpgradeChain performs an IBC client upgrade using the provided client state.
 // The chainID within the client state will have its revision number incremented by 1.
 // The counterparty client will be upgraded if it exists.
+// The upgrade is performed at the current height + 2. The upgradeClientState is set
+// at the current height, and the upgradeConsensusState is set at current height + 1.
+// At the upgrade height, the upgrade module will produce a panic to perform the upgrade.
+// This panic is caught, the counterparty client is upgraded and the chainID is switched.
 func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err error) {
 	if endpoint.Counterparty.ClientID == "" {
 		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
@@ -527,7 +531,7 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err
 	}
 
 	// construct upgrade proposal
-	upgradeProposal, err := clienttypes.NewUpgradeProposal(upgradeName, "testing chain is being upgraded to a new chainID with an incermented revision", upgradePlan, clientState)
+	upgradeProposal, err := clienttypes.NewUpgradeProposal(upgradeName, "the testing chain is being upgraded to a new chainID with an incermented revision", upgradePlan, clientState)
 	if err != nil {
 		return err
 	}
@@ -542,12 +546,18 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err
 	// which will cause the upgrade consensus state to be set
 	endpoint.Chain.NextBlock()
 
+	// handle the upgrade
+	// when the upgrade height is reached, a panic is executed which will be caught by this defer function
+	// the counterparty client will be upgraded, the upgrade will perform a no-op migration
+	// and the chainID will be switched to the newChainID
 	defer func() {
 		if r := recover(); r != nil {
+			fmt.Println("Upgrading")
 			if err = endpoint.Counterparty.upgradeClient(upgradeHeight); err != nil {
 				return
 			}
 
+			fmt.Println("handler set")
 			endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradeHandler(
 				upgradeName,
 				func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
@@ -563,10 +573,10 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err
 	}()
 
 	// perform upgrade
+	// the upgrade consensus state will be committed
+	// begin block will be called for the upgradeHeight causing a panic
+	// the panic will be caught by the above defer function
 	endpoint.Chain.NextBlock()
-
-	// 'UpdateClient' will commit upgradeHeight - 1 which will allow
-	// the counterparty light client to be upgraded
 
 	return nil
 }
@@ -574,7 +584,7 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err
 func (endpoint *Endpoint) upgradeClient(upgradeHeight int64) error {
 	var msg sdk.Msg
 
-	// update client to latest state
+	// update client to latest state which contains the upgrade client and consensus states
 	header, err := endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 	msg, err = clienttypes.NewMsgUpdateClient(
 		endpoint.ClientID, header,
@@ -588,39 +598,43 @@ func (endpoint *Endpoint) upgradeClient(upgradeHeight int64) error {
 			// This is a short term hack to account for
 			// sendMsgs() calling BeginBlock again causing a second panic
 			// https://github.com/cosmos/ibc-go/issues/1013
+			// The code contained in this defer should go after the sendMsgs() call
+
+			// prepare upgrade client message
+
+			clientStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedClient(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
+			require.True(endpoint.Chain.T, found)
+			clientState := clienttypes.MustUnmarshalClientState(endpoint.Counterparty.Chain.App.AppCodec(), clientStateBz)
+
+			consensusStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedConsensusState(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
+			require.True(endpoint.Chain.T, found)
+			consensusState := clienttypes.MustUnmarshalConsensusState(endpoint.Counterparty.Chain.App.AppCodec(), consensusStateBz)
+
+			// the lastHeight should be used for generating proofs
+			lastHeight := int64(endpoint.GetClientState().GetLatestHeight().GetRevisionHeight())
+
+			clientKey := upgradetypes.UpgradedClientKey(upgradeHeight)
+			proofUpgradeClient, _ := endpoint.Counterparty.Chain.QueryProofForStore(upgradetypes.StoreKey, clientKey, lastHeight)
+
+			consensusKey := upgradetypes.UpgradedConsStateKey(upgradeHeight)
+			proofUpgradeConsState, _ := endpoint.Counterparty.Chain.QueryProofForStore(upgradetypes.StoreKey, consensusKey, lastHeight)
+
+			// upgrade counterparty client
+			msg, err = clienttypes.NewMsgUpgradeClient(
+				endpoint.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
+			)
+			require.NoError(endpoint.Chain.T, err)
+
+			if _, err = endpoint.Chain.SendMsgs(msg); err != nil {
+				return
+			}
+
+			fmt.Println("upgrade complete")
 		}
 	}()
 
 	err = endpoint.Chain.sendMsgs(msg)
 	require.NoError(endpoint.Chain.T, err)
-
-	clientStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedClient(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
-	require.True(endpoint.Chain.T, found)
-
-	clientState := clienttypes.MustUnmarshalClientState(endpoint.Counterparty.Chain.App.AppCodec(), clientStateBz)
-
-	consensusStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedConsensusState(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
-	require.True(endpoint.Chain.T, found)
-
-	consensusState := clienttypes.MustUnmarshalConsensusState(endpoint.Counterparty.Chain.App.AppCodec(), consensusStateBz)
-
-	// query proof for the client state on the counterparty
-	clientKey := upgradetypes.UpgradedClientKey(upgradeHeight)
-	proofUpgradeClient, _ := endpoint.Counterparty.QueryProof(clientKey)
-
-	// query proof for the consensus state on the counterparty
-	consensusKey := upgradetypes.UpgradedConsStateKey(upgradeHeight)
-	proofUpgradeConsState, _ := endpoint.Counterparty.QueryProof(consensusKey)
-
-	// upgrade counterparty client
-	msg, err = clienttypes.NewMsgUpgradeClient(
-		endpoint.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
-	)
-	require.NoError(endpoint.Chain.T, err)
-
-	if _, err := endpoint.Chain.SendMsgs(msg); err != nil {
-		return err
-	}
 
 	return nil
 }
