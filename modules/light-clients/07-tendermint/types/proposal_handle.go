@@ -67,7 +67,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		return nil, sdkerrors.Wrap(clienttypes.ErrConsensusStateNotFound, "unable to retrieve latest consensus state for substitute client")
 	}
 
-	SetConsensusState(subjectClientStore, cdc, consensusState, height)
+	setConsensusState(subjectClientStore, cdc, consensusState, height)
 
 	// set metadata stored for the substitute consensus state
 	processedHeight, found := GetProcessedHeight(substituteClientStore, height)
@@ -87,6 +87,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	// no validation is necessary since the substitute is verified to be Active
 	// in 02-client.
+	setClientState(subjectClientStore, cdc, &cs)
 
 	return &cs, nil
 }
