@@ -120,7 +120,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	)
 
 	setClientState(clientStore, cdc, newClientState)
-	SetConsensusState(clientStore, cdc, newConsState, newClientState.LatestHeight)
+	setConsensusState(clientStore, cdc, newConsState, newClientState.LatestHeight)
 	setConsensusMetadata(ctx, clientStore, tmUpgradeClient.LatestHeight)
 
 	return nil
