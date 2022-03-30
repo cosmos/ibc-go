@@ -32,7 +32,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &Misbehaviour{})
 	}
 
-	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, tmMisbehaviour); err != nil {
+	if err := cs.VerifyClientMessage(ctx, cdc, clientStore, tmMisbehaviour); err != nil {
 		return nil, err
 	}
 

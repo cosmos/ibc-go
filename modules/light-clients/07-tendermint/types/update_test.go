@@ -382,10 +382,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 		tc.malleate()
 
-		tmClientState, ok := clientState.(*types.ClientState)
-		suite.Require().True(ok)
-
-		err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), header)
+		err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
 
 		if tc.expPass {
 			suite.Require().NoError(err)

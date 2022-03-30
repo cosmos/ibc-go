@@ -775,15 +775,11 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 
 			clientState := path.EndpointA.GetClientState()
 
-			// TODO: remove casting when `VerifyClientMessage` is apart of ClientState interface
-			tmClientState, ok := clientState.(*types.ClientState)
-			suite.Require().True(ok)
-
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-			err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), misbehaviour)
+			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, misbehaviour)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

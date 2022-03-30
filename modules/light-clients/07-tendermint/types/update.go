@@ -64,7 +64,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		conflictingHeader = true
 	}
 
-	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, tmHeader); err != nil {
+	if err := cs.VerifyClientMessage(ctx, cdc, clientStore, tmHeader); err != nil {
 		return nil, nil, err
 	}
 
@@ -119,7 +119,7 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
-	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
 	clientMsg exported.ClientMessage,
 ) error {
 	switch msg := clientMsg.(type) {

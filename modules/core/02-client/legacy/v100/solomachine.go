@@ -7,7 +7,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // NOTE: this is a mock implmentation for exported.ClientState. This implementation
@@ -88,27 +88,10 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 	panic("legacy solo machine is deprecated!")
 }
 
-// CheckForMisbehaviour panics!
-func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
-	panic("legacy solo machine is deprecated!")
-}
-
-// UpdateStateOnMisbehaviour panics!
-func (cs *ClientState) UpdateStateOnMisbehaviour(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
-) {
-	panic("legacy solo machine is deprecated!")
-}
-
 // VerifyClientMessage panics!
 func (cs *ClientState) VerifyClientMessage(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
 ) error {
-	panic("legacy solo machine is deprecated!")
-}
-
-// UpdateState panis!
-func (cs *ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) []exported.Height {
 	panic("legacy solo machine is deprecated!")
 }
 
@@ -130,7 +113,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, _ codec.BinaryCodec, _, _ sdk.KVStore,
 	_ exported.ClientState,
-) error {
+) (exported.ClientState, error) {
 	panic("legacy solo machine is deprecated!")
 }
 
@@ -209,42 +192,6 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	string, string, uint64,
 ) error {
 	panic("legacy solo machine is deprecated!")
-}
-
-// GetTimestampAtHeight panics!
-func (cs ClientState) GetTimestampAtHeight(
-	sdk.Context, sdk.KVStore, codec.BinaryCodec, exported.Height,
-) (uint64, error) {
-	panic("legacy solo machine is deprecated!")
-}
-
-// VerifyMembership panics!
-func (cs *ClientState) VerifyMembership(
-	ctx sdk.Context,
-	clientStore sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
-	proof []byte,
-	path []byte,
-	value []byte,
-) error {
-	panic("legacy solo machine is deprecated!")
-}
-
-// VerifyNonMembership panics!
-func (cs *ClientState) VerifyNonMembership(
-	ctx sdk.Context,
-	clientStore sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
-	proof []byte,
-	path []byte,
-) error {
-	panic("legacy solo machine is deprecated")
 }
 
 // ClientType panics!

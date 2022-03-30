@@ -142,6 +142,15 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }
 
+// VerifyClientMessage
+// TODO: localhost client will be removed
+func (cs ClientState) VerifyClientMessage(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
+	_ exported.ClientMessage,
+) error {
+	return nil
+}
+
 // VerifyClientState verifies that the localhost client state is stored locally
 func (cs ClientState) VerifyClientState(
 	store sdk.KVStore, cdc codec.BinaryCodec,
