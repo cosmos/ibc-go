@@ -12,7 +12,7 @@ import (
 
 // InitGenesis initializes the ibc state from a provided genesis
 // state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, createLocalhost bool, gs *types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs *types.GenesisState) {
 	client.InitGenesis(ctx, k.ClientKeeper, gs.ClientGenesis)
 	connection.InitGenesis(ctx, k.ConnectionKeeper, gs.ConnectionGenesis)
 	channel.InitGenesis(ctx, k.ChannelKeeper, gs.ChannelGenesis)
