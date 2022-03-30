@@ -553,7 +553,7 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Upgrading")
-			if err = endpoint.Counterparty.upgradeClient(upgradeHeight); err != nil {
+			if err = endpoint.Counterparty.upgradeClient(upgradeHeight + 1); err != nil {
 				return
 			}
 
