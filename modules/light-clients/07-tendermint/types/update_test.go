@@ -415,10 +415,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(clientMessage.GetHeight()))
 			},
 			func() {
-				bz := clientStore.Get(host.ClientStateKey())
-				updatedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz)
-
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().EQ(updatedClientState.GetLatestHeight())) // new update, updated client state should have changed
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().EQ(clientMessage.GetHeight())) // new update, updated client state should have changed
 			}, true,
 		},
 		{
@@ -486,10 +483,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 			},
 			func() {
-				bz := clientStore.Get(host.ClientStateKey())
-				updatedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz)
-
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().EQ(updatedClientState.GetLatestHeight())) // new update, updated client state should have changed
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().EQ(clientMessage.GetHeight())) // new update, updated client state should have changed
 
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
