@@ -97,8 +97,6 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.C
 		// if update is not misbehaviour then update the consensus state
 		if header != nil {
 			k.SetClientConsensusState(ctx, clientID, header.GetHeight(), newConsensusState)
-		} else {
-			consensusHeight = types.GetSelfHeight(ctx)
 		}
 
 		k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
