@@ -27,6 +27,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	foundMisbehaviour := cs.CheckForMisbehaviour(ctx, cdc, clientStore, msg)
 	if foundMisbehaviour {
 		cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore)
+		return &cs, cs.ConsensusState, nil
 	}
 
 	return cs.UpdateState(ctx, cdc, clientStore, msg)
