@@ -398,10 +398,12 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 func (suite *TendermintTestSuite) TestUpdateState() {
 	var (
-		path          *ibctesting.Path
-		clientMessage exported.ClientMessage
-		clientStore   sdk.KVStore
-		pruneHeight   clienttypes.Height
+		path               *ibctesting.Path
+		clientMessage      exported.ClientMessage
+		clientStore        sdk.KVStore
+		pruneHeight        clienttypes.Height
+		prevClientState    exported.ClientState
+		prevConsensusState exported.ConsensusState
 	)
 
 	testCases := []struct {
@@ -427,12 +429,11 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(clientMessage.GetHeight()))
+
+				prevClientState = path.EndpointA.GetClientState()
 			},
 			func() {
-				bz := clientStore.Get(host.ClientStateKey())
-				updatedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz)
-
-				suite.Require().Equal(path.EndpointA.GetClientState(), updatedClientState) // fill in height, no change to client state
+				suite.Require().Equal(path.EndpointA.GetClientState(), prevClientState) // fill in height, no change to client state
 			}, true,
 		},
 		{
@@ -445,16 +446,13 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), clientMessage.GetHeight())
+
+				prevClientState = path.EndpointA.GetClientState()
+				prevConsensusState = path.EndpointA.GetConsensusState(clientMessage.GetHeight())
 			},
 			func() {
-				bz := clientStore.Get(host.ClientStateKey())
-				updatedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz)
-
-				bz = clientStore.Get(host.ConsensusStateKey(clientMessage.GetHeight()))
-				updatedConsensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.App.AppCodec(), bz)
-
-				suite.Require().Equal(path.EndpointA.GetClientState(), updatedClientState)
-				suite.Require().Equal(path.EndpointA.GetConsensusState(clientMessage.GetHeight()), updatedConsensusState)
+				suite.Require().Equal(path.EndpointA.GetClientState(), prevClientState)
+				suite.Require().Equal(path.EndpointA.GetConsensusState(clientMessage.GetHeight()), prevConsensusState)
 			}, true,
 		},
 		{
