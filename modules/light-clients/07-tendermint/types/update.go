@@ -147,9 +147,9 @@ func (cs *ClientState) verifyHeader(
 	currentTimestamp := ctx.BlockTime()
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
-	consState, err := GetConsensusState(clientStore, cdc, header.TrustedHeight)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.TrustedHeight)
+	consState, found := GetConsensusState(clientStore, cdc, header.TrustedHeight)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.TrustedHeight)
 	}
 
 	if err := checkTrustedHeader(header, consState); err != nil {
@@ -282,10 +282,10 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	)
 
 	pruneCb := func(height exported.Height) bool {
-		consState, err := GetConsensusState(clientStore, cdc, height)
+		consState, found := GetConsensusState(clientStore, cdc, height)
 		// this error should never occur
-		if err != nil {
-			pruneError = err
+		if !found {
+			pruneError = sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height)
 			return true
 		}
 
