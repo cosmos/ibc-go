@@ -17,10 +17,7 @@ import (
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
@@ -50,14 +47,15 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 
 	cfg := DefaultConfig()
-
 	cfg.NumValidators = 2
-
 	s.cfg = cfg
-	s.network = network.New(s.T(), cfg)
+
+	var err error
+	s.network, err = network.New(s.T(), s.T().TempDir(), s.cfg)
+	s.Require().NoError(err)
 
 	kb := s.network.Validators[0].ClientCtx.Keyring
-	_, _, err := kb.NewMnemonic("newAccount", keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
+	_, _, err = kb.NewMnemonic("newAccount", keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
 	s.Require().NoError(err)
 
 	account1, _, err := kb.NewMnemonic("newAccount1", keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
@@ -66,7 +64,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	account2, _, err := kb.NewMnemonic("newAccount2", keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
 	s.Require().NoError(err)
 
-	multi := kmultisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{account1.GetPubKey(), account2.GetPubKey()})
+	pub1, err := account1.GetPubKey()
+	s.Require().NoError(err)
+
+	pub2, err := account2.GetPubKey()
+	s.Require().NoError(err)
+
+	multi := kmultisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{pub1, pub2})
 	_, err = kb.SaveMultisig("multi", multi)
 	s.Require().NoError(err)
 
@@ -107,7 +111,7 @@ func DefaultConfig() network.Config {
 		AppConstructor:    NewAppConstructor(encCfg),
 		GenesisState:      simapp.ModuleBasics.DefaultGenesis(encCfg.Marshaler),
 		TimeoutCommit:     2 * time.Second,
-		ChainID:           "chain-" + tmrand.NewRand().Str(6),
+		ChainID:           "chain-" + tmrand.Str(6),
 		NumValidators:     4,
 		BondDenom:         sdk.DefaultBondDenom,
 		MinGasPrices:      fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
@@ -198,7 +202,7 @@ func (s *IntegrationTestSuite) TestLegacyRestErrMessages() {
 			out, err := clitestutil.ExecTestCLICmd(val.ClientCtx, tc.cmd, tc.args)
 			s.Require().NoError(err)
 			var txRes sdk.TxResponse
-			s.Require().NoError(val.ClientCtx.JSONCodec.UnmarshalJSON(out.Bytes(), &txRes))
+			s.Require().NoError(val.ClientCtx.Codec.UnmarshalJSON(out.Bytes(), &txRes))
 			s.Require().Equal(tc.code, txRes.Code)
 
 			s.Require().NoError(s.network.WaitForNextBlock())
@@ -215,45 +219,6 @@ func (s *IntegrationTestSuite) TestLegacyRestErrMessages() {
 func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.Command, args []string) {
 	val := s.network.Validators[0]
 
-	errMsg := "this transaction cannot be displayed via legacy REST endpoints, because it does not support" +
-		" Amino serialization. Please either use CLI, gRPC, gRPC-gateway, or directly query the Tendermint RPC" +
-		" endpoint to query this transaction. The new REST endpoint (via gRPC-gateway) is "
-
-	// Test that legacy endpoint return the above error message on IBC txs.
-	testCases := []struct {
-		desc string
-		url  string
-	}{
-		{
-			"Query by hash",
-			fmt.Sprintf("%s/txs/%s", val.APIAddress, txRes.TxHash),
-		},
-		{
-			"Query by height",
-			fmt.Sprintf("%s/txs?tx.height=%d", val.APIAddress, txRes.Height),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.desc), func() {
-			txJSON, err := rest.GetRequest(tc.url)
-			s.Require().NoError(err)
-
-			var errResp rest.ErrorResponse
-			s.Require().NoError(val.ClientCtx.LegacyAmino.UnmarshalJSON(txJSON, &errResp))
-
-			s.Require().Contains(errResp.Error, errMsg)
-		})
-	}
-
-	// try fetching the txn using gRPC req, it will fetch info since it has proto codec.
-	grpcJSON, err := rest.GetRequest(fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", val.APIAddress, txRes.TxHash))
-	s.Require().NoError(err)
-
-	var getTxRes txtypes.GetTxResponse
-	s.Require().NoError(val.ClientCtx.JSONCodec.UnmarshalJSON(grpcJSON, &getTxRes))
-	s.Require().Equal(getTxRes.Tx.Body.Memo, "foobar")
-
 	// generate broadcast only txn.
 	args = append(args, fmt.Sprintf("--%s=true", flags.FlagGenerateOnly))
 	out, err := clitestutil.ExecTestCLICmd(val.ClientCtx, cmd, args)
@@ -265,15 +230,4 @@ func (s *IntegrationTestSuite) testQueryIBCTx(txRes sdk.TxResponse, cmd *cobra.C
 	// encode the generated txn.
 	out, err = clitestutil.ExecTestCLICmd(val.ClientCtx, authcli.GetEncodeCommand(), []string{txFileName})
 	s.Require().NoError(err)
-
-	bz, err := val.ClientCtx.LegacyAmino.MarshalJSON(authrest.DecodeReq{Tx: string(out.Bytes())})
-	s.Require().NoError(err)
-
-	// try to decode the txn using legacy rest, it fails.
-	res, err := rest.PostRequest(fmt.Sprintf("%s/txs/decode", val.APIAddress), "application/json", bz)
-	s.Require().NoError(err)
-
-	var errResp rest.ErrorResponse
-	s.Require().NoError(val.ClientCtx.LegacyAmino.UnmarshalJSON(res, &errResp))
-	s.Require().Contains(errResp.Error, errMsg)
 }

@@ -7,7 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
@@ -165,19 +166,22 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				proposal, err := govtypes.NewProposal(testProposal, govtypes.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour))
+				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
+				suite.Require().NoError(err)
+
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", time.Now(), time.Now().Add(time.Hour))
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
 				suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
 
-				msg := &govtypes.MsgVote{
+				voteMsg := &govtypes.MsgVote{
 					ProposalId: govtypes.DefaultStartingProposalID,
 					Voter:      interchainAccountAddr,
 					Option:     govtypes.OptionYes,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{voteMsg})
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
@@ -187,7 +191,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				packetData = icaPacketData.GetBytes()
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(voteMsg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,

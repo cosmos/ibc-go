@@ -8,7 +8,7 @@ import (
 	types "github.com/cosmos/cosmos-sdk/x/auth/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	_ "github.com/regen-network/cosmos-proto"
+	_ "github.com/cosmos/cosmos-proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
