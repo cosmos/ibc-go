@@ -101,6 +101,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 						),
 					},
 					clienttypes.NewParams(exported.Tendermint),
+					false,
 					2,
 				),
 				ConnectionGenesis: connectiontypes.NewGenesisState(
@@ -165,6 +166,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 						),
 					},
 					clienttypes.NewParams(exported.Tendermint),
+					false,
 					2,
 				),
 				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
@@ -257,6 +259,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 						),
 					},
 					clienttypes.NewParams(exported.Tendermint),
+					false,
 					0,
 				),
 				ConnectionGenesis: connectiontypes.NewGenesisState(
