@@ -109,11 +109,9 @@ func (cs *ClientState) UpdateState(
 	return cs, nil, nil
 }
 
-// UpdateStateOnMisbehaviour returns an error (no misbehaviour case).
+// UpdateStateOnMisbehaviour
 func (cs *ClientState) UpdateStateOnMisbehaviour(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
-) (*ClientState, error) {
-	return nil, sdkerrors.Wrapf(clienttypes.ErrUpdateClientFailed, "cannot update localhost client on misbehaviour")
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore) {
 }
 
 // CheckMisbehaviourAndUpdateState implements ClientState
