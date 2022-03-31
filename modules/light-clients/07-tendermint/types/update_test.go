@@ -792,11 +792,7 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 			clientState := path.EndpointA.GetClientState()
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-			// TODO: remove casting when 'UpdateState' is an interface function.
-			tmClientState, ok := clientState.(*types.ClientState)
-			suite.Require().True(ok)
-
-			tmClientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore)
+			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, nil)
 
 			if tc.expPass {
 				clientStateBz := clientStore.Get(host.ClientStateKey())

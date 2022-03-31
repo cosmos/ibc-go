@@ -78,7 +78,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 	// set default consensus height with header height
 	consensusHeight := clientMsg.GetHeight()
 
-	foundMisbehaviour := clientState.CheckForMisbehaviour(clientMsg)
+	foundMisbehaviour := clientState.CheckForMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
 	if foundMisbehaviour {
 		clientState.UpdateStateOnMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
 
