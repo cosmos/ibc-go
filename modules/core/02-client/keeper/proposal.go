@@ -48,7 +48,6 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	if err != nil {
 		return err
 	}
-	k.SetClientState(ctx, p.SubjectClientId, clientState)
 
 	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId, "height", clientState.GetLatestHeight().String())
 

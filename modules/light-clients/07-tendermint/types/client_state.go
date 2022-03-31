@@ -76,8 +76,8 @@ func (cs ClientState) Status(
 	}
 
 	// get latest consensus state from clientStore to check for expiry
-	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
-	if err != nil {
+	consState, found := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
+	if !found {
 		// if the client state does not have an associated consensus state for its latest height
 		// then it must be expired
 		return exported.Expired
@@ -574,9 +574,9 @@ func produceVerificationArgs(
 		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into commitment merkle proof")
 	}
 
-	consensusState, err = GetConsensusState(store, cdc, height)
-	if err != nil {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
+	consensusState, found := GetConsensusState(store, cdc, height)
+	if !found {
+		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
 	return merkleProof, consensusState, nil
