@@ -217,9 +217,6 @@
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
-- [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
-    - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
-  
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -3237,39 +3234,6 @@ GenesisState defines the ibc module's genesis state.
 | `client_genesis` | [ibc.core.client.v1.GenesisState](#ibc.core.client.v1.GenesisState) |  | ICS002 - Clients genesis state |
 | `connection_genesis` | [ibc.core.connection.v1.GenesisState](#ibc.core.connection.v1.GenesisState) |  | ICS003 - Connections genesis state |
 | `channel_genesis` | [ibc.core.channel.v1.GenesisState](#ibc.core.channel.v1.GenesisState) |  | ICS004 - Channel genesis state |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/lightclients/localhost/v1/localhost.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/lightclients/localhost/v1/localhost.proto
-
-
-
-<a name="ibc.lightclients.localhost.v1.ClientState"></a>
-
-### ClientState
-ClientState defines a loopback (localhost) client. It requires (read-only)
-access to keys outside the client prefix.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | self chain ID |
-| `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | self latest block height |
 
 
 
