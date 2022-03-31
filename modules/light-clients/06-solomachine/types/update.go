@@ -30,7 +30,13 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return &cs, cs.ConsensusState, nil
 	}
 
-	return cs.UpdateState(ctx, cdc, clientStore, msg)
+	if err := cs.UpdateState(ctx, cdc, clientStore, msg); err != nil {
+		return nil, nil, err
+	}
+
+	newClientState := clienttypes.MustUnmarshalClientState(cdc, clientStore.Get(host.ClientStateKey())).(*ClientState)
+
+	return newClientState, newClientState.ConsensusState, nil
 }
 
 // VerifyClientMessage introspects the provided ClientMessage and checks its validity
@@ -104,10 +110,10 @@ func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec,
 }
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected %T got %T", Header{}, clientMsg)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected %T got %T", Header{}, clientMsg)
 	}
 
 	// create new solomachine ConsensusState
@@ -122,7 +128,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
-	return &cs, consensusState, nil
+	return nil
 }
 
 // CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
