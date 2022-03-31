@@ -741,14 +741,9 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			tc.malleate()
 
 			clientState := path.EndpointA.GetClientState()
-
-			// TODO: remove casting when 'UpdateState' is an interface function.
-			tmClientState, ok := clientState.(*types.ClientState)
-			suite.Require().True(ok)
-
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-			foundMisbehaviour := tmClientState.CheckForMisbehaviour(
+			foundMisbehaviour := clientState.CheckForMisbehaviour(
 				suite.chainA.GetContext(),
 				suite.chainA.App.AppCodec(),
 				clientStore, // pass in clientID prefixed clientStore
