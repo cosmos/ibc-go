@@ -19,10 +19,6 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
-	// Localhost is the client type for a localhost client. It is also used as the clientID
-	// for the localhost client.
-	Localhost string = "09-localhost"
-
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 
@@ -59,8 +55,15 @@ type ClientState interface {
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
+	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
+	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore)
+
 	// VerifyClientMessage verifies a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
 	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
+
+	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState. 
+	// An error is returned if ClientMessage is of type Misbehaviour
+	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
 
 	// Update and Misbehaviour functions
 	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)

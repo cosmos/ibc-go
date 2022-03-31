@@ -140,7 +140,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
 				idcs2 := types.NewIdentifiedClientState(path2.EndpointA.ClientID, clientStateA2)
 
-				// order is sorted by client id, localhost is last
+				// order is sorted by client id
 				expClientStates = types.IdentifiedClientStates{idcs, idcs2}.Sort()
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
@@ -156,13 +156,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			expClientStates = nil
-
 			tc.malleate()
-			// always add localhost which is created by default in init genesis
-			localhostClientState := suite.chainA.GetClientState(exported.Localhost)
-			identifiedLocalhost := types.NewIdentifiedClientState(exported.Localhost, localhostClientState)
-			expClientStates = append(expClientStates, identifiedLocalhost)
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 

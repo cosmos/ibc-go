@@ -93,10 +93,22 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 	panic("legacy solo machine is deprecated!")
 }
 
+// UpdateStateOnMisbehaviour panics!
+func (cs *ClientState) UpdateStateOnMisbehaviour(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
+) {
+	panic("legacy solo machine is deprecated!")
+}
+
 // VerifyClientMessage panics!
 func (cs *ClientState) VerifyClientMessage(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
 ) error {
+	panic("legacy solo machine is deprecated!")
+}
+
+// UpdateState panis!
+func (cs *ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) error {
 	panic("legacy solo machine is deprecated!")
 }
 
