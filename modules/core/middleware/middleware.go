@@ -18,8 +18,8 @@ type ibcTxHandler struct {
 	next tx.Handler
 }
 
-// IbcTxMiddleware implements ibc tx handling middleware
-func IbcTxMiddleware(IBCKeeper *keeper.Keeper) tx.Middleware {
+// IBCTxMiddleware implements ibc tx handling middleware
+func IBCTxMiddleware(IBCKeeper *keeper.Keeper) tx.Middleware {
 	return func(txh tx.Handler) tx.Handler {
 		return ibcTxHandler{
 			k:    IBCKeeper,

@@ -31,7 +31,9 @@ func ABCIResponsesResultsHash(ar *tmprotostate.ABCIResponses) []byte {
 	return tmtypes.NewResults(ar.DeliverTxs).Hash()
 }
 
-// MakeCommit commits a block
+// MakeCommit iterates over the provided validator set, creating a Precommit vote for each
+// participant at the provided height and round. Each vote is signed and added to the VoteSet.
+// Finally, the VoteSet is committed finalizing the block.
 func MakeCommit(ctx context.Context, blockID tmtypes.BlockID, height int64, round int32, voteSet *tmtypes.VoteSet, validators []tmtypes.PrivValidator, now time.Time) (*tmtypes.Commit, error) {
 	// all sign
 	for i := 0; i < len(validators); i++ {

@@ -54,6 +54,10 @@ func NewDefaultTxHandler(options TxHandlerOptions) (tx.Handler, error) {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for middlewares")
 	}
 
+	if options.IBCKeeper == nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "IBC keeper is required for middlewares")
+	}
+
 	var sigGasConsumer = options.SigGasConsumer
 	if sigGasConsumer == nil {
 		sigGasConsumer = authmiddleware.DefaultSigVerificationGasConsumer
@@ -102,6 +106,6 @@ func NewDefaultTxHandler(options TxHandlerOptions) (tx.Handler, error) {
 		// should be accounted for, should go below this authmiddleware.
 		authmiddleware.ConsumeBlockGasMiddleware,
 		authmiddleware.NewTipMiddleware(options.BankKeeper),
-		ibcmiddleware.IbcTxMiddleware(options.IBCKeeper),
+		ibcmiddleware.IBCTxMiddleware(options.IBCKeeper),
 	), nil
 }

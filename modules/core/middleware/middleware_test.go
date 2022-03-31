@@ -436,7 +436,7 @@ func (suite *MiddlewareTestSuite) TestMiddleware() {
 				// commiting it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
 				k := suite.chainB.App.GetIBCKeeper()
-				mw := ibcmiddleware.IbcTxMiddleware(k)
+				mw := ibcmiddleware.IBCTxMiddleware(k)
 				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
 				txHandler := middleware.ComposeMiddlewares(noopTxHandler, mw)
 
@@ -462,7 +462,7 @@ func (suite *MiddlewareTestSuite) TestMiddleware() {
 			suite.SetupTest()
 
 			k := suite.chainB.App.GetIBCKeeper()
-			mw := ibcmiddleware.IbcTxMiddleware(k)
+			mw := ibcmiddleware.IBCTxMiddleware(k)
 
 			msgs := tc.malleate(suite)
 
