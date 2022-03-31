@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -382,10 +383,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 		tc.malleate()
 
-		tmClientState, ok := clientState.(*types.ClientState)
-		suite.Require().True(ok)
-
-		err = tmClientState.VerifyClientMessage(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), header)
+		err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -397,11 +395,12 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 func (suite *TendermintTestSuite) TestUpdateState() {
 	var (
-		path                  *ibctesting.Path
-		clientMessage         exported.ClientMessage
-		pruneHeight           clienttypes.Height
-		updatedClientState    *types.ClientState    // TODO: retrieve from state after 'UpdateState' call
-		updatedConsensusState *types.ConsensusState // TODO: retrieve from state after 'UpdateState' call
+		path               *ibctesting.Path
+		clientMessage      exported.ClientMessage
+		clientStore        sdk.KVStore
+		pruneHeight        clienttypes.Height
+		prevClientState    exported.ClientState
+		prevConsensusState exported.ConsensusState
 	)
 
 	testCases := []struct {
@@ -415,7 +414,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(clientMessage.GetHeight()))
 			},
 			func() {
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(updatedClientState.GetLatestHeight())) // new update, updated client state should have changed
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().EQ(clientMessage.GetHeight())) // new update, updated client state should have changed
 			}, true,
 		},
 		{
@@ -427,9 +426,11 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(clientMessage.GetHeight()))
+
+				prevClientState = path.EndpointA.GetClientState()
 			},
 			func() {
-				suite.Require().Equal(path.EndpointA.GetClientState(), updatedClientState) // fill in height, no change to client state
+				suite.Require().Equal(path.EndpointA.GetClientState(), prevClientState) // fill in height, no change to client state
 			}, true,
 		},
 		{
@@ -442,10 +443,13 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), clientMessage.GetHeight())
+
+				prevClientState = path.EndpointA.GetClientState()
+				prevConsensusState = path.EndpointA.GetConsensusState(clientMessage.GetHeight())
 			},
 			func() {
-				suite.Require().Equal(path.EndpointA.GetClientState(), updatedClientState)
-				suite.Require().Equal(path.EndpointA.GetConsensusState(clientMessage.GetHeight()), updatedConsensusState)
+				suite.Require().Equal(path.EndpointA.GetClientState(), prevClientState)
+				suite.Require().Equal(path.EndpointA.GetConsensusState(clientMessage.GetHeight()), prevConsensusState)
 			}, true,
 		},
 		{
@@ -474,7 +478,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 			},
 			func() {
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(updatedClientState.GetLatestHeight())) // new update, updated client state should have changed
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().EQ(clientMessage.GetHeight())) // new update, updated client state should have changed
 
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
@@ -511,8 +515,8 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 			tmClientState, ok := clientState.(*types.ClientState)
 			suite.Require().True(ok)
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			updatedClientState, updatedConsensusState, err = tmClientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			_, _, err = tmClientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -523,13 +527,14 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 					Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
 					NextValidatorsHash: header.Header.NextValidatorsHash,
 				}
+
+				bz := clientStore.Get(host.ConsensusStateKey(header.GetHeight()))
+				updatedConsensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.App.AppCodec(), bz)
+
 				suite.Require().Equal(expConsensusState, updatedConsensusState)
 
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Nil(updatedClientState)
-				suite.Require().Nil(updatedConsensusState)
-
 			}
 
 			// perform custom checks

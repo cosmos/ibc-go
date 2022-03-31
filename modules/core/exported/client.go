@@ -59,6 +59,9 @@ type ClientState interface {
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
+	// VerifyClientMessage verifies a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
+	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
+
 	// Update and Misbehaviour functions
 	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
 	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
@@ -186,10 +189,6 @@ type ConsensusState interface {
 	proto.Message
 
 	ClientType() string // Consensus kind
-
-	// GetRoot returns the commitment root of the consensus state,
-	// which is used for key-value pair verification.
-	GetRoot() Root
 
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64
