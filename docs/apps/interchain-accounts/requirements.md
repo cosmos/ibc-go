@@ -4,11 +4,11 @@
 
 ## Problem
 
-Cross-chain access to application-specific features (such as stake, bank send, vote, etc) has to be built separately above the IBC TAO (Transport, Authentication, Ordering) layer and as an application layer. Creating new IBC application standards and implementations for each application-specific feature requires considerable time and resources. This can be an issue where IBC itself may be production-ready and deployed, but very little application-level features outside of interchain token transfers are available. This can delay the time it takes for IBC to be adopted within the Cosmos ecosystem.
+Without Interchain Accounts, cross-chain access to chain-specific features (such as staking, sending, voting, etc) has to be built as separate applications on top of the IBC TAO (Transport, Authentication, Ordering) layer. Creating new IBC application standards and implementations for each application-specific feature requires considerable time and resources. Interchain Accounts will allow new chain-specific features to be immediately available over IBC.
 
 ## Objectives
 
-Provide a way to programatically create accounts on a destination blockchain (called the host) and control them via IBC transactions. An IBC packet will take a message from the controller blockchain to the host blockchain where it will be executed. This will allow new features on a blockchain to be immediately supported as IBC transactions, since the (destination blockchain) native message is encapsulated in an IBC packet in an agnostic way. This will be crucial in building a network effect of applications in the Cosmos ecosystem by being able to cross-interact with one another from the early stages of IBC adoption.
+Provide a way to programmatically create accounts on a destination blockchain (called the host) and control them via transactions over IBC. An IBC packet will take a message from the controller blockchain to the host blockchain where it will be executed. This will allow new features on a blockchain to be immediately supported as IBC transactions, since the (destination blockchain) native messages are encapsulated in an IBC packet in an agnostic way. This will allow all of the modules on a chain to take advantage of the network effects created by the IBC ecosystem.
 
 ## Scope
 
@@ -31,7 +31,7 @@ However, Injective wants to minimise as much as possible the latency between rea
 
 Users on the Hub would send their ATOM to Umee. In return, the user gets equivalent amount of meTokens (this token would be a form of a liquid staking token), which could then be staked on the Hub, in some other liquidity pool, etc, in addition to other business logic which Umee could perform on behalf of the users in return for the ATOM.
 
-Umee then stakes these ATOM tokens on the Hub on behalf of Umee (ATOMs get inflation rewards, etc). Without Interchain Accounts, Umee would have to use validator controlled multisig, because for this flow Umee needs an account on the Hub which can be controlled externally in a decentralised way. But with Interchain Accounts, Umee can register an interchain account on the Hub and then receive the staking rewards for the ATOM, figure out distribution back to Umee chain, and send back to the corresponding existing account on Umee.
+Umee then stakes these ATOM tokens on the Hub on behalf of Umee (ATOMs get inflation rewards, etc). Without Interchain Accounts, Umee would have to use validator controlled multisig, because for this flow Umee needs an account on the Hub which can be controlled externally in a decentralised way. With Interchain Accounts, Umee can register an interchain account on the Hub and then receive the staking rewards for the ATOM, figure out distribution back to Umee chain, and send back to the corresponding existing account on Umee.
 
 ### Hub custodial services
 
@@ -45,7 +45,7 @@ Using Interchain Accounts, a service could be built in which a user sends tokens
 
 ## Assumptions
 
-1. Connections between two chains never close.
+1. Interchain account packets will rarely timeout with application-set values.
 2. Cosmos-SDK modules deployed on a chain are not malicious.
 3. Authentication modules may implement their own permissioning scheme.
 
