@@ -7,7 +7,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -32,11 +31,6 @@ func (suite *TypesTestSuite) TestPackClientState() {
 		{
 			"tendermint client",
 			ibctmtypes.NewClientState(chainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
-			true,
-		},
-		{
-			"localhost client",
-			localhosttypes.NewClientState(chainID, clientHeight),
 			true,
 		},
 		{

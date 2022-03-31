@@ -36,10 +36,7 @@ func (k Keeper) CreateClient(
 		return "", err
 	}
 
-	// check if consensus state is nil in case the created client is Localhost
-	if consensusState != nil {
-		k.SetClientConsensusState(ctx, clientID, clientState.GetLatestHeight(), consensusState)
-	}
+	k.SetClientConsensusState(ctx, clientID, clientState.GetLatestHeight(), consensusState)
 
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
 
@@ -98,12 +95,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.C
 	// Else the update was proof of misbehaviour and we must emit appropriate misbehaviour events.
 	if status := newClientState.Status(ctx, clientStore, k.cdc); status != exported.Frozen {
 		// if update is not misbehaviour then update the consensus state
-		// we don't set consensus state for localhost client
-		if header != nil && clientID != exported.Localhost {
-			k.SetClientConsensusState(ctx, clientID, header.GetHeight(), newConsensusState)
-		} else {
-			consensusHeight = types.GetSelfHeight(ctx)
-		}
+		k.SetClientConsensusState(ctx, clientID, header.GetHeight(), newConsensusState)
 
 		k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
 
