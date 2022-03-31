@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
+	//	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/require"
+	//	abci "github.com/tendermint/tendermint/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
@@ -15,6 +16,7 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -550,33 +552,44 @@ func (endpoint *Endpoint) UpgradeChain(clientState *ibctmtypes.ClientState) (err
 	// when the upgrade height is reached, a panic is executed which will be caught by this defer function
 	// the counterparty client will be upgraded, the upgrade will perform a no-op migration
 	// and the chainID will be switched to the newChainID
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Upgrading")
-			if err = endpoint.Counterparty.upgradeClient(upgradeHeight + 1); err != nil {
-				return
+	// TODO: handle begin block panic
+	/*
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Println("Upgrading")
+				//			if err = endpoint.Counterparty.upgradeClient(upgradeHeight); err != nil {
+				//				return
+				//			}
+
+				fmt.Println("handler set")
+				endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradeHandler(
+					upgradeName,
+					func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+						// no-op upgrade handler
+						return fromVM, nil
+					},
+				)
+
+				// update our chainID so future commits use the correct chainID
+				endpoint.Chain.ChainID = newChainID
+				endpoint.Chain.CurrentHeader.ChainID = newChainID
 			}
-
-			fmt.Println("handler set")
-			endpoint.Chain.GetSimApp().UpgradeKeeper.SetUpgradeHandler(
-				upgradeName,
-				func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-					// no-op upgrade handler
-					return fromVM, nil
-				},
-			)
-
-			// update our chainID so future commits use the correct chainID
-			endpoint.Chain.ChainID = newChainID
-			endpoint.Chain.CurrentHeader.ChainID = newChainID
-		}
-	}()
+		}()
+	*/
 
 	// perform upgrade
 	// the upgrade consensus state will be committed
 	// begin block will be called for the upgradeHeight causing a panic
 	// the panic will be caught by the above defer function
-	endpoint.Chain.NextBlock()
+	// Mock TM process, commit last app state and allow next header to be generated
+	// before calling 'BeginBlock'
+	endpoint.Chain.App.Commit()
+	endpoint.Chain.CurrentHeader.Height = endpoint.Chain.CurrentHeader.Height + 1
+	endpoint.Chain.CurrentHeader.AppHash = endpoint.Chain.App.LastCommitID().Hash
+
+	if err = endpoint.Counterparty.upgradeClient(upgradeHeight); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -585,56 +598,104 @@ func (endpoint *Endpoint) upgradeClient(upgradeHeight int64) error {
 	var msg sdk.Msg
 
 	// update client to latest state which contains the upgrade client and consensus states
-	header, err := endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
-	msg, err = clienttypes.NewMsgUpdateClient(
+	//	header, err := endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+	trustedHeight := endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+	trustedVals, found := endpoint.Counterparty.Chain.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+	require.True(endpoint.Chain.T, found)
+
+	// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
+	header := endpoint.Counterparty.Chain.CreateTMClientHeader(endpoint.Counterparty.Chain.ChainID, endpoint.Counterparty.Chain.CurrentHeader.Height, trustedHeight, endpoint.Counterparty.Chain.CurrentHeader.Time, endpoint.Counterparty.Chain.Vals, endpoint.Counterparty.Chain.NextVals, trustedVals, endpoint.Counterparty.Chain.Signers)
+	msg, err := clienttypes.NewMsgUpdateClient(
 		endpoint.ClientID, header,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	require.NoError(endpoint.Chain.T, err)
 
-	defer func() {
-		if r := recover(); r != nil {
-			// TODO: Remove
-			// This is a short term hack to account for
-			// sendMsgs() calling BeginBlock again causing a second panic
-			// https://github.com/cosmos/ibc-go/issues/1013
-			// The code contained in this defer should go after the sendMsgs() call
+	// TODO:
+	// The functionality of 'SendMsgs` is copied and pasted
+	// except for the call to coord.IncrementTime()
+	// which causes begin block to be called on the counterparty (resulting in a panic)
+	//
+	//	err = endpoint.Chain.sendMsgs(msg)
+	//	require.NoError(endpoint.Chain.T, err)
+	// ensure the chain has the latest time
+	endpoint.Chain.Coordinator.UpdateTimeForChain(endpoint.Chain)
 
-			// prepare upgrade client message
+	_, _, err = simapp.SignAndDeliver(
+		endpoint.Chain.T,
+		endpoint.Chain.TxConfig,
+		endpoint.Chain.App.GetBaseApp(),
+		endpoint.Chain.GetContext().BlockHeader(),
+		[]sdk.Msg{msg},
+		endpoint.Chain.ChainID,
+		[]uint64{endpoint.Chain.SenderAccount.GetAccountNumber()},
+		[]uint64{endpoint.Chain.SenderAccount.GetSequence()},
+		true, true, endpoint.Chain.SenderPrivKey,
+	)
+	if err != nil {
+		return err
+	}
 
-			clientStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedClient(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
-			require.True(endpoint.Chain.T, found)
-			clientState := clienttypes.MustUnmarshalClientState(endpoint.Counterparty.Chain.App.AppCodec(), clientStateBz)
+	// NextBlock calls app.Commit()
+	endpoint.Chain.NextBlock()
 
-			consensusStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedConsensusState(endpoint.Counterparty.Chain.GetContext(), upgradeHeight)
-			require.True(endpoint.Chain.T, found)
-			consensusState := clienttypes.MustUnmarshalConsensusState(endpoint.Counterparty.Chain.App.AppCodec(), consensusStateBz)
+	// increment sequence for successful transaction execution
+	endpoint.Chain.SenderAccount.SetSequence(endpoint.Chain.SenderAccount.GetSequence() + 1)
 
-			// the lastHeight should be used for generating proofs
-			lastHeight := int64(endpoint.GetClientState().GetLatestHeight().GetRevisionHeight())
+	// prepare upgrade client message
 
-			clientKey := upgradetypes.UpgradedClientKey(upgradeHeight)
-			proofUpgradeClient, _ := endpoint.Counterparty.Chain.QueryProofForStore(upgradetypes.StoreKey, clientKey, lastHeight)
+	clientStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedClient(endpoint.Counterparty.Chain.GetCheckTxContext(), upgradeHeight)
+	require.True(endpoint.Chain.T, found)
+	clientState := clienttypes.MustUnmarshalClientState(endpoint.Counterparty.Chain.App.AppCodec(), clientStateBz)
 
-			consensusKey := upgradetypes.UpgradedConsStateKey(upgradeHeight)
-			proofUpgradeConsState, _ := endpoint.Counterparty.Chain.QueryProofForStore(upgradetypes.StoreKey, consensusKey, lastHeight)
+	consensusStateBz, found := endpoint.Counterparty.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetUpgradedConsensusState(endpoint.Counterparty.Chain.GetCheckTxContext(), upgradeHeight)
+	require.True(endpoint.Chain.T, found)
+	consensusState := clienttypes.MustUnmarshalConsensusState(endpoint.Counterparty.Chain.App.AppCodec(), consensusStateBz)
 
-			// upgrade counterparty client
-			msg, err = clienttypes.NewMsgUpgradeClient(
-				endpoint.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
-			)
-			require.NoError(endpoint.Chain.T, err)
+	// the lastHeight should be used for generating proofs
+	lastHeight := int64(endpoint.GetClientState().GetLatestHeight().GetRevisionHeight())
 
-			if _, err = endpoint.Chain.SendMsgs(msg); err != nil {
-				return
-			}
+	clientKey := upgradetypes.UpgradedClientKey(upgradeHeight)
+	proofUpgradeClient, _ := endpoint.Counterparty.Chain.QueryProofForStore(upgradetypes.StoreKey, clientKey, lastHeight)
 
-			fmt.Println("upgrade complete")
-		}
-	}()
+	consensusKey := upgradetypes.UpgradedConsStateKey(upgradeHeight)
+	proofUpgradeConsState, _ := endpoint.Counterparty.Chain.QueryProofForStore(upgradetypes.StoreKey, consensusKey, lastHeight)
 
-	err = endpoint.Chain.sendMsgs(msg)
+	// upgrade counterparty client
+	msg, err = clienttypes.NewMsgUpgradeClient(
+		endpoint.ClientID, clientState, consensusState, proofUpgradeClient, proofUpgradeConsState, endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
 	require.NoError(endpoint.Chain.T, err)
+
+	// TODO:
+	//	if _, err = endpoint.Chain.SendMsgs(msg); err != nil {
+	//		return err
+	//	}
+	endpoint.Chain.Coordinator.UpdateTimeForChain(endpoint.Chain)
+
+	_, _, err = simapp.SignAndDeliver(
+		endpoint.Chain.T,
+		endpoint.Chain.TxConfig,
+		endpoint.Chain.App.GetBaseApp(),
+		endpoint.Chain.GetContext().BlockHeader(),
+		[]sdk.Msg{msg},
+		endpoint.Chain.ChainID,
+		[]uint64{endpoint.Chain.SenderAccount.GetAccountNumber()},
+		[]uint64{endpoint.Chain.SenderAccount.GetSequence()},
+		true, true, endpoint.Chain.SenderPrivKey,
+	)
+	if err != nil {
+		return err
+	}
+
+	// NextBlock calls app.Commit()
+	endpoint.Chain.NextBlock()
+
+	// increment sequence for successful transaction execution
+	endpoint.Chain.SenderAccount.SetSequence(endpoint.Chain.SenderAccount.GetSequence() + 1)
+
+	fmt.Println("upgrade complete")
 
 	return nil
 }

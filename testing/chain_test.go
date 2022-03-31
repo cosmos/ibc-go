@@ -1,5 +1,6 @@
 package ibctesting_test
 
+/*
 import (
 	"testing"
 
@@ -36,3 +37,4 @@ func TestChangeValSet(t *testing.T) {
 	path.EndpointB.UpdateClient()
 	path.EndpointB.UpdateClient()
 }
+*/
