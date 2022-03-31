@@ -90,11 +90,14 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return &cs, consState, nil
 	}
 
-	newClientState, consensusState, err := cs.UpdateState(ctx, cdc, clientStore, tmHeader)
-	if err != nil {
+	if err := cs.UpdateState(ctx, cdc, clientStore, tmHeader); err != nil {
 		return nil, nil, err
 	}
-	return newClientState, consensusState, nil
+
+	newClientState := clienttypes.MustUnmarshalClientState(cdc, clientStore.Get(host.ClientStateKey()))
+	newConsensusState := clienttypes.MustUnmarshalConsensusState(cdc, clientStore.Get(host.ConsensusStateKey(header.GetHeight())))
+
+	return newClientState, newConsensusState, nil
 }
 
 // checkTrustedHeader checks that consensus state matches trusted fields of Header
@@ -238,16 +241,16 @@ func (cs *ClientState) verifyHeader(
 // UpdateState must only be used to update within a single revision, thus header revision number and trusted height's revision
 // number must be the same. To update to a new revision, use a separate upgrade path
 // UpdateState will prune the oldest consensus state if it is expired.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) (*ClientState, *ConsensusState, error) {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	header, ok := clientMsg.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, header)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, header)
 	}
 
 	// check for duplicate update
 	if consensusState, _ := GetConsensusState(clientStore, cdc, header.GetHeight()); consensusState != nil {
 		// perform no-op
-		return &cs, consensusState, nil
+		return nil
 	}
 
 	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
@@ -267,7 +270,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
-	return &cs, consensusState, nil
+	return nil
 }
 
 // pruneOldestConsensusState will retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
