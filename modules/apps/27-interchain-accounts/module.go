@@ -5,15 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/client/cli"
@@ -25,6 +24,7 @@ import (
 	hosttypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 var (
@@ -43,10 +43,8 @@ func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterLegacyAminoCodec implements AppModuleBasic interface
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
+// RegisterLegacyAminoCodec implements AppModuleBasic.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -104,6 +102,23 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	}
 }
 
+// InitModule will initialize the interchain accounts moudule. It should only be
+// called once and as an alternative to InitGenesis.
+func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
+	if am.controllerKeeper != nil {
+		am.controllerKeeper.SetParams(ctx, controllerParams)
+	}
+
+	if am.hostKeeper != nil {
+		am.hostKeeper.SetParams(ctx, hostParams)
+
+		cap := am.hostKeeper.BindPort(ctx, types.PortID)
+		if err := am.hostKeeper.ClaimCapability(ctx, cap, ibchost.PortPath(types.PortID)); err != nil {
+			panic(fmt.Sprintf("could not claim port capability: %v", err))
+		}
+	}
+}
+
 // RegisterInvariants implements the AppModule interface
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
@@ -130,6 +145,8 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
+	hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
 }
 
 // InitGenesis performs genesis initialization for the interchain accounts module.

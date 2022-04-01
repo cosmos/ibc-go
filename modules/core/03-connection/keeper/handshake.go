@@ -3,11 +3,11 @@ package keeper
 import (
 	"bytes"
 
-	"github.com/gogo/protobuf/proto"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/gogo/protobuf/proto"
+
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
@@ -49,6 +49,8 @@ func (k Keeper) ConnOpenInit(
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "connection", "open-init")
 	}()
+
+	EmitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
 
 	return connectionID, nil
 }
@@ -185,6 +187,8 @@ func (k Keeper) ConnOpenTry(
 		telemetry.IncrCounter(1, "ibc", "connection", "open-try")
 	}()
 
+	EmitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty)
+
 	return connectionID, nil
 }
 
@@ -290,6 +294,9 @@ func (k Keeper) ConnOpenAck(
 	connection.Versions = []*types.Version{version}
 	connection.Counterparty.ConnectionId = counterpartyConnectionID
 	k.SetConnection(ctx, connectionID, connection)
+
+	EmitConnectionOpenAckEvent(ctx, connectionID, connection)
+
 	return nil
 }
 
@@ -337,6 +344,8 @@ func (k Keeper) ConnOpenConfirm(
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 	}()
+
+	EmitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 
 	return nil
 }

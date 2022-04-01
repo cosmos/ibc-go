@@ -3,11 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/armon/go-metrics"
+	metrics "github.com/armon/go-metrics"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -33,23 +34,9 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 		return nil, err
 	}
 
-	clientID, err := k.ClientKeeper.CreateClient(ctx, clientState, consensusState)
-	if err != nil {
+	if _, err = k.ClientKeeper.CreateClient(ctx, clientState, consensusState); err != nil {
 		return nil, err
 	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			clienttypes.EventTypeCreateClient,
-			sdk.NewAttribute(clienttypes.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(clienttypes.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	})
 
 	return &clienttypes.MsgCreateClientResponse{}, nil
 }
@@ -66,13 +53,6 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, header); err != nil {
 		return nil, err
 	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	)
 
 	return &clienttypes.MsgUpdateClientResponse{}, nil
 }
@@ -95,13 +75,6 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	)
-
 	return &clienttypes.MsgUpgradeClientResponse{}, nil
 }
 
@@ -118,14 +91,6 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 		return nil, sdkerrors.Wrap(err, "failed to process misbehaviour for IBC client")
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			clienttypes.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(clienttypes.AttributeKeyClientID, msg.ClientId),
-			sdk.NewAttribute(clienttypes.AttributeKeyClientType, misbehaviour.ClientType()),
-		),
-	)
-
 	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil
 }
 
@@ -133,24 +98,9 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	connectionID, err := k.ConnectionKeeper.ConnOpenInit(ctx, msg.ClientId, msg.Counterparty, msg.Version, msg.DelayPeriod)
-	if err != nil {
+	if _, err := k.ConnectionKeeper.ConnOpenInit(ctx, msg.ClientId, msg.Counterparty, msg.Version, msg.DelayPeriod); err != nil {
 		return nil, sdkerrors.Wrap(err, "connection handshake open init failed")
 	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenInit,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, connectionID),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, msg.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, msg.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, msg.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
 
 	return &connectiontypes.MsgConnectionOpenInitResponse{}, nil
 }
@@ -161,31 +111,16 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 
 	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "client in msg is not exported.ClientState. invalid client: %v.", targetClient)
+		return nil, err
 	}
 
-	connectionID, err := k.ConnectionKeeper.ConnOpenTry(
+	if _, err := k.ConnectionKeeper.ConnOpenTry(
 		ctx, msg.PreviousConnectionId, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
 		connectiontypes.ProtoVersionsToExported(msg.CounterpartyVersions), msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
 		msg.ProofHeight, msg.ConsensusHeight,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, sdkerrors.Wrap(err, "connection handshake open try failed")
 	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenTry,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, connectionID),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, msg.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, msg.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, msg.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
 
 	return &connectiontypes.MsgConnectionOpenTryResponse{}, nil
 }
@@ -195,7 +130,7 @@ func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.Ms
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "client in msg is not exported.ClientState. invalid client: %v", targetClient)
+		return nil, err
 	}
 
 	if err := k.ConnectionKeeper.ConnOpenAck(
@@ -205,22 +140,6 @@ func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.Ms
 	); err != nil {
 		return nil, sdkerrors.Wrap(err, "connection handshake open ack failed")
 	}
-
-	connectionEnd, _ := k.ConnectionKeeper.GetConnection(ctx, msg.ConnectionId)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenAck,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, msg.ConnectionId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, connectionEnd.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, connectionEnd.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, connectionEnd.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
 
 	return &connectiontypes.MsgConnectionOpenAckResponse{}, nil
 }
@@ -235,26 +154,12 @@ func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontype
 		return nil, sdkerrors.Wrap(err, "connection handshake open confirm failed")
 	}
 
-	connectionEnd, _ := k.ConnectionKeeper.GetConnection(ctx, msg.ConnectionId)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			connectiontypes.EventTypeConnectionOpenConfirm,
-			sdk.NewAttribute(connectiontypes.AttributeKeyConnectionID, msg.ConnectionId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyClientID, connectionEnd.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyClientID, connectionEnd.Counterparty.ClientId),
-			sdk.NewAttribute(connectiontypes.AttributeKeyCounterpartyConnectionID, connectionEnd.Counterparty.ConnectionId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, connectiontypes.AttributeValueCategory),
-		),
-	})
-
 	return &connectiontypes.MsgConnectionOpenConfirmResponse{}, nil
 }
 
 // ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit.
+// ChannelOpenInit will perform 04-channel checks, route to the application
+// callback, and write an OpenInit channel into state upon successful execution.
 func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -264,6 +169,13 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
+	// Retrieve application callbacks from router
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	// Perform 04-channel verification
 	channelID, cap, err := k.ChannelKeeper.ChanOpenInit(
 		ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId,
 		portCap, msg.Channel.Counterparty, msg.Channel.Version,
@@ -272,63 +184,60 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 		return nil, sdkerrors.Wrap(err, "channel handshake open init failed")
 	}
 
-	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
-	if !ok {
-		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
-
+	// Perform application logic callback
 	if err = cbs.OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.Channel.Version); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open init callback failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
-		),
-	})
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenInitChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, msg.Channel.Version)
 
-	return &channeltypes.MsgChannelOpenInitResponse{}, nil
+	return &channeltypes.MsgChannelOpenInitResponse{
+		ChannelId: channelID,
+	}, nil
 }
 
 // ChannelOpenTry defines a rpc handler method for MsgChannelOpenTry.
+// ChannelOpenTry will perform 04-channel checks, route to the application
+// callback, and write an OpenTry channel into state upon successful execution.
 func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	// Lookup module by port capability
 	module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	channelID, cap, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, msg.PreviousChannelId,
-		portCap, msg.Channel.Counterparty, msg.Channel.Version, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
-	)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "channel handshake open try failed")
-	}
-
-	// Retrieve callbacks from router
+	// Retrieve application callbacks from router
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	if err = cbs.OnChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.Channel.Version, msg.CounterpartyVersion); err != nil {
+	// Perform 04-channel verification
+	channelID, cap, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, msg.PreviousChannelId,
+		portCap, msg.Channel.Counterparty, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
+	)
+	if err != nil {
+		return nil, sdkerrors.Wrap(err, "channel handshake open try failed")
+	}
+
+	// Perform application logic callback
+	version, err := cbs.OnChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.CounterpartyVersion)
+	if err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open try callback failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
-		),
-	})
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
 	return &channeltypes.MsgChannelOpenTryResponse{}, nil
 }
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.
+// ChannelOpenAck will perform 04-channel checks, route to the application
+// callback, and write an OpenAck channel into state upon successful execution.
 func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -338,34 +247,33 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	// Retrieve callbacks from router
+	// Retrieve application callbacks from router
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	err = k.ChannelKeeper.ChanOpenAck(
+	// Perform 04-channel verification
+	if err = k.ChannelKeeper.ChanOpenAck(
 		ctx, msg.PortId, msg.ChannelId, cap, msg.CounterpartyVersion, msg.CounterpartyChannelId, msg.ProofTry, msg.ProofHeight,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel handshake open ack failed")
 	}
 
-	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion); err != nil {
+	// Perform application logic callback
+	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open ack callback failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
-		),
-	})
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
 
 	return &channeltypes.MsgChannelOpenAckResponse{}, nil
 }
 
 // ChannelOpenConfirm defines a rpc handler method for MsgChannelOpenConfirm.
+// ChannelOpenConfirm will perform 04-channel checks, route to the application
+// callback, and write an OpenConfirm channel into state upon successful execution.
 func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -375,27 +283,24 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	// Retrieve callbacks from router
+	// Retrieve application callbacks from router
 	cbs, ok := k.Router.GetRoute(module)
 	if !ok {
 		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofAck, msg.ProofHeight)
-	if err != nil {
+	// Perform 04-channel verification
+	if err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofAck, msg.ProofHeight); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel handshake open confirm failed")
 	}
 
+	// Perform application logic callback
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
 		return nil, sdkerrors.Wrap(err, "channel open confirm callback failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
-		),
-	})
+	// Write channel into state
+	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
 
 	return &channeltypes.MsgChannelOpenConfirmResponse{}, nil
 }
@@ -424,13 +329,6 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 		return nil, sdkerrors.Wrap(err, "channel handshake close init failed")
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
-		),
-	})
-
 	return &channeltypes.MsgChannelCloseInitResponse{}, nil
 }
 
@@ -458,13 +356,6 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "channel handshake close confirm failed")
 	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
-		),
-	})
 
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
@@ -504,7 +395,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgRecvPacketResponse{}, nil // no-op
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
@@ -526,7 +417,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 	if ack != nil {
-		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, cap, msg.Packet, ack.Acknowledgement()); err != nil {
+		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, cap, msg.Packet, ack); err != nil {
 			return nil, err
 		}
 	}
@@ -544,7 +435,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		)
 	}()
 
-	return &channeltypes.MsgRecvPacketResponse{}, nil
+	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
@@ -582,7 +473,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgTimeoutResponse{}, nil // no-op
+		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
 	}
@@ -612,7 +503,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		)
 	}()
 
-	return &channeltypes.MsgTimeoutResponse{}, nil
+	return &channeltypes.MsgTimeoutResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
@@ -650,7 +541,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgTimeoutOnCloseResponse{}, nil // no-op
+		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
 	}
@@ -683,7 +574,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		)
 	}()
 
-	return &channeltypes.MsgTimeoutOnCloseResponse{}, nil
+	return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
@@ -721,7 +612,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	case nil:
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
-		return &channeltypes.MsgAcknowledgementResponse{}, nil // no-op
+		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}
@@ -745,5 +636,5 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 		)
 	}()
 
-	return &channeltypes.MsgAcknowledgementResponse{}, nil
+	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
 }

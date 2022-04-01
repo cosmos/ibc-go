@@ -43,9 +43,29 @@ module.exports = {
         "key": "v1.2.0"
       },
       {
+        "label": "v1.3.0",
+        "key": "v1.3.0"
+      },
+      {
+        "label": "v1.4.0",
+        "key": "v1.4.0"
+      },
+      {
         "label": "v2.0.0",
         "key": "v2.0.0"
-      }      
+      } ,
+      {
+        "label": "v2.1.0",
+        "key": "v2.1.0"
+      }, 
+      { 
+        "label": "v2.2.0",
+        "key": "v2.2.0"
+      },
+      {
+        "label": "v3.0.0",
+        "key": "v3.0.0"
+      }
     ],
     topbar: {
       banner: true
@@ -96,6 +116,11 @@ module.exports = {
               directory: false,
               path: "/ibc/proto-docs.html"
             },
+            {
+              title: "Roadmap",
+              directory: false,
+              path: "/roadmap/roadmap.html"
+            },
           ]
         },
         {
@@ -104,17 +129,37 @@ module.exports = {
             {
               title: "Interchain Accounts",
               directory: true,
-              path: "/app_modules",
+              path: "/apps",
               children: [
                 {
                     title: "Overview",
                     directory: false,
-                    path: "/app_modules/interchain-accounts/overview.html"
+                    path: "/apps/interchain-accounts/overview.html"
                 }, 
+                {
+                  title: "Authentication Modules",
+                  directory: false,
+                  path: "/apps/interchain-accounts/auth-modules.html"
+                },
+                {
+                  title: "Active Channels",
+                  directory: false,
+                  path: "/apps/interchain-accounts/active-channels.html"
+                },
                 {
                     title: "Integration",
                     directory: false,
-                    path: "/app_modules/interchain-accounts/integration.html"
+                    path: "/apps/interchain-accounts/integration.html"
+                },
+                {
+                  title: "Parameters",
+                  directory: false,
+                  path: "/apps/interchain-accounts/parameters.html"
+                },
+                {
+                  title: "Transactions",
+                  directory: false,
+                  path: "/apps/interchain-accounts/transactions.html"
                 },
             ]
             },

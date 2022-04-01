@@ -5,11 +5,11 @@ import (
 )
 
 func (suite *TypesTestSuite) TestKeyActiveChannel() {
-	key := types.KeyActiveChannel("port-id")
-	suite.Require().Equal("activeChannel/port-id", string(key))
+	key := types.KeyActiveChannel("port-id", "connection-id")
+	suite.Require().Equal("activeChannel/port-id/connection-id", string(key))
 }
 
 func (suite *TypesTestSuite) TestKeyOwnerAccount() {
-	key := types.KeyOwnerAccount("port-id")
-	suite.Require().Equal("owner/port-id", string(key))
+	key := types.KeyOwnerAccount("port-id", "connection-id")
+	suite.Require().Equal("owner/port-id/connection-id", string(key))
 }

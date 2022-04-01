@@ -2,13 +2,18 @@ package mock
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
+// MockIBCApp contains IBC application module callbacks as defined in 05-port.
 type MockIBCApp struct {
+	PortID       string
+	ScopedKeeper capabilitykeeper.ScopedKeeper
+
 	OnChanOpenInit func(
 		ctx sdk.Context,
 		order channeltypes.Order,
@@ -28,14 +33,14 @@ type MockIBCApp struct {
 		channelID string,
 		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
-		version,
 		counterpartyVersion string,
-	) error
+	) (version string, err error)
 
 	OnChanOpenAck func(
 		ctx sdk.Context,
 		portID,
 		channelID string,
+		counterpartyChannelID string,
 		counterpartyVersion string,
 	) error
 
@@ -80,16 +85,12 @@ type MockIBCApp struct {
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
+}
 
-	// NegotiateAppVersion performs application version negotiation given the provided channel ordering, connectionID, portID, counterparty and proposed version.
-	// An error is returned if version negotiation cannot be performed. For example, an application module implementing this interface
-	// may decide to return an error in the event of the proposed version being incompatible with it's own
-	NegotiateAppVersion func(
-		ctx sdk.Context,
-		order channeltypes.Order,
-		connectionID string,
-		portID string,
-		counterparty channeltypes.Counterparty,
-		proposedVersion string,
-	) (version string, err error)
+// NewMockIBCApp returns a MockIBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
+func NewMockIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *MockIBCApp {
+	return &MockIBCApp{
+		PortID:       portID,
+		ScopedKeeper: scopedKeeper,
+	}
 }

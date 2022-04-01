@@ -3,14 +3,14 @@ package keeper_test
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
 // test sending from chainA to chainB using both coin that orignate on
@@ -167,6 +167,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{"tries to unescrow more tokens than allowed", func() {
 			amount = sdk.NewInt(1000000)
 		}, true, false},
+
+		// - coin being sent to module address on chainA
+		{"failure: receive on module account", func() {
+			receiver = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+		}, false, false},
+
+		// - coin being sent back to original chain (chainB) to module address
+		{"failure: receive on module account on source chain", func() {
+			receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+		}, true, false},
 	}
 
 	for _, tc := range testCases {
@@ -186,14 +196,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// send coin from chainB to chainA, receive them, acknowledge them, and send back to chainB
 				coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 				transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0)
-				_, err := suite.chainB.SendMsgs(transferMsg)
+				res, err := suite.chainB.SendMsgs(transferMsg)
 				suite.Require().NoError(err) // message committed
 
-				// relay send packet
-				fungibleTokenPacket := types.NewFungibleTokenPacketData(coinFromBToA.Denom, coinFromBToA.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 110), 0)
-				ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-				err = path.RelayPacket(packet, ack.Acknowledgement())
+				packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+				suite.Require().NoError(err)
+
+				err = path.RelayPacket(packet)
 				suite.Require().NoError(err) // relay committed
 
 				seq++

@@ -17,8 +17,9 @@ import (
 var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+
 	// TestPortID defines a resuable port identifier for testing purposes
-	TestPortID, _ = types.GeneratePortID(TestOwnerAddress, "connection-0", "connection-0")
+	TestPortID, _ = types.NewControllerPortID(TestOwnerAddress)
 )
 
 type TypesTestSuite struct {
@@ -33,8 +34,8 @@ type TypesTestSuite struct {
 func (suite *TypesTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestTypesTestSuite(t *testing.T) {
@@ -42,11 +43,57 @@ func TestTypesTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestGenerateAddress() {
-	addr := types.GenerateAddress([]byte{}, "test-port-id")
+	addr := types.GenerateAddress([]byte{}, "test-connection-id", "test-port-id")
 	accAddr, err := sdk.AccAddressFromBech32(addr.String())
 
 	suite.Require().NoError(err, "TestGenerateAddress failed")
 	suite.Require().NotEmpty(accAddr)
+}
+
+func (suite *TypesTestSuite) TestValidateAccountAddress() {
+	testCases := []struct {
+		name    string
+		address string
+		expPass bool
+	}{
+		{
+			"success",
+			TestOwnerAddress,
+			true,
+		},
+		{
+			"success with single character",
+			"a",
+			true,
+		},
+		{
+			"empty string",
+			"",
+			false,
+		},
+		{
+			"only spaces",
+			"     ",
+			false,
+		},
+		{
+			"address is too long",
+			ibctesting.LongString,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			err := types.ValidateAccountAddress(tc.address)
+
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
+	}
 }
 
 func (suite *TypesTestSuite) TestInterchainAccount() {
