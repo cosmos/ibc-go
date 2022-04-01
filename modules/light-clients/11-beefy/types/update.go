@@ -68,126 +68,123 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		)
 	}
 
-	// a new mmr update has arrived
-	if beefyHeader.MmrUpdateProof != nil {
-		var (
-			mmrUpdateProof   = beefyHeader.MmrUpdateProof
-			authoritiesProof = beefyHeader.MmrUpdateProof.AuthoritiesProof
-			signedCommitment = beefyHeader.MmrUpdateProof.SignedCommitment
-		)
+	var (
+		mmrUpdateProof   = beefyHeader.MmrUpdateProof
+		authoritiesProof = beefyHeader.MmrUpdateProof.AuthoritiesProof
+		signedCommitment = beefyHeader.MmrUpdateProof.SignedCommitment
+	)
 
-		// checking signatures is expensive (667 authorities for kusama),
-		// we want to know if these sigs meet the minimum threshold before proceeding
-		// and are by a known authority set (the current one, or the next one)
-		if authoritiesThreshold(*cs.Authority) > uint32(len(signedCommitment.Signatures)) ||
-			authoritiesThreshold(*cs.NextAuthoritySet) > uint32(len(signedCommitment.Signatures)) {
-			// todo: error commitment isn't final
-			return nil, nil, nil
-		}
+	// checking signatures is expensive (667 authorities for kusama),
+	// we want to know if these sigs meet the minimum threshold before proceeding
+	// and are by a known authority set (the current one, or the next one)
+	if authoritiesThreshold(*cs.Authority) > uint32(len(signedCommitment.Signatures)) ||
+		authoritiesThreshold(*cs.NextAuthoritySet) > uint32(len(signedCommitment.Signatures)) {
+		// todo: error commitment isn't final
+		return nil, nil, nil
+	}
 
-		if signedCommitment.Commitment.ValidatorSetId != cs.Authority.Id &&
-			signedCommitment.Commitment.ValidatorSetId != cs.NextAuthoritySet.Id {
-			// todo: authority set is unknown
-			return nil, nil, nil
-		}
+	if signedCommitment.Commitment.ValidatorSetId != cs.Authority.Id &&
+		signedCommitment.Commitment.ValidatorSetId != cs.NextAuthoritySet.Id {
+		// todo: authority set is unknown
+		return nil, nil, nil
+	}
 
-		// beefy authorities are signing the hash of the scale-encoded Commitment
-		commitmentBytes, err := Encode(&signedCommitment.Commitment)
+	// beefy authorities are signing the hash of the scale-encoded Commitment
+	commitmentBytes, err := Encode(&signedCommitment.Commitment)
+	if err != nil {
+		// todo: proper errors
+		return nil, nil, err
+	}
+
+	// take keccak hash of the commitment scale-encoded
+	commitmentHash := crypto.Keccak256(commitmentBytes)
+
+	// array of leaves in the authority merkle root.
+	var authorityLeaves []merkle.Leaf
+
+	for i := 0; i < len(signedCommitment.Signatures); i++ {
+		signature := signedCommitment.Signatures[i]
+		// recover uncompressed public key from signature
+		pubkey, err := crypto.SigToPub(commitmentHash, signature.Signature)
+
 		if err != nil {
-			// todo: proper errors
+			// todo: error failed to recover signature!
 			return nil, nil, err
 		}
 
-		// take keccak hash of the commitment scale-encoded
-		commitmentHash := crypto.Keccak256(commitmentBytes)
+		// convert public key to ethereum address.
+		address := crypto.PubkeyToAddress(*pubkey)
+		authorityLeaf := merkle.Leaf{
+			Hash:  crypto.Keccak256(address[:]),
+			Index: signature.AuthorityIndex,
+		}
+		authorityLeaves = append(authorityLeaves, authorityLeaf)
+	}
 
-		// array of leaves in the authority merkle root.
-		var authorityLeaves []merkle.Leaf
+	// flag for if the authority set has been updated
+	updatedAuthority := false
 
-		for i := 0; i < len(signedCommitment.Signatures); i++ {
-			signature := signedCommitment.Signatures[i]
-			// recover uncompressed public key from signature
-			pubkey, err := crypto.SigToPub(commitmentHash, signature.Signature)
-
-			if err != nil {
-				// todo: error failed to recover signature!
-				return nil, nil, err
-			}
-
-			// convert public key to ethereum address.
-			address := crypto.PubkeyToAddress(*pubkey)
-			authorityLeaf := merkle.Leaf{
-				Hash:  crypto.Keccak256(address[:]),
-				Index: signature.AuthorityIndex,
-			}
-			authorityLeaves = append(authorityLeaves, authorityLeaf)
+	// assert that known authorities signed this commitment, only 2 cases because we already
+	// made a prior check to assert that authorities are known
+	switch signedCommitment.Commitment.ValidatorSetId {
+	case cs.Authority.Id:
+		// here we construct a merkle proof, and verify that the public keys which produced this signature
+		// are part of the current round.
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, Keccak256{})
+		valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
+		if err != nil || !valid {
+			// todo: error unknown authority set!
+			return nil, nil, nil
 		}
 
-		// flag for if the authority set has been updated
-		updatedAuthority := false
-
-		// assert that known authorities signed this commitment, only 2 cases because we already
-		// made a prior check to assert that authorities are known
-		switch signedCommitment.Commitment.ValidatorSetId {
-		case cs.Authority.Id:
-			// here we construct a merkle proof, and verify that the public keys which produced this signature
-			// are part of the current round.
-			authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, Keccak256{})
-			valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
-			if err != nil || !valid {
-				// todo: error unknown authority set!
-				return nil, nil, nil
-			}
-
-		// new authority set has kicked in
-		case cs.NextAuthoritySet.Id:
-			authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, Keccak256{})
-			valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
-			if err != nil || !valid {
-				// todo: error unknown authority set!
-				return nil, nil, nil
-			}
-			updatedAuthority = true
+	// new authority set has kicked in
+	case cs.NextAuthoritySet.Id:
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, Keccak256{})
+		valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
+		if err != nil || !valid {
+			// todo: error unknown authority set!
+			return nil, nil, nil
 		}
+		updatedAuthority = true
+	}
 
-		// only update if we have a higher block number.
-		if signedCommitment.Commitment.BlockNumer > cs.LatestBeefyHeight {
-			for _, payload := range signedCommitment.Commitment.Payload {
-				mmrRootId := []byte("mh")
-				// checks for the right payloadId
-				if bytes.Equal(payload.PayloadId[:], mmrRootId) {
-					// the next authorities are in the latest BeefyMmrLeaf
+	// only update if we have a higher block number.
+	if signedCommitment.Commitment.BlockNumer > cs.LatestBeefyHeight {
+		for _, payload := range signedCommitment.Commitment.Payload {
+			mmrRootId := []byte("mh")
+			// checks for the right payloadId
+			if bytes.Equal(payload.PayloadId[:], mmrRootId) {
+				// the next authorities are in the latest BeefyMmrLeaf
 
-					// scale encode the mmr leaf
-					mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
-					if err != nil {
-						return nil, nil, err
-					}
-					// we treat this leaf as the latest leaf in the mmr
-					mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
-					mmrLeaves := []mmr.Leaf{
-						{
-							Hash:  crypto.Keccak256(mmrLeafBytes),
-							Index: mmrUpdateProof.MmrLeafIndex,
-						},
-					}
-					mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
-					// verify that the leaf is valid, for the signed mmr-root-hash
-					if !mmrProof.Verify(payload.PayloadData[:]) {
-						return nil, nil, err // error!, mmr proof is invalid
-					}
-					// update the block_number
-					cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
-					// updates the mmr_root_hash
-					cs.MmrRootHash = payload.PayloadData[:]
-					// authority set has changed, rotate our view of the authorities
-					if updatedAuthority {
-						cs.Authority = cs.NextAuthoritySet
-						// mmr leaf has been verified, use it to update our view of the next authority set
-						cs.NextAuthoritySet = &mmrUpdateProof.MmrLeaf.BeefyNextAuthoritySet
-					}
-					break
+				// scale encode the mmr leaf
+				mmrLeafBytes, err := Encode(mmrUpdateProof.MmrLeaf)
+				if err != nil {
+					return nil, nil, err
 				}
+				// we treat this leaf as the latest leaf in the mmr
+				mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
+				mmrLeaves := []mmr.Leaf{
+					{
+						Hash:  crypto.Keccak256(mmrLeafBytes),
+						Index: mmrUpdateProof.MmrLeafIndex,
+					},
+				}
+				mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
+				// verify that the leaf is valid, for the signed mmr-root-hash
+				if !mmrProof.Verify(payload.PayloadData[:]) {
+					return nil, nil, err // error!, mmr proof is invalid
+				}
+				// update the block_number
+				cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
+				// updates the mmr_root_hash
+				cs.MmrRootHash = payload.PayloadData[:]
+				// authority set has changed, rotate our view of the authorities
+				if updatedAuthority {
+					cs.Authority = cs.NextAuthoritySet
+					// mmr leaf has been verified, use it to update our view of the next authority set
+					cs.NextAuthoritySet = &mmrUpdateProof.MmrLeaf.BeefyNextAuthoritySet
+				}
+				break
 			}
 		}
 	}
