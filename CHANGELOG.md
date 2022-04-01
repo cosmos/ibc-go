@@ -51,7 +51,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#1198](https://github.com/cosmos/ibc-go/pull/1198) Adding UpdateStateOnMisbehaviour to ClientState interface. 
 * (modules/core/02-client) [\#1170](https://github.com/cosmos/ibc-go/pull/1170) Updating `ClientUpdateProposal` to set client state in lightclient implementations `CheckSubstituteAndUpdateState` methods.
 * (modules/core/02-client) [\#1197](https://github.com/cosmos/ibc-go/pull/1197) Adding `CheckForMisbehaviour` to `ClientState` interface. 
-* (modules/core/02-client) [\#1195](https://github.com/cosmos/ibc-go/pull/1189) Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations. 
+* (modules/core/02-client) [\#1195](https://github.com/cosmos/ibc-go/pull/1210) Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations. 
 * (modules/core/exported) [\#1206](https://github.com/cosmos/ibc-go/pull/1206) Adding new method `UpdateState` to `ClientState` interface.
 
 ### Features
