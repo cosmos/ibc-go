@@ -708,7 +708,7 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 
 				tc.malleate()
 
-				clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store)
+				clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, nil)
 
 				if tc.expPass {
 					clientStateBz := suite.store.Get(host.ClientStateKey())

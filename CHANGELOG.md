@@ -43,6 +43,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 ### Improvements
+
+* (02-client) [\#1208](https://github.com/cosmos/ibc-go/pull/1208) Replace `CheckHeaderAndUpdateState` usage in 02-client with calls to `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour` and `UpdateState`. 
 * (modules/light-clients/09-localhost) [\#1187](https://github.com/cosmos/ibc-go/pull/1187/) Removing localhost light client implementation as it is not functional. 
 * [\#1186](https://github.com/cosmos/ibc-go/pull/1186/files) Removing `GetRoot` function from ConsensusState interface in `02-client`. `GetRoot` is unused by core IBC. 
 * (modules/core/02-client) [\#1196](https://github.com/cosmos/ibc-go/pull/1196) Adding VerifyClientMessage to ClientState interface. 

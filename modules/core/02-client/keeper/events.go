@@ -1,17 +1,10 @@
 package keeper
 
 import (
-	"encoding/hex"
-	"fmt"
-	"strconv"
-	"strings"
-
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // EmitCreateClientEvent emits a create client event
@@ -31,31 +24,13 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 }
 
 // EmitUpdateClientEvent emits an update client event
-func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
-	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
-	// This prevents the event value from containing invalid UTF-8 characters
-	// which may cause data to be lost when JSON encoding/decoding.
-	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(cdc, clientMsg))
-
-	var consensusHeightAttr string
-	if len(consensusHeights) != 0 {
-		consensusHeightAttr = consensusHeights[0].String()
-	}
-
-	consensusHeightsAttr := make([]string, len(consensusHeights))
-	for i, height := range consensusHeights {
-		consensusHeightsAttr[i] = height.String()
-	}
-
+func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeight exported.Height, clientMsgStr string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			// Deprecated: AttributeKeyConsensusHeight is deprecated and will be removed in a future release.
-			// Please use AttributeKeyConsensusHeights instead.
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
 			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 		sdk.NewEvent(
@@ -82,23 +57,13 @@ func EmitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 }
 
 // EmitUpdateClientProposalEvent emits an update client proposal event
-func EmitUpdateClientProposalEvent(ctx sdk.Context, clientID, clientType string) {
+func EmitUpdateClientProposalEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeUpdateClientProposal,
 			sdk.NewAttribute(types.AttributeKeySubjectClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-		),
-	)
-}
-
-// EmitUpgradeClientProposalEvent emits an upgrade client proposal event
-func EmitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64) {
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeUpgradeClientProposal,
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
 		),
 	)
 }
@@ -114,13 +79,15 @@ func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState e
 	)
 }
 
-// EmitUpgradeChainEvent emits an upgrade chain event.
-func EmitUpgradeChainEvent(ctx sdk.Context, height int64) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+// EmitSubmitMisbehaviourEventOnUpdate emits a client misbehaviour event on a client update event
+func EmitSubmitMisbehaviourEventOnUpdate(ctx sdk.Context, clientID string, clientType string, consensusHeight exported.Height, headerStr string) {
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeUpgradeChain,
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.FormatInt(height, 10)),
-			sdk.NewAttribute(types.AttributeKeyUpgradeStore, upgradetypes.StoreKey), // which store to query proof of consensus state from
+			types.EventTypeSubmitMisbehaviour,
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
+			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
 		),
-	})
+	)
 }
