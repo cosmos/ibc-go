@@ -54,7 +54,7 @@ func (k Keeper) CreateClient(
 }
 
 // UpdateClient updates the consensus state and the state root from a provided header.
-func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.ClientMessage) error {
+func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
@@ -66,54 +66,21 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.C
 		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
-	// Any writes made in CheckHeaderAndUpdateState are persisted on both valid updates and misbehaviour updates.
-	// Light client implementations are responsible for writing the correct metadata (if any) in either case.
-	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, clientStore, header)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "cannot update client with ID %s", clientID)
+	if err := clientState.VerifyClientMessage(ctx, k.cdc, clientStore, clientMsg); err != nil {
+		return err
 	}
 
-	// emit the full header in events
-	var (
-		headerStr       string
-		consensusHeight exported.Height
-	)
-	if header != nil {
-		// Marshal the Header as an Any and encode the resulting bytes to hex.
-		// This prevents the event value from containing invalid UTF-8 characters
-		// which may cause data to be lost when JSON encoding/decoding.
-		headerStr = hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, header))
-		// set default consensus height with header height
-		consensusHeight = header.GetHeight()
+	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
+	// This prevents the event value from containing invalid UTF-8 characters
+	// which may cause data to be lost when JSON encoding/decoding.
+	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, clientMsg))
 
-	}
+	// set default consensus height with header height
+	consensusHeight := clientMsg.GetHeight()
 
-	// set new client state regardless of if update is valid update or misbehaviour
-	k.SetClientState(ctx, clientID, newClientState)
-	// If client state is not frozen after clientState CheckHeaderAndUpdateState,
-	// then update was valid. Write the update state changes, and set new consensus state.
-	// Else the update was proof of misbehaviour and we must emit appropriate misbehaviour events.
-	if status := newClientState.Status(ctx, clientStore, k.cdc); status != exported.Frozen {
-		// if update is not misbehaviour then update the consensus state
-		k.SetClientConsensusState(ctx, clientID, header.GetHeight(), newConsensusState)
-
-		k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
-
-		defer func() {
-			telemetry.IncrCounterWithLabels(
-				[]string{"ibc", "client", "update"},
-				1,
-				[]metrics.Label{
-					telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
-					telemetry.NewLabel(types.LabelClientID, clientID),
-					telemetry.NewLabel(types.LabelUpdateType, "msg"),
-				},
-			)
-		}()
-
-		// emitting events in the keeper emits for both begin block and handler client updates
-		EmitUpdateClientEvent(ctx, clientID, newClientState, consensusHeight, headerStr)
-	} else {
+	foundMisbehaviour := clientState.CheckForMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
+	if foundMisbehaviour {
+		clientState.UpdateStateOnMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
 
@@ -129,8 +96,29 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.C
 			)
 		}()
 
-		EmitSubmitMisbehaviourEventOnUpdate(ctx, clientID, newClientState, consensusHeight, headerStr)
+		EmitSubmitMisbehaviourEventOnUpdate(ctx, clientID, clientState.ClientType(), consensusHeight, clientMsgStr)
+
+		return nil
 	}
+
+	clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
+
+	k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", "client", "update"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientID, clientID),
+				telemetry.NewLabel(types.LabelUpdateType, "msg"),
+			},
+		)
+	}()
+
+	// emitting events in the keeper emits for both begin block and handler client updates
+	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeight, clientMsgStr)
 
 	return nil
 }

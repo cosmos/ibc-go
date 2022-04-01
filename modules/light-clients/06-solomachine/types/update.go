@@ -26,7 +26,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 
 	foundMisbehaviour := cs.CheckForMisbehaviour(ctx, cdc, clientStore, msg)
 	if foundMisbehaviour {
-		cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore)
+		cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, msg)
 		return &cs, cs.ConsensusState, nil
 	}
 
@@ -142,7 +142,7 @@ func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
 // as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, _ exported.ClientMessage) {
 	cs.IsFrozen = true
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))

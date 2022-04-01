@@ -56,12 +56,12 @@ type ClientState interface {
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
 	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
-	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore)
+	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage)
 
 	// VerifyClientMessage verifies a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
 	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
 
-	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState. 
+	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 	// An error is returned if ClientMessage is of type Misbehaviour
 	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
 
