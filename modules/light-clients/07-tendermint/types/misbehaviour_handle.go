@@ -10,36 +10,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
-
-// CheckMisbehaviourAndUpdateState determines whether or not two conflicting
-// headers at the same height would have convinced the light client.
-//
-// NOTE: consensusState1 is the trusted consensus state that corresponds to the TrustedHeight
-// of misbehaviour.Header1
-// Similarly, consensusState2 is the trusted consensus state that corresponds
-// to misbehaviour.Header2
-// Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
-func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	ctx sdk.Context,
-	cdc codec.BinaryCodec,
-	clientStore sdk.KVStore,
-	misbehaviour exported.ClientMessage,
-) (exported.ClientState, error) {
-	tmMisbehaviour, ok := misbehaviour.(*Misbehaviour)
-	if !ok {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", misbehaviour, &Misbehaviour{})
-	}
-
-	if err := cs.VerifyClientMessage(ctx, cdc, clientStore, tmMisbehaviour); err != nil {
-		return nil, err
-	}
-
-	cs.FrozenHeight = FrozenHeight
-
-	return &cs, nil
-}
 
 // verifyMisbehaviour determines whether or not two conflicting
 // headers at the same height would have convinced the light client.

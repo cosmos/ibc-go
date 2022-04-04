@@ -2,50 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
-
-// CheckMisbehaviourAndUpdateState determines whether or not the currently registered
-// public key signed over two different messages with the same sequence. If this is true
-// the client state is updated to a frozen status.
-// NOTE: Misbehaviour is not tracked for previous public keys, a solo machine may update to
-// a new public key before the misbehaviour is processed. Therefore, misbehaviour is data
-// order processing dependent.
-func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	ctx sdk.Context,
-	cdc codec.BinaryCodec,
-	clientStore sdk.KVStore,
-	misbehaviour exported.ClientMessage,
-) (exported.ClientState, error) {
-
-	soloMisbehaviour, ok := misbehaviour.(*Misbehaviour)
-	if !ok {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidClientType,
-			"misbehaviour type %T, expected %T", misbehaviour, &Misbehaviour{},
-		)
-	}
-
-	// NOTE: a check that the misbehaviour message data are not equal is done by
-	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
-
-	// verify first signature
-	if err := cs.verifySignatureAndData(cdc, soloMisbehaviour, soloMisbehaviour.SignatureOne); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature one")
-	}
-
-	// verify second signature
-	if err := cs.verifySignatureAndData(cdc, soloMisbehaviour, soloMisbehaviour.SignatureTwo); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature two")
-	}
-
-	cs.IsFrozen = true
-	return &cs, nil
-}
 
 // verifySignatureAndData verifies that the currently registered public key has signed
 // over the provided data and that the data is valid. The data is valid if it can be
