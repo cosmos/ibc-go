@@ -19,10 +19,6 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
-	// Localhost is the client type for a localhost client. It is also used as the clientID
-	// for the localhost client.
-	Localhost string = "09-localhost"
-
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 
@@ -53,12 +49,23 @@ type ClientState interface {
 	// Clients must return their status. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status
 
+	// Checks for evidence of a misbehaviour in Header or Misbehaviour type
+	CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg ClientMessage) bool
+
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
-	// Update and Misbehaviour functions
+	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
+	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage)
 
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
+	// VerifyClientMessage verifies a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
+	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
+
+	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
+	// An error is returned if ClientMessage is of type Misbehaviour
+	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
+
+	// Update and Misbehaviour functions
 	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
@@ -184,10 +191,6 @@ type ConsensusState interface {
 	proto.Message
 
 	ClientType() string // Consensus kind
-
-	// GetRoot returns the commitment root of the consensus state,
-	// which is used for key-value pair verification.
-	GetRoot() Root
 
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64

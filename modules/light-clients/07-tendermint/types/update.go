@@ -16,87 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// CheckHeaderAndUpdateState checks if the provided header is valid, and if valid it will:
-// create the consensus state for the header.Height
-// and update the client state if the header height is greater than the latest client state height
-// It returns an error if:
-// - the client or header provided are not parseable to tendermint types
-// - the header is invalid
-// - header height is less than or equal to the trusted header height
-// - header revision is not equal to trusted header revision
-// - header valset commit verification fails
-// - header timestamp is past the trusting period in relation to the consensus state
-// - header timestamp is less than or equal to the consensus state timestamp
-//
-// Tendermint client validity checking uses the bisection algorithm described
-// in the [Tendermint spec](https://github.com/tendermint/spec/blob/master/spec/consensus/light-client.md).
-//
-// Misbehaviour Detection:
-// UpdateClient will detect implicit misbehaviour by enforcing certain invariants on any new update call and will return a frozen client.
-// 1. Any valid update that creates a different consensus state for an already existing height is evidence of misbehaviour and will freeze client.
-// 2. Any valid update that breaks time monotonicity with respect to its neighboring consensus states is evidence of misbehaviour and will freeze client.
-// Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
-//
-func (cs ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
-	header exported.ClientMessage,
-) (exported.ClientState, exported.ConsensusState, error) {
-	tmHeader, ok := header.(*Header)
-	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header,
-		)
-	}
-
-	// Check if the Client store already has a consensus state for the header's height
-	// If the consensus state exists, and it matches the header then we return early
-	// since header has already been submitted in a previous UpdateClient.
-	var conflictingHeader bool
-	prevConsState, _ := GetConsensusState(clientStore, cdc, header.GetHeight())
-	if prevConsState != nil {
-		// This header has already been submitted and the necessary state is already stored
-		// in client store, thus we can return early without further validation.
-		if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
-			return &cs, prevConsState, nil
-		}
-		// A consensus state already exists for this height, but it does not match the provided header.
-		// Thus, we must check that this header is valid, and if so we will freeze the client.
-		conflictingHeader = true
-	}
-
-	if err := cs.VerifyClientMessage(ctx, clientStore, cdc, tmHeader); err != nil {
-		return nil, nil, err
-	}
-
-	consState := tmHeader.ConsensusState()
-	// Header is different from existing consensus state and also valid, so freeze the client and return
-	if conflictingHeader {
-		cs.FrozenHeight = FrozenHeight
-		return &cs, consState, nil
-	}
-	// Check that consensus state timestamps are monotonic
-	prevCons, prevOk := GetPreviousConsensusState(clientStore, cdc, header.GetHeight())
-	nextCons, nextOk := GetNextConsensusState(clientStore, cdc, header.GetHeight())
-	// if previous consensus state exists, check consensus state time is greater than previous consensus state time
-	// if previous consensus state is not before current consensus state, freeze the client and return.
-	if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
-		cs.FrozenHeight = FrozenHeight
-		return &cs, consState, nil
-	}
-	// if next consensus state exists, check consensus state time is less than next consensus state time
-	// if next consensus state is not after current consensus state, freeze the client and return.
-	if nextOk && !nextCons.Timestamp.After(consState.Timestamp) {
-		cs.FrozenHeight = FrozenHeight
-		return &cs, consState, nil
-	}
-
-	newClientState, consensusState, err := cs.UpdateState(ctx, cdc, clientStore, tmHeader)
-	if err != nil {
-		return nil, nil, err
-	}
-	return newClientState, consensusState, nil
-}
-
 // checkTrustedHeader checks that consensus state matches trusted fields of Header
 func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
@@ -119,7 +38,7 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
-	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
 	clientMsg exported.ClientMessage,
 ) error {
 	switch msg := clientMsg.(type) {
@@ -147,9 +66,9 @@ func (cs *ClientState) verifyHeader(
 	currentTimestamp := ctx.BlockTime()
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
-	consState, err := GetConsensusState(clientStore, cdc, header.TrustedHeight)
-	if err != nil {
-		return sdkerrors.Wrapf(err, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.TrustedHeight)
+	consState, found := GetConsensusState(clientStore, cdc, header.TrustedHeight)
+	if !found {
+		return sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.TrustedHeight)
 	}
 
 	if err := checkTrustedHeader(header, consState); err != nil {
@@ -238,16 +157,16 @@ func (cs *ClientState) verifyHeader(
 // UpdateState must only be used to update within a single revision, thus header revision number and trusted height's revision
 // number must be the same. To update to a new revision, use a separate upgrade path
 // UpdateState will prune the oldest consensus state if it is expired.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) (*ClientState, *ConsensusState, error) {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	header, ok := clientMsg.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, header)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, header)
 	}
 
 	// check for duplicate update
 	if consensusState, _ := GetConsensusState(clientStore, cdc, header.GetHeight()); consensusState != nil {
 		// perform no-op
-		return &cs, consensusState, nil
+		return nil
 	}
 
 	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
@@ -262,10 +181,12 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		NextValidatorsHash: header.Header.NextValidatorsHash,
 	}
 
-	// set metadata for this consensus state
+	// set client state, consensus state and asssociated metadata
+	setClientState(clientStore, cdc, &cs)
+	setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
-	return &cs, consensusState, nil
+	return nil
 }
 
 // pruneOldestConsensusState will retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
@@ -280,10 +201,10 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	)
 
 	pruneCb := func(height exported.Height) bool {
-		consState, err := GetConsensusState(clientStore, cdc, height)
+		consState, found := GetConsensusState(clientStore, cdc, height)
 		// this error should never occur
-		if err != nil {
-			pruneError = err
+		if !found {
+			pruneError = sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height)
 			return true
 		}
 
@@ -353,7 +274,7 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
 // as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore) {
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, _ exported.ClientMessage) {
 	cs.FrozenHeight = FrozenHeight
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))

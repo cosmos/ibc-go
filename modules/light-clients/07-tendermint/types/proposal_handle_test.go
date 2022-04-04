@@ -4,6 +4,7 @@ import (
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -299,6 +300,10 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
 
 				suite.Require().Equal(newChainID, updatedClient.(*types.ClientState).ChainId)
+
+				// ensure updated client state is set in store
+				bz := subjectClientStore.Get(host.ClientStateKey())
+				suite.Require().Equal(clienttypes.MustMarshalClientState(suite.chainA.Codec, updatedClient), bz)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(updatedClient)

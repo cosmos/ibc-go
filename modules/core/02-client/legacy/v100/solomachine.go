@@ -88,6 +88,30 @@ func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
 	panic("legacy solo machine is deprecated!")
 }
 
+// CheckForMisbehaviour panics!
+func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
+	panic("legacy solo machine is deprecated!")
+}
+
+// UpdateStateOnMisbehaviour panics!
+func (cs *ClientState) UpdateStateOnMisbehaviour(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
+) {
+	panic("legacy solo machine is deprecated!")
+}
+
+// VerifyClientMessage panics!
+func (cs *ClientState) VerifyClientMessage(
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
+) error {
+	panic("legacy solo machine is deprecated!")
+}
+
+// UpdateState panis!
+func (cs *ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) error {
+	panic("legacy solo machine is deprecated!")
+}
+
 // CheckHeaderAndUpdateState panics!
 func (cs *ClientState) CheckHeaderAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
@@ -194,11 +218,6 @@ func (ConsensusState) ClientType() string {
 
 // GetTimestamp panics!
 func (cs ConsensusState) GetTimestamp() uint64 {
-	panic("legacy solo machine is deprecated!")
-}
-
-// GetRoot panics!
-func (cs ConsensusState) GetRoot() exported.Root {
 	panic("legacy solo machine is deprecated!")
 }
 
