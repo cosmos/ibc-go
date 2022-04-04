@@ -2,6 +2,8 @@ package keeper_test
 
 import (
 	"fmt"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -420,6 +422,71 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 				// expected total is three times the default acknowledgement fee
 				expectedFees := defaultTimeoutFee.Add(defaultTimeoutFee...).Add(defaultTimeoutFee...)
 				suite.Require().Equal(expectedFees, res.TimeoutFees)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
+	var (
+		req *types.QueryCounterpartyAddressRequest
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"not found, invalid channel",
+			func() {
+				req.ChannelId = "invalid-channel-id"
+			},
+			false,
+		},
+		{
+			"not found, invalid address",
+			func() {
+				req.RelayerAddress = "invalid-addr"
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			pk := secp256k1.GenPrivKey().PubKey()
+			expectedCounterpartyAddr := sdk.AccAddress(pk.Address())
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				expectedCounterpartyAddr.String(),
+				suite.path.EndpointA.ChannelID,
+			)
+
+			req = &types.QueryCounterpartyAddressRequest{
+				ChannelId:      suite.path.EndpointA.ChannelID,
+				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+			}
+
+			tc.malleate()
+
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			res, err := suite.queryClient.CounterpartyAddress(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expectedCounterpartyAddr.String(), res.CounterpartyAddress)
 			} else {
 				suite.Require().Error(err)
 			}

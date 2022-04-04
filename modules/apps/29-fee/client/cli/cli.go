@@ -9,7 +9,7 @@ import (
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        "ibc-fee",
-		Short:                      "", // TODO
+		Short:                      "Query subcommand for IBC relayer incentivization",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
@@ -18,6 +18,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdTotalRecvFees(),
 		GetCmdTotalAckFees(),
 		GetCmdTotalTimeoutFees(),
+		GetCmdCounterpartyAddress(),
 	)
 
 	return queryCmd
