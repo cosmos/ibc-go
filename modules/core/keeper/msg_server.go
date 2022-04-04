@@ -79,6 +79,8 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 }
 
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
+// Warning: DEPRECATED
+// This handler is redudant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
 func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -87,8 +89,8 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 		return nil, err
 	}
 
-	if err := k.ClientKeeper.CheckMisbehaviourAndUpdateState(ctx, msg.ClientId, misbehaviour); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to process misbehaviour for IBC client")
+	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, misbehaviour); err != nil {
+		return nil, err
 	}
 
 	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil

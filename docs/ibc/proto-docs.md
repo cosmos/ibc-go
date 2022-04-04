@@ -2045,9 +2045,9 @@ ResponseResultType defines the possible outcomes of the execution of a message
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| RESPONSE_RESULT_UNSPECIFIED | 0 | Default zero value enumeration |
-| RESPONSE_RESULT_NOOP | 1 | The message did not call the IBC application callbacks (because, for example, the packet had already been relayed) |
-| RESPONSE_RESULT_SUCCESS | 2 | The message was executed successfully |
+| RESPONSE_RESULT_TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
+| RESPONSE_RESULT_TYPE_NOOP | 1 | The message did not call the IBC application callbacks (because, for example, the packet had already been relayed) |
+| RESPONSE_RESULT_TYPE_SUCCESS | 2 | The message was executed successfully |
 
 
  <!-- end enums -->
@@ -2472,13 +2472,14 @@ MsgCreateClientResponse defines the Msg/CreateClient response type.
 ### MsgSubmitMisbehaviour
 MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 light client misbehaviour.
+Warning: DEPRECATED
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client unique identifier |
-| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | misbehaviour used for freezing the light client |
-| `signer` | [string](#string) |  | signer address |
+| `client_id` | [string](#string) |  | **Deprecated.** client unique identifier |
+| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | **Deprecated.** misbehaviour used for freezing the light client |
+| `signer` | [string](#string) |  | **Deprecated.** signer address |
 
 
 
