@@ -48,6 +48,12 @@ service Query {
     option (google.api.http).get = "/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/"
                                    "{packet_id.channel_id}/sequence/{packet_id.sequence}";
   }
+
+  // CounterpartyAddress returns the registered counterparty address for forward relaying
+  rpc CounterpartyAddress(QueryCounterpartyAddressRequest) returns (QueryCounterpartyAddressResponse) {
+    option (google.api.http).get =
+        "/ibc/apps/fee/v1/counterparty_address/channel/{channel_id}/relayer_address/{relayer_address}";
+  }
 }
 
 // QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc
@@ -141,4 +147,15 @@ message QueryTotalTimeoutFeesResponse {
     (gogoproto.nullable)     = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+}
+
+// QueryCounterpartyAddressRequest defines the request type for the CounterpartyAddress rpc
+message QueryCounterpartyAddressRequest {
+  string channel_id      = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+}
+
+// QueryCounterpartyAddressResponse defines the response type for the CounterpartyAddress rpc
+message QueryCounterpartyAddressResponse {
+  string counterparty_address = 1 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
 }
