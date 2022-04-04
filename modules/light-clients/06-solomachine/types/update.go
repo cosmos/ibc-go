@@ -10,35 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// CheckHeaderAndUpdateState checks if the provided header is valid and updates
-// the consensus state if appropriate. It returns an error if:
-// - the header provided is not parseable to a solo machine header
-// - the header sequence does not match the current sequence
-// - the header timestamp is less than the consensus state timestamp
-// - the currently registered public key did not provide the update signature
-func (cs ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
-	msg exported.ClientMessage,
-) (exported.ClientState, exported.ConsensusState, error) {
-	if err := cs.VerifyClientMessage(ctx, cdc, clientStore, msg); err != nil {
-		return nil, nil, err
-	}
-
-	foundMisbehaviour := cs.CheckForMisbehaviour(ctx, cdc, clientStore, msg)
-	if foundMisbehaviour {
-		cs.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, msg)
-		return &cs, cs.ConsensusState, nil
-	}
-
-	if err := cs.UpdateState(ctx, cdc, clientStore, msg); err != nil {
-		return nil, nil, err
-	}
-
-	newClientState := clienttypes.MustUnmarshalClientState(cdc, clientStore.Get(host.ClientStateKey())).(*ClientState)
-
-	return newClientState, newClientState.ConsensusState, nil
-}
-
 // VerifyClientMessage introspects the provided ClientMessage and checks its validity
 // A Solomachine Header is considered valid if the currently registered public key has signed over the new public key with the correct sequence
 // A Solomachine Misbehaviour is considered valid if duplicate signatures of the current public key are found on two different messages at a given sequence

@@ -66,7 +66,6 @@ type ClientState interface {
 	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
 
 	// Update and Misbehaviour functions
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
 	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
