@@ -7,7 +7,7 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 require (
 	github.com/armon/go-metrics v0.3.9
 	github.com/confio/ics23/go v0.6.6
-	github.com/cosmos/cosmos-sdk v0.44.5
+	github.com/cosmos/cosmos-sdk v0.44.2
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
@@ -32,3 +32,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
 )
+
+replace github.com/cosmos/cosmos-sdk => /Users/sergio/work/scm/github/cosmos-sdk // v0.44.2
+
+replace github.com/tendermint/tendermint => /Users/sergio/work/scm/github/tmint_go2 //v0.34.14
