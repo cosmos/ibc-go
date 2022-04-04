@@ -537,10 +537,10 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			case tc.forwardRelayer && result == nil:
 				suite.Require().Equal(nil, result)
-				packetId := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
+				packetID := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
 
 				// retrieve the forward relayer that was stored in `onRecvPacket`
-				relayer, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), packetId)
+				relayer, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), packetID)
 				suite.Require().Equal(relayer, suite.chainA.SenderAccount.GetAddress().String())
 
 			case !tc.forwardRelayer:
