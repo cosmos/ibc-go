@@ -44,11 +44,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
+
 ### Features
 
 ### Bug Fixes
 
-* (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Fix marshal errors on logger.
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 
 ## [v3.0.0](https://github.com/cosmos/ibc-go/releases/tag/v3.0.0) - 2022-03-15
