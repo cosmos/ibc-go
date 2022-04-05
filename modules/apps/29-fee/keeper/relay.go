@@ -23,12 +23,12 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 		return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 	}
 
-	packetId := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
+	packetID := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
 
 	// retrieve the forward relayer that was stored in `onRecvPacket`
-	relayer, found := k.GetRelayerAddressForAsyncAck(ctx, packetId)
+	relayer, found := k.GetRelayerAddressForAsyncAck(ctx, packetID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrRelayerNotFoundForAsyncAck, "no relayer address stored for async acknowledgement for packet with portID: %s, channelID: %s, sequence: %d", packetId.PortId, packetId.ChannelId, packetId.Sequence)
+		return sdkerrors.Wrapf(types.ErrRelayerNotFoundForAsyncAck, "no relayer address stored for async acknowledgement for packet with portID: %s, channelID: %s, sequence: %d", packetID.PortId, packetID.ChannelId, packetID.Sequence)
 	}
 
 	// it is possible that a relayer has not registered a counterparty address.
@@ -37,7 +37,7 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 
 	ack := types.NewIncentivizedAcknowledgement(forwardRelayer, acknowledgement.Acknowledgement(), acknowledgement.Success())
 
-	k.DeleteForwardRelayerAddress(ctx, packetId)
+	k.DeleteForwardRelayerAddress(ctx, packetID)
 
 	// ics4Wrapper may be core IBC or higher-level middleware
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)

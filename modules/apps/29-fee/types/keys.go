@@ -82,8 +82,8 @@ func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, 
 }
 
 // KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
-func KeyForwardRelayerAddress(packetId channeltypes.PacketId) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%d", ForwardRelayerPrefix, packetId.PortId, packetId.ChannelId, packetId.Sequence))
+func KeyForwardRelayerAddress(packetID channeltypes.PacketId) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/%d", ForwardRelayerPrefix, packetID.PortId, packetID.ChannelId, packetID.Sequence))
 }
 
 // ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packetID
