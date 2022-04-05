@@ -179,6 +179,7 @@ func GetChainID(index int) string {
 // CONTRACT: the passed in list of indexes must not contain duplicates
 func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 	for _, chain := range chains {
+		chain.App.EndBlock(abci.RequestEndBlock{Height: chain.CurrentHeader.Height})
 		chain.App.Commit()
 		chain.NextBlock()
 	}
@@ -193,6 +194,17 @@ func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 		chain.NextBlock() // calls BeginBlock
 		coord.IncrementTime()
 	}
+}
+
+// CommitNBlocks commits n blocks to state and updates the block height by 1 for each commit.
+func (coord *Coordinator) CommitBlockGetResponses(chain *TestChain) (
+	abci.ResponseEndBlock, abci.ResponseCommit, abci.ResponseBeginBlock) {
+
+	ebResp := chain.App.EndBlock(abci.RequestEndBlock{Height: chain.CurrentHeader.Height})
+	comResp := chain.App.Commit()
+	bbResp := chain.NextBlock() // calls BeginBlock
+	coord.IncrementTime()
+	return ebResp, comResp, bbResp
 }
 
 // ConnOpenInitOnBothChains initializes a connection on both endpoints with the state INIT

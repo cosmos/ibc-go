@@ -109,18 +109,11 @@ func (k Keeper) SendTransfer(
 	// NOTE: SendTransfer simply sends the denomination as it exists on its own
 	// chain inside the packet data. The receiving chain will perform denom
 	// prefixing as necessary.
-	fmt.Printf("debug prefixing\n")
-
 	if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 
 		// create the escrow address for the tokens
 		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-
-		fmt.Printf("debug ibc-go sender: %s\n", sender)
-		fmt.Printf("debug ibc-go tokens: %v\n", sdk.NewCoins(token))
-		balance := k.bankKeeper.GetBalance(ctx, sender, "stake")
-		fmt.Printf("debug ibc-go sender stake: %s\n", balance)
 
 		// escrow source tokens. It fails if balance insufficient.
 		if err := k.bankKeeper.SendCoins(
@@ -130,8 +123,6 @@ func (k Keeper) SendTransfer(
 		}
 
 		balance = k.bankKeeper.GetBalance(ctx, sender, "stake")
-		fmt.Printf("debug ibc-go sender stake (post): %s\n", balance)
-
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -188,8 +179,6 @@ func (k Keeper) SendTransfer(
 	}()
 
 	balance := k.bankKeeper.GetBalance(ctx, sender, "stake")
-	fmt.Printf("debug ibc-go sender stake (post2): %s\n", balance)
-
 	return nil
 }
 
@@ -370,7 +359,6 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
 	// NOTE: packet data type already checked in handler.go
 
-	fmt.Printf("debug REFUND\n")
 	// parse the denomination from the full denom path
 	trace := types.ParseDenomTrace(data.Denom)
 
