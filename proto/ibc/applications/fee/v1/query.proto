@@ -9,6 +9,7 @@ import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/fee/v1/fee.proto";
+import "ibc/applications/fee/v1/genesis.proto";
 import "ibc/core/channel/v1/channel.proto";
 
 // Query defines the ICS29 gRPC querier service.
@@ -53,6 +54,16 @@ service Query {
   rpc CounterpartyAddress(QueryCounterpartyAddressRequest) returns (QueryCounterpartyAddressResponse) {
     option (google.api.http).get =
         "/ibc/apps/fee/v1/counterparty_address/channel/{channel_id}/relayer_address/{relayer_address}";
+  }
+
+  // FeeEnabledChannels returns a list of all fee enabled channels
+  rpc FeeEnabledChannels(QueryFeeEnabledChannelsRequest) returns (QueryFeeEnabledChannelsResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/fee_enabled";
+  }
+
+  // FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel
+  rpc FeeEnabledChannel(QueryFeeEnabledChannelRequest) returns (QueryFeeEnabledChannelResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/fee_enabled/{port_id}/{channel_id}";
   }
 }
 
@@ -161,4 +172,33 @@ message QueryCounterpartyAddressRequest {
 message QueryCounterpartyAddressResponse {
   // the counterparty address used to compensate forward relaying
   string counterparty_address = 1 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
+}
+
+// QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc
+message QueryFeeEnabledChannelsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // block height at which to query
+  uint64 query_height = 2;
+}
+
+// QueryFeeEnabledChannelsResponse defines the response type for the FeeEnabledChannels rpc
+message QueryFeeEnabledChannelsResponse {
+  // list of fee enabled channels
+  repeated ibc.applications.fee.v1.FeeEnabledChannel fee_enabled_channels = 1
+      [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
+}
+
+// QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc
+message QueryFeeEnabledChannelRequest {
+  // unique port identifier
+  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  // unique channel identifier
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+}
+
+// QueryFeeEnabledChannelResponse defines the response type for the FeeEnabledChannel rpc
+message QueryFeeEnabledChannelResponse {
+  // boolean flag representing the fee enabled channel status
+  bool fee_enabled = 1 [(gogoproto.moretags) = "yaml:\"fee_enabled\""];
 }

@@ -493,3 +493,161 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
+	var (
+		req                   *types.QueryFeeEnabledChannelsRequest
+		expFeeEnabledChannels []types.FeeEnabledChannel
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"success, empty pagination",
+			func() {
+				req = &types.QueryFeeEnabledChannelsRequest{}
+			},
+			true,
+		},
+		{
+			"success, with multiple fee enabled channels",
+			func() {
+				suite.coordinator.Setup(suite.pathAToC)
+
+				expChannel := types.FeeEnabledChannel{
+					PortId:    suite.pathAToC.EndpointA.ChannelConfig.PortID,
+					ChannelId: suite.pathAToC.EndpointA.ChannelID,
+				}
+
+				expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
+			},
+			true,
+		},
+		{
+			"success, pagination with multiple fee enabled channels",
+			func() {
+				// start at index 1, as channel-0 is already added to expFeeEnabledChannels below
+				for i := 1; i < 10; i++ {
+					channelID := channeltypes.FormatChannelIdentifier(uint64(i))
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, channelID)
+
+					expChannel := types.FeeEnabledChannel{
+						PortId:    ibctesting.MockFeePort,
+						ChannelId: channelID,
+					}
+
+					if i < 5 { // add only the first 5 channels, as our default pagination limit is 5
+						expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
+					}
+				}
+
+				suite.chainA.NextBlock()
+			},
+			true,
+		},
+		{
+			"empty response",
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				expFeeEnabledChannels = nil
+
+				suite.chainA.NextBlock()
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			suite.coordinator.Setup(suite.path)
+
+			expChannel := types.FeeEnabledChannel{
+				PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+				ChannelId: suite.path.EndpointA.ChannelID,
+			}
+
+			expFeeEnabledChannels = []types.FeeEnabledChannel{expChannel}
+
+			req = &types.QueryFeeEnabledChannelsRequest{
+				Pagination: &query.PageRequest{
+					Limit:      5,
+					CountTotal: false,
+				},
+				QueryHeight: 0,
+			}
+
+			tc.malleate()
+
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			res, err := suite.queryClient.FeeEnabledChannels(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expFeeEnabledChannels, res.FeeEnabledChannels)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
+	var (
+		req *types.QueryFeeEnabledChannelRequest
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"fee not enabled on channel",
+			func() {
+				req.ChannelId = "invalid-channel-id"
+				req.PortId = "invalid-port-id"
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			suite.coordinator.Setup(suite.path)
+
+			req = &types.QueryFeeEnabledChannelRequest{
+				PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+				ChannelId: suite.path.EndpointA.ChannelID,
+			}
+
+			tc.malleate()
+
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			res, err := suite.queryClient.FeeEnabledChannel(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().True(res.FeeEnabled)
+			} else {
+				suite.Require().False(res.FeeEnabled)
+			}
+		})
+	}
+}

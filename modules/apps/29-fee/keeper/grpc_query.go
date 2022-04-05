@@ -191,3 +191,53 @@ func (k Keeper) CounterpartyAddress(goCtx context.Context, req *types.QueryCount
 		CounterpartyAddress: counterpartyAddr,
 	}, nil
 }
+
+// FeeEnabledChannels implements the Query/FeeEnabledChannels gRPC method
+func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEnabledChannelsRequest) (*types.QueryFeeEnabledChannelsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
+
+	var feeEnabledChannels []types.FeeEnabledChannel
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeEnabledKeyPrefix))
+	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		portID, channelID, err := types.ParseKeyFeeEnabled(types.FeeEnabledKeyPrefix + string(key))
+		if err != nil {
+			return err
+		}
+
+		feeEnabledChannel := types.FeeEnabledChannel{
+			PortId:    portID,
+			ChannelId: channelID,
+		}
+
+		feeEnabledChannels = append(feeEnabledChannels, feeEnabledChannel)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	return &types.QueryFeeEnabledChannelsResponse{
+		FeeEnabledChannels: feeEnabledChannels,
+	}, nil
+}
+
+// FeeEnabledChannel implements the Query/FeeEnabledChannel gRPC method
+func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnabledChannelRequest) (*types.QueryFeeEnabledChannelResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	isFeeEnabled := k.IsFeeEnabled(ctx, req.PortId, req.ChannelId)
+
+	return &types.QueryFeeEnabledChannelResponse{
+		FeeEnabled: isFeeEnabled,
+	}, nil
+}
