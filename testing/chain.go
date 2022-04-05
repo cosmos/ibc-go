@@ -266,10 +266,10 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // of the next block being created. This follows the Tendermint protocol of applying valset changes
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
-func (chain *TestChain) NextBlock() {
-	res := chain.App.EndBlock(abci.RequestEndBlock{Height: chain.CurrentHeader.Height})
+func (chain *TestChain) NextBlock() (abci.ResponseEndBlock, abci.ResponseCommit, abci.ResponseBeginBlock) {
 
-	chain.App.Commit()
+	ebRes := chain.App.EndBlock(abci.RequestEndBlock{Height: chain.CurrentHeader.Height})
+	cRes := chain.App.Commit()
 
 	// set the last header to the current header
 	// use nil trusted fields
@@ -278,7 +278,7 @@ func (chain *TestChain) NextBlock() {
 	// val set changes returned from previous block get applied to the next validators
 	// of this block. See tendermint spec for details.
 	chain.Vals = chain.NextVals
-	chain.NextVals = ApplyValSetChanges(chain.T, chain.Vals, res.ValidatorUpdates)
+	chain.NextVals = ApplyValSetChanges(chain.T, chain.Vals, ebRes.ValidatorUpdates)
 
 	// increment the current header
 	chain.CurrentHeader = tmproto.Header{
@@ -292,7 +292,8 @@ func (chain *TestChain) NextBlock() {
 		NextValidatorsHash: chain.NextVals.Hash(),
 	}
 
-	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+	bbRes := chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+	return ebRes, cRes, bbRes
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.
@@ -455,7 +456,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
-		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
+		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10000, make([]byte, tmhash.Size)),
 		LastCommitHash:     chain.App.LastCommitID().Hash,
 		DataHash:           tmhash.Sum([]byte("data_hash")),
 		ValidatorsHash:     vsetHash,
