@@ -916,8 +916,8 @@ QueryCounterpartyAddressRequest defines the request type for the CounterpartyAdd
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `channel_id` | [string](#string) |  |  |
-| `relayer_address` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer_address` | [string](#string) |  | the relayer address to which the counterparty is registered |
 
 
 
@@ -932,7 +932,7 @@ QueryCounterpartyAddressResponse defines the response type for the CounterpartyA
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `counterparty_address` | [string](#string) |  |  |
+| `counterparty_address` | [string](#string) |  | the counterparty address used to compensate forward relaying |
 
 
 

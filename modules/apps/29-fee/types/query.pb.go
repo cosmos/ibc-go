@@ -639,7 +639,9 @@ func (m *QueryTotalTimeoutFeesResponse) GetTimeoutFees() github_com_cosmos_cosmo
 
 // QueryCounterpartyAddressRequest defines the request type for the CounterpartyAddress rpc
 type QueryCounterpartyAddressRequest struct {
-	ChannelId      string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// unique channel identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// the relayer address to which the counterparty is registered
 	RelayerAddress string `protobuf:"bytes,2,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
 }
 
@@ -692,6 +694,7 @@ func (m *QueryCounterpartyAddressRequest) GetRelayerAddress() string {
 
 // QueryCounterpartyAddressResponse defines the response type for the CounterpartyAddress rpc
 type QueryCounterpartyAddressResponse struct {
+	// the counterparty address used to compensate forward relaying
 	CounterpartyAddress string `protobuf:"bytes,1,opt,name=counterparty_address,json=counterpartyAddress,proto3" json:"counterparty_address,omitempty" yaml:"counterparty_address"`
 }
 

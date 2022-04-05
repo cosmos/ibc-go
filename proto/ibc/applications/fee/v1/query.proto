@@ -151,11 +151,14 @@ message QueryTotalTimeoutFeesResponse {
 
 // QueryCounterpartyAddressRequest defines the request type for the CounterpartyAddress rpc
 message QueryCounterpartyAddressRequest {
-  string channel_id      = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // unique channel identifier
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // the relayer address to which the counterparty is registered
   string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
 }
 
 // QueryCounterpartyAddressResponse defines the response type for the CounterpartyAddress rpc
 message QueryCounterpartyAddressResponse {
+  // the counterparty address used to compensate forward relaying
   string counterparty_address = 1 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
 }
