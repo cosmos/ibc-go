@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Misbehaviour = &Misbehaviour{}
+var _ exported.ClientMessage = &Misbehaviour{}
 
 // Use the same FrozenHeight for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)
@@ -29,11 +29,6 @@ func NewMisbehaviour(clientID string, header1, header2 *Header) *Misbehaviour {
 // ClientType is Tendermint light client
 func (misbehaviour Misbehaviour) ClientType() string {
 	return exported.Tendermint
-}
-
-// GetClientID returns the ID of the client that committed a misbehaviour.
-func (misbehaviour Misbehaviour) GetClientID() string {
-	return misbehaviour.ClientId
 }
 
 // GetTime returns the timestamp at which misbehaviour occurred. It uses the
@@ -128,5 +123,11 @@ func validCommit(chainID string, blockID tmtypes.BlockID, commit *tmproto.Commit
 		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "validator set did not commit to header")
 	}
 
+	return nil
+}
+
+// TODO: Remove GetHeight()
+// GetHeight implements the curret exported.Header interface, to be updated
+func (misbehaviour Misbehaviour) GetHeight() exported.Height {
 	return nil
 }

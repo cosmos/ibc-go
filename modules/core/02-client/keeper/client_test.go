@@ -6,12 +6,12 @@ import (
 	"time"
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	solomachinetypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	localhosttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -694,7 +694,7 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 			bz, err := hex.DecodeString(string(attr.Value))
 			suite.Require().NoError(err)
 
-			emittedHeader, err := types.UnmarshalHeader(suite.chainA.App.AppCodec(), bz)
+			emittedHeader, err := types.UnmarshalClientMessage(suite.chainA.App.AppCodec(), bz)
 			suite.Require().NoError(err)
 			suite.Require().Equal(header, emittedHeader)
 		}
