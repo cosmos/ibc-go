@@ -38,7 +38,32 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+<<<<<<< HEAD
 * [\#1247](https://github.com/cosmos/ibc-go/pull/1247) Bump SDK version to v0.45.3 and Tendermint to version 0.34.19
+=======
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+* (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
+
+### Features
+
+### Bug Fixes
+
+* (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
+
+## [v3.0.0](https://github.com/cosmos/ibc-go/releases/tag/v3.0.0) - 2022-03-15
+
+### Dependencies
+
+* [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
+* [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
+* [\#948](https://github.com/cosmos/ibc-go/pull/948) Bump ics23/go to v0.7
+* (core) [\#709](https://github.com/cosmos/ibc-go/pull/709) Replace github.com/pkg/errors with stdlib errors
+>>>>>>> ffa9896 (imp: improve Logger performance (#1160))
 
 ### API Breaking
 
