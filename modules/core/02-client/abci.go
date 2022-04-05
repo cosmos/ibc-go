@@ -21,7 +21,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		if exists && ctx.BlockHeight() == plan.Height-1 {
 			upgradedConsState := &ibctmtypes.ConsensusState{
 				Timestamp:          ctx.BlockTime(),
-				NextValidatorsHash: ctx.BlockHeader().NextValidatorsHash,
+				NextValidatorsHash: ctx.NextValidatorsHash(),
 			}
 			bz := k.MustMarshalConsensusState(upgradedConsState)
 

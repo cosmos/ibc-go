@@ -3,8 +3,7 @@ package simapp
 import (
 	"encoding/json"
 	"log"
-
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"time"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +18,7 @@ func (app *SimApp) ExportAppStateAndValidators(
 	forZeroHeight bool, jailAllowedAddrs []string,
 ) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
-	ctx := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+	ctx := app.NewContext(true, "", app.LastBlockHeight(), time.Now(), []byte{}, []byte{})
 
 	// We export at last height + 1, because that's the height at which
 	// Tendermint will start InitChain.
