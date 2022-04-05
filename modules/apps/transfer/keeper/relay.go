@@ -122,7 +122,6 @@ func (k Keeper) SendTransfer(
 			return err
 		}
 
-		balance = k.bankKeeper.GetBalance(ctx, sender, "stake")
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -178,7 +177,6 @@ func (k Keeper) SendTransfer(
 		)
 	}()
 
-	balance := k.bankKeeper.GetBalance(ctx, sender, "stake")
 	return nil
 }
 
