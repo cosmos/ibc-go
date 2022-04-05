@@ -212,7 +212,7 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // at the next block height. It does not update the time as that is handled by the Coordinator.
 //
 // CONTRACT: this function must only be called after app.Commit() occurs
-func (chain *TestChain) NextBlock() {
+func (chain *TestChain) NextBlock() abci.ResponseBeginBlock {
 	// set the last header to the current header
 	// use nil trusted fields
 	chain.LastHeader = chain.CurrentTMClientHeader()
@@ -229,7 +229,7 @@ func (chain *TestChain) NextBlock() {
 		NextValidatorsHash: chain.Vals.Hash(),
 	}
 
-	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+	return chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.
@@ -391,7 +391,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
-		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
+		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10000, make([]byte, tmhash.Size)),
 		LastCommitHash:     chain.App.LastCommitID().Hash,
 		DataHash:           tmhash.Sum([]byte("data_hash")),
 		ValidatorsHash:     vsetHash,
