@@ -12,6 +12,11 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
+// NewPacketId returns a new instance of PacketId
+func NewPacketId(channelId, portId string, seq uint64) PacketId {
+	return PacketId{ChannelId: channelId, PortId: portId, Sequence: seq}
+}
+
 // CommitPacket returns the packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
@@ -109,5 +114,22 @@ func (p Packet) ValidateBasic() error {
 	if len(p.Data) == 0 {
 		return sdkerrors.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
 	}
+	return nil
+}
+
+// Validates a PacketId
+func (p PacketId) Validate() error {
+	if err := host.PortIdentifierValidator(p.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid source port ID")
+	}
+
+	if err := host.ChannelIdentifierValidator(p.ChannelId); err != nil {
+		return sdkerrors.Wrap(err, "invalid source channel ID")
+	}
+
+	if p.Sequence == 0 {
+		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
+	}
+
 	return nil
 }
