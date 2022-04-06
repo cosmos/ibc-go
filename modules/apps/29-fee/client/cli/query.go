@@ -226,6 +226,7 @@ func GetCmdFeeEnabledChannels() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "channels")
 
 	return cmd
 }
