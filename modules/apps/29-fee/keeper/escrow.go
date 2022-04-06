@@ -56,7 +56,7 @@ func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, rev
 		}
 
 		// distribute fee to valid forward relayer address otherwise refund the fee
-		if !forwardAddr.Empty() {
+		if !forwardAddr.Empty() && !k.bankKeeper.BlockedAddr(forwardAddr) {
 			// distribute fee for forward relaying
 			k.distributeFee(ctx, forwardAddr, packetFee.Fee.RecvFee)
 		} else {

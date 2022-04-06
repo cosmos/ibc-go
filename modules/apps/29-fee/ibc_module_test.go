@@ -679,6 +679,11 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				// add the RecvFee to the expectedBalance as it was not distributed due to the forward relayer address being a blocked address
+				if tc.name == "fail on distribute receive fee (blocked address)" {
+					expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee[0])
+				}
 			} else {
 				suite.Require().Error(err)
 			}
@@ -693,7 +698,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				expectedRelayerBalance,
 				relayerBalance,
 			)
-
 		})
 	}
 }
