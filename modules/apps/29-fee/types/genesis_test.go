@@ -23,7 +23,7 @@ var (
 
 func TestValidateGenesis(t *testing.T) {
 	var (
-		packetId        channeltypes.PacketId
+		packetID        channeltypes.PacketId
 		fee             types.Fee
 		refundAcc       string
 		sender          string
@@ -46,9 +46,9 @@ func TestValidateGenesis(t *testing.T) {
 			true,
 		},
 		{
-			"invalid packetId: invalid channel",
+			"invalid packetID: invalid channel",
 			func() {
-				packetId = channeltypes.NewPacketId(
+				packetID = channeltypes.NewPacketId(
 					"",
 					portID,
 					seq,
@@ -57,9 +57,9 @@ func TestValidateGenesis(t *testing.T) {
 			false,
 		},
 		{
-			"invalid packetId: invalid port",
+			"invalid packetID: invalid port",
 			func() {
-				packetId = channeltypes.NewPacketId(
+				packetID = channeltypes.NewPacketId(
 					channelID,
 					"",
 					seq,
@@ -68,9 +68,9 @@ func TestValidateGenesis(t *testing.T) {
 			false,
 		},
 		{
-			"invalid packetId: invalid sequence",
+			"invalid packetID: invalid sequence",
 			func() {
-				packetId = channeltypes.NewPacketId(
+				packetID = channeltypes.NewPacketId(
 					channelID,
 					portID,
 					0,
@@ -79,7 +79,7 @@ func TestValidateGenesis(t *testing.T) {
 			false,
 		},
 		{
-			"invalid packetId: invalid fee",
+			"invalid packetID: invalid fee",
 			func() {
 				fee = types.Fee{
 					sdk.Coins{},
@@ -90,7 +90,7 @@ func TestValidateGenesis(t *testing.T) {
 			false,
 		},
 		{
-			"invalid packetId: invalid refundAcc",
+			"invalid packetID: invalid refundAcc",
 			func() {
 				refundAcc = ""
 			},
@@ -147,7 +147,7 @@ func TestValidateGenesis(t *testing.T) {
 		seq = uint64(1)
 
 		// build PacketId & Fee
-		packetId = channeltypes.NewPacketId(
+		packetID = channeltypes.NewPacketId(
 			portID,
 			channelID,
 			seq,
@@ -170,7 +170,7 @@ func TestValidateGenesis(t *testing.T) {
 		genState := types.GenesisState{
 			IdentifiedFees: []types.IdentifiedPacketFees{
 				{
-					PacketId: packetId,
+					PacketId: packetID,
 					PacketFees: []types.PacketFee{
 						{
 							Fee:           fee,
