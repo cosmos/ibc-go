@@ -100,7 +100,6 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 	}
 
 	// commit state changes for proof verification
-	endpoint.Chain.App.Commit()
 	endpoint.Chain.NextBlock()
 
 	// update port/channel ids

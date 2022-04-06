@@ -59,8 +59,6 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
 
     3.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
 
-Note: The localhost client is currently non-functional. 
-
 ## Roadmap
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
