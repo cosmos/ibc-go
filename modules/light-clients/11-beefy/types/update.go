@@ -59,7 +59,7 @@ func (b Keccak256) Hash(data []byte) ([]byte, error) {
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
 // becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
 func (cs *ClientState) CheckHeaderAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, header exported.Header,
+	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, header exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	beefyHeader, ok := header.(*Header)
 	if !ok {

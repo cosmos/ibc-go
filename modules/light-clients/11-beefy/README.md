@@ -22,7 +22,7 @@ docker run -ti -p9944:9944 -p9988:9988 -p9998:9998 composablefi/composable-sandb
 <br/>
 
 ```bash
-go test -test.timeout=0 -run TestCheckHeaderAndUpdateState -v
+BEEFY_TEST_MODE=true go test -test.timeout=0 -run TestCheckHeaderAndUpdateState -v github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/...
 ```
 <br/>
 

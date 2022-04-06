@@ -26,7 +26,6 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return clienttypes.NewHeight(0, uint64(cs.LatestBeefyHeight))
 }
 
-
 // Validate performs basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.LatestBeefyHeight == 0 {
@@ -71,7 +70,6 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 		LatestBeefyHeight: 0,
 	}
 }
-
 
 // VerifyClientState verifies a proof of the client state of the running chain
 // stored on the target machine
@@ -419,7 +417,7 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 	portID,
 	channelID string,
 	sequence uint64,
-	) error {
+) error {
 	_, _, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
@@ -447,7 +445,7 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	portID,
 	channelID string,
 	nextSequenceRecv uint64,
-	) error {
+) error {
 	beefyProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
@@ -478,14 +476,26 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	return nil
 }
 
-func (cs ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, newClient exported.ClientState, newConsState exported.ConsensusState, proofUpgradeClient, proofUpgradeConsState []byte) (exported.ClientState, exported.ConsensusState, error) {
-	panic("implement me")
-}
-
-func (cs ClientState) CheckMisbehaviourAndUpdateState(context sdk.Context, codec codec.BinaryCodec, store sdk.KVStore, misbehaviour exported.Misbehaviour) (exported.ClientState, error) {
+func (cs ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, newClient exported.ClientState, newConsState exported.ConsensusState, proofUpgradeClient, proofUpgradeConsState []byte) error {
 	panic("implement me")
 }
 
 func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient exported.ClientState) (exported.ClientState, error) {
+	panic("implement me")
+}
+
+func (cs *ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
+	panic("implement me")
+}
+
+func (cs *ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
+	panic("implement me")
+}
+
+func (cs *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+	panic("implement me")
+}
+
+func (cs *ClientState) UpdateState(context sdk.Context, codec codec.BinaryCodec, store sdk.KVStore, message exported.ClientMessage) error {
 	panic("implement me")
 }

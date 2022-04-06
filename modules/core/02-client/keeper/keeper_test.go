@@ -66,7 +66,6 @@ type KeeperTestSuite struct {
 	now            time.Time
 	past           time.Time
 	solomachine    *ibctesting.Solomachine
-	signers        map[string]tmtypes.PrivValidator
 
 	signers map[string]tmtypes.PrivValidator
 
