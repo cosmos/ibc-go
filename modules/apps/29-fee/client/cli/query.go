@@ -230,7 +230,7 @@ func GetCmdFeeEnabledChannels() *cobra.Command {
 	return cmd
 }
 
-// GetCmdFeeEnabledChannel returns the command handler for the Query/FeeEnabledChannels rpc.
+// GetCmdFeeEnabledChannel returns the command handler for the Query/FeeEnabledChannel rpc.
 func GetCmdFeeEnabledChannel() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "channel [port-id] [channel-id]",
