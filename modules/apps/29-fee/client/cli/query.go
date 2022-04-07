@@ -200,7 +200,7 @@ func GetCmdIncentivizedPacket() *cobra.Command {
 func GetCmdIncentivizedPackets() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "packets",
-		Short:   "Query for all of the unrelayed incentivized packets across all channels.",
+		Short:   "Query for all of the unrelayed incentivized packets and associated fees across all channels.",
 		Long:    "Query for all of the unrelayed incentivized packets across all channels.",
 		Args:    cobra.NoArgs,
 		Example: fmt.Sprintf("%s query ibc-fee packets", version.AppName),
