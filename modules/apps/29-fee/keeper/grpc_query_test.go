@@ -2,8 +2,10 @@ package keeper_test
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -420,6 +422,71 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 				// expected total is three times the default acknowledgement fee
 				expectedFees := defaultTimeoutFee.Add(defaultTimeoutFee...).Add(defaultTimeoutFee...)
 				suite.Require().Equal(expectedFees, res.TimeoutFees)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
+	var (
+		req *types.QueryCounterpartyAddressRequest
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"counterparty address not found: invalid channel",
+			func() {
+				req.ChannelId = "invalid-channel-id"
+			},
+			false,
+		},
+		{
+			"counterparty address not found: invalid address",
+			func() {
+				req.RelayerAddress = "invalid-addr"
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			pk := secp256k1.GenPrivKey().PubKey()
+			expectedCounterpartyAddr := sdk.AccAddress(pk.Address())
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				expectedCounterpartyAddr.String(),
+				suite.path.EndpointA.ChannelID,
+			)
+
+			req = &types.QueryCounterpartyAddressRequest{
+				ChannelId:      suite.path.EndpointA.ChannelID,
+				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+			}
+
+			tc.malleate()
+
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			res, err := suite.queryClient.CounterpartyAddress(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expectedCounterpartyAddr.String(), res.CounterpartyAddress)
 			} else {
 				suite.Require().Error(err)
 			}
