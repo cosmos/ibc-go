@@ -15,13 +15,13 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// IncentivizedPackets implements the IncentivizedPackets gRPC method
-func (k Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivizedPacketsRequest) (*types.QueryIncentivizedPacketsResponse, error) {
+// IncentivizedPackets implements the Query/IncentivizedPackets gRPC method
+func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncentivizedPacketsRequest) (*types.QueryIncentivizedPacketsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	var identifiedPackets []types.IdentifiedPacketFees
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeesInEscrowPrefix))
@@ -45,13 +45,13 @@ func (k Keeper) IncentivizedPackets(c context.Context, req *types.QueryIncentivi
 	}, nil
 }
 
-// IncentivizedPacket implements the IncentivizedPacket gRPC method
-func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentivizedPacketRequest) (*types.QueryIncentivizedPacketResponse, error) {
+// IncentivizedPacket implements the Query/IncentivizedPacket gRPC method
+func (k Keeper) IncentivizedPacket(goCtx context.Context, req *types.QueryIncentivizedPacketRequest) (*types.QueryIncentivizedPacketResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c).WithBlockHeight(int64(req.QueryHeight))
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	feesInEscrow, exists := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !exists {
@@ -65,7 +65,7 @@ func (k Keeper) IncentivizedPacket(c context.Context, req *types.QueryIncentiviz
 	}, nil
 }
 
-// IncentivizedPacketsForChannel implements the IncentivizedPacketsForChannel gRPC method
+// IncentivizedPacketsForChannel implements the Query/IncentivizedPacketsForChannel gRPC method
 func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -171,5 +171,74 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 
 	return &types.QueryTotalTimeoutFeesResponse{
 		TimeoutFees: timeoutFees,
+	}, nil
+}
+
+// CounterpartyAddress implements the Query/CounterpartyAddress gRPC method and returns the registered counterparty address for forward relaying
+func (k Keeper) CounterpartyAddress(goCtx context.Context, req *types.QueryCounterpartyAddressRequest) (*types.QueryCounterpartyAddressResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	counterpartyAddr, found := k.GetCounterpartyAddress(ctx, req.RelayerAddress, req.ChannelId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "counterparty address not found for address: %s on channel: %s", req.RelayerAddress, req.ChannelId)
+	}
+
+	return &types.QueryCounterpartyAddressResponse{
+		CounterpartyAddress: counterpartyAddr,
+	}, nil
+}
+
+// FeeEnabledChannels implements the Query/FeeEnabledChannels gRPC method and returns a list of fee enabled channels
+func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEnabledChannelsRequest) (*types.QueryFeeEnabledChannelsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
+
+	var feeEnabledChannels []types.FeeEnabledChannel
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeEnabledKeyPrefix))
+	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		portID, channelID, err := types.ParseKeyFeeEnabled(types.FeeEnabledKeyPrefix + string(key))
+		if err != nil {
+			return err
+		}
+
+		feeEnabledChannel := types.FeeEnabledChannel{
+			PortId:    portID,
+			ChannelId: channelID,
+		}
+
+		feeEnabledChannels = append(feeEnabledChannels, feeEnabledChannel)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	return &types.QueryFeeEnabledChannelsResponse{
+		FeeEnabledChannels: feeEnabledChannels,
+	}, nil
+}
+
+// FeeEnabledChannel implements the Query/FeeEnabledChannel gRPC method and returns true if the provided
+// port and channel identifiers belong to a fee enabled channel
+func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnabledChannelRequest) (*types.QueryFeeEnabledChannelResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	isFeeEnabled := k.IsFeeEnabled(ctx, req.PortId, req.ChannelId)
+
+	return &types.QueryFeeEnabledChannelResponse{
+		FeeEnabled: isFeeEnabled,
 	}, nil
 }
