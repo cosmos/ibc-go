@@ -57,7 +57,7 @@ service Query {
 
   // FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel
   rpc FeeEnabledChannel(QueryFeeEnabledChannelRequest) returns (QueryFeeEnabledChannelResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/fee_enabled/{port_id}/{channel_id}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/fee_enabled/port/{port_id}/channel/{channel_id}";
   }
 }
 

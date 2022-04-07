@@ -1122,7 +1122,7 @@ var (
 
 	pattern_Query_FeeEnabledChannels_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "apps", "fee", "v1", "fee_enabled"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FeeEnabledChannel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 1, 0, 4, 1, 5, 6}, []string{"ibc", "apps", "fee", "v1", "fee_enabled", "port_id", "channel_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_FeeEnabledChannel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8}, []string{"ibc", "apps", "fee", "v1", "fee_enabled", "port", "port_id", "channel", "channel_id"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
