@@ -2490,13 +2490,14 @@ MsgCreateClientResponse defines the Msg/CreateClient response type.
 ### MsgSubmitMisbehaviour
 MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 light client misbehaviour.
+Warning: DEPRECATED
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client unique identifier |
-| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | misbehaviour used for freezing the light client |
-| `signer` | [string](#string) |  | signer address |
+| `client_id` | [string](#string) |  | **Deprecated.** client unique identifier |
+| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | **Deprecated.** misbehaviour used for freezing the light client |
+| `signer` | [string](#string) |  | **Deprecated.** signer address |
 
 
 
@@ -4022,7 +4023,7 @@ of a sequence and two signatures over different messages at that sequence.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `sequence` | [uint64](#uint64) |  |  |
 | `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 | `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
@@ -4289,7 +4290,7 @@ that implements Misbehaviour interface expected by ICS-02
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 

@@ -28,8 +28,6 @@ For the general specification please refer to the [Interchain Standards](https:/
 
     3.2 [Tendermint Client](./../light-clients/07-tendermint/spec/README.md)
 
-    3.3 [Localhost Client](./../light-clients/09-localhost/spec/README.md)
-
 ## Implementation Details
 
 As stated above, the IBC implementation on the Cosmos SDK introduces some changes

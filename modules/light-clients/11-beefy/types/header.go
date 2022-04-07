@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var _ exported.Header = &Header{}
+var _ exported.ClientMessage = &Header{}
 
 const revisionNumber = 0
 
@@ -97,12 +97,12 @@ func (h Header) ValidateBasic() error {
 
 		key := make([]byte, 4)
 		binary.LittleEndian.PutUint32(key, 0)
-		trie := trie.NewEmptyTrie()
-		if err := trie.LoadFromProof(extrinsicsProof, rootHash); err != nil {
+		t := trie.NewEmptyTrie()
+		if err := t.LoadFromProof(extrinsicsProof, rootHash); err != nil {
 			return err
 		}
 
-		if ext := trie.Get(key); len(ext) == 0 {
+		if ext := t.Get(key); len(ext) == 0 {
 			// todo: error
 		}
 

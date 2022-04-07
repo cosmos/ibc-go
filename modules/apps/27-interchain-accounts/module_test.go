@@ -128,5 +128,4 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 
 		})
 	}
-
 }

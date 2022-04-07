@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -21,6 +22,10 @@ import (
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/xxhash"
 )
 
+var (
+	BEEFY_TEST_MODE = os.Getenv("BEEFY_TEST_MODE")
+)
+
 func bytes32(bytes []byte) [32]byte {
 	var buffer [32]byte
 	copy(buffer[:], bytes)
@@ -30,6 +35,9 @@ func bytes32(bytes []byte) [32]byte {
 const PARA_ID = 2000
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
+	if BEEFY_TEST_MODE != "true" {
+		t.Skip("skipping test in short mode")
+	}
 
 	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
 	if err != nil {

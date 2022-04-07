@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/core/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
@@ -26,7 +25,6 @@ const (
 	clientID      = "07-tendermint-0"
 	connectionID2 = "connection-1"
 	clientID2     = "07-tendermin-1"
-	localhostID   = exported.Localhost + "-1"
 
 	port1 = "firstport"
 	port2 = "secondport"
@@ -79,9 +77,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 						clienttypes.NewIdentifiedClientState(
 							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
 						),
-						clienttypes.NewIdentifiedClientState(
-							localhostID, localhosttypes.NewClientState("chaindID", clientHeight),
-						),
 					},
 					[]clienttypes.ClientConsensusStates{
 						clienttypes.NewClientConsensusStates(
@@ -105,8 +100,8 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 							},
 						),
 					},
-					clienttypes.NewParams(exported.Tendermint, exported.Localhost),
-					true,
+					clienttypes.NewParams(exported.Tendermint),
+					false,
 					2,
 				),
 				ConnectionGenesis: connectiontypes.NewGenesisState(
@@ -158,9 +153,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					[]clienttypes.IdentifiedClientState{
 						clienttypes.NewIdentifiedClientState(
 							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
-						),
-						clienttypes.NewIdentifiedClientState(
-							localhostID, localhosttypes.NewClientState("(chaindID)", clienttypes.ZeroHeight()),
 						),
 					},
 					nil,
@@ -243,9 +235,6 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 						clienttypes.NewIdentifiedClientState(
 							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
 						),
-						clienttypes.NewIdentifiedClientState(
-							exported.Localhost, localhosttypes.NewClientState("chaindID", clientHeight),
-						),
 					},
 					[]clienttypes.ClientConsensusStates{
 						clienttypes.NewClientConsensusStates(
@@ -269,8 +258,8 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 							},
 						),
 					},
-					clienttypes.NewParams(exported.Tendermint, exported.Localhost),
-					true,
+					clienttypes.NewParams(exported.Tendermint),
+					false,
 					0,
 				),
 				ConnectionGenesis: connectiontypes.NewGenesisState(
@@ -320,7 +309,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 		app := simapp.Setup(false)
 
 		suite.NotPanics(func() {
-			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.IBCKeeper, true, tc.genState)
+			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.IBCKeeper, tc.genState)
 		})
 	}
 }
@@ -355,7 +344,7 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 
 			// init genesis based on export
 			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), true, gs)
+				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
 			})
 
 			suite.NotPanics(func() {
@@ -366,7 +355,7 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 
 			// init genesis based on marshal and unmarshal
 			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), true, gs)
+				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
 			})
 		})
 	}
