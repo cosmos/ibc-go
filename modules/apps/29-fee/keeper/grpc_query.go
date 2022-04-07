@@ -174,7 +174,7 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 	}, nil
 }
 
-// CounterpartyAddress implements the Query/CounterpartyAddress gRPC method
+// CounterpartyAddress implements the Query/CounterpartyAddress gRPC method and returns the registered counterparty address for forward relaying
 func (k Keeper) CounterpartyAddress(goCtx context.Context, req *types.QueryCounterpartyAddressRequest) (*types.QueryCounterpartyAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
