@@ -47,6 +47,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
 
 ### Features
+* (modules/apps/29-fee) [\#1230](https://github.com/cosmos/ibc-go/pull/1230) Adding CLI command for getting incentivized packets for a specific channel-id. 
+
 
 ### Bug Fixes
 
