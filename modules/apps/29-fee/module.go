@@ -20,10 +20,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/client/cli"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-
-	// "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/client/cli"
-	// "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/simulation"
-
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 )
 
@@ -99,7 +95,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 
 // RegisterInvariants implements the AppModule interface
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO
 }
 
 // Route implements the AppModule interface
@@ -154,7 +149,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 // AppModuleSimulation functions
 
 // GenerateGenesisState creates a randomized GenState of the 29-fee module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
@@ -163,14 +158,12 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 }
 
 // RandomizedParams creates randomized ibc-29-fee param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	// return simulation.ParamChanges(r)
+func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 	return nil
 }
 
 // RegisterStoreDecoder registers a decoder for 29-fee module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	// sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
+func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
 }
 
 // WeightedOperations returns the all the 29-fee module operations with their respective weights.
