@@ -622,6 +622,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				}.Acknowledgement()
 
 				expectedRelayerBalance = packetFee.Fee.AckFee
+				expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee[0])
 			},
 			true,
 		},
@@ -693,7 +694,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				expectedRelayerBalance,
 				relayerBalance,
 			)
-
 		})
 	}
 }

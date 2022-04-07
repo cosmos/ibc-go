@@ -5,6 +5,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
@@ -139,6 +140,11 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		{
 			"invalid forward address", func() {
 				forwardRelayer = "invalid address"
+			}, false,
+		},
+		{
+			"invalid forward address: blocked address", func() {
+				forwardRelayer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 			}, false,
 		},
 	}
