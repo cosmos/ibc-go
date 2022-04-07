@@ -149,3 +149,50 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 
 	return cmd
 }
+
+// GetIncentivizedPacketByPacketId returns the unrelayed incentivized packets for a given packetID
+func GetIncentivizedPacketByPacketId() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "packet-by-id [port-id] [channel-id] [sequence]",
+		Short:   "Query for an incentivized packet by packet-id.",
+		Long:    "Query for an incentivized packet packet-id. A packet-id is made up of port-id, channel-id and packet sequence.",
+		Args:    cobra.ExactArgs(3),
+		Example: fmt.Sprintf("%s query ibc-fee packet-by-id", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			seq, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			packetId := channeltypes.PacketId{
+				PortId:    args[0],
+				ChannelId: args[1],
+				Sequence:  seq,
+			}
+
+			req := &types.QueryIncentivizedPacketRequest{
+				PacketId:    packetId,
+				QueryHeight: uint64(clientCtx.Height),
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.IncentivizedPacket(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "packet-by-id")
+
+	return cmd
+}
