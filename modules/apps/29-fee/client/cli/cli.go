@@ -9,17 +9,18 @@ import (
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        "ibc-fee",
-		Short:                      "", // TODO
+		Short:                      "IBC relayer incentivization query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
 
 	queryCmd.AddCommand(
+		GetCmdIncentivizedPacket(),
+		GetCmdIncentivizedPackets(),
 		GetCmdTotalRecvFees(),
 		GetCmdTotalAckFees(),
 		GetCmdTotalTimeoutFees(),
-		GetCmdIncentivizedPacket(),
-		GetCmdIncentivizedPackets(),
+		GetCmdCounterpartyAddress(),
 	)
 
 	return queryCmd
@@ -29,7 +30,7 @@ func GetQueryCmd() *cobra.Command {
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        "ibc-fee",
-		Short:                      "Transaction subcommand for IBC relayer incentivization",
+		Short:                      "IBC relayer incentivization transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
