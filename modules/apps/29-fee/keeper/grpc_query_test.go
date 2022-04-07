@@ -452,7 +452,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			false,
 		},
 		{
-			"counterparty address not found, invalid address",
+			"counterparty address not found: invalid address",
 			func() {
 				req.RelayerAddress = "invalid-addr"
 			},
