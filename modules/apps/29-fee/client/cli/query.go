@@ -149,3 +149,79 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 
 	return cmd
 }
+
+// GetCmdFeeEnabledChannels returns the command handler for the Query/FeeEnabledChannels rpc.
+func GetCmdFeeEnabledChannels() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "channels",
+		Short:   "Query the ibc-fee enabled channels",
+		Long:    "Query the ibc-fee enabled channels",
+		Args:    cobra.NoArgs,
+		Example: fmt.Sprintf("%s query ibc-fee channels", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryFeeEnabledChannelsRequest{
+				Pagination:  pageReq,
+				QueryHeight: uint64(clientCtx.Height),
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.FeeEnabledChannels(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "channels")
+
+	return cmd
+}
+
+// GetCmdFeeEnabledChannel returns the command handler for the Query/FeeEnabledChannel rpc.
+func GetCmdFeeEnabledChannel() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "channel [port-id] [channel-id]",
+		Short:   "Query the ibc-fee enabled status of a channel",
+		Long:    "Query the ibc-fee enabled status of a channel",
+		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf("%s query ibc-fee channel transfer channel-6", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryFeeEnabledChannelRequest{
+				PortId:    args[0],
+				ChannelId: args[1],
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.FeeEnabledChannel(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
