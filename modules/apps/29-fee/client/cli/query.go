@@ -150,12 +150,12 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 	return cmd
 }
 
-// GetCmdIncentivizedPacket returns the unrelayed incentivized packets for a given packetID
+// GetCmdIncentivizedPacket returns the unrelayed incentivized packet for a given packetID
 func GetCmdIncentivizedPacket() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "packet [port-id] [channel-id] [sequence]",
-		Short:   "Query for an incentivized packet by packet-id.",
-		Long:    "Query for an incentivized packet packet-id. A packet-id is made up of port-id, channel-id and packet sequence.",
+		Short:   "Query for an unrelayed incentivized packet by port-id, channel-id and packet sequence.",
+		Long:    "Query for an unrelayed incentivized packet by port-id, channel-id and packet sequence.",
 		Args:    cobra.ExactArgs(3),
 		Example: fmt.Sprintf("%s query ibc-fee packet-by-id", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -201,7 +201,7 @@ func GetCmdIncentivizedPackets() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "packets",
 		Short:   "Query for all of the unrelayed incentivized packets and associated fees across all channels.",
-		Long:    "Query for all of the unrelayed incentivized packets across all channels.",
+		Long:    "Query for all of the unrelayed incentivized packets and associated fees across all channels.",
 		Args:    cobra.NoArgs,
 		Example: fmt.Sprintf("%s query ibc-fee packets", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
