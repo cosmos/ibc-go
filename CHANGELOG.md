@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (apps/29-fee) [\#1225](https://github.com/cosmos/ibc-go/pull/1225) Adding Query/FeeEnabledChannel and Query/FeeEnabledChannels with CLIs to ICS29 fee middleware.
+
 ### Bug Fixes
 
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
