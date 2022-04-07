@@ -32,7 +32,7 @@ func GetCmdTotalRecvFees() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(channelID, portID, seq)
+			packetID := channeltypes.NewPacketId(portID, channelID, seq)
 
 			if err := packetID.Validate(); err != nil {
 				return err
@@ -78,7 +78,7 @@ func GetCmdTotalAckFees() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(channelID, portID, seq)
+			packetID := channeltypes.NewPacketId(portID, channelID, seq)
 
 			if err := packetID.Validate(); err != nil {
 				return err
@@ -124,7 +124,7 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(channelID, portID, seq)
+			packetID := channeltypes.NewPacketId(portID, channelID, seq)
 
 			if err := packetID.Validate(); err != nil {
 				return err

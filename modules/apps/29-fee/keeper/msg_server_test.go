@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
 		// build fee
-		packetID := channeltypes.NewPacketId(channelID, suite.path.EndpointA.ChannelConfig.PortID, seq)
+		packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, channelID, seq)
 		packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
 
 		tc.malleate()
