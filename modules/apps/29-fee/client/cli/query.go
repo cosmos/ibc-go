@@ -149,3 +149,46 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 
 	return cmd
 }
+
+// GetIncentivizedPacketByChannel returns all of the unrelayed incentivized packets on a given channel
+func GetIncentivizedPacketByChannel() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "packets-by-channel [port-id] [channel-id]",
+		Short:   "Query for all of the unrelayed incentivized packets on a given channel",
+		Long:    "Query for all of the unrelayed incentivized packets on a given channel. These are packets that have not yet been relayed.",
+		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf("%s query ibc-fee packets", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryIncentivizedPacketsForChannelRequest{
+				Pagination:  pageReq,
+				PortId:      args[0],
+				ChannelId:   args[1],
+				QueryHeight: uint64(clientCtx.Height),
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.IncentivizedPacketsForChannel(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "packets-by-channel")
+
+	return cmd
+}
