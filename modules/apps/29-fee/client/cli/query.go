@@ -150,10 +150,10 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 	return cmd
 }
 
-// GetIncentivizedPacketByPacketId returns the unrelayed incentivized packets for a given packetID
-func GetIncentivizedPacketByPacketId() *cobra.Command {
+// GetCmdIncentivizedPacket returns the unrelayed incentivized packets for a given packetID
+func GetCmdIncentivizedPacket() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "packet-by-id [port-id] [channel-id] [sequence]",
+		Use:     "packet [port-id] [channel-id] [sequence]",
 		Short:   "Query for an incentivized packet by packet-id.",
 		Long:    "Query for an incentivized packet packet-id. A packet-id is made up of port-id, channel-id and packet sequence.",
 		Args:    cobra.ExactArgs(3),
@@ -169,14 +169,14 @@ func GetIncentivizedPacketByPacketId() *cobra.Command {
 				return err
 			}
 
-			packetId := channeltypes.PacketId{
+			packetID := channeltypes.PacketId{
 				PortId:    args[0],
 				ChannelId: args[1],
 				Sequence:  seq,
 			}
 
 			req := &types.QueryIncentivizedPacketRequest{
-				PacketId:    packetId,
+				PacketId:    packetID,
 				QueryHeight: uint64(clientCtx.Height),
 			}
 
@@ -192,13 +192,12 @@ func GetIncentivizedPacketByPacketId() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	flags.AddPaginationFlagsToCmd(cmd, "packet-by-id")
 
 	return cmd
 }
 
-// GetAllIncentivizedPackets returns all of the unrelayed incentivized packets
-func GetAllIncentivizedPackets() *cobra.Command {
+// GetCmdIncentivizedPackets returns all of the unrelayed incentivized packets
+func GetCmdIncentivizedPackets() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "packets",
 		Short:   "Query for all of the unrelayed incentivized packets across all channels.",
