@@ -196,3 +196,44 @@ func GetIncentivizedPacketByPacketId() *cobra.Command {
 
 	return cmd
 }
+
+// GetAllIncentivizedPackets returns all of the unrelayed incentivized packets
+func GetAllIncentivizedPackets() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "packets",
+		Short:   "Query for all of the unrelayed incentivized packets across all channels.",
+		Long:    "Query for all of the unrelayed incentivized packets across all channels.",
+		Args:    cobra.NoArgs,
+		Example: fmt.Sprintf("%s query ibc-fee packets", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryIncentivizedPacketsRequest{
+				Pagination:  pageReq,
+				QueryHeight: uint64(clientCtx.Height),
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.IncentivizedPackets(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "packets")
+
+	return cmd
+}
