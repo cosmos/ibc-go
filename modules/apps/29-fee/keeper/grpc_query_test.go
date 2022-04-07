@@ -445,14 +445,14 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 			true,
 		},
 		{
-			"success, empty pagination",
+			"success: empty pagination",
 			func() {
 				req = &types.QueryFeeEnabledChannelsRequest{}
 			},
 			true,
 		},
 		{
-			"success, with multiple fee enabled channels",
+			"success: with multiple fee enabled channels",
 			func() {
 				suite.coordinator.Setup(suite.pathAToC)
 
@@ -466,7 +466,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 			true,
 		},
 		{
-			"success, pagination with multiple fee enabled channels",
+			"success: pagination with multiple fee enabled channels",
 			func() {
 				// start at index 1, as channel-0 is already added to expFeeEnabledChannels below
 				for i := 1; i < 10; i++ {

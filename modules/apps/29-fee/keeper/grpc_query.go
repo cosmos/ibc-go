@@ -174,7 +174,7 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 	}, nil
 }
 
-// FeeEnabledChannels implements the Query/FeeEnabledChannels gRPC method
+// FeeEnabledChannels implements the Query/FeeEnabledChannels gRPC method and returns a list of fee enabled channels
 func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEnabledChannelsRequest) (*types.QueryFeeEnabledChannelsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -209,7 +209,8 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 	}, nil
 }
 
-// FeeEnabledChannel implements the Query/FeeEnabledChannel gRPC method
+// FeeEnabledChannel implements the Query/FeeEnabledChannel gRPC method and returns true if the provided
+// port and channel identifiers belong to a fee enabled channel
 func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnabledChannelRequest) (*types.QueryFeeEnabledChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
