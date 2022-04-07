@@ -445,7 +445,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			true,
 		},
 		{
-			"counterparty address not found, invalid channel",
+			"counterparty address not found: invalid channel",
 			func() {
 				req.ChannelId = "invalid-channel-id"
 			},
