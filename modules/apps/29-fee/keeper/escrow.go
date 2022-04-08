@@ -16,22 +16,25 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
 	}
-	// check if the refund account exists
-	refundAcc, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+
+	// check if the refund address is valid
+	refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 	if err != nil {
 		return err
 	}
 
-	hasRefundAcc := k.authKeeper.GetAccount(ctx, refundAcc)
-	if hasRefundAcc == nil {
-		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", refundAcc)
+	refundAcc := k.authKeeper.GetAccount(ctx, refundAddr)
+	if refundAcc == nil {
+		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", packetFee.RefundAddress)
 	}
 
 	coins := packetFee.Fee.Total()
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, refundAcc, types.ModuleName, coins); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, refundAddr, types.ModuleName, coins); err != nil {
 		return err
 	}
 
+	// multiple fees may be escrowed for a single packet, firstly create a slice containing the new fee
+	// retrieve any previous fees stored in escrow for the packet and append them to the list
 	fees := []types.PacketFee{packetFee}
 	if feesInEscrow, found := k.GetFeesInEscrow(ctx, packetID); found {
 		fees = append(fees, feesInEscrow.PacketFees...)

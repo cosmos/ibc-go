@@ -18,7 +18,13 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // RegisterInterfaces register the 29-fee module interfaces to protobuf
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgRegisterCounterpartyAddress{}, &MsgPayPacketFee{}, &MsgPayPacketFeeAsync{})
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgRegisterCounterpartyAddress{},
+		&MsgPayPacketFee{},
+		&MsgPayPacketFeeAsync{},
+	)
+
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
