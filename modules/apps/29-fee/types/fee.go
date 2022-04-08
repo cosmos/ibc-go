@@ -1,8 +1,6 @@
 package types
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -68,19 +66,16 @@ func (f Fee) Total() sdk.Coins {
 
 // Validate asserts that each Fee is valid and all three Fees are not empty or zero
 func (fee Fee) Validate() error {
-	var errFees []string
 	if !fee.AckFee.IsValid() {
-		errFees = append(errFees, "ack fee invalid")
-	}
-	if !fee.RecvFee.IsValid() {
-		errFees = append(errFees, "recv fee invalid")
-	}
-	if !fee.TimeoutFee.IsValid() {
-		errFees = append(errFees, "timeout fee invalid")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "invalid acknowledgement fee")
 	}
 
-	if len(errFees) > 0 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "contains invalid fees: %s", strings.Join(errFees, " , "))
+	if !fee.RecvFee.IsValid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "invalid receive fee")
+	}
+
+	if !fee.TimeoutFee.IsValid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "invalid timeout fee")
 	}
 
 	// if all three fee's are zero or empty return an error
