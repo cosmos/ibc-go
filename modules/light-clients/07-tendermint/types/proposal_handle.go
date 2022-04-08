@@ -14,8 +14,8 @@ import (
 // CheckSubstituteAndUpdateState will try to update the client with the state of the
 // substitute.
 //
-// AllowUpdateAfterMisbehaviour and AllowUpdateAfterExpiry have been deprecated, as a code migration 
-// can overwrite the client and consensus states regardless of the value of these parameters
+// AllowUpdateAfterMisbehaviour and AllowUpdateAfterExpiry have been deprecated.
+// Please see ADR 026 for more information. 
 // 
 // The following must always be true:
 //	- The substitute client is the same type as the subject client
