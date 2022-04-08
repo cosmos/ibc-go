@@ -150,14 +150,14 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 	return cmd
 }
 
-// GetIncentivizedPacketByChannel returns all of the unrelayed incentivized packets on a given channel
-func GetIncentivizedPacketByChannel() *cobra.Command {
+// GetCmdIncentivizedPacketForChannel returns all of the unrelayed incentivized packets on a given channel
+func GetCmdIncentivizedPacketForChannel() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "packets-by-channel [port-id] [channel-id]",
+		Use:     "packets-for-channel [port-id] [channel-id]",
 		Short:   "Query for all of the unrelayed incentivized packets on a given channel",
 		Long:    "Query for all of the unrelayed incentivized packets on a given channel. These are packets that have not yet been relayed.",
 		Args:    cobra.ExactArgs(2),
-		Example: fmt.Sprintf("%s query ibc-fee packets", version.AppName),
+		Example: fmt.Sprintf("%s query ibc-fee packets-for-channel", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {

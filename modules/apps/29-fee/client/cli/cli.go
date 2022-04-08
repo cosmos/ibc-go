@@ -18,7 +18,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdTotalRecvFees(),
 		GetCmdTotalAckFees(),
 		GetCmdTotalTimeoutFees(),
-		GetIncentivizedPacketByChannel(),
+		GetCmdIncentivizedPacketForChannel(),
 	)
 
 	return queryCmd
