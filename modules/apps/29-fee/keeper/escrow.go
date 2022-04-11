@@ -132,7 +132,7 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 				// fee disabled channels
 				// NOTE: we use the uncached context to lock the fee module so that the state changes from
 				// locking the fee module are persisted
-				lockFeeModule(ctx)
+				k.lockFeeModule(ctx)
 
 				// return a nil error so state changes are committed but distribution stops
 				return nil
