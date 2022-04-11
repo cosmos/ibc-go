@@ -12,11 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// NewPacketId returns a new instance of PacketId
-func NewPacketId(channelId, portId string, seq uint64) PacketId {
-	return PacketId{ChannelId: channelId, PortId: portId, Sequence: seq}
-}
-
 // CommitPacket returns the packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
@@ -132,4 +127,9 @@ func (p PacketId) Validate() error {
 	}
 
 	return nil
+}
+
+// NewPacketId returns a new instance of PacketId
+func NewPacketId(portId, channelId string, seq uint64) PacketId {
+	return PacketId{PortId: portId, ChannelId: channelId, Sequence: seq}
 }

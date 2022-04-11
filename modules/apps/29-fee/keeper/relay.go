@@ -23,7 +23,7 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 		return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence())
+	packetID := channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 	// retrieve the forward relayer that was stored in `onRecvPacket`
 	relayer, found := k.GetRelayerAddressForAsyncAck(ctx, packetID)

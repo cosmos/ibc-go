@@ -9,7 +9,7 @@ import (
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	// build PacketId & Fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetID := channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1)
+	packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.Fee{
 		RecvFee:    defaultReceiveFee,
 		AckFee:     defaultAckFee,
@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	// setup & escrow the packet fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetID := channeltypes.NewPacketId(ibctesting.FirstChannelID, ibctesting.MockFeePort, 1)
+	packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.Fee{
 		RecvFee:    defaultReceiveFee,
 		AckFee:     defaultAckFee,

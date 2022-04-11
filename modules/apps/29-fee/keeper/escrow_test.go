@@ -5,6 +5,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
@@ -81,7 +82,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 			receiveFee = defaultReceiveFee
 			ackFee = defaultAckFee
 			timeoutFee = defaultTimeoutFee
-			packetID = channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(1))
+			packetID = channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 
 			tc.malleate()
 			fee := types.Fee{
@@ -141,6 +142,11 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				forwardRelayer = "invalid address"
 			}, false,
 		},
+		{
+			"invalid forward address: blocked address", func() {
+				forwardRelayer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -155,7 +161,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			reverseRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 			forwardRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
-			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, validSeq)
+			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, validSeq)
 			fee := types.Fee{
 				RecvFee:    defaultReceiveFee,
 				AckFee:     defaultAckFee,
@@ -215,8 +221,8 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 	timeoutRelayer := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
 	packetID := channeltypes.NewPacketId(
-		suite.path.EndpointA.ChannelID,
 		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
 		1,
 	)
 
@@ -265,7 +271,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	prevBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
 
 	for i := 0; i < 5; i++ {
-		packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(i))
+		packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(i))
 		fee := types.Fee{
 			RecvFee:    defaultReceiveFee,
 			AckFee:     defaultAckFee,
@@ -279,7 +285,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	}
 
 	// send a packet over a different channel to ensure this fee is not refunded
-	packetID := channeltypes.NewPacketId("channel-1", ibctesting.MockFeePort, 1)
+	packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, "channel-1", 1)
 	fee := types.Fee{
 		RecvFee:    defaultReceiveFee,
 		AckFee:     defaultAckFee,
@@ -300,7 +306,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannel() {
 	suite.Require().Equal(prevBal, afterBal.Add(fee.RecvFee...).Add(fee.AckFee...).Add(fee.TimeoutFee...), "refund account not back to original balance after refunding all tokens")
 
 	// create escrow and then change module account balance to cause error on refund
-	packetID = channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, uint64(6))
+	packetID = channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(6))
 
 	packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 	err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)

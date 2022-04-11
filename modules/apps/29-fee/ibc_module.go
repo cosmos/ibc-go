@@ -204,7 +204,7 @@ func (im IBCModule) OnRecvPacket(
 
 	// incase of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
-		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence()), relayer.String())
+		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
 		return nil
 	}
 
@@ -231,17 +231,14 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
-	if !found {
-		// return underlying callback if no fee found for given packetID
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	if found {
+		im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
+
+		// removes the fees from the store as fees are now paid
+		im.keeper.DeleteFeesInEscrow(ctx, packetID)
 	}
-
-	im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
-
-	// removes the fees from the store as fees are now paid
-	im.keeper.DeleteFeesInEscrow(ctx, packetID)
 
 	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
@@ -258,17 +255,14 @@ func (im IBCModule) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
-	if !found {
-		// return underlying callback if fee not found for given packetID
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	if found {
+		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)
+
+		// removes the fee from the store as fee is now paid
+		im.keeper.DeleteFeesInEscrow(ctx, packetID)
 	}
-
-	im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)
-
-	// removes the fee from the store as fee is now paid
-	im.keeper.DeleteFeesInEscrow(ctx, packetID)
 
 	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
