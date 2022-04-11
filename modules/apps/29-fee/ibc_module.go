@@ -148,20 +148,11 @@ func (im IBCModule) OnChanCloseInit(
 		return err
 	}
 
-	// delete fee enabled on channel
-	// and refund any remaining fees escrowed on channel
-	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
-	// error should only be non-nil if there is a bug in the code
-	// that causes module account to have insufficient funds to refund
-	// all escrowed fees on the channel.
-	// Disable all channels to allow for coordinated fix to the issue
-	// and mitigate/reverse damage.
-	// NOTE: Underlying application's packets will still go through, but
-	// fee module will be disabled for all channels
-	if err != nil {
-		im.keeper.DisableAllChannels(ctx)
+	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
+		return err
 	}
+
+	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 
 	return nil
 }
@@ -172,21 +163,17 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	// delete fee enabled on channel
-	// and refund any remaining fees escrowed on channel
-	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
-	// error should only be non-nil if there is a bug in the code
-	// that causes module account to have insufficient funds to refund
-	// all escrowed fees on the channel.
-	// Disable all channels to allow for coordinated fix to the issue
-	// and mitigate/reverse damage.
-	// NOTE: Underlying application's packets will still go through, but
-	// fee module will be disabled for all channels
-	if err != nil {
-		im.keeper.DisableAllChannels(ctx)
+	if err := im.app.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+		return err
 	}
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+
+	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
+		return err
+	}
+
+	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+
+	return nil
 }
 
 // OnRecvPacket implements the IBCModule interface.

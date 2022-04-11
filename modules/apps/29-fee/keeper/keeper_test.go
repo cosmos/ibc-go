@@ -111,21 +111,6 @@ func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	suite.Require().False(hasFeesInEscrow)
 }
 
-func (suite *KeeperTestSuite) TestDisableAllChannels() {
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), "port1", "channel1")
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), "port2", "channel2")
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), "port3", "channel3")
-
-	suite.chainA.GetSimApp().IBCFeeKeeper.DisableAllChannels(suite.chainA.GetContext())
-
-	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), "port1", "channel1"),
-		"fee is still enabled on channel-1 after DisableAllChannels call")
-	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), "port2", "channel2"),
-		"fee is still enabled on channel-2 after DisableAllChannels call")
-	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), "port3", "channel3"),
-		"fee is still enabled on channel-3 after DisableAllChannels call")
-}
-
 func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 	suite.coordinator.Setup(suite.path)
 

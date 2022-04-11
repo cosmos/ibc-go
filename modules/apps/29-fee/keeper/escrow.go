@@ -112,37 +112,57 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.
 	}
 }
 
-func (k Keeper) RefundFeesOnChannel(ctx sdk.Context, portID, channelID string) error {
+// RefundFeesOnChannelClosure will refund all fees associated with the given port and channel identifiers.
+// If the escrow account runs out of balance then fee logic will be disabled for all channels as this
+// implies a severe bug.
+func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID string) error {
+	identifiedPacketFees := k.GetIdentifiedPacketFeesForChannel(ctx, portID, channelID)
 
-	var refundErr error
+	// cache context before trying to distribute fees
+	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
+	cacheCtx, writeFn := ctx.CacheContext()
 
-	k.IteratePacketFeesInEscrow(ctx, portID, channelID, func(packetFees types.PacketFees) (stop bool) {
-		for _, identifiedFee := range packetFees.PacketFees {
-			refundAccAddr, err := sdk.AccAddressFromBech32(identifiedFee.RefundAddress)
+	for _, identifiedPacketFee := range identifiedPacketFees {
+		for _, packetFee := range identifiedPacketFee.PacketFees {
+
+			if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee) {
+				// if the escrow account does not have sufficient funds then there must exist a severe bug
+				// the fee module should be locked until manual intervention fixes the issue
+				// a locked fee module will simply skip fee logic, all channels will temporarily function as
+				// fee disabled channels
+				// NOTE: we use the uncached context to lock the fee module so that the state changes from
+				// locking the fee module are persisted
+				lockFeeModule(ctx)
+
+				// return a nil error so state changes are committed but distribution stops
+				return nil
+			}
+
+			refundAccAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 			if err != nil {
-				refundErr = err
-				return true
+				return err
 			}
 
 			// refund all fees to refund address
 			// Use SendCoins rather than the module account send functions since refund address may be a user account or module address.
 			// if any `SendCoins` call returns an error, we return error and stop iteration
-			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.RecvFee); err != nil {
-				refundErr = err
-				return true
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAccAddr, packetFee.Fee.RecvFee); err != nil {
+				return err
 			}
-			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.AckFee); err != nil {
-				refundErr = err
-				return true
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAccAddr, packetFee.Fee.AckFee); err != nil {
+				return err
 			}
-			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, refundAccAddr, identifiedFee.Fee.TimeoutFee); err != nil {
-				refundErr = err
-				return true
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAccAddr, packetFee.Fee.TimeoutFee); err != nil {
+				return err
 			}
+
 		}
 
-		return false
-	})
+		k.DeleteFeesInEscrow(cacheCtx, identifiedPacketFee.PacketId)
+	}
 
-	return refundErr
+	// write the cache
+	writeFn()
+
+	return nil
 }

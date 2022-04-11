@@ -69,7 +69,7 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (
 	return k.channelKeeper.GetNextSequenceSend(ctx, portID, channelID)
 }
 
-// GetFeeAccount returns the ICS29 Fee ModuleAccount address
+// GetFeeModuleAddress returns the ICS29 Fee ModuleAccount address
 func (k Keeper) GetFeeModuleAddress() sdk.AccAddress {
 	return k.authKeeper.GetModuleAddress(types.ModuleName)
 }
@@ -126,21 +126,6 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChan
 	}
 
 	return enabledChArr
-}
-
-// DisableAllChannels will disable the fee module for all channels.
-// Only called if the module enters into an invalid state
-// e.g. ModuleAccount has insufficient balance to refund users.
-// In this case, chain developers should investigate the issue, fix it,
-// and then re-enable the fee module in a coordinated upgrade.
-func (k Keeper) DisableAllChannels(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
-	}
 }
 
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
@@ -271,19 +256,27 @@ func (k Keeper) DeleteFeesInEscrow(ctx sdk.Context, packetID channeltypes.Packet
 	store.Delete(key)
 }
 
-// IteratePacketFeesInEscrow iterates over all the fees on the given channel currently escrowed and calls the provided callback
-// if the callback returns true, then iteration is stopped.
-func (k Keeper) IteratePacketFeesInEscrow(ctx sdk.Context, portID, channelID string, cb func(packetFees types.PacketFees) (stop bool)) {
+// GetIdentifiedPacketFeesForChannel returns all the currently escrowed fees on a given channel.
+func (k Keeper) GetIdentifiedPacketFeesForChannel(ctx sdk.Context, portID, channelID string) []types.IdentifiedPacketFees {
+	var identifiedPacketFees []types.IdentifiedPacketFees
+
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeesInEscrowChannelPrefix(portID, channelID))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		packetFees := k.MustUnmarshalFees(iterator.Value())
-		if cb(packetFees) {
-			break
+		packetId, err := types.ParseKeyFeesInEscrow(string(iterator.Key()))
+		if err != nil {
+			panic(err)
 		}
+
+		packetFees := k.MustUnmarshalFees(iterator.Value())
+
+		identifiedFee := types.NewIdentifiedPacketFees(packetId, packetFees.PacketFees)
+		identifiedPacketFees = append(identifiedPacketFees, identifiedFee)
 	}
+
+	return identifiedPacketFees
 }
 
 // GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
