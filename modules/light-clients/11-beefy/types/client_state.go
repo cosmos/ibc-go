@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -366,8 +367,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	return nil
 }
 
-func (cs ClientState) VerifyChannelState(
-	store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, prefix exported.Prefix, proof []byte, portID, channelID string, channel exported.ChannelI) error {
+func (cs ClientState) VerifyChannelState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, prefix exported.Prefix, proof []byte, portID, channelID string, channel exported.ChannelI) error {
 	beefyProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
@@ -431,7 +431,7 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	// TODO: use parity/trie proofOfNonExistence for receipt absense
+	// TODO: use parity/trie proofOfNonExistence for receipt absence
 	return nil
 }
 
@@ -468,7 +468,7 @@ func (cs ClientState) VerifyNextSequenceRecv(
 
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: bz}})
 	if err != nil {
-		return fmt.Errorf("error verifying proof: %v", err.Error())
+		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
 	if !isVerified {

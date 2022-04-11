@@ -2,8 +2,8 @@ package types
 
 import (
 	"bytes"
-	"strings"
 	"encoding/hex"
+	"strings"
 
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
 )
@@ -43,7 +43,10 @@ func DecodeFromHexString(str string, target interface{}) error {
 	if err != nil {
 		return err
 	}
-	scale.NewDecoder(bytes.NewReader(bz)).Decode(target)
+	err = scale.NewDecoder(bytes.NewReader(bz)).Decode(target)
+	if err != nil {
+		return err
+	}
 	return DecodeFromBytes(bz, target)
 }
 

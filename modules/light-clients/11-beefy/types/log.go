@@ -15,7 +15,7 @@ func UseLogger(l Logger) {
 
 type logg struct{}
 
-// Errorf has no log body, it simply satisfies the logger interface
+// Fatal has no log body, it simply satisfies the logger interface
 func (l logg) Fatal(params ...interface{}) {}
 
 func init() {
