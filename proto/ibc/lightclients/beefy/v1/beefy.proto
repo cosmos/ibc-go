@@ -4,10 +4,8 @@ package ibc.lightclients.beefy.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types";
 
-import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
-import "proofs.proto";
 
 option (gogoproto.marshaler_all) = false;
 option (gogoproto.unmarshaler_all) = false;
@@ -205,6 +203,7 @@ message BeefyAuthoritySet {
   bytes authority_root = 3 [(gogoproto.customtype) = "[32]byte"];
 }
 
+// BeefyMmrLeaf leaf data
 message BeefyMmrLeaf {
   option (gogoproto.goproto_getters) = false;
 

@@ -5,14 +5,15 @@ package types
 
 import (
 	fmt "fmt"
+	math "math"
+	time "time"
+
 	_ "github.com/confio/ics23/go"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	golang_proto "github.com/golang/protobuf/proto"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
-	math "math"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -46,26 +47,26 @@ type ClientState struct {
 	NextAuthoritySet *BeefyAuthoritySet `protobuf:"bytes,6,opt,name=next_authority_set,json=nextAuthoritySet,proto3" json:"next_authority_set,omitempty"`
 }
 
-func (m *ClientState) Reset()         { *m = ClientState{} }
-func (m *ClientState) String() string { return proto.CompactTextString(m) }
-func (*ClientState) ProtoMessage()    {}
+func (cs *ClientState) Reset()         { *cs = ClientState{} }
+func (cs *ClientState) String() string { return proto.CompactTextString(cs) }
+func (*ClientState) ProtoMessage()     {}
 func (*ClientState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{0}
 }
-func (m *ClientState) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ClientState.Unmarshal(m, b)
+func (cs *ClientState) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ClientState.Unmarshal(cs, b)
 }
-func (m *ClientState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ClientState.Marshal(b, m, deterministic)
+func (cs *ClientState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ClientState.Marshal(b, cs, deterministic)
 }
-func (m *ClientState) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClientState.Merge(m, src)
+func (cs *ClientState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClientState.Merge(cs, src)
 }
-func (m *ClientState) XXX_Size() int {
-	return xxx_messageInfo_ClientState.Size(m)
+func (cs *ClientState) XXX_Size() int {
+	return xxx_messageInfo_ClientState.Size(cs)
 }
-func (m *ClientState) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClientState.DiscardUnknown(m)
+func (cs *ClientState) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClientState.DiscardUnknown(cs)
 }
 
 var xxx_messageInfo_ClientState proto.InternalMessageInfo
@@ -273,26 +274,26 @@ type ConsensusState struct {
 	ParachainHeader ParachainHeader `protobuf:"bytes,4,opt,name=parachain_header,json=parachainHeader,proto3" json:"parachain_header"`
 }
 
-func (m *ConsensusState) Reset()         { *m = ConsensusState{} }
-func (m *ConsensusState) String() string { return proto.CompactTextString(m) }
-func (*ConsensusState) ProtoMessage()    {}
+func (cs *ConsensusState) Reset()         { *cs = ConsensusState{} }
+func (cs *ConsensusState) String() string { return proto.CompactTextString(cs) }
+func (*ConsensusState) ProtoMessage()     {}
 func (*ConsensusState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{6}
 }
-func (m *ConsensusState) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ConsensusState.Unmarshal(m, b)
+func (cs *ConsensusState) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ConsensusState.Unmarshal(cs, b)
 }
-func (m *ConsensusState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ConsensusState.Marshal(b, m, deterministic)
+func (cs *ConsensusState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ConsensusState.Marshal(b, cs, deterministic)
 }
-func (m *ConsensusState) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsensusState.Merge(m, src)
+func (cs *ConsensusState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConsensusState.Merge(cs, src)
 }
-func (m *ConsensusState) XXX_Size() int {
-	return xxx_messageInfo_ConsensusState.Size(m)
+func (cs *ConsensusState) XXX_Size() int {
+	return xxx_messageInfo_ConsensusState.Size(cs)
 }
-func (m *ConsensusState) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsensusState.DiscardUnknown(m)
+func (cs *ConsensusState) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConsensusState.DiscardUnknown(cs)
 }
 
 var xxx_messageInfo_ConsensusState proto.InternalMessageInfo
@@ -348,26 +349,26 @@ type Header struct {
 	MmrUpdateProof *MmrUpdateProof `protobuf:"bytes,4,opt,name=mmr_update_proof,json=mmrUpdateProof,proto3" json:"mmr_update_proof,omitempty"`
 }
 
-func (m *Header) Reset()         { *m = Header{} }
-func (m *Header) String() string { return proto.CompactTextString(m) }
+func (h *Header) Reset()         { *h = Header{} }
+func (h *Header) String() string { return proto.CompactTextString(h) }
 func (*Header) ProtoMessage()    {}
 func (*Header) Descriptor() ([]byte, []int) {
 	return fileDescriptor_43205c4bfbe9a422, []int{8}
 }
-func (m *Header) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Header.Unmarshal(m, b)
+func (h *Header) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Header.Unmarshal(h, b)
 }
-func (m *Header) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Header.Marshal(b, m, deterministic)
+func (h *Header) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Header.Marshal(b, h, deterministic)
 }
-func (m *Header) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Header.Merge(m, src)
+func (h *Header) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Header.Merge(h, src)
 }
-func (m *Header) XXX_Size() int {
-	return xxx_messageInfo_Header.Size(m)
+func (h *Header) XXX_Size() int {
+	return xxx_messageInfo_Header.Size(h)
 }
-func (m *Header) XXX_DiscardUnknown() {
-	xxx_messageInfo_Header.DiscardUnknown(m)
+func (h *Header) XXX_DiscardUnknown() {
+	xxx_messageInfo_Header.DiscardUnknown(h)
 }
 
 var xxx_messageInfo_Header proto.InternalMessageInfo
