@@ -238,6 +238,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 		// the acknowledgement has been unmarshalled into an ics29 acknowledgement
 		// since the counterparty is still sending incentivized acknowledgements
 		// for fee enabled channels
+		//
+		// Please see ADR 004 for more information.
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
@@ -264,6 +266,8 @@ func (im IBCModule) OnTimeoutPacket(
 	// if the fee keeper is locked then fee logic should be skipped
 	// this may occur in the presence of a severe bug which leads to invalid state
 	// the fee keeper will be unlocked after manual intervention
+	//
+	// Please see ADR 004 for more information.
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
