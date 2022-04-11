@@ -106,7 +106,7 @@ func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 
@@ -129,7 +129,7 @@ func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[2], keySplit[1], seq)
+	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 

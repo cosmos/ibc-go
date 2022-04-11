@@ -204,7 +204,7 @@ func (im IBCModule) OnRecvPacket(
 
 	// incase of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
-		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence()), relayer.String())
+		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
 		return nil
 	}
 
@@ -241,7 +241,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
 		im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
@@ -268,7 +268,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
 		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)

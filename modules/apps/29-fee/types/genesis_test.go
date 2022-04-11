@@ -49,8 +49,8 @@ func TestValidateGenesis(t *testing.T) {
 			"invalid packetID: invalid channel",
 			func() {
 				packetID = channeltypes.NewPacketId(
-					"",
 					portID,
+					"",
 					seq,
 				)
 			},
@@ -60,8 +60,8 @@ func TestValidateGenesis(t *testing.T) {
 			"invalid packetID: invalid port",
 			func() {
 				packetID = channeltypes.NewPacketId(
-					channelID,
 					"",
+					channelID,
 					seq,
 				)
 			},
@@ -71,8 +71,8 @@ func TestValidateGenesis(t *testing.T) {
 			"invalid packetID: invalid sequence",
 			func() {
 				packetID = channeltypes.NewPacketId(
-					channelID,
 					portID,
+					channelID,
 					0,
 				)
 			},
@@ -195,7 +195,7 @@ func TestValidateGenesis(t *testing.T) {
 			ForwardRelayers: []types.ForwardRelayerAddress{
 				{
 					Address:  forwardAddr,
-					PacketId: channeltypes.NewPacketId(packetChannelID, portID, 1),
+					PacketId: channeltypes.NewPacketId(portID, packetChannelID, 1),
 				},
 			},
 		}
