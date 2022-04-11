@@ -233,7 +233,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 
 	if im.keeper.IsLocked(ctx) {
 		// if the fee keeper is locked then fee logic should be skipped
-		// this may occur in the presence of a severe bug which leads invalid state
+		// this may occur in the presence of a severe bug which leads to invalid state
 		// the fee keeper will be unlocked after manual intervention
 		// the acknowledgement has been unmarshalled into an ics29 acknowledgement
 		// since the counterparty is still sending incentivized acknowledgements
@@ -262,7 +262,7 @@ func (im IBCModule) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	// if the fee keeper is locked then fee logic should be skipped
-	// this may occur in the presence of a severe bug which leads invalid state
+	// this may occur in the presence of a severe bug which leads to invalid state
 	// the fee keeper will be unlocked after manual intervention
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
