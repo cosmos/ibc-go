@@ -15,5 +15,5 @@ var (
 	ErrForwardRelayerAddressNotFound = sdkerrors.Register(ModuleName, 8, "forward relayer address not found")
 	ErrFeeNotEnabled                 = sdkerrors.Register(ModuleName, 9, "fee module is not enabled for this channel. If this error occurs after channel setup, fee module may not be enabled")
 	ErrRelayerNotFoundForAsyncAck    = sdkerrors.Register(ModuleName, 10, "relayer address must be stored for async WriteAcknowledgement")
-	ErrFeeModuleLocked               = sdkerrors.Register(ModuleName, 11, "the fee module is currently locked")
+	ErrFeeModuleLocked               = sdkerrors.Register(ModuleName, 11, "the fee module is currently locked, a severe bug has been detected")
 )
