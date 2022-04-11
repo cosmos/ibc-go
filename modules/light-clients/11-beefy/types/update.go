@@ -106,7 +106,6 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		signature := signedCommitment.Signatures[i]
 		// recover uncompressed public key from signature
 		pubkey, err := crypto.SigToPub(commitmentHash, signature.Signature)
-
 		if err != nil {
 			// todo: error failed to recover signature!
 			return nil, nil, err
@@ -211,14 +210,14 @@ func (cs *ClientState) CheckHeaderAndUpdateState(
 		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, Keccak256{})
 		// todo: merkle.Proof.Root() should return fixed bytes
 		ParachainHeadsRoot, err := parachainHeadsProof.Root()
-		// not a fan of this but its golang
-		var ParachainHeads [32]byte
-		copy(ParachainHeads[:], ParachainHeadsRoot)
-
 		if err != nil {
 			// todo: invalid parachain heads proof!
 			return nil, nil, err
 		}
+
+		// not a fan of this but its golang
+		var ParachainHeads [32]byte
+		copy(ParachainHeads[:], ParachainHeadsRoot)
 
 		mmrLeaf := BeefyMmrLeaf{
 			Version:      parachainHeader.MmrLeafPartial.Version,
@@ -365,7 +364,7 @@ func (cs ClientState) GetBlockNumberForLeaf(leafIndex uint32) uint32 {
 	return blockNumber
 }
 
-// given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
+// GetLeafIndexForBlockNumber given the MmrLeafPartial.ParentNumber & BeefyActivationBlock,
 func (cs ClientState) GetLeafIndexForBlockNumber(blockNumber uint32) uint32 {
 	var leafIndex uint32
 
