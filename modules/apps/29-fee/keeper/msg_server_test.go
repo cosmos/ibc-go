@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
@@ -62,6 +64,13 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			true,
 			func() {},
 		},
+		{
+			"fee module is locked",
+			false,
+			func() {
+				lockFeeModule(suite.chainA)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -78,7 +87,8 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		msg := types.NewMsgPayPacketFee(fee, suite.path.EndpointA.ChannelConfig.PortID, channelID, refundAcc.String(), []string{})
 
 		tc.malleate()
-		_, err := suite.chainA.SendMsgs(msg)
+
+		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
@@ -98,6 +108,13 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			"success",
 			true,
 			func() {},
+		},
+		{
+			"fee module is locked",
+			false,
+			func() {
+				lockFeeModule(suite.chainA)
+			},
 		},
 	}
 
@@ -125,7 +142,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		tc.malleate()
 
 		msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
-		_, err := suite.chainA.SendMsgs(msg)
+		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed

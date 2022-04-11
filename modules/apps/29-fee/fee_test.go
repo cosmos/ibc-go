@@ -21,7 +21,7 @@ type FeeTestSuite struct {
 	chainB *ibctesting.TestChain
 	chainC *ibctesting.TestChain
 
-	path  *ibctesting.Path
+	path     *ibctesting.Path
 	pathAToC *ibctesting.Path
 }
 
@@ -62,4 +62,12 @@ func (suite *FeeTestSuite) CreateMockPacket() channeltypes.Packet {
 		clienttypes.NewHeight(0, 100),
 		0,
 	)
+}
+
+// helper function
+func lockFeeModule(chain *ibctesting.TestChain) {
+	ctx := chain.GetContext()
+	storeKey := chain.GetSimApp().GetKey(types.ModuleName)
+	store := ctx.KVStore(storeKey)
+	store.Set(types.KeyLocked(), []byte{1})
 }

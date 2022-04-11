@@ -31,6 +31,10 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) (*types.MsgPayPacketFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if k.IsLocked(ctx) {
+		return nil, types.ErrFeeModuleLocked
+	}
+
 	// get the next sequence
 	sequence, found := k.GetNextSequenceSend(ctx, msg.SourcePortId, msg.SourceChannelId)
 	if !found {
@@ -56,6 +60,10 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 // incentivize the relaying of a known packet
 func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if k.IsLocked(ctx) {
+		return nil, types.ErrFeeModuleLocked
+	}
 
 	if err := k.EscrowPacketFee(ctx, msg.PacketId, msg.PacketFee); err != nil {
 		return nil, err
