@@ -5,9 +5,11 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"reflect"
+	"os"
 	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
@@ -21,6 +23,10 @@ import (
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/xxhash"
 )
 
+var (
+	BEEFY_TEST_MODE = os.Getenv("BEEFY_TEST_MODE")
+)
+
 func bytes32(bytes []byte) [32]byte {
 	var buffer [32]byte
 	copy(buffer[:], bytes)
@@ -30,19 +36,21 @@ func bytes32(bytes []byte) [32]byte {
 const PARA_ID = 2000
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
+	if BEEFY_TEST_MODE != "true" {
+		t.Skip("skipping test in short mode")
+	}
 
 	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("==== connected! ==== \n")
+	require.NoError(t, err)
+
+	t.Log("==== connected! ==== ")
 
 	// _parachainApi, err := client.NewSubstrateAPI("wss://127.0.0.1:9988")
 	// if err != nil {
 	// 	panic(err)
 	// }
 
-	// channel to recieve new SignedCommitments
+	// channel to receive new SignedCommitments
 	ch := make(chan interface{})
 
 	sub, err := relayApi.Client.Subscribe(
@@ -53,27 +61,22 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 		"justifications",
 		ch,
 	)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("====== subcribed! ======\n")
+	require.NoError(t, err)
+
+	t.Log("====== subcribed! ======")
 	var clientState *types.ClientState
 	defer sub.Unsubscribe()
 
 	for {
 		select {
 		case msg, ok := <-ch:
-			if !ok {
-				panic("error reading channel")
-			}
+			require.True(t, ok, "error reading channel")
 
 			compactCommitment := clientTypes.CompactSignedCommitment{}
 
 			// attempt to decode the SignedCommitments
-			err := types.DecodeFromHexString(msg.(string), &compactCommitment)
-			if err != nil {
-				panic(err.Error())
-			}
+			err = types.DecodeFromHexString(msg.(string), &compactCommitment)
+			require.NoError(t, err)
 
 			signedCommitment := compactCommitment.Unpack()
 
@@ -82,34 +85,27 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			// initialize our client state
 			if clientState != nil && clientState.LatestBeefyHeight >= blockNumber {
-				fmt.Printf("Skipping stale Commitment for block: %d", signedCommitment.Commitment.BlockNumber)
+				t.Logf("Skipping stale Commitment for block: %d", signedCommitment.Commitment.BlockNumber)
 				continue
 			}
 
-			// convert to the blockhash
+			// convert to the blockHash
 			blockHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(blockNumber))
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
 
 			authorities, err := BeefyAuthorities(blockNumber, relayApi, "Authorities")
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
 
 			nextAuthorities, err := BeefyAuthorities(blockNumber, relayApi, "NextAuthorities")
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
 
 			var authorityLeaves [][]byte
 			for _, v := range authorities {
 				authorityLeaves = append(authorityLeaves, crypto.Keccak256(v))
 			}
+
 			authorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(authorityLeaves)
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
 
 			var nextAuthorityLeaves [][]byte
 			for _, v := range nextAuthorities {
@@ -117,9 +113,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 
 			nextAuthorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(nextAuthorityLeaves)
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
 
 			if clientState == nil {
 				var authorityTreeRoot = bytes32(authorityTree.Root())
@@ -140,7 +134,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 						AuthorityRoot: &nextAuthorityTreeRoot,
 					},
 				}
-				fmt.Printf("\n\nInitializing client state\n\n")
+				t.Log("Initializing client state")
 				continue
 			}
 
@@ -149,10 +143,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			// fetch all registered parachainIds, this method doesn't account for
 			// if the parachains whose header was included in the batch of finalized blocks have now
 			// lost their parachain slot at this height
-			paraIds, err := fetchParaIds(relayApi, blockHash)
-			if err != nil {
-				panic(err)
-			}
+			paraIds, err := fetchParaIDs(relayApi, blockHash)
+			require.NoError(t, err)
 
 			var paraHeaderKeys []clientTypes.StorageKey
 
@@ -160,24 +152,21 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			keyPrefix := clientTypes.CreateStorageKeyPrefix("Paras", "Heads")
 			// so we can query all blocks from lastfinalized to latestBeefyHeight
 			for _, paraId := range paraIds {
-				encodedParaId, err := types.Encode(paraId)
-				if err != nil {
-					panic(err)
-				}
-				twoxhash := xxhash.New64(encodedParaId).Sum(nil)
+				encodedParaID, err := types.Encode(paraId)
+				require.NoError(t, err)
+
+				twoXHash := xxhash.New64(encodedParaID).Sum(nil)
 				// full key path in the storage source: https://www.shawntabrizi.com/assets/presentations/substrate-storage-deep-dive.pdf
 				// xx128("Paras") + xx128("Heads") + xx64(Encode(paraId)) + Encode(paraId)
-				fullKey := append(append(keyPrefix, twoxhash[:]...), encodedParaId...)
+				fullKey := append(append(keyPrefix, twoXHash[:]...), encodedParaID...)
 				paraHeaderKeys = append(paraHeaderKeys, fullKey)
 			}
+
 			previousFinalizedHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(clientState.LatestBeefyHeight + 1))
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
+
 			changeSet, err := relayApi.RPC.State.QueryStorage(paraHeaderKeys, previousFinalizedHash, blockHash)
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
 
 			// double map that holds block numbers, for which parachain header
 			// was included in the mmr leaf, seeing as our parachain headers might not make it into
@@ -186,22 +175,19 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			var finalizedBlocks = make(map[uint32]map[uint32][]byte)
 
 			// request for batch mmr proof of those leaves
-			var leafIndeces []uint64
+			var leafIndices []uint64
 
 			for _, changes := range changeSet {
 				header, err := relayApi.RPC.Chain.GetHeader(changes.Block)
-				if err != nil {
-					panic(err)
-				}
+				require.NoError(t, err)
+
 				var heads = make(map[uint32][]byte)
 
 				for _, keyValue := range changes.Changes {
 					if keyValue.HasStorageData {
 						var paraId uint32
 						err := types.DecodeFromBytes(keyValue.StorageKey[40:], &paraId)
-						if err != nil {
-							panic(err)
-						}
+						require.NoError(t, err)
 
 						heads[paraId] = keyValue.StorageData
 					}
@@ -214,14 +200,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 				finalizedBlocks[uint32(header.Number)] = heads
 
-				leafIndeces = append(leafIndeces, uint64(clientState.GetLeafIndexForBlockNumber(uint32(header.Number))))
+				leafIndices = append(leafIndices, uint64(clientState.GetLeafIndexForBlockNumber(uint32(header.Number))))
 			}
 
 			// fetch mmr proofs for leaves containing our target paraId
-			mmrBatchProof, err := relayApi.RPC.MMR.GenerateBatchProof(leafIndeces, blockHash)
-			if err != nil {
-				panic(err)
-			}
+			mmrBatchProof, err := relayApi.RPC.MMR.GenerateBatchProof(leafIndices, blockHash)
+			require.NoError(t, err)
 
 			var parachainHeaders []*types.ParachainHeader
 
@@ -263,9 +247,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				}
 
 				tree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(paraHeadsLeaves)
-				if err != nil {
-					panic(err)
-				}
+				require.NoError(t, err)
+
 				paraHeadsProof := tree.Proof([]uint32{index})
 				authorityRoot := bytes32(v.Leaf.BeefyNextAuthoritySet.Root[:])
 				parentHash := bytes32(v.Leaf.ParentNumberAndHash.Hash[:])
@@ -273,12 +256,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				header := types.ParachainHeader{
 					ParachainHeader: paraHeaders[PARA_ID],
 					MmrLeafPartial: &types.BeefyMmrLeafPartial{
-						Version:      uint8(v.Leaf.Version),
-						ParentNumber: uint32(v.Leaf.ParentNumberAndHash.ParentNumber),
+						Version:      v.Leaf.Version,
+						ParentNumber: v.Leaf.ParentNumberAndHash.ParentNumber,
 						ParentHash:   &parentHash,
 						BeefyNextAuthoritySet: types.BeefyAuthoritySet{
-							Id:            uint64(v.Leaf.BeefyNextAuthoritySet.ID),
-							Len:           uint32(v.Leaf.BeefyNextAuthoritySet.Len),
+							Id:            v.Leaf.BeefyNextAuthoritySet.ID,
+							Len:           v.Leaf.BeefyNextAuthoritySet.Len,
 							AuthorityRoot: &authorityRoot,
 						},
 					},
@@ -295,9 +278,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				uint64(clientState.GetLeafIndexForBlockNumber(blockNumber)),
 				blockHash,
 			)
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, err)
+
 			latestLeaf := mmrProof.Leaf
 
 			BeefyNextAuthoritySetRoot := bytes32(latestLeaf.BeefyNextAuthoritySet.Root[:])
@@ -312,7 +294,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				mmrBatchProofItems[i] = mmrBatchProof.Proof.Items[i][:]
 			}
 			var signatures []*types.CommitmentSignature
-			var authorityIndeces []uint32
+			var authorityIndices []uint32
 			// luckily for us, this is already sorted and maps to the right authority index in the authority root.
 			for i, v := range signedCommitment.Signatures {
 				if v.IsSome() {
@@ -321,7 +303,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 						Signature:      sig[:],
 						AuthorityIndex: uint32(i),
 					})
-					authorityIndeces = append(authorityIndeces, uint32(i))
+					authorityIndices = append(authorityIndices, uint32(i))
 				}
 			}
 
@@ -331,13 +313,13 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			mmrUpdateProof := types.MmrUpdateProof{
 				MmrLeaf: &types.BeefyMmrLeaf{
-					Version:        uint8(latestLeaf.Version),
-					ParentNumber:   uint32(latestLeaf.ParentNumberAndHash.ParentNumber),
+					Version:        latestLeaf.Version,
+					ParentNumber:   latestLeaf.ParentNumberAndHash.ParentNumber,
 					ParentHash:     &parentHash,
 					ParachainHeads: &ParachainHeads,
 					BeefyNextAuthoritySet: types.BeefyAuthoritySet{
-						Id:            uint64(latestLeaf.BeefyNextAuthoritySet.ID),
-						Len:           uint32(latestLeaf.BeefyNextAuthoritySet.Len),
+						Id:            latestLeaf.BeefyNextAuthoritySet.ID,
+						Len:           latestLeaf.BeefyNextAuthoritySet.Len,
 						AuthorityRoot: &BeefyNextAuthoritySetRoot,
 					},
 				},
@@ -351,7 +333,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					},
 					Signatures: signatures,
 				},
-				AuthoritiesProof: authorityTree.Proof(authorityIndeces).ProofHashes(),
+				AuthoritiesProof: authorityTree.Proof(authorityIndices).ProofHashes(),
 			}
 
 			header := types.Header{
@@ -361,17 +343,15 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				MmrUpdateProof:   &mmrUpdateProof,
 			}
 
-			_, _, errs := clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
-			if errs != nil {
-				panic(errs)
-			}
+			_, _, err = clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
+			require.NoError(t, err)
 
-			fmt.Printf("\nclientState.LatestBeefyHeight: %d\nclientState.MmrRootHash: %s\n", clientState.LatestBeefyHeight, hex.EncodeToString(clientState.MmrRootHash))
+			t.Logf("clientState.LatestBeefyHeight: %d clientState.MmrRootHash: %s", clientState.LatestBeefyHeight, hex.EncodeToString(clientState.MmrRootHash))
 
-			if clientState.LatestBeefyHeight != uint32(signedCommitment.Commitment.BlockNumber) && !reflect.DeepEqual(clientState.MmrRootHash, signedCommitment.Commitment.Payload) {
-				panic("\n\nfailed to update client state!\n")
+			if clientState.LatestBeefyHeight != uint32(signedCommitment.Commitment.BlockNumber) {
+				require.Equal(t, clientState.MmrRootHash, signedCommitment.Commitment.Payload, "failed to update client state. LatestBeefyHeight: %d, Commitment.BlockNumber %d", clientState.LatestBeefyHeight, uint32(signedCommitment.Commitment.BlockNumber))
 			}
-			fmt.Printf("====== successfully processed justification! ======\n")
+			t.Log("====== successfully processed justification! ======")
 
 			// TODO: assert that the consensus states were actually persisted
 			// TODO: tests against invalid proofs and consensus states
@@ -406,7 +386,7 @@ func BeefyAuthorities(blockNumber uint32, conn *client.SubstrateAPI, method stri
 	}
 
 	if !ok {
-		return nil, fmt.Errorf("Beefy authorities not found")
+		return nil, fmt.Errorf("beefy authorities not found")
 	}
 
 	// Convert from ecdsa public key to ethereum address
@@ -417,16 +397,13 @@ func BeefyAuthorities(blockNumber uint32, conn *client.SubstrateAPI, method stri
 			return nil, err
 		}
 		ethereumAddress := crypto.PubkeyToAddress(*pub)
-		if err != nil {
-			return nil, err
-		}
 		authorityEthereumAddresses = append(authorityEthereumAddresses, ethereumAddress[:])
 	}
 
 	return authorityEthereumAddresses, nil
 }
 
-func fetchParaIds(conn *client.SubstrateAPI, blockHash clientTypes.Hash) ([]uint32, error) {
+func fetchParaIDs(conn *client.SubstrateAPI, blockHash clientTypes.Hash) ([]uint32, error) {
 	// Fetch metadata
 	meta, err := conn.RPC.State.GetMetadataLatest()
 	if err != nil {
@@ -446,7 +423,7 @@ func fetchParaIds(conn *client.SubstrateAPI, blockHash clientTypes.Hash) ([]uint
 	}
 
 	if !ok {
-		return nil, fmt.Errorf("Beefy authorities not found")
+		return nil, fmt.Errorf("beefy authorities not found")
 	}
 
 	return paraIds, nil
