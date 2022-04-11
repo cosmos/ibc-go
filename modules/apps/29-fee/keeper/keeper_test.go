@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	suite.coordinator.Setup(suite.path)
 
 	// escrow five fees for packet sequence 1
-	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
+	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 	fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
 
 	for i := 1; i < 6; i++ {
@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelID, suite.path.EndpointA.ChannelConfig.PortID, 1)
+	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 	fee := types.Fee{
 		AckFee:     defaultAckFee,
 		RecvFee:    defaultReceiveFee,

@@ -38,8 +38,8 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 	}
 
 	packetID := channeltypes.NewPacketId(
-		msg.SourceChannelId,
 		msg.SourcePortId,
+		msg.SourceChannelId,
 		sequence,
 	)
 
