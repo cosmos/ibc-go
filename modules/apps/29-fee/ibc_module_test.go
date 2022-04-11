@@ -612,6 +612,15 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			true,
 		},
 		{
+			"success: fee module is disabled, skip fee logic",
+			func() {
+				lockFeeModule(suite.chainA)
+
+				expectedBalance = originalBalance
+			},
+			true,
+		},
+		{
 			"fail on distribute receive fee (blocked address)",
 			func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
@@ -719,6 +728,15 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			"fee not enabled",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+
+				expectedBalance = originalBalance
+			},
+			false,
+		},
+		{
+			"fee module is disabled, skip fee logic",
+			func() {
+				lockFeeModule(suite.chainA)
 
 				expectedBalance = originalBalance
 			},

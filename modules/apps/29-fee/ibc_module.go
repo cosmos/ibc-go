@@ -231,6 +231,18 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
+	if im.keeper.IsLocked(ctx) {
+		// if the fee keeper is locked then fee logic should be skipped
+		// this may occur in the presence of a severe bug which leads to invalid state
+		// the fee keeper will be unlocked after manual intervention
+		// the acknowledgement has been unmarshalled into an ics29 acknowledgement
+		// since the counterparty is still sending incentivized acknowledgements
+		// for fee enabled channels
+		//
+		// Please see ADR 004 for more information.
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	}
+
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
@@ -251,7 +263,12 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+	// if the fee keeper is locked then fee logic should be skipped
+	// this may occur in the presence of a severe bug which leads to invalid state
+	// the fee keeper will be unlocked after manual intervention
+	//
+	// Please see ADR 004 for more information.
+	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
