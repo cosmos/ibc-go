@@ -125,7 +125,7 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 	for _, identifiedPacketFee := range identifiedPacketFees {
 		for _, packetFee := range identifiedPacketFee.PacketFees {
 
-			if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee) {
+			if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
 				// if the escrow account does not have sufficient funds then there must exist a severe bug
 				// the fee module should be locked until manual intervention fixes the issue
 				// a locked fee module will simply skip fee logic, all channels will temporarily function as

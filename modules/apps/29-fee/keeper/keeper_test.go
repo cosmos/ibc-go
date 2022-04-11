@@ -67,6 +67,14 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+// helper function
+func lockFeeModule(chain *ibctesting.TestChain) {
+	ctx := chain.GetContext()
+	storeKey := chain.GetSimApp().GetKey(types.ModuleName)
+	store := ctx.KVStore(storeKey)
+	store.Set(types.KeyLocked(), []byte{1})
+}
+
 func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
 	fee := types.Fee{
 		AckFee:     defaultAckFee,
@@ -85,7 +93,6 @@ func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
 	// increase ack fee
 	fee.AckFee = fee.AckFee.Add(defaultAckFee...)
 	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
-
 }
 
 func (suite *KeeperTestSuite) TestFeesInEscrow() {
@@ -109,6 +116,15 @@ func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 	hasFeesInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
 	suite.Require().False(hasFeesInEscrow)
+}
+
+func (suite *KeeperTestSuite) TestIsLocked() {
+	ctx := suite.chainA.GetContext()
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
+
+	lockFeeModule(suite.chainA)
+
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
 }
 
 func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
