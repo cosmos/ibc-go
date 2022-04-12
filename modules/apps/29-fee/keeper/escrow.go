@@ -104,10 +104,17 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 	cacheCtx, writeFn := ctx.CacheContext()
 
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)
-	if err != nil && !bytes.Equal(receiver, refundAccAddress) {
+	if err != nil {
+		if bytes.Equal(receiver, refundAccAddress) {
+			// if sending has already failed to the refund address, then return (no-op)
+			return
+		}
+
+		// if an error is returned from x/bank and the receiver is not the refundAccAddress
+		// then attempt to refund the fee to the original sender
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAccAddress, fee)
 		if err != nil {
-			return
+			return // if sending to the refund address fails, no-op
 		}
 	}
 
