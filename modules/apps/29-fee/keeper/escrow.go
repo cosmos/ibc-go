@@ -113,8 +113,9 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver sdk.AccAddress, fee sdk.
 }
 
 // RefundFeesOnChannelClosure will refund all fees associated with the given port and channel identifiers.
-// If the escrow account runs out of balance then fee logic will be disabled for all channels as this
-// implies a severe bug.
+// If the escrow account runs out of balance then fee module will become locked as this implies the presence
+// of a severe bug. When the fee module is locked, no fee distributions will be performed.
+// Please see ADR 004 for more information.
 func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID string) error {
 	identifiedPacketFees := k.GetIdentifiedPacketFeesForChannel(ctx, portID, channelID)
 
