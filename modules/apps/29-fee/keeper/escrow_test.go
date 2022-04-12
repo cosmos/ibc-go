@@ -381,7 +381,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 			false,
 		},
 		{
-			"distributing recv packet fails - blocked address", func() {
+			"distributing to blocked address is skipped", func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 
 				// store the fee in state & update escrow account balance
@@ -395,8 +395,10 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
 
+				expEscrowBal = fee.Total()
+				expRefundBal = expRefundBal.Sub(fee.Total())
 			},
-			false,
+			true,
 		},
 	}
 
