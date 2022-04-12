@@ -353,25 +353,33 @@ func NewSimApp(
 		&stakingKeeper, govRouter,
 	)
 
-	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
-	)
+	// Create Transfer Stack
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 	// since fee middleware will wrap the IBCKeeper for underlying application.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCFeeKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
+
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
-	// create fee-wrapped transfer module
-	feeTransferModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, transferIBCModule)
+	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+	)
 
-	feeModule := ibcfee.NewAppModule(app.IBCFeeKeeper)
+	// transfer stack contains (from top to bottom):
+	// - IBC Fee Middleware
+	// - Transfer
 
+	// create IBC module from bottom to top of stack
+	var transferStack porttypes.IBCModule
+	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+
+	// TODO: clean up remaining modules
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
@@ -380,7 +388,7 @@ func NewSimApp(
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
 
-	feeWithMockModule := ibcfee.NewIBCModule(app.IBCFeeKeeper, feeMockModule)
+	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
 
@@ -412,7 +420,7 @@ func NewSimApp(
 	ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerIBCModule). // ica with mock auth module stack route to ica (top level of middleware stack)
-		AddRoute(ibctransfertypes.ModuleName, feeTransferModule).
+		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(ibcmock.ModuleName, mockIBCModule).
 		AddRoute(MockFeePort, feeWithMockModule)
 
@@ -434,6 +442,7 @@ func NewSimApp(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
+		// SDK app modules
 		genutil.NewAppModule(
 			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
@@ -454,8 +463,10 @@ func NewSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+
+		// ibc modules
 		transferModule,
-		feeModule,
+		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		icaModule,
 		mockModule,
 	)
