@@ -38,6 +38,12 @@ const (
 	ForwardRelayerPrefix = "forwardRelayer"
 )
 
+// KeyLocked returns the key used to lock and unlock the fee module. This key is used
+// in the presence of a severe bug.
+func KeyLocked() []byte {
+	return []byte("locked")
+}
+
 // KeyFeeEnabled returns the key that stores a flag to determine if fee logic should
 // be enabled for the given port and channel identifiers.
 func KeyFeeEnabled(portID, channelID string) []byte {
