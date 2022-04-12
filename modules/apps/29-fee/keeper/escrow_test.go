@@ -128,6 +128,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		reverseRelayerBal sdk.Coin
 		refundAcc         sdk.AccAddress
 		refundAccBal      sdk.Coin
+		packetFee         types.PacketFee
 	)
 
 	testCases := []struct {
@@ -198,18 +199,18 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				suite.Require().Equal(expectedRefundAccBal, balance)
 			},
 		},
-		// {
-		// 	"invalid refund address: no-op, timeout fee remains in escrow",
-		// 	func() {
-		// 		refundAcc = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
-		// 	},
-		// 	func() {
-		// 		// check if the module acc contains the timeoutFee
-		// 		expectedModuleAccBal := sdk.NewCoin(sdk.DefaultBondDenom, defaultTimeoutFee.Add(defaultTimeoutFee...).AmountOf(sdk.DefaultBondDenom))
-		// 		balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
-		// 		suite.Require().Equal(expectedModuleAccBal, balance)
-		// 	},
-		// },
+		{
+			"invalid refund address: no-op, timeout fee remains in escrow",
+			func() {
+				packetFee.RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+			},
+			func() {
+				// check if the module acc contains the timeoutFee
+				expectedModuleAccBal := sdk.NewCoin(sdk.DefaultBondDenom, defaultTimeoutFee.Add(defaultTimeoutFee...).AmountOf(sdk.DefaultBondDenom))
+				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
+				suite.Require().Equal(expectedModuleAccBal, balance)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -228,7 +229,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
 
 			// escrow the packet fee & store the fee in state
-			packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
+			packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 			suite.Require().NoError(err)
 
