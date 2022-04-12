@@ -353,6 +353,10 @@ func NewSimApp(
 		&stakingKeeper, govRouter,
 	)
 
+	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+	)
+
 	// Create Transfer Stack
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
@@ -365,10 +369,6 @@ func NewSimApp(
 	)
 
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
-
-	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
-	)
 
 	// transfer stack contains (from top to bottom):
 	// - IBC Fee Middleware
