@@ -152,8 +152,6 @@ func (im IBCModule) OnChanCloseInit(
 		return err
 	}
 
-	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-
 	return nil
 }
 
@@ -170,8 +168,6 @@ func (im IBCModule) OnChanCloseConfirm(
 	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
 		return err
 	}
-
-	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 
 	return nil
 }
