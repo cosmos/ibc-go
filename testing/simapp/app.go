@@ -403,8 +403,9 @@ func NewSimApp(
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
 
 	// initialize ICA module with mock module as the authentication module on the controller side
-	icaControllerStack := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp("", scopedICAMockKeeper))
-	app.ICAAuthModule = icaControllerStack
+	var icaControllerStack porttypes.IBCModule
+	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp("", scopedICAMockKeeper))
+	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(app.ICAControllerKeeper, icaControllerStack)
 
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
