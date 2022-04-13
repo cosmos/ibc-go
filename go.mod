@@ -30,7 +30,7 @@ require (
 )
 
 require (
-	github.com/ChainSafe/gossamer v0.6.1-0.20220405063646-0b4f33d9f185
+	github.com/ChainSafe/gossamer v0.6.1-0.20220406182257-98400b30ca00
 	github.com/jhump/protoreflect v1.9.1-0.20210817181203-db1a327a393e // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
 	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect

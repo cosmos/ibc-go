@@ -72,8 +72,8 @@ github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:
 github.com/ChainSafe/go-schnorrkel v0.0.0-20201021020641-d3c6d3118d10/go.mod h1:URdX5+vg25ts3aCh8H5IFZybJYKWhJHYMTnf+ULtoC4=
 github.com/ChainSafe/go-schnorrkel v0.0.0-20210222182958-bd440c890782 h1:lwmjzta2Xu+3rPVY/VeNQj2xfNkyih4CwyRxYg3cpRQ=
 github.com/ChainSafe/go-schnorrkel v0.0.0-20210222182958-bd440c890782/go.mod h1:URdX5+vg25ts3aCh8H5IFZybJYKWhJHYMTnf+ULtoC4=
-github.com/ChainSafe/gossamer v0.6.1-0.20220405063646-0b4f33d9f185 h1:YboxJB5Zl1s6oKy+5/HbtBlxJv/qApzuihDamZ0ydr0=
-github.com/ChainSafe/gossamer v0.6.1-0.20220405063646-0b4f33d9f185/go.mod h1:yNOAB8Yh6/xqLDW9yHFiypv8vs5OMwbf2wtvmZc7+aM=
+github.com/ChainSafe/gossamer v0.6.1-0.20220406182257-98400b30ca00 h1:eetbMPdFfK09+WYo+snwcq2VeadwT/CrrGPHtAjQrZc=
+github.com/ChainSafe/gossamer v0.6.1-0.20220406182257-98400b30ca00/go.mod h1:YPRks5U+FzhTT7ajfCntyHPjQFZtH+8ED/Qr/eUT99U=
 github.com/ChainSafe/log15 v1.0.0 h1:vRDVtWtVwIH5uSCBvgTTZh6FA58UBJ6+QiiypaZfBf8=
 github.com/ChainSafe/log15 v1.0.0/go.mod h1:5v1+ALHtdW0NfAeeoYyKmzCAMcAeqkdhIg4uxXWIgOg=
 github.com/ComposableFi/go-merkle-trees v0.0.0-20220119155315-3ce250c9ec59 h1:+CUbcRmgeoeZGOW5uvk5lHbB7rhjsm7X7pnGtYLOPK0=
