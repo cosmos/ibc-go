@@ -54,100 +54,216 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 }
 
 func (suite *KeeperTestSuite) TestPayPacketFee() {
+	var (
+		msg *types.MsgPayPacketFee
+	)
+
 	testCases := []struct {
 		name     string
-		expPass  bool
 		malleate func()
+		expPass  bool
 	}{
 		{
 			"success",
-			true,
 			func() {},
+			true,
+		},
+		{
+			"success with existing packet fees in escrow",
+			func() {
+				fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string{})
+				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, feesInEscrow)
+			},
+			true,
 		},
 		{
 			"fee module is locked",
-			false,
 			func() {
 				lockFeeModule(suite.chainA)
 			},
+			false,
+		},
+		{
+			"fee module disabled on channel",
+			func() {
+				msg.SourcePortId = "invalid-port"
+				msg.SourceChannelId = "invalid-channel"
+			},
+			false,
+		},
+		{
+			"invalid refund address",
+			func() {
+				msg.Signer = "invalid-address"
+			},
+			false,
+		},
+		{
+			"refund account does not exist",
+			func() {
+				msg.Signer = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			false,
+		},
+		{
+			"acknowledgement fee balance not found",
+			func() {
+				msg.Fee.AckFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"receive fee balance not found",
+			func() {
+				msg.Fee.RecvFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"timeout fee balance not found",
+			func() {
+				msg.Fee.TimeoutFee = invalidCoins
+			},
+			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
-		suite.coordinator.Setup(suite.path) // setup channel
+		tc := tc
 
-		refundAcc := suite.chainA.SenderAccount.GetAddress()
-		channelID := suite.path.EndpointA.ChannelID
-		fee := types.Fee{
-			RecvFee:    defaultReceiveFee,
-			AckFee:     defaultAckFee,
-			TimeoutFee: defaultTimeoutFee,
-		}
-		msg := types.NewMsgPayPacketFee(fee, suite.path.EndpointA.ChannelConfig.PortID, channelID, refundAcc.String(), []string{})
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.Setup(suite.path) // setup channel
 
-		tc.malleate()
+			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+			msg = types.NewMsgPayPacketFee(
+				fee,
+				suite.path.EndpointA.ChannelConfig.PortID,
+				suite.path.EndpointA.ChannelID,
+				suite.chainA.SenderAccount.GetAddress().String(),
+				[]string{},
+			)
 
-		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+			tc.malleate()
 
-		if tc.expPass {
-			suite.Require().NoError(err) // message committed
-		} else {
-			suite.Require().Error(err)
-		}
+			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+
+			if tc.expPass {
+				suite.Require().NoError(err) // message committed
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
 func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
+	var (
+		msg *types.MsgPayPacketFeeAsync
+	)
+
 	testCases := []struct {
 		name     string
-		expPass  bool
 		malleate func()
+		expPass  bool
 	}{
 		{
 			"success",
-			true,
 			func() {},
+			true,
+		},
+		{
+			"success with existing packet fees in escrow",
+			func() {
+				fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string{})
+				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, feesInEscrow)
+			},
+			true,
 		},
 		{
 			"fee module is locked",
-			false,
 			func() {
 				lockFeeModule(suite.chainA)
 			},
+			false,
+		},
+		{
+			"fee module disabled on channel",
+			func() {
+				msg.PacketId.PortId = "invalid-port"
+				msg.PacketId.ChannelId = "invalid-channel"
+			},
+			false,
+		},
+		{
+			"invalid refund address",
+			func() {
+				msg.PacketFee.RefundAddress = "invalid-address"
+			},
+			false,
+		},
+		{
+			"refund account does not exist",
+			func() {
+				msg.PacketFee.RefundAddress = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			false,
+		},
+		{
+			"acknowledgement fee balance not found",
+			func() {
+				msg.PacketFee.Fee.AckFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"receive fee balance not found",
+			func() {
+				msg.PacketFee.Fee.RecvFee = invalidCoins
+			},
+			false,
+		},
+		{
+			"timeout fee balance not found",
+			func() {
+				msg.PacketFee.Fee.TimeoutFee = invalidCoins
+			},
+			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
-		suite.coordinator.Setup(suite.path) // setup channel
+		tc := tc
 
-		ctxA := suite.chainA.GetContext()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.Setup(suite.path) // setup channel
 
-		refundAcc := suite.chainA.SenderAccount.GetAddress()
+			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 
-		// build packetID
-		channelID := suite.path.EndpointA.ChannelID
-		fee := types.Fee{
-			RecvFee:    defaultReceiveFee,
-			AckFee:     defaultAckFee,
-			TimeoutFee: defaultTimeoutFee,
-		}
-		seq, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(ctxA, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			msg = types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
-		// build fee
-		packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, channelID, seq)
-		packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
+			tc.malleate()
 
-		tc.malleate()
+			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
-		msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
-		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
-
-		if tc.expPass {
-			suite.Require().NoError(err) // message committed
-		} else {
-			suite.Require().Error(err)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err) // message committed
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

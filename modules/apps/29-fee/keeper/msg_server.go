@@ -31,6 +31,11 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) (*types.MsgPayPacketFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.IsFeeEnabled(ctx, msg.SourcePortId, msg.SourceChannelId) {
+		// users may not escrow fees on this channel. Must send packets without a fee message
+		return nil, types.ErrFeeNotEnabled
+	}
+
 	if k.IsLocked(ctx) {
 		return nil, types.ErrFeeModuleLocked
 	}
@@ -41,13 +46,9 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetID := channeltypes.NewPacketId(
-		msg.SourcePortId,
-		msg.SourceChannelId,
-		sequence,
-	)
-
+	packetID := channeltypes.NewPacketId(msg.SourcePortId, msg.SourceChannelId, sequence)
 	packetFee := types.NewPacketFee(msg.Fee, msg.Signer, msg.Relayers)
+
 	if err := k.escrowPacketFee(ctx, packetID, packetFee); err != nil {
 		return nil, err
 	}
@@ -60,6 +61,11 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 // incentivize the relaying of a known packet
 func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.IsFeeEnabled(ctx, msg.PacketId.PortId, msg.PacketId.ChannelId) {
+		// users may not escrow fees on this channel. Must send packets without a fee message
+		return nil, types.ErrFeeNotEnabled
+	}
 
 	if k.IsLocked(ctx) {
 		return nil, types.ErrFeeModuleLocked
