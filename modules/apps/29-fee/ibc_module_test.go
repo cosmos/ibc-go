@@ -624,7 +624,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				}.Acknowledgement()
 
 				expectedRelayerBalance = packetFee.Fee.AckFee
-				expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee[0])
+				expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee...)
 			},
 			true,
 		},
@@ -752,8 +752,9 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				expectedBalance = originalBalance.
-					Add(packetFee.Fee.RecvFee[0]).
-					Add(packetFee.Fee.AckFee[0])
+					Add(packetFee.Fee.RecvFee...).
+					Add(packetFee.Fee.AckFee...).
+					Add(packetFee.Fee.TimeoutFee...)
 			},
 			false,
 		},
