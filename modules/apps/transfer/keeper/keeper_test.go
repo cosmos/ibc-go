@@ -46,16 +46,6 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	return path
 }
 
-func (suite *KeeperTestSuite) TestGetTransferAccount() {
-	expectedMaccAddr := sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleName)))
-
-	macc := suite.chainA.GetSimApp().TransferKeeper.GetTransferAccount(suite.chainA.GetContext())
-
-	suite.Require().NotNil(macc)
-	suite.Require().Equal(types.ModuleName, macc.GetName())
-	suite.Require().Equal(expectedMaccAddr, macc.GetAddress())
-}
-
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
