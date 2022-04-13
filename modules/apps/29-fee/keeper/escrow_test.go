@@ -314,6 +314,12 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 	// check the module acc wallet is now empty
 	hasBalance = suite.chainA.GetSimApp().BankKeeper.HasBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(0)})
 	suite.Require().True(hasBalance)
+
+	// attempt to distribute with empty escrow balance
+	suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), "", timeoutRelayer, []types.PacketFee{packetFee, packetFee}, true)
+
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+
 }
 
 func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
