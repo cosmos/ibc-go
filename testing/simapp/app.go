@@ -421,6 +421,7 @@ func NewSimApp(
 	// pass in top-level (fully-wrapped) IBCModules to IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack). // ica with mock auth module stack route to ica (top level of middleware stack)
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
