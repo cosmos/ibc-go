@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	validCoins  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	validCoins2 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	validCoins3 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
+	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
+	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -335,9 +335,9 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 
 			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
-				RecvFee:    validCoins,
-				AckFee:     validCoins2,
-				TimeoutFee: validCoins3,
+				RecvFee:    defaultRecvFee,
+				AckFee:     defaultAckFee,
+				TimeoutFee: defaultTimeoutFee,
 			}
 
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
@@ -410,9 +410,9 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 
 			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
-				RecvFee:    validCoins,
-				AckFee:     validCoins2,
-				TimeoutFee: validCoins3,
+				RecvFee:    defaultRecvFee,
+				AckFee:     defaultAckFee,
+				TimeoutFee: defaultTimeoutFee,
 			}
 
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
@@ -650,9 +650,9 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			packetID := channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			packetFee = types.NewPacketFee(
 				types.Fee{
-					RecvFee:    validCoins,
-					AckFee:     validCoins2,
-					TimeoutFee: validCoins3,
+					RecvFee:    defaultRecvFee,
+					AckFee:     defaultAckFee,
+					TimeoutFee: defaultTimeoutFee,
 				},
 				suite.chainA.SenderAccount.GetAddress().String(),
 				[]string{},
@@ -780,9 +780,9 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			packetFee = types.NewPacketFee(
 				types.Fee{
-					RecvFee:    validCoins,
-					AckFee:     validCoins2,
-					TimeoutFee: validCoins3,
+					RecvFee:    defaultRecvFee,
+					AckFee:     defaultAckFee,
+					TimeoutFee: defaultTimeoutFee,
 				},
 				suite.chainA.SenderAccount.GetAddress().String(),
 				[]string{},

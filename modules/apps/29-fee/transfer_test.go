@@ -23,9 +23,9 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	// set up coin & ics20 packet
 	coin := ibctesting.TestCoin
 	fee := types.Fee{
-		RecvFee:    validCoins,
-		AckFee:     validCoins2,
-		TimeoutFee: validCoins3,
+		RecvFee:    defaultRecvFee,
+		AckFee:     defaultAckFee,
+		TimeoutFee: defaultTimeoutFee,
 	}
 
 	msgs := []sdk.Msg{
