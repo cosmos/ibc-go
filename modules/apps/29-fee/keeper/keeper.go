@@ -280,14 +280,14 @@ func (k Keeper) GetIdentifiedPacketFeesForChannel(ctx sdk.Context, portID, chann
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		packetId, err := types.ParseKeyFeesInEscrow(string(iterator.Key()))
+		packetID, err := types.ParseKeyFeesInEscrow(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
 		packetFees := k.MustUnmarshalFees(iterator.Value())
 
-		identifiedFee := types.NewIdentifiedPacketFees(packetId, packetFees.PacketFees)
+		identifiedFee := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
 		identifiedPacketFees = append(identifiedPacketFees, identifiedFee)
 	}
 
