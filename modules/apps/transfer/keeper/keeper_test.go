@@ -4,9 +4,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
