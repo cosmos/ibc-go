@@ -128,6 +128,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		refundAcc         sdk.AccAddress
 		refundAccBal      sdk.Coin
 		packetFee         types.PacketFee
+		packetFees        []types.PacketFee
 	)
 
 	testCases := []struct {
@@ -160,6 +161,20 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				// check the module acc wallet is now empty
 				balance = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)), balance)
+			},
+		},
+		{
+			"escrow account out of balance, fee module becomes locked - no distribution", func() {
+				// pass in an extra packet fee
+				packetFees = append(packetFees, packetFee)
+			},
+			func() {
+				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+
+				// check if the module acc contains all the fees
+				expectedModuleAccBal := packetFee.Fee.Total().Add(packetFee.Fee.Total()...)
+				balance := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress())
+				suite.Require().Equal(expectedModuleAccBal, balance)
 			},
 		},
 		{
@@ -201,7 +216,8 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		{
 			"invalid refund address: no-op, timeout fee remains in escrow",
 			func() {
-				packetFee.RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				packetFees[0].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				packetFees[1].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 			},
 			func() {
 				// check if the module acc contains the timeoutFee
@@ -229,6 +245,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 
 			// escrow the packet fee & store the fee in state
 			packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+			packetFees = []types.PacketFee{packetFee, packetFee}
 			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
 			suite.Require().NoError(err)
 
@@ -244,7 +261,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			reverseRelayerBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), reverseRelayer, sdk.DefaultBondDenom)
 			refundAccBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, []types.PacketFee{packetFee, packetFee}, false)
+			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, packetFees, false)
 
 			tc.expResult()
 		})

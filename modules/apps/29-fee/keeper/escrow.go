@@ -77,9 +77,9 @@ func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, rev
 		}
 
 		if isTimeout {
-			k.distributePacketFeeOnTimeout(ctx, refundAddr, reverseRelayer, packetFee)
+			k.distributePacketFeeOnTimeout(cacheCtx, refundAddr, reverseRelayer, packetFee)
 		} else {
-			k.distributePacketFeeOnAcknowledgement(ctx, refundAddr, forwardAddr, reverseRelayer, packetFee)
+			k.distributePacketFeeOnAcknowledgement(cacheCtx, refundAddr, forwardAddr, reverseRelayer, packetFee)
 		}
 	}
 
