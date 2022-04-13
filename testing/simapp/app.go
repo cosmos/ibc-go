@@ -353,6 +353,7 @@ func NewSimApp(
 		&stakingKeeper, govRouter,
 	)
 
+	// Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
 	)
@@ -379,19 +380,9 @@ func NewSimApp(
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 
-	// TODO: clean up remaining modules
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// not replicate if you do not need to test core IBC or light clients.
-	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
+	// Create Interchain Accounts Stack
 
-	// create fee wrapped mock module
-	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(MockFeePort, scopedFeeMockKeeper))
-	app.FeeMockModule = feeMockModule
-
-	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
-
-	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
-
+	// Controller
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
@@ -399,27 +390,38 @@ func NewSimApp(
 		scopedICAControllerKeeper, app.MsgServiceRouter(),
 	)
 
+	// Host
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
 	)
 
-	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
+	// Mock Module setup for testing IBC
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// not replicate if you do not need to test core IBC or light clients.
+	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
 
 	// initialize ICA module with mock module as the authentication module on the controller side
-	icaAuthModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp("", scopedICAMockKeeper))
-	app.ICAAuthModule = icaAuthModule
+	icaControllerStack := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp("", scopedICAMockKeeper))
+	app.ICAAuthModule = icaControllerStack
+	icaControllerStack = icacontroller.NewIBCMiddleware(app.ICAControllerKeeper, icaControllerStack)
 
-	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, icaAuthModule)
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
+
+	// create fee wrapped mock module
+	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(MockFeePort, scopedFeeMockKeeper))
+	app.FeeMockModule = feeMockModule
+	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
+
+	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
 
 	// Create static IBC router, add app routes, then set and seal it
 	// pass in top-level (fully-wrapped) IBCModules to IBC Router
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
+	ibcRouter.
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerIBCModule). // ica with mock auth module stack route to ica (top level of middleware stack)
+		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack). // ica with mock auth module stack route to ica (top level of middleware stack)
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(ibcmock.ModuleName, mockIBCModule).
 		AddRoute(MockFeePort, feeWithMockModule)
@@ -467,7 +469,7 @@ func NewSimApp(
 		// ibc modules
 		transferModule,
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
-		icaModule,
+		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
 	)
 

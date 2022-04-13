@@ -16,7 +16,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/client/cli"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller"
 	controllerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host"
@@ -31,7 +30,6 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 
-	_ porttypes.IBCModule = controller.IBCModule{}
 	_ porttypes.IBCModule = host.IBCModule{}
 )
 

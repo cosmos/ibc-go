@@ -29,7 +29,7 @@ func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface
+// OnChanOpenInit implements the IBCMiddleware interface
 func (im IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -60,7 +60,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 		chanCap, counterparty, versionMetadata.AppVersion)
 }
 
-// OnChanOpenTry implements the IBCModule interface
+// OnChanOpenTry implements the IBCMiddleware interface
 // If the channel is not fee enabled the underlying application version will be returned
 // If the channel is fee enabled we merge the underlying application version with the ics29 version
 func (im IBCMiddleware) OnChanOpenTry(
@@ -103,7 +103,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	return string(versionBytes), nil
 }
 
-// OnChanOpenAck implements the IBCModule interface
+// OnChanOpenAck implements the IBCMiddleware interface
 func (im IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
@@ -131,7 +131,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
-// OnChanOpenConfirm implements the IBCModule interface
+// OnChanOpenConfirm implements the IBCMiddleware interface
 func (im IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
@@ -141,7 +141,7 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
-// OnChanCloseInit implements the IBCModule interface
+// OnChanCloseInit implements the IBCMiddleware interface
 func (im IBCMiddleware) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
@@ -169,7 +169,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 	return nil
 }
 
-// OnChanCloseConfirm implements the IBCModule interface
+// OnChanCloseConfirm implements the IBCMiddleware interface
 func (im IBCMiddleware) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
@@ -192,7 +192,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
-// OnRecvPacket implements the IBCModule interface.
+// OnRecvPacket implements the IBCMiddleware interface.
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
@@ -217,7 +217,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
 
-// OnAcknowledgementPacket implements the IBCModule interface
+// OnAcknowledgementPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
@@ -247,7 +247,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
-// OnTimeoutPacket implements the IBCModule interface
+// OnTimeoutPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
