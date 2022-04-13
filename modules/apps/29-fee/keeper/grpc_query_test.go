@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 				for i := 0; i < 3; i++ {
 					// escrow packet fees for three different packets
 					packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, uint64(i+1))
-					suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
 
 					expectedPackets = append(expectedPackets, types.NewIdentifiedPacketFees(packetID, []types.PacketFee{packetFee}))
 				}
@@ -116,11 +116,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
-			for i := 0; i < 3; i++ {
-				// escrow three packet fees for the same packet
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
-			}
+			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
 
 			req = &types.QueryIncentivizedPacketRequest{
 				PacketId:    packetID,
@@ -272,11 +269,8 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
-			for i := 0; i < 3; i++ {
-				// escrow three packet fees for the same packet
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
-			}
+			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
 
 			req = &types.QueryTotalRecvFeesRequest{
 				PacketId: packetID,
@@ -336,11 +330,8 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
-			for i := 0; i < 3; i++ {
-				// escrow three packet fees for the same packet
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
-			}
+			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
 
 			req = &types.QueryTotalAckFeesRequest{
 				PacketId: packetID,
@@ -400,11 +391,8 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
-			for i := 0; i < 3; i++ {
-				// escrow three packet fees for the same packet
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
-			}
+			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
 
 			req = &types.QueryTotalTimeoutFeesRequest{
 				PacketId: packetID,

@@ -48,7 +48,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 	)
 
 	packetFee := types.NewPacketFee(msg.Fee, msg.Signer, msg.Relayers)
-	if err := k.EscrowPacketFee(ctx, packetID, packetFee); err != nil {
+	if err := k.escrowPacketFee(ctx, packetID, packetFee); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 		return nil, types.ErrFeeModuleLocked
 	}
 
-	if err := k.EscrowPacketFee(ctx, msg.PacketId, msg.PacketFee); err != nil {
+	if err := k.escrowPacketFee(ctx, msg.PacketId, msg.PacketFee); err != nil {
 		return nil, err
 	}
 

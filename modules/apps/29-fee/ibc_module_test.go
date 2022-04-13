@@ -308,8 +308,9 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 				)
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total())
 			},
 			false,
 		},
@@ -323,8 +324,9 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 				)
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total())
 
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
 
@@ -386,8 +388,9 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total())
 			},
 			false,
 		},
@@ -401,8 +404,9 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				}
 				refundAcc := suite.chainA.SenderAccount.GetAddress()
 				packetFee := types.NewPacketFee(types.Fee{validCoins, validCoins2, validCoins3}, refundAcc.String(), []string{})
-				err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-				suite.Require().NoError(err)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total())
 
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, refundAcc, validCoins3)
 
@@ -664,8 +668,9 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				[]string{},
 			)
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-			suite.Require().NoError(err)
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, packetFee.Fee.Total())
 
 			relayerAddr := suite.chainB.SenderAccount.GetAddress()
 
@@ -796,8 +801,8 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				[]string{},
 			)
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-			suite.Require().NoError(err)
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, packetFee.Fee.Total())
 
 			// log original sender balance
 			// NOTE: balance is logged after escrowing tokens
