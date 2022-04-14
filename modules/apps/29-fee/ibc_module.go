@@ -258,7 +258,7 @@ func (im IBCModule) OnTimeoutPacket(
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees) // timeouts have no forward relayer
+		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)
 
 		// removes the fee from the store as fee is now paid
 		im.keeper.DeleteFeesInEscrow(ctx, packetID)
