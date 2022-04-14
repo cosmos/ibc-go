@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	defaultReceiveFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
 	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
 	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
 	invalidCoins      = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
@@ -76,7 +76,7 @@ func lockFeeModule(chain *ibctesting.TestChain) {
 }
 
 func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
-	fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
 
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestFeesInEscrow() {
 
 	// escrow five fees for packet sequence 1
 	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-	fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 	packetFees := []types.PacketFee{packetFee, packetFee, packetFee, packetFee, packetFee}
@@ -132,7 +132,7 @@ func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 	packetID2 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 2)
 	packetID5 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 51)
 
-	fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	// escrow the packet fee
 	packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
@@ -193,7 +193,7 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-	fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	// escrow the packet fee
 	packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})

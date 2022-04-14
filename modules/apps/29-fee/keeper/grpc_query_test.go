@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 
-				fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
 				for i := 0; i < 3; i++ {
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 
 			packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
-			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
 			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}
@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 
 			packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
-			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
 			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}
@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 				suite.Require().NotNil(res)
 
 				// expected total is three times the default recv fee
-				expectedFees := defaultReceiveFee.Add(defaultReceiveFee...).Add(defaultReceiveFee...)
+				expectedFees := defaultRecvFee.Add(defaultRecvFee...).Add(defaultRecvFee...)
 				suite.Require().Equal(expectedFees, res.RecvFees)
 			} else {
 				suite.Require().Error(err)
@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 
 			packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
-			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
 			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}
@@ -388,7 +388,7 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 
 			packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
-			fee := types.NewFee(defaultReceiveFee, defaultAckFee, defaultTimeoutFee)
+			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string(nil))
 
 			packetFees := []types.PacketFee{packetFee, packetFee, packetFee}

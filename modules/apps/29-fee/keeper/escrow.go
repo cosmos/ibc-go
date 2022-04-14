@@ -44,51 +44,108 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 	return nil
 }
 
-// DistributePacketFees pays the acknowledgement fee & receive fee for a given packetID while refunding the timeout fee to the refund account associated with the Fee.
-func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, feesInEscrow []types.PacketFee) {
+// DistributePacketFeesOnAcknowledgement pays all the acknowledgement & receive fees for a given packetID while refunding the timeout fees to the refund account.
+func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx sdk.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, packetFees []types.PacketFee) {
+	// cache context before trying to distribute fees
+	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
+	cacheCtx, writeFn := ctx.CacheContext()
+
 	forwardAddr, _ := sdk.AccAddressFromBech32(forwardRelayer)
 
-	for _, packetFee := range feesInEscrow {
+	for _, packetFee := range packetFees {
+		if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
+			// if the escrow account does not have sufficient funds then there must exist a severe bug
+			// the fee module should be locked until manual intervention fixes the issue
+			// a locked fee module will simply skip fee logic, all channels will temporarily function as
+			// fee disabled channels
+			// NOTE: we use the uncached context to lock the fee module so that the state changes from
+			// locking the fee module are persisted
+			k.lockFeeModule(ctx)
+
+			return
+		}
+
+		// check if refundAcc address works
 		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 		if err != nil {
 			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
 		}
 
-		// distribute fee to valid forward relayer address otherwise refund the fee
-		if !forwardAddr.Empty() && !k.bankKeeper.BlockedAddr(forwardAddr) {
-			// distribute fee for forward relaying
-			k.distributeFee(ctx, forwardAddr, refundAddr, packetFee.Fee.RecvFee)
-		} else {
-			// refund onRecv fee as forward relayer is not valid address
-			k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.RecvFee)
-		}
-
-		// distribute fee for reverse relaying
-		k.distributeFee(ctx, reverseRelayer, refundAddr, packetFee.Fee.AckFee)
-
-		// refund timeout fee for unused timeout
-		k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.TimeoutFee)
+		k.distributePacketFeeOnAcknowledgement(cacheCtx, refundAddr, forwardAddr, reverseRelayer, packetFee)
 	}
+
+	// write the cache
+	writeFn()
+
+	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 }
 
-// DistributePacketsFeesTimeout pays the timeout fee for a given packetID while refunding the acknowledgement fee & receive fee to the refund account associated with the Fee
-func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, feesInEscrow []types.PacketFee) {
-	for _, feeInEscrow := range feesInEscrow {
-		// check if refundAcc address works
-		refundAddr, err := sdk.AccAddressFromBech32(feeInEscrow.RefundAddress)
-		if err != nil {
-			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", feeInEscrow.RefundAddress))
+// distributePacketFeeOnAcknowledgement pays the receive fee for a given packetID while refunding the timeout fee to the refund account associated with the Fee.
+// If there was no forward relayer or the associated forward relayer address is blocked, the receive fee is refunded.
+func (k Keeper) distributePacketFeeOnAcknowledgement(ctx sdk.Context, refundAddr, forwardRelayer, reverseRelayer sdk.AccAddress, packetFee types.PacketFee) {
+	// distribute fee to valid forward relayer address otherwise refund the fee
+	if !forwardRelayer.Empty() && !k.bankKeeper.BlockedAddr(forwardRelayer) {
+		// distribute fee for forward relaying
+		k.distributeFee(ctx, forwardRelayer, refundAddr, packetFee.Fee.RecvFee)
+	} else {
+		// refund onRecv fee as forward relayer is not valid address
+		k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.RecvFee)
+	}
+
+	// distribute fee for reverse relaying
+	k.distributeFee(ctx, reverseRelayer, refundAddr, packetFee.Fee.AckFee)
+
+	// refund timeout fee for unused timeout
+	k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.TimeoutFee)
+
+}
+
+// DistributePacketsFeesOnTimeout pays all the timeout fees for a given packetID while refunding the acknowledgement & receive fees to the refund account.
+func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, packetFees []types.PacketFee) {
+	// cache context before trying to distribute fees
+	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
+	cacheCtx, writeFn := ctx.CacheContext()
+
+	for _, packetFee := range packetFees {
+		if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
+			// if the escrow account does not have sufficient funds then there must exist a severe bug
+			// the fee module should be locked until manual intervention fixes the issue
+			// a locked fee module will simply skip fee logic, all channels will temporarily function as
+			// fee disabled channels
+			// NOTE: we use the uncached context to lock the fee module so that the state changes from
+			// locking the fee module are persisted
+			k.lockFeeModule(ctx)
+
+			return
 		}
 
-		// refund receive fee for unused forward relaying
-		k.distributeFee(ctx, refundAddr, refundAddr, feeInEscrow.Fee.RecvFee)
+		// check if refundAcc address works
+		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+		if err != nil {
+			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
+		}
 
-		// refund ack fee for unused reverse relaying
-		k.distributeFee(ctx, refundAddr, refundAddr, feeInEscrow.Fee.AckFee)
-
-		// distribute fee for timeout relaying
-		k.distributeFee(ctx, timeoutRelayer, refundAddr, feeInEscrow.Fee.TimeoutFee)
+		k.distributePacketFeeOnTimeout(cacheCtx, refundAddr, timeoutRelayer, packetFee)
 	}
+
+	// write the cache
+	writeFn()
+
+	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+}
+
+// distributePacketFeeOnTimeout pays the timeout fee to the timeout relayer and refunds the acknowledgement & receive fee.
+func (k Keeper) distributePacketFeeOnTimeout(ctx sdk.Context, refundAddr, timeoutRelayer sdk.AccAddress, packetFee types.PacketFee) {
+	// refund receive fee for unused forward relaying
+	k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.RecvFee)
+
+	// refund ack fee for unused reverse relaying
+	k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.AckFee)
+
+	// distribute fee for timeout relaying
+	k.distributeFee(ctx, timeoutRelayer, refundAddr, packetFee.Fee.TimeoutFee)
 }
 
 // distributeFee will attempt to distribute the escrowed fee to the receiver address.
