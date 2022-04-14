@@ -65,9 +65,11 @@ Only the following major release series have a stable release status:
 
 |Release|End of Life Date|
 |-------|-------|
-|`v1.1.x`|July 01, 2022|
-|`v1.2.x`|July 01, 2022|
-|`v2.0.x`|February 01, 2023|
+|`v1.3.x`|July 01, 2022|
+|`v1.4.x`|July 01, 2022|
+|`v2.1.x`|February 01, 2023|
+|`v2.2.x`|February 01, 2023|
+|`v3.0.x`|March 15, 2023|
 
 **Note**: The v1 major release series will reach end of life 6 months after merging this policy. v2 will reach end of life one year after merging this policy. 
 
