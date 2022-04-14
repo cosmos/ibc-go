@@ -390,6 +390,12 @@ func NewSimApp(
 	)
 
 	// Create Transfer Stack
+	// SendPacket, since it is originating from the application to core IBC:
+	// transferKeeper.SendPacket -> fee.SendPacket -> channel.SendPacket
+
+	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
+	// channel.RecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
+
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
 	// transfer stack contains (from top to bottom):
@@ -406,8 +412,10 @@ func NewSimApp(
 		AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Create Interchain Accounts Stack
+	// SendPacket, since it is originating from the application to core IBC:
+	// icaAuthModuleKeeper.SendPacket -> icaControllerKeeper.SendPacket -> channel.SendPacket
 
-	// Mock Module setup for testing IBC
+	// Mock Module setup for testing IBC and acts as the interchain accounts authentication module
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
@@ -422,6 +430,9 @@ func NewSimApp(
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
+		// the ICA Controller middleware needs to be explicitly added to the IBC Router because the
+		// ICA controller module owns the port capability for ICA. The ICA authentication module
+		// owns the channel capability.
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
