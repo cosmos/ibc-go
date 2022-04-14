@@ -5,16 +5,16 @@ package ibc.lightclients.beefy.v1;
 option go_package = "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types";
 
 import "google/protobuf/timestamp.proto";
+
 import "gogoproto/gogo.proto";
 
-option (gogoproto.marshaler_all) = false;
-option (gogoproto.unmarshaler_all) = false;
-option (gogoproto.sizer_all) = false;
+option (gogoproto.marshaler_all)        = false;
+option (gogoproto.unmarshaler_all)      = false;
+option (gogoproto.sizer_all)            = false;
 option (gogoproto.goproto_registration) = true;
-option (gogoproto.messagename_all) = true;
-option (gogoproto.protosizer_all) =false;
+option (gogoproto.protosizer_all)       = false;
 
-// ClientState from Tendermint tracks the current validator set, latest height,
+// ClientState from Beefy tracks the current validator set, latest height,
 // and a possible frozen height.
 message ClientState {
   option (gogoproto.goproto_getters) = false;
@@ -29,7 +29,7 @@ message ClientState {
   uint64 frozen_height = 3;
 
   // block number that the beefy protocol was activated on the relay chain.
-  // This shoould be the first block in the merkle-mountain-range tree.
+  // This should be the first block in the merkle-mountain-range tree.
   uint32 beefy_activation_block = 4;
 
   // authorities for the current round
@@ -194,10 +194,10 @@ message BeefyAuthoritySet {
   option (gogoproto.goproto_getters) = false;
 
   // Id of the authority set, it should be strictly increasing
-  uint64 id = 1 ;
+  uint64 id = 1;
 
   // size of the authority set
-  uint32 len = 2 ;
+  uint32 len = 2;
 
   // merkle root of the sorted authority public keys.
   bytes authority_root = 3 [(gogoproto.customtype) = "[32]byte"];
@@ -221,5 +221,4 @@ message BeefyMmrLeaf {
 
   // merkle root hash of parachain heads included in the leaf.
   bytes parachain_heads = 5 [(gogoproto.customtype) = "[32]byte"];
-
 }

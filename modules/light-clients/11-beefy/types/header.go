@@ -3,6 +3,8 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"log"
 	"time"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -52,13 +54,6 @@ func (h Header) ConsensusState() *ConsensusState {
 	}
 
 	rootHash := parachainHeader.StateRoot[:]
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	return &ConsensusState{
 		Root: rootHash,
@@ -110,4 +105,12 @@ func (h Header) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// GetPubKey unmarshals the new public key into a cryptotypes.PubKey type.
+// An error is returned if the new public key is nil or the cached value
+// is not a PubKey.
+func (h Header) GetPubKey() (cryptotypes.PubKey, error) {
+	panic("implement me")
+	return nil, nil
 }
