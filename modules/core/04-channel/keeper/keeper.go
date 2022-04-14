@@ -86,8 +86,8 @@ func (k Keeper) SetChannel(ctx sdk.Context, portID, channelID string, channel ty
 	store.Set(host.ChannelKey(portID, channelID), bz)
 }
 
-// GetUnwrappedChannelVersion gets the version for the specified channel.
-func (k Keeper) GetUnwrappedChannelVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+// GetAppVersion gets the version for the specified channel.
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return "", false

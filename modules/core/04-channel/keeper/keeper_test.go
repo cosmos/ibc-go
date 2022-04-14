@@ -63,12 +63,12 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	suite.Equal(expectedCounterparty, storedChannel.Counterparty)
 }
 
-func (suite *KeeperTestSuite) TestGetUnwrappedChannelVersion() {
+func (suite *KeeperTestSuite) TestGetAppVersion() {
 	// create client and connections on both chains
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	version, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUnwrappedChannelVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	version, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().False(found)
 	suite.Require().Empty(version)
 
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestGetUnwrappedChannelVersion() {
 	err := path.EndpointA.ChanOpenInit()
 	suite.NoError(err)
 
-	channelVersion, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUnwrappedChannelVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	channelVersion, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(ibcmock.Version, channelVersion)
 }
