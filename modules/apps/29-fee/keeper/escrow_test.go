@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestEscrowPacketFee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestDistributeFee() {
+func (suite *KeeperTestSuite) TestDistributePacketFeesOnAcknowledgement() {
 	var (
 		forwardRelayer    string
 		forwardRelayerBal sdk.Coin
@@ -261,7 +261,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			reverseRelayerBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), reverseRelayer, sdk.DefaultBondDenom)
 			refundAccBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFees(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, packetFees, false)
+			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnAcknowledgement(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, packetFees)
 
 			tc.expResult()
 		})
