@@ -852,7 +852,6 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
 				// by default a new path uses a non fee channel
-
 				suite.coordinator.Setup(path)
 				portID = path.EndpointA.ChannelConfig.PortID
 				channelID = path.EndpointA.ChannelID
@@ -864,7 +863,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 		{
 			"channel does not exist",
 			func() {
-				portID = "does not exist"
+				channelID = "does not exist"
 			},
 			false,
 		},
