@@ -5,6 +5,10 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	types2 "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"os"
 	"sort"
 	"testing"
@@ -40,7 +44,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 		t.Skip("skipping test in short mode")
 	}
 
-	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
+	relayApi, err := client.NewSubstrateAPI("ws://34.125.166.155:9944")
 	require.NoError(t, err)
 
 	t.Log("==== connected! ==== ")
@@ -343,7 +347,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				MmrUpdateProof:   &mmrUpdateProof,
 			}
 
-			_, _, err = clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
+			err = clientState.VerifyClientMessage(sdk.Context{}, nil, nil, &header)
 			require.NoError(t, err)
 
 			t.Logf("clientState.LatestBeefyHeight: %d clientState.MmrRootHash: %s", clientState.LatestBeefyHeight, hex.EncodeToString(clientState.MmrRootHash))
@@ -353,8 +357,80 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 			t.Log("====== successfully processed justification! ======")
 
+			paramSpace := types2.NewSubspace(nil, nil, nil, nil, "test")
+			//paramSpace = paramSpace.WithKeyTable(clientypes.ParamKeyTable())
+
+			k := keeper.NewKeeper(nil, nil, paramSpace, nil, nil)
+			ctx := sdk.Context{}
+			store := k.ClientStore(ctx, "1234")
+
+			err = clientState.UpdateState(sdk.Context{}, nil, store, &header)
+			require.NoError(t, err)
+
 			// TODO: assert that the consensus states were actually persisted
 			// TODO: tests against invalid proofs and consensus states
+		}
+	}
+}
+
+func (suite *BeefyTestSuite) TestUpdateState() {
+	var (
+		clientState exported.ClientState
+		clientMsg   exported.ClientMessage
+	)
+
+	// test singlesig and multisig public keys
+	for _, solomachine := range []*ibctesting.Solomachine{} {
+
+		testCases := []struct {
+			name    string
+			setup   func()
+			expPass bool
+		}{
+			{
+				"successful update",
+				func() {
+					clientState = solomachine.ClientState()
+					clientMsg = solomachine.CreateHeader()
+				},
+				true,
+			},
+			{
+				"invalid type misbehaviour",
+				func() {
+					clientState = solomachine.ClientState()
+					clientMsg = solomachine.CreateMisbehaviour()
+				},
+				false,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				tc.setup() // setup test
+
+				err := clientState.UpdateState(sdk.Context{}, nil, nil, clientMsg)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+
+					//clientStateBz := suite.store.Get(host.ClientStateKey())
+					//suite.Require().NotEmpty(clientStateBz)
+					//
+					//newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+					//
+					//suite.Require().Positive(newClientState.(*types.ClientState).FrozenHeight)
+					//suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, newClientState.(*types.ClientState).Sequence)
+					//suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, newClientState.(*types.ClientState).ConsensusState.PublicKey)
+					//suite.Require().Equal(clientMsg.(*types.Header).NewDiversifier, newClientState.(*types.ClientState).ConsensusState.Diversifier)
+					//suite.Require().Equal(clientMsg.(*types.Header).Timestamp, newClientState.(*types.ClientState).ConsensusState.Timestamp)
+				} else {
+					suite.Require().Error(err)
+				}
+
+			})
 		}
 	}
 }
