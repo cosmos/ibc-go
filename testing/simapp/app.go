@@ -300,7 +300,8 @@ func NewSimApp(
 	// seal capability keeper after scoping modules
 	app.CapabilityKeeper.Seal()
 
-	// add keepers
+	// SDK module keepers
+
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, keys[authtypes.StoreKey], app.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
 	)
@@ -334,12 +335,13 @@ func NewSimApp(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
-	// Create IBC Keeper
+	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter())
+
+	// IBC Keepers
+
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
-
-	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter())
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -353,12 +355,30 @@ func NewSimApp(
 		&stakingKeeper, govRouter,
 	)
 
-	// Fee Module keeper
+	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
 	)
 
-	// Create Transfer Stack
+	// ICA Controller keeper
+	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
+		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		scopedICAControllerKeeper, app.MsgServiceRouter(),
+	)
+
+	// ICA Host keeper
+	app.ICAHostKeeper = icahostkeeper.NewKeeper(
+		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
+	)
+
+	// Create IBC Router
+	ibcRouter := porttypes.NewRouter()
+
+	// Middleware Stacks
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 	// since fee middleware will wrap the IBCKeeper for underlying application.
@@ -369,6 +389,7 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 
+	// Create Transfer Stack
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
 	// transfer stack contains (from top to bottom):
@@ -380,22 +401,11 @@ func NewSimApp(
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 
+	// Add transfer stack to IBC Router
+	ibcRouter.
+		AddRoute(ibctransfertypes.ModuleName, transferStack)
+
 	// Create Interchain Accounts Stack
-
-	// Controller
-	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper, app.MsgServiceRouter(),
-	)
-
-	// Host
-	app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
-	)
 
 	// Mock Module setup for testing IBC
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
@@ -410,6 +420,13 @@ func NewSimApp(
 
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
+	// Add host, controller & ica auth modules to IBC router
+	ibcRouter.
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
+		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
+
+	// Create Mock IBC Fee module stack for testing
 	// create fee wrapped mock module
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
@@ -417,17 +434,12 @@ func NewSimApp(
 
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
 
-	// Create static IBC router, add app routes, then set and seal it
-	// pass in top-level (fully-wrapped) IBCModules to IBC Router
-	ibcRouter := porttypes.NewRouter()
+	// Add Mock Module & Mock Fee Module to IBC Router
 	ibcRouter.
-		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack). // ica with mock auth module stack route to ica (top level of middleware stack)
-		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(ibcmock.ModuleName, mockIBCModule).
 		AddRoute(MockFeePort, feeWithMockModule)
 
+	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
