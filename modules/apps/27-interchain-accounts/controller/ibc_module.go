@@ -174,7 +174,7 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 ) error {
-	return nil
+	panic("SendPacket not supported for ICA controller module")
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -184,5 +184,5 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return nil
+	panic("WriteAcknowledgement not supported for ICA controller module")
 }
