@@ -49,18 +49,41 @@ func (k Keeper) EscrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 	return nil
 }
 
-// DistributePacketFees pays all the acknowledgement & receive fees for a given packetID while refunding the timeout fees to the refund account.
-func (k Keeper) DistributePacketFees(ctx sdk.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, feesInEscrow []types.PacketFee) {
+// DistributePacketFeesOnAcknowledgement pays all the acknowledgement & receive fees for a given packetID while refunding the timeout fees to the refund account.
+func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx sdk.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, packetFees []types.PacketFee) {
+	// cache context before trying to distribute fees
+	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
+	cacheCtx, writeFn := ctx.CacheContext()
+
 	forwardAddr, _ := sdk.AccAddressFromBech32(forwardRelayer)
 
-	for _, packetFee := range feesInEscrow {
+	for _, packetFee := range packetFees {
+		if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
+			// if the escrow account does not have sufficient funds then there must exist a severe bug
+			// the fee module should be locked until manual intervention fixes the issue
+			// a locked fee module will simply skip fee logic, all channels will temporarily function as
+			// fee disabled channels
+			// NOTE: we use the uncached context to lock the fee module so that the state changes from
+			// locking the fee module are persisted
+			k.lockFeeModule(ctx)
+
+			return
+		}
+
+		// check if refundAcc address works
 		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 		if err != nil {
 			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
 		}
 
-		k.distributePacketFeeOnAcknowledgement(ctx, refundAddr, forwardAddr, reverseRelayer, packetFee)
+		k.distributePacketFeeOnAcknowledgement(cacheCtx, refundAddr, forwardAddr, reverseRelayer, packetFee)
 	}
+
+	// write the cache
+	writeFn()
+
+	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 }
 
 // distributePacketFeeOnAcknowledgement pays the receive fee for a given packetID while refunding the timeout fee to the refund account associated with the Fee.
@@ -84,16 +107,38 @@ func (k Keeper) distributePacketFeeOnAcknowledgement(ctx sdk.Context, refundAddr
 }
 
 // DistributePacketsFeesOnTimeout pays all the timeout fees for a given packetID while refunding the acknowledgement & receive fees to the refund account.
-func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, feesInEscrow []types.PacketFee) {
-	for _, feeInEscrow := range feesInEscrow {
-		// check if refundAcc address works
-		refundAddr, err := sdk.AccAddressFromBech32(feeInEscrow.RefundAddress)
-		if err != nil {
-			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", feeInEscrow.RefundAddress))
+func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, packetFees []types.PacketFee) {
+	// cache context before trying to distribute fees
+	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
+	cacheCtx, writeFn := ctx.CacheContext()
+
+	for _, packetFee := range packetFees {
+		if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
+			// if the escrow account does not have sufficient funds then there must exist a severe bug
+			// the fee module should be locked until manual intervention fixes the issue
+			// a locked fee module will simply skip fee logic, all channels will temporarily function as
+			// fee disabled channels
+			// NOTE: we use the uncached context to lock the fee module so that the state changes from
+			// locking the fee module are persisted
+			k.lockFeeModule(ctx)
+
+			return
 		}
 
-		k.distributePacketFeeOnTimeout(ctx, refundAddr, timeoutRelayer, feeInEscrow)
+		// check if refundAcc address works
+		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+		if err != nil {
+			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
+		}
+
+		k.distributePacketFeeOnTimeout(cacheCtx, refundAddr, timeoutRelayer, packetFee)
 	}
+
+	// write the cache
+	writeFn()
+
+	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 }
 
 // distributePacketFeeOnTimeout pays the timeout fee to the timeout relayer and refunds the acknowledgement & receive fee.
