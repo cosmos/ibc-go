@@ -188,7 +188,8 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, feesInEscrow)
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
 
 				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
 			},

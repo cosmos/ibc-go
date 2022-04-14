@@ -122,7 +122,8 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 
 			packetFees := []types.PacketFee{packetFee, packetFee}
 			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
-			suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total().Add(packetFee.Fee.Total()...))
+			err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total().Add(packetFee.Fee.Total()...))
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -163,7 +164,8 @@ func (suite *KeeperTestSuite) TestDistributeTimeoutFee() {
 
 	packetFees := []types.PacketFee{packetFee, packetFee}
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
-	suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total().Add(packetFee.Fee.Total()...))
+	err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total().Add(packetFee.Fee.Total()...))
+	suite.Require().NoError(err)
 
 	// refundAcc balance after escrow
 	refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
@@ -210,7 +212,8 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
 
-					suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+					err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+					suite.Require().NoError(err)
 
 					expIdentifiedPacketFees = append(expIdentifiedPacketFees, identifiedPacketFees)
 				}
@@ -226,7 +229,8 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
 
-					suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+					err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+					suite.Require().NoError(err)
 
 					expIdentifiedPacketFees = append(expIdentifiedPacketFees, identifiedPacketFees)
 				}
@@ -237,7 +241,8 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, "channel-1")
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
 
 				expEscrowBal = fee.Total()
 				expRefundBal = expRefundBal.Sub(fee.Total())
@@ -273,7 +278,8 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID2, packetFees)
 
 				// update escrow account balance for 1 fee
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFee1, identifiedPacketFee2}
 			}, true,
@@ -287,7 +293,8 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
 
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
 			}, false,
@@ -303,7 +310,8 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
 
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
 
