@@ -151,19 +151,8 @@ func (im IBCMiddleware) OnChanCloseInit(
 		return err
 	}
 
-	// delete fee enabled on channel
-	// and refund any remaining fees escrowed on channel
-	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
-	// error should only be non-nil if there is a bug in the code
-	// that causes module account to have insufficient funds to refund
-	// all escrowed fees on the channel.
-	// Disable all channels to allow for coordinated fix to the issue
-	// and mitigate/reverse damage.
-	// NOTE: Underlying application's packets will still go through, but
-	// fee module will be disabled for all channels
-	if err != nil {
-		im.keeper.DisableAllChannels(ctx)
+	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
+		return err
 	}
 
 	return nil
@@ -175,21 +164,15 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	// delete fee enabled on channel
-	// and refund any remaining fees escrowed on channel
-	im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-	err := im.keeper.RefundFeesOnChannel(ctx, portID, channelID)
-	// error should only be non-nil if there is a bug in the code
-	// that causes module account to have insufficient funds to refund
-	// all escrowed fees on the channel.
-	// Disable all channels to allow for coordinated fix to the issue
-	// and mitigate/reverse damage.
-	// NOTE: Underlying application's packets will still go through, but
-	// fee module will be disabled for all channels
-	if err != nil {
-		im.keeper.DisableAllChannels(ctx)
+	if err := im.app.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+		return err
 	}
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+
+	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
@@ -207,7 +190,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	// incase of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
-		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence()), relayer.String())
+		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
 		return nil
 	}
 
@@ -234,10 +217,22 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	if im.keeper.IsLocked(ctx) {
+		// if the fee keeper is locked then fee logic should be skipped
+		// this may occur in the presence of a severe bug which leads to invalid state
+		// the fee keeper will be unlocked after manual intervention
+		// the acknowledgement has been unmarshalled into an ics29 acknowledgement
+		// since the counterparty is still sending incentivized acknowledgements
+		// for fee enabled channels
+		//
+		// Please see ADR 004 for more information.
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	}
+
+	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		im.keeper.DistributePacketFees(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
+		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
 
 		// removes the fees from the store as fees are now paid
 		im.keeper.DeleteFeesInEscrow(ctx, packetID)
@@ -254,11 +249,16 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+	// if the fee keeper is locked then fee logic should be skipped
+	// this may occur in the presence of a severe bug which leads to invalid state
+	// the fee keeper will be unlocked after manual intervention
+	//
+	// Please see ADR 004 for more information.
+	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	packetID := channeltypes.NewPacketId(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
 		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)
