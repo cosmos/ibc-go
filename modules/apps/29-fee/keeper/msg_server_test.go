@@ -55,7 +55,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 
 func (suite *KeeperTestSuite) TestPayPacketFee() {
 	var (
-		msg *types.MsgPayPacketFee
+		expEscrowBalance sdk.Coins
+		msg              *types.MsgPayPacketFee
 	)
 
 	testCases := []struct {
@@ -78,6 +79,10 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, feesInEscrow)
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
+
+				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
 			},
 			true,
 		},
@@ -149,14 +154,22 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				[]string{},
 			)
 
+			expEscrowBalance = fee.Total()
+
 			tc.malleate()
 
 			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
+
+				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
+				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)
 			} else {
 				suite.Require().Error(err)
+
+				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
+				suite.Require().Equal(sdk.NewInt(0), escrowBalance.Amount)
 			}
 		})
 	}
