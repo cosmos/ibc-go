@@ -241,18 +241,21 @@ func SendPacket(appPacket channeltypes.Packet) {
     return ics4Keeper.SendPacket(packet)
 }
 
-// middleware must unwrap the channel version so the underlying application 
-// which calls this function receives the version it constructed.
+// middleware must return the underlying application version 
 func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
     version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
     if !found {
         return "", false
     }
 
+    if !MiddlewareEnabled {
+        return version, true
+    }
+
     // unwrap channel version
     metadata, err := Unmarshal(version)
     if err != nil {
-        panic() 
+        panic(fmt.Errof("unable to unmarshal version: %w", err))
     }
 
     return metadata.AppVersion, true
