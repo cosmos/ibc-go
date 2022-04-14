@@ -56,6 +56,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 func (suite *KeeperTestSuite) TestPayPacketFee() {
 	var (
 		expEscrowBalance sdk.Coins
+		expFeesInEscrow  []types.PacketFee
 		msg              *types.MsgPayPacketFee
 	)
 
@@ -75,7 +76,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string{})
+				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, feesInEscrow)
@@ -83,6 +84,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				suite.Require().NoError(err)
 
 				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
+				expFeesInEscrow = append(expFeesInEscrow, packetFee)
 			},
 			true,
 		},
@@ -151,10 +153,12 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				suite.path.EndpointA.ChannelConfig.PortID,
 				suite.path.EndpointA.ChannelID,
 				suite.chainA.SenderAccount.GetAddress().String(),
-				[]string{},
+				nil,
 			)
 
 			expEscrowBalance = fee.Total()
+			expPacketFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
+			expFeesInEscrow = []types.PacketFee{expPacketFee}
 
 			tc.malleate()
 
@@ -162,6 +166,11 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
+
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().True(found)
+				suite.Require().Equal(expFeesInEscrow, feesInEscrow.PacketFees)
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)
@@ -178,6 +187,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 	var (
 		expEscrowBalance sdk.Coins
+		expFeesInEscrow  []types.PacketFee
 		msg              *types.MsgPayPacketFeeAsync
 	)
 
@@ -197,7 +207,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), []string{})
+				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, feesInEscrow)
@@ -205,6 +215,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				suite.Require().NoError(err)
 
 				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
+				expFeesInEscrow = append(expFeesInEscrow, packetFee)
 			},
 			true,
 		},
@@ -272,6 +283,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 
 			expEscrowBalance = fee.Total()
+			expFeesInEscrow = []types.PacketFee{packetFee}
 			msg = types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 			tc.malleate()
@@ -280,6 +292,10 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
+
+				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().True(found)
+				suite.Require().Equal(expFeesInEscrow, feesInEscrow.PacketFees)
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)
