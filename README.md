@@ -1,4 +1,9 @@
-# ibc-go
+<div align="center">
+  <h1>ibc-go</h1>
+</div>
+
+![banner](docs/ibc-go-image.png)
+
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go/releases/latest">
     <img alt="Version" src="https://img.shields.io/github/tag/cosmos/ibc-go.svg" />
