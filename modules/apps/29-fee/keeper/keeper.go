@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
@@ -26,7 +25,7 @@ type Keeper struct {
 	cdc      codec.BinaryCodec
 
 	authKeeper    types.AccountKeeper
-	ics4Wrapper   porttypes.ICS4Wrapper
+	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	bankKeeper    types.BankKeeper
@@ -35,7 +34,7 @@ type Keeper struct {
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 
 	return Keeper{

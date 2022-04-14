@@ -102,6 +102,11 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
+// GetAppVersion calls the ICS4Wrapper GetAppVersion function.
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+}
+
 // GetActiveChannelID retrieves the active channelID from the store, keyed by the provided connectionID and portID
 func (k Keeper) GetActiveChannelID(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
