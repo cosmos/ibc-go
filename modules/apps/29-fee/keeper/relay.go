@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -41,4 +43,23 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 
 	// ics4Wrapper may be core IBC or higher-level middleware
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+}
+
+// GetAppVersion returns the underlying application version.
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	version, found := k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return "", false
+	}
+
+	if !k.IsFeeEnabled(ctx, portID, channelID) {
+		return version, true
+	}
+
+	var metadata types.Metadata
+	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
+		panic(fmt.Errorf("unable to unmarshal metadata for fee enabled channel: %w", err))
+	}
+
+	return metadata.AppVersion, true
 }
