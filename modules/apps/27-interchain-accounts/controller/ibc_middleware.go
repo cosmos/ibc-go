@@ -24,10 +24,10 @@ type IBCMiddleware struct {
 }
 
 // IBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
-func NewIBCMiddleware(k keeper.Keeper, app porttypes.IBCModule) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		keeper: k,
 		app:    app,
+		keeper: k,
 	}
 }
 
