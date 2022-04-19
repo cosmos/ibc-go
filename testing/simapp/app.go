@@ -408,17 +408,16 @@ func NewSimApp(
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 
 	// Add transfer stack to IBC Router
-	ibcRouter.
-		AddRoute(ibctransfertypes.ModuleName, transferStack)
-
-	// Create Interchain Accounts Stack
-	// SendPacket, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendPacket -> icaControllerKeeper.SendPacket -> channel.SendPacket
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Mock Module setup for testing IBC and acts as the interchain accounts authentication module
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
+
+	// Create Interchain Accounts Stack
+	// SendPacket, since it is originating from the application to core IBC:
+	// icaAuthModuleKeeper.SendPacket -> icaControllerKeeper.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
@@ -438,6 +437,15 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	// Create Mock IBC Fee module stack for testing
+	// OnAckPacket as this is where fee's are paid out
+	// mockModule.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
+
+	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
+	// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
+
+	// SendPacket, since it is originating from the application to core IBC:
+	// mockModule.SendPacket -> fee.SendPacket -> channel.SendPacket
+
 	// create fee wrapped mock module
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
