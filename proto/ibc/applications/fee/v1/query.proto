@@ -29,7 +29,7 @@ service Query {
   // Gets all incentivized packets for a specific channel
   rpc IncentivizedPacketsForChannel(QueryIncentivizedPacketsForChannelRequest)
       returns (QueryIncentivizedPacketsForChannelResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets/{port_id}/{channel_id}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets/port/{port_id}/channel/{channel_id}";
   }
 
   // TotalRecvFees returns the total receive fees for a packet given its identifier
