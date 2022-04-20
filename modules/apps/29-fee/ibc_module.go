@@ -267,3 +267,8 @@ func (im IBCModule) OnTimeoutPacket(
 	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
+
+// GetAppVersion returns the application version of the underlying application
+func (im IBCModule) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}
