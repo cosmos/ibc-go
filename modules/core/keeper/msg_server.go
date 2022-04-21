@@ -289,7 +289,14 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 		),
 	})
 
+<<<<<<< HEAD
 	return &channeltypes.MsgChannelOpenInitResponse{}, nil
+=======
+	return &channeltypes.MsgChannelOpenInitResponse{
+		ChannelId: channelID,
+		Version:   msg.Channel.Version,
+	}, nil
+>>>>>>> a187803 (chore : add selected channel version to MsgChanOpenInitResponse and MsgChanOpenTryResponse (#1279))
 }
 
 // ChannelOpenTry defines a rpc handler method for MsgChannelOpenTry.
@@ -325,7 +332,9 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 		),
 	})
 
-	return &channeltypes.MsgChannelOpenTryResponse{}, nil
+	return &channeltypes.MsgChannelOpenTryResponse{
+		Version: version,
+	}, nil
 }
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.
