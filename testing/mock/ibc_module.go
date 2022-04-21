@@ -32,18 +32,17 @@ func NewIBCModule(appModule *AppModule, app *MockIBCApp) IBCModule {
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
-) error {
+) (string, error) {
 	if im.IBCApp.OnChanOpenInit != nil {
 		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
-
 	}
 
 	// Claim channel capability passed back by IBC module
 	if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.

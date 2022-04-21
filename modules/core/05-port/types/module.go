@@ -24,7 +24,7 @@ type IBCModule interface {
 		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
-	) error
+	) (string, error)
 
 	// OnChanOpenTry will verify the relayer-chosen parameters along with the
 	// counterparty-chosen version string and perform custom TRY logic.

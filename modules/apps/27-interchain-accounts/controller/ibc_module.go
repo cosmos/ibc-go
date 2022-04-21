@@ -42,13 +42,13 @@ func (im IBCModule) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
+) (string, error) {
 	if !im.keeper.IsControllerEnabled(ctx) {
-		return types.ErrControllerSubModuleDisabled
+		return "", types.ErrControllerSubModuleDisabled
 	}
 
 	if err := im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
-		return err
+		return "", err
 	}
 
 	// call underlying app's OnChanOpenInit callback with the appVersion

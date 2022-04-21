@@ -36,7 +36,7 @@ func (im IBCModule) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
+) (string, error) {
 	var versionMetadata types.Metadata
 	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
 		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
@@ -46,8 +46,14 @@ func (im IBCModule) OnChanOpenInit(
 			chanCap, counterparty, version)
 	}
 
+	if versionMetadata.FeeVersion == "" {
+		// call underlying app's OnChanOpenInit callback with the appVersion
+		return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+			chanCap, counterparty, versionMetadata.AppVersion)
+	}
+
 	if versionMetadata.FeeVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
