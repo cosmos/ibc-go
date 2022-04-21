@@ -81,10 +81,10 @@ func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec,
 }
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) ([]exported.Height, error) {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected %T got %T", Header{}, clientMsg)
+		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected %T got %T", Header{}, clientMsg)
 	}
 
 	// create new solomachine ConsensusState
@@ -99,7 +99,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
-	return nil
+	return []exported.Height{smHeader.GetHeight()}, nil
 }
 
 // CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false

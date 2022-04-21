@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -24,13 +26,19 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 }
 
 // EmitUpdateClientEvent emits an update client event
-func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeight exported.Height, clientMsgStr string) {
+func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, clientMsgStr string) {
+	var consensusHeightStr []string
+	for _, height := range consensusHeights {
+		consensusHeightStr = append(consensusHeightStr, height.String())
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeights[0].String()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, strings.Join(consensusHeightStr, ",")),
 			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 		sdk.NewEvent(
@@ -80,14 +88,14 @@ func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState e
 }
 
 // EmitSubmitMisbehaviourEventOnUpdate emits a client misbehaviour event on a client update event
-func EmitSubmitMisbehaviourEventOnUpdate(ctx sdk.Context, clientID string, clientType string, consensusHeight exported.Height, headerStr string) {
+func EmitSubmitMisbehaviourEventOnUpdate(ctx sdk.Context, clientID string, clientType string, consensusHeight exported.Height, clientMsgStr string) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
+			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 	)
 }

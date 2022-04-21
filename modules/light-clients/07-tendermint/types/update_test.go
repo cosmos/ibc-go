@@ -419,7 +419,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 			clientState := path.EndpointA.GetClientState()
 
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			err = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+			_, err = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage) // TODO: Update tests to account for new consensus heights return value
 
 			if tc.expPass {
 				suite.Require().NoError(err)

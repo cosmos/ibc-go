@@ -441,7 +441,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 			suite.Run(tc.name, func() {
 				tc.setup() // setup test
 
-				err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				_, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg) // TODO: Update tests to account for new consensus heights return value
 
 				if tc.expPass {
 					suite.Require().NoError(err)

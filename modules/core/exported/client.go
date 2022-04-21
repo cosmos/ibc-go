@@ -63,7 +63,7 @@ type ClientState interface {
 
 	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 	// An error is returned if ClientMessage is of type Misbehaviour
-	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
+	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) ([]Height, error)
 
 	// Update and Misbehaviour functions
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
@@ -203,7 +203,7 @@ type ConsensusState interface {
 type ClientMessage interface {
 	proto.Message
 
-	GetHeight() Height
+	GetHeight() Height // Remove
 	ClientType() string
 	ValidateBasic() error
 }
