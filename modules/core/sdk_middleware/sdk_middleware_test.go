@@ -1,4 +1,4 @@
-package middleware_test
+package sdk_middleware_test
 
 import (
 	"context"

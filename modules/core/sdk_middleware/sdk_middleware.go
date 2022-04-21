@@ -1,4 +1,4 @@
-package middleware
+package sdk_middleware
 
 import (
 	"context"

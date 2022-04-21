@@ -4,9 +4,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authmiddleware "github.com/cosmos/cosmos-sdk/x/auth/middleware"
-	
+
 	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	ibcmiddleware "github.com/cosmos/ibc-go/v3/modules/core/middleware"
+	ibcmiddleware "github.com/cosmos/ibc-go/v3/modules/core/sdk_middleware"
 )
 
 // ComposeMiddlewares composes multiple middlewares on top of a tx.Handler. The
