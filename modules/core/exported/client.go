@@ -203,7 +203,6 @@ type ConsensusState interface {
 type ClientMessage interface {
 	proto.Message
 
-	GetHeight() Height // Remove
 	ClientType() string
 	ValidateBasic() error
 }

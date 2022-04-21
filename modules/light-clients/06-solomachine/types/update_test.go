@@ -441,10 +441,13 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 			suite.Run(tc.name, func() {
 				tc.setup() // setup test
 
-				_, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg) // TODO: Update tests to account for new consensus heights return value
+				consensusHeights, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
+
+					suite.Require().Len(consensusHeights, 1)
+					suite.Require().Equal(clienttypes.NewHeight(0, clientMsg.(*types.Header).Sequence), consensusHeights[0])
 
 					clientStateBz := suite.store.Get(host.ClientStateKey())
 					suite.Require().NotEmpty(clientStateBz)
@@ -457,6 +460,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 					suite.Require().Equal(clientMsg.(*types.Header).NewDiversifier, newClientState.(*types.ClientState).ConsensusState.Diversifier)
 					suite.Require().Equal(clientMsg.(*types.Header).Timestamp, newClientState.(*types.ClientState).ConsensusState.Timestamp)
 				} else {
+					suite.Require().Empty(consensusHeights)
 					suite.Require().Error(err)
 				}
 
