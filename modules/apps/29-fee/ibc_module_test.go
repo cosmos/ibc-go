@@ -68,11 +68,11 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 				portID, channelID string, chanCap *capabilitytypes.Capability,
 				counterparty channeltypes.Counterparty, version string,
-			) error {
+			) (string, error) {
 				if version != ibcmock.Version {
-					return fmt.Errorf("incorrect mock version")
+					return "", fmt.Errorf("incorrect mock version")
 				}
-				return nil
+				return ibcmock.Version, nil
 			}
 
 			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
@@ -95,7 +95,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			_, err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
 
 			if tc.expPass {
