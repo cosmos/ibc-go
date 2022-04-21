@@ -1619,6 +1619,15 @@ is called by a relayer on Chain A.
 MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 
 
+<<<<<<< HEAD
+=======
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  |  |
+| `version` | [string](#string) |  |  |
+
+
+>>>>>>> a187803 (chore : add selected channel version to MsgChanOpenInitResponse and MsgChanOpenTryResponse (#1279))
 
 
 
@@ -1649,6 +1658,11 @@ on Chain B.
 
 ### MsgChannelOpenTryResponse
 MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [string](#string) |  |  |
 
 
 

@@ -54,7 +54,14 @@ message MsgChannelOpenInit {
 }
 
 // MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
+<<<<<<< HEAD
 message MsgChannelOpenInitResponse {}
+=======
+message MsgChannelOpenInitResponse {
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string version    = 2;
+}
+>>>>>>> a187803 (chore : add selected channel version to MsgChanOpenInitResponse and MsgChanOpenTryResponse (#1279))
 
 // MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
 // on Chain B.
@@ -75,7 +82,9 @@ message MsgChannelOpenTry {
 }
 
 // MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
-message MsgChannelOpenTryResponse {}
+message MsgChannelOpenTryResponse {
+  string version = 1;
+}
 
 // MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 // the change of channel state to TRYOPEN on Chain B.
