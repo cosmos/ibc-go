@@ -66,7 +66,7 @@ type ClientState interface {
 	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
 
 	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
-	// An error is returned if ClientMessage is of type Misbehaviour
+	// An error is returned if ClientMessage is of type Misbehaviour. It assumes the ClientMessage has already been verified.
 	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
 
 	// Update and Misbehaviour functions
