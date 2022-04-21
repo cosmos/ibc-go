@@ -1,11 +1,16 @@
 package keeper
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	clientkeeper "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v3/modules/core/03-connection/keeper"
@@ -46,6 +51,11 @@ func NewKeeper(
 		paramSpace = paramSpace.WithKeyTable(keyTable)
 	}
 
+	err := checkEmptyKeepers(stakingKeeper, upgradeKeeper, scopedKeeper)
+	if err != nil {
+		panic(fmt.Errorf("cannot initialize ibc keeper: %w", err))
+	}
+
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
@@ -75,4 +85,18 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router = rtr
 	k.Router = rtr
 	k.Router.Seal()
+}
+
+func checkEmptyKeepers(stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
+	scopedKeeper capabilitykeeper.ScopedKeeper) error {
+	if reflect.DeepEqual(stakingkeeper.Keeper{}, stakingKeeper.(stakingkeeper.Keeper)) {
+		return fmt.Errorf("empty staking keeper")
+	}
+	if reflect.DeepEqual(upgradekeeper.Keeper{}, upgradeKeeper.(upgradekeeper.Keeper)) {
+		return fmt.Errorf("empty upgradeKeeper")
+	}
+	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
+		return fmt.Errorf("empty scopedKeeper")
+	}
+	return nil
 }
