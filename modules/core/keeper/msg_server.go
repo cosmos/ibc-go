@@ -195,6 +195,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 
 	return &channeltypes.MsgChannelOpenInitResponse{
 		ChannelId: channelID,
+		Version:   version,
 	}, nil
 }
 
@@ -233,7 +234,9 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	return &channeltypes.MsgChannelOpenTryResponse{}, nil
+	return &channeltypes.MsgChannelOpenTryResponse{
+		Version: version,
+	}, nil
 }
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.
