@@ -154,6 +154,55 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// UpgradeChain will upgrade a chain's chainID to the next revision number.
+// It will also update the counterparty client.
+// TODO: implement actual upgrade chain functionality via scheduling an upgrade
+// and upgrading the client via MsgUpgradeClient
+// see reference https://github.com/cosmos/ibc-go/pull/1169
+func (endpoint *Endpoint) UpgradeChain() error {
+	if endpoint.Counterparty.ClientID == "" {
+		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
+	}
+
+	clientState := endpoint.Counterparty.GetClientState().(*ibctmtypes.ClientState)
+
+	// increment revision number in chainID
+	oldChainID := clientState.ChainId
+	revisionNumber := clienttypes.ParseChainID(oldChainID)
+	newChainID, err := clienttypes.SetRevisionNumber(oldChainID, revisionNumber+1)
+	if err != nil {
+		// current chainID is not in revision format
+		newChainID = clientState.ChainId + "-1"
+	}
+
+	// update chain
+	endpoint.Chain.ChainID = newChainID
+	endpoint.Chain.CurrentHeader.ChainID = newChainID
+	endpoint.Chain.NextBlock() // commit changes
+
+	// update counterparty client manually
+	clientState.ChainId = newChainID
+	clientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
+	endpoint.Counterparty.SetClientState(clientState)
+
+	consensusState := &ibctmtypes.ConsensusState{
+		Timestamp:          endpoint.Chain.LastHeader.GetTime(),
+		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
+		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,
+	}
+	endpoint.Counterparty.SetConsensusState(consensusState, clientState.GetLatestHeight())
+
+	// ensure the next update isn't identical to the one set in state
+	endpoint.Chain.Coordinator.IncrementTime()
+	endpoint.Chain.NextBlock()
+
+	if err = endpoint.Counterparty.UpdateClient(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ConnOpenInit will construct and execute a MsgConnectionOpenInit on the associated endpoint.
 func (endpoint *Endpoint) ConnOpenInit() error {
 	msg := connectiontypes.NewMsgConnectionOpenInit(
