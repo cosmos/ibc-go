@@ -49,7 +49,7 @@ type ClientState interface {
 	// Clients must return their status. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status
 
-	// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It may assume the ClientMessage
+	// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
 	// has already been verified.
 	CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg ClientMessage) bool
 
