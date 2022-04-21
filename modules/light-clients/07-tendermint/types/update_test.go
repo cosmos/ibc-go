@@ -269,7 +269,6 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				suite.Require().NoError(err)
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
-
 			},
 			expPass: false,
 		},

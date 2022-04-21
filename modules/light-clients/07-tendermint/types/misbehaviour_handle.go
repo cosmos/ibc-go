@@ -2,6 +2,8 @@ package types
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -112,8 +114,16 @@ func checkMisbehaviourHeader(
 	chainID := clientState.GetChainID()
 	// If chainID is in revision format, then set revision number of chainID with the revision number
 	// of the misbehaviour header
-	if clienttypes.IsRevisionFormat(chainID) {
+	switch {
+	case chainID == header.Header.ChainID: // use chainID
+	case clienttypes.IsRevisionFormat(chainID) && clienttypes.IsRevisionFormat(header.Header.ChainID):
 		chainID, _ = clienttypes.SetRevisionNumber(chainID, header.GetHeight().GetRevisionNumber())
+	case clienttypes.IsRevisionFormat(chainID) && !clienttypes.IsRevisionFormat(header.Header.ChainID):
+		// past misbehaviour
+		chainID = strings.TrimSuffix(chainID, fmt.Sprintf("-%d", clienttypes.ParseChainID(chainID)))
+	case !clienttypes.IsRevisionFormat(chainID) && clienttypes.IsRevisionFormat(header.Header.ChainID):
+		// future misbehaviour
+		chainID = fmt.Sprintf("%s-%d", chainID, header.GetHeight().GetRevisionNumber())
 	}
 
 	// - ValidatorSet must have TrustLevel similarity with trusted FromValidatorSet
