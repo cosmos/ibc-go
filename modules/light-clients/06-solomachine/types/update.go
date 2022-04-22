@@ -81,6 +81,7 @@ func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec,
 }
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
+// A list containing the updated consensus height is returned.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) ([]exported.Height, error) {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
