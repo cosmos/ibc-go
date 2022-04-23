@@ -9,8 +9,6 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	clientkeeper "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v3/modules/core/03-connection/keeper"
@@ -89,10 +87,10 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 
 func checkEmptyKeepers(stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper) error {
-	if reflect.DeepEqual(stakingkeeper.Keeper{}, stakingKeeper.(stakingkeeper.Keeper)) {
+	if reflect.ValueOf(stakingKeeper).IsZero() {
 		return fmt.Errorf("empty staking keeper")
 	}
-	if reflect.DeepEqual(upgradekeeper.Keeper{}, upgradeKeeper.(upgradekeeper.Keeper)) {
+	if reflect.ValueOf(upgradeKeeper).IsZero() {
 		return fmt.Errorf("empty upgradeKeeper")
 	}
 	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
