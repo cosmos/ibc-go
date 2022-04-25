@@ -1,4 +1,4 @@
-package sdk_middleware_test
+package keeper_test
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibcmiddleware "github.com/cosmos/ibc-go/v3/modules/core/middleware"
+	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -436,7 +436,7 @@ func (suite *MiddlewareTestSuite) TestMiddleware() {
 				// commiting it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
 				k := suite.chainB.App.GetIBCKeeper()
-				mw := ibcmiddleware.IBCTxMiddleware(k)
+				mw := keeper.IBCTxMiddleware(k)
 				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
 				txHandler := middleware.ComposeMiddlewares(noopTxHandler, mw)
 
@@ -462,7 +462,7 @@ func (suite *MiddlewareTestSuite) TestMiddleware() {
 			suite.SetupTest()
 
 			k := suite.chainB.App.GetIBCKeeper()
-			mw := ibcmiddleware.IBCTxMiddleware(k)
+			mw := keeper.IBCTxMiddleware(k)
 
 			msgs := tc.malleate(suite)
 
