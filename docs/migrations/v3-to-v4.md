@@ -46,4 +46,4 @@ The `GetTimestampAtHeight` has been added to the `ClientState` interface
 
 ### ConsensusState
 
-The `GetRoot` function has been removed from consensus state interface
+The `GetRoot` function has been removed from consensus state interface.
