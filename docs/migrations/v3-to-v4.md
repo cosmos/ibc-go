@@ -36,7 +36,8 @@ The `CheckHeaderAndUpdateState` function has been split into 4 new functions: `V
 
 Light client implementations now need to manage setting of client and consensus states for these interface functions `UpdateState`, `UpdateStateOnMisbehaviour`, `VerifyUpgradeAndUpdateState`, `CheckSubstituteAndUpdateState`
 
-The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface
+The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface. This functionality is now encapsulated by the usage of `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour`, `UpdateState`.
+
 
 The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
 
