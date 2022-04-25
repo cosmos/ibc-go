@@ -25,6 +25,25 @@ This is an API breaking change and as such IBC application developers will have 
 
 ## IBC Light Clients
 
+### Light client and ClientState
+
 The `VerifyUpgradeAndUpdateState` function has been modified. The client state and consensus state return value has been removed. 
 
 Light clients **must** set the updated client state and consensus state in the client store after verifying a valid client upgrade.
+
+The `CheckHeaderAndUpdateState` function has been split into 4 new functions: `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateState`, 
+`UpdateStateOnMisbehaviour`
+
+Light client implementations now need to manage setting of client and consensus states for these interface functions `UpdateState`, `UpdateStateOnMisbehaviour`, `VerifyUpgradeAndUpdateState`, `CheckSubstituteAndUpdateState`
+
+The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface
+
+The `GetTimestampAtHeight` has been added to the `ClientState` interface
+
+### Header and Misbehaviour
+
+`exported.Header` and `exported.Misbehaviour` interface types have been merged and renamed to `ClientMessage` interface
+
+### ConsensusState
+
+The `GetRoot` function has been removed from consensus state interface
