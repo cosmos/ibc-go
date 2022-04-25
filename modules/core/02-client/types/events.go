@@ -8,9 +8,12 @@ import (
 
 // IBC client events
 const (
-	AttributeKeyClientID         = "client_id"
-	AttributeKeySubjectClientID  = "subject_client_id"
-	AttributeKeyClientType       = "client_type"
+	AttributeKeyClientID        = "client_id"
+	AttributeKeySubjectClientID = "subject_client_id"
+	AttributeKeyClientType      = "client_type"
+
+	// Deprecated: AttributeKeyConsensusHeight is deprecated and will be removed in a future release.
+	// Please use AttributeKeyConsensusHeights instead.
 	AttributeKeyConsensusHeight  = "consensus_height"
 	AttributeKeyConsensusHeights = "consensus_heights"
 	AttributeKeyHeader           = "header"

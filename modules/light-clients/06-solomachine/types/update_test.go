@@ -446,13 +446,14 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				if tc.expPass {
 					suite.Require().NoError(err)
 
-					suite.Require().Len(consensusHeights, 1)
-					suite.Require().Equal(clienttypes.NewHeight(0, clientMsg.(*types.Header).Sequence), consensusHeights[0])
-
 					clientStateBz := suite.store.Get(host.ClientStateKey())
 					suite.Require().NotEmpty(clientStateBz)
 
 					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					suite.Require().Len(consensusHeights, 1)
+					suite.Require().Equal(uint64(0), consensusHeights[0].GetRevisionNumber())
+					suite.Require().Equal(newClientState.(*types.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
 
 					suite.Require().False(newClientState.(*types.ClientState).IsFrozen)
 					suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, newClientState.(*types.ClientState).Sequence)

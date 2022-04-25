@@ -86,16 +86,3 @@ func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState e
 		),
 	)
 }
-
-// EmitSubmitMisbehaviourEventOnUpdate emits a client misbehaviour event on a client update event
-func EmitSubmitMisbehaviourEventOnUpdate(ctx sdk.Context, clientID string, clientType string, consensusHeight exported.Height, clientMsgStr string) {
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
-		),
-	)
-}

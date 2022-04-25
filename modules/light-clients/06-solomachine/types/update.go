@@ -100,7 +100,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
-	return []exported.Height{smHeader.GetHeight()}, nil
+	return []exported.Height{clienttypes.NewHeight(0, cs.Sequence)}, nil
 }
 
 // CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
