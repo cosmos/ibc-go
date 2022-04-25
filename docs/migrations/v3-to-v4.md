@@ -38,7 +38,7 @@ Light client implementations now need to manage setting of client and consensus 
 
 The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface
 
-The `GetTimestampAtHeight` has been added to the `ClientState` interface
+The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
 
 ### Header and Misbehaviour
 
