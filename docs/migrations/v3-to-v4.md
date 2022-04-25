@@ -34,8 +34,6 @@ Light clients **must** handle all management of client and consensus states incl
 The `CheckHeaderAndUpdateState` function has been split into 4 new functions: `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateState`, 
 `UpdateStateOnMisbehaviour`
 
-Light client implementations now need to manage setting of client and consensus states for these interface functions `UpdateState`, `UpdateStateOnMisbehaviour`, `VerifyUpgradeAndUpdateState`, `CheckSubstituteAndUpdateState`
-
 The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface. This functionality is now encapsulated by the usage of `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour`, `UpdateState`.
 
 
