@@ -49,9 +49,8 @@ func NewKeeper(
 		paramSpace = paramSpace.WithKeyTable(keyTable)
 	}
 
-	err := checkEmptyKeepers(stakingKeeper, upgradeKeeper, scopedKeeper)
-	if err != nil {
-		panic(fmt.Errorf("cannot initialize ibc keeper: %w", err))
+	if err := checkEmptyKeepers(stakingKeeper, upgradeKeeper, scopedKeeper); err != nil {
+		panic(fmt.Errorf("cannot initialize IBC keeper: %w", err))
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
