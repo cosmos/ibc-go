@@ -201,6 +201,181 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	}
 }
 
+func (suite *TendermintTestSuite) TestVerifyMembership() {
+	var (
+		testingpath      *ibctesting.Path
+		delayTimePeriod  uint64
+		delayBlockPeriod uint64
+		proofHeight      exported.Height
+		proof            []byte
+		path             []byte
+		value            []byte
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "successful ClientState verification",
+			malleate: func() {
+				// default proof construction uses ClientState
+			},
+			expPass: true,
+		},
+		{
+			name: "successful ConsensusState verification",
+			malleate: func() {
+				// TODO
+			},
+			expPass: true,
+		},
+		{
+			name: "successful Connection verification",
+			malleate: func() {
+				// TODO
+			},
+			expPass: true,
+		},
+		{
+			name: "successful Channel verification",
+			malleate: func() {
+				// TODO
+			},
+			expPass: true,
+		},
+		{
+			"successful PacketCommitment verification", func() {
+				// send from chainB to chainA since we are proving chainB sent a packet
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				err := testingpath.EndpointB.SendPacket(packet)
+				suite.Require().NoError(err)
+
+				// make packet commitment proof
+				key := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
+
+				value = channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
+			}, true,
+		},
+		{
+			name: "successful Acknowledgement verification",
+			malleate: func() {
+				// TODO
+			},
+			expPass: true,
+		},
+		{
+			name: "successful NextSequenceRecv verification",
+			malleate: func() {
+				// TODO
+			},
+			expPass: true,
+		},
+		{
+			name: "successful custom type verification",
+			malleate: func() {
+				// TODO
+			},
+			expPass: true,
+		},
+		{
+			name: "delay time period has passed",
+			malleate: func() {
+				delayTimePeriod = uint64(time.Second.Nanoseconds())
+			},
+			expPass: true,
+		},
+		{
+			name: "delay time period has not passed",
+			malleate: func() {
+				delayTimePeriod = uint64(time.Hour.Nanoseconds())
+			},
+			expPass: false,
+		},
+		{
+			name: "delay block period has passed",
+			malleate: func() {
+				delayBlockPeriod = 1
+			},
+			expPass: true,
+		},
+		{
+			name: "delay block period has not passed",
+			malleate: func() {
+				delayBlockPeriod = 1000
+			},
+			expPass: false,
+		},
+		{
+			"latest client height < height", func() {
+				proofHeight = testingpath.EndpointA.GetClientState().GetLatestHeight().Increment()
+			}, false,
+		},
+		{
+			"proof verification failed", func() {
+				proof = invalidProof
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(testingpath)
+
+			// reset time and block delays to 0, malleate may change to a specific non-zero value.
+			delayTimePeriod = 0
+			delayBlockPeriod = 0
+
+			// create default proof, merklePath, and value which passes
+			// may be overwritten by malleate()
+			key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
+			merklePath := commitmenttypes.NewMerklePath(string(key))
+			merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+			suite.Require().NoError(err)
+
+			path, err = suite.chainA.Codec.Marshal(&merklePath)
+			suite.Require().NoError(err)
+
+			proof, proofHeight = suite.chainB.QueryProof(key)
+
+			clientState := testingpath.EndpointB.GetClientState().(*types.ClientState)
+			value, err = suite.chainB.Codec.MarshalInterface(clientState)
+			suite.Require().NoError(err)
+
+			tc.malleate() // make changes as necessary
+
+			clientState = testingpath.EndpointA.GetClientState().(*types.ClientState)
+
+			ctx := suite.chainA.GetContext()
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, testingpath.EndpointA.ClientID)
+
+			err = clientState.VerifyMembership(
+				ctx, store, suite.chainA.Codec, proofHeight, delayTimePeriod, delayBlockPeriod,
+				proof, path, value,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 	testCases := []struct {
 		name           string
@@ -577,7 +752,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			},
 			expPass: false,
 		},
-
 		{
 			"ApplyPrefix failed", func() {
 				prefix = commitmenttypes.MerklePrefix{}
