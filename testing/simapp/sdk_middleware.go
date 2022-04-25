@@ -6,7 +6,6 @@ import (
 	authmiddleware "github.com/cosmos/cosmos-sdk/x/auth/middleware"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	ibcmiddleware "github.com/cosmos/ibc-go/v3/modules/core/sdk_middleware"
 )
 
 // ComposeMiddlewares composes multiple middlewares on top of a tx.Handler. The
@@ -106,6 +105,6 @@ func NewDefaultTxHandler(options TxHandlerOptions) (tx.Handler, error) {
 		// should be accounted for, should go below this authmiddleware.
 		authmiddleware.ConsumeBlockGasMiddleware,
 		authmiddleware.NewTipMiddleware(options.BankKeeper),
-		ibcmiddleware.IBCTxMiddleware(options.IBCKeeper),
+		keeper.IBCTxMiddleware(options.IBCKeeper),
 	), nil
 }
