@@ -26,8 +26,9 @@ func IBCTxMiddleware(IBCKeeper *Keeper) tx.Middleware {
 	}
 }
 
-// perform redundancy checks on IBC relays. If a transaction contains only `RecvPacket`, `AcknowledgePacket`, `TimeoutPacket/OnClose` and `UpdateClient`
-// and all the relay messages are redundant, it will be dropped from the mempool.
+// perform redundancy checks on IBC relays. If a transaction contains a relay message (`RecvPacket`, `AcknowledgePacket`, `TimeoutPacket/OnClose`)
+// and all the relay messages are redundant, it will be dropped from the mempool. If any non relay message is contained, with the exception of `UpdateClient`,
+// it will be processed as normal. A transaction with only `UpdateClient` message will be processed as normal.
 func (itxh ibcTxHandler) checkRedundancy(ctx context.Context, req tx.Request) error {
 	// keep track of total packet messages and number of redundancies across `RecvPacket`, `AcknowledgePacket`, and `TimeoutPacket/OnClose`
 	redundancies := 0
@@ -72,6 +73,7 @@ func (itxh ibcTxHandler) checkRedundancy(ctx context.Context, req tx.Request) er
 			response, err := itxh.k.TimeoutOnClose(ctx, msg)
 			if err != nil {
 				return err
+
 			}
 
 			if response.Result == channeltypes.NOOP {
