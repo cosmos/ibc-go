@@ -174,7 +174,7 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 ) error {
-	panic("SendPacket not supported for ICA controller module")
+	panic("SendPacket not supported for ICA-auth module. Please use SendTx")
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
