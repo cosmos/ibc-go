@@ -37,7 +37,7 @@ The `CheckHeaderAndUpdateState` function has been split into 4 new functions:
 
 - `CheckForMisbehaviour` : checks for evidence of a misbehaviour in Header or Misbehaviour type.
 
-- `UpdateStateOnMisbehaviour` : perform appropriate state changes on a `ClientState` given that misbehaviour has been detected and verified.
+- `UpdateStateOnMisbehaviour` performs appropriate state changes on a `ClientState` given that misbehaviour has been detected and verified.
 
 - `UpdateState` : updates and stores as necessary any associated information for an IBC client, such as the `ClientState` and corresponding `ConsensusState`. An error is returned if `ClientMessage` is of type `Misbehaviour`.
 
