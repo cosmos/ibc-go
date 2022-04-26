@@ -441,10 +441,8 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 			suite.Run(tc.name, func() {
 				tc.setup() // setup test
 
-				consensusHeights, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
-
 				if tc.expPass {
-					suite.Require().NoError(err)
+					consensusHeights := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
 					clientStateBz := suite.store.Get(host.ClientStateKey())
 					suite.Require().NotEmpty(clientStateBz)
@@ -461,8 +459,9 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 					suite.Require().Equal(clientMsg.(*types.Header).NewDiversifier, newClientState.(*types.ClientState).ConsensusState.Diversifier)
 					suite.Require().Equal(clientMsg.(*types.Header).Timestamp, newClientState.(*types.ClientState).ConsensusState.Timestamp)
 				} else {
-					suite.Require().Empty(consensusHeights)
-					suite.Require().Error(err)
+					suite.Require().Panics(func() {
+						clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+					})
 				}
 
 			})

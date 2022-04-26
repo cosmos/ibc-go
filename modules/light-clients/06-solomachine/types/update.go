@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -82,10 +84,10 @@ func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec,
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
 // A list containing the updated consensus height is returned.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) ([]exported.Height, error) {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected %T got %T", Header{}, clientMsg)
+		panic(fmt.Errorf("unsupported ClientMessage: %T", clientMsg))
 	}
 
 	// create new solomachine ConsensusState
@@ -100,7 +102,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
-	return []exported.Height{clienttypes.NewHeight(0, cs.Sequence)}, nil
+	return []exported.Height{clienttypes.NewHeight(0, cs.Sequence)}
 }
 
 // CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false

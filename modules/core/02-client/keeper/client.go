@@ -93,11 +93,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		return nil
 	}
 
-	consensusHeights, err := clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
-	if err != nil {
-		return err
-	}
-
+	consensusHeights := clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
 	if len(consensusHeights) != 0 {
 		k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
