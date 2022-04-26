@@ -51,7 +51,7 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
-	// call underlying app's OnChanOpenInit callback with the appVersion
+	// call underlying app's OnChanOpenInit callback with the passed in version
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
 		chanCap, counterparty, version)
 }
