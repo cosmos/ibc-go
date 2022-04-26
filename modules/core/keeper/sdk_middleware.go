@@ -16,7 +16,7 @@ type ibcTxHandler struct {
 	next tx.Handler
 }
 
-// IBCTxMiddleware implements ibc tx handling middleware
+// IBCTxMiddleware implements ibc tx handling middleware to reject duplicate relay messages.
 func IBCTxMiddleware(IBCKeeper *Keeper) tx.Middleware {
 	return func(txh tx.Handler) tx.Handler {
 		return ibcTxHandler{
@@ -26,7 +26,7 @@ func IBCTxMiddleware(IBCKeeper *Keeper) tx.Middleware {
 	}
 }
 
-// perform redundancy checks on IBC relays. If a transaction contains a relay message (`RecvPacket`, `AcknowledgePacket`, `TimeoutPacket/OnClose`)
+// Perform redundancy checks on IBC relays. If a transaction contains a relay message (`RecvPacket`, `AcknowledgePacket`, `TimeoutPacket/OnClose`)
 // and all the relay messages are redundant, it will be dropped from the mempool. If any non relay message is contained, with the exception of `UpdateClient`,
 // it will be processed as normal. A transaction with only `UpdateClient` message will be processed as normal.
 func (itxh ibcTxHandler) checkRedundancy(ctx context.Context, req tx.Request) error {
@@ -73,7 +73,6 @@ func (itxh ibcTxHandler) checkRedundancy(ctx context.Context, req tx.Request) er
 			response, err := itxh.k.TimeoutOnClose(ctx, msg)
 			if err != nil {
 				return err
-
 			}
 
 			if response.Result == channeltypes.NOOP {
