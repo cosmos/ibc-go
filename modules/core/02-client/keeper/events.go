@@ -27,9 +27,14 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 
 // EmitUpdateClientEvent emits an update client event
 func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, clientMsgStr string) {
-	var consensusHeightStr []string
+	var consensusHeightAttr string
+	if len(consensusHeights) != 0 {
+		consensusHeightAttr = consensusHeights[0].String()
+	}
+
+	var consensusHeightsAttr []string
 	for _, height := range consensusHeights {
-		consensusHeightStr = append(consensusHeightStr, height.String())
+		consensusHeightsAttr = append(consensusHeightsAttr, height.String())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -37,8 +42,10 @@ func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 			types.EventTypeUpdateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeights[0].String()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, strings.Join(consensusHeightStr, ",")),
+			// Deprecated: AttributeKeyConsensusHeight is deprecated and will be removed in a future release.
+			// Please use AttributeKeyConsensusHeights instead.
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
 			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 		sdk.NewEvent(

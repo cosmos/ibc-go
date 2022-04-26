@@ -94,30 +94,28 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 	}
 
 	consensusHeights := clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
-	if len(consensusHeights) != 0 {
-		k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
-		defer func() {
-			telemetry.IncrCounterWithLabels(
-				[]string{"ibc", "client", "update"},
-				1,
-				[]metrics.Label{
-					telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
-					telemetry.NewLabel(types.LabelClientID, clientID),
-					telemetry.NewLabel(types.LabelUpdateType, "msg"),
-				},
-			)
-		}()
+	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
-		// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
-		// This prevents the event value from containing invalid UTF-8 characters
-		// which may cause data to be lost when JSON encoding/decoding.
-		clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, clientMsg))
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", "client", "update"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientID, clientID),
+				telemetry.NewLabel(types.LabelUpdateType, "msg"),
+			},
+		)
+	}()
 
-		// emitting events in the keeper emits for both begin block and handler client updates
-		EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, clientMsgStr)
+	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
+	// This prevents the event value from containing invalid UTF-8 characters
+	// which may cause data to be lost when JSON encoding/decoding.
+	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, clientMsg))
 
-	}
+	// emitting events in the keeper emits for both begin block and handler client updates
+	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, clientMsgStr)
 
 	return nil
 }
