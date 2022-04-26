@@ -30,7 +30,7 @@ func (suite *TendermintTestSuite) TestMisbehaviour() {
 
 func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey(suite.ctx)
+	altPubKey, err := altPrivVal.GetPubKey(nil)
 	suite.Require().NoError(err)
 
 	revisionHeight := int64(height.RevisionHeight)

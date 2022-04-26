@@ -16,7 +16,7 @@ import (
 
 func (suite *TendermintTestSuite) TestCheckMisbehaviourAndUpdateState() {
 	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey(suite.ctx)
+	altPubKey, err := altPrivVal.GetPubKey(nil)
 	suite.Require().NoError(err)
 
 	altVal := tmtypes.NewValidator(altPubKey, 4)
