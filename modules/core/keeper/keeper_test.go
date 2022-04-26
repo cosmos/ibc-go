@@ -15,38 +15,27 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app           *simapp.SimApp
-	stakingKeeper clienttypes.StakingKeeper
-	upgradeKeeper clienttypes.UpgradeKeeper
-	scopedKeeper  capabilitykeeper.ScopedKeeper
+	coordinator *ibctesting.Coordinator
+
+	chainA *ibctesting.TestChain
+	chainB *ibctesting.TestChain
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	coordinator := ibctesting.NewCoordinator(suite.T(), 1)
-	chainA := coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	suite.app = chainA.App.(*simapp.SimApp)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	suite.stakingKeeper = suite.app.StakingKeeper
-	suite.upgradeKeeper = suite.app.UpgradeKeeper
-	suite.scopedKeeper = suite.app.ScopedIBCKeeper
-}
-
-func (suite *KeeperTestSuite) NewIBCKeeper() {
-	ibckeeper.NewKeeper(
-		suite.app.AppCodec(),
-		suite.app.GetKey(ibchost.StoreKey),
-		suite.app.GetSubspace(ibchost.ModuleName),
-		suite.stakingKeeper,
-		suite.upgradeKeeper,
-		suite.scopedKeeper,
-	)
+	// TODO: remove
+	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
+	suite.coordinator.CommitNBlocks(suite.chainA, 2)
+	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -69,48 +58,57 @@ func (d MockStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
 // Test ibckeeper.NewKeeper used to initialize IBCKeeper when creating an app instance.
 // It verifies if ibckeeper.NewKeeper panic when any of the keepers passed in is empty.
 func (suite *KeeperTestSuite) TestNewKeeper() {
+	var (
+		stakingKeeper clienttypes.StakingKeeper
+		upgradeKeeper clienttypes.UpgradeKeeper
+		scopedKeeper  capabilitykeeper.ScopedKeeper
+		newIBCKeeper  = func() {
+			ibckeeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(ibchost.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(ibchost.ModuleName),
+				stakingKeeper,
+				upgradeKeeper,
+				scopedKeeper,
+			)
+		}
+	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
+		expPass  bool
 	}{
 		{"failure: empty staking keeper", func() {
 			emptyStakingKeeper := stakingkeeper.Keeper{}
 
-			suite.stakingKeeper = emptyStakingKeeper
+			stakingKeeper = emptyStakingKeeper
 
-			suite.Require().Panics(suite.NewIBCKeeper)
-		}},
+		}, false},
 		{"failure: empty dummy staking keeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
 			emptyMockStakingKeeper := MockStakingKeeper{}
 
-			suite.stakingKeeper = emptyMockStakingKeeper
+			stakingKeeper = emptyMockStakingKeeper
 
-			suite.Require().Panics(suite.NewIBCKeeper)
-		}},
+		}, false},
 		{"failure: empty upgrade keeper", func() {
 			emptyUpgradeKeeper := upgradekeeper.Keeper{}
 
-			suite.upgradeKeeper = emptyUpgradeKeeper
+			upgradeKeeper = emptyUpgradeKeeper
 
-			suite.Require().Panics(suite.NewIBCKeeper)
-		}},
+		}, false},
 		{"failure: empty scoped keeper", func() {
 			emptyScopedKeeper := capabilitykeeper.ScopedKeeper{}
 
-			suite.scopedKeeper = emptyScopedKeeper
-
-			suite.Require().Panics(suite.NewIBCKeeper)
-		}},
+			scopedKeeper = emptyScopedKeeper
+		}, false},
 		{"success: replace stakingKeeper with non-empty MockStakingKeeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
 			mockStakingKeeper := MockStakingKeeper{"not empty"}
 
-			suite.stakingKeeper = mockStakingKeeper
-
-			suite.Require().NotPanics(suite.NewIBCKeeper)
-		}},
+			stakingKeeper = mockStakingKeeper
+		}, true},
 	}
 
 	for _, tc := range testCases {
@@ -118,7 +116,23 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
+
+			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
+			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
+			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
+
 			tc.malleate()
+
+			if tc.expPass {
+				suite.Require().NotPanics(
+					newIBCKeeper,
+				)
+			} else {
+				suite.Require().Panics(
+					newIBCKeeper,
+				)
+			}
+
 		})
 	}
 }

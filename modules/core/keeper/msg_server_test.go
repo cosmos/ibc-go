@@ -1,11 +1,8 @@
 package keeper_test
 
 import (
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -23,39 +20,12 @@ var (
 	maxSequence   = uint64(10)
 )
 
-type MsgServerTestSuite struct {
-	suite.Suite
-
-	coordinator *ibctesting.Coordinator
-
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-}
-
-// SetupTest creates a coordinator with 2 test chains.
-func (suite *MsgServerTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-
-	// TODO: remove
-	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-
-}
-
-func TestIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(MsgServerTestSuite))
-}
-
 // tests the IBC handler receiving a packet on ordered and unordered channels.
 // It verifies that the storing of an acknowledgement on success occurs. It
 // tests high level properties like ordering and basic sanity checks. More
 // rigorous testing of 'RecvPacket' can be found in the
 // 04-channel/keeper/packet_test.go.
-func (suite *MsgServerTestSuite) TestHandleRecvPacket() {
+func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
@@ -227,7 +197,7 @@ func (suite *MsgServerTestSuite) TestHandleRecvPacket() {
 // occurs. It test high level properties like ordering and basic sanity
 // checks. More rigorous testing of 'AcknowledgePacket'
 // can be found in the 04-channel/keeper/packet_test.go.
-func (suite *MsgServerTestSuite) TestHandleAcknowledgePacket() {
+func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
@@ -373,7 +343,7 @@ func (suite *MsgServerTestSuite) TestHandleAcknowledgePacket() {
 // high level properties like ordering and basic sanity checks. More
 // rigorous testing of 'TimeoutPacket' and 'TimeoutExecuted' can be found in
 // the 04-channel/keeper/timeout_test.go.
-func (suite *MsgServerTestSuite) TestHandleTimeoutPacket() {
+func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 	var (
 		packet    channeltypes.Packet
 		packetKey []byte
@@ -504,7 +474,7 @@ func (suite *MsgServerTestSuite) TestHandleTimeoutPacket() {
 // commitment occurs. It tests high level properties like ordering and basic
 // sanity checks. More rigorous testing of 'TimeoutOnClose' and
 //'TimeoutExecuted' can be found in the 04-channel/keeper/timeout_test.go.
-func (suite *MsgServerTestSuite) TestHandleTimeoutOnClosePacket() {
+func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	var (
 		packet    channeltypes.Packet
 		packetKey []byte
@@ -655,7 +625,7 @@ func (suite *MsgServerTestSuite) TestHandleTimeoutOnClosePacket() {
 	}
 }
 
-func (suite *MsgServerTestSuite) TestUpgradeClient() {
+func (suite *KeeperTestSuite) TestUpgradeClient() {
 	var (
 		path              *ibctesting.Path
 		upgradedClient    exported.ClientState
