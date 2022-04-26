@@ -123,7 +123,7 @@ func (im IBCModule) OnChanOpenAck(
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		var versionMetadata types.Metadata
 		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
+			return sdkerrors.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
