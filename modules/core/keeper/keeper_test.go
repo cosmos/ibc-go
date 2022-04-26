@@ -53,16 +53,16 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-// DummyStakingKeeper implements clienttypes.StakingKeeper used in ibckeeper.NewKeeper
-type DummyStakingKeeper struct {
-	dummyField string
+// MockStakingKeeper implements clienttypes.StakingKeeper used in ibckeeper.NewKeeper
+type MockStakingKeeper struct {
+	mockField string
 }
 
-func (d DummyStakingKeeper) GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool) {
+func (d MockStakingKeeper) GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool) {
 	return stakingtypes.HistoricalInfo{}, true
 }
 
-func (d DummyStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
+func (d MockStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
 	return 0
 }
 
@@ -83,9 +83,9 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		}},
 		{"failure: empty dummy staking keeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
-			emptyDummyStakingKeeper := DummyStakingKeeper{}
+			emptyMockStakingKeeper := MockStakingKeeper{}
 
-			suite.stakingKeeper = emptyDummyStakingKeeper
+			suite.stakingKeeper = emptyMockStakingKeeper
 
 			suite.Require().Panics(suite.NewIBCKeeper)
 		}},
@@ -103,11 +103,11 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			suite.Require().Panics(suite.NewIBCKeeper)
 		}},
-		{"success: replace stakingKeeper with non-empty DummyStakingKeeper", func() {
+		{"success: replace stakingKeeper with non-empty MockStakingKeeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
-			dummyStakingKeeper := DummyStakingKeeper{"not empty"}
+			mockStakingKeeper := MockStakingKeeper{"not empty"}
 
-			suite.stakingKeeper = dummyStakingKeeper
+			suite.stakingKeeper = mockStakingKeeper
 
 			suite.Require().NotPanics(suite.NewIBCKeeper)
 		}},
