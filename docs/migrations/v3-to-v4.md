@@ -51,7 +51,7 @@ The function `GetTimestampAtHeight` has been added to the `ClientState` interfac
 
 ### ConsensusState
 
-The `GetRoot` function has been removed from consensus state interface.
+The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
 
 ### Light client implementations
 
