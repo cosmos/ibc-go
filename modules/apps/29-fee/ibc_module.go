@@ -46,12 +46,6 @@ func (im IBCModule) OnChanOpenInit(
 			chanCap, counterparty, version)
 	}
 
-	if versionMetadata.FeeVersion == "" {
-		// call underlying app's OnChanOpenInit callback with the appVersion
-		return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-			chanCap, counterparty, versionMetadata.AppVersion)
-	}
-
 	if versionMetadata.FeeVersion != types.Version {
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
@@ -119,7 +113,7 @@ func (im IBCModule) OnChanOpenAck(
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		var versionMetadata types.Metadata
 		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return sdkerrors.Wrap(types.ErrInvalidVersion, "failed to unmarshal ICS29 counterparty version metadata")
+			return sdkerrors.Wrapf(types.ErrInvalidVersion, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
