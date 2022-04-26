@@ -4,6 +4,7 @@ import (
 	"time"
 
 	ics23 "github.com/confio/ics23/go"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -227,21 +228,57 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			name: "successful ConsensusState verification",
 			malleate: func() {
-				// TODO
+				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, testingpath.EndpointB.GetClientState().GetLatestHeight())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = suite.chainB.QueryProof(key)
+
+				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight()).(*types.ConsensusState)
+				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
+				suite.Require().NoError(err)
 			},
 			expPass: true,
 		},
 		{
 			name: "successful Connection verification",
 			malleate: func() {
-				// TODO
+				key := host.ConnectionKey(testingpath.EndpointB.ConnectionID)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = suite.chainB.QueryProof(key)
+
+				connection := testingpath.EndpointB.GetConnection()
+				value, err = suite.chainB.Codec.Marshal(&connection)
+				suite.Require().NoError(err)
 			},
 			expPass: true,
 		},
 		{
 			name: "successful Channel verification",
 			malleate: func() {
-				// TODO
+				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = suite.chainB.QueryProof(key)
+
+				channel := testingpath.EndpointB.GetChannel()
+				value, err = suite.chainB.Codec.Marshal(&channel)
+				suite.Require().NoError(err)
 			},
 			expPass: true,
 		},
@@ -269,14 +306,55 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			name: "successful Acknowledgement verification",
 			malleate: func() {
-				// TODO
+				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				err := testingpath.EndpointA.SendPacket(packet)
+				suite.Require().NoError(err)
+
+				// write receipt and ack
+				err = testingpath.EndpointB.RecvPacket(packet)
+				suite.Require().NoError(err)
+
+				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
+
+				value = channeltypes.CommitAcknowledgement(ibcmock.MockAcknowledgement.Acknowledgement())
 			},
 			expPass: true,
 		},
 		{
 			name: "successful NextSequenceRecv verification",
 			malleate: func() {
-				// TODO
+				// send from chainA to chainB since we are proving chainB incremented the sequence recv
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+
+				// send packet
+				err := testingpath.EndpointA.SendPacket(packet)
+				suite.Require().NoError(err)
+
+				// next seq recv incremented
+				err = testingpath.EndpointB.RecvPacket(packet)
+				suite.Require().NoError(err)
+
+				key := host.NextSequenceRecvKey(packet.GetSourcePort(), packet.GetSourceChannel())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
+
+				value = sdk.Uint64ToBigEndian(packet.GetSequence() + 1)
+
 			},
 			expPass: true,
 		},
@@ -333,6 +411,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
+			testingpath.SetChannelOrdered()
 			suite.coordinator.Setup(testingpath)
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
@@ -376,6 +455,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 	}
 }
 
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 	testCases := []struct {
 		name           string
@@ -443,6 +523,7 @@ func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 
 // test verification of the connection on chainB being represented in the
 // light client on chainA
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 	var (
 		clientState *types.ClientState
@@ -517,6 +598,7 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 
 // test verification of the channel on chainB being represented in the light
 // client on chainA
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyChannelState() {
 	var (
 		clientState *types.ClientState
@@ -592,6 +674,7 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 
 // test verification of the packet commitment on chainB being represented
 // in the light client on chainA. A send from chainB to chainA is simulated.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 	var (
 		clientState      *types.ClientState
@@ -706,6 +789,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 // test verification of the acknowledgement on chainB being represented
 // in the light client on chainA. A send and ack from chainA to chainB
 // is simulated.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 	var (
 		clientState      *types.ClientState
@@ -939,6 +1023,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 // test verification of the next receive sequence on chainB being represented
 // in the light client on chainA. A send and receive from chainB to chainA is
 // simulated.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 	var (
 		clientState      *types.ClientState
