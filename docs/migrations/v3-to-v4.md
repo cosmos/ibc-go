@@ -35,7 +35,7 @@ The `CheckHeaderAndUpdateState` function has been split into 4 new functions:
 
 - `VerifyClientMessage` verifies a `ClientMessage`. A `ClientMessage` could be a `Header`, `Misbehaviour`, or batch update. Calls to `CheckForMisbehaviour`, `UpdateState`, and `UpdateStateOnMisbehaviour` will assume that the content of the `ClientMessage` has been verified and can be trusted. An error should be returned if the `ClientMessage` fails to verify.
 
-- `CheckForMisbehaviour` : checks for evidence of a misbehaviour in Header or Misbehaviour type.
+- `CheckForMisbehaviour` checks for evidence of a misbehaviour in `Header` or `Misbehaviour` types.
 
 - `UpdateStateOnMisbehaviour` performs appropriate state changes on a `ClientState` given that misbehaviour has been detected and verified.
 
