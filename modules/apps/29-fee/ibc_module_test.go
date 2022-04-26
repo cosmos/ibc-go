@@ -95,10 +95,27 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			_, err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
 
 			if tc.expPass {
+
+				// check if the channel is fee enabled. If so version string should include metaData
+				isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				if isFeeEnabled {
+					versionMetadata := types.Metadata{
+						FeeVersion: types.Version,
+						AppVersion: ibcmock.Version,
+					}
+
+					versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+					suite.Require().NoError(err)
+
+					suite.Require().Equal(version, string(versionBytes))
+				} else {
+					suite.Require().Equal(version, ibcmock.Version)
+				}
+
 				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 			} else {
 				suite.Require().Error(err, "error not returned for version: %s", tc.version)

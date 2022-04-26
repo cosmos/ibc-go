@@ -197,11 +197,24 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			_, err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
 			)
 
 			if tc.expPass {
+				expMetaData := icatypes.NewMetadata(
+					icatypes.Version,
+					path.EndpointA.ConnectionID,
+					path.EndpointB.ConnectionID,
+					"",
+					icatypes.EncodingProtobuf,
+					icatypes.TxTypeSDKMultiMsg,
+				)
+
+				expBytes, err := icatypes.ModuleCdc.MarshalJSON(&expMetaData)
+				suite.Require().NoError(err)
+
+				suite.Require().Equal(version, string(expBytes))
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
