@@ -45,7 +45,7 @@ The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientStat
 
 The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
 
-### Header and Misbehaviour
+### `Header` and `Misbehaviour`
 
 `exported.Header` and `exported.Misbehaviour` interface types have been merged and renamed to `ClientMessage` interface.
 
