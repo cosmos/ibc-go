@@ -3,6 +3,7 @@ package transfer
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -75,7 +76,7 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
-	if version == "" {
+	if strings.TrimSpace(version) == "" {
 		version = types.Version
 	}
 
