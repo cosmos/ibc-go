@@ -25,7 +25,7 @@ This is an API breaking change and as such IBC application developers will have 
 
 ## IBC Light Clients
 
-### ClientState interface changes
+### `ClientState` interface changes
 
 The `VerifyUpgradeAndUpdateState` function has been modified. The client state and consensus state return value has been removed.
 
