@@ -50,11 +50,21 @@ func (im IBCModule) OnChanOpenInit(
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
+	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
+	if err != nil {
+		return "", err
+	}
+
+	versionMetadata.AppVersion = appVersion
+	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+	if err != nil {
+		return "", err
+	}
+
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 
 	// call underlying app's OnChanOpenInit callback with the appVersion
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, versionMetadata.AppVersion)
+	return string(versionBytes), nil
 }
 
 // OnChanOpenTry implements the IBCModule interface
