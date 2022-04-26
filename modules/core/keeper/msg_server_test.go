@@ -18,14 +18,12 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
-const height = 10
-
 var (
 	timeoutHeight = clienttypes.NewHeight(0, 10000)
 	maxSequence   = uint64(10)
 )
 
-type KeeperTestSuite struct {
+type MsgServerTestSuite struct {
 	suite.Suite
 
 	coordinator *ibctesting.Coordinator
@@ -35,7 +33,7 @@ type KeeperTestSuite struct {
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (suite *KeeperTestSuite) SetupTest() {
+func (suite *MsgServerTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -49,7 +47,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func TestIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	suite.Run(t, new(MsgServerTestSuite))
 }
 
 // tests the IBC handler receiving a packet on ordered and unordered channels.
@@ -57,7 +55,7 @@ func TestIBCTestSuite(t *testing.T) {
 // tests high level properties like ordering and basic sanity checks. More
 // rigorous testing of 'RecvPacket' can be found in the
 // 04-channel/keeper/packet_test.go.
-func (suite *KeeperTestSuite) TestHandleRecvPacket() {
+func (suite *MsgServerTestSuite) TestHandleRecvPacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
@@ -229,7 +227,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 // occurs. It test high level properties like ordering and basic sanity
 // checks. More rigorous testing of 'AcknowledgePacket'
 // can be found in the 04-channel/keeper/packet_test.go.
-func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
+func (suite *MsgServerTestSuite) TestHandleAcknowledgePacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
@@ -375,7 +373,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 // high level properties like ordering and basic sanity checks. More
 // rigorous testing of 'TimeoutPacket' and 'TimeoutExecuted' can be found in
 // the 04-channel/keeper/timeout_test.go.
-func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
+func (suite *MsgServerTestSuite) TestHandleTimeoutPacket() {
 	var (
 		packet    channeltypes.Packet
 		packetKey []byte
@@ -506,7 +504,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 // commitment occurs. It tests high level properties like ordering and basic
 // sanity checks. More rigorous testing of 'TimeoutOnClose' and
 //'TimeoutExecuted' can be found in the 04-channel/keeper/timeout_test.go.
-func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
+func (suite *MsgServerTestSuite) TestHandleTimeoutOnClosePacket() {
 	var (
 		packet    channeltypes.Packet
 		packetKey []byte
@@ -657,7 +655,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpgradeClient() {
+func (suite *MsgServerTestSuite) TestUpgradeClient() {
 	var (
 		path              *ibctesting.Path
 		upgradedClient    exported.ClientState
