@@ -49,7 +49,7 @@ The function `GetTimestampAtHeight` has been added to the `ClientState` interfac
 
 `exported.Header` and `exported.Misbehaviour` interface types have been merged and renamed to `ClientMessage` interface.
 
-### ConsensusState
+### `ConsensusState`
 
 The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
 
