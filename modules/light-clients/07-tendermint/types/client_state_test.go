@@ -399,8 +399,24 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			}, false,
 		},
 		{
-			"proof verification failed", func() {
+			"failed to unmarshal merkle path", func() {
+				path = []byte("invalid merkle path")
+			}, false,
+		},
+		{
+			"failed to unmarshal merkle proof", func() {
 				proof = invalidProof
+			}, false,
+		},
+		{
+			"consensus state not found", func() {
+				proofHeight = clienttypes.ZeroHeight()
+			}, false,
+		},
+		{
+			"proof verification failed", func() {
+				// change the value being prooved
+				value = []byte("invalid value")
 			}, false,
 		},
 	}
