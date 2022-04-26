@@ -29,6 +29,11 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			"success", func() {}, true,
 		},
 		{
+			"empty version string", func() {
+				channel.Version = ""
+			}, true,
+		},
+		{
 			"max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, false,
