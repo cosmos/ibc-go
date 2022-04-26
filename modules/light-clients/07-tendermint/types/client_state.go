@@ -192,6 +192,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 
 // VerifyClientState verifies a proof of the client state of the running chain
 // stored on the target machine
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyClientState(
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
@@ -231,6 +232,7 @@ func (cs ClientState) VerifyClientState(
 
 // VerifyClientConsensusState verifies a proof of the consensus state of the
 // Tendermint client stored on the target machine.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyClientConsensusState(
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
@@ -275,6 +277,7 @@ func (cs ClientState) VerifyClientConsensusState(
 
 // VerifyConnectionState verifies a proof of the connection state of the
 // specified connection end stored on the target machine.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyConnectionState(
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
@@ -314,6 +317,7 @@ func (cs ClientState) VerifyConnectionState(
 
 // VerifyChannelState verifies a proof of the channel state of the specified
 // channel end, under the specified port, stored on the target machine.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyChannelState(
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
@@ -354,6 +358,7 @@ func (cs ClientState) VerifyChannelState(
 
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyPacketCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
@@ -368,18 +373,23 @@ func (cs ClientState) VerifyPacketCommitment(
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
-	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	merklePath, err := commitmenttypes.ApplyPrefix(prefix, commitmentPath)
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
 	}
 
-	path, err := cdc.Marshal(&merklePath)
-	if err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to marshal path into commitment merkle path")
+	// check delay period has passed
+	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
+		return err
 	}
 
-	if err := cs.VerifyMembership(ctx, store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, commitmentBytes); err != nil {
+	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
+	path, err := commitmenttypes.ApplyPrefix(prefix, commitmentPath)
+	if err != nil {
+		return err
+	}
+
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, commitmentBytes); err != nil {
 		return err
 	}
 
@@ -388,6 +398,7 @@ func (cs ClientState) VerifyPacketCommitment(
 
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
 	store sdk.KVStore,
@@ -402,18 +413,23 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	sequence uint64,
 	acknowledgement []byte,
 ) error {
-	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	merklePath, err := commitmenttypes.ApplyPrefix(prefix, ackPath)
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
 	}
 
-	path, err := cdc.Marshal(&merklePath)
-	if err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to marshal path into acknowledgement merkle path")
+	// check delay period has passed
+	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
+		return err
 	}
 
-	if err := cs.VerifyMembership(ctx, store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, acknowledgement); err != nil {
+	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
+	path, err := commitmenttypes.ApplyPrefix(prefix, ackPath)
+	if err != nil {
+		return err
+	}
+
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, channeltypes.CommitAcknowledgement(acknowledgement)); err != nil {
 		return err
 	}
 
@@ -423,6 +439,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 // VerifyPacketReceiptAbsence verifies a proof of the absence of an
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyPacketReceiptAbsence(
 	ctx sdk.Context,
 	store sdk.KVStore,
@@ -461,6 +478,7 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 
 // VerifyNextSequenceRecv verifies a proof of the next sequence number to be
 // received of the specified channel at the specified port.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (cs ClientState) VerifyNextSequenceRecv(
 	ctx sdk.Context,
 	store sdk.KVStore,
@@ -474,20 +492,25 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	channelID string,
 	nextSequenceRecv uint64,
 ) error {
-	nextSequenceRecvPath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	merklePath, err := commitmenttypes.ApplyPrefix(prefix, nextSequenceRecvPath)
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
 	if err != nil {
 		return err
 	}
 
-	value := sdk.Uint64ToBigEndian(nextSequenceRecv)
-
-	path, err := cdc.Marshal(&merklePath)
-	if err != nil {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to marshal path into acknowledgement merkle path")
+	// check delay period has passed
+	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
+		return err
 	}
 
-	if err := cs.VerifyMembership(ctx, store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value); err != nil {
+	nextSequenceRecvPath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
+	path, err := commitmenttypes.ApplyPrefix(prefix, nextSequenceRecvPath)
+	if err != nil {
+		return err
+	}
+
+	bz := sdk.Uint64ToBigEndian(nextSequenceRecv)
+
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, bz); err != nil {
 		return err
 	}
 
@@ -584,6 +607,7 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exp
 // produceVerificationArgs perfoms the basic checks on the arguments that are
 // shared between the verification functions and returns the unmarshalled
 // merkle proof, the consensus state and an error if one occurred.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func produceVerificationArgs(
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
