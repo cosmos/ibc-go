@@ -49,8 +49,13 @@ func NewKeeper(
 		paramSpace = paramSpace.WithKeyTable(keyTable)
 	}
 
-	if err := checkEmptyKeepers(stakingKeeper, upgradeKeeper, scopedKeeper); err != nil {
-		panic(fmt.Errorf("cannot initialize IBC keeper: %w", err))
+	// panic if any of the keepers passed in is empty
+	if reflect.ValueOf(stakingKeeper).IsZero() {
+		panic(fmt.Errorf("cannot initialize ibc keeper: empty staking keeper"))
+	} else if reflect.ValueOf(upgradeKeeper).IsZero() {
+		panic(fmt.Errorf("cannot initialize ibc keeper: empty upgrade keeper"))
+	} else if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
+		panic(fmt.Errorf("cannot initialize ibc keeper: empty scoped keeper"))
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
@@ -82,18 +87,4 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router = rtr
 	k.Router = rtr
 	k.Router.Seal()
-}
-
-func checkEmptyKeepers(stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper) error {
-	if reflect.ValueOf(stakingKeeper).IsZero() {
-		return fmt.Errorf("empty staking keeper")
-	}
-	if reflect.ValueOf(upgradeKeeper).IsZero() {
-		return fmt.Errorf("empty upgradeKeeper")
-	}
-	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
-		return fmt.Errorf("empty scopedKeeper")
-	}
-	return nil
 }
