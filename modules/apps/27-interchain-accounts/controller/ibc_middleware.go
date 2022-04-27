@@ -181,8 +181,8 @@ func (im IBCMiddleware) SendPacket(
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
-	ack exported.Acknowledgement,
+	packet ibcexported.PacketI,
+	ack ibcexported.Acknowledgement,
 ) error {
 	panic("WriteAcknowledgement not supported for ICA controller module")
 }
