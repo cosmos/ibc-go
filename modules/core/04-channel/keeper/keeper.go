@@ -86,6 +86,16 @@ func (k Keeper) SetChannel(ctx sdk.Context, portID, channelID string, channel ty
 	store.Set(host.ChannelKey(portID, channelID), bz)
 }
 
+// GetAppVersion gets the version for the specified channel.
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return "", false
+	}
+
+	return channel.Version, true
+}
+
 // GetNextChannelSequence gets the next channel sequence from the store.
 func (k Keeper) GetNextChannelSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
