@@ -98,10 +98,10 @@ func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-	for i := 1; i < 6; i++ {
-		packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
-		suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
-	}
+	packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
+	packetFees := []types.PacketFee{packetFee, packetFee, packetFee, packetFee, packetFee}
+
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
 
 	// retrieve the fees in escrow and assert the length of PacketFees
 	feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)

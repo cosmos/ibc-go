@@ -187,3 +187,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 ) error {
 	panic("WriteAcknowledgement not supported for ICA controller module")
 }
+
+// GetAppVersion returns the interchain accounts metadata.
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}

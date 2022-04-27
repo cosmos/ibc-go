@@ -11,13 +11,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
-// EscrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
-func (k Keeper) EscrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) error {
-	if !k.IsFeeEnabled(ctx, packetID.PortId, packetID.ChannelId) {
-		// users may not escrow fees on this channel. Must send packets without a fee message
-		return sdkerrors.Wrap(types.ErrFeeNotEnabled, "cannot escrow fee for packet")
-	}
-
+// escrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
+func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) error {
 	// check if the refund address is valid
 	refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 	if err != nil {

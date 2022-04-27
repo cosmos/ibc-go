@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	fee "github.com/cosmos/ibc-go/v3/modules/apps/29-fee"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -321,7 +322,8 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
 			},
 			false,
 		},
@@ -342,7 +344,9 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
 			packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
-			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -395,7 +399,8 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
 			},
 			false,
 		},
@@ -417,7 +422,9 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
 			packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
-			err := suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -657,7 +664,9 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				[]string{},
 			)
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, packetFee.Fee.Total())
 			suite.Require().NoError(err)
 
 			relayerAddr := suite.chainB.SenderAccount.GetAddress()
@@ -789,7 +798,8 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				[]string{},
 			)
 
-			err = suite.chainA.GetSimApp().IBCFeeKeeper.EscrowPacketFee(suite.chainA.GetContext(), packetID, packetFee)
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, packetFee.Fee.Total())
 			suite.Require().NoError(err)
 
 			// log original sender balance
@@ -821,6 +831,81 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				suite.Require().Equal(packetFee.Fee.TimeoutFee, relayerBalance)
 			} else {
 				suite.Require().Empty(relayerBalance)
+			}
+		})
+	}
+}
+
+func (suite *FeeTestSuite) TestGetAppVersion() {
+	var (
+		portID        string
+		channelID     string
+		expAppVersion string
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expFound bool
+	}{
+		{
+			"success for fee enabled channel",
+			func() {
+				expAppVersion = ibcmock.Version
+			},
+			true,
+		},
+		{
+			"success for non fee enabled channel",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+				// by default a new path uses a non fee channel
+				suite.coordinator.Setup(path)
+				portID = path.EndpointA.ChannelConfig.PortID
+				channelID = path.EndpointA.ChannelID
+
+				expAppVersion = ibcmock.Version
+			},
+			true,
+		},
+		{
+			"channel does not exist",
+			func() {
+				channelID = "does not exist"
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.Setup(suite.path)
+
+			portID = suite.path.EndpointA.ChannelConfig.PortID
+			channelID = suite.path.EndpointA.ChannelID
+
+			// malleate test case
+			tc.malleate()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			feeModule := cbs.(fee.IBCMiddleware)
+
+			appVersion, found := feeModule.GetAppVersion(suite.chainA.GetContext(), portID, channelID)
+
+			if tc.expFound {
+				suite.Require().True(found)
+				suite.Require().Equal(expAppVersion, appVersion)
+			} else {
+				suite.Require().False(found)
+				suite.Require().Empty(appVersion)
 			}
 		})
 	}

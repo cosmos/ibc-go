@@ -4,6 +4,8 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
@@ -100,4 +102,71 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 
 	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
 	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
+}
+
+func (suite *KeeperTestSuite) TestGetAppVersion() {
+	var (
+		portID        string
+		channelID     string
+		expAppVersion string
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expFound bool
+	}{
+		{
+			"success for fee enabled channel",
+			func() {
+				expAppVersion = ibcmock.Version
+			},
+			true,
+		},
+		{
+			"success for non fee enabled channel",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+				// by default a new path uses a non fee channel
+				suite.coordinator.Setup(path)
+				portID = path.EndpointA.ChannelConfig.PortID
+				channelID = path.EndpointA.ChannelID
+
+				expAppVersion = ibcmock.Version
+			},
+			true,
+		},
+		{
+			"channel does not exist",
+			func() {
+				channelID = "does not exist"
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.coordinator.Setup(suite.path)
+
+			portID = suite.path.EndpointA.ChannelConfig.PortID
+			channelID = suite.path.EndpointA.ChannelID
+
+			// malleate test case
+			tc.malleate()
+
+			appVersion, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetAppVersion(suite.chainA.GetContext(), portID, channelID)
+
+			if tc.expFound {
+				suite.Require().True(found)
+				suite.Require().Equal(expAppVersion, appVersion)
+			} else {
+				suite.Require().False(found)
+				suite.Require().Empty(appVersion)
+			}
+		})
+	}
 }

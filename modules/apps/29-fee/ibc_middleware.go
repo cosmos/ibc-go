@@ -289,3 +289,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 ) error {
 	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
+
+// GetAppVersion returns the application version of the underlying application
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}
