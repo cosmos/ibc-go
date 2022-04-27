@@ -70,14 +70,6 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		return err
 	}
 
-	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
-	// This prevents the event value from containing invalid UTF-8 characters
-	// which may cause data to be lost when JSON encoding/decoding.
-	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, clientMsg))
-
-	// set default consensus height with header height
-	consensusHeight := clientMsg.GetHeight()
-
 	foundMisbehaviour := clientState.CheckForMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
 	if foundMisbehaviour {
 		clientState.UpdateStateOnMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
@@ -96,14 +88,14 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 			)
 		}()
 
-		EmitSubmitMisbehaviourEventOnUpdate(ctx, clientID, clientState.ClientType(), consensusHeight, clientMsgStr)
+		EmitSubmitMisbehaviourEvent(ctx, clientID, clientState)
 
 		return nil
 	}
 
-	clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
+	consensusHeights := clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
 
-	k.Logger(ctx).Info("client state updated", "client-id", clientID, "height", consensusHeight.String())
+	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
@@ -117,8 +109,13 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		)
 	}()
 
+	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
+	// This prevents the event value from containing invalid UTF-8 characters
+	// which may cause data to be lost when JSON encoding/decoding.
+	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, clientMsg))
+
 	// emitting events in the keeper emits for both begin block and handler client updates
-	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeight, clientMsgStr)
+	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, clientMsgStr)
 
 	return nil
 }
