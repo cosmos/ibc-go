@@ -119,6 +119,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 			} else {
 				suite.Require().Error(err, "error not returned for version: %s", tc.version)
+				suite.Require().Equal(version, "")
 			}
 		})
 	}

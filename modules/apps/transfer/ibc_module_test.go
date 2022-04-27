@@ -99,6 +99,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(version, "")
 			}
 
 		})

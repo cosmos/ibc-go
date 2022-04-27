@@ -52,8 +52,11 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	// call underlying app's OnChanOpenInit callback with the passed in version
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, version)
+	if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
+		return "", err
+	}
+
+	return version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface

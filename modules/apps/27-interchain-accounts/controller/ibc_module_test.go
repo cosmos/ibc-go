@@ -202,7 +202,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			)
 
 			if tc.expPass {
-				expMetaData := icatypes.NewMetadata(
+				expMetadata := icatypes.NewMetadata(
 					icatypes.Version,
 					path.EndpointA.ConnectionID,
 					path.EndpointB.ConnectionID,
@@ -211,7 +211,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 					icatypes.TxTypeSDKMultiMsg,
 				)
 
-				expBytes, err := icatypes.ModuleCdc.MarshalJSON(&expMetaData)
+				expBytes, err := icatypes.ModuleCdc.MarshalJSON(&expMetadata)
 				suite.Require().NoError(err)
 
 				suite.Require().Equal(version, string(expBytes))

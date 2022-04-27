@@ -101,7 +101,6 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	versionMetadata.AppVersion = appVersion
-
 	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
 	if err != nil {
 		return "", err
