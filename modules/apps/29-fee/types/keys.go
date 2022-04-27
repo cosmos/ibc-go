@@ -23,7 +23,7 @@ const (
 	// QuerierRoute is the querier route for IBC fee module
 	QuerierRoute = ModuleName
 
-	Version = "fee29-1"
+	Version = "ics29-1"
 
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
