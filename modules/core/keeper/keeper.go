@@ -51,11 +51,15 @@ func NewKeeper(
 
 	// panic if any of the keepers passed in is empty
 	if reflect.ValueOf(stakingKeeper).IsZero() {
-		panic(fmt.Errorf("cannot initialize ibc keeper: empty staking keeper"))
-	} else if reflect.ValueOf(upgradeKeeper).IsZero() {
-		panic(fmt.Errorf("cannot initialize ibc keeper: empty upgrade keeper"))
-	} else if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
-		panic(fmt.Errorf("cannot initialize ibc keeper: empty scoped keeper"))
+		panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
+	} 
+	
+	if reflect.ValueOf(upgradeKeeper).IsZero() {
+		panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper"))
+	} 
+	
+	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
+		panic(fmt.Errorf("cannot initialize IBC keeper: empty scoped keeper"))
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
