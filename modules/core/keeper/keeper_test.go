@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			stakingKeeper = emptyStakingKeeper
 
 		}, false},
-		{"failure: empty dummy staking keeper", func() {
+		{"failure: empty mock staking keeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
 			emptyMockStakingKeeper := MockStakingKeeper{}
 
