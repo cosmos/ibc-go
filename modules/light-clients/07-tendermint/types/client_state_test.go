@@ -219,15 +219,14 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		expPass  bool
 	}{
 		{
-			name: "successful ClientState verification",
-			malleate: func() {
+			"successful ClientState verification",
+			func() {
 				// default proof construction uses ClientState
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "successful ConsensusState verification",
-			malleate: func() {
+			"successful ConsensusState verification", func() {
 				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, testingpath.EndpointB.GetClientState().GetLatestHeight())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
@@ -242,11 +241,10 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
 				suite.Require().NoError(err)
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "successful Connection verification",
-			malleate: func() {
+			"successful Connection verification", func() {
 				key := host.ConnectionKey(testingpath.EndpointB.ConnectionID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
@@ -261,11 +259,10 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				value, err = suite.chainB.Codec.Marshal(&connection)
 				suite.Require().NoError(err)
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "successful Channel verification",
-			malleate: func() {
+			"successful Channel verification", func() {
 				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
@@ -280,7 +277,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				value, err = suite.chainB.Codec.Marshal(&channel)
 				suite.Require().NoError(err)
 			},
-			expPass: true,
+			true,
 		},
 		{
 			"successful PacketCommitment verification", func() {
@@ -304,8 +301,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			}, true,
 		},
 		{
-			name: "successful Acknowledgement verification",
-			malleate: func() {
+			"successful Acknowledgement verification", func() {
 				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 				err := testingpath.EndpointA.SendPacket(packet)
@@ -327,11 +323,10 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 				value = channeltypes.CommitAcknowledgement(ibcmock.MockAcknowledgement.Acknowledgement())
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "successful NextSequenceRecv verification",
-			malleate: func() {
+			"successful NextSequenceRecv verification", func() {
 				// send from chainA to chainB since we are proving chainB incremented the sequence recv
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
@@ -356,42 +351,37 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				value = sdk.Uint64ToBigEndian(packet.GetSequence() + 1)
 
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "successful custom type verification",
-			malleate: func() {
+			"successful custom type verification", func() {
 				// TODO
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "delay time period has passed",
-			malleate: func() {
+			"delay time period has passed", func() {
 				delayTimePeriod = uint64(time.Second.Nanoseconds())
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "delay time period has not passed",
-			malleate: func() {
+			"delay time period has not passed", func() {
 				delayTimePeriod = uint64(time.Hour.Nanoseconds())
 			},
-			expPass: false,
+			false,
 		},
 		{
-			name: "delay block period has passed",
-			malleate: func() {
+			"delay block period has passed", func() {
 				delayBlockPeriod = 1
 			},
-			expPass: true,
+			true,
 		},
 		{
-			name: "delay block period has not passed",
-			malleate: func() {
+			"delay block period has not passed", func() {
 				delayBlockPeriod = 1000
 			},
-			expPass: false,
+			false,
 		},
 		{
 			"latest client height < height", func() {
