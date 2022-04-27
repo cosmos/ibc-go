@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -154,19 +155,20 @@ func (cs *ClientState) verifyHeader(
 // If we are updating to a past height, a consensus state is created for that height to be persisted in client store
 // If we are updating to a future height, the consensus state is created and the client state is updated to reflect
 // the new latest height
+// A list containing the updated consensus height is returned.
 // UpdateState must only be used to update within a single revision, thus header revision number and trusted height's revision
 // number must be the same. To update to a new revision, use a separate upgrade path
 // UpdateState will prune the oldest consensus state if it is expired.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	header, ok := clientMsg.(*Header)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, header)
+		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 
 	// check for duplicate update
 	if consensusState, _ := GetConsensusState(clientStore, cdc, header.GetHeight()); consensusState != nil {
 		// perform no-op
-		return nil
+		return []exported.Height{header.GetHeight()}
 	}
 
 	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
@@ -175,6 +177,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	if height.GT(cs.LatestHeight) {
 		cs.LatestHeight = height
 	}
+
 	consensusState := &ConsensusState{
 		Timestamp:          header.GetTime(),
 		Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
@@ -186,7 +189,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
-	return nil
+	return []exported.Height{height}
 }
 
 // pruneOldestConsensusState will retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
