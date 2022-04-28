@@ -6,6 +6,7 @@ import (
 	ics23 "github.com/confio/ics23/go"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
@@ -349,13 +350,24 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 
 				value = sdk.Uint64ToBigEndian(packet.GetSequence() + 1)
-
 			},
 			true,
 		},
 		{
-			"successful custom type verification", func() {
-				// TODO
+			"successful verification outside IBC store", func() {
+				key := transfertypes.PortKey
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				clientState := testingpath.EndpointA.GetClientState()
+				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight().GetRevisionHeight()))
+
+				value = []byte(suite.chainB.GetSimApp().TransferKeeper.GetPort(suite.chainB.GetContext()))
+				suite.Require().NoError(err)
 			},
 			true,
 		},
