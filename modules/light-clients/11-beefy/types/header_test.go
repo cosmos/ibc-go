@@ -53,3 +53,25 @@ func TestDecodeExtrinsicTimestamp(t *testing.T) {
 	require.Equal(t, timeUnix, unix.Uint64(), "failed to decode unix timestamp")
 
 }
+
+func TestHeader(t *testing.T) {
+	h := substrateTypes.Header{
+		Digest: substrateTypes.Digest{
+			substrateTypes.DigestItem{
+				AsConsensus: substrateTypes.Consensus{
+					Bytes: substrateTypes.NewBytes([]byte("/IBC")),
+				},
+			},
+		},
+	}
+
+	require.Equal(t, []byte("/IBC"), []byte("/IBC")[:])
+	var buffer = bytes.Buffer{}
+
+	encoderInstance := scale.NewEncoder(&buffer)
+	err := encoderInstance.Encode(h.Digest[0].AsConsensus)
+	require.NoError(t, err)
+
+	require.Len(t, h.Digest[0].AsConsensus.Bytes, 4)
+	require.Equal(t, substrateTypes.NewBytes([]byte("/IBC")), h.Digest[0].AsConsensus.Bytes)
+}
