@@ -77,7 +77,23 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
 <binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
 ```
 
-The `<active-client-id>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. This means: use the active client that is currently being used to relay packets between the two chains as the replacement client.
+The `<active-client-id>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. 
+
+Example:
+
+**osmosis <-> evmos**
+
+Evmos went down for a month so its client on Osmosis expired
+The Osmosis client on evmos is fine
+On Osmosis, the steps are:
+
+1) create a new client with hermes, go relayer, or ts-relayer on the osmosis side only
+2) create a governance propsal to use the new client instead of the old one
+
+Here is a commonwealth.im thread describing it:
+
+https://commonwealth.im/osmosis/discussion/4610-reset-evmos-client
+
 
 After this, it is just a question of who funds the governance deposit and if the chain in question votes yes.
 
