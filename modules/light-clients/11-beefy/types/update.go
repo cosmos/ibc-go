@@ -428,12 +428,11 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		// IBC commitment root is stored in the header digests as a ConsensusItem
 		for _, v := range header.Digest {
 			if v.IsConsensus {
-				consensusID, err := (v.AsConsensus.ConsensusEngineID).MarshalJSON() // this should be called on the U32 type
-				if err != nil {
-					return sdkerrors.Wrap(err, "failed to decode timestamp extrinsic")
-				}
+
+				consensusID := v.AsConsensus.Bytes
+
 				// this is a constant that comes from pallet-ibc
-				if consensusID == []byte("/IBC") {
+				if bytes.Equal(consensusID, []byte("/IBC")) {
 					ibcCommitmentRoot = v.AsConsensus.Bytes
 				}
 			}
