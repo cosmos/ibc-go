@@ -7,8 +7,6 @@ import (
 	"fmt"
 	types2 "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"os"
 	"sort"
 	"testing"
@@ -369,68 +367,6 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			// TODO: assert that the consensus states were actually persisted
 			// TODO: tests against invalid proofs and consensus states
-		}
-	}
-}
-
-func (suite *BeefyTestSuite) TestUpdateState() {
-	var (
-		clientState exported.ClientState
-		clientMsg   exported.ClientMessage
-	)
-
-	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{} {
-
-		testCases := []struct {
-			name    string
-			setup   func()
-			expPass bool
-		}{
-			{
-				"successful update",
-				func() {
-					clientState = solomachine.ClientState()
-					clientMsg = solomachine.CreateHeader()
-				},
-				true,
-			},
-			{
-				"invalid type misbehaviour",
-				func() {
-					clientState = solomachine.ClientState()
-					clientMsg = solomachine.CreateMisbehaviour()
-				},
-				false,
-			},
-		}
-
-		for _, tc := range testCases {
-			tc := tc
-
-			suite.Run(tc.name, func() {
-				tc.setup() // setup test
-
-				err := clientState.UpdateState(sdk.Context{}, nil, nil, clientMsg)
-
-				if tc.expPass {
-					suite.Require().NoError(err)
-
-					//clientStateBz := suite.store.Get(host.ClientStateKey())
-					//suite.Require().NotEmpty(clientStateBz)
-					//
-					//newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-					//
-					//suite.Require().Positive(newClientState.(*types.ClientState).FrozenHeight)
-					//suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, newClientState.(*types.ClientState).Sequence)
-					//suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, newClientState.(*types.ClientState).ConsensusState.PublicKey)
-					//suite.Require().Equal(clientMsg.(*types.Header).NewDiversifier, newClientState.(*types.ClientState).ConsensusState.Diversifier)
-					//suite.Require().Equal(clientMsg.(*types.Header).Timestamp, newClientState.(*types.ClientState).ConsensusState.Timestamp)
-				} else {
-					suite.Require().Error(err)
-				}
-
-			})
 		}
 	}
 }

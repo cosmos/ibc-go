@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	substrateTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	"reflect"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -432,7 +433,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 				consensusID := v.AsConsensus.Bytes
 
 				// this is a constant that comes from pallet-ibc
-				if bytes.Equal(consensusID, []byte("/IBC")) {
+				if bytes.Equal(consensusID, substrateTypes.NewBytes([]byte("/IBC"))) {
 					ibcCommitmentRoot = v.AsConsensus.Bytes
 				}
 			}
