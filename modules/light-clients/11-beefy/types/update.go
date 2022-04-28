@@ -386,6 +386,8 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, beefyHeader)
 	}
 
+	consensusStates := make(map[clienttypes.Height]*ConsensusState)
+
 	// iterate over each parachain header and set them in the store.
 	for _, v := range beefyHeader.ParachainHeaders {
 		// decode parachain header bytes to struct
@@ -437,11 +439,14 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 			}
 		}
 
-		consensusState := &ConsensusState{
+		consensusStates[height] = &ConsensusState{
 			Timestamp: timestamp,
 			Root:      ibcCommitmentRoot,
 		}
+	}
 
+	// only set consensus states after doing checks
+	for height, consensusState := range consensusStates {
 		// we store consensus state as (PARA_ID, HEIGHT) => ConsensusState
 		setConsensusState(clientStore, cdc, consensusState, height)
 	}
