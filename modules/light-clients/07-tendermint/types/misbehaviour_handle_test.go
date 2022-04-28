@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -153,7 +154,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 
 				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				futureRevision := fmt.Sprintf("-%d", height.GetRevisionNumber()+1)
+				futureRevision := fmt.Sprintf("%s-%d", strings.TrimSuffix(suite.chainB.ChainID, fmt.Sprintf("-%d", clienttypes.ParseChainID(suite.chainB.ChainID))), height.GetRevisionNumber()+1)
 
 				misbehaviour = &types.Misbehaviour{
 					Header1: suite.chainB.CreateTMClientHeader(futureRevision, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
