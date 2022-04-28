@@ -4,7 +4,9 @@ import (
 	"time"
 
 	ics23 "github.com/confio/ics23/go"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
@@ -201,6 +203,277 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	}
 }
 
+func (suite *TendermintTestSuite) TestVerifyMembership() {
+	var (
+		testingpath      *ibctesting.Path
+		delayTimePeriod  uint64
+		delayBlockPeriod uint64
+		proofHeight      exported.Height
+		proof            []byte
+		path             []byte
+		value            []byte
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"successful ClientState verification",
+			func() {
+				// default proof construction uses ClientState
+			},
+			true,
+		},
+		{
+			"successful ConsensusState verification", func() {
+				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, testingpath.EndpointB.GetClientState().GetLatestHeight())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = suite.chainB.QueryProof(key)
+
+				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight()).(*types.ConsensusState)
+				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"successful Connection verification", func() {
+				key := host.ConnectionKey(testingpath.EndpointB.ConnectionID)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = suite.chainB.QueryProof(key)
+
+				connection := testingpath.EndpointB.GetConnection()
+				value, err = suite.chainB.Codec.Marshal(&connection)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"successful Channel verification", func() {
+				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID)
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = suite.chainB.QueryProof(key)
+
+				channel := testingpath.EndpointB.GetChannel()
+				value, err = suite.chainB.Codec.Marshal(&channel)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"successful PacketCommitment verification", func() {
+				// send from chainB to chainA since we are proving chainB sent a packet
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				err := testingpath.EndpointB.SendPacket(packet)
+				suite.Require().NoError(err)
+
+				// make packet commitment proof
+				key := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
+
+				value = channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
+			}, true,
+		},
+		{
+			"successful Acknowledgement verification", func() {
+				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				err := testingpath.EndpointA.SendPacket(packet)
+				suite.Require().NoError(err)
+
+				// write receipt and ack
+				err = testingpath.EndpointB.RecvPacket(packet)
+				suite.Require().NoError(err)
+
+				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
+
+				value = channeltypes.CommitAcknowledgement(ibcmock.MockAcknowledgement.Acknowledgement())
+			},
+			true,
+		},
+		{
+			"successful NextSequenceRecv verification", func() {
+				// send from chainA to chainB since we are proving chainB incremented the sequence recv
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+
+				// send packet
+				err := testingpath.EndpointA.SendPacket(packet)
+				suite.Require().NoError(err)
+
+				// next seq recv incremented
+				err = testingpath.EndpointB.RecvPacket(packet)
+				suite.Require().NoError(err)
+
+				key := host.NextSequenceRecvKey(packet.GetSourcePort(), packet.GetSourceChannel())
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
+
+				value = sdk.Uint64ToBigEndian(packet.GetSequence() + 1)
+			},
+			true,
+		},
+		{
+			"successful verification outside IBC store", func() {
+				key := transfertypes.PortKey
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
+				suite.Require().NoError(err)
+
+				path, err = suite.chainB.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				clientState := testingpath.EndpointA.GetClientState()
+				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight().GetRevisionHeight()))
+
+				value = []byte(suite.chainB.GetSimApp().TransferKeeper.GetPort(suite.chainB.GetContext()))
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"delay time period has passed", func() {
+				delayTimePeriod = uint64(time.Second.Nanoseconds())
+			},
+			true,
+		},
+		{
+			"delay time period has not passed", func() {
+				delayTimePeriod = uint64(time.Hour.Nanoseconds())
+			},
+			false,
+		},
+		{
+			"delay block period has passed", func() {
+				delayBlockPeriod = 1
+			},
+			true,
+		},
+		{
+			"delay block period has not passed", func() {
+				delayBlockPeriod = 1000
+			},
+			false,
+		},
+		{
+			"latest client height < height", func() {
+				proofHeight = testingpath.EndpointA.GetClientState().GetLatestHeight().Increment()
+			}, false,
+		},
+		{
+			"failed to unmarshal merkle path", func() {
+				path = []byte("invalid merkle path")
+			}, false,
+		},
+		{
+			"failed to unmarshal merkle proof", func() {
+				proof = invalidProof
+			}, false,
+		},
+		{
+			"consensus state not found", func() {
+				proofHeight = clienttypes.ZeroHeight()
+			}, false,
+		},
+		{
+			"proof verification failed", func() {
+				// change the value being prooved
+				value = []byte("invalid value")
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
+			testingpath.SetChannelOrdered()
+			suite.coordinator.Setup(testingpath)
+
+			// reset time and block delays to 0, malleate may change to a specific non-zero value.
+			delayTimePeriod = 0
+			delayBlockPeriod = 0
+
+			// create default proof, merklePath, and value which passes
+			// may be overwritten by malleate()
+			key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
+			merklePath := commitmenttypes.NewMerklePath(string(key))
+			merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+			suite.Require().NoError(err)
+
+			path, err = suite.chainA.Codec.Marshal(&merklePath)
+			suite.Require().NoError(err)
+
+			proof, proofHeight = suite.chainB.QueryProof(key)
+
+			clientState := testingpath.EndpointB.GetClientState().(*types.ClientState)
+			value, err = suite.chainB.Codec.MarshalInterface(clientState)
+			suite.Require().NoError(err)
+
+			tc.malleate() // make changes as necessary
+
+			clientState = testingpath.EndpointA.GetClientState().(*types.ClientState)
+
+			ctx := suite.chainA.GetContext()
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, testingpath.EndpointA.ClientID)
+
+			err = clientState.VerifyMembership(
+				ctx, store, suite.chainA.Codec, proofHeight, delayTimePeriod, delayBlockPeriod,
+				proof, path, value,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 	testCases := []struct {
 		name           string
@@ -268,6 +541,7 @@ func (suite *TendermintTestSuite) TestVerifyClientConsensusState() {
 
 // test verification of the connection on chainB being represented in the
 // light client on chainA
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 	var (
 		clientState *types.ClientState
@@ -342,6 +616,7 @@ func (suite *TendermintTestSuite) TestVerifyConnectionState() {
 
 // test verification of the channel on chainB being represented in the light
 // client on chainA
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyChannelState() {
 	var (
 		clientState *types.ClientState
@@ -417,6 +692,7 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 
 // test verification of the packet commitment on chainB being represented
 // in the light client on chainA. A send from chainB to chainA is simulated.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 	var (
 		clientState      *types.ClientState
@@ -531,6 +807,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 // test verification of the acknowledgement on chainB being represented
 // in the light client on chainA. A send and ack from chainA to chainB
 // is simulated.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 	var (
 		clientState      *types.ClientState
@@ -577,7 +854,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			},
 			expPass: false,
 		},
-
 		{
 			"ApplyPrefix failed", func() {
 				prefix = commitmenttypes.MerklePrefix{}
@@ -765,6 +1041,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 // test verification of the next receive sequence on chainB being represented
 // in the light client on chainA. A send and receive from chainB to chainA is
 // simulated.
+// TODO: remove, https://github.com/cosmos/ibc-go/issues/1294
 func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 	var (
 		clientState      *types.ClientState
