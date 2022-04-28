@@ -4452,7 +4452,7 @@ Partial data for MmrLeaf
 <a name="ibc.lightclients.beefy.v1.ClientState"></a>
 
 ### ClientState
-ClientState from Tendermint tracks the current validator set, latest height,
+ClientState from Beefy tracks the current validator set, latest height,
 and a possible frozen height.
 
 
@@ -4513,7 +4513,6 @@ ConsensusState defines the consensus state from Tendermint.
 | ----- | ---- | ----- | ----------- |
 | `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
 | `root` | [bytes](#bytes) |  | packet commitment root |
-| `parachain_header` | [ParachainHeader](#ibc.lightclients.beefy.v1.ParachainHeader) |  | proof of inclusion for this parachain header in the Mmr. |
 
 
 
