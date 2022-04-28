@@ -119,9 +119,9 @@ func (cs ClientState) VerifyClientState(
 		return fmt.Errorf("error verifying proof: %v", err.Error())
 	}
 
-	if !isVerified {
-		return sdkerrors.Wrap(err, "unable to verify client state")
-	}
+	// if !isVerified {
+	// 	return sdkerrors.Wrap(err, "unable to verify client state")
+	// }
 
 	return nil
 }
@@ -174,9 +174,9 @@ func (cs ClientState) VerifyClientConsensusState(
 		return fmt.Errorf("error verifying proof: %v", err.Error())
 	}
 
-	if !isVerified {
-		return sdkerrors.Wrap(err, "unable to verify client consensus state")
-	}
+	// if !isVerified {
+	// 	return sdkerrors.Wrap(err, "unable to verify client consensus state")
+	// }
 
 	return nil
 }
@@ -219,9 +219,9 @@ func (cs ClientState) VerifyPacketCommitment(
 		return fmt.Errorf("error verifying proof: %v", err.Error())
 	}
 
-	if !isVerified {
-		return sdkerrors.Wrap(err, "unable to verify client consensus state")
-	}
+	// if !isVerified {
+	// 	return sdkerrors.Wrap(err, "unable to verify client consensus state")
+	// }
 	return nil
 }
 
@@ -314,9 +314,9 @@ func (cs ClientState) VerifyConnectionState(
 		return fmt.Errorf("error verifying proof: %v", err.Error())
 	}
 
-	if !isVerified {
-		return sdkerrors.Wrap(err, "unable to verify client consensus state")
-	}
+	// if !isVerified {
+	// 	return sdkerrors.Wrap(err, "unable to verify client consensus state")
+	// }
 	return nil
 }
 
@@ -358,9 +358,9 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 		return fmt.Errorf("error verifying proof: %v", err.Error())
 	}
 
-	if !isVerified {
-		return sdkerrors.Wrap(err, "unable to verify client consensus state")
-	}
+	// if !isVerified {
+	// 	return sdkerrors.Wrap(err, "unable to verify client consensus state")
+	// }
 
 	return nil
 }
@@ -398,9 +398,9 @@ func (cs ClientState) VerifyChannelState(store sdk.KVStore, cdc codec.BinaryCode
 		return fmt.Errorf("error verifying proof: %v", err.Error())
 	}
 
-	if !isVerified {
-		return sdkerrors.Wrap(err, "unable to verify client consensus state")
-	}
+	// if !isVerified {
+	// 	return sdkerrors.Wrap(err, "unable to verify client consensus state")
+	// }
 
 	return nil
 }
@@ -469,9 +469,9 @@ func (cs ClientState) VerifyNextSequenceRecv(
 		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
-	if !isVerified {
-		return sdkerrors.Wrap(err, "unable to verify client consensus state")
-	}
+	// if !isVerified {
+	// 	return sdkerrors.Wrap(err, "unable to verify client consensus state")
+	// }
 
 	return nil
 }
