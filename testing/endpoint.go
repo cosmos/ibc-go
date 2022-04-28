@@ -167,12 +167,16 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	clientState := endpoint.Counterparty.GetClientState().(*ibctmtypes.ClientState)
 
 	// increment revision number in chainID
+
 	oldChainID := clientState.ChainId
+	if !clienttypes.IsRevisionFormat(oldChainID) {
+		return fmt.Errorf("cannot upgrade chain which is not of revision format: %s", oldChainID)
+	}
+
 	revisionNumber := clienttypes.ParseChainID(oldChainID)
 	newChainID, err := clienttypes.SetRevisionNumber(oldChainID, revisionNumber+1)
 	if err != nil {
-		// current chainID is not in revision format
-		newChainID = clientState.ChainId + "-1"
+		return err
 	}
 
 	// update chain

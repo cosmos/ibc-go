@@ -490,7 +490,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			err := path.EndpointB.SendPacket(packet)
 			suite.Require().NoError(err)
 
@@ -604,7 +604,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			// send packet
 			err := path.EndpointA.SendPacket(packet)
@@ -723,7 +723,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketReceiptAbsence() {
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			// send packet, but no recv
 			err := path.EndpointA.SendPacket(packet)
@@ -839,7 +839,7 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			// send packet
 			err := path.EndpointA.SendPacket(packet)

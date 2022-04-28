@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"time"
 
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -137,7 +138,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
 				}
 
-				// increment the revision of the chain
+				// increment revision number
 				err = path.EndpointB.UpgradeChain()
 				suite.Require().NoError(err)
 			},
@@ -152,7 +153,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 
 				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				futureRevision := suite.chainB.ChainID + "-1"
+				futureRevision := fmt.Sprintf("-%d", height.GetRevisionNumber()+1)
 
 				misbehaviour = &types.Misbehaviour{
 					Header1: suite.chainB.CreateTMClientHeader(futureRevision, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
@@ -168,7 +169,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
 				suite.Require().True(found)
 
-				// increment the revision of the chain
+				// increment revision of chainID
 				err = path.EndpointB.UpgradeChain()
 				suite.Require().NoError(err)
 
