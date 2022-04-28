@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"reflect"
+
+	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/log15"
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
@@ -14,7 +17,6 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/crypto"
-	"reflect"
 )
 
 type Keccak256 struct{}
@@ -213,6 +215,7 @@ func (cs *ClientState) getMMRProf(beefyHeader *Header) (*mmr.Proof, error) {
 		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, Keccak256{})
 		// todo: merkle.Proof.Root() should return fixed bytes
 		parachainHeadsRoot, err := parachainHeadsProof.Root()
+		// TODO: verify extrinsic root here once trie lib is fixed.
 		if err != nil {
 			return nil, sdkerrors.Wrap(err, ErrInvalivParachainHeadsProof.Error())
 		}
@@ -383,40 +386,67 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, beefyHeader)
 	}
 
-	// check for duplicate update
-	if consensusState, _ := GetConsensusState(clientStore, cdc, beefyHeader.GetHeight()); consensusState != nil {
-		// perform no-op
-		return nil
+	// iterate over each parachain header and set them in the store.
+	for _, v := range beefyHeader.ParachainHeaders {
+		// decode parachain header bytes to struct
+		header, err := DecodeParachainHeader(v.ParachainHeader)
+		if err != nil {
+			return sdkerrors.Wrap(err, "failed to decode parachain header")
+		}
+
+		// TODO: IBC should allow height to be generic
+		height := clienttypes.Height{
+			// revion number is used to store paraId
+			RevisionNumber: uint64(v.ParaId),
+			RevisionHeight: uint64(header.Number),
+		}
+
+		// check for duplicate consensus state
+		if consensusState, _ := GetConsensusState(clientStore, cdc, height); consensusState != nil {
+			// perform no-op
+			continue
+		}
+
+		trieProof := trie.NewEmptyTrie()
+		// load the extrinsics proof which is basically a partial trie
+		// that encodes the timestamp extrinsic
+		errr := trieProof.LoadFromProof(v.ExtrinsicProof, header.ExtrinsicsRoot[:])
+		if errr != nil {
+			return sdkerrors.Wrap(err, "failed to load extrinsic proof")
+		}
+		// the timestamp extrinsic is stored under the key 0u32 in big endian
+		key := make([]byte, 4)
+		timestamp, err := DecodeExtrinsicTimestamp(trieProof.Get(key))
+
+		if err != nil {
+			return sdkerrors.Wrap(err, "failed to decode timestamp extrinsic")
+		}
+
+		var ibcCommitmentRoot []byte
+		// IBC commitment root is stored in the header digests as a ConsensusItem
+		for _, v := range header.Digest {
+			if v.IsConsensus {
+				consensusID, err := (v.AsConsensus.ConsensusEngineID).MarshalJSON() // this should be called on the U32 type
+				if err != nil {
+					return sdkerrors.Wrap(err, "failed to decode timestamp extrinsic")
+				}
+				// this is a constant that comes from pallet-ibc
+				if consensusID == []byte("/IBC") {
+					ibcCommitmentRoot = v.AsConsensus.Bytes
+				}
+			}
+		}
+
+		consensusState := &ConsensusState{
+			Timestamp: timestamp,
+			Root:      ibcCommitmentRoot,
+		}
+
+		// we store consensus state as (PARA_ID, HEIGHT) => ConsensusState
+		setConsensusState(clientStore, cdc, consensusState, height)
 	}
 
-	mmrProof, err := cs.getMMRProf(beefyHeader)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to execute getMMRProf")
-	}
-
-	v, err := Decode(mmrProof.Leaves[0].Hash, nil)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to Decode MMRProf")
-	}
-
-	consensusState := &ConsensusState{
-		//Timestamp:          header.GetTime(), //TODO
-		Root: nil, //TODO
-		ParachainHeader: ParachainHeader{
-			ParachainHeader:     beefyHeader.ParachainHeaders[0].ParachainHeader,
-			MmrLeafPartial:      v.(*BeefyMmrLeafPartial),
-			ParaId:              beefyHeader.ParachainHeaders[0].ParaId,
-			ParachainHeadsProof: mmrProof.ProofItems(),
-			HeadsTotalCount:     uint32(mmrProof.MMRSize()),
-			HeadsLeafIndex:      0,   //TODO
-			ExtrinsicProof:      nil, //TODO
-		},
-	}
-
-	// set client state, consensus state and associated metadata
 	setClientState(clientStore, cdc, &cs)
-	setConsensusState(clientStore, cdc, consensusState, beefyHeader.GetHeight())
-	setConsensusMetadata(ctx, clientStore, beefyHeader.GetHeight())
 
 	return nil
 }

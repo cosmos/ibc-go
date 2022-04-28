@@ -114,9 +114,6 @@ message ConsensusState {
 
   // packet commitment root
   bytes root = 2;
-
-  // proof of inclusion for this parachain header in the Mmr.
-  ParachainHeader parachain_header = 4 [(gogoproto.nullable) = false];
 }
 
 // Misbehaviour is a wrapper over two conflicting Headers
