@@ -78,7 +78,11 @@ UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 
 ## References
 
-> Are there any relevant PR comments, issues that led up to this, or articles referrenced for why we made the given design choice? If so link them here!
+Discussions:
+- [#1208](https://github.com/cosmos/ibc-go/pull/1208#discussion_r839691927)
 
-<!-- TODO: Add reference list -->
-* {reference link}
+Issues:
+- [#594](https://github.com/cosmos/ibc-go/issues/594)
+
+PRs:
+- [#1285](https://github.com/cosmos/ibc-go/pull/1285)
