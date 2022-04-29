@@ -33,8 +33,8 @@ require (
 	github.com/ChainSafe/gossamer v0.6.1-0.20220406182257-98400b30ca00
 	github.com/jhump/protoreflect v1.9.1-0.20210817181203-db1a327a393e // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
-	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
-	golang.org/x/sys v0.0.0-20220405052023-b1e9470b6e64 // indirect
+	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
+	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 )
 
@@ -46,12 +46,14 @@ require (
 	github.com/ChainSafe/chaindb v0.1.5-0.20220322154826-c0d431995732 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/ChainSafe/log15 v1.0.0 // indirect
+	github.com/ComposableFi/go-substrate-rpc-client v2.0.0+incompatible // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/Workiva/go-datastructures v1.0.52 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.1.2 // indirect
+	github.com/centrifuge/go-substrate-rpc-client v2.0.0+incompatible // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.0 // indirect
