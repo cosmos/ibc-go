@@ -44,11 +44,6 @@ Emission of standardised events from the `02-client` submodule now becomes probl
 
 ## Decision
 
-> This section explains all of the details of the proposed solution, including implementation details.
-It should also describe affects / corollary items that may need to be changed as a part of this.
-If the proposed change will be large, please also indicate a way to do the change to maximize ease of review.
-(e.g. the optimal split of things to do between separate PR's)
-
 The following decisions have been made in order to provide flexibility to consumers of `UpdateClient` events in a non-breaking fashion:
 
 1. Maintain the `consensus_height` event attribute emitted from the `02-client` update handler, but mark as deprecated for future removal. For example, with tendermint lightclients this will simply be `consensusHeights[0]` following a successful update using a single *Header*.
