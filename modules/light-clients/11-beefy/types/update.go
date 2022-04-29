@@ -430,10 +430,10 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		for _, v := range header.Digest {
 			if v.IsConsensus {
 
-				consensusID := v.AsConsensus.Bytes
+				consensusID := v.AsConsensus.ConsensusEngineID
 
 				// this is a constant that comes from pallet-ibc
-				if bytes.Equal(consensusID, substrateTypes.NewBytes([]byte("/IBC"))) {
+				if bytes.Equal(consensusID[:], substrateTypes.NewBytes([]byte("/IBC"))) {
 					ibcCommitmentRoot = v.AsConsensus.Bytes
 				}
 			}
