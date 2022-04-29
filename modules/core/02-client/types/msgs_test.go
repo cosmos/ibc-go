@@ -278,7 +278,7 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		{
 			"failed to unpack header",
 			func() {
-				msg.Header = nil
+				msg.ClientMessage = nil
 			},
 			false,
 		},
