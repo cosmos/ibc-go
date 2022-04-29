@@ -1,9 +1,14 @@
 package keeper_test
 
 import (
+<<<<<<< HEAD
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+=======
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+>>>>>>> f2577f9 (add empty keepers checking in ibc NewKeeper (#1284))
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -18,13 +23,12 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/testing/mock"
 )
 
-const height = 10
-
 var (
 	timeoutHeight = clienttypes.NewHeight(0, 10000)
 	maxSequence   = uint64(10)
 )
 
+<<<<<<< HEAD
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -52,6 +56,8 @@ func TestIBCTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+=======
+>>>>>>> f2577f9 (add empty keepers checking in ibc NewKeeper (#1284))
 // tests the IBC handler receiving a packet on ordered and unordered channels.
 // It verifies that the storing of an acknowledgement on success occurs. It
 // tests high level properties like ordering and basic sanity checks. More
