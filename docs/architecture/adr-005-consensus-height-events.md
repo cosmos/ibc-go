@@ -1,4 +1,4 @@
-# ADR 005: ClientState Consensus Height Events
+# ADR 005: UpdateClient Events - ClientState Consensus Heights
 
 ## Changelog
 * 25/04/2022: initial draft
@@ -49,11 +49,11 @@ It should also describe affects / corollary items that may need to be changed as
 If the proposed change will be large, please also indicate a way to do the change to maximize ease of review.
 (e.g. the optimal split of things to do between separate PR's)
 
-<!-- TODO: Notes below, organise and re-write decision section -->
+The following decisions have been made in order to provide flexibility to consumers of `UpdateClient` events in a non-breaking fashion:
 
-The following decisions have been made in order to provide flexibility to consumers of the consensus height,
+1. Maintain the `consensus_height` event attribute emitted from the `02-client` update handler, but mark as deprecated for future removal. For example, with tendermint lightclients this will simply be `consensusHeights[0]` following a successful update using a single *Header*.
 
-1. Return a list of updated consensus heights `[]exported.Height` from the new UpdateState interface.
+2. Return a list of updated consensus heights `[]exported.Height` from the new `UpdateState` method of the `ClientState` interface.
 
 ```go
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
@@ -61,13 +61,9 @@ The following decisions have been made in order to provide flexibility to consum
 UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 ```
 
-2. Maintain the consensus_height event emitted from 02-client client update handler, but mark as deprecated for future removal. For example, with tendermint lightclients this will simply be heights[0] following a successful update.
-
-3. Add an additional consensus_heights event, containing a list of updated heights. This provides flexibility for emitting multiple consensus heights from batched header updates.
+3. Add an additional `consensus_heights` event attribute, containing a comma separated list of updated heights. This provides flexibility for emitting a single consensus height or multiple consensus heights in the example use-case of batched header updates.
 
 ## Consequences
-
-> This section describes the consequences, after applying the decision. All consequences should be summarized here, not just the "positive" ones.
 
 ### Positive
 
@@ -75,6 +71,8 @@ UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 - Deprecation of the existing `consensus_height` attribute allows consumers to continue to process `UpdateClient` events as normal, with a path to upgrade to using the `consensus_heights` attribute moving forward.
 
 ### Negative
+
+- Consumers of IBC core `UpdateClient` events are forced to make future code changes.
 
 ### Neutral
 
