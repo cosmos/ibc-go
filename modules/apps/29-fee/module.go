@@ -20,12 +20,10 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/client/cli"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
-	_ porttypes.IBCModule   = IBCModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
