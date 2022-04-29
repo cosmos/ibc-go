@@ -29,7 +29,7 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 
 	hash, err := types.ParseHexHash(req.Denom[4:])
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash %s, %s", req.Denom[4:], err))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash: %s, error: %s", req.Denom[4:], err))
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
