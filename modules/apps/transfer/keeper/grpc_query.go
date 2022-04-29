@@ -24,7 +24,7 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 	}
 
 	if !strings.HasPrefix(req.Denom, "ibc/") {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom with no ibc prefix %s", req.Denom))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom with no ibc prefix: %s", req.Denom))
 	}
 
 	hash, err := types.ParseHexHash(req.Denom[4:])
