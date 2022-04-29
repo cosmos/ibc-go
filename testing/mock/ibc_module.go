@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -33,6 +34,10 @@ func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
 ) (string, error) {
+	if strings.TrimSpace(version) == "" {
+		version = Version
+	}
+
 	if im.IBCApp.OnChanOpenInit != nil {
 		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 	}

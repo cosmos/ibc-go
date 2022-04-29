@@ -1,6 +1,8 @@
 package fee
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -38,12 +40,21 @@ func (im IBCModule) OnChanOpenInit(
 	version string,
 ) (string, error) {
 	var versionMetadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
-		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-		// application.
-		return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-			chanCap, counterparty, version)
+
+	if strings.TrimSpace(version) == "" {
+		// default version
+		versionMetadata = types.Metadata{
+			FeeVersion: types.Version,
+			AppVersion: "",
+		}
+	} else {
+		if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
+			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
+			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
+			// application.
+			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+				chanCap, counterparty, version)
+		}
 	}
 
 	if versionMetadata.FeeVersion != types.Version {

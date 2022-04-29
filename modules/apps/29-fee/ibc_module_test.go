@@ -54,6 +54,11 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			types.Version,
 			false,
 		},
+		{
+			"passing an empty string returns default version",
+			"",
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -99,7 +104,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
 
 			if tc.expPass {
-
 				// check if the channel is fee enabled. If so version string should include metaData
 				isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 				if isFeeEnabled {
@@ -113,13 +117,13 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 					suite.Require().Equal(version, string(versionBytes))
 				} else {
-					suite.Require().Equal(version, ibcmock.Version)
+					suite.Require().Equal(ibcmock.Version, version)
 				}
 
 				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 			} else {
 				suite.Require().Error(err, "error not returned for version: %s", tc.version)
-				suite.Require().Equal(version, "")
+				suite.Require().Equal("", version)
 			}
 		})
 	}
