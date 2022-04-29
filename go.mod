@@ -38,22 +38,22 @@ require (
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 )
 
-require github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220405141722-bde327160dc8
+require (
+	github.com/ChainSafe/log15 v1.0.0
+	github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220429100113-e4096ab43316
+)
 
 require (
 	filippo.io/edwards25519 v1.0.0-beta.2 // indirect
 	github.com/99designs/keyring v1.1.6 // indirect
 	github.com/ChainSafe/chaindb v0.1.5-0.20220322154826-c0d431995732 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
-	github.com/ChainSafe/log15 v1.0.0 // indirect
-	github.com/ComposableFi/go-substrate-rpc-client v2.0.0+incompatible // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/Workiva/go-datastructures v1.0.52 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.1.2 // indirect
-	github.com/centrifuge/go-substrate-rpc-client v2.0.0+incompatible // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.0 // indirect

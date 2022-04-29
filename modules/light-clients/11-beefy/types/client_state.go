@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -117,7 +116,7 @@ func (cs ClientState) VerifyClientState(
 
 	isVerified, err := trie.VerifyProof(beefyProof, provingConsensusState.Root, []trie.Pair{{Key: key, Value: csEncoded}})
 	if err != nil {
-		return fmt.Errorf("error verifying proof: %v", err.Error())
+		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
 	if !isVerified {
@@ -173,7 +172,7 @@ func (cs ClientState) VerifyClientConsensusState(
 
 	isVerified, err := trie.VerifyProof(beefyProof, provingConsensusState.Root, []trie.Pair{{Key: key, Value: csEncoded}})
 	if err != nil {
-		return fmt.Errorf("error verifying proof: %v", err.Error())
+		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
 	if !isVerified {
@@ -219,7 +218,7 @@ func (cs ClientState) VerifyPacketCommitment(
 
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: commitmentBytes}})
 	if err != nil {
-		return fmt.Errorf("error verifying proof: %v", err.Error())
+		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
 	if !isVerified {
@@ -315,7 +314,7 @@ func (cs ClientState) VerifyConnectionState(
 
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: connEncoded}})
 	if err != nil {
-		return fmt.Errorf("error verifying proof: %v", err.Error())
+		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
 	if !isVerified {
@@ -360,7 +359,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: channeltypes.CommitAcknowledgement(acknowledgement)}})
 	if err != nil {
-		return fmt.Errorf("error verifying proof: %v", err.Error())
+		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
 	if !isVerified {
@@ -401,7 +400,7 @@ func (cs ClientState) VerifyChannelState(store sdk.KVStore, cdc codec.BinaryCode
 
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: chanEncoded}})
 	if err != nil {
-		return fmt.Errorf("error verifying proof: %v", err.Error())
+		return sdkerrors.Wrap(err, "error verifying proof")
 	}
 
 	if !isVerified {
