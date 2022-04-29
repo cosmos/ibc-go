@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (transfer) [\#1312](https://github.com/cosmos/ibc-go/pull/1312) `DenomTrace` grpc now takes in the whole ibc denom instead of just the hash.
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
 
 ### State Machine Breaking
