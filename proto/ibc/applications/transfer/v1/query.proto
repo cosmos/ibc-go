@@ -13,7 +13,7 @@ option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types";
 service Query {
   // DenomTrace queries a denomination trace information.
   rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash}";
+    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{denom}";
   }
 
   // DenomTraces queries all denomination traces.
@@ -36,7 +36,7 @@ service Query {
 // method
 message QueryDenomTraceRequest {
   // hash (in hex format) of the denomination trace information.
-  string hash = 1;
+  string denom = 1;
 }
 
 // QueryDenomTraceResponse is the response type for the Query/DenomTrace RPC

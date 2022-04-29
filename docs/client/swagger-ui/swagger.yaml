@@ -178,7 +178,7 @@ paths:
           format: boolean
       tags:
         - Query
-  '/ibc/apps/transfer/v1/denom_traces/{hash}':
+  '/ibc/apps/transfer/v1/denom_traces/{denom}':
     get:
       summary: DenomTrace queries a denomination trace information.
       operationId: DenomTrace
@@ -234,7 +234,7 @@ paths:
                       type: string
                       format: byte
       parameters:
-        - name: hash
+        - name: denom
           description: hash (in hex format) of the denomination trace information.
           in: path
           required: true

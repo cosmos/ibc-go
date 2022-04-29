@@ -27,7 +27,7 @@ func GetCmdQueryDenomTrace() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			req := &types.QueryDenomTraceRequest{
-				Hash: args[0],
+				Denom: args[0],
 			}
 
 			res, err := queryClient.DenomTrace(cmd.Context(), req)

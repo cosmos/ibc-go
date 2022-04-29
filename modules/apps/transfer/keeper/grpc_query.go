@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,9 +23,13 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	hash, err := types.ParseHexHash(req.Hash)
+	if !strings.HasPrefix(req.Denom, "ibc/") {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom with no ibc prefix %s", req.Denom))
+	}
+
+	hash, err := types.ParseHexHash(req.Denom[4:])
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash %s, %s", req.Hash, err))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash %s, %s", req.Denom[4:], err))
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -32,7 +37,7 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrTraceNotFound, req.Hash).Error(),
+			sdkerrors.Wrap(types.ErrTraceNotFound, req.Denom).Error(),
 		)
 	}
 
