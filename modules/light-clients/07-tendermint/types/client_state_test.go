@@ -283,7 +283,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful PacketCommitment verification", func() {
 				// send from chainB to chainA since we are proving chainB sent a packet
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err := testingpath.EndpointB.SendPacket(packet)
 				suite.Require().NoError(err)
 
@@ -304,7 +304,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful Acknowledgement verification", func() {
 				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err := testingpath.EndpointA.SendPacket(packet)
 				suite.Require().NoError(err)
 
@@ -329,7 +329,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful NextSequenceRecv verification", func() {
 				// send from chainA to chainB since we are proving chainB incremented the sequence recv
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 1, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 				// send packet
 				err := testingpath.EndpointA.SendPacket(packet)
