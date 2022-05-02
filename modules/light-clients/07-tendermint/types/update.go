@@ -109,21 +109,11 @@ func (cs *ClientState) verifyHeader(
 		)
 	}
 
-	chainID := cs.GetChainID()
-	// If chainID is in revision format, then set revision number of chainID with the revision number
-	// of the header we are verifying
-	// This is useful if the update is at a previous revision rather than an update to the latest revision
-	// of the client.
-	// The chainID must be set correctly for the previous revision before attempting verification.
-	// Updates for previous revisions are not supported if the chainID is not in revision format.
-	if clienttypes.IsRevisionFormat(chainID) {
-		chainID, _ = clienttypes.SetRevisionNumber(chainID, header.GetHeight().GetRevisionNumber())
-	}
-
 	// Construct a trusted header using the fields in consensus state
 	// Only Height, Time, and NextValidatorsHash are necessary for verification
+	// NOTE: updates must be within the same revision
 	trustedHeader := tmtypes.Header{
-		ChainID:            chainID,
+		ChainID:            cs.GetChainID(),
 		Height:             int64(header.TrustedHeight.RevisionHeight),
 		Time:               consState.Timestamp,
 		NextValidatorsHash: consState.NextValidatorsHash,

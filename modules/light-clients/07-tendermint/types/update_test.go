@@ -209,23 +209,6 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 			expPass: false,
 		},
 		{
-			name: "successful update for a previous revision",
-			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
-
-				// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
-				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
-
-				// increment the revision of the chain
-				err = path.EndpointB.UpgradeChain()
-				suite.Require().NoError(err)
-			},
-			expPass: true,
-		},
-		{
 			name: "successful update with identical header to a previous update",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -287,16 +270,16 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		header, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 		suite.Require().NoError(err)
 
+		tc.malleate()
+
 		clientState := path.EndpointA.GetClientState()
 
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-		tc.malleate()
-
 		err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
 
 		if tc.expPass {
-			suite.Require().NoError(err)
+			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err)
 		}
