@@ -109,6 +109,11 @@ func (k Keeper) ChanOpenTry(
 		channelID string
 	)
 
+	// connection hops only supports a single connection
+	if len(connectionHops) != 1 {
+		return "", nil, sdkerrors.Wrapf(types.ErrTooManyConnectionHops, "expected 1, got %d", len(connectionHops))
+	}
+
 	// generate a new channel
 	channelID = k.GenerateChannelIdentifier(ctx)
 
