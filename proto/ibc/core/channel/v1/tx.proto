@@ -81,6 +81,7 @@ message MsgChannelOpenTry {
   string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
   // in the case of crossing hello's, when both chains call OpenInit, we need
   // the channel identifier of the previous channel in state INIT
+  // this field has been deprecated and will be ignored by core IBC becase now we don't need protect against crossing hellos anymore .
   string previous_channel_id = 2 [(gogoproto.moretags) = "yaml:\"previous_channel_id\""];
   // NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC.
   Channel                   channel              = 3 [(gogoproto.nullable) = false];
