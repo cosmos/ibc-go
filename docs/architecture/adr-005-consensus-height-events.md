@@ -9,11 +9,11 @@ Accepted
 
 ## Context
 
-The `ibc-go` implementation leverages the [Cosmos-SDK's EventManager](https://github.com/cosmos/cosmos-sdk/blob/main/docs/core/events.md#EventManager) to provide subscribers a method of reacting to application specific events.
-IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/events.go#L33) attribute emitted as part of `UpdateClient` events in order to run misbehaviour detection by cross-checking the details of the *Header* emitted at a given consensus height against those of the *Header* from the originating chain.
+The `ibc-go` implementation leverages the [Cosmos-SDK's EventManager](https://github.com/cosmos/cosmos-sdk/blob/v0.45.4/docs/core/events.md#EventManager) to provide subscribers a method of reacting to application specific events.
+Some IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/core/02-client/keeper/events.go#L33) attribute emitted as part of `UpdateClient` events in order to run misbehaviour detection by cross-checking the details of the *Header* emitted at a given consensus height against those of the *Header* from the originating chain.
 
 Following the refactor of the `02-client` submodule and associated `ClientState` interfaces, it will now be possible for
-light client implementations to perform such actions as batch updates, inserting `N` number of `ConsensusState`s into the application state tree with a single `UpdateClient` message. This flexibility is provided in `ibc-go` by the usage of the [Protobuf `Any`](https://developers.google.com/protocol-buffers/docs/proto3#any) field contained within the [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/client/v1/tx.proto#L44) message.
+light client implementations to perform such actions as batch updates, inserting `N` number of `ConsensusState`s into the application state tree with a single `UpdateClient` message. This flexibility is provided in `ibc-go` by the usage of the [Protobuf `Any`](https://developers.google.com/protocol-buffers/docs/proto3#any) field contained within the [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/v3.0.0/proto/ibc/core/client/v1/tx.proto#L44) message.
 For example, a batched client update message serialized as a Protobuf `Any` type for the `07-tendermint` lightclient implementation could be defined as follows:
 
 ```protobuf
@@ -39,7 +39,7 @@ type ClientMessage interface {
 To support this functionality the `GetHeight()` method has been omitted from the new `ClientMessage` interface.
 Emission of standardised events from the `02-client` submodule now becomes problematic and is two-fold:
 
-1. The `02-client` submodule previously depended upon the `GetHeight()` method of `Header` types in order to [retrieve the updated consensus height](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/client.go#L90).
+1. The `02-client` submodule previously depended upon the `GetHeight()` method of `Header` types in order to [retrieve the updated consensus height](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/core/02-client/keeper/client.go#L90).
 2. Emitting a single `consensus_height` event attribute is not sufficient in the case of a batched client update containing multiple *Headers*.
 
 ## Decision
