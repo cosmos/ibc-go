@@ -10,11 +10,11 @@ Accepted
 ## Context
 
 The `ibc-go` implementation leverages the [Cosmos-SDK's EventManager](https://github.com/cosmos/cosmos-sdk/blob/main/docs/core/events.md#EventManager) to provide subscribers a method of reacting to application specific events.
-IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/events.go#L33) attribute emitted as part of `UpdateClient` events in order to run misbehaviour detection by cross-checking the details of the *Header* emitted at a given consensus height against that of the *Header* from the originating chain.
+IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/keeper/events.go#L33) attribute emitted as part of `UpdateClient` events in order to run misbehaviour detection by cross-checking the details of the *Header* emitted at a given consensus height against those of the *Header* from the originating chain.
 
 Following the refactor of the `02-client` submodule and associated `ClientState` interfaces, it will now be possible for
-light client implementations to perform such actions as batch updates, inserting `N` number of `ConsensusState`s into the application state tree with a single `UpdateClient` message. This flexibility is provided in `ibc-go` by the usage of the [Protobuf Any](https://developers.google.com/protocol-buffers/docs/proto3#any) field contained within the [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/client/v1/tx.proto#L44) message.
-For example, a batched client update message serialized as a Protobuf Any type for the `07-tendermint` lightclient implementation could be defined as follows:
+light client implementations to perform such actions as batch updates, inserting `N` number of `ConsensusState`s into the application state tree with a single `UpdateClient` message. This flexibility is provided in `ibc-go` by the usage of the [Protobuf `Any`](https://developers.google.com/protocol-buffers/docs/proto3#any) field contained within the [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/client/v1/tx.proto#L44) message.
+For example, a batched client update message serialized as a Protobuf `Any` type for the `07-tendermint` lightclient implementation could be defined as follows:
 
 ```protobuf
 message BatchedHeaders {
