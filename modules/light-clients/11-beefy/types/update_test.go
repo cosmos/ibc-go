@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	types2 "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 	"os"
 	"sort"
 	"testing"
@@ -40,7 +42,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 		t.Skip("skipping test in short mode")
 	}
 
-	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
+	relayApi, err := client.NewSubstrateAPI("ws://34.125.166.155:9944")
 	require.NoError(t, err)
 
 	t.Log("==== connected! ==== ")
@@ -343,7 +345,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				MmrUpdateProof:   &mmrUpdateProof,
 			}
 
-			_, _, err = clientState.CheckHeaderAndUpdateState(sdk.Context{}, nil, nil, &header)
+			err = clientState.VerifyClientMessage(sdk.Context{}, nil, nil, &header)
 			require.NoError(t, err)
 
 			t.Logf("clientState.LatestBeefyHeight: %d clientState.MmrRootHash: %s", clientState.LatestBeefyHeight, hex.EncodeToString(clientState.MmrRootHash))
@@ -352,6 +354,16 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				require.Equal(t, clientState.MmrRootHash, signedCommitment.Commitment.Payload, "failed to update client state. LatestBeefyHeight: %d, Commitment.BlockNumber %d", clientState.LatestBeefyHeight, uint32(signedCommitment.Commitment.BlockNumber))
 			}
 			t.Log("====== successfully processed justification! ======")
+
+			paramSpace := types2.NewSubspace(nil, nil, nil, nil, "test")
+			//paramSpace = paramSpace.WithKeyTable(clientypes.ParamKeyTable())
+
+			k := keeper.NewKeeper(nil, nil, paramSpace, nil, nil)
+			ctx := sdk.Context{}
+			store := k.ClientStore(ctx, "1234")
+
+			err = clientState.UpdateState(sdk.Context{}, nil, store, &header)
+			require.NoError(t, err)
 
 			// TODO: assert that the consensus states were actually persisted
 			// TODO: tests against invalid proofs and consensus states

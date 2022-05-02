@@ -232,9 +232,6 @@
     - [PayloadItem](#ibc.lightclients.beefy.v1.PayloadItem)
     - [SignedCommitment](#ibc.lightclients.beefy.v1.SignedCommitment)
   
-- [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
-    - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
-  
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -3295,7 +3292,7 @@ Beefy Authority Info
 <a name="ibc.lightclients.beefy.v1.BeefyMmrLeaf"></a>
 
 ### BeefyMmrLeaf
-
+BeefyMmrLeaf leaf data
 
 
 | Field | Type | Label | Description |
@@ -3332,7 +3329,7 @@ Partial data for MmrLeaf
 <a name="ibc.lightclients.beefy.v1.ClientState"></a>
 
 ### ClientState
-ClientState from Tendermint tracks the current validator set, latest height,
+ClientState from Beefy tracks the current validator set, latest height,
 and a possible frozen height.
 
 
@@ -3341,7 +3338,7 @@ and a possible frozen height.
 | `mmr_root_hash` | [bytes](#bytes) |  | Latest mmr root hash |
 | `latest_beefy_height` | [uint32](#uint32) |  | block number for the latest mmr_root_hash |
 | `frozen_height` | [uint64](#uint64) |  | Block height when the client was frozen due to a misbehaviour |
-| `beefy_activation_block` | [uint32](#uint32) |  | block number that the beefy protocol was activated on the relay chain. This shoould be the first block in the merkle-mountain-range tree. |
+| `beefy_activation_block` | [uint32](#uint32) |  | block number that the beefy protocol was activated on the relay chain. This should be the first block in the merkle-mountain-range tree. |
 | `authority` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the current round |
 | `next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the next round |
 
@@ -3393,7 +3390,6 @@ ConsensusState defines the consensus state from Tendermint.
 | ----- | ---- | ----- | ----------- |
 | `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
 | `root` | [bytes](#bytes) |  | packet commitment root |
-| `parachain_header` | [ParachainHeader](#ibc.lightclients.beefy.v1.ParachainHeader) |  | proof of inclusion for this parachain header in the Mmr. |
 
 
 
@@ -3501,39 +3497,6 @@ signed commitment data
 | ----- | ---- | ----- | ----------- |
 | `commitment` | [Commitment](#ibc.lightclients.beefy.v1.Commitment) |  | commitment data being signed |
 | `signatures` | [CommitmentSignature](#ibc.lightclients.beefy.v1.CommitmentSignature) | repeated | gotten from rpc subscription |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/lightclients/localhost/v1/localhost.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/lightclients/localhost/v1/localhost.proto
-
-
-
-<a name="ibc.lightclients.localhost.v1.ClientState"></a>
-
-### ClientState
-ClientState defines a loopback (localhost) client. It requires (read-only)
-access to keys outside the client prefix.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | self chain ID |
-| `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | self latest block height |
 
 
 
