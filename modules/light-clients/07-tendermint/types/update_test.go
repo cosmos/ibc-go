@@ -209,6 +209,23 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 			expPass: false,
 		},
 		{
+			name: "unsuccessful update for a previous revision",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+
+				// increment the revision of the chain
+				err = path.EndpointB.UpgradeChain()
+				suite.Require().NoError(err)
+			},
+			expPass: false,
+		},
+		{
 			name: "successful update with identical header to a previous update",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
