@@ -10,7 +10,12 @@ Accepted
 ## Context
 
 The `ibc-go` implementation leverages the [Cosmos-SDK's EventManager](https://github.com/cosmos/cosmos-sdk/blob/v0.45.4/docs/core/events.md#EventManager) to provide subscribers a method of reacting to application specific events.
-Some IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/core/02-client/keeper/events.go#L33) attribute emitted as part of `UpdateClient` events in order to run misbehaviour detection by cross-checking the details of the *Header* emitted at a given consensus height against those of the *Header* from the originating chain.
+Some IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/core/02-client/keeper/events.go#L33) attribute emitted as part of `UpdateClient` events in order to run `07-tendermint` misbehaviour detection by cross-checking the details of the *Header* emitted at a given consensus height against those of the *Header* from the originating chain. This includes such details as:
+
+- The `SignedHeader` containing the commitment root.
+- The `ValidatorSet` that signed the *Header*.
+- The `TrustedHeight` seen by the client as less than or equal to the height of *Header*.
+- The last `TrustedValidatorSet` at the trusted height.
 
 Following the refactor of the `02-client` submodule and associated `ClientState` interfaces, it will now be possible for
 light client implementations to perform such actions as batch updates, inserting `N` number of `ConsensusState`s into the application state tree with a single `UpdateClient` message. This flexibility is provided in `ibc-go` by the usage of the [Protobuf `Any`](https://developers.google.com/protocol-buffers/docs/proto3#any) field contained within the [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/v3.0.0/proto/ibc/core/client/v1/tx.proto#L44) message.
@@ -46,15 +51,15 @@ Emission of standardised events from the `02-client` submodule now becomes probl
 
 The following decisions have been made in order to provide flexibility to consumers of `UpdateClient` events in a non-breaking fashion:
 
-1. Maintain the `consensus_height` event attribute emitted from the `02-client` update handler, but mark as deprecated for future removal. For example, with tendermint lightclients this will simply be `consensusHeights[0]` following a successful update using a single *Header*.
-
-2. Return a list of updated consensus heights `[]exported.Height` from the new `UpdateState` method of the `ClientState` interface.
+1. Return a list of updated consensus heights `[]exported.Height` from the new `UpdateState` method of the `ClientState` interface.
 
 ```go
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 ```
+
+2. Maintain the `consensus_height` event attribute emitted from the `02-client` update handler, but mark as deprecated for future removal. For example, with tendermint lightclients this will simply be `consensusHeights[0]` following a successful update using a single *Header*.
 
 3. Add an additional `consensus_heights` event attribute, containing a comma separated list of updated heights. This provides flexibility for emitting a single consensus height or multiple consensus heights in the example use-case of batched header updates.
 
