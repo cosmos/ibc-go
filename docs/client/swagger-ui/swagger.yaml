@@ -1623,7 +1623,7 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/core/client/v1/consensus_state_heights/{client_id}':
+  '/ibc/core/client/v1/consensus_states/heights/{client_id}':
     get:
       summary: >-
         ConsensusStateHeights queries the height of every consensus states
