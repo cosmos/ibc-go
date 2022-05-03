@@ -12,22 +12,25 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// IBCModule implements the ICS26 callbacks for the fee middleware given the fee keeper and the underlying application.
-type IBCModule struct {
-	keeper keeper.Keeper
+var _ porttypes.Middleware = &IBCMiddleware{}
+
+// IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
+// fee keeper and the underlying application.
+type IBCMiddleware struct {
 	app    porttypes.IBCModule
+	keeper keeper.Keeper
 }
 
-// NewIBCModule creates a new IBCModule given the keeper and underlying application
-func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
-	return IBCModule{
-		keeper: k,
+// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+	return IBCMiddleware{
 		app:    app,
+		keeper: k,
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface
-func (im IBCModule) OnChanOpenInit(
+// OnChanOpenInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -57,10 +60,10 @@ func (im IBCModule) OnChanOpenInit(
 		chanCap, counterparty, versionMetadata.AppVersion)
 }
 
-// OnChanOpenTry implements the IBCModule interface
+// OnChanOpenTry implements the IBCMiddleware interface
 // If the channel is not fee enabled the underlying application version will be returned
 // If the channel is fee enabled we merge the underlying application version with the ics29 version
-func (im IBCModule) OnChanOpenTry(
+func (im IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -100,8 +103,8 @@ func (im IBCModule) OnChanOpenTry(
 	return string(versionBytes), nil
 }
 
-// OnChanOpenAck implements the IBCModule interface
-func (im IBCModule) OnChanOpenAck(
+// OnChanOpenAck implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -128,8 +131,8 @@ func (im IBCModule) OnChanOpenAck(
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
-// OnChanOpenConfirm implements the IBCModule interface
-func (im IBCModule) OnChanOpenConfirm(
+// OnChanOpenConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -138,8 +141,8 @@ func (im IBCModule) OnChanOpenConfirm(
 	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
-// OnChanCloseInit implements the IBCModule interface
-func (im IBCModule) OnChanCloseInit(
+// OnChanCloseInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -155,8 +158,8 @@ func (im IBCModule) OnChanCloseInit(
 	return nil
 }
 
-// OnChanCloseConfirm implements the IBCModule interface
-func (im IBCModule) OnChanCloseConfirm(
+// OnChanCloseConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -172,9 +175,9 @@ func (im IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-// OnRecvPacket implements the IBCModule interface.
+// OnRecvPacket implements the IBCMiddleware interface.
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (im IBCModule) OnRecvPacket(
+func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -197,9 +200,9 @@ func (im IBCModule) OnRecvPacket(
 	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
 
-// OnAcknowledgementPacket implements the IBCModule interface
+// OnAcknowledgementPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (im IBCModule) OnAcknowledgementPacket(
+func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -239,9 +242,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
 }
 
-// OnTimeoutPacket implements the IBCModule interface
+// OnTimeoutPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (im IBCModule) OnTimeoutPacket(
+func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -268,7 +271,26 @@ func (im IBCModule) OnTimeoutPacket(
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
+// SendPacket implements the ICS4 Wrapper interface
+func (im IBCMiddleware) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet exported.PacketI,
+) error {
+	return im.keeper.SendPacket(ctx, chanCap, packet)
+}
+
+// WriteAcknowledgement implements the ICS4 Wrapper interface
+func (im IBCMiddleware) WriteAcknowledgement(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet exported.PacketI,
+	ack exported.Acknowledgement,
+) error {
+	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+}
+
 // GetAppVersion returns the application version of the underlying application
-func (im IBCModule) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }

@@ -20,22 +20,23 @@ func GetCmdIncentivizedPacket() *cobra.Command {
 		Short:   "Query for an unrelayed incentivized packet by port-id, channel-id and packet sequence.",
 		Long:    "Query for an unrelayed incentivized packet by port-id, channel-id and packet sequence.",
 		Args:    cobra.ExactArgs(3),
-		Example: fmt.Sprintf("%s query ibc-fee packet-by-id", version.AppName),
+		Example: fmt.Sprintf("%s query ibc-fee packet", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			portID, channelID := args[0], args[1]
 			seq, err := strconv.ParseUint(args[2], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			packetID := channeltypes.PacketId{
-				PortId:    args[0],
-				ChannelId: args[1],
-				Sequence:  seq,
+			packetID := channeltypes.NewPacketId(portID, channelID, seq)
+
+			if err := packetID.Validate(); err != nil {
+				return err
 			}
 
 			req := &types.QueryIncentivizedPacketRequest{
@@ -272,6 +273,8 @@ func GetCmdCounterpartyAddress() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
+	
 	return cmd
 }
 
