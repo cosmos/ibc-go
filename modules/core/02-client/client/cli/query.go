@@ -169,7 +169,7 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 func GetCmdQueryConsensusStateHeights() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "consensus-state-heights [client-id]",
-		Short:   "Query the height of every consensus states of a client.",
+		Short:   "Query the heights of all consensus states of a client.",
 		Long:    "Query the height of every consensus states from a given client state.",
 		Example: fmt.Sprintf("%s query %s %s consensus-state-heights [client-id]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
