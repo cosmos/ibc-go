@@ -181,7 +181,6 @@ func GetChainID(index int) string {
 // CONTRACT: the passed in list of indexes must not contain duplicates
 func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 	for _, chain := range chains {
-
 		chain.NextBlock()
 	}
 	coord.IncrementTime()
