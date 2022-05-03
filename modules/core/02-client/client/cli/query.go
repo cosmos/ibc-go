@@ -164,8 +164,8 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryConsensusStateHeights defines the command to query the height of every consensus states associated with a
-// given client state.
+// GetCmdQueryConsensusStateHeights defines the command to query the heights of all client consensus states associated with the
+// provided client ID.
 func GetCmdQueryConsensusStateHeights() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "consensus-state-heights [client-id]",
