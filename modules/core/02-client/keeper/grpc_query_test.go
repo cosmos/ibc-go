@@ -303,13 +303,6 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 		expPass  bool
 	}{
 		{
-			"invalid client identifier",
-			func() {
-				req = &types.QueryConsensusStatesRequest{}
-			},
-			false,
-		},
-		{
 			"empty pagination",
 			func() {
 				req = &types.QueryConsensusStatesRequest{
@@ -365,6 +358,13 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			},
 			true,
 		},
+		{
+			"invalid client identifier",
+			func() {
+				req = &types.QueryConsensusStatesRequest{}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -406,13 +406,6 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 		malleate func()
 		expPass  bool
 	}{
-		{
-			"invalid client identifier",
-			func() {
-				req = &types.QueryConsensusStateHeightsRequest{}
-			},
-			false,
-		},
 		{
 			"empty pagination",
 			func() {
@@ -468,6 +461,13 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 				}
 			},
 			true,
+		},
+		{
+			"invalid client identifier",
+			func() {
+				req = &types.QueryConsensusStateHeightsRequest{}
+			},
+			false,
 		},
 	}
 
