@@ -119,6 +119,7 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 		senderAccs = append(senderAccs, senderAcc)
 	}
 
+	// TODO: test commit, delete me
 	app := SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
