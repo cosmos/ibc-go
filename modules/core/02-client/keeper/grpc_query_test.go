@@ -395,6 +395,106 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
+	var (
+		req                      *types.QueryConsensusStateHeightsRequest
+		expConsensusStateHeights = []types.Height{}
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"invalid client identifier",
+			func() {
+				req = &types.QueryConsensusStateHeightsRequest{}
+			},
+			false,
+		},
+		{
+			"empty pagination",
+			func() {
+				req = &types.QueryConsensusStateHeightsRequest{
+					ClientId: testClientID,
+				}
+			},
+			true,
+		},
+		{
+			"success, no results",
+			func() {
+				req = &types.QueryConsensusStateHeightsRequest{
+					ClientId: testClientID,
+					Pagination: &query.PageRequest{
+						Limit:      3,
+						CountTotal: true,
+					},
+				}
+			},
+			true,
+		},
+		{
+			"success",
+			func() {
+				cs := ibctmtypes.NewConsensusState(
+					suite.consensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte("hash1")), nil,
+				)
+				cs2 := ibctmtypes.NewConsensusState(
+					suite.consensusState.Timestamp.Add(time.Second), commitmenttypes.NewMerkleRoot([]byte("hash2")), nil,
+				)
+
+				clientState := ibctmtypes.NewClientState(
+					testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false,
+				)
+
+				// Use CreateClient to ensure that processedTime metadata gets stored.
+				clientId, err := suite.keeper.CreateClient(suite.ctx, clientState, cs)
+				suite.Require().NoError(err)
+				suite.keeper.SetClientConsensusState(suite.ctx, clientId, testClientHeight.Increment(), cs2)
+
+				// order is swapped because the res is sorted by client id
+				expConsensusStateHeights = []types.Height{
+					testClientHeight,
+					testClientHeight.Increment().(types.Height),
+				}
+				req = &types.QueryConsensusStateHeightsRequest{
+					ClientId: clientId,
+					Pagination: &query.PageRequest{
+						Limit:      3,
+						CountTotal: true,
+					},
+				}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+
+			res, err := suite.queryClient.ConsensusStateHeights(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(len(expConsensusStateHeights), len(res.ConsensusStateHeights))
+				for i := range expConsensusStateHeights {
+					suite.Require().NotNil(res.ConsensusStateHeights[i])
+					suite.Require().Equal(expConsensusStateHeights[i], res.ConsensusStateHeights[i])
+				}
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestQueryClientStatus() {
 	var (
 		req *types.QueryClientStatusRequest
