@@ -38,6 +38,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+<<<<<<< HEAD
+=======
+* [\#1300](https://github.com/cosmos/ibc-go/pull/1300) Bump SDK version to v0.45.4
+
+>>>>>>> bd08650 (build(deps): bump github.com/cosmos/cosmos-sdk from 0.45.3 to 0.45.4 (#1300))
 ### API Breaking
 
 ### State Machine Breaking
