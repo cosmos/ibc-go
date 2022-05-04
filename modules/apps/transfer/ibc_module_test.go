@@ -5,6 +5,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -79,18 +80,13 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				Version:        types.Version,
 			}
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
-
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
+			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.GetVersion(),
 			)
 
