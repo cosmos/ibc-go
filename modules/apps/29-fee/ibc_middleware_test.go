@@ -25,38 +25,45 @@ var (
 // Tests OnChanOpenInit on ChainA
 func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
-		name    string
-		version string
-		expPass bool
+		name         string
+		version      string
+		expPass      bool
+		isFeeEnabled bool
 	}{
 		{
 			"success - valid fee middleware and mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
+			true,
 			true,
 		},
 		{
 			"success - fee version not included, only perform mock logic",
 			ibcmock.Version,
 			true,
+			false,
 		},
 		{
 			"invalid fee middleware version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
+			false,
 			false,
 		},
 		{
 			"invalid mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
 			false,
+			false,
 		},
 		{
 			"mock version not wrapped",
 			types.Version,
 			false,
+			false,
 		},
 		{
 			"passing an empty string returns default version",
 			"",
+			true,
 			true,
 		},
 	}
@@ -105,8 +112,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 			if tc.expPass {
 				// check if the channel is fee enabled. If so version string should include metaData
-				isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-				if isFeeEnabled {
+				if tc.isFeeEnabled {
 					versionMetadata := types.Metadata{
 						FeeVersion: types.Version,
 						AppVersion: ibcmock.Version,
