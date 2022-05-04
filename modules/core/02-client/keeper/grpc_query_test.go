@@ -416,7 +416,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 			true,
 		},
 		{
-			"success, no results",
+			"success: response contains no results",
 			func() {
 				req = &types.QueryConsensusStateHeightsRequest{
 					ClientId: testClientID,
