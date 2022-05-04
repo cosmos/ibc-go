@@ -216,7 +216,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
 				suite.Require().True(found)
 
-				// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
+				// passing the CurrentHeader.Height as the block height as it will become an update to previous revision once we upgrade the client
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 
 				// increment the revision of the chain
