@@ -21,6 +21,19 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		expPass  bool
 	}{
 		{
+			"success",
+			func() {
+				expTrace.Path = "transfer/channelToA/transfer/channelToB"
+				expTrace.BaseDenom = "uatom"
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
+
+				req = &types.QueryDenomTraceRequest{
+					Denom: expTrace.IBCDenom(),
+				}
+			},
+			true,
+		},
+		{
 			"invalid ibc denom",
 			func() {
 				req = &types.QueryDenomTraceRequest{
@@ -39,19 +52,6 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 				}
 			},
 			false,
-		},
-		{
-			"success",
-			func() {
-				expTrace.Path = "transfer/channelToA/transfer/channelToB"
-				expTrace.BaseDenom = "uatom"
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
-
-				req = &types.QueryDenomTraceRequest{
-					Denom: expTrace.IBCDenom(),
-				}
-			},
-			true,
 		},
 	}
 
