@@ -355,7 +355,7 @@ IncentivizedAcknowledgement is the acknowledgement format to be used by applicat
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `result` | [bytes](#bytes) |  | the underlying app acknowledgement result bytes |
+| `app_acknowledgement` | [bytes](#bytes) |  | the underlying app acknowledgement bytes |
 | `forward_relayer_address` | [string](#string) |  | the relayer address which submits the recv packet message |
 | `underlying_app_success` | [bool](#bool) |  | success flag of the base application callback |
 
