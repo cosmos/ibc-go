@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 		expPass  bool
 	}{
 		{
-			"empty pagination",
+			"success: without pagination",
 			func() {
 				req = &types.QueryConsensusStatesRequest{
 					ClientId: testClientID,
