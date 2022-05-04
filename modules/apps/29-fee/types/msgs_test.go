@@ -55,6 +55,13 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"invalid portID",
+			func() {
+				msg.PortId = ""
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {

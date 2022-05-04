@@ -13,6 +13,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 		sender       string
 		counterparty string
 		channelID    string
+		ctx          sdk.Context
 	)
 
 	testCases := []struct {
@@ -35,11 +36,18 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 			false,
 			func() { channelID = "channel-22" },
 		},
+		{
+			"channel is not fee enabled",
+			false,
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(ctx, suite.path.EndpointA.ChannelConfig.PortID, channelID)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		ctx := suite.chainA.GetContext()
+		ctx = suite.chainA.GetContext()
 		suite.coordinator.Setup(suite.path) // setup channel
 
 		sender = suite.chainA.SenderAccount.GetAddress().String()
@@ -49,8 +57,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 		tc.malleate()
 
 		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty, suite.path.EndpointA.ChannelConfig.PortID, channelID)
-
-		_, err := suite.chainA.SendMsgs(msg)
+		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyAddress(sdk.WrapSDKContext(ctx), msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err) // message committed
