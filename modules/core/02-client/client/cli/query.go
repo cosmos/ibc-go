@@ -178,6 +178,7 @@ func GetCmdQueryConsensusStateHeights() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			clientID := args[0]
 
 			queryClient := types.NewQueryClient(clientCtx)
