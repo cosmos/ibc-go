@@ -80,7 +80,8 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				Version:        types.Version,
 			}
 
-			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
+			var err error
+			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
