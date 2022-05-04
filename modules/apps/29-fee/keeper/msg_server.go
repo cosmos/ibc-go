@@ -17,6 +17,12 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.MsgRegisterCounterpartyAddress) (*types.MsgRegisterCounterpartyAddressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// only register counterparty address if the channel exists
+	_, found := k.channelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return nil, channeltypes.ErrChannelNotFound
+	}
+
 	k.SetCounterpartyAddress(
 		ctx, msg.Address, msg.CounterpartyAddress, msg.ChannelId,
 	)

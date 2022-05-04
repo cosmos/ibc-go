@@ -12,6 +12,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 	var (
 		sender       string
 		counterparty string
+		channelID    string
 	)
 
 	testCases := []struct {
@@ -29,16 +30,25 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 			true,
 			func() { counterparty = "arbitrary-string" },
 		},
+		{
+			"channel does not exist",
+			false,
+			func() { channelID = "channel-22" },
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.SetupTest()
 		ctx := suite.chainA.GetContext()
+		suite.coordinator.Setup(suite.path) // setup channel
 
 		sender = suite.chainA.SenderAccount.GetAddress().String()
 		counterparty = suite.chainB.SenderAccount.GetAddress().String()
+		channelID = suite.path.EndpointA.ChannelID
+
 		tc.malleate()
-		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty, ibctesting.FirstChannelID)
+
+		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty, suite.path.EndpointA.ChannelConfig.PortID, channelID)
 
 		_, err := suite.chainA.SendMsgs(msg)
 
