@@ -15,8 +15,8 @@ import (
 func GetCmdQueryDenomTrace() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "denom-trace [hash/denom]",
-		Short:   "Query the denom trace info from a denom or a hash",
-		Long:    "Query the denom trace info from a denom or a hash",
+		Short:   "Query the denom trace info from a hash or a denom",
+		Long:    "Query the denom trace info from a hash or a denom",
 		Example: fmt.Sprintf("%s query ibc-transfer denom-trace [hash/denom]", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
