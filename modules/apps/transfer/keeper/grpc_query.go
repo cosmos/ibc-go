@@ -3,11 +3,13 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -22,9 +24,16 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	hash, err := types.ParseHexHash(req.Hash)
+	var hash tmbytes.HexBytes
+	var err error
+	if strings.HasPrefix(req.Hash, "ibc/") {
+		hash, err = types.ParseHexHash(req.Hash[4:])
+	} else {
+		hash, err = types.ParseHexHash(req.Hash)
+	}
+
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash %s, %s", req.Hash, err))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash: %s, error: %s", hash.String(), err))
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
