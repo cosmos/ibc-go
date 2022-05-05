@@ -91,7 +91,7 @@ type TestChain struct {
 //
 // CONTRACT: Validator array must be provided in the order expected by Tendermint.
 // i.e. sorted first by power and then lexicographically by address.
-func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, valSet *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *TestChain {
+func NewTestChainWithValSet(t *testing.T, coord *Coordinator, appIniter AppIniter, chainID string, valSet *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *TestChain {
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
 	senderAccs := []SenderAccount{}
@@ -119,7 +119,7 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 		senderAccs = append(senderAccs, senderAcc)
 	}
 
-	app := SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
+	app := SetupWithGenesisValSet(t, appIniter, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -155,7 +155,7 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 
 // NewTestChain initializes a new test chain with a default of 4 validators
 // Use this function if the tests do not need custom control over the validator set
-func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+func NewTestChain(t *testing.T, coord *Coordinator, appIniter AppIniter, chainID string) *TestChain {
 	// generate validators private/public key
 	var (
 		validatorsPerChain = 4
@@ -176,7 +176,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// or, if equal, by address lexical order
 	valSet := tmtypes.NewValidatorSet(validators)
 
-	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
+	return NewTestChainWithValSet(t, coord, appIniter, chainID, valSet, signersByAddress)
 }
 
 // GetContext returns the current context for the application.

@@ -12,7 +12,7 @@ import (
 
 var (
 	ChainIDPrefix   = "testchain"
-	globalStartTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	GlobalStartTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	TimeIncrement   = time.Second * 5
 )
 
@@ -30,12 +30,12 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
 		T:           t,
-		CurrentTime: globalStartTime,
+		CurrentTime: GlobalStartTime,
 	}
 
 	for i := 1; i <= n; i++ {
 		chainID := GetChainID(i)
-		chains[chainID] = NewTestChain(t, coord, chainID)
+		chains[chainID] = NewTestChain(t, coord, DefaultTestingAppInit, chainID)
 	}
 	coord.Chains = chains
 
