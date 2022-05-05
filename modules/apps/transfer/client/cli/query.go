@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
-// GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given denom.
+// GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given hash or denom.
 func GetCmdQueryDenomTrace() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "denom-trace [hash/denom]",
