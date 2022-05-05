@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 			true,
 		},
 		{
-			"success: correct hash",
+			"success: correct hex hash",
 			func() {
 				expTrace.Path = "transfer/channelToA/transfer/channelToB"
 				expTrace.BaseDenom = "uatom"
