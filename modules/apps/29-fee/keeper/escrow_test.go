@@ -59,7 +59,10 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				packetFees = append(packetFees, packetFee)
 			},
 			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+
 				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID))
 
 				// check if the module acc contains all the fees
 				expectedModuleAccBal := packetFee.Fee.Total().Add(packetFee.Fee.Total()...)
@@ -196,7 +199,10 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				packetFees = append(packetFees, packetFee)
 			},
 			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+
 				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID))
 
 				// check if the module acc contains all the fees
 				expectedModuleAccBal := packetFee.Fee.Total().Add(packetFee.Fee.Total()...)
