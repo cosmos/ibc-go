@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 			true,
 		},
 		{
-			"false: invalid hash",
+			"failure: invalid hash",
 			func() {
 				req = &types.QueryDenomTraceRequest{
 					Hash: "!@#!@#!",
