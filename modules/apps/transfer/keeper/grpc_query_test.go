@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 			false,
 		},
 		{
-			"false: not found denom trace",
+			"failure: not found denom trace",
 			func() {
 				expTrace.Path = "transfer/channelToA/transfer/channelToB"
 				expTrace.BaseDenom = "uatom"
