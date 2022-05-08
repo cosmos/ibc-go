@@ -20,6 +20,7 @@ var (
 	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
 	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
 	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
+	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(50)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -635,6 +636,22 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 			true,
 		},
+		{
+
+			"fail on no distribution by escrow account out of balance",
+			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
+				suite.Require().NoError(err)
+
+				// expectedBalance and expectedRelayerBalance don't change
+				expectedBalance = originalBalance.Add(smallAmount...)
+				expectedRelayerBalance = sdk.NewCoins()
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -720,10 +737,12 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		name              string
 		malleate          func()
 		expFeeDistributed bool
+		expPass           bool
 	}{
 		{
 			"success",
 			func() {},
+			true,
 			true,
 		},
 		{
@@ -734,6 +753,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				expectedBalance = originalBalance
 			},
 			false,
+			true,
 		},
 		{
 			"fee module is disabled, skip fee logic",
@@ -743,6 +763,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				expectedBalance = originalBalance
 			},
 			false,
+			true,
 		},
 		{
 			"no op if identified packet fee doesn't exist",
@@ -754,6 +775,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				expectedBalance = originalBalance
 			},
 			false,
+			true,
 		},
 		{
 			"distribute fee fails for timeout fee (blocked address)",
@@ -765,6 +787,23 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 					Add(packetFee.Fee.AckFee...).
 					Add(packetFee.Fee.TimeoutFee...)
 			},
+			false,
+			true,
+		},
+		{
+
+			"fail on no distribution by escrow account out of balance",
+			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
+				suite.Require().NoError(err)
+
+				// expectedBalance don't change
+				expectedBalance = originalBalance.Add(smallAmount...)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+			},
+			false,
 			false,
 		},
 	}
@@ -815,7 +854,11 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
-			suite.Require().NoError(err)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
 
 			suite.Require().Equal(
 				expectedBalance,
