@@ -429,7 +429,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 			true,
 		},
 		{
-			"success: returns concensus heights ",
+			"success: returns concensus heights",
 			func() {
 				cs := ibctmtypes.NewConsensusState(
 					suite.consensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte("hash1")), nil,
