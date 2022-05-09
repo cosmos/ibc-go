@@ -39,7 +39,7 @@ The `CheckHeaderAndUpdateState` function has been split into 4 new functions:
 
 - `UpdateStateOnMisbehaviour` performs appropriate state changes on a `ClientState` given that misbehaviour has been detected and verified.
 
-- `UpdateState` updates and stores as necessary any associated information for an IBC client, such as the `ClientState` and corresponding `ConsensusState`. An error is returned if `ClientMessage` is of type `Misbehaviour`.
+- `UpdateState` updates and stores as necessary any associated information for an IBC client, such as the `ClientState` and corresponding `ConsensusState`. An error is returned if `ClientMessage` is of type `Misbehaviour`. Upon successful update, `UpdateState` must return the consensus state heights at which a corresponding `ConsensusState` is added to the client store.
 
 The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface. This functionality is now encapsulated by the usage of `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour`, `UpdateState`.
 
@@ -48,6 +48,8 @@ The function `GetTimestampAtHeight` has been added to the `ClientState` interfac
 ### `Header` and `Misbehaviour`
 
 `exported.Header` and `exported.Misbehaviour` interface types have been merged and renamed to `ClientMessage` interface.
+
+`GetHeight` function has been removed from `exported.Header` and thus is not included in the `ClientMessage` interface
 
 ### `ConsensusState`
 
