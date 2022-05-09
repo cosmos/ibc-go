@@ -38,11 +38,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#1247](https://github.com/cosmos/ibc-go/pull/1247) Bump SDK version to v0.45.3 and Tendermint to version 0.34.19
+* [\#1300](https://github.com/cosmos/ibc-go/pull/1300) Bump SDK version to v0.45.4
 
 ### API Breaking
 
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
+* (modules/29-fee)[\#1338](https://github.com/cosmos/ibc-go/pull/1338) Renaming `Result` field in `IncentivizedAcknowledgement` to `AppAcknowledgement`.
 
 ### State Machine Breaking
 
