@@ -3418,13 +3418,13 @@ type.
 
 ### MsgUpdateClient
 MsgUpdateClient defines an sdk.Msg to update a IBC client state using
-the given header.
+the given client message.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client unique identifier |
-| `header` | [google.protobuf.Any](#google.protobuf.Any) |  | header to update the light client |
+| `client_message` | [google.protobuf.Any](#google.protobuf.Any) |  | client message to update the light client |
 | `signer` | [string](#string) |  | signer address |
 
 

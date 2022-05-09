@@ -40,15 +40,15 @@ message MsgCreateClient {
 message MsgCreateClientResponse {}
 
 // MsgUpdateClient defines an sdk.Msg to update a IBC client state using
-// the given header.
+// the given client message.
 message MsgUpdateClient {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
   string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
-  // header to update the light client
-  google.protobuf.Any header = 2;
+  // client message to update the light client
+  google.protobuf.Any client_message = 2;
   // signer address
   string signer = 3;
 }
