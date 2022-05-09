@@ -791,7 +791,6 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			true,
 		},
 		{
-
 			"fail on no distribution by escrow account out of balance",
 			func() {
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
