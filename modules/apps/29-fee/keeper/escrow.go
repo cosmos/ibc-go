@@ -134,7 +134,7 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sd
 		k.distributePacketFeeOnTimeout(cacheCtx, refundAddr, timeoutRelayer, packetFee)
 	}
 
-	// removes the fee from the store as fee is now paid
+	// removing the fee from the store as the fee is now paid
 	k.DeleteFeesInEscrow(ctx, packetID)
 
 	// write the cache
