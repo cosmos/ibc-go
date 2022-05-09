@@ -405,7 +405,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			false,
 		},
 		{
-			"Fee module locked", func() {
+			"fee module locked", func() {
 				lockFeeModule(suite.chainA)
 			},
 			false,
