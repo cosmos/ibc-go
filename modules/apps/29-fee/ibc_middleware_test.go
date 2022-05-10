@@ -554,7 +554,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
 
 				expectedAck := types.IncentivizedAcknowledgement{
-					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
+					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: forwardAddr,
 					UnderlyingAppSuccess:  true,
 				}
@@ -573,7 +573,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			case !tc.forwardRelayer:
 				expectedAck := types.IncentivizedAcknowledgement{
-					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
+					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: "",
 					UnderlyingAppSuccess:  true,
 				}
@@ -612,7 +612,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 
 				ack = types.IncentivizedAcknowledgement{
-					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
+					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
 				}.Acknowledgement()
 
@@ -654,7 +654,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				ack = types.IncentivizedAcknowledgement{
-					Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
+					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
 					ForwardRelayerAddress: blockedAddr.String(),
 				}.Acknowledgement()
 
@@ -701,7 +701,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 			// must be changed explicitly
 			ack = types.IncentivizedAcknowledgement{
-				Result:                ibcmock.MockAcknowledgement.Acknowledgement(),
+				AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
 				ForwardRelayerAddress: relayerAddr.String(),
 			}.Acknowledgement()
 

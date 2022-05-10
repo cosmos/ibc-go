@@ -246,7 +246,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		// for fee enabled channels
 		//
 		// Please see ADR 004 for more information.
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 	}
 
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
@@ -259,7 +259,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
