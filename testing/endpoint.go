@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -160,7 +161,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 // and upgrading the client via MsgUpgradeClient
 // see reference https://github.com/cosmos/ibc-go/pull/1169
 func (endpoint *Endpoint) UpgradeChain() error {
-	if endpoint.Counterparty.ClientID == "" {
+	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
 		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
 	}
 
