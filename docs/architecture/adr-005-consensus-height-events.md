@@ -14,7 +14,7 @@ Some IBC relayers depend on the [`consensus_height`](https://github.com/cosmos/i
 
 - The `SignedHeader` containing the commitment root.
 - The `ValidatorSet` that signed the *Header*.
-- The `TrustedHeight` seen by the client as less than or equal to the height of *Header*.
+- The `TrustedHeight` seen by the client at less than or equal to the height of *Header*.
 - The last `TrustedValidatorSet` at the trusted height.
 
 Following the refactor of the `02-client` submodule and associated `ClientState` interfaces, it will now be possible for
