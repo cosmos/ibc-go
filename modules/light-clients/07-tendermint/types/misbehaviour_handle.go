@@ -112,6 +112,8 @@ func checkMisbehaviourHeader(
 	chainID := clientState.GetChainID()
 	// If chainID is in revision format, then set revision number of chainID with the revision number
 	// of the misbehaviour header
+	// NOTE: misbehaviour verification is not supported for chains which upgrade to a new chainID without
+	// strictly following the chainID revision format
 	if clienttypes.IsRevisionFormat(chainID) {
 		chainID, _ = clienttypes.SetRevisionNumber(chainID, header.GetHeight().GetRevisionNumber())
 	}

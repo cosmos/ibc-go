@@ -208,67 +208,70 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 			},
 			expPass: false,
 		},
-		// TODO: add revision tests after helper function to upgrade chain/client
-		/*
-					{
-				name: "successful update for a previous revision",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					consStateHeight = heightMinus3
-					newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision0, int64(height.RevisionHeight), heightMinus3, suite.headerTime, bothValSet, bothValSet, suite.valSet, bothSigners)
-					currentTime = suite.now
-				},
-				expPass: true,
+		{
+			name: "unsuccessful update for a previous revision",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				// passing the CurrentHeader.Height as the block height as it will become an update to previous revision once we upgrade the client
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+
+				// increment the revision of the chain
+				err = path.EndpointB.UpgradeChain()
+				suite.Require().NoError(err)
 			},
-			{
-				name: "successful update with identical header to a previous update",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					currentTime = suite.now
-					ctx := suite.chainA.GetContext().WithBlockTime(currentTime)
-					// Store the header's consensus state in client store before UpdateClient call
-					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ctx, clientID, heightPlus1, newHeader.ConsensusState())
-				},
-				expFrozen: false,
-				expPass:   true,
+			expPass: false,
+		},
+		{
+			name: "successful update with identical header to a previous update",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
+
+				// update client so the header constructed becomes a duplicate
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 			},
-			{
-				name: "unsuccessful update to a future revision",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainIDRevision0, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 1, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					currentTime = suite.now
-				},
-				expPass: false,
+			expPass: true,
+		},
+
+		{
+			name: "unsuccessful update to a future revision",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID+"-1", suite.chainB.CurrentHeader.Height+5, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			{
-				name: "unsuccessful update: header height revision and trusted height revision mismatch",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 3, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					currentTime = suite.now
-				},
-				expFrozen: false,
-				expPass:   false,
+			expPass: false,
+		},
+
+		{
+			name: "unsuccessful update: header height revision and trusted height revision mismatch",
+			malleate: func() {
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				// increment the revision of the chain
+				err = path.EndpointB.UpgradeChain()
+				suite.Require().NoError(err)
+
+				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			{
-				name: "unsuccessful update: trusting period has passed since last client timestamp",
-				setup: func(suite *TendermintTestSuite) {
-					clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
-					consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-					newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-					// make current time pass trusting period from last timestamp on clientstate
-					currentTime = suite.now.Add(trustingPeriod)
-				},
-				expFrozen: false,
-				expPass:   false,
-			},
-		*/
+			expPass: false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -284,16 +287,16 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		header, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 		suite.Require().NoError(err)
 
+		tc.malleate()
+
 		clientState := path.EndpointA.GetClientState()
 
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-		tc.malleate()
-
 		err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
 
 		if tc.expPass {
-			suite.Require().NoError(err)
+			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err)
 		}

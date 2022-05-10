@@ -44,7 +44,6 @@ const (
 var (
 	testClientHeight          = types.NewHeight(0, 5)
 	testClientHeightRevision1 = types.NewHeight(1, 5)
-	newClientHeight           = types.NewHeight(1, 1)
 )
 
 type KeeperTestSuite struct {
@@ -156,7 +155,8 @@ func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 }
 
 func (suite *KeeperTestSuite) TestValidateSelfClient() {
-	testClientHeight := types.NewHeight(0, uint64(suite.chainA.GetContext().BlockHeight()-1))
+	testClientHeight := types.GetSelfHeight(suite.chainA.GetContext())
+	testClientHeight.RevisionHeight--
 
 	testCases := []struct {
 		name        string
@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 		},
 		{
 			"invalid client height",
-			ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, uint64(suite.chainA.GetContext().BlockHeight())), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
+			ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.GetSelfHeight(suite.chainA.GetContext()).Increment().(types.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
 			false,
 		},
 		{

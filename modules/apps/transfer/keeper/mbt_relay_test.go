@@ -312,7 +312,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 			description := file_info.Name() + " # " + strconv.Itoa(i+1)
 			suite.Run(fmt.Sprintf("Case %s", description), func() {
 				seq := uint64(1)
-				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(0, 100), 0)
+				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(1, 100), 0)
 				bankBefore := BankFromBalances(tc.bankBefore)
 				realBankBefore := BankOfChain(suite.chainB)
 				// First validate the packet itself (mimics what happens when the packet is being sent and/or received)
@@ -344,7 +344,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender,
 							tc.packet.Data.Receiver,
-							clienttypes.NewHeight(0, 110),
+							clienttypes.NewHeight(1, 110),
 							0)
 					}
 				case "OnRecvPacket":
