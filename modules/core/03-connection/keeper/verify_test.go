@@ -14,7 +14,7 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
-var defaultTimeoutHeight = clienttypes.NewHeight(0, 100000)
+var defaultTimeoutHeight = clienttypes.NewHeight(1, 100000)
 
 // TestVerifyClientState verifies a client state of chainA
 // stored on path.EndpointB (which is on chainB)
@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 			tc.malleate()
 
 			counterpartyClient, clientProof := path.EndpointB.QueryClientStateProof()
-			proofHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()-1))
+			proofHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()-1))
 
 			connection := path.EndpointA.GetConnection()
 
@@ -138,7 +138,7 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			connection := path.EndpointA.GetConnection()
 
 			proof, consensusHeight := suite.chainB.QueryConsensusStateProof(path.EndpointB.ClientID)
-			proofHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()-1))
+			proofHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()-1))
 			consensusState, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
 			suite.Require().NoError(err)
 

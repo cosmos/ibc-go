@@ -20,7 +20,7 @@ import (
 var (
 	disabledTimeoutTimestamp = uint64(0)
 	disabledTimeoutHeight    = clienttypes.ZeroHeight()
-	timeoutHeight            = clienttypes.NewHeight(0, 100)
+	timeoutHeight            = clienttypes.NewHeight(1, 100)
 
 	// for when the testing package cannot be used
 	clientIDA  = "clientA"
