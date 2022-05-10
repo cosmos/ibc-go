@@ -87,13 +87,13 @@ func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, 
 	return keySplit[1], keySplit[2], nil
 }
 
-// KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
-func KeyForwardRelayerAddress(packetID channeltypes.PacketId) []byte {
+// KeyRelayerAddressForAsyncAck returns the key for packetID -> forwardAddress mapping
+func KeyRelayerAddressForAsyncAck(packetID channeltypes.PacketId) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s/%d", ForwardRelayerPrefix, packetID.PortId, packetID.ChannelId, packetID.Sequence))
 }
 
-// ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packetID
-func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
+// ParseKeyRelayerAddressForAsyncAck parses the key used to store the forward relayer address and returns the packetID
+func ParseKeyRelayerAddressForAsyncAck(key string) (channeltypes.PacketId, error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 4 {
 		return channeltypes.PacketId{}, sdkerrors.Wrapf(
