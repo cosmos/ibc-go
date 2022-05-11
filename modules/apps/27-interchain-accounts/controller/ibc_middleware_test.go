@@ -147,8 +147,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, version string,
-				) error {
-					return fmt.Errorf("mock ica auth fails")
+				) (string, error) {
+					return "", fmt.Errorf("mock ica auth fails")
 				}
 			}, false,
 		},
@@ -197,11 +197,24 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
 			)
 
 			if tc.expPass {
+				expMetadata := icatypes.NewMetadata(
+					icatypes.Version,
+					path.EndpointA.ConnectionID,
+					path.EndpointB.ConnectionID,
+					"",
+					icatypes.EncodingProtobuf,
+					icatypes.TxTypeSDKMultiMsg,
+				)
+
+				expBytes, err := icatypes.ModuleCdc.MarshalJSON(&expMetadata)
+				suite.Require().NoError(err)
+
+				suite.Require().Equal(version, string(expBytes))
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)

@@ -68,5 +68,4 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
 		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance),
 	)
-
 }

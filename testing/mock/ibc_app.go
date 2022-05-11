@@ -23,7 +23,7 @@ type MockIBCApp struct {
 		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
-	) error
+	) (string, error)
 
 	OnChanOpenTry func(
 		ctx sdk.Context,
