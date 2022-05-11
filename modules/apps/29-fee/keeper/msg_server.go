@@ -75,7 +75,7 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 
 	nextSeqSend, found := k.GetNextSequenceSend(ctx, msg.PacketId.PortId, msg.PacketId.ChannelId)
 	if !found {
-		return nil, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "channel does not exist, port: %s, channel: %s", msg.PacketId.PortId, msg.PacketId.ChannelId)
+		return nil, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "channel does not exist, portID: %s, channelID: %s", msg.PacketId.PortId, msg.PacketId.ChannelId)
 	}
 
 	// only allow incentivizing of packets which have been sent
