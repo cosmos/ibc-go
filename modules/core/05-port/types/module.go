@@ -11,10 +11,16 @@ import (
 // IBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
 type IBCModule interface {
-	// OnChanOpenInit will verify that the relayer-chosen parameters are
-	// valid and perform any custom INIT logic.It may return an error if
-	// the chosen parameters are invalid in which case the handshake is aborted.
-	// OnChanOpenInit should return an error if the provided version is invalid.
+	// OnChanOpenInit will verify that the relayer-chosen parameters
+	// are valid and perform any custom INIT logic.
+	// It may return an error if the chosen parameters are invalid
+	// in which case the handshake is aborted.
+	// If the provided version string is non-empty, OnChanOpenInit should return
+	// the version string if valid or an error if the provided version is invalid.
+	// If the version string is empty, OnChanOpenInit is expected to
+	// return a default version string representing the version(s) it supports.
+	// If there is no default version string for the application,
+	// it should return an error if provided version is empty string.
 	OnChanOpenInit(
 		ctx sdk.Context,
 		order channeltypes.Order,
@@ -24,7 +30,7 @@ type IBCModule interface {
 		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
-	) error
+	) (string, error)
 
 	// OnChanOpenTry will verify the relayer-chosen parameters along with the
 	// counterparty-chosen version string and perform custom TRY logic.
