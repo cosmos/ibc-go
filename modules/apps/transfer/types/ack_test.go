@@ -26,7 +26,7 @@ import (
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibcclientcli "github.com/cosmos/ibc-go/v3/modules/core/02-client/client/cli"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
