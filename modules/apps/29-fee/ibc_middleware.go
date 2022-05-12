@@ -232,9 +232,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		if err := im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID); err != nil {
-			return err
-		}
+		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
 	}
 
 	// call underlying callback
