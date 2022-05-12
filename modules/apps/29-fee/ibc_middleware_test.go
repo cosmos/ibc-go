@@ -649,7 +649,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
 			},
-			false,
+			true,
 		},
 	}
 
@@ -736,7 +736,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		name              string
 		malleate          func()
 		expFeeDistributed bool
-		expPass           bool
+		expLocked         bool
 	}{
 		{
 			"success",
@@ -762,7 +762,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				expectedBalance = originalBalance
 			},
 			false,
-			true,
+			false,
 		},
 		{
 			"no op if identified packet fee doesn't exist",
@@ -852,10 +852,10 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
-			if tc.expPass {
-				suite.Require().NoError(err)
+			if tc.expLocked {
+				suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			} else {
-				suite.Require().Error(err)
+				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			}
 
 			suite.Require().Equal(
