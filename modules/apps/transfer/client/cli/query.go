@@ -11,13 +11,20 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
 )
 
-// GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given hash.
+// GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given trace hash or ibc denom.
 func GetCmdQueryDenomTrace() *cobra.Command {
 	cmd := &cobra.Command{
+<<<<<<< HEAD
 		Use:     "denom-trace [hash]",
 		Short:   "Query the denom trace info from a given trace hash",
 		Long:    "Query the denom trace info from a given trace hash",
 		Example: fmt.Sprintf("%s query ibc-transfer denom-trace 27A6394C3F9FF9C9DCF5DFFADF9BB5FE9A37C7E92B006199894CF1824DF9AC7C", version.AppName),
+=======
+		Use:     "denom-trace [hash/denom]",
+		Short:   "Query the denom trace info from a given trace hash or ibc denom",
+		Long:    "Query the denom trace info from a given trace hash or ibc denom",
+		Example: fmt.Sprintf("%s query ibc-transfer denom-trace [hash/denom]", version.AppName),
+>>>>>>> 23e7e7d (chore: improve DenomTrace grpc (#1342))
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
