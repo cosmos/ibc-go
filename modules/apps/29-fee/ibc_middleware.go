@@ -168,12 +168,12 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 		return err
 	}
 
-	if im.keeper.IsLocked(ctx) {
-		return types.ErrFeeModuleLocked
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return nil
 	}
 
-	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		return types.ErrFeeNotEnabled
+	if im.keeper.IsLocked(ctx) {
+		return types.ErrFeeModuleLocked
 	}
 
 	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
