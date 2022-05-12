@@ -32,11 +32,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
-const (
-	gasUsed   = uint64(100)
-	gasWanted = uint64(100)
-)
-
 type IntegrationTestSuite struct {
 	suite.Suite
 
@@ -204,18 +199,6 @@ func (suite *IntegrationTestSuite) TestABCICodeDeterminism() {
 
 type TypesTestSuite struct {
 	suite.Suite
-
-	coordinator *ibctesting.Coordinator
-
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-}
-
-func (suite *TypesTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestTypesTestSuite(t *testing.T) {
