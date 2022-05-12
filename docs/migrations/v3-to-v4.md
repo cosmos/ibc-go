@@ -26,5 +26,6 @@ This is an API breaking change and as such IBC application developers will have 
 The `OnChanOpenInit` application callback has been modified.
 The return signature now includes the application version as detailed in the latest IBC [spec changes](https://github.com/cosmos/ibc/pull/629).
 
+## Relayers
 
-
+When using the `DenomTrace` gRPC, the full IBC denomination with the `ibc/` prefix may now be passed in.
