@@ -1293,6 +1293,7 @@ MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterp
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  | the relayer address |
 | `counterparty_address` | [string](#string) |  | the counterparty relayer address |
+| `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
 
