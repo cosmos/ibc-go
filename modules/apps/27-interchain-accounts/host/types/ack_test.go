@@ -165,6 +165,8 @@ func (suite *IntegrationTestSuite) TestABCICodeDeterminism() {
 			out, err := clitestutil.ExecTestCLICmd(val.ClientCtx, tc.cmd, tc.args)
 			suite.Require().NoError(err)
 
+			suite.Require().NoError(suite.network.WaitForNextBlock())
+
 			var txRes sdk.TxResponse
 			suite.Require().NoError(val.ClientCtx.Codec.UnmarshalJSON(out.Bytes(), &txRes))
 			suite.Require().Equal(tc.code, txRes.Code)
@@ -185,7 +187,7 @@ func (suite *IntegrationTestSuite) TestABCICodeDeterminism() {
 
 			expHash := ibctesting.ABCIResponsesResultsHash(&responses)
 
-			res, err := suite.network.Validators[0].RPCClient.BlockchainInfo(context.Background(), txRes.Height, txRes.Height)
+			res, err := suite.network.Validators[0].RPCClient.BlockchainInfo(context.Background(), txRes.Height+1, txRes.Height+1)
 			suite.Require().NoError(err)
 
 			suite.Require().Equal(expHash, res.BlockMetas[0].Header.LastResultsHash.Bytes())
