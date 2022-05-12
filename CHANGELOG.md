@@ -43,13 +43,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
+* (channel) [\#1283](https://github.com/cosmos/ibc-go/pull/1283) The `OnChanOpenInit` application callback now returns a version string in line with the latest [spec changes](https://github.com/cosmos/ibc/pull/629).  
 * (modules/29-fee)[\#1338](https://github.com/cosmos/ibc-go/pull/1338) Renaming `Result` field in `IncentivizedAcknowledgement` to `AppAcknowledgement`.
+* (modules/29-fee)[\#1343](https://github.com/cosmos/ibc-go/pull/1343) Renaming `KeyForwardRelayerAddress` to `KeyRelayerAddressForAsyncAck`, and `ParseKeyForwardRelayerAddress` to `ParseKeyRelayerAddressForAsyncAck`.
 
 ### State Machine Breaking
 
 ### Improvements
 
-* (modules/app/29-fee) [\#1339](https://github.com/cosmos/ibc-go/pull/1339) The `RegisterCounterpartyAddress` gRPC endpoint now checks if the channel exists before registering.  
+* (transfer) [\#1342](https://github.com/cosmos/ibc-go/pull/1342) `DenomTrace` grpc now takes in either an `ibc denom` or a `hash` instead of only accepting a `hash`.
 * (modules/core/keeper) [\#1284](https://github.com/cosmos/ibc-go/pull/1284) Add sanity check for the keepers passed into `ibckeeper.NewKeeper`. `ibckeeper.NewKeeper` now panics if any of the keepers passed in is empty.
 * (middleware) [\#1022](https://github.com/cosmos/ibc-go/pull/1022) Add `GetAppVersion` to the ICS4Wrapper interface. This function should be used by IBC applications to obtain their own version since the version set in the channel structure may be wrapped many times by middleware. 
 * (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.

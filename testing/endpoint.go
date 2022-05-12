@@ -279,6 +279,10 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.GetEvents())
 	require.NoError(endpoint.Chain.T, err)
 
+	// update version to selected app version
+	// NOTE: this update must be performed after SendMsgs()
+	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+
 	return nil
 }
 
