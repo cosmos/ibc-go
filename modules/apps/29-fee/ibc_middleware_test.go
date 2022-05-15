@@ -414,7 +414,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			"fee module is not enabled", func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
-			false,
+			true,
 		},
 	}
 
