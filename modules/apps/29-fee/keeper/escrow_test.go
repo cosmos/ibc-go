@@ -173,10 +173,9 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 	)
 
 	testCases := []struct {
-		name                  string
-		malleate              func()
-		expResult             func()
-		distributePacketError error
+		name      string
+		malleate  func()
+		expResult func()
 	}{
 		{
 			"success",
@@ -196,7 +195,6 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				balance = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)), balance)
 			},
-			nil,
 		},
 		{
 			"escrow account out of balance, fee module becomes locked - no distribution", func() {
@@ -214,7 +212,6 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				balance := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress())
 				suite.Require().Equal(expectedModuleAccBal, balance)
 			},
-			types.ErrFeeModuleLocked,
 		},
 		{
 			"invalid timeout relayer address: timeout fee returned to sender",
@@ -227,7 +224,6 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedRefundAccBal, balance)
 			},
-			nil,
 		},
 		{
 			"invalid refund address: no-op, recv and ack fees remain in escrow",
@@ -241,7 +237,6 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedModuleAccBal, balance)
 			},
-			nil,
 		},
 	}
 
@@ -273,8 +268,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			timeoutRelayerBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), timeoutRelayer, sdk.DefaultBondDenom)
 			refundAccBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			distributePacketError := suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnTimeout(suite.chainA.GetContext(), timeoutRelayer, packetFees, packetID)
-			suite.Require().Equal(tc.distributePacketError, distributePacketError)
+			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnTimeout(suite.chainA.GetContext(), timeoutRelayer, packetFees, packetID)
 
 			tc.expResult()
 		})

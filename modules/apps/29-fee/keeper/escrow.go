@@ -120,7 +120,7 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sd
 			// locking the fee module are persisted
 			k.lockFeeModule(ctx)
 
-			return types.ErrFeeModuleLocked
+			return nil
 		}
 
 		// check if refundAcc address works

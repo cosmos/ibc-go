@@ -258,9 +258,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		if err := im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID); err != nil {
-			return err
-		}
+		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
 	}
 
 	// call underlying callback
