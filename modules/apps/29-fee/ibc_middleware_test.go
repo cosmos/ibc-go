@@ -327,6 +327,18 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			},
 			false,
 		},
+		{
+			"fee module locked", func() {
+				lockFeeModule(suite.chainA)
+			},
+			false,
+		},
+		{
+			"fee module is not enabled", func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
