@@ -79,8 +79,7 @@ func NewDefaultTxHandler(options TxHandlerOptions) (tx.Handler, error) {
 		authmiddleware.NewIndexEventsTxMiddleware(options.IndexEvents),
 		// Reject all extension options which can optionally be included in the
 		// tx.
-		authmiddleware.RejectExtensionOptionsMiddleware,
-		authmiddleware.MempoolFeeMiddleware,
+		authmiddleware.NewExtensionOptionsMiddleware(options.ExtensionOptionChecker),
 		authmiddleware.ValidateBasicMiddleware,
 		authmiddleware.TxTimeoutHeightMiddleware,
 		authmiddleware.ValidateMemoMiddleware(options.AccountKeeper),
@@ -89,8 +88,7 @@ func NewDefaultTxHandler(options TxHandlerOptions) (tx.Handler, error) {
 		// ComposeMiddlewares godoc for details.
 		// `DeductFeeMiddleware` and `IncrementSequenceMiddleware` should be put outside of `WithBranchedStore` middleware,
 		// so their storage writes are not discarded when tx fails.
-		authmiddleware.DeductFeeMiddleware(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper),
-		authmiddleware.TxPriorityMiddleware,
+		authmiddleware.DeductFeeMiddleware(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
 		authmiddleware.SetPubKeyMiddleware(options.AccountKeeper),
 		authmiddleware.ValidateSigCountMiddleware(options.AccountKeeper),
 		authmiddleware.SigGasConsumeMiddleware(options.AccountKeeper, sigGasConsumer),
