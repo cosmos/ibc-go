@@ -67,7 +67,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 func Setup(isCheckTx bool) *SimApp {
 
 	privVal := mock.NewPV()
-	pubKey, _ := privVal.GetPubKey(context.TODO())
+	pubKey, _ := privVal.GetPubKey(nil)
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)
