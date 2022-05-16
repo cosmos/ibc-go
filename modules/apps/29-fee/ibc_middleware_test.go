@@ -26,34 +26,46 @@ var (
 // Tests OnChanOpenInit on ChainA
 func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
-		name    string
-		version string
-		expPass bool
+		name         string
+		version      string
+		expPass      bool
+		isFeeEnabled bool
 	}{
 		{
 			"success - valid fee middleware and mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
+			true,
 			true,
 		},
 		{
 			"success - fee version not included, only perform mock logic",
 			ibcmock.Version,
 			true,
+			false,
 		},
 		{
 			"invalid fee middleware version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
+			false,
 			false,
 		},
 		{
 			"invalid mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
 			false,
+			false,
 		},
 		{
 			"mock version not wrapped",
 			types.Version,
 			false,
+			false,
+		},
+		{
+			"passing an empty string returns default version",
+			"",
+			true,
+			true,
 		},
 	}
 
@@ -69,11 +81,11 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 				portID, channelID string, chanCap *capabilitytypes.Capability,
 				counterparty channeltypes.Counterparty, version string,
-			) error {
+			) (string, error) {
 				if version != ibcmock.Version {
-					return fmt.Errorf("incorrect mock version")
+					return "", fmt.Errorf("incorrect mock version")
 				}
-				return nil
+				return ibcmock.Version, nil
 			}
 
 			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
@@ -96,13 +108,29 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
 
 			if tc.expPass {
+				// check if the channel is fee enabled. If so version string should include metaData
+				if tc.isFeeEnabled {
+					versionMetadata := types.Metadata{
+						FeeVersion: types.Version,
+						AppVersion: ibcmock.Version,
+					}
+
+					versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+					suite.Require().NoError(err)
+
+					suite.Require().Equal(version, string(versionBytes))
+				} else {
+					suite.Require().Equal(ibcmock.Version, version)
+				}
+
 				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 			} else {
 				suite.Require().Error(err, "error not returned for version: %s", tc.version)
+				suite.Require().Equal("", version)
 			}
 		})
 	}
@@ -328,6 +356,18 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			},
 			false,
 		},
+		{
+			"fee module locked", func() {
+				lockFeeModule(suite.chainA)
+			},
+			false,
+		},
+		{
+			"fee module is not enabled", func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -404,6 +444,18 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				suite.Require().NoError(err)
 			},
 			false,
+		},
+		{
+			"fee module locked", func() {
+				lockFeeModule(suite.chainA)
+			},
+			false,
+		},
+		{
+			"fee module is not enabled", func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			true,
 		},
 	}
 
