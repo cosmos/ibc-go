@@ -15,7 +15,7 @@ const chainID = "testChain"
 
 func TestGetPubKey(t *testing.T) {
 	pv := mock.NewPV()
-	pk, err := pv.GetPubKey(context.TODO())
+	pk, err := pv.GetPubKey(nil)
 	require.NoError(t, err)
 	require.Equal(t, "ed25519", pk.Type())
 }
