@@ -171,6 +171,14 @@ func (im IBCMiddleware) OnChanCloseInit(
 		return err
 	}
 
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return nil
+	}
+
+	if im.keeper.IsLocked(ctx) {
+		return types.ErrFeeModuleLocked
+	}
+
 	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
 		return err
 	}
@@ -186,6 +194,14 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 ) error {
 	if err := im.app.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
 		return err
+	}
+
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return nil
+	}
+
+	if im.keeper.IsLocked(ctx) {
+		return types.ErrFeeModuleLocked
 	}
 
 	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
