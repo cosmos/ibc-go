@@ -568,15 +568,17 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name               string
+		malleate           func()
+		expFeesDistributed bool
+		expPass            bool
 	}{
 		{
 			"success",
 			func() {
 				expectedRelayerBalance = packetFee.Fee.RecvFee.Add(packetFee.Fee.AckFee[0])
 			},
+			true,
 			true,
 		},
 		{
@@ -593,6 +595,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				expectedBalance = originalBalance
 			},
 			true,
+			true,
 		},
 		{
 			"ack wrong format",
@@ -601,6 +604,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 				expectedBalance = originalBalance
 			},
+			false,
 			false,
 		},
 		{
@@ -611,6 +615,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 				expectedBalance = originalBalance
 			},
+			false,
 			true,
 		},
 		{
@@ -621,6 +626,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 				expectedBalance = originalBalance
 			},
+			false,
 			true,
 		},
 		{
@@ -636,6 +642,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				expectedRelayerBalance = packetFee.Fee.AckFee
 				expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee...)
 			},
+			false,
 			true,
 		},
 		{
@@ -653,6 +660,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 				expLocked = true
 			},
+			false,
 			true,
 		},
 	}
@@ -725,6 +733,12 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			)
 
 			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
+			if tc.expFeesDistributed {
+				// there should no longer be a fee in escrow for this packet
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().False(found)
+			}
+
 			suite.Require().Equal(
 				expectedRelayerBalance,
 				relayerBalance,
