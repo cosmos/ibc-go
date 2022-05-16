@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#1247](https://github.com/cosmos/ibc-go/pull/1247) Bump SDK version to v0.45.3 and Tendermint to version 0.34.19
+* [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
 
 ### API Breaking
 
