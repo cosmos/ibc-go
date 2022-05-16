@@ -1,6 +1,8 @@
 package fee
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -39,25 +41,44 @@ func (im IBCMiddleware) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
+) (string, error) {
 	var versionMetadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
-		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-		// application.
-		return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-			chanCap, counterparty, version)
+
+	if strings.TrimSpace(version) == "" {
+		// default version
+		versionMetadata = types.Metadata{
+			FeeVersion: types.Version,
+			AppVersion: "",
+		}
+	} else {
+		if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
+			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
+			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
+			// application.
+			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+				chanCap, counterparty, version)
+		}
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+	}
+
+	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
+	if err != nil {
+		return "", err
+	}
+
+	versionMetadata.AppVersion = appVersion
+	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+	if err != nil {
+		return "", err
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 
 	// call underlying app's OnChanOpenInit callback with the appVersion
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, versionMetadata.AppVersion)
+	return string(versionBytes), nil
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -94,7 +115,6 @@ func (im IBCMiddleware) OnChanOpenTry(
 	}
 
 	versionMetadata.AppVersion = appVersion
-
 	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
 	if err != nil {
 		return "", err
@@ -116,7 +136,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		var versionMetadata types.Metadata
 		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return sdkerrors.Wrap(types.ErrInvalidVersion, "failed to unmarshal ICS29 counterparty version metadata")
+			return sdkerrors.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
