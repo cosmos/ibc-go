@@ -46,7 +46,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
 	relayerAddress := suite.chainB.SenderAccount.GetAddress()
 
-	msgRegister := types.NewMsgRegisterCounterpartyAddress(suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(), ibctesting.FirstChannelID)
+	msgRegister := types.NewMsgRegisterCounterpartyAddress(suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 	_, err = suite.chainB.SendMsgs(msgRegister)
 	suite.Require().NoError(err) // message committed
 
@@ -68,5 +68,4 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
 		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance),
 	)
-
 }

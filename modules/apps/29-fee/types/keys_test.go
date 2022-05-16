@@ -113,7 +113,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 	}{
 		{
 			"success",
-			string(types.KeyForwardRelayerAddress(validPacketID)),
+			string(types.KeyRelayerAddressForAsyncAck(validPacketID)),
 			true,
 		},
 		{
@@ -129,7 +129,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		packetID, err := types.ParseKeyForwardRelayerAddress(tc.key)
+		packetID, err := types.ParseKeyRelayerAddressForAsyncAck(tc.key)
 
 		if tc.expPass {
 			require.NoError(t, err)
