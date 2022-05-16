@@ -22,10 +22,10 @@ func TestGetPubKey(t *testing.T) {
 
 func TestSignVote(t *testing.T) {
 	pv := mock.NewPV()
-	pk, _ := pv.GetPubKey(context.TODO())
+	pk, _ := pv.GetPubKey(nil)
 
 	vote := &tmproto.Vote{Height: 2}
-	pv.SignVote(context.TODO(), chainID, vote)
+	pv.SignVote(nil, chainID, vote)
 
 	msg := tmtypes.VoteSignBytes(chainID, vote)
 	ok := pk.VerifySignature(msg, vote.Signature)
@@ -34,10 +34,10 @@ func TestSignVote(t *testing.T) {
 
 func TestSignProposal(t *testing.T) {
 	pv := mock.NewPV()
-	pk, _ := pv.GetPubKey(context.TODO())
+	pk, _ := pv.GetPubKey(nil)
 
 	proposal := &tmproto.Proposal{Round: 2}
-	pv.SignProposal(context.Background(), chainID, proposal)
+	pv.SignProposal(nil, chainID, proposal)
 
 	msg := tmtypes.ProposalSignBytes(chainID, proposal)
 	ok := pk.VerifySignature(msg, proposal.Signature)
