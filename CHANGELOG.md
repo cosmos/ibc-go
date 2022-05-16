@@ -47,11 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
-<<<<<<< HEAD
-=======
-* (modules/core/04-channel) [\#1232](https://github.com/cosmos/ibc-go/pull/1232) Updating params on `NewPacketId` and moving to bottom of file. 
 * (modules/core/04-channel) [\#1279](https://github.com/cosmos/ibc-go/pull/1279) Add selected channel version to MsgChanOpenInitResponse and MsgChanOpenTryResponse. Emit channel version during OpenInit/OpenTry
->>>>>>> a187803 (chore : add selected channel version to MsgChanOpenInitResponse and MsgChanOpenTryResponse (#1279))
 
 ### Features
 
