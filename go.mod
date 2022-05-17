@@ -4,8 +4,6 @@ module github.com/cosmos/ibc-go/v3
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/zondax/hid => github.com/zondax/hid v0.9.0
-
 require (
 	github.com/armon/go-metrics v0.3.10
 	github.com/confio/ics23/go v0.7.0
