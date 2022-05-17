@@ -79,7 +79,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 
 	suite.privVal = ibctestingmock.NewPV()
 
-	pubKey, err := suite.privVal.GetPubKey()
+	pubKey, err := suite.privVal.GetPubKey(nil)
 	suite.Require().NoError(err)
 
 	heightMinus1 := clienttypes.NewHeight(0, height.RevisionHeight-1)

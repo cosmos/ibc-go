@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"context"
 	"time"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -29,7 +30,7 @@ func (suite *TendermintTestSuite) TestMisbehaviour() {
 
 func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey()
+	altPubKey, err := altPrivVal.GetPubKey(nil)
 	suite.Require().NoError(err)
 
 	revisionHeight := int64(height.RevisionHeight)
@@ -179,7 +180,7 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 					return err
 				}
 
-				tmCommit, err := tmtypes.MakeCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header1.Commit.Round, wrongVoteSet, altSignerArr, suite.now)
+				tmCommit, err := ibctesting.MakeCommit(context.Background(), *blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header1.Commit.Round, wrongVoteSet, altSignerArr, suite.now)
 				misbehaviour.Header1.Commit = tmCommit.ToProto()
 				return err
 			},
@@ -200,7 +201,7 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 					return err
 				}
 
-				tmCommit, err := tmtypes.MakeCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header2.Commit.Round, wrongVoteSet, altSignerArr, suite.now)
+				tmCommit, err := ibctesting.MakeCommit(context.Background(), *blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header2.Commit.Round, wrongVoteSet, altSignerArr, suite.now)
 				misbehaviour.Header2.Commit = tmCommit.ToProto()
 				return err
 			},
