@@ -19,9 +19,12 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 	)
 
 	for _, fee := range packetFees.PacketFees {
-		totalRecvFees.Add(fee.Fee.RecvFee...)
-		totalAckFees.Add(fee.Fee.AckFee...)
-		totalTimeoutFees.Add(fee.Fee.TimeoutFee...)
+		// only emit total fees for packet fees which allow any relayer to relay
+		if fee.Relayers == nil {
+			totalRecvFees.Add(fee.Fee.RecvFee...)
+			totalAckFees.Add(fee.Fee.AckFee...)
+			totalTimeoutFees.Add(fee.Fee.TimeoutFee...)
+		}
 	}
 
 	ctx.EventManager().EmitEvent(
