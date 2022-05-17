@@ -1,3 +1,6 @@
+//go:build norace
+// +build norace
+
 package types_test
 
 import (
