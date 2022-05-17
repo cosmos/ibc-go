@@ -1,17 +1,9 @@
 package keeper_test
 
 import (
-<<<<<<< HEAD
-	"testing"
-
-	"github.com/stretchr/testify/suite"
-=======
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
->>>>>>> f2577f9 (add empty keepers checking in ibc NewKeeper (#1284))
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v2/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v2/modules/core/23-commitment/types"
@@ -28,36 +20,6 @@ var (
 	maxSequence   = uint64(10)
 )
 
-<<<<<<< HEAD
-type KeeperTestSuite struct {
-	suite.Suite
-
-	coordinator *ibctesting.Coordinator
-
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-}
-
-// SetupTest creates a coordinator with 2 test chains.
-func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-
-	// TODO: remove
-	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-
-}
-
-func TestIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
-}
-
-=======
->>>>>>> f2577f9 (add empty keepers checking in ibc NewKeeper (#1284))
 // tests the IBC handler receiving a packet on ordered and unordered channels.
 // It verifies that the storing of an acknowledgement on success occurs. It
 // tests high level properties like ordering and basic sanity checks. More
