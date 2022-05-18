@@ -244,12 +244,8 @@ func produceVerificationArgs(
 	prefix exported.Prefix,
 	proof []byte,
 ) (beefyProof BeefyProof, consensusState *ConsensusState, err error) {
-	if cs.GetLatestHeight().LT(height) {
-		return BeefyProof{}, nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
-		)
-	}
+	// no height checks because parachain_header height fits into revision_number
+	// so if fetching consensus state fails, we don't have the consensus state for the parachain header.
 
 	if proof == nil {
 		return BeefyProof{}, nil, sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "proof cannot be empty")
