@@ -39,7 +39,7 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 	packetFees := types.NewPacketFees(fees)
 	k.SetFeesInEscrow(ctx, packetID, packetFees)
 
-	EmitIncentivizedPacket(ctx, packetID, packetFee)
+	EmitIncentivizedPacketEvent(ctx, packetID, packetFees)
 
 	return nil
 }
