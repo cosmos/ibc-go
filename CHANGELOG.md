@@ -38,6 +38,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
+* [\#1300](https://github.com/cosmos/ibc-go/pull/1300) Bump SDK version to v0.45.4
+
 ### API Breaking
 
 ### State Machine Breaking
@@ -45,6 +48,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (modules/core/keeper) [\#1284](https://github.com/cosmos/ibc-go/pull/1284) Add sanity check for the keepers passed into `ibckeeper.NewKeeper`. `ibckeeper.NewKeeper` now panics if any of the keepers passed in is empty.
+* (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
 
 ### Features
 
