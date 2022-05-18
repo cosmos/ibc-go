@@ -25,9 +25,9 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 		nil,
 	)
 
-	expRecvFees.Add(fee.RecvFee...)
-	expAckFees.Add(fee.AckFee...)
-	expAckFees.Add(fee.TimeoutFee...)
+	expRecvFees = expRecvFees.Add(fee.RecvFee...)
+	expAckFees = expAckFees.Add(fee.AckFee...)
+	expTimeoutFees = expTimeoutFees.Add(fee.TimeoutFee...)
 
 	result, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err)
@@ -54,9 +54,9 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 
 	// send the same messages again a few times
 	for i := 0; i < 3; i++ {
-		expRecvFees.Add(fee.RecvFee...)
-		expAckFees.Add(fee.AckFee...)
-		expAckFees.Add(fee.TimeoutFee...)
+		expRecvFees = expRecvFees.Add(fee.RecvFee...)
+		expAckFees = expAckFees.Add(fee.AckFee...)
+		expTimeoutFees = expTimeoutFees.Add(fee.TimeoutFee...)
 
 		result, err = suite.chainA.SendMsgs(msg)
 		suite.Require().NoError(err)
