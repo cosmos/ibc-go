@@ -165,8 +165,10 @@ message ParachainHeader {
   uint32 heads_total_count = 6;
 
   // trie merkle proof of inclusion in header.extrinsic_root
-  // this already encodes the actual extrinsic
   repeated bytes extrinsic_proof = 7;
+
+  // the actual timestamp extrinsic
+  bytes timestamp_extrinsic = 8;
 }
 
 // Partial data for MmrLeaf
