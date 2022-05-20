@@ -78,8 +78,8 @@ github.com/ChainSafe/log15 v1.0.0 h1:vRDVtWtVwIH5uSCBvgTTZh6FA58UBJ6+QiiypaZfBf8
 github.com/ChainSafe/log15 v1.0.0/go.mod h1:5v1+ALHtdW0NfAeeoYyKmzCAMcAeqkdhIg4uxXWIgOg=
 github.com/ComposableFi/go-merkle-trees v0.0.0-20220119155315-3ce250c9ec59 h1:+CUbcRmgeoeZGOW5uvk5lHbB7rhjsm7X7pnGtYLOPK0=
 github.com/ComposableFi/go-merkle-trees v0.0.0-20220119155315-3ce250c9ec59/go.mod h1:oowohqWj7M5OIG7p0FWn+jKWCbzBipuEnXp2xUoK9Pw=
-github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220429100113-e4096ab43316 h1:VbFoXt7sB5YYievEG+Ehry3rf339fdR95fuCBmUuTmM=
-github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220429100113-e4096ab43316/go.mod h1:sHHq+ppGGTrfM8TmltaIOp5XBLTsnff4LjeQTi557c4=
+github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220520095549-28b7c5a4e212 h1:opy+UYhvggXemLFUv5OPU1PkgfPEg1nOiPiUa4qQROw=
+github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220520095549-28b7c5a4e212/go.mod h1:sHHq+ppGGTrfM8TmltaIOp5XBLTsnff4LjeQTi557c4=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
