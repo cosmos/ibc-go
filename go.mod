@@ -40,7 +40,7 @@ require (
 
 require (
 	github.com/ChainSafe/log15 v1.0.0
-	github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220429100113-e4096ab43316
+	github.com/ComposableFi/go-substrate-rpc-client/v4 v4.0.1-0.20220520095549-28b7c5a4e212
 )
 
 require (
