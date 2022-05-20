@@ -12,6 +12,11 @@ import (
 type StakingKeeper interface {
 	GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool)
 	UnbondingTime(ctx sdk.Context) time.Duration
+	GetValidators(ctx sdk.Context, maxRetrieve uint32) (validators []stakingtypes.Validator)
+	Delegate(
+		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus,
+		validator stakingtypes.Validator, subtractAccount bool,
+	) (newShares sdk.Dec, err error)
 }
 
 // UpgradeKeeper expected upgrade keeper
