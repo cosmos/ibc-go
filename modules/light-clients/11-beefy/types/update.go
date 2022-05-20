@@ -171,7 +171,7 @@ func (cs *ClientState) verifyHeader(
 		}
 	}
 
-	mmrProof, err := cs.getMmrProof(beefyHeader)
+	mmrProof, err := cs.parachainHeadersToMmrProof(beefyHeader)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to execute getMMRProf")
 	}
@@ -191,10 +191,7 @@ func (cs *ClientState) verifyHeader(
 	return nil
 }
 
-func (cs *ClientState) getMmrProof(beefyHeader *Header) (*mmr.Proof, error) {
-	// for debug purposes
-	var mmrLeavesRaw = make([]BeefyMmrLeaf, len(beefyHeader.ParachainHeaders))
-
+func (cs *ClientState) parachainHeadersToMmrProof(beefyHeader *Header) (*mmr.Proof, error) {
 	var mmrLeaves = make([]mmr.Leaf, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
@@ -229,14 +226,12 @@ func (cs *ClientState) getMmrProof(beefyHeader *Header) (*mmr.Proof, error) {
 			ParentNumber: parachainHeader.MmrLeafPartial.ParentNumber,
 			ParentHash:   parachainHeader.MmrLeafPartial.ParentHash,
 			BeefyNextAuthoritySet: BeefyAuthoritySet{
-				Id:            cs.NextAuthoritySet.Id,
-				AuthorityRoot: cs.NextAuthoritySet.AuthorityRoot,
-				Len:           cs.NextAuthoritySet.Len,
+				Id:            parachainHeader.MmrLeafPartial.BeefyNextAuthoritySet.Id,
+				AuthorityRoot: parachainHeader.MmrLeafPartial.BeefyNextAuthoritySet.AuthorityRoot,
+				Len:           parachainHeader.MmrLeafPartial.BeefyNextAuthoritySet.Len,
 			},
 			ParachainHeads: &parachainHeads,
 		}
-		// for debug purposes
-		mmrLeavesRaw[i] = mmrLeaf
 
 		// the mmr leaf's are a scale-encoded
 		mmrLeafBytes, err := Encode(mmrLeaf)
