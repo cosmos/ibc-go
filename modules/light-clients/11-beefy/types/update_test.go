@@ -68,10 +68,15 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 	t.Log("====== subcribed! ======")
 	var clientState *types.ClientState
 	defer sub.Unsubscribe()
+	count := 1
 
 	for {
 		select {
 		case msg, ok := <-ch:
+			// break once we've processed a 100 commitments
+			if count == 100 {
+				break
+			}
 			require.True(t, ok, "error reading channel")
 
 			compactCommitment := clientTypes.CompactSignedCommitment{}
@@ -139,6 +144,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				t.Log("Initializing client state")
 				continue
 			}
+
+			t.Logf("Recieved Commitment #%d", count)
 
 			// first get all paraIds
 
@@ -359,6 +366,8 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				require.Equal(t, clientState.MmrRootHash, signedCommitment.Commitment.Payload, "failed to update client state. LatestBeefyHeight: %d, Commitment.BlockNumber %d", clientState.LatestBeefyHeight, uint32(signedCommitment.Commitment.BlockNumber))
 			}
 			t.Log("====== successfully processed justification! ======")
+			
+			count++
 
 			// paramSpace := types2.NewSubspace(nil, nil, nil, nil, "test")
 			// //paramSpace = paramSpace.WithKeyTable(clientypes.ParamKeyTable())
