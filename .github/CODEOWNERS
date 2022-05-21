@@ -30,3 +30,8 @@
 
 /modules/apps/27-interchain-accounts/ @seantking @colin-axner @AdityaSripal @damiannolan
 /proto/applications/interchain_accounts/ @seantking @colin-axner @AdityaSripal @damiannolan
+
+# CODEOWNERS for fee module
+
+/modules/apps/29-fee/ @AdityaSripal @seantking @charleenfei @colin-axner @damiannolan 
+/proto/ibc/applications/fee/ @AdityaSripal @seantking @charleenfei @colin-axner @damiannolan
