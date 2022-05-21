@@ -1,6 +1,6 @@
 # CODEOWNERS: https://help.github.com/articles/about-codeowners/
 
-*       @colin-axner @AdityaSripal @crodriguezvega @seantking @charleenfei @damiannolan
+*       @colin-axner @AdityaSripal @crodriguezvega @seantking @charleenfei @damiannolan @chatton
 
 # Order is important; the last matching pattern takes the most
 # precedence. When someone opens a pull request that only
