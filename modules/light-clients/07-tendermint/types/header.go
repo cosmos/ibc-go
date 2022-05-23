@@ -20,6 +20,8 @@ func (h Header) ConsensusState() *ConsensusState {
 		Timestamp:          h.GetTime(),
 		Root:               commitmenttypes.NewMerkleRoot(h.Header.GetAppHash()),
 		NextValidatorsHash: h.Header.NextValidatorsHash,
+		LastResultsHash:    commitmenttypes.NewMerkleRoot(h.Header.GetLastResultsHash()),
+		DataHash:           commitmenttypes.NewMerkleRoot(h.Header.GetDataHash()),
 	}
 }
 

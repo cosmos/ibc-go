@@ -228,6 +228,8 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 						Timestamp:          updateHeader.GetTime(),
 						Root:               commitmenttypes.NewMerkleRoot(updateHeader.Header.GetAppHash()),
 						NextValidatorsHash: updateHeader.Header.NextValidatorsHash,
+						DataHash:           commitmenttypes.NewMerkleRoot(updateHeader.Header.GetDataHash()),
+						LastResultsHash:    commitmenttypes.NewMerkleRoot(updateHeader.Header.GetLastResultsHash()),
 					}
 
 					consensusState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, updateHeader.GetHeight())

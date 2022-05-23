@@ -290,6 +290,8 @@ func (chain *TestChain) NextBlock() {
 		Time:               chain.CurrentHeader.Time,
 		ValidatorsHash:     chain.Vals.Hash(),
 		NextValidatorsHash: chain.NextVals.Hash(),
+		DataHash:           chain.CurrentTMClientHeader().Header.DataHash,
+		LastResultsHash:    chain.CurrentTMClientHeader().Header.LastResultsHash,
 	}
 
 	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})

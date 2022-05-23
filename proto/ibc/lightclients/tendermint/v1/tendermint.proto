@@ -73,6 +73,11 @@ message ConsensusState {
     (gogoproto.casttype) = "github.com/tendermint/tendermint/libs/bytes.HexBytes",
     (gogoproto.moretags) = "yaml:\"next_validators_hash\""
   ];
+  // MerkleRoot of the hash of transactions
+  ibc.core.commitment.v1.MerkleRoot data_hash = 4 [(gogoproto.nullable) = false];
+  // the root hash of a Merkle tree built from ResponseDeliverTx responses (Log,Info, Codespace and Events fields are
+  // ignored)
+  ibc.core.commitment.v1.MerkleRoot last_results_hash = 5 [(gogoproto.nullable) = false];
 }
 
 // Misbehaviour is a wrapper over two conflicting Headers

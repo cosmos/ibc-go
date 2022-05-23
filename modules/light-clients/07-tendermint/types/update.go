@@ -254,6 +254,8 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 		Timestamp:          header.GetTime(),
 		Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
 		NextValidatorsHash: header.Header.NextValidatorsHash,
+		LastResultsHash:    commitmenttypes.NewMerkleRoot(header.Header.GetLastResultsHash()),
+		DataHash:           commitmenttypes.NewMerkleRoot(header.Header.GetDataHash()),
 	}
 
 	// set metadata for this consensus state

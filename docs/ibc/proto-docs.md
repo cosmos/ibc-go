@@ -4883,6 +4883,8 @@ ConsensusState defines the consensus state from Tendermint.
 | `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
 | `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
 | `next_validators_hash` | [bytes](#bytes) |  |  |
+| `data_hash` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | MerkleRoot of the hash of transactions |
+| `last_results_hash` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | the root hash of a Merkle tree built from ResponseDeliverTx responses (Log,Info, Codespace and Events fields are ignored) |
 
 
 

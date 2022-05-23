@@ -330,6 +330,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 				Timestamp:          newHeader.GetTime(),
 				Root:               commitmenttypes.NewMerkleRoot(newHeader.Header.GetAppHash()),
 				NextValidatorsHash: newHeader.Header.NextValidatorsHash,
+				LastResultsHash:    commitmenttypes.NewMerkleRoot(newHeader.Header.GetLastResultsHash()),
+				DataHash:           commitmenttypes.NewMerkleRoot(newHeader.Header.GetDataHash()),
 			}
 
 			newClientState, consensusState, err := clientState.CheckHeaderAndUpdateState(
