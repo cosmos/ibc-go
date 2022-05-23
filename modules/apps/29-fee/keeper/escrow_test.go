@@ -333,7 +333,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.Require().NoError(err)
 
 				expEscrowBal = fee.Total()
-				expRefundBal = expRefundBal.Sub(fee.Total())
+				expRefundBal = expRefundBal.Sub(fee.Total()...)
 			}, true,
 		},
 		{
@@ -404,7 +404,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
 
 				expEscrowBal = fee.Total()
-				expRefundBal = expRefundBal.Sub(fee.Total())
+				expRefundBal = expRefundBal.Sub(fee.Total()...)
 			}, true,
 		},
 	}
