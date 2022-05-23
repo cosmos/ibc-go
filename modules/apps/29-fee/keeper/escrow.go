@@ -50,6 +50,7 @@ func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx sdk.Context, forwardRe
 	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
 	cacheCtx, writeFn := ctx.CacheContext()
 
+	// forward relayer address will be empty if conversion fails
 	forwardAddr, _ := sdk.AccAddressFromBech32(forwardRelayer)
 
 	for _, packetFee := range packetFees {
@@ -162,6 +163,7 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)
 	if err != nil {
 		if bytes.Equal(receiver, refundAccAddress) {
+			k.Logger(ctx).Error("error distributing fee", "receiver address", receiver, "fee", fee)
 			return // if sending to the refund address already failed, then return (no-op)
 		}
 
@@ -169,6 +171,7 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 		// then attempt to refund the fee to the original sender
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAccAddress, fee)
 		if err != nil {
+			k.Logger(ctx).Error("error refunding fee to the original sender", "refund address", refundAccAddress, "fee", fee)
 			return // if sending to the refund address fails, no-op
 		}
 	}
