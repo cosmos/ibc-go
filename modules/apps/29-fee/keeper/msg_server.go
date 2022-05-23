@@ -56,7 +56,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetID := channeltypes.NewPacketId(msg.SourcePortId, msg.SourceChannelId, sequence)
+	packetID := channeltypes.NewPacketID(msg.SourcePortId, msg.SourceChannelId, sequence)
 	packetFee := types.NewPacketFee(msg.Fee, msg.Signer, msg.Relayers)
 
 	if err := k.escrowPacketFee(ctx, packetID, packetFee); err != nil {

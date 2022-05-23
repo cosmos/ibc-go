@@ -14,7 +14,7 @@ import (
 
 var _ exported.Misbehaviour = &Misbehaviour{}
 
-// Use the same FrozenHeight for all misbehaviour
+// FrozenHeight is same for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)
 
 // NewMisbehaviour creates a new Misbehaviour instance.

@@ -106,7 +106,7 @@ func ParseKeyRelayerAddressForAsyncAck(key string) (channeltypes.PacketId, error
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
+	packetID := channeltypes.NewPacketID(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 
@@ -129,7 +129,7 @@ func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
+	packetID := channeltypes.NewPacketID(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 

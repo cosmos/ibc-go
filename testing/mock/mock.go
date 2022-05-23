@@ -89,7 +89,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for the mock module.
 type AppModule struct {
 	AppModuleBasic
-	ibcApps    []*MockIBCApp
+	ibcApps    []*IBCApp
 	portKeeper PortKeeper
 }
 

@@ -347,7 +347,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		{
 			"RefundFeesOnChannelClosure fails - invalid refund address", func() {
 				// store the fee in state & update escrow account balance
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
@@ -376,7 +376,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
-			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
 				RecvFee:    defaultRecvFee,
 				AckFee:     defaultAckFee,
@@ -436,7 +436,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 		{
 			"RefundChannelFeesOnClosure fails - refund address is invalid", func() {
 				// store the fee in state & update escrow account balance
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
@@ -466,7 +466,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
-			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
 				RecvFee:    defaultRecvFee,
 				AckFee:     defaultAckFee,
@@ -590,7 +590,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			case tc.forwardRelayer && result == nil:
 				suite.Require().Equal(nil, result)
-				packetID := channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 				// retrieve the forward relayer that was stored in `onRecvPacket`
 				relayer, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), packetID)
@@ -636,7 +636,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"no op success without a packet fee",
 			func() {
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 
 				ack = types.IncentivizedAcknowledgement{
@@ -700,7 +700,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"fail on no distribution by escrow account out of balance",
 			func() {
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
 
@@ -736,7 +736,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			suite.Require().True(ok)
 
 			// escrow the packet fee
-			packetID := channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			packetID := channeltypes.NewPacketID(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			packetFee = types.NewPacketFee(
 				types.Fee{
 					RecvFee:    defaultRecvFee,
@@ -840,7 +840,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			"no op if identified packet fee doesn't exist",
 			func() {
 				// delete packet fee
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 
 				expectedBalance = originalBalance
@@ -862,7 +862,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"fail on no distribution by escrow account out of balance",
 			func() {
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
 
@@ -893,7 +893,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			packetID := channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			packetID := channeltypes.NewPacketID(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 			// must be explicitly changed
 			relayerAddr = suite.chainB.SenderAccount.GetAddress()

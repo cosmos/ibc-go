@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+	validPacketID = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 )
 
 func TestKeyCounterpartyRelayer(t *testing.T) {

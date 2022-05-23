@@ -60,11 +60,11 @@ func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgPayPacketFee creates a new instance of MsgPayPacketFee
-func NewMsgPayPacketFee(fee Fee, sourcePortId, sourceChannelId, signer string, relayers []string) *MsgPayPacketFee {
+func NewMsgPayPacketFee(fee Fee, sourcePortID, sourceChannelID, signer string, relayers []string) *MsgPayPacketFee {
 	return &MsgPayPacketFee{
 		Fee:             fee,
-		SourcePortId:    sourcePortId,
-		SourceChannelId: sourceChannelId,
+		SourcePortId:    sourcePortID,
+		SourceChannelId: sourceChannelID,
 		Signer:          signer,
 		Relayers:        relayers,
 	}

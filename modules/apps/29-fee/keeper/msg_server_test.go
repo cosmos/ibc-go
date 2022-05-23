@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			func() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
 
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
 				suite.Require().True(found)
 				suite.Require().Equal(expFeesInEscrow, feesInEscrow.PacketFees)
@@ -225,7 +225,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			func() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
@@ -283,7 +283,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			"packet already timed out",
 			func() {
 				// try to incentivze a packet which is timed out
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, msg.PacketId.Sequence+1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, msg.PacketId.Sequence+1)
 				packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), 0)
 
 				err := suite.path.EndpointA.SendPacket(packet)
@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			// send a packet to incentivize
-			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100), 0)
 			err := suite.path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)

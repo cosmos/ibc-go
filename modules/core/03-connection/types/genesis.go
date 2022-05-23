@@ -42,7 +42,7 @@ func DefaultGenesisState() GenesisState {
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
 	// the next sequence used in creating connection identifers.
-	var maxSequence uint64 = 0
+	var maxSequence uint64
 
 	for i, conn := range gs.Connections {
 		sequence, err := ParseConnectionSequence(conn.Id)

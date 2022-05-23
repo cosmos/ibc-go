@@ -11,7 +11,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	smtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
@@ -55,7 +54,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if bz == nil {
-			return clienttypes.ErrClientNotFound
+			return types.ErrClientNotFound
 		}
 
 		switch clientType {
@@ -72,7 +71,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 			updatedClientState := migrateSolomachine(clientState)
 
-			bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
+			bz, err := types.MarshalClientState(cdc, updatedClientState)
 			if err != nil {
 				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 			}
@@ -94,7 +93,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 			}
 
 			// add iteration keys so pruning will be successful
-			if err = addConsensusMetadata(ctx, clientStore, cdc, tmClientState); err != nil {
+			if err = addConsensusMetadata(ctx, clientStore); err != nil {
 				return err
 			}
 
@@ -110,7 +109,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 	return nil
 }
 
-// migrateSolomachine migrates the solomachine from v1 to v2 solo machine protobuf defintion.
+// migrateSolomachine migrates the solomachine from v1 to v2 solo machine protobuf definition.
 func migrateSolomachine(clientState *ClientState) *smtypes.ClientState {
 	isFrozen := clientState.FrozenSequence != 0
 	consensusState := &smtypes.ConsensusState{
@@ -154,7 +153,8 @@ func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 // addConsensusMetadata adds the iteration key and processed height for all tendermint consensus states
 // These keys were not included in the previous release of the IBC module. Adding the iteration keys allows
 // for pruning iteration.
-func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ibctmtypes.ClientState) error {
+//nolint:unparam // Though error is aways nil, we need to run this so pruning works
+func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore) error {
 	var heights []exported.Height
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 
@@ -172,7 +172,7 @@ func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.Bi
 	for _, height := range heights {
 		// set the iteration key and processed height
 		// these keys were not included in the SDK v0.42.0 release
-		ibctmtypes.SetProcessedHeight(clientStore, height, clienttypes.GetSelfHeight(ctx))
+		ibctmtypes.SetProcessedHeight(clientStore, height, types.GetSelfHeight(ctx))
 		ibctmtypes.SetIterationKey(clientStore, height)
 	}
 

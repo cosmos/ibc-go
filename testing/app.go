@@ -27,7 +27,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
-var DefaultTestingAppInit func() (TestingApp, map[string]json.RawMessage) = SetupTestingApp
+var DefaultTestingAppInit = SetupTestingApp
 
 type TestingApp interface {
 	abci.Application
