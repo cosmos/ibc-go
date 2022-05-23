@@ -609,32 +609,8 @@ func NewSimApp(
 	return app
 }
 
-func (app *SimApp) setTxHandler(txConfig client.TxConfig, indexEventsStr []string) {
-	indexEvents := map[string]struct{}{}
-	for _, e := range indexEventsStr {
-		indexEvents[e] = struct{}{}
-	}
-	txHandler, err := NewDefaultTxHandler(TxHandlerOptions{
-		TxHandlerOptions: authmiddleware.TxHandlerOptions{
-			Debug:            app.Trace(),
-			IndexEvents:      indexEvents,
-			LegacyRouter:     app.legacyRouter,
-			MsgServiceRouter: app.BaseApp.MsgServiceRouter(),
-			AccountKeeper:    app.AccountKeeper,
-			BankKeeper:       app.BankKeeper,
-			FeegrantKeeper:   app.FeeGrantKeeper,
-			SignModeHandler:  txConfig.SignModeHandler(),
-			SigGasConsumer:   authmiddleware.DefaultSigVerificationGasConsumer,
-			TxDecoder:        txConfig.TxDecoder(),
-		},
-		IBCKeeper: app.GetIBCKeeper(),
-	})
 
-	if err != nil {
-		panic(err)
-	}
-	app.SetTxHandler(txHandler)
-}
+
 
 // Name returns the name of the App
 func (app *SimApp) Name() string { return app.BaseApp.Name() }
