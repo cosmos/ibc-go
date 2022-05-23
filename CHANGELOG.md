@@ -54,11 +54,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (app/29-fee) [\#1305](https://github.com/cosmos/ibc-go/pull/1305) Change version string for fee module to `ics29-1`
 * (app/29-fee) [\#1341](https://github.com/cosmos/ibc-go/pull/1341) Check if the fee module is locked and if the fee module is enabled before refunding all fees
 <<<<<<< HEAD
+<<<<<<< HEAD
 * (transfer) [\#996](https://github.com/cosmos/ibc-go/pull/1342) Emitting Sender address from `fungible_token_packet` events in `OnReceivePacket` and `OnAcknowledgementPacket`.
 >>>>>>> c809c51 (chore: Updated CHANGELOG.md)
 =======
 * (transfer) [\#996](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnReceivePacket` and `OnAcknowledgementPacket`.
 >>>>>>> d8be3d0 (Update CHANGELOG.md)
+=======
+* (transfer) [\#996](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnRecvPacket` and `OnAcknowledgementPacket`.
+>>>>>>> 46d73a0 (Update CHANGELOG.md)
 
 ### Features
 
