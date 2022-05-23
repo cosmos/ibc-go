@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
@@ -10,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	log "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -76,8 +78,11 @@ type TypesTestSuite struct {
 
 func (suite *TypesTestSuite) SetupTest() {
 	app := simapp.Setup(false)
-	db := dbm.NewMemDB()
-	store := rootmulti.NewStore(db)
+	var t testing.T
+	path := filepath.Join(t.TempDir(), "goleveldb")
+	db, err := dbm.NewGoLevelDB(path, "")
+	dblog := log.TestingLogger()
+	store := rootmulti.NewStore(db, dblog)
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)

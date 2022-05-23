@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"testing"
+
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -24,14 +25,15 @@ func TestRandomizedGenState(t *testing.T) {
 
 	s := rand.NewSource(1)
 	r := rand.New(s)
+	initialStake := math.NewInt(1000)
 
 	simState := module.SimulationState{
 		AppParams:    make(simtypes.AppParams),
 		Cdc:          cdc,
 		Rand:         r,
-		NumBonded:    math.Int(3),
+		NumBonded:    3,
 		Accounts:     simtypes.RandomAccounts(r, 3),
-		InitialStake: math.Int(1000),
+		InitialStake: initialStake,
 		GenState:     make(map[string]json.RawMessage),
 	}
 
@@ -44,7 +46,6 @@ func TestRandomizedGenState(t *testing.T) {
 	require.True(t, ibcTransferGenesis.Params.SendEnabled)
 	require.True(t, ibcTransferGenesis.Params.ReceiveEnabled)
 	require.Len(t, ibcTransferGenesis.DenomTraces, 0)
-
 }
 
 // TestRandomizedGenState tests abnormal scenarios of applying RandomizedGenState.

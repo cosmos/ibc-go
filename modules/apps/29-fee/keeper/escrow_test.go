@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			},
 			func() {
 				// check if the refund acc has been refunded the all the fees
-				expectedRefundAccBal := sdk.Coin{refundAccBal}.Add(packetFee.Fee.Total()...).Add(packetFee.Fee.Total()...)[0]
+				expectedRefundAccBal := sdk.Coins{refundAccBal}.Add(packetFee.Fee.Total()...).Add(packetFee.Fee.Total()...)[0]
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedRefundAccBal, balance)
 			},
@@ -278,8 +278,8 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 	var (
 		expIdentifiedPacketFees []types.IdentifiedPacketFees
-		expEscrowBal            sdk.Coin
-		expRefundBal            sdk.Coin
+		expEscrowBal            sdk.Coins
+		expRefundBal            sdk.Coins
 		refundAcc               sdk.AccAddress
 		fee                     types.Fee
 		locked                  bool
@@ -467,7 +467,6 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				// all fees in escrow should be deleted for this channel
 				suite.Require().Empty(suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 			}
-
 		})
 	}
 }

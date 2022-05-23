@@ -2,9 +2,9 @@ package types_test
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
-	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -19,6 +19,7 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	log "github.com/tendermint/tendermint/libs/log"
 )
 
 var (
@@ -45,10 +46,11 @@ func (suite *MsgTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
+	var t testing.T
 	app := simapp.Setup(false)
 	path := filepath.Join(t.TempDir(), "goleveldb")
 	db, err := dbm.NewGoLevelDB(path, "")
-	dblog := log.logger()
+	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
@@ -71,7 +73,6 @@ func (suite *MsgTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 
 	suite.proof = proof
-
 }
 
 func TestMsgTestSuite(t *testing.T) {
@@ -84,7 +85,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	// will be used in protocol.
 	var version *types.Version
 
-	var testCases = []struct {
+	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenInit
 		expPass bool
@@ -127,7 +128,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 		chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false,
 	)
 
-	var testCases = []struct {
+	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenTry
 		expPass bool
@@ -179,7 +180,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	)
 	connectionID := "connection-0"
 
-	var testCases = []struct {
+	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenAck
 		expPass bool
@@ -218,7 +219,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 		types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, signer),
 	}
 
-	var testCases = []struct {
+	testCases := []struct {
 		msg     *types.MsgConnectionOpenConfirm
 		expPass bool
 		errMsg  string
