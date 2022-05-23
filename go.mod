@@ -10,7 +10,6 @@ require (
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-alpha7
 	github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20220523103238-d416ee86b6a0
-	github.com/cosmos/cosmos-sdk/db v1.0.0-beta.1
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
