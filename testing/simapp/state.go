@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -132,24 +133,23 @@ func AppStateRandomizedFn(
 	simManager *module.SimulationManager, r *rand.Rand, cdc codec.JSONCodec,
 	accs []simtypes.Account, genesisTimestamp time.Time, appParams simtypes.AppParams,
 ) (json.RawMessage, []simtypes.Account) {
-	numAccs := int64(len(accs))
 	genesisState := NewDefaultGenesisState(cdc)
 
 	// generate a random amount of initial stake coins and a random initial
 	// number of bonded accounts
-	var initialStake, numInitiallyBonded int64
+	var initialStake, numInitiallyBonded math.Int
 	appParams.GetOrGenerate(
 		cdc, simappparams.StakePerAccount, &initialStake, r,
-		func(r *rand.Rand) { initialStake = r.Int63n(1e12) },
+		func(r *rand.Rand) { initialStake = math.NewInt(r.Int63n(1e12)) },
 	)
 	appParams.GetOrGenerate(
 		cdc, simappparams.InitiallyBondedValidators, &numInitiallyBonded, r,
-		func(r *rand.Rand) { numInitiallyBonded = int64(r.Intn(300)) },
+		func(r *rand.Rand) { numInitiallyBonded = math.NewInt(int64(r.Intn(300))) },
 	)
 
-	if numInitiallyBonded > numAccs {
-		numInitiallyBonded = numAccs
-	}
+//	if numInitiallyBonded > numAccs {
+//		numInitiallyBonded = numAccs
+//	}
 
 	fmt.Printf(
 		`Selected randomly generated parameters for simulated genesis:
@@ -160,6 +160,7 @@ func AppStateRandomizedFn(
 `, initialStake, numInitiallyBonded,
 	)
 
+	numinitallybonded64 := numInitiallyBonded.Int64()
 	simState := &module.SimulationState{
 		AppParams:    appParams,
 		Cdc:          cdc,
@@ -167,7 +168,7 @@ func AppStateRandomizedFn(
 		GenState:     genesisState,
 		Accounts:     accs,
 		InitialStake: initialStake,
-		NumBonded:    numInitiallyBonded,
+		NumBonded:    numinitallybonded64,
 		GenTimestamp: genesisTimestamp,
 	}
 
