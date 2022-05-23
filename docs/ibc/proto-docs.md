@@ -1293,6 +1293,7 @@ MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterp
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  | the relayer address |
 | `counterparty_address` | [string](#string) |  | the counterparty relayer address |
+| `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
 
@@ -1863,7 +1864,7 @@ method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+| `hash` | [string](#string) |  | hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information. |
 
 
 

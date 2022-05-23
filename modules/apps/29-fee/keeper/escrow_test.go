@@ -30,6 +30,10 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			"success",
 			func() {},
 			func() {
+				// check if fees has been deleted
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID))
+
 				// check if the reverse relayer is paid
 				expectedReverseAccBal := reverseRelayerBal.Add(defaultAckFee[0]).Add(defaultAckFee[0])
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), reverseRelayer, sdk.DefaultBondDenom)
@@ -59,7 +63,10 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				packetFees = append(packetFees, packetFee)
 			},
 			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+
 				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID))
 
 				// check if the module acc contains all the fees
 				expectedModuleAccBal := packetFee.Fee.Total().Add(packetFee.Fee.Total()...)
@@ -149,8 +156,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			reverseRelayerBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), reverseRelayer, sdk.DefaultBondDenom)
 			refundAccBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnAcknowledgement(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, packetFees)
-
+			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnAcknowledgement(suite.chainA.GetContext(), forwardRelayer, reverseRelayer, packetFees, packetID)
 			tc.expResult()
 		})
 	}
@@ -196,7 +202,10 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				packetFees = append(packetFees, packetFee)
 			},
 			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+
 				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID))
 
 				// check if the module acc contains all the fees
 				expectedModuleAccBal := packetFee.Fee.Total().Add(packetFee.Fee.Total()...)
@@ -259,7 +268,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			timeoutRelayerBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), timeoutRelayer, sdk.DefaultBondDenom)
 			refundAccBal = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnTimeout(suite.chainA.GetContext(), timeoutRelayer, packetFees)
+			suite.chainA.GetSimApp().IBCFeeKeeper.DistributePacketFeesOnTimeout(suite.chainA.GetContext(), timeoutRelayer, packetFees, packetID)
 
 			tc.expResult()
 		})
