@@ -37,7 +37,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 ### Dependencies
-
+* [\#1412](https://github.com/cosmos/ibc-go/pull/1412) merge colin's v0.46.0-beta2 work into main
 * [\#1300](https://github.com/cosmos/ibc-go/pull/1300) Bump SDK version to v0.45.4
 
 ### API Breaking
