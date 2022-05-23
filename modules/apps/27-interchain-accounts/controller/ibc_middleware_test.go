@@ -373,7 +373,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 
 	// use chainA (controller) for ChanOpenConfirm
 	msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proofAck, proofHeight, icatypes.ModuleName)
-	handler := suite.chainA.GetSimApp().MsgServiceRouter.Handler(msg)
+	handler := suite.chainA.GetSimApp().MsgServiceRouter(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
 	suite.Require().Error(err)

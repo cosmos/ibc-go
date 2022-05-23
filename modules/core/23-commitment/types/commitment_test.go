@@ -2,12 +2,13 @@ package types_test
 
 import (
 	"testing"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/cosmos/cosmos-sdk/db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/tendermint/tendermint/libs/log"
 
 )
@@ -21,8 +22,11 @@ type MerkleTestSuite struct {
 }
 
 func (suite *MerkleTestSuite) SetupTest() {
-	dbm := db.NewDB()
-	suite.store = rootmulti.NewStore(dbm, log.logger)
+	t := *testing.T
+	path := filepath.Join(t.TempDir(), "goleveldb")
+	db, err := dbm.NewGoLevelDB(path, "")
+	dblog := log.Logger()
+	suite.store = rootmulti.NewStore(db, dblog)
 
 	suite.storeKey = storetypes.NewKVStoreKey("iavlStoreKey")
 

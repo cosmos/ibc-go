@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			},
 			func() {
 				// check if the refund acc has been refunded the all the fees
-				expectedRefundAccBal := sdk.Coins{refundAccBal}.Add(packetFee.Fee.Total()...).Add(packetFee.Fee.Total()...)[0]
+				expectedRefundAccBal := sdk.Coin{refundAccBal}.Add(packetFee.Fee.Total()...).Add(packetFee.Fee.Total()...)[0]
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedRefundAccBal, balance)
 			},
@@ -278,8 +278,8 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 	var (
 		expIdentifiedPacketFees []types.IdentifiedPacketFees
-		expEscrowBal            sdk.Coins
-		expRefundBal            sdk.Coins
+		expEscrowBal            sdk.Coin
+		expRefundBal            sdk.Coin
 		refundAcc               sdk.AccAddress
 		fee                     types.Fee
 		locked                  bool

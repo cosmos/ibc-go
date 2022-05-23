@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -45,8 +46,10 @@ func (suite *MsgTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	app := simapp.Setup(false)
-	db := dbm.NewMemDB()
-	store := rootmulti.NewStore(db)
+	path := filepath.Join(t.TempDir(), "goleveldb")
+	db, err := dbm.NewGoLevelDB(path, "")
+	dblog := log.logger()
+	store := rootmulti.NewStore(db, dblog)
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)

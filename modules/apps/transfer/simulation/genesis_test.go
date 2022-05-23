@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"testing"
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -30,7 +31,7 @@ func TestRandomizedGenState(t *testing.T) {
 		Rand:         r,
 		NumBonded:    math.Int(3),
 		Accounts:     simtypes.RandomAccounts(r, 3),
-		InitialStake: 1000,
+		InitialStake: math.Int(1000),
 		GenState:     make(map[string]json.RawMessage),
 	}
 
