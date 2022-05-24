@@ -156,7 +156,6 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 }
 
 func (suite *KeeperTestSuite) TestQueryDenomHash() {
-
 	reqTrace := types.DenomTrace{
 		Path:      "transfer/channelToA/transfer/channelToB",
 		BaseDenom: "uatom",

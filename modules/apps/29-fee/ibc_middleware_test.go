@@ -20,6 +20,7 @@ var (
 	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
 	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
 	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
+	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(50)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -355,6 +356,18 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			},
 			false,
 		},
+		{
+			"fee module locked", func() {
+				lockFeeModule(suite.chainA)
+			},
+			false,
+		},
+		{
+			"fee module is not enabled", func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -432,6 +445,18 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			},
 			false,
 		},
+		{
+			"fee module locked", func() {
+				lockFeeModule(suite.chainA)
+			},
+			false,
+		},
+		{
+			"fee module is not enabled", func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -470,7 +495,6 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
@@ -591,18 +615,21 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		originalBalance        sdk.Coins
 		expectedBalance        sdk.Coins
 		expectedRelayerBalance sdk.Coins
+		expLocked              bool
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name               string
+		malleate           func()
+		expFeesDistributed bool
+		expPass            bool
 	}{
 		{
 			"success",
 			func() {
 				expectedRelayerBalance = packetFee.Fee.RecvFee.Add(packetFee.Fee.AckFee[0])
 			},
+			true,
 			true,
 		},
 		{
@@ -619,6 +646,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				expectedBalance = originalBalance
 			},
 			true,
+			true,
 		},
 		{
 			"ack wrong format",
@@ -627,6 +655,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 				expectedBalance = originalBalance
 			},
+			false,
 			false,
 		},
 		{
@@ -637,15 +666,18 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 				expectedBalance = originalBalance
 			},
+			false,
 			true,
 		},
 		{
 			"success: fee module is disabled, skip fee logic",
 			func() {
 				lockFeeModule(suite.chainA)
+				expLocked = true
 
 				expectedBalance = originalBalance
 			},
+			false,
 			true,
 		},
 		{
@@ -661,6 +693,25 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				expectedRelayerBalance = packetFee.Fee.AckFee
 				expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee...)
 			},
+			false,
+			true,
+		},
+		{
+			"fail on no distribution by escrow account out of balance",
+			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
+				suite.Require().NoError(err)
+
+				// expectedBalance and expectedRelayerBalance don't change
+				expectedBalance = originalBalance.Add(smallAmount...)
+				expectedRelayerBalance = sdk.NewCoins()
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+
+				expLocked = true
+			},
+			false,
 			true,
 		},
 	}
@@ -669,6 +720,8 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			expLocked = false
+
 			suite.coordinator.Setup(suite.path)
 			packet := suite.CreateMockPacket()
 
@@ -723,12 +776,20 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().Error(err)
 			}
 
+			suite.Require().Equal(expLocked, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+
 			suite.Require().Equal(
 				expectedBalance,
 				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
 			)
 
 			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
+			if tc.expFeesDistributed {
+				// there should no longer be a fee in escrow for this packet
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().False(found)
+			}
+
 			suite.Require().Equal(
 				expectedRelayerBalance,
 				relayerBalance,
@@ -743,6 +804,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		packetFee       types.PacketFee
 		originalBalance sdk.Coins
 		expectedBalance sdk.Coins
+		expLocked       bool
 	)
 	testCases := []struct {
 		name              string
@@ -767,6 +829,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			"fee module is disabled, skip fee logic",
 			func() {
 				lockFeeModule(suite.chainA)
+				expLocked = true
 
 				expectedBalance = originalBalance
 			},
@@ -795,12 +858,30 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			},
 			false,
 		},
+		{
+			"fail on no distribution by escrow account out of balance",
+			func() {
+				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
+				suite.Require().NoError(err)
+
+				// expectedBalance don't change
+				expectedBalance = originalBalance.Add(smallAmount...)
+
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+
+				expLocked = true
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			expLocked = false
+
 			suite.coordinator.Setup(suite.path)
 			packet := suite.CreateMockPacket()
 
@@ -844,6 +925,8 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
 			suite.Require().NoError(err)
+
+			suite.Require().Equal(expLocked, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 
 			suite.Require().Equal(
 				expectedBalance,
