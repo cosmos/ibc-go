@@ -25,8 +25,7 @@ jobs:
       - name: Display go version
         run: go version
       - name: install tparse
-        run: |
-          export GO111MODULE="on" && go get github.com/mfridman/tparse@v0.8.3
+        run: go install github.com/mfridman/tparse@v0.8.3
       - uses: actions/cache@v3
         with:
           path: ~/go/bin
