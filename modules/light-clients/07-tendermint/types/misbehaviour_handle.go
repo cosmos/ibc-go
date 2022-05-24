@@ -53,7 +53,6 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 		// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
 		// Header2 time in order to be valid misbehaviour (violation of monotonic time).
 	} else if tmMisbehaviour.Header1.SignedHeader.Header.Time.After(tmMisbehaviour.Header2.SignedHeader.Header.Time) {
-
 		return nil, sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
 	}
 

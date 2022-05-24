@@ -11,7 +11,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-
 var validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
 func TestKeyCounterpartyRelayer(t *testing.T) {
