@@ -40,7 +40,11 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+<<<<<<< HEAD
     - uses: technote-space/get-diff-action@v6.1.0
+=======
+    - uses: technote-space/get-diff-action@v6.0.1
+>>>>>>> ba8c872 (chore: Fixing github action workflows)
       with:
         PATTERNS: |
           **/**.go
