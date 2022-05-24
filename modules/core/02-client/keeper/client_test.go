@@ -418,6 +418,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
 		}
 	}
+
 }
 
 func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
@@ -680,8 +681,8 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 
 	result, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err)
-	// first event type is "message", followed by 2 "tx" events in ante
-	updateEvent := result.Events[4]
+	// first event type is "message", followed by 3 "tx" events in ante
+	updateEvent := result.Events[1]
 	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
 
 	// use a boolean to ensure the update event contains the header
@@ -697,6 +698,8 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 			suite.Require().NoError(err)
 			suite.Require().Equal(header, emittedHeader)
 		}
+
 	}
 	suite.Require().True(contains)
+
 }
