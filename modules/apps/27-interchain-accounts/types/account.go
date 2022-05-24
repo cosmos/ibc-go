@@ -106,6 +106,7 @@ func (ia InterchainAccount) MarshalYAML() ([]byte, error) {
 		Sequence:      ia.Sequence,
 		AccountOwner:  ia.AccountOwner,
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +128,7 @@ func (ia InterchainAccount) MarshalJSON() ([]byte, error) {
 		Sequence:      ia.Sequence,
 		AccountOwner:  ia.AccountOwner,
 	})
+
 	if err != nil {
 		return nil, err
 	}

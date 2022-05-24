@@ -57,7 +57,7 @@ func NewDefaultTxHandler(options TxHandlerOptions) (tx.Handler, error) {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "IBC keeper is required for middlewares")
 	}
 
-	sigGasConsumer := options.SigGasConsumer
+	var sigGasConsumer = options.SigGasConsumer
 	if sigGasConsumer == nil {
 		sigGasConsumer = authmiddleware.DefaultSigVerificationGasConsumer
 	}

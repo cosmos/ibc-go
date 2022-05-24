@@ -83,6 +83,7 @@ func (q Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 		clientStates = append(clientStates, identifiedClient)
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +177,7 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 		consensusStates = append(consensusStates, types.NewConsensusStateWithHeight(height, consensusState))
 		return true, nil
 	})
+
 	if err != nil {
 		return nil, err
 	}

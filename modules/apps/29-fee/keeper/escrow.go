@@ -100,6 +100,7 @@ func (k Keeper) distributePacketFeeOnAcknowledgement(ctx sdk.Context, refundAddr
 
 	// refund timeout fee for unused timeout
 	k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.TimeoutFee)
+
 }
 
 // DistributePacketsFeesOnTimeout pays all the timeout fees for a given packetID while refunding the acknowledgement & receive fees to the refund account.

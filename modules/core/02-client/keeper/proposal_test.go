@@ -154,6 +154,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			}
 		})
 	}
+
 }
 
 func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
@@ -205,7 +206,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()  // reset
-			oldPlan.Height = 0 // reset
+			oldPlan.Height = 0 //reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
@@ -275,4 +276,5 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 			}
 		})
 	}
+
 }

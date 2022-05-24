@@ -35,6 +35,7 @@ func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncen
 		identifiedPackets = append(identifiedPackets, types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees))
 		return nil
 	})
+
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -88,6 +89,7 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 		return nil
 	})
+
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -99,6 +101,7 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 // TotalRecvFees implements the Query/TotalRecvFees gRPC method
 func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
@@ -214,6 +217,7 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 		return nil
 	})
+
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}

@@ -274,7 +274,7 @@ func GetCmdCounterpartyAddress() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-
+	
 	return cmd
 }
 

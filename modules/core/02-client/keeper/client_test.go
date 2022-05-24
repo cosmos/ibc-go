@@ -418,6 +418,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
 		}
 	}
+
 }
 
 func (suite *KeeperTestSuite) TestCheckMisbehaviourAndUpdateState() {
@@ -697,6 +698,8 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 			suite.Require().NoError(err)
 			suite.Require().Equal(header, emittedHeader)
 		}
+
 	}
 	suite.Require().True(contains)
+
 }

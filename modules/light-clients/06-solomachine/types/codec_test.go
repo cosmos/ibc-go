@@ -55,6 +55,7 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 					path := solomachine.GetConsensusStatePath(counterpartyClientIdentifier, clienttypes.NewHeight(0, 5))
 					data, err = types.ConsensusStateDataBytes(cdc, path, solomachine.ConsensusState())
 					suite.Require().NoError(err)
+
 				}, true,
 			},
 			{
@@ -72,6 +73,7 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 
 					data, err = types.ConnectionStateDataBytes(cdc, path, conn)
 					suite.Require().NoError(err)
+
 				}, true,
 			},
 			{
@@ -102,6 +104,7 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 
 					data, err = types.ConnectionStateDataBytes(cdc, path, conn)
 					suite.Require().NoError(err)
+
 				}, false,
 			},
 			{
@@ -183,4 +186,5 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 			})
 		}
 	}
+
 }

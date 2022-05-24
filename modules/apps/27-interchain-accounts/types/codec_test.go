@@ -148,4 +148,5 @@ func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
 	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0})
 	suite.Require().Error(err)
 	suite.Require().Empty(bz)
+
 }

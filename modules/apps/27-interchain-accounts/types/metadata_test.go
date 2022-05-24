@@ -7,6 +7,7 @@ import (
 
 // use TestVersion as metadata being compared against
 func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
+
 	var (
 		metadata        types.Metadata
 		previousVersion string
@@ -126,6 +127,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 }
 
 func (suite *TypesTestSuite) TestValidateControllerMetadata() {
+
 	var metadata types.Metadata
 
 	testCases := []struct {
@@ -267,6 +269,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 }
 
 func (suite *TypesTestSuite) TestValidateHostMetadata() {
+
 	var metadata types.Metadata
 
 	testCases := []struct {

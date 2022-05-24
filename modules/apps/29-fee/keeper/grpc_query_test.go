@@ -80,7 +80,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 }
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
-	var req *types.QueryIncentivizedPacketRequest
+	var (
+		req *types.QueryIncentivizedPacketRequest
+	)
 
 	testCases := []struct {
 		name     string
@@ -233,7 +235,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 }
 
 func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
-	var req *types.QueryTotalRecvFeesRequest
+	var (
+		req *types.QueryTotalRecvFeesRequest
+	)
 
 	testCases := []struct {
 		name     string
@@ -292,7 +296,9 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 }
 
 func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
-	var req *types.QueryTotalAckFeesRequest
+	var (
+		req *types.QueryTotalAckFeesRequest
+	)
 
 	testCases := []struct {
 		name     string
@@ -351,7 +357,9 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 }
 
 func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
-	var req *types.QueryTotalTimeoutFeesRequest
+	var (
+		req *types.QueryTotalTimeoutFeesRequest
+	)
 
 	testCases := []struct {
 		name     string
@@ -410,7 +418,9 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 }
 
 func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
-	var req *types.QueryCounterpartyAddressRequest
+	var (
+		req *types.QueryCounterpartyAddressRequest
+	)
 
 	testCases := []struct {
 		name     string
@@ -580,7 +590,9 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 }
 
 func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
-	var req *types.QueryFeeEnabledChannelRequest
+	var (
+		req *types.QueryFeeEnabledChannelRequest
+	)
 
 	testCases := []struct {
 		name     string

@@ -11,7 +11,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-var validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+var (
+	validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+)
 
 func TestKeyCounterpartyRelayer(t *testing.T) {
 	var (
@@ -67,6 +69,7 @@ func TestParseKeyFeeEnabled(t *testing.T) {
 }
 
 func TestParseKeyFeesInEscrow(t *testing.T) {
+
 	testCases := []struct {
 		name    string
 		key     string
@@ -102,6 +105,7 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 }
 
 func TestParseKeyForwardRelayerAddress(t *testing.T) {
+
 	testCases := []struct {
 		name    string
 		key     string
@@ -137,7 +141,9 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 }
 
 func TestParseKeyCounterpartyRelayer(t *testing.T) {
-	relayerAddress := "relayer_address"
+	var (
+		relayerAddress = "relayer_address"
+	)
 
 	testCases := []struct {
 		name    string

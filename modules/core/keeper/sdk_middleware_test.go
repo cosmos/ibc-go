@@ -500,12 +500,10 @@ var _ txtypes.Handler = customTxHandler{}
 func (h customTxHandler) DeliverTx(ctx context.Context, req txtypes.Request) (txtypes.Response, error) {
 	return h.fn(ctx, req)
 }
-
 func (h customTxHandler) CheckTx(ctx context.Context, req txtypes.Request, _ txtypes.RequestCheckTx) (txtypes.Response, txtypes.ResponseCheckTx, error) {
 	res, err := h.fn(ctx, req)
 	return res, txtypes.ResponseCheckTx{}, err
 }
-
 func (h customTxHandler) SimulateTx(ctx context.Context, req txtypes.Request) (txtypes.Response, error) {
 	return h.fn(ctx, req)
 }

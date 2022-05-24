@@ -35,7 +35,9 @@ func TestFeeTotal(t *testing.T) {
 }
 
 func TestPacketFeeValidation(t *testing.T) {
-	var packetFee types.PacketFee
+	var (
+		packetFee types.PacketFee
+	)
 
 	testCases := []struct {
 		name     string
