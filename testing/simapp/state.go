@@ -29,7 +29,6 @@ import (
 func AppStateFn(cdc codec.JSONCodec, simManager *module.SimulationManager) simtypes.AppStateFn {
 	return func(r *rand.Rand, accs []simtypes.Account, config simtypes.Config,
 	) (appState json.RawMessage, simAccs []simtypes.Account, chainID string, genesisTimestamp time.Time) {
-
 		if FlagGenesisTimeValue == 0 {
 			genesisTimestamp = simtypes.RandTimestamp(r)
 		} else {
@@ -147,9 +146,9 @@ func AppStateRandomizedFn(
 		func(r *rand.Rand) { numInitiallyBonded = math.NewInt(int64(r.Intn(300))) },
 	)
 
-//	if numInitiallyBonded > numAccs {
-//		numInitiallyBonded = numAccs
-//	}
+	//	if numInitiallyBonded > numAccs {
+	//		numInitiallyBonded = numAccs
+	//	}
 
 	fmt.Printf(
 		`Selected randomly generated parameters for simulated genesis:
