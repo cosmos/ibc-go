@@ -31,7 +31,7 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 		ctx, msg.Address, msg.CounterpartyAddress, msg.ChannelId,
 	)
 
-	k.Logger(ctx).Info("Registering counterparty address for relayer.", "Address:", msg.Address, "Counterparty Address:", msg.CounterpartyAddress)
+	k.Logger(ctx).Info("registering counterparty address for relayer", "address", msg.Address, "counterparty address", msg.CounterpartyAddress, "channel", msg.ChannelId)
 
 	return &types.MsgRegisterCounterpartyAddressResponse{}, nil
 }
