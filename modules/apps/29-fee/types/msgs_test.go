@@ -13,9 +13,7 @@ import (
 )
 
 func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
-	var (
-		msg *types.MsgRegisterCounterpartyAddress
-	)
+	var msg *types.MsgRegisterCounterpartyAddress
 
 	testCases := []struct {
 		name     string
@@ -86,9 +84,7 @@ func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 }
 
 func TestMsgPayPacketFeeValidation(t *testing.T) {
-	var (
-		msg *types.MsgPayPacketFee
-	)
+	var msg *types.MsgPayPacketFee
 
 	testCases := []struct {
 		name     string
@@ -174,9 +170,7 @@ func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
 }
 
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
-	var (
-		msg *types.MsgPayPacketFeeAsync
-	)
+	var msg *types.MsgPayPacketFeeAsync
 
 	testCases := []struct {
 		name     string

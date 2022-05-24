@@ -467,7 +467,6 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				// all fees in escrow should be deleted for this channel
 				suite.Require().Empty(suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 			}
-
 		})
 	}
 }
