@@ -1930,8 +1930,8 @@ QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  |  |
-| `channel_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
 
 
 
@@ -1946,7 +1946,7 @@ QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `escrow_address` | [string](#string) |  |  |
+| `escrow_address` | [string](#string) |  | the escrow account address |
 
 
 

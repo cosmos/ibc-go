@@ -406,7 +406,9 @@ func (m *QueryDenomHashResponse) GetHash() string {
 
 // QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
 type QueryEscrowAddressRequest struct {
-	PortId    string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	// unique port identifier
+	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	// unique channel identifier
 	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 }
 
@@ -459,6 +461,7 @@ func (m *QueryEscrowAddressRequest) GetChannelId() string {
 
 // QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
 type QueryEscrowAddressResponse struct {
+	// the escrow account address
 	EscrowAddress string `protobuf:"bytes,1,opt,name=escrow_address,json=escrowAddress,proto3" json:"escrow_address,omitempty"`
 }
 

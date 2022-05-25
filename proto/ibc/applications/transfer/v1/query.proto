@@ -92,11 +92,14 @@ message QueryDenomHashResponse {
 
 // QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
 message QueryEscrowAddressRequest {
-  string port_id    = 1;
+  // unique port identifier
+  string port_id = 1;
+  // unique channel identifier
   string channel_id = 2;
 }
 
 // QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
 message QueryEscrowAddressResponse {
+  // the escrow account address
   string escrow_address = 1;
 }
