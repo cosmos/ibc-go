@@ -163,3 +163,30 @@ func (im IBCModule) OnTimeoutPacket(
 
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
+<<<<<<< HEAD:modules/apps/27-interchain-accounts/controller/ibc_module.go
+=======
+
+// SendPacket implements the ICS4 Wrapper interface
+func (im IBCMiddleware) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet ibcexported.PacketI,
+) error {
+	panic("SendPacket not supported for ICA controller module. Please use SendTx")
+}
+
+// WriteAcknowledgement implements the ICS4 Wrapper interface
+func (im IBCMiddleware) WriteAcknowledgement(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet ibcexported.PacketI,
+	ack ibcexported.Acknowledgement,
+) error {
+	panic("WriteAcknowledgement not supported for ICA controller module")
+}
+
+// GetAppVersion returns the interchain accounts metadata.
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}
+>>>>>>> 25767f6 (fix: ica controller middleware error typo (#1419)):modules/apps/27-interchain-accounts/controller/ibc_middleware.go
