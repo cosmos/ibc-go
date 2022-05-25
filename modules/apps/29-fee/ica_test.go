@@ -30,6 +30,7 @@ var (
 	}))
 )
 
+// NewICAPath creates and returns a new ibctesting path configured for a fee enabled interchain accounts channel
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 
