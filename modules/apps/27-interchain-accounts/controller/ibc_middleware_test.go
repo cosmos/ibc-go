@@ -717,6 +717,5 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	controllerStack := cbs.(fee.IBCMiddleware)
 	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
-
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
 }
