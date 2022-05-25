@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
-	icacontroller "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	fee "github.com/cosmos/ibc-go/v3/modules/apps/29-fee"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -83,7 +83,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
 		return err
 	}
 
@@ -120,9 +120,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
-	var (
-		channel *channeltypes.Channel
-	)
+	var channel *channeltypes.Channel
 
 	testCases := []struct {
 		name     string
@@ -273,9 +271,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
@@ -336,10 +332,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
-
 }
 
 // Test initiating a ChanOpenConfirm using the controller chain instead of the host chain
@@ -389,7 +383,6 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 	)
 	suite.Require().Error(err)
-
 }
 
 // OnChanCloseInit on controller (chainA)
@@ -414,16 +407,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -454,13 +444,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -509,9 +497,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
@@ -580,9 +566,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
@@ -730,9 +714,8 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	controllerModule := cbs.(icacontroller.IBCMiddleware)
-
-	appVersion, found := controllerModule.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	controllerStack := cbs.(fee.IBCMiddleware)
+	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
 }
