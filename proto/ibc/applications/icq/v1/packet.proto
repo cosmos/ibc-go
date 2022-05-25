@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package ibc.applications.icq.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/icq/types";
+
+import "google/protobuf/any.proto";
+import "gogoproto/gogo.proto";
+import "tendermint/abci/types.proto";
+
+// Type defines a classification of message issued from a controller chain to its associated interchain query
+// host
+enum Type {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // Default zero value enumeration
+  TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "UNSPECIFIED"];
+  // Query host chain and send back the results to the controller chain
+  TYPE_QUERY = 1 [(gogoproto.enumvalue_customname) = "QUERY"];
+}
+
+// InterchainQueryPacketData is comprised of an ABCI query request and type of query.
+message InterchainQueryPacketData {
+  Type type = 1;
+  tendermint.abci.RequestQuery request = 2 [(gogoproto.nullable) = false];
+}
+
+// InterchainQueryPacketAck is comprised of an ABCI query response with non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
+message InterchainQueryPacketAck {
+  tendermint.abci.ResponseQuery response = 1 [(gogoproto.nullable) = false];
+}
