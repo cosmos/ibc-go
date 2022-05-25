@@ -204,17 +204,6 @@ func request_Query_EscrowAddress_0(ctx context.Context, marshaler runtime.Marsha
 		_   = err
 	)
 
-	val, ok = pathParams["port_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "port_id")
-	}
-
-	protoReq.PortId, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "port_id", err)
-	}
-
 	val, ok = pathParams["channel_id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
@@ -224,6 +213,17 @@ func request_Query_EscrowAddress_0(ctx context.Context, marshaler runtime.Marsha
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+	}
+
+	val, ok = pathParams["port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "port_id")
+	}
+
+	protoReq.PortId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "port_id", err)
 	}
 
 	msg, err := client.EscrowAddress(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -242,17 +242,6 @@ func local_request_Query_EscrowAddress_0(ctx context.Context, marshaler runtime.
 		_   = err
 	)
 
-	val, ok = pathParams["port_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "port_id")
-	}
-
-	protoReq.PortId, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "port_id", err)
-	}
-
 	val, ok = pathParams["channel_id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
@@ -262,6 +251,17 @@ func local_request_Query_EscrowAddress_0(ctx context.Context, marshaler runtime.
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+	}
+
+	val, ok = pathParams["port_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "port_id")
+	}
+
+	protoReq.PortId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "port_id", err)
 	}
 
 	msg, err := server.EscrowAddress(ctx, &protoReq)
@@ -528,7 +528,7 @@ var (
 
 	pattern_Query_DenomHash_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"ibc", "apps", "transfer", "v1", "denom_hashes", "trace"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_EscrowAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8}, []string{"ibc", "apps", "transfer", "v1", "escrow_address", "port", "port_id", "channel", "channel_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_EscrowAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "apps", "transfer", "v1", "channels", "channel_id", "ports", "port_id", "escrow_address"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

@@ -33,7 +33,7 @@ service Query {
 
   // EscrowAddress returns the escrow address for a particular port and channel id.
   rpc EscrowAddress(QueryEscrowAddressRequest) returns (QueryEscrowAddressResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/escrow_address/port/{port_id}/channel/{channel_id}";
+    option (google.api.http).get = "/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address";
   }
 }
 
