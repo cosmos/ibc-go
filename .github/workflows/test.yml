@@ -18,15 +18,15 @@ jobs:
   install-tparse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v3
-
+      - uses: actions/setup-go@v2.2.0
         with:
-          go-version: 1.18
+          go-version: 1.17
       - name: Display go version
         run: go version
       - name: install tparse
-        run: go install github.com/mfridman/tparse@v0.8.3
-      - uses: actions/cache@v3
+        run: |
+          export GO111MODULE="on" && go get github.com/mfridman/tparse@v0.8.3
+      - uses: actions/cache@v2.1.7
         with:
           path: ~/go/bin
           key: ${{ runner.os }}-go-tparse-binary
@@ -37,11 +37,10 @@ jobs:
       matrix:
         go-arch: ["amd64", "arm", "arm64"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-go@v2.2.0
         with:
-          go-version: 1.18
+          go-version: 1.17
       - uses: technote-space/get-diff-action@v6.0.1
         id: git_diff
         with:
@@ -55,25 +54,25 @@ jobs:
   split-test-files:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2.4.0
       - name: Create a file with all the pkgs
         run: go list ./... > pkgs.txt
       - name: Split pkgs into 4 files
         run: split -d -n l/4 pkgs.txt pkgs.txt.part.
       # cache multiple
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         with:
           name: "${{ github.sha }}-00"
           path: ./pkgs.txt.part.00
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         with:
           name: "${{ github.sha }}-01"
           path: ./pkgs.txt.part.01
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         with:
           name: "${{ github.sha }}-02"
           path: ./pkgs.txt.part.02
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         with:
           name: "${{ github.sha }}-03"
           path: ./pkgs.txt.part.03
@@ -86,17 +85,17 @@ jobs:
       matrix:
         part: ["00", "01", "02", "03"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-go@v2.2.0
         with:
-          go-version: 1.18
+          go-version: 1.17
       - uses: technote-space/get-diff-action@v6.0.1
         with:
           PATTERNS: |
             **/**.go
             go.mod
             go.sum
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ github.sha }}-${{ matrix.part }}"
         if: env.GIT_DIFF
@@ -104,7 +103,7 @@ jobs:
         run: |
           cat pkgs.txt.part.${{ matrix.part }} | xargs go test -race -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
         if: env.GIT_DIFF
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         with:
           name: "${{ github.sha }}-${{ matrix.part }}-coverage"
           path: ./${{ matrix.part }}profile.out
@@ -113,26 +112,26 @@ jobs:
     runs-on: ubuntu-latest
     needs: tests
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2.4.0
       - uses: technote-space/get-diff-action@v6.0.1
         with:
           PATTERNS: |
             **/**.go
             go.mod
             go.sum
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ github.sha }}-00-coverage"
         if: env.GIT_DIFF
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ github.sha }}-01-coverage"
         if: env.GIT_DIFF
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ github.sha }}-02-coverage"
         if: env.GIT_DIFF
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ github.sha }}-03-coverage"
         if: env.GIT_DIFF
@@ -151,7 +150,7 @@ jobs:
             sed -i.bak "/$(echo $filename | sed 's/\//\\\//g')/d" coverage.txt
           done
         if: env.GIT_DIFF
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v2.1.0
         with:
           file: ./coverage.txt
         if: env.GIT_DIFF
