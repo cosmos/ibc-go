@@ -173,13 +173,12 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // SendPacket implements the ICS4 Wrapper interface
-// The ICA controller module builds the outgoing ICA packet and calls the core IBC SendPacket
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 ) error {
-	panic("SendPacket not supported for ICA-auth module. Please use SendTx")
+	panic("SendPacket not supported for ICA controller module. Please use SendTx")
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
