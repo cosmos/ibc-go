@@ -272,6 +272,7 @@ func initGenFiles(
 ) error {
 	appGenState := mbm.DefaultGenesis(clientCtx.Codec)
 
+
 	// set the accounts in the genesis state
 	var authGenState authtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appGenState[authtypes.ModuleName], &authGenState)
@@ -390,6 +391,7 @@ func writeFile(name string, dir string, contents []byte) error {
 	}
 
 	err = ioutil.WriteFile(file, contents, 0o644)
+
 	if err != nil {
 		return err
 	}
