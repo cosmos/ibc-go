@@ -27,6 +27,7 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
+	hooks         types.TransferHooks
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -155,4 +156,15 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// SetHooks set the epoch hooks
+func (k *Keeper) SetHooks(eh types.TransferHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set transfer hooks twice")
+	}
+
+	k.hooks = eh
+
+	return k
 }
