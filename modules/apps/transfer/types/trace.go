@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
@@ -21,6 +23,9 @@ import (
 // Examples:
 //
 // 	- "portidone/channelidone/uatom" => DenomTrace{Path: "portidone/channelidone", BaseDenom: "uatom"}
+//  - "portidone/channelidone/portidtwo/channelidtwo/uatom" => DenomTrace{Path: "portidone/channelidone/portidtwo/channelidtwo", BaseDenom: "uatom"}
+//  - "portidone/channelidone/gamm/pool/1" => DenomTrace{Path: "portidone/channelidone", BaseDenom: "gamm/pool/1"}
+//  - "gamm/pool/1" => DenomTrace{Path: "", BaseDenom: "gamm/pool/1"}
 // 	- "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
 	denomSplit := strings.Split(rawDenom, "/")
@@ -32,9 +37,24 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		}
 	}
 
+	j := 1
+	path := []string{}
+	baseDenom := []string{}
+	length := len(denomSplit)
+	r, _ := regexp.Compile(fmt.Sprintf("%s[0-9]+", channeltypes.ChannelPrefix))
+	for i := 0; i < length; i = i + j {
+		if denomSplit[i] == PortID && r.MatchString(denomSplit[i+1]) {
+			path = append(path, denomSplit[i], denomSplit[i+1])
+			j = 2
+		} else {
+			baseDenom = append(baseDenom, denomSplit[i])
+			j = 1
+		}
+	}
+
 	return DenomTrace{
-		Path:      strings.Join(denomSplit[:len(denomSplit)-1], "/"),
-		BaseDenom: denomSplit[len(denomSplit)-1],
+		Path:      strings.Join(path, "/"),
+		BaseDenom: strings.Join(baseDenom, "/"),
 	}
 }
 
