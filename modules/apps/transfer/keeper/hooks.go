@@ -6,6 +6,6 @@ import (
 )
 
 // AfterEpochEnd executes the indicated hook after epochs ends
-func (k Keeper) AfterTransferEnd(ctx sdk.Context, packet types.FungibleTokenPacketData) {
-	k.hooks.AfterTransferEnd(ctx, packet)
+func (k Keeper) AfterTransferEnd(ctx sdk.Context, packet types.FungibleTokenPacketData, base_denom string) {
+	k.hooks.AfterTransferEnd(ctx, packet, base_denom)
 }
