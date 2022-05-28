@@ -37,18 +37,19 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		}
 	}
 
-	j := 1
 	path := []string{}
 	baseDenom := []string{}
 	length := len(denomSplit)
-	r, _ := regexp.Compile(fmt.Sprintf("%s[0-9]+", channeltypes.ChannelPrefix))
-	for i := 0; i < length; i = i + j {
-		if denomSplit[i] == PortID && r.MatchString(denomSplit[i+1]) {
+	r, err := regexp.Compile(fmt.Sprintf("%s[0-9]+", channeltypes.ChannelPrefix))
+	if err != nil {
+		panic("could not compile regexp 'channel-[0-9]+'")
+	}
+	for i := 0; i < length; i = i + 2 {
+		if i < length-1 && denomSplit[i] == PortID && r.MatchString(denomSplit[i+1]) {
 			path = append(path, denomSplit[i], denomSplit[i+1])
-			j = 2
 		} else {
-			baseDenom = append(baseDenom, denomSplit[i])
-			j = 1
+			baseDenom = denomSplit[i:]
+			break
 		}
 	}
 
