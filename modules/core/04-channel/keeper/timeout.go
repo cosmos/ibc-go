@@ -156,6 +156,7 @@ func (k Keeper) TimeoutExecuted(
 	if channel.Ordering == types.ORDERED {
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		EmitChannelClosedEvent(ctx, packet, channel)
 	}
 
 	k.Logger(ctx).Info(
