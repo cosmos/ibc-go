@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package ibc.lightclients.beefy.v1;
+package ibc.lightclients.near.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types";
+option go_package = "github.com/cosmos/ibc-go/v3/modules/light-clients/13-near/types";
 
 import "google/protobuf/timestamp.proto";
 
@@ -19,24 +19,55 @@ option (gogoproto.protosizer_all)       = false;
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
-  // Latest mmr root hash
-  bytes mmr_root_hash = 1;
-
   // block number for the latest mmr_root_hash
-  uint32 latest_beefy_height = 2;
+  LightClientBlockView head = 1;
+  
+  // TODO
+  bytes current_epoch = 2;
 
-  // Block height when the client was frozen due to a misbehaviour
-  uint64 frozen_height = 3;
+  // TODO
+  bytes next_epoch = 3;
 
-  // block number that the beefy protocol was activated on the relay chain.
-  // This should be the first block in the merkle-mountain-range tree.
-  uint32 beefy_activation_block = 4;
+  // TODO
+  repeated ValidatorStakeView current_validators = 4;
 
-  // authorities for the current round
-  BeefyAuthoritySet authority = 5;
+  // TODO
+  repeated ValidatorStakeView next_validators = 5;
 
-  // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 6;
+}
+
+message LightClientBlockView {
+  bytes prev_block_hash = 1;
+  bytes next_block_inner_hash = 2;
+  BlockHeaderInnerLiteView inner_lite =  3;
+  bytes inner_rest_hash = 4;
+  optional ValidatorStakeView next_bps = 5;
+  // QUESTION: is this the right way of mapping `Vec<Optiona<Signature>>`` ?
+  repeated MaybeSignature approvals_after_next = 6;
+
+}
+
+message BlockHeaderInnerLiteView {
+  uint64 BlockHeight = 1;
+  bytes epoch_id = 2;
+  bytes next_epoch_id = 3;
+  bytes prev_state_root = 4;
+  bytes outcome_root = 5;
+  uint64 timestamp = 6;
+  uint64 timestamp_nanosec = 7;
+  bytes next_bp_hash = 8;
+  bytes block_merkle_root = 9;
+}
+
+message MaybeSignature {
+  optional bytes Signature = 1;
+}
+
+ message ValidatorStakeView {
+  uint32 version = 1;
+  string account_id = 2;
+  bytes public_key = 3;
+  bytes balance = 4;
 }
 
 // Actual payload items
