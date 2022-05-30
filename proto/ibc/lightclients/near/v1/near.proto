@@ -14,24 +14,23 @@ option (gogoproto.sizer_all)            = false;
 option (gogoproto.goproto_registration) = true;
 option (gogoproto.protosizer_all)       = false;
 
-// ClientState from Beefy tracks the current validator set, latest height,
-// and a possible frozen height.
+// ClientState from Near tracks its head, {current, next} x {epoch, validators}
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
-  // block number for the latest mmr_root_hash
+  // TODO add docs
   LightClientBlockView head = 1;
   
-  // TODO
+  // TODO add docs
   bytes current_epoch = 2;
 
-  // TODO
+  // TODO add docs
   bytes next_epoch = 3;
 
-  // TODO
+  // TODO add docs
   repeated ValidatorStakeView current_validators = 4;
 
-  // TODO
+  // TODO add docs
   repeated ValidatorStakeView next_validators = 5;
 
 }
