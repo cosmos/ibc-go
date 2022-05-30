@@ -70,61 +70,43 @@ func (k Keeper) SendTransfer(
 		)
 	}
 
-	// See spec for this logic: https://github.com/cosmos/ibc/blob/master/spec/app/ics-721-nft-transfer/README.md#packet-relay
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {
 		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	class, exist := k.nftKeeper.GetClass(ctx, classID)
-	if !exist {
-		return sdkerrors.Wrap(types.ErrInvalidClassID, "classId not exist")
-	}
-
-	var tokenURIs []string
-	for _, tokenID := range tokenIDs {
-		tokenURI, err := k.handleToken(ctx,
-			sourcePort,
-			sourceChannel,
-			classID,
-			tokenID,
-			sender,
-		)
-		if err != nil {
-			return err
-		}
-		tokenURIs = append(tokenURIs, tokenURI)
-	}
-
-	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
-	}
-
-	packetData := types.NewNonFungibleTokenPacketData(
-		classID, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver,
-	)
-
-	packet := channeltypes.NewPacket(
-		packetData.GetBytes(),
-		sequence,
+	// See spec for this logic: https://github.com/cosmos/ibc/blob/master/spec/app/ics-721-nft-transfer/README.md#packet-relay
+	packet, err := k.createOutgoingPacket(ctx,
 		sourcePort,
 		sourceChannel,
 		destinationPort,
 		destinationChannel,
+		classID,
+		tokenIDs,
+		sender,
+		receiver,
+		sequence,
 		timeoutHeight,
 		timeoutTimestamp,
 	)
+	if err != nil {
+		return err
+	}
 
 	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
 		return err
 	}
 
 	defer func() {
+		labels := []metrics.Label{
+			telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
+			telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+		}
+
 		telemetry.SetGaugeWithLabels(
 			[]string{"tx", "msg", "ibc", "nft-transfer"},
 			float32(len(tokenIDs)),
-			[]metrics.Label{telemetry.NewLabel("class_id", class.GetUri())},
+			[]metrics.Label{telemetry.NewLabel("class_id", classID)},
 		)
 
 		telemetry.IncrCounterWithLabels(
@@ -133,7 +115,6 @@ func (k Keeper) SendTransfer(
 			labels,
 		)
 	}()
-
 	return nil
 }
 
@@ -194,38 +175,67 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	return nil
 }
 
-// handleToken will escrow the tokens to escrow account
+// createOutgoingPacket will escrow the tokens to escrow account
 // if the token was away from origin chain . Otherwise, the sent tokens
 // were burnt in the sending chain and will unescrow the token to receiver
 // in the destination chain
-func (k Keeper) handleToken(ctx sdk.Context,
+func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 	sourcePort,
 	sourceChannel,
-	classID,
-	tokenID string,
+	destinationPort,
+	destinationChannel,
+	classID string,
+	tokenIDs []string,
 	sender sdk.AccAddress,
-) (string, error) {
-	nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
+	receiver string,
+	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+) (channeltypes.Packet, error) {
+	class, exist := k.nftKeeper.GetClass(ctx, classID)
 	if !exist {
-		return "", sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+		return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidClassID, "classId not exist")
 	}
 
-	owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
-	if !sender.Equals(owner) {
-		return "", sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+	var tokenURIs []string
+	for _, tokenID := range tokenIDs {
+		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
+		if !exist {
+			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
+		}
+
+		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
+		if !sender.Equals(owner) {
+			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
+		}
+
+		isAwayFromOrigin := k.isAwayFromOrigin(sourcePort, sourceChannel, classID)
+		if !isAwayFromOrigin {
+			return channeltypes.Packet{}, k.nftKeeper.Burn(ctx, classID, tokenID)
+		}
+
+		// create the escrow address for the tokens
+		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+		if err := k.nftKeeper.Transfer(ctx, classID, tokenID, escrowAddress.String()); err != nil {
+			return channeltypes.Packet{}, err
+		}
+		tokenURIs = append(tokenURIs, nft.GetUri())
 	}
 
-	isAwayFromOrigin := k.isAwayFromOrigin(sourcePort, sourceChannel, classID)
-	if !isAwayFromOrigin {
-		return nft.GetUri(), k.nftKeeper.Burn(ctx, classID, tokenID)
-	}
+	packetData := types.NewNonFungibleTokenPacketData(
+		classID, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver,
+	)
 
-	// create the escrow address for the tokens
-	escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-	if err := k.nftKeeper.Transfer(ctx, classID, tokenID, escrowAddress.String()); err != nil {
-		return "", err
-	}
-	return nft.GetUri(), nil
+	return channeltypes.NewPacket(
+		packetData.GetBytes(),
+		sequence,
+		sourcePort,
+		sourceChannel,
+		destinationPort,
+		destinationChannel,
+		timeoutHeight,
+		timeoutTimestamp,
+	), nil
 }
 
 func (k Keeper) isAwayFromOrigin(sourcePort, sourceChannel, classID string) bool {
