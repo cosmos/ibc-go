@@ -14,10 +14,17 @@ import (
 // GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given hash.
 func GetCmdQueryDenomTrace() *cobra.Command {
 	cmd := &cobra.Command{
+<<<<<<< HEAD
 		Use:     "denom-trace [hash]",
 		Short:   "Query the denom trace info from a given trace hash",
 		Long:    "Query the denom trace info from a given trace hash",
 		Example: fmt.Sprintf("%s query ibc-transfer denom-trace [hash]", version.AppName),
+=======
+		Use:     "denom-trace [hash/denom]",
+		Short:   "Query the denom trace info from a given trace hash or ibc denom",
+		Long:    "Query the denom trace info from a given trace hash or ibc denom",
+		Example: fmt.Sprintf("%s query ibc-transfer denom-trace 27A6394C3F9FF9C9DCF5DFFADF9BB5FE9A37C7E92B006199894CF1824DF9AC7C", version.AppName),
+>>>>>>> 8062d01 (add actual parameter example to denom-trace and denom-hash CLI queries (#1442))
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -142,7 +149,7 @@ func GetCmdQueryDenomHash() *cobra.Command {
 		Use:     "denom-hash [trace]",
 		Short:   "Query the denom hash info from a given denom trace",
 		Long:    "Query the denom hash info from a given denom trace",
-		Example: fmt.Sprintf("%s query ibc-transfer denom-hash [denom_trace]", version.AppName),
+		Example: fmt.Sprintf("%s query ibc-transfer denom-hash transfer/channel-0/uatom", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
