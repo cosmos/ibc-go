@@ -1,7 +1,6 @@
 package nt
 
 import (
-	"fmt"
 	"math"
 	"strings"
 
@@ -17,6 +16,10 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
+var (
+	_ porttypes.IBCModule = IBCModule{}
+)
+
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
 	keeper keeper.Keeper
@@ -29,8 +32,8 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 	}
 }
 
-// ValidateTransferChannelParams does validation of a newly created transfer channel. A transfer
-// channel must be UNORDERED, use the correct port (by default 'transfer'), and use the current
+// ValidateTransferChannelParams does validation of a newly created nft-transfer channel. A nft-transfer
+// channel must be UNORDERED, use the correct port (by default 'nft-transfer'), and use the current
 // supported version. Only 2^32 channels are allowed to be created.
 func ValidateTransferChannelParams(
 	ctx sdk.Context,
@@ -46,7 +49,7 @@ func ValidateTransferChannelParams(
 		return err
 	}
 	if channelSequence > uint64(math.MaxUint32) {
-		return sdkerrors.Wrapf(types.ErrMaxTransferChannels, "channel sequence %d is greater than max allowed transfer channels %d", channelSequence, uint64(math.MaxUint32))
+		return sdkerrors.Wrapf(types.ErrMaxTransferChannels, "channel sequence %d is greater than max allowed nft-transfer channels %d", channelSequence, uint64(math.MaxUint32))
 	}
 	if order != channeltypes.UNORDERED {
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s ", channeltypes.UNORDERED, order)
@@ -179,29 +182,28 @@ func (im IBCModule) OnRecvPacket(
 
 	var data types.NonFungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
+		ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-721 nft-transfer packet data")
 	}
 
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
-		err := im.keeper.OnRecvPacket(ctx, packet, data)
-		if err != nil {
+		if err := im.keeper.OnRecvPacket(ctx, packet, data); err != nil {
 			ack = types.NewErrorAcknowledgement(err)
 		}
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
-		),
-	)
+	// ctx.EventManager().EmitEvent(
+	// 	sdk.NewEvent(
+	// 		types.EventTypePacket,
+	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	// 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+	// 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+	// 		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
+	// 		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
+	// 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+	// 	),
+	// )
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -216,45 +218,45 @@ func (im IBCModule) OnAcknowledgementPacket(
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-721 transfer packet acknowledgement: %v", err)
 	}
-	var data types.FungibleTokenPacketData
+	var data types.NonFungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-721 transfer packet data: %s", err.Error())
 	}
 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-		),
-	)
+	// ctx.EventManager().EmitEvent(
+	// 	sdk.NewEvent(
+	// 		types.EventTypePacket,
+	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	// 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+	// 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+	// 		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
+	// 		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
+	// 		sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+	// 	),
+	// )
 
-	switch resp := ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Result:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
-			),
-		)
-	case *channeltypes.Acknowledgement_Error:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
-			),
-		)
-	}
+	// switch resp := ack.Response.(type) {
+	// case *channeltypes.Acknowledgement_Result:
+	// 	ctx.EventManager().EmitEvent(
+	// 		sdk.NewEvent(
+	// 			types.EventTypePacket,
+	// 			sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
+	// 		),
+	// 	)
+	// case *channeltypes.Acknowledgement_Error:
+	// 	ctx.EventManager().EmitEvent(
+	// 		sdk.NewEvent(
+	// 			types.EventTypePacket,
+	// 			sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
+	// 		),
+	// 	)
+	// }
 
 	return nil
 }
@@ -267,22 +269,22 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	var data types.NonFungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-721 transfer packet data: %s", err.Error())
 	}
 	// refund tokens
 	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeTimeout,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
-		),
-	)
+	// ctx.EventManager().EmitEvent(
+	// 	sdk.NewEvent(
+	// 		types.EventTypeTimeout,
+	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	// 		sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
+	// 		sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
+	// 		sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
+	// 	),
+	// )
 
 	return nil
 }
