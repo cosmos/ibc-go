@@ -18,54 +18,63 @@ option (gogoproto.protosizer_all)       = false;
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
-  // TODO add docs
+  // LightClientBlockView contains most of the state needed to validate
+  // a future state transition
   LightClientBlockView head = 1;
-  
-  // TODO add docs
+
+  // CyrptoHash representing the current epoch
   bytes current_epoch = 2;
 
-  // TODO add docs
+  // CyrptoHash representing the next epoch
   bytes next_epoch = 3;
 
-  // TODO add docs
+  // Tracks the set of validators that will vote on blocks in the current epoch
   repeated ValidatorStakeView current_validators = 4;
 
-  // TODO add docs
+  // Tracks the set of validators that will vote on blocks in the next epoch
   repeated ValidatorStakeView next_validators = 5;
-
 }
 
+// LightClientBlockView contains most of the state needed to validate
+// a future state transition
 message LightClientBlockView {
-  bytes prev_block_hash = 1;
-  bytes next_block_inner_hash = 2;
-  BlockHeaderInnerLiteView inner_lite =  3;
-  bytes inner_rest_hash = 4;
-  optional ValidatorStakeView next_bps = 5;
-  // QUESTION: is this the right way of mapping `Vec<Optiona<Signature>>` ?
-  repeated MaybeSignature approvals_after_next = 6;
-
+  bytes                       prev_block_hash       = 1;
+  bytes                       next_block_inner_hash = 2;
+  BlockHeaderInnerLiteView    inner_lite            = 3;
+  bytes                       inner_rest_hash       = 4;
+  optional ValidatorStakeView next_bps              = 5;
+  repeated MaybeSignature     approvals_after_next  = 6;
 }
 
+// BlockHeaderInnerLiteView for the current head (which contains height, epoch_id,
+// next_epoch_id, prev_state_root, outcome_root, timestamp, the hash of the block
+// producers set for the next epoch next_bp_hash, and the merkle root of all
+// the block hashes block_merkle_root);
 message BlockHeaderInnerLiteView {
-  uint64 BlockHeight = 1;
-  bytes epoch_id = 2;
-  bytes next_epoch_id = 3;
-  bytes prev_state_root = 4;
-  bytes outcome_root = 5;
-  uint64 timestamp = 6;
+  uint64 block_height      = 1;
+  bytes  epoch_id          = 2;
+  bytes  next_epoch_id     = 3;
+  bytes  prev_state_root   = 4;
+  bytes  outcome_root      = 5;
+  uint64 timestamp         = 6;
   uint64 timestamp_nanosec = 7;
-  bytes next_bp_hash = 8;
-  bytes block_merkle_root = 9;
+  bytes  next_bp_hash      = 8;
+  bytes  block_merkle_root = 9;
 }
 
+// Wrapper type over a signature to be able to presenent Option<Signature> inside a Vector
 message MaybeSignature {
+  // Encoded signature of scheme `Ed25519`
   optional bytes Signature = 1;
 }
 
- message ValidatorStakeView {
-  uint32 version = 1;
+// Represents a validator stake state that helps verifying whether a vote is valid or not
+// and if consensus is reached.
+message ValidatorStakeView {
+  uint32 version    = 1;
   string account_id = 2;
-  bytes public_key = 3;
+  bytes  public_key = 3;
+  // NOTE: balance is a u128
   bytes balance = 4;
 }
 
