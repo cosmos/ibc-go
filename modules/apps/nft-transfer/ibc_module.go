@@ -139,6 +139,7 @@ func (im IBCModule) OnChanOpenAck(
 	if counterpartyVersion != types.Version {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
+	im.keeper.SetEscrowAddress(ctx, portID, channelID)
 	return nil
 }
 
@@ -148,6 +149,7 @@ func (im IBCModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
+	im.keeper.SetEscrowAddress(ctx, portID, channelID)
 	return nil
 }
 

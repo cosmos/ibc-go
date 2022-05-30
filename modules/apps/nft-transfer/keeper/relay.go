@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -197,21 +198,42 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidClassID, "classId not exist")
 	}
 
-	var tokenURIs []string
+	var (
+		// NOTE: class and hex hash correctness checked during msg.ValidateBasic
+		fullClassPath = classID
+		err           error
+		tokenURIs     []string
+	)
+
+	// deconstruct the token denomination into the denomination trace info
+	// to determine if the sender is the source chain
+	if strings.HasPrefix(classID, "ibc/") {
+		fullClassPath, err = k.ClassPathFromHash(ctx, classID)
+		if err != nil {
+			return channeltypes.Packet{}, err
+		}
+	}
+
+	isAwayFromOrigin := k.isAwayFromOrigin(sourcePort,
+		sourceChannel, fullClassPath)
+
 	for _, tokenID := range tokenIDs {
 		nft, exist := k.nftKeeper.GetNFT(ctx, classID, tokenID)
 		if !exist {
 			return channeltypes.Packet{}, sdkerrors.Wrap(types.ErrInvalidTokenID, "tokenId not exist")
 		}
+		tokenURIs = append(tokenURIs, nft.GetUri())
 
 		owner := k.nftKeeper.GetOwner(ctx, classID, tokenID)
 		if !sender.Equals(owner) {
 			return channeltypes.Packet{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "not token owner")
 		}
 
-		isAwayFromOrigin := k.isAwayFromOrigin(sourcePort, sourceChannel, classID)
 		if !isAwayFromOrigin {
-			return channeltypes.Packet{}, k.nftKeeper.Burn(ctx, classID, tokenID)
+			if err := k.nftKeeper.Burn(ctx, classID, tokenID); err != nil {
+				return channeltypes.Packet{}, err
+			}
+			continue
 		}
 
 		// create the escrow address for the tokens
@@ -219,11 +241,10 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		if err := k.nftKeeper.Transfer(ctx, classID, tokenID, escrowAddress.String()); err != nil {
 			return channeltypes.Packet{}, err
 		}
-		tokenURIs = append(tokenURIs, nft.GetUri())
 	}
 
 	packetData := types.NewNonFungibleTokenPacketData(
-		classID, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver,
+		fullClassPath, class.GetUri(), tokenIDs, tokenURIs, sender.String(), receiver,
 	)
 
 	return channeltypes.NewPacket(

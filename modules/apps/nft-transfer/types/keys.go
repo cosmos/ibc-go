@@ -26,11 +26,17 @@ const (
 
 	// QuerierRoute is the querier route for IBC nft-tranfer
 	QuerierRoute = ModuleName
+
+	// ClassPrefix is the prefix used for internal SDK non-fungible token representation.
+	ClassPrefix = "ibc"
 )
 
 var (
 	// PortKey defines the key to store the port ID in store
 	PortKey = []byte{0x01}
+
+	// ClassTraceKey defines the key to store the class trace info in store
+	ClassTraceKey = []byte{0x02}
 )
 
 // GetEscrowAddress returns the escrow address for the specified channel.

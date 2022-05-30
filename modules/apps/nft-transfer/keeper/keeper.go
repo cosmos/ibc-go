@@ -17,8 +17,7 @@ type Keeper struct {
 	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	nftKeeper     types.NFTKeeper
-	// portKeeper    types.PortKeeper
-	// authKeeper    types.AccountKeeper
+	authkeeper    types.AccountKeeper
 	// bankKeeper    types.BankKeeper
 	scopedKeeper capabilitykeeper.ScopedKeeper
 }
@@ -38,4 +37,22 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// MustUnmarshalClassTrace attempts to decode and return an ClassTrace object from
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustUnmarshalClassTrace(bz []byte) types.ClassTrace {
+	var classTrace types.ClassTrace
+	k.cdc.MustUnmarshal(bz, &classTrace)
+	return classTrace
+}
+
+// SetEscrowAddress attempts to save a account to auth module
+func (k Keeper) SetEscrowAddress(ctx sdk.Context, portID, channelID string) {
+	// create the escrow address for the tokens
+	escrowAddress := types.GetEscrowAddress(portID, channelID)
+	if !k.authkeeper.HasAccount(ctx, escrowAddress) {
+		acc := k.authkeeper.NewAccountWithAddress(ctx, escrowAddress)
+		k.authkeeper.SetAccount(ctx, acc)
+	}
 }
