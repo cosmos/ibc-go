@@ -18,3 +18,14 @@ func EmitWriteErrorAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI
 		),
 	)
 }
+
+// EmitSuccessfulAcknowledgementEvent emits an event signalling a successful acknowledgement
+func EmitSuccessfulAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			icatypes.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+			sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
+		),
+	)
+}
