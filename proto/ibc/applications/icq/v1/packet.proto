@@ -15,8 +15,8 @@ enum Type {
 
   // Default zero value enumeration
   TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "UNSPECIFIED"];
-  // Query host chain and send back the results to the controller chain
-  TYPE_QUERY = 1 [(gogoproto.enumvalue_customname) = "QUERY"];
+  // Runs ABCI query request in host chain and sends back the results to the controller chain
+  TYPE_ABCI = 1 [(gogoproto.enumvalue_customname) = "ABCI"];
 }
 
 // InterchainQueryPacketData is comprised of an ABCI query request and type of query.

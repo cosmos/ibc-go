@@ -11,10 +11,6 @@ import "gogoproto/gogo.proto";
 message Params {
   // host_enabled enables or disables the host submodule.
   bool host_enabled = 1 [(gogoproto.moretags) = "yaml:\"host_enabled\""];
-  // allow_height determines whether querying a specific height is allowed.
-  bool allow_height = 2 [(gogoproto.moretags) = "yaml:\"allow_height\""];
-  // allow_proof determines whether requesting proof of the query is allowed.
-  bool allow_proof = 3 [(gogoproto.moretags) = "yaml:\"allow_height\""];
   // allow_queries defines a list of query paths allowed to be queried on a host chain.
-  repeated string allow_queries = 4 [(gogoproto.moretags) = "yaml:\"allow_queries\""];
+  repeated string allow_queries = 2 [(gogoproto.moretags) = "yaml:\"allow_queries\""];
 }
