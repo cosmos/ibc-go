@@ -47,6 +47,12 @@ func (k Keeper) MustUnmarshalClassTrace(bz []byte) types.ClassTrace {
 	return classTrace
 }
 
+// MustMarshalClassTrace attempts to decode and return an ClassTrace object from
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustMarshalClassTrace(classTrace types.ClassTrace) []byte {
+	return k.cdc.MustMarshal(&classTrace)
+}
+
 // SetEscrowAddress attempts to save a account to auth module
 func (k Keeper) SetEscrowAddress(ctx sdk.Context, portID, channelID string) {
 	// create the escrow address for the tokens

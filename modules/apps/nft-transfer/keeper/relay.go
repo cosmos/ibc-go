@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -124,26 +123,63 @@ func (k Keeper) SendTransfer(
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.NonFungibleTokenPacketData) error {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet,
+	data types.NonFungibleTokenPacketData) error {
 
-	// defer func() {
-	// 	if transferAmount.IsInt64() {
-	// 		telemetry.SetGaugeWithLabels(
-	// 			[]string{"ibc", types.ModuleName, "packet", "receive"},
-	// 			float32(transferAmount.Int64()),
-	// 			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, data.Denom)},
-	// 		)
-	// 	}
+	// validate packet data upon receiving
+	if err := data.ValidateBasic(); err != nil {
+		return err
+	}
 
-	// 	telemetry.IncrCounterWithLabels(
-	// 		[]string{"ibc", types.ModuleName, "receive"},
-	// 		1,
-	// 		append(
-	// 			labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
-	// 		),
-	// 	)
-	// }()
+	// decode the receiver address
+	_, err := sdk.AccAddressFromBech32(data.Receiver)
+	if err != nil {
+		return err
+	}
 
+	isAwayFromOrigin := types.IsAwayFromOrigin(packet.GetSourcePort(),
+		packet.GetSourceChannel(), data.ClassId)
+	if !isAwayFromOrigin {
+		classPrefix := types.GetClassPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
+		unprefixedClassID := data.ClassId[len(classPrefix):]
+
+		// The denomination used to send the coins is either the native denom or the hash of the path
+		// if the denomination is not native.
+		classTrace := types.ParseClassTrace(unprefixedClassID)
+
+		voucherClassID := classTrace.IBCClassID()
+		for _, tokenID := range data.TokenIds {
+			if err := k.nftKeeper.Transfer(ctx,
+				voucherClassID, tokenID, data.Receiver); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	// since SendPacket did not prefix the denomination, we must prefix denomination here
+	classPrefix := types.GetClassPrefix(packet.GetDestPort(), packet.GetDestChannel())
+	// NOTE: sourcePrefix contains the trailing "/"
+	prefixedClassID := classPrefix + data.ClassId
+
+	// construct the denomination trace from the full raw denomination
+	classTrace := types.ParseClassTrace(prefixedClassID)
+	if !k.HasClassTrace(ctx, classTrace.Hash()) {
+		k.SetClassTrace(ctx, classTrace)
+	}
+
+	voucherClassID := classTrace.IBCClassID()
+	if !k.nftKeeper.HasClass(ctx, voucherClassID) {
+		if err := k.nftKeeper.SaveClass(ctx, voucherClassID, data.ClassUri); err != nil {
+			return err
+		}
+	}
+	for i, tokenID := range data.TokenIds {
+		if err := k.nftKeeper.Mint(ctx,
+			voucherClassID, tokenID, data.TokenUris[i], data.Receiver); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -214,7 +250,7 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		}
 	}
 
-	isAwayFromOrigin := k.isAwayFromOrigin(sourcePort,
+	isAwayFromOrigin := types.IsAwayFromOrigin(sourcePort,
 		sourceChannel, fullClassPath)
 
 	for _, tokenID := range tokenIDs {
@@ -257,9 +293,4 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 		timeoutHeight,
 		timeoutTimestamp,
 	), nil
-}
-
-func (k Keeper) isAwayFromOrigin(sourcePort, sourceChannel, classID string) bool {
-	prefixClassID := fmt.Sprintf("%s/%s", sourcePort, sourceChannel)
-	return classID[:len(prefixClassID)] != prefixClassID
 }

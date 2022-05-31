@@ -38,3 +38,16 @@ func (k Keeper) ClassPathFromHash(ctx sdk.Context, classID string) (string, erro
 	}
 	return classTrace.GetFullClassPath(), nil
 }
+
+// HasClassTrace checks if a the key with the given denomination trace hash exists on the store.
+func (k Keeper) HasClassTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
+	return store.Has(denomTraceHash)
+}
+
+// SetClassTrace sets a new {trace hash -> class trace} pair to the store.
+func (k Keeper) SetClassTrace(ctx sdk.Context, denomTrace types.ClassTrace) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
+	bz := k.MustMarshalClassTrace(denomTrace)
+	store.Set(denomTrace.Hash(), bz)
+}

@@ -25,7 +25,7 @@ type NFT interface {
 // TODO
 type NFTKeeper interface {
 	SaveClass(ctx sdk.Context, classID, classURI string) error
-	Mint(ctx sdk.Context, classID, tokenID, tokenURI, receiver string)
+	Mint(ctx sdk.Context, classID, tokenID, tokenURI, receiver string) error
 	Transfer(ctx sdk.Context, classID, tokenID, receiver string) error
 	Burn(ctx sdk.Context, classID, tokenID string) error
 
