@@ -57,8 +57,18 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
 	}
 
+	// decode the sender address
+	if _, err := sdk.AccAddressFromBech32(nftpd.Sender); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, " invalid sender address")
+	}
+
 	if strings.TrimSpace(nftpd.Receiver) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
+	}
+
+	// decode the receiver address
+	if _, err := sdk.AccAddressFromBech32(nftpd.Receiver); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, " invalid receiver address")
 	}
 	return nil
 }

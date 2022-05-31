@@ -24,9 +24,17 @@ func ParseHexHash(hexHash string) (tmbytes.HexBytes, error) {
 	return hash, nil
 }
 
-// GetClassPrefix returns the receiving denomination prefix
+// GetClassPrefix returns the receiving class prefix
 func GetClassPrefix(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/", portID, channelID)
+}
+
+// RemoveClassPrefix returns the unprefixed classID
+func RemoveClassPrefix(portID, channelID, classID string) string {
+	// since SendPacket did not prefix the classID, we must prefix classID here
+	classPrefix := GetClassPrefix(portID, channelID)
+	// NOTE: sourcePrefix contains the trailing "/"
+	return classID[len(classPrefix):]
 }
 
 // IsAwayFromOrigin determine if non-fungible token is moving away from
@@ -41,13 +49,13 @@ func IsAwayFromOrigin(sourcePort, sourceChannel, fullClassPath string) bool {
 	return fullClassPath[:len(prefixClassID)] != prefixClassID
 }
 
-// ParseClassTrace parses a string with the ibc prefix (denom trace) and the base denomination
-// into a DenomTrace type.
+// ParseClassTrace parses a string with the ibc prefix (class trace) and the base classID
+// into a ClassTrace type.
 //
 // Examples:
 //
-// 	- "portidone/channelidone/uatom" => DenomTrace{Path: "portidone/channelidone", BaseDenom: "uatom"}
-// 	- "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
+// 	- "port-1/channel-1/class-1" => ClassTrace{Path: "port-1/channel-1", BaseClassId: "class-1"}
+// 	- "class-1" => ClassTrace{Path: "", BaseClassId: "class-1"}
 func ParseClassTrace(rawClassID string) ClassTrace {
 	classSplit := strings.Split(rawClassID, "/")
 
@@ -87,8 +95,8 @@ func (ct ClassTrace) Hash() tmbytes.HexBytes {
 	return hash[:]
 }
 
-// IBCClassID a coin denomination for an ICS20 fungible token in the format
-// 'ibc/{hash(tracePath + baseDenom)}'. If the trace is empty, it will return the base denomination.
+// IBCClassID a classID for an ICS721 non-fungible token in the format
+// 'ibc/{hash(tracePath + BaseClassId)}'. If the trace is empty, it will return the base classID.
 func (ct ClassTrace) IBCClassID() string {
 	if ct.Path != "" {
 		return fmt.Sprintf("%s/%s", ClassPrefix, ct.Hash())
