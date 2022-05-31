@@ -21,7 +21,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 	}
 
 	switch data.Type {
-	case icqtypes.QUERY:
+	case icqtypes.ABCI:
 		response, err := k.executeQuery(ctx, data.Request)
 		if err != nil {
 			return nil, err
@@ -65,10 +65,10 @@ func (k Keeper) authenticateQuery(ctx sdk.Context, q abci.RequestQuery) error {
 	if !types.ContainsQueryPath(allowQueries, q.Path) {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "query path not allowed: %s", q.Path)
 	}
-	if !k.GetAllowHeight(ctx) && q.Height != 0 {
+	if !(q.Height == 0 || q.Height == ctx.BlockHeight()) {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "query height not allowed: %d", q.Height)
 	}
-	if !k.GetAllowProof(ctx) && q.Prove {
+	if q.Prove {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "query proof not allowed")
 	}
 
