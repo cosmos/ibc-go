@@ -1,12 +1,15 @@
 package keeper
 
 import (
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 // Keeper defines the IBC non fungible transfer keeper
@@ -20,6 +23,11 @@ type Keeper struct {
 	authkeeper    types.AccountKeeper
 	// bankKeeper    types.BankKeeper
 	scopedKeeper capabilitykeeper.ScopedKeeper
+}
+
+// Logger returns a module-specific logger.
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
 }
 
 // GetPort returns the portID for the transfer module.
@@ -51,6 +59,17 @@ func (k Keeper) MustUnmarshalClassTrace(bz []byte) types.ClassTrace {
 // raw encoded bytes. It panics on error.
 func (k Keeper) MustMarshalClassTrace(classTrace types.ClassTrace) []byte {
 	return k.cdc.MustMarshal(&classTrace)
+}
+
+// UnmarshalClassTrace attempts to decode and return an ClassTrace object from
+// raw encoded bytes.
+func (k Keeper) UnmarshalClassTrace(bz []byte) (types.ClassTrace, error) {
+	var classTrace types.ClassTrace
+	if err := k.cdc.Unmarshal(bz, &classTrace); err != nil {
+		return types.ClassTrace{}, err
+	}
+
+	return classTrace, nil
 }
 
 // SetEscrowAddress attempts to save a account to auth module

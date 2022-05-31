@@ -1,6 +1,7 @@
 package nt
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -195,17 +196,17 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	// ctx.EventManager().EmitEvent(
-	// 	sdk.NewEvent(
-	// 		types.EventTypePacket,
-	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-	// 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-	// 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-	// 		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-	// 		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-	// 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
-	// 	),
-	// )
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyClassID, data.ClassId),
+			sdk.NewAttribute(types.AttributeKeyTokenIDs, strings.Join(data.TokenIds, ",")),
+			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+		),
+	)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack

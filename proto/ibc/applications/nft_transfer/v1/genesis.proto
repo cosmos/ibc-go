@@ -10,5 +10,5 @@ import "gogoproto/gogo.proto";
 // GenesisState defines the ibc-nft-transfer genesis state
 message GenesisState {
   string              port_id = 1;
-  repeated ClassTrace traces  = 2 [(gogoproto.nullable) = false];
+  repeated ClassTrace traces  = 2 [(gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false];
 }

@@ -121,6 +121,18 @@
 - [ibc/applications/nft_transfer/v1/packet.proto](#ibc/applications/nft_transfer/v1/packet.proto)
     - [NonFungibleTokenPacketData](#ibc.applications.nft_transfer.v1.NonFungibleTokenPacketData)
   
+- [ibc/applications/nft_transfer/v1/query.proto](#ibc/applications/nft_transfer/v1/query.proto)
+    - [QueryClassHashRequest](#ibc.applications.nft_transfer.v1.QueryClassHashRequest)
+    - [QueryClassHashResponse](#ibc.applications.nft_transfer.v1.QueryClassHashResponse)
+    - [QueryClassTraceRequest](#ibc.applications.nft_transfer.v1.QueryClassTraceRequest)
+    - [QueryClassTraceResponse](#ibc.applications.nft_transfer.v1.QueryClassTraceResponse)
+    - [QueryClassTracesRequest](#ibc.applications.nft_transfer.v1.QueryClassTracesRequest)
+    - [QueryClassTracesResponse](#ibc.applications.nft_transfer.v1.QueryClassTracesResponse)
+    - [QueryEscrowAddressRequest](#ibc.applications.nft_transfer.v1.QueryEscrowAddressRequest)
+    - [QueryEscrowAddressResponse](#ibc.applications.nft_transfer.v1.QueryEscrowAddressResponse)
+  
+    - [Query](#ibc.applications.nft_transfer.v1.Query)
+  
 - [ibc/applications/nft_transfer/v1/tx.proto](#ibc/applications/nft_transfer/v1/tx.proto)
     - [MsgTransfer](#ibc.applications.nft_transfer.v1.MsgTransfer)
     - [MsgTransferResponse](#ibc.applications.nft_transfer.v1.MsgTransferResponse)
@@ -1222,14 +1234,14 @@ Query defines the ICS29 gRPC querier service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | IncentivizedPackets returns all incentivized packets and their associated fees | GET|/ibc/apps/fee/v1/incentivized_packets|
-| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | IncentivizedPacket returns all packet fees for a packet given its identifier | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `IncentivizedPacketsForChannel` | [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest) | [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse) | Gets all incentivized packets for a specific channel | GET|/ibc/apps/fee/v1/incentivized_packets/port/{port_id}/channel/{channel_id}|
-| `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `CounterpartyAddress` | [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest) | [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse) | CounterpartyAddress returns the registered counterparty address for forward relaying | GET|/ibc/apps/fee/v1/counterparty_address/{relayer_address}/channel/{channel_id}|
+| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | IncentivizedPacket returns all packet fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/incentivized_packet|
+| `IncentivizedPacketsForChannel` | [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest) | [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse) | Gets all incentivized packets for a specific channel | GET|/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets|
+| `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees|
+| `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees|
+| `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees|
+| `CounterpartyAddress` | [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest) | [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse) | CounterpartyAddress returns the registered counterparty address for forward relaying | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/counterparty_address|
 | `FeeEnabledChannels` | [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest) | [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse) | FeeEnabledChannels returns a list of all fee enabled channels | GET|/ibc/apps/fee/v1/fee_enabled|
-| `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/fee_enabled/port/{port_id}/channel/{channel_id}|
+| `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled|
 
  <!-- end services -->
 
@@ -1846,6 +1858,163 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-721-nft-transfer#data-str
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/nft_transfer/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/nft_transfer/v1/query.proto
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryClassHashRequest"></a>
+
+### QueryClassHashRequest
+QueryClassHashRequest is the request type for the Query/ClassHash RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `trace` | [string](#string) |  | The class trace ([port_id]/[channel_id])+/[denom] |
+
+
+
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryClassHashResponse"></a>
+
+### QueryClassHashResponse
+QueryClassHashResponse is the response type for the Query/ClassHash RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+
+
+
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryClassTraceRequest"></a>
+
+### QueryClassTraceRequest
+QueryClassTraceRequest is the request type for the Query/ClassDenom RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [string](#string) |  | hash (in hex format) or classID (full classID with ibc prefix) of the denomination trace information. |
+
+
+
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryClassTraceResponse"></a>
+
+### QueryClassTraceResponse
+QueryClassTraceResponse is the response type for the Query/ClassDenom RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_trace` | [ClassTrace](#ibc.applications.nft_transfer.v1.ClassTrace) |  | class_trace returns the requested class trace information. |
+
+
+
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryClassTracesRequest"></a>
+
+### QueryClassTracesRequest
+QueryConnectionsRequest is the request type for the Query/ClassTraces RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryClassTracesResponse"></a>
+
+### QueryClassTracesResponse
+QueryClassTracesResponse is the response type for the Query/ClassTraces RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_traces` | [ClassTrace](#ibc.applications.nft_transfer.v1.ClassTrace) | repeated | class_traces returns all class trace information. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryEscrowAddressRequest"></a>
+
+### QueryEscrowAddressRequest
+QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+
+
+
+
+
+
+<a name="ibc.applications.nft_transfer.v1.QueryEscrowAddressResponse"></a>
+
+### QueryEscrowAddressResponse
+QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `escrow_address` | [string](#string) |  | the escrow account address |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.nft_transfer.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `ClassTrace` | [QueryClassTraceRequest](#ibc.applications.nft_transfer.v1.QueryClassTraceRequest) | [QueryClassTraceResponse](#ibc.applications.nft_transfer.v1.QueryClassTraceResponse) | ClassTrace queries a class trace information. | GET|/ibc/apps/nft_transfer/v1/class_traces/{hash}|
+| `ClassTraces` | [QueryClassTracesRequest](#ibc.applications.nft_transfer.v1.QueryClassTracesRequest) | [QueryClassTracesResponse](#ibc.applications.nft_transfer.v1.QueryClassTracesResponse) | ClassTraces queries all class traces. | GET|/ibc/apps/nft_transfer/v1/class_traces|
+| `ClassHash` | [QueryClassHashRequest](#ibc.applications.nft_transfer.v1.QueryClassHashRequest) | [QueryClassHashResponse](#ibc.applications.nft_transfer.v1.QueryClassHashResponse) | ClassHash queries a class hash information. | GET|/ibc/apps/nft_transfer/v1/class_hashes/{trace}|
+| `EscrowAddress` | [QueryEscrowAddressRequest](#ibc.applications.nft_transfer.v1.QueryEscrowAddressRequest) | [QueryEscrowAddressResponse](#ibc.applications.nft_transfer.v1.QueryEscrowAddressResponse) | EscrowAddress returns the escrow address for a particular port and channel id. | GET|/ibc/apps/nft_transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address|
 
  <!-- end services -->
 
