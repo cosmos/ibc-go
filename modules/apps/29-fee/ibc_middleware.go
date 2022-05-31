@@ -248,7 +248,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	ack := new(types.IncentivizedAcknowledgement)
+	var ack = &types.IncentivizedAcknowledgement{}
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
@@ -268,10 +268,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
-
-		// removes the fees from the store as fees are now paid
-		im.keeper.DeleteFeesInEscrow(ctx, packetID)
+		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
 	}
 
 	// call underlying callback
@@ -297,10 +294,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)
-
-		// removes the fee from the store as fee is now paid
-		im.keeper.DeleteFeesInEscrow(ctx, packetID)
+		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
 	}
 
 	// call underlying callback

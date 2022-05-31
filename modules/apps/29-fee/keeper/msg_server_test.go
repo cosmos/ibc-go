@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 
 		tc.malleate()
 
-		msg := types.NewMsgRegisterCounterpartyAddress(sender, counterparty, suite.path.EndpointA.ChannelConfig.PortID, channelID)
+		msg := types.NewMsgRegisterCounterpartyAddress(suite.path.EndpointA.ChannelConfig.PortID, channelID, sender, counterparty)
 		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyAddress(sdk.WrapSDKContext(ctx), msg)
 
 		if tc.expPass {
