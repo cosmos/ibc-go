@@ -20,16 +20,11 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 		return nil, sdkerrors.Wrapf(icqtypes.ErrUnknownDataType, "cannot unmarshal ICQ packet data")
 	}
 
-	switch data.Type {
-	case icqtypes.ABCI:
-		response, err := k.executeQuery(ctx, data.Request)
-		if err != nil {
-			return nil, err
-		}
-		return response, err
-	default:
-		return nil, icqtypes.ErrUnknownDataType
+	response, err := k.executeQuery(ctx, data.Request)
+	if err != nil {
+		return nil, err
 	}
+	return response, err
 }
 
 func (k Keeper) executeQuery(ctx sdk.Context, q abci.RequestQuery) ([]byte, error) {
