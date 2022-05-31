@@ -169,6 +169,10 @@ func (k Keeper) TimeoutExecuted(
 	// emit an event marking that we have processed the timeout
 	EmitTimeoutPacketEvent(ctx, packet, channel)
 
+	if channel.Ordering == types.ORDERED && channel.State == types.CLOSED {
+		EmitChannelClosedEvent(ctx, packet, channel)
+	}
+
 	return nil
 }
 
