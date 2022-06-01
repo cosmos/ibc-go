@@ -63,7 +63,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		msg = types.NewMsgRegisterCounterpartyAddress(defaultAccAddress, defaultAccAddress, ibctesting.MockPort, ibctesting.FirstChannelID)
+		msg = types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
 
 		tc.malleate()
 
@@ -79,7 +79,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	msg := types.NewMsgRegisterCounterpartyAddress(accAddress.String(), defaultAccAddress, ibctesting.MockPort, ibctesting.FirstChannelID)
+	msg := types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
 }
 
