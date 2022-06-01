@@ -46,6 +46,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				ChannelId:           ibctesting.FirstChannelID,
 			},
 		},
+		Params: types.NewParams(suite.chainA.SenderAccount.GetAddress().String()),
 	}
 
 	suite.chainA.GetSimApp().IBCFeeKeeper.InitGenesis(suite.chainA.GetContext(), genesisState)
@@ -63,6 +64,9 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	addr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainA.GetContext(), sender, ibctesting.FirstChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(genesisState.RegisteredRelayers[0].CounterpartyAddress, addr)
+
+	// check params
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.Params.DistributionAddress)
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
@@ -90,6 +94,9 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	// set forward relayer address
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainA.GetContext(), packetID, sender)
 
+	// set params
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(suite.chainA.SenderAccount.GetAddress().String()))
+
 	// export genesis
 	genesisState := suite.chainA.GetSimApp().IBCFeeKeeper.ExportGenesis(suite.chainA.GetContext())
 
@@ -110,4 +117,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	// check registered relayer addresses
 	suite.Require().Equal(sender, genesisState.ForwardRelayers[0].Address)
 	suite.Require().Equal(packetID, genesisState.ForwardRelayers[0].PacketId)
+
+	// check params
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.Params.DistributionAddress)
 }

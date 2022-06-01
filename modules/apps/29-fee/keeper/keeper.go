@@ -21,8 +21,9 @@ var (
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      codec.BinaryCodec
+	storeKey   sdk.StoreKey
+	cdc        codec.BinaryCodec
+	paramSpace paramtypes.Subspace
 
 	authKeeper    types.AccountKeeper
 	ics4Wrapper   types.ICS4Wrapper
@@ -36,9 +37,16 @@ func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
+
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
+
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
+		paramSpace:    paramSpace,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,

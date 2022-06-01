@@ -10,12 +10,13 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFees, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress) *GenesisState {
+func NewGenesisState(identifiedFees []IdentifiedPacketFees, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress, params Params) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
 		RegisteredRelayers: registeredRelayers,
 		ForwardRelayers:    forwardRelayers,
+		Params:             params,
 	}
 }
 
@@ -26,6 +27,7 @@ func DefaultGenesisState() *GenesisState {
 		ForwardRelayers:    []ForwardRelayerAddress{},
 		FeeEnabledChannels: []FeeEnabledChannel{},
 		RegisteredRelayers: []RegisteredRelayerAddress{},
+		Params:             DefaultParams(),
 	}
 }
 
@@ -75,6 +77,10 @@ func (gs GenesisState) Validate() error {
 		if err := rel.PacketId.Validate(); err != nil {
 			return err
 		}
+	}
+
+	if err := gs.Params.Validate(); err != nil {
+		return err
 	}
 
 	return nil
