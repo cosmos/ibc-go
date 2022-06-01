@@ -22,6 +22,8 @@ message GenesisState {
   // list of forward relayer addresses
   repeated ForwardRelayerAddress forward_relayers = 4
       [(gogoproto.moretags) = "yaml:\"forward_relayers\"", (gogoproto.nullable) = false];
+  // configurable ics29 fee middleware parameters
+  Params params = 5 [(gogoproto.nullable) = false];
 }
 
 // FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel

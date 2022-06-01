@@ -54,3 +54,9 @@ message IdentifiedPacketFees {
   // list of packet fees
   repeated PacketFee packet_fees = 2 [(gogoproto.moretags) = "yaml:\"packet_fees\"", (gogoproto.nullable) = false];
 }
+
+// Params defines the set of on-chain ICS29 fee middleware parameters.
+message Params {
+  // distribution address defines an optional fee distribution address to which incentivized packet fees will be paid
+  string distribution_address = 1 [(gogoproto.moretags) = "yaml:\"distribution_address\""];
+}
