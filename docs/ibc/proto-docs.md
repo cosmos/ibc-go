@@ -126,6 +126,8 @@
     - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
     - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
     - [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse)
+    - [QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest)
+    - [QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse)
     - [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest)
     - [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse)
   
@@ -1295,6 +1297,7 @@ MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterp
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  | the relayer address |
 | `counterparty_address` | [string](#string) |  | the counterparty relayer address |
+| `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
 
@@ -1865,7 +1868,7 @@ method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+| `hash` | [string](#string) |  | hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information. |
 
 
 
@@ -1921,6 +1924,37 @@ method.
 
 
 
+<a name="ibc.applications.transfer.v1.QueryEscrowAddressRequest"></a>
+
+### QueryEscrowAddressRequest
+QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryEscrowAddressResponse"></a>
+
+### QueryEscrowAddressResponse
+QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `escrow_address` | [string](#string) |  | the escrow account address |
+
+
+
+
+
+
 <a name="ibc.applications.transfer.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -1963,6 +1997,7 @@ Query provides defines the gRPC querier service.
 | `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
 | `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
 | `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
+| `EscrowAddress` | [QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest) | [QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse) | EscrowAddress returns the escrow address for a particular port and channel id. | GET|/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address|
 
  <!-- end services -->
 

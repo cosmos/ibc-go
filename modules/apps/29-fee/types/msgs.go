@@ -17,10 +17,11 @@ const (
 )
 
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
-func NewMsgRegisterCounterpartyAddress(address, counterpartyAddress, channelID string) *MsgRegisterCounterpartyAddress {
+func NewMsgRegisterCounterpartyAddress(portID, channelID, address, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
 	return &MsgRegisterCounterpartyAddress{
 		Address:             address,
 		CounterpartyAddress: counterpartyAddress,
+		PortId:              portID,
 		ChannelId:           channelID,
 	}
 }
@@ -34,6 +35,11 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 
 	if strings.TrimSpace(msg.CounterpartyAddress) == "" {
 		return ErrCounterpartyAddressEmpty
+	}
+
+	// validate portId
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return err
 	}
 
 	// validate channelId

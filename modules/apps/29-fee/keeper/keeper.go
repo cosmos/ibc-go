@@ -36,7 +36,6 @@ func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
-
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
@@ -62,6 +61,11 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capabi
 // GetChannel wraps IBC ChannelKeeper's GetChannel function
 func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool) {
 	return k.channelKeeper.GetChannel(ctx, portID, channelID)
+}
+
+// GetPacketCommitment wraps IBC ChannelKeeper's GetPacketCommitment function
+func (k Keeper) GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte {
+	return k.channelKeeper.GetPacketCommitment(ctx, portID, channelID, sequence)
 }
 
 // GetNextSequenceSend wraps IBC ChannelKeeper's GetNextSequenceSend function

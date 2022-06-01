@@ -46,7 +46,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
 	relayerAddress := suite.chainB.SenderAccount.GetAddress()
 
-	msgRegister := types.NewMsgRegisterCounterpartyAddress(suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(), ibctesting.FirstChannelID)
+	msgRegister := types.NewMsgRegisterCounterpartyAddress(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String())
 	_, err = suite.chainB.SendMsgs(msgRegister)
 	suite.Require().NoError(err) // message committed
 

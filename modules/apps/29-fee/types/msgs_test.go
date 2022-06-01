@@ -13,9 +13,7 @@ import (
 )
 
 func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
-	var (
-		msg *types.MsgRegisterCounterpartyAddress
-	)
+	var msg *types.MsgRegisterCounterpartyAddress
 
 	testCases := []struct {
 		name     string
@@ -55,10 +53,17 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"invalid portID",
+			func() {
+				msg.PortId = ""
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {
-		msg = types.NewMsgRegisterCounterpartyAddress(defaultAccAddress, defaultAccAddress, ibctesting.FirstChannelID)
+		msg = types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
 
 		tc.malleate()
 
@@ -74,14 +79,12 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	msg := types.NewMsgRegisterCounterpartyAddress(accAddress.String(), defaultAccAddress, ibctesting.FirstChannelID)
+	msg := types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
 }
 
 func TestMsgPayPacketFeeValidation(t *testing.T) {
-	var (
-		msg *types.MsgPayPacketFee
-	)
+	var msg *types.MsgPayPacketFee
 
 	testCases := []struct {
 		name     string
@@ -167,9 +170,7 @@ func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
 }
 
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
-	var (
-		msg *types.MsgPayPacketFeeAsync
-	)
+	var msg *types.MsgPayPacketFeeAsync
 
 	testCases := []struct {
 		name     string
