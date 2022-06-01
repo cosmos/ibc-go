@@ -8,8 +8,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	icqtypes "github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -20,18 +19,19 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
-	channelKeeper icqtypes.ChannelKeeper
-	portKeeper    icqtypes.PortKeeper
+	ics4Wrapper   types.ICS4Wrapper
+	channelKeeper types.ChannelKeeper
+	portKeeper    types.PortKeeper
 
 	scopedKeeper capabilitykeeper.ScopedKeeper
 
 	querier sdk.Queryable
 }
 
-// NewKeeper creates a new interchain accounts host Keeper instance
+// NewKeeper creates a new interchain query Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	channelKeeper icqtypes.ChannelKeeper, portKeeper icqtypes.PortKeeper,
+	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, querier sdk.Queryable,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -43,6 +43,7 @@ func NewKeeper(
 		storeKey:      key,
 		cdc:           cdc,
 		paramSpace:    paramSpace,
+		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		scopedKeeper:  scopedKeeper,
@@ -52,18 +53,18 @@ func NewKeeper(
 
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, icqtypes.ModuleName))
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
 }
 
 // BindPort stores the provided portID and binds to it, returning the associated capability
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(icqtypes.KeyPort(portID), []byte{0x01})
+	store.Set(types.KeyPort(portID), []byte{0x01})
 
 	return k.portKeeper.BindPort(ctx, portID)
 }
 
-// IsBound checks if the interchain account host module is already bound to the desired port
+// IsBound checks if the interchain query already bound to the desired port
 func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
@@ -77,4 +78,9 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // ClaimCapability wraps the scopedKeeper's ClaimCapability function
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// GetAppVersion calls the ICS4Wrapper GetAppVersion function.
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }

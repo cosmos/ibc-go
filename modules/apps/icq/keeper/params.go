@@ -3,11 +3,19 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/icq/host/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
 )
 
+// IsHostEnabled retrieves the controller enabled boolean from the paramstore.
+// True is returned if the controller is enabled.
+func (k Keeper) IsControllerEnabled(ctx sdk.Context) bool {
+	var res bool
+	k.paramSpace.Get(ctx, types.KeyControllerEnabled, &res)
+	return res
+}
+
 // IsHostEnabled retrieves the host enabled boolean from the paramstore.
-// True is returned if the host submodule is enabled.
+// True is returned if the host is enabled.
 func (k Keeper) IsHostEnabled(ctx sdk.Context) bool {
 	var res bool
 	k.paramSpace.Get(ctx, types.KeyHostEnabled, &res)
@@ -21,12 +29,12 @@ func (k Keeper) GetAllowQueries(ctx sdk.Context) []string {
 	return res
 }
 
-// GetParams returns the total set of the host submodule parameters.
+// GetParams returns the total set of the parameters.
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.IsHostEnabled(ctx), k.GetAllowQueries(ctx))
+	return types.NewParams(k.IsControllerEnabled(ctx), k.IsHostEnabled(ctx), k.GetAllowQueries(ctx))
 }
 
-// SetParams sets the total set of the host submodule parameters.
+// SetParams sets the total set of the parameters.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
 }

@@ -8,11 +8,15 @@ import (
 )
 
 const (
+	// DefaultControllerEnabled is the default value for the controller param (set to true)
+	DefaultControllerEnabled = true
 	// DefaultHostEnabled is the default value for the host param (set to true)
 	DefaultHostEnabled = true
 )
 
 var (
+	// KeyControllerEnabled is the store key for ControllerEnabled Params
+	KeyControllerEnabled = []byte("ControllerEnabled")
 	// KeyHostEnabled is the store key for HostEnabled Params
 	KeyHostEnabled = []byte("HostEnabled")
 	// KeyAllowQueries is the store key for the AllowQueries Params
@@ -24,21 +28,26 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// NewParams creates a new parameter configuration for the host submodule
-func NewParams(enableHost bool, allowQueries []string) Params {
+// NewParams creates a new parameter configuration
+func NewParams(enableController, enableHost bool, allowQueries []string) Params {
 	return Params{
-		HostEnabled:  enableHost,
-		AllowQueries: allowQueries,
+		ControllerEnabled: enableController,
+		HostEnabled:       enableHost,
+		AllowQueries:      allowQueries,
 	}
 }
 
-// DefaultParams is the default parameter configuration for the host submodule
+// DefaultParams is the default parameter configuration
 func DefaultParams() Params {
-	return NewParams(DefaultHostEnabled, nil)
+	return NewParams(DefaultControllerEnabled, DefaultHostEnabled, nil)
 }
 
-// Validate validates all host submodule parameters
+// Validate validates all parameters
 func (p Params) Validate() error {
+	if err := validateEnabled(p.ControllerEnabled); err != nil {
+		return err
+	}
+
 	if err := validateEnabled(p.HostEnabled); err != nil {
 		return err
 	}
@@ -53,6 +62,7 @@ func (p Params) Validate() error {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyControllerEnabled, p.ControllerEnabled, validateEnabled),
 		paramtypes.NewParamSetPair(KeyHostEnabled, p.HostEnabled, validateEnabled),
 		paramtypes.NewParamSetPair(KeyAllowQueries, p.AllowQueries, validateAllowlist),
 	}
