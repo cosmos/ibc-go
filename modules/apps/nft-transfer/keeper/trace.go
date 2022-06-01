@@ -21,6 +21,32 @@ func (k Keeper) GetClassTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) 
 	return denomTrace, true
 }
 
+// GetAllClassTraces returns the trace information for all the class.
+func (k Keeper) GetAllClassTraces(ctx sdk.Context) types.Traces {
+	traces := types.Traces{}
+	k.IterateClassTraces(ctx, func(classTrace types.ClassTrace) bool {
+		traces = append(traces, classTrace)
+		return false
+	})
+
+	return traces.Sort()
+}
+
+// IterateClassTraces iterates over the class traces in the store
+// and performs a callback function.
+func (k Keeper) IterateClassTraces(ctx sdk.Context, cb func(denomTrace types.ClassTrace) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ClassTraceKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		classTrace := k.MustUnmarshalClassTrace(iterator.Value())
+		if cb(classTrace) {
+			break
+		}
+	}
+}
+
 // ClassPathFromHash returns the full class path prefix from an ibc classId with a hash
 // component.
 func (k Keeper) ClassPathFromHash(ctx sdk.Context, classID string) (string, error) {
