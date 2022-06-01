@@ -51,3 +51,27 @@ func (k Keeper) SetClassTrace(ctx sdk.Context, denomTrace types.ClassTrace) {
 	bz := k.MustMarshalClassTrace(denomTrace)
 	store.Set(denomTrace.Hash(), bz)
 }
+
+// MustUnmarshalClassTrace attempts to decode and return an ClassTrace object from
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustUnmarshalClassTrace(bz []byte) types.ClassTrace {
+	var classTrace types.ClassTrace
+	k.cdc.MustUnmarshal(bz, &classTrace)
+	return classTrace
+}
+
+// MustMarshalClassTrace attempts to decode and return an ClassTrace object from
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustMarshalClassTrace(classTrace types.ClassTrace) []byte {
+	return k.cdc.MustMarshal(&classTrace)
+}
+
+// UnmarshalClassTrace attempts to decode and return an ClassTrace object from
+// raw encoded bytes.
+func (k Keeper) UnmarshalClassTrace(bz []byte) (types.ClassTrace, error) {
+	var classTrace types.ClassTrace
+	if err := k.cdc.Unmarshal(bz, &classTrace); err != nil {
+		return types.ClassTrace{}, err
+	}
+	return classTrace, nil
+}

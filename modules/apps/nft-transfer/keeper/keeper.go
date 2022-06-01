@@ -21,8 +21,7 @@ type Keeper struct {
 	channelKeeper types.ChannelKeeper
 	nftKeeper     types.NFTKeeper
 	authkeeper    types.AccountKeeper
-	// bankKeeper    types.BankKeeper
-	scopedKeeper capabilitykeeper.ScopedKeeper
+	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
 
 // Logger returns a module-specific logger.
@@ -45,31 +44,6 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
-}
-
-// MustUnmarshalClassTrace attempts to decode and return an ClassTrace object from
-// raw encoded bytes. It panics on error.
-func (k Keeper) MustUnmarshalClassTrace(bz []byte) types.ClassTrace {
-	var classTrace types.ClassTrace
-	k.cdc.MustUnmarshal(bz, &classTrace)
-	return classTrace
-}
-
-// MustMarshalClassTrace attempts to decode and return an ClassTrace object from
-// raw encoded bytes. It panics on error.
-func (k Keeper) MustMarshalClassTrace(classTrace types.ClassTrace) []byte {
-	return k.cdc.MustMarshal(&classTrace)
-}
-
-// UnmarshalClassTrace attempts to decode and return an ClassTrace object from
-// raw encoded bytes.
-func (k Keeper) UnmarshalClassTrace(bz []byte) (types.ClassTrace, error) {
-	var classTrace types.ClassTrace
-	if err := k.cdc.Unmarshal(bz, &classTrace); err != nil {
-		return types.ClassTrace{}, err
-	}
-
-	return classTrace, nil
 }
 
 // SetEscrowAddress attempts to save a account to auth module

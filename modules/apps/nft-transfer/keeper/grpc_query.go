@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types"
 )
@@ -18,7 +19,8 @@ import (
 var _ types.QueryServer = Keeper{}
 
 // ClassTrace implements the Query/ClassTrace gRPC method
-func (k Keeper) ClassTrace(c context.Context, req *types.QueryClassTraceRequest) (*types.QueryClassTraceResponse, error) {
+func (k Keeper) ClassTrace(c context.Context,
+	req *types.QueryClassTraceRequest) (*types.QueryClassTraceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -43,16 +45,15 @@ func (k Keeper) ClassTrace(c context.Context, req *types.QueryClassTraceRequest)
 }
 
 // ClassTraces implements the Query/ClassTraces gRPC method
-func (k Keeper) ClassTraces(c context.Context, req *types.QueryClassTracesRequest) (*types.QueryClassTracesResponse, error) {
+func (k Keeper) ClassTraces(c context.Context,
+	req *types.QueryClassTracesRequest) (*types.QueryClassTracesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
 	traces := types.Traces{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
-
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		result, err := k.UnmarshalClassTrace(value)
 		if err != nil {
@@ -73,7 +74,8 @@ func (k Keeper) ClassTraces(c context.Context, req *types.QueryClassTracesReques
 }
 
 // ClassHash implements the Query/ClassHash gRPC method
-func (k Keeper) ClassHash(c context.Context, req *types.QueryClassHashRequest) (*types.QueryClassHashResponse, error) {
+func (k Keeper) ClassHash(c context.Context,
+	req *types.QueryClassHashRequest) (*types.QueryClassHashResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -100,7 +102,8 @@ func (k Keeper) ClassHash(c context.Context, req *types.QueryClassHashRequest) (
 }
 
 // EscrowAddress implements the EscrowAddress gRPC method
-func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+func (k Keeper) EscrowAddress(c context.Context,
+	req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
