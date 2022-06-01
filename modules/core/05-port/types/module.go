@@ -105,7 +105,7 @@ type IBCModule interface {
 	) error
 }
 
-// ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknolwedgements.
+// ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
 	SendPacket(
 		ctx sdk.Context,
