@@ -5,16 +5,10 @@ package ibc.applications.icq.v1;
 option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/icq/types";
 
 import "gogoproto/gogo.proto";
-import "ibc/applications/icq/host/v1/host.proto";
+import "ibc/applications/icq/v1/icq.proto";
 
 // GenesisState defines the interchain query genesis state
 message GenesisState {
-  HostGenesisState host_genesis_state = 2
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"host_genesis_state\""];
-}
-
-// HostGenesisState defines the interchain accounts host genesis state
-message HostGenesisState {
-  string port = 1;
-  ibc.applications.icq.host.v1.Params params = 4 [(gogoproto.nullable) = false];
+  string host_port = 1;
+  Params params = 4 [(gogoproto.nullable) = false];
 }
