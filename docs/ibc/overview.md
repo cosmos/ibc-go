@@ -46,7 +46,7 @@ and the global client counter appended in the format: `{client-type}-{N}`.
 A `ClientState` should contain chain specific and light client specific information necessary for verifying updates
 and upgrades to the IBC client. The `ClientState` may contain information such as chain-id, latest height, proof specs, 
 unbonding periods or the status of the light client. The `ClientState` should not contain information that
-is specific to a given block at a certain height, this is the function of the `CosnensusState`. Each `ConsensusState`
+is specific to a given block at a certain height, this is the function of the `ConsensusState`. Each `ConsensusState`
 should be associated with a unique block and should be referenced using a height. IBC clients are given a 
 client identifier prefixed store to store their associated client state and consensus states along with 
 any metadata associated with the consensus states. Consensus states are stored using their associated height. 
