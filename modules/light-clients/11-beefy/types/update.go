@@ -171,7 +171,7 @@ func (cs *ClientState) verifyHeader(
 		}
 	}
 
-	mmrProof, err := cs.parachainHeadersToMmrProof(beefyHeader)
+	mmrProof, err := cs.parachainHeadersToMMRProof(beefyHeader)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to execute getMMRProf")
 	}
@@ -191,7 +191,7 @@ func (cs *ClientState) verifyHeader(
 	return nil
 }
 
-func (cs *ClientState) parachainHeadersToMmrProof(beefyHeader *Header) (*mmr.Proof, error) {
+func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Proof, error) {
 	var mmrLeaves = make([]mmr.Leaf, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
