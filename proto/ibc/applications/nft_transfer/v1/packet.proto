@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package ibc.applications.nft_transfer.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types";
+
+// NonFungibleTokenPacketData defines a struct for the packet payload
+// See NonFungibleTokenPacketData spec:
+// https://github.com/cosmos/ibc/tree/master/spec/app/ics-721-nft-transfer#data-structures
+message NonFungibleTokenPacketData {
+  // the class_id of tokens to be transferred
+  string class_id = 1;
+  // the class_uri of tokens to be transferred
+  string class_uri = 2;
+  // the non fungible tokens to be transferred
+  repeated string token_ids = 3;
+  // the non fungible tokens's uri to be transferred
+  repeated string token_uris = 4;
+  // the sender address
+  string sender = 5;
+  // the recipient address on the destination chain
+  string receiver = 6;
+}

@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package ibc.applications.nft_transfer.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "ibc/applications/nft_transfer/v1/transfer.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types";
+
+// Query provides defines the gRPC querier service.
+service Query {
+  // ClassTrace queries a class trace information.
+  rpc ClassTrace(QueryClassTraceRequest) returns (QueryClassTraceResponse) {
+    option (google.api.http).get = "/ibc/apps/nft_transfer/v1/class_traces/{hash}";
+  }
+
+  // ClassTraces queries all class traces.
+  rpc ClassTraces(QueryClassTracesRequest) returns (QueryClassTracesResponse) {
+    option (google.api.http).get = "/ibc/apps/nft_transfer/v1/class_traces";
+  }
+
+  // ClassHash queries a class hash information.
+  rpc ClassHash(QueryClassHashRequest) returns (QueryClassHashResponse) {
+    option (google.api.http).get = "/ibc/apps/nft_transfer/v1/class_hashes/{trace}";
+  }
+
+  // EscrowAddress returns the escrow address for a particular port and channel id.
+  rpc EscrowAddress(QueryEscrowAddressRequest) returns (QueryEscrowAddressResponse) {
+    option (google.api.http).get = "/ibc/apps/nft_transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address";
+  }
+}
+
+// QueryClassTraceRequest is the request type for the Query/ClassDenom RPC
+// method
+message QueryClassTraceRequest {
+  // hash (in hex format) or classID (full classID with ibc prefix) of the denomination trace information.
+  string hash = 1;
+}
+
+// QueryClassTraceResponse is the response type for the Query/ClassDenom RPC
+// method.
+message QueryClassTraceResponse {
+  // class_trace returns the requested class trace information.
+  ClassTrace class_trace = 1;
+}
+
+// QueryConnectionsRequest is the request type for the Query/ClassTraces RPC
+// method
+message QueryClassTracesRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryClassTracesResponse is the response type for the Query/ClassTraces RPC
+// method.
+message QueryClassTracesResponse {
+  // class_traces returns all class trace information.
+  repeated ClassTrace class_traces = 1 [(gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryClassHashRequest is the request type for the Query/ClassHash RPC
+// method
+message QueryClassHashRequest {
+  // The class trace ([port_id]/[channel_id])+/[denom]
+  string trace = 1;
+}
+
+// QueryClassHashResponse is the response type for the Query/ClassHash RPC
+// method.
+message QueryClassHashResponse {
+  // hash (in hex format) of the denomination trace information.
+  string hash = 1;
+}
+
+// QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
+message QueryEscrowAddressRequest {
+  // unique port identifier
+  string port_id = 1;
+  // unique channel identifier
+  string channel_id = 2;
+}
+
+// QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
+message QueryEscrowAddressResponse {
+  // the escrow account address
+  string escrow_address = 1;
+}
