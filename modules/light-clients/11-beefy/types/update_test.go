@@ -5,11 +5,12 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	// types2 "github.com/cosmos/cosmos-sdk/x/params/types"
-	// "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 	"os"
 	"sort"
 	"testing"
+
+	types2 "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 
 	"github.com/stretchr/testify/require"
 
@@ -26,7 +27,9 @@ import (
 )
 
 var (
-	BEEFY_TEST_MODE = os.Getenv("BEEFY_TEST_MODE")
+	BEEFY_TEST_MODE    = os.Getenv("BEEFY_TEST_MODE")
+	RPC_CLIENT_ADDRESS = os.Getenv("RPC_CLIENT_ADDRESS")
+	UPDATE_STATE_MODE  = os.Getenv("UPDATE_STATE_MODE")
 )
 
 func bytes32(bytes []byte) [32]byte {
@@ -38,11 +41,15 @@ func bytes32(bytes []byte) [32]byte {
 const PARA_ID = 2000
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
-	// if BEEFY_TEST_MODE != "true" {
-	// 	t.Skip("skipping test in short mode")
-	// }
+	if BEEFY_TEST_MODE != "true" {
+		t.Skip("skipping test in short mode")
+	}
+	if RPC_CLIENT_ADDRESS == "" {
+		t.Log("==== RPC_CLIENT_ADDRESS not set, will use default ==== ")
+		RPC_CLIENT_ADDRESS = "ws://127.0.0.1:9944"
+	}
 
-	relayApi, err := client.NewSubstrateAPI("ws://127.0.0.1:9944")
+	relayApi, err := client.NewSubstrateAPI(RPC_CLIENT_ADDRESS)
 	require.NoError(t, err)
 
 	t.Log("==== connected! ==== ")
@@ -68,15 +75,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 	t.Log("====== subcribed! ======")
 	var clientState *types.ClientState
 	defer sub.Unsubscribe()
-	count := 1
 
-	for {
+	for count := 0; count < 100; count++ {
 		select {
 		case msg, ok := <-ch:
-			// break once we've processed a 100 commitments
-			if count == 100 {
-				break
-			}
 			require.True(t, ok, "error reading channel")
 
 			compactCommitment := clientTypes.CompactSignedCommitment{}
@@ -240,7 +242,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 				// sort by paraId
 				var sortedParaIds []uint32
-				for paraId, _ := range paraHeaders {
+				for paraId := range paraHeaders {
 					sortedParaIds = append(sortedParaIds, paraId)
 				}
 				sort.SliceStable(sortedParaIds, func(i, j int) bool {
@@ -366,18 +368,18 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				require.Equal(t, clientState.MmrRootHash, signedCommitment.Commitment.Payload, "failed to update client state. LatestBeefyHeight: %d, Commitment.BlockNumber %d", clientState.LatestBeefyHeight, uint32(signedCommitment.Commitment.BlockNumber))
 			}
 			t.Log("====== successfully processed justification! ======")
-			
-			count++
 
-			// paramSpace := types2.NewSubspace(nil, nil, nil, nil, "test")
-			// //paramSpace = paramSpace.WithKeyTable(clientypes.ParamKeyTable())
+			if UPDATE_STATE_MODE == "true" {
+				paramSpace := types2.NewSubspace(nil, nil, nil, nil, "test")
+				//paramSpace = paramSpace.WithKeyTable(clientypes.ParamKeyTable())
 
-			// k := keeper.NewKeeper(nil, nil, paramSpace, nil, nil)
-			// ctx := sdk.Context{}
-			// store := k.ClientStore(ctx, "1234")
+				k := keeper.NewKeeper(nil, nil, paramSpace, nil, nil)
+				ctx := sdk.Context{}
+				store := k.ClientStore(ctx, "1234")
 
-			// err = clientState.UpdateState(sdk.Context{}, nil, store, &header)
-			// require.NoError(t, err)
+				err = clientState.UpdateState(sdk.Context{}, nil, store, &header)
+				require.NoError(t, err)
+			}
 
 			// TODO: assert that the consensus states were actually persisted
 			// TODO: tests against invalid proofs and consensus states
