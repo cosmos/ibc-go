@@ -115,13 +115,8 @@ func (im IBCModule) OnRecvPacket(
 		ack = types.NewErrorAcknowledgement(err)
 	}
 
-	if err == nil {
-		// Emit an event indicating a successful acknowledgement.
-		keeper.EmitSuccessfulAcknowledgementEvent(ctx, packet)
-	} else {
-		// Emit an event including the error msg.
-		keeper.EmitWriteErrorAcknowledgementEvent(ctx, packet, err)
-	}
+	// Emit an event indicating a successful or failed acknowledgement.
+	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
