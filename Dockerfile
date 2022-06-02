@@ -10,6 +10,7 @@ RUN go mod download
 
 ADD testing testing
 ADD modules modules
+ADD LICENSE LICENSE
 
 COPY Makefile .
 
