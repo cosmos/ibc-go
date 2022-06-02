@@ -64,6 +64,12 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
 	}
 
+	for _, tokenID := range msg.TokenIds {
+		if strings.TrimSpace(tokenID) == "" {
+			return sdkerrors.Wrap(ErrInvalidTokenID, "tokenId cannot be blank")
+		}
+	}
+
 	// NOTE: sender format must be validated as it is required by the GetSigners function.
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {

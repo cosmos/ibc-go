@@ -25,11 +25,11 @@ func GetQueryCmd() *cobra.Command {
 	return queryCmd
 }
 
-// NewTxCmd returns the transaction commands for IBC fungible token transfer
+// NewTxCmd returns the transaction commands for IBC non-fungible token transfer
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        "nft-transfer",
-		Short:                      "IBC fungible token transfer transaction subcommands",
+		Short:                      "IBC non-fungible token transfer transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,

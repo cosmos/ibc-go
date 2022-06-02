@@ -33,11 +33,12 @@ func GetClassPrefix(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/", portID, channelID)
 }
 
-// RemoveClassPrefix returns the unprefixed classID
+// RemoveClassPrefix returns the unprefixed classID.
+// After the receiving chain receives the packet,if isAwayFromOrigin=false, it means that nft is moving
+// in the direction of the original chain, and the portID/channelID prefix of the sending chain
+// in trace.path needs to be removed
 func RemoveClassPrefix(portID, channelID, classID string) string {
-	// since SendPacket did not prefix the classID, we must prefix classID here
 	classPrefix := GetClassPrefix(portID, channelID)
-	// NOTE: sourcePrefix contains the trailing "/"
 	return classID[len(classPrefix):]
 }
 

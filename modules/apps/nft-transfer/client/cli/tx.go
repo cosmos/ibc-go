@@ -26,7 +26,7 @@ const (
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "nft-transfer [src-port] [src-channel] [receiver] [classID] [tokenIDs]",
+		Use:   "transfer [src-port] [src-channel] [receiver] [classID] [tokenIDs]",
 		Short: "Transfer a non-fungible token through IBC",
 		Long: strings.TrimSpace(`Transfer a non-fungible token through IBC. Timeouts can be specified
 as absolute or relative using the "absolute-timeouts" flag. Timeout height can be set by passing in the height string
