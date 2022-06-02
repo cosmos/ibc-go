@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
@@ -22,9 +20,9 @@ import (
 //
 // Examples:
 //
-// 	- "portidone/channelidone/uatom" => DenomTrace{Path: "portidone/channelidone", BaseDenom: "uatom"}
-//  - "portidone/channelidone/portidtwo/channelidtwo/uatom" => DenomTrace{Path: "portidone/channelidone/portidtwo/channelidtwo", BaseDenom: "uatom"}
-//  - "portidone/channelidone/gamm/pool/1" => DenomTrace{Path: "portidone/channelidone", BaseDenom: "gamm/pool/1"}
+// 	- "transfer/channelidone/uatom" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "uatom"}
+//  - "transfer/channelidone/transfer/channelidtwo/uatom" => DenomTrace{Path: "transfer/channelidone/transfer/channelidtwo", BaseDenom: "uatom"}
+//  - "transfer/channelidone/gamm/pool/1" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "gamm/pool/1"}
 //  - "gamm/pool/1" => DenomTrace{Path: "", BaseDenom: "gamm/pool/1"}
 // 	- "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
@@ -37,25 +35,10 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		}
 	}
 
-	path := []string{}
-	baseDenom := []string{}
-	length := len(denomSplit)
-	r, err := regexp.Compile(fmt.Sprintf("%s[0-9]+", channeltypes.ChannelPrefix))
-	if err != nil {
-		panic("could not compile regexp 'channel-[0-9]+'")
-	}
-	for i := 0; i < length; i = i + 2 {
-		if i < length-1 && denomSplit[i] == PortID && r.MatchString(denomSplit[i+1]) {
-			path = append(path, denomSplit[i], denomSplit[i+1])
-		} else {
-			baseDenom = denomSplit[i:]
-			break
-		}
-	}
-
+	path, baseDenom := extractPathAndBaseDenomFromDenomTrace(denomSplit)
 	return DenomTrace{
-		Path:      strings.Join(path, "/"),
-		BaseDenom: strings.Join(baseDenom, "/"),
+		Path:      path,
+		BaseDenom: baseDenom,
 	}
 }
 
@@ -89,6 +72,22 @@ func (dt DenomTrace) GetFullDenomPath() string {
 		return dt.BaseDenom
 	}
 	return dt.GetPrefix() + dt.BaseDenom
+}
+
+func extractPathAndBaseDenomFromDenomTrace(denomTraceItems []string) (string, string) {
+	path := []string{}
+	baseDenom := []string{}
+	length := len(denomTraceItems)
+	for i := 0; i < length; i = i + 2 {
+		if i < length-1 && length > 2 && denomTraceItems[i] == PortID {
+			path = append(path, denomTraceItems[i], denomTraceItems[i+1])
+		} else {
+			baseDenom = denomTraceItems[i:]
+			break
+		}
+	}
+
+	return strings.Join(path, "/"), strings.Join(baseDenom, "/")
 }
 
 func validateTraceIdentifiers(identifiers []string) error {
@@ -164,8 +163,10 @@ func (t Traces) Sort() Traces {
 // ValidatePrefixedDenom checks that the denomination for an IBC fungible token packet denom is correctly prefixed.
 // The function will return no error if the given string follows one of the two formats:
 //
-//  - Prefixed denomination: '{portIDN}/{channelIDN}/.../{portID0}/{channelID0}/baseDenom'
+//  - Prefixed denomination: 'transfer/{channelIDN}/.../transfer/{channelID0}/baseDenom'
 //  - Unprefixed denomination: 'baseDenom'
+//
+// 'baseDenom' may or may not contain '/'s
 func ValidatePrefixedDenom(denom string) error {
 	denomSplit := strings.Split(denom, "/")
 	if denomSplit[0] == denom && strings.TrimSpace(denom) != "" {
@@ -177,7 +178,13 @@ func ValidatePrefixedDenom(denom string) error {
 		return sdkerrors.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
-	identifiers := denomSplit[:len(denomSplit)-1]
+	path, _ := extractPathAndBaseDenomFromDenomTrace(denomSplit)
+	if path == "" {
+		// NOTE: base denom contains slashes, so no base denomination validation
+		return nil
+	}
+
+	identifiers := strings.Split(path, "/")
 	return validateTraceIdentifiers(identifiers)
 }
 
