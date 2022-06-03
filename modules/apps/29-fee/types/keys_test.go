@@ -23,6 +23,49 @@ func TestKeyCounterpartyRelayer(t *testing.T) {
 	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.CounterpartyRelayerAddressKeyPrefix, relayerAddress, channelID))
 }
 
+func TestKeyDistributionAddress(t *testing.T) {
+	var (
+		relayerAddress = "relayer_address"
+		channelID      = "channel-0"
+	)
+
+	key := types.KeyDistributionAddress(relayerAddress, channelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.DistributionAddressKeyPrefix, relayerAddress, channelID))
+}
+
+func TestParseKeyDistributionAddress(t *testing.T) {
+	relayerAddress := "relayer_address"
+
+	testCases := []struct {
+		name    string
+		key     string
+		expPass bool
+	}{
+		{
+			"success",
+			string(types.KeyDistributionAddress(relayerAddress, ibctesting.FirstChannelID)),
+			true,
+		},
+		{
+			"incorrect key - key split has incorrect length",
+			"distributionAddress/relayer_address/transfer/channel-0",
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		address, channelID, err := types.ParseKeyDistributionAddress(tc.key)
+
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, relayerAddress, address)
+			require.Equal(t, ibctesting.FirstChannelID, channelID)
+		} else {
+			require.Error(t, err)
+		}
+	}
+}
+
 func TestKeyFeesInEscrow(t *testing.T) {
 	key := types.KeyFeesInEscrow(validPacketID)
 	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s/%d", types.FeesInEscrowPrefix, ibctesting.MockFeePort, ibctesting.FirstChannelID, 1))

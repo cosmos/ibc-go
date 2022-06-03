@@ -91,6 +91,25 @@ func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
 	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
 }
 
+func (suite *KeeperTestSuite) TestGetSetDistributionAddress() {
+	suite.coordinator.Setup(suite.path)
+
+	distributionAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetDistributionAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+	suite.Require().False(found)
+	suite.Require().Empty(distributionAddr)
+
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetDistributionAddress(
+		suite.chainA.GetContext(),
+		suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
+		suite.path.EndpointA.ChannelID,
+	)
+
+	distributionAddr, found = suite.chainA.GetSimApp().IBCFeeKeeper.GetDistributionAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), distributionAddr)
+}
+
 func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	suite.coordinator.Setup(suite.path)
 

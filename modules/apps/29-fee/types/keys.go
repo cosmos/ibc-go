@@ -31,6 +31,9 @@ const (
 	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
 
+	// DistributionAddressKeyPrefix is the key prefix for the fee distribution address stored in state
+	DistributionAddressKeyPrefix = "distributionAddress"
+
 	// FeesInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeesInEscrowPrefix = "feesInEscrow"
 
@@ -77,6 +80,23 @@ func KeyCounterpartyRelayer(address, channelID string) []byte {
 
 // ParseKeyCounterpartyRelayer returns the registered relayer address and channelID used to store the counterpartyrelayer address
 func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, error error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 3 {
+		return "", "", sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 3, len(keySplit),
+		)
+	}
+
+	return keySplit[1], keySplit[2], nil
+}
+
+// KeyDistributionAddress returns the key for relayer address -> distribution address mapping
+func KeyDistributionAddress(address, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", DistributionAddressKeyPrefix, address, channelID))
+}
+
+// ParseKeyDistributionAddress returns the registered relayer addresss and channelID used to the store the fee distribution address
+func ParseKeyDistributionAddress(key string) (address, channelID string, err error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {
 		return "", "", sdkerrors.Wrapf(

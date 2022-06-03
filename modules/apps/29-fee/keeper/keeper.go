@@ -241,6 +241,24 @@ func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetID channeltyp
 	store.Delete(key)
 }
 
+// GetDistributionAddress retrieves the fee distribution address stored in state given the provided channel identifier and relayer address
+func (k Keeper) GetDistributionAddress(ctx sdk.Context, address, channelID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyDistributionAddress(address, channelID)
+
+	if !store.Has(key) {
+		return "", false
+	}
+
+	return string(store.Get(key)), true
+}
+
+// SetDistributionAddress stores the fee distribution address in state keyed by the provided channel identifier and relayer address
+func (k Keeper) SetDistributionAddress(ctx sdk.Context, address, distributionAddress, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyDistributionAddress(address, channelID), []byte(distributionAddress))
+}
+
 // GetFeesInEscrow returns all escrowed packet fees for a given packetID
 func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId) (types.PacketFees, bool) {
 	store := ctx.KVStore(k.storeKey)

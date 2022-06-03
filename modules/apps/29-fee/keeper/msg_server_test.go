@@ -71,6 +71,69 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 	}
 }
 
+// TODO: Rewrite this test
+func (suite *KeeperTestSuite) TestRegisterDistributionAddress() {
+	var (
+		sender       string
+		counterparty string
+		channelID    string
+		ctx          sdk.Context
+	)
+
+	testCases := []struct {
+		name     string
+		expPass  bool
+		malleate func()
+	}{
+		{
+			"success",
+			true,
+			func() {},
+		},
+		{
+			"counterparty is an arbitrary string",
+			true,
+			func() { counterparty = "arbitrary-string" },
+		},
+		{
+			"channel does not exist",
+			false,
+			func() { channelID = "channel-22" },
+		},
+		{
+			"channel is not fee enabled",
+			false,
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(ctx, suite.path.EndpointA.ChannelConfig.PortID, channelID)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTest()
+		ctx = suite.chainA.GetContext()
+		suite.coordinator.Setup(suite.path) // setup channel
+
+		sender = suite.chainA.SenderAccount.GetAddress().String()
+		counterparty = suite.chainB.SenderAccount.GetAddress().String()
+		channelID = suite.path.EndpointA.ChannelID
+
+		tc.malleate()
+
+		msg := types.NewMsgRegisterDistributionAddress(suite.path.EndpointA.ChannelConfig.PortID, channelID, sender, counterparty)
+		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterDistributionAddress(sdk.WrapSDKContext(ctx), msg)
+
+		if tc.expPass {
+			suite.Require().NoError(err) // message committed
+
+			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetDistributionAddress(ctx, suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
+			suite.Require().Equal(counterparty, counterpartyAddress)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
 func (suite *KeeperTestSuite) TestPayPacketFee() {
 	var (
 		expEscrowBalance sdk.Coins

@@ -27,13 +27,35 @@ func (k Keeper) RegisterCounterpartyAddress(goCtx context.Context, msg *types.Ms
 		return nil, types.ErrFeeNotEnabled
 	}
 
-	k.SetCounterpartyAddress(
-		ctx, msg.Address, msg.CounterpartyAddress, msg.ChannelId,
-	)
+	k.SetCounterpartyAddress(ctx, msg.Address, msg.CounterpartyAddress, msg.ChannelId)
 
 	k.Logger(ctx).Info("registering counterparty address for relayer", "address", msg.Address, "counterparty address", msg.CounterpartyAddress, "channel", msg.ChannelId)
 
 	return &types.MsgRegisterCounterpartyAddressResponse{}, nil
+}
+
+// RegisterDistributionAddress defines a rpc handler method for MsgRegisterDistributionAddress
+// RegisterDistributionAddress is called by the relayer on each channelEnd and allows them to set an optional
+// distribution address to which escrowed packet fees will be paid out. The distribution address should be registered
+// on the source chain from which packets originate as this is where fee distribution takes place. This function may
+// be called more than once by a relayer, in which case, the latest distribution address is always used.
+func (k Keeper) RegisterDistributionAddress(goCtx context.Context, msg *types.MsgRegisterDistributionAddress) (*types.MsgRegisterDistributionAddressResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// only register distribution address if the channel exists and is fee enabled
+	if _, found := k.channelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId); !found {
+		return nil, channeltypes.ErrChannelNotFound
+	}
+
+	if !k.IsFeeEnabled(ctx, msg.PortId, msg.ChannelId) {
+		return nil, types.ErrFeeNotEnabled
+	}
+
+	k.SetDistributionAddress(ctx, msg.Address, msg.DistributionAddress, msg.ChannelId)
+
+	k.Logger(ctx).Info("registering distribution address for relayer", "address", msg.Address, "distribution address", msg.DistributionAddress, "channel", msg.ChannelId)
+
+	return &types.MsgRegisterDistributionAddressResponse{}, nil
 }
 
 // PayPacketFee defines a rpc handler method for MsgPayPacketFee
