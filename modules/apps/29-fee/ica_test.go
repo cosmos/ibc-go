@@ -14,39 +14,38 @@ import (
 )
 
 var (
-	// DefaultOwnerAddress defines a reusable bech32 address for testing purposes
-	DefaultOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	// defaultOwnerAddress defines a reusable bech32 address for testing purposes
+	defaultOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-	// DefaultPortID defines a resuable port identifier for testing purposes
-	DefaultPortID, _ = icatypes.NewControllerPortID(DefaultOwnerAddress)
+	// defaultPortID defines a resuable port identifier for testing purposes
+	defaultPortID, _ = icatypes.NewControllerPortID(defaultOwnerAddress)
 
-	// DefaultICAVersion defines a resuable interchainaccounts version string for testing purposes
-	DefaultICAVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
-		Version:                icatypes.Version,
-		ControllerConnectionId: ibctesting.FirstConnectionID,
-		HostConnectionId:       ibctesting.FirstConnectionID,
-		Encoding:               icatypes.EncodingProtobuf,
-		TxType:                 icatypes.TxTypeSDKMultiMsg,
-	}))
+	// defaultICAVersion defines a resuable interchainaccounts version string for testing purposes
+	defaultICAVersion = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 )
 
-// NewICAPath creates and returns a new ibctesting path configured for a fee enabled interchain accounts channel
-func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+// NewIncentivizedICAPath creates and returns a new ibctesting path configured for a fee enabled interchain accounts channel
+func NewIncentivizedICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 
-	feeICAVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: DefaultICAVersion}))
+	feeMetadata := types.Metadata{
+		FeeVersion: types.Version,
+		AppVersion: defaultICAVersion,
+	}
+
+	feeICAVersion := string(types.ModuleCdc.MustMarshalJSON(&feeMetadata))
 
 	path.SetChannelOrdered()
 	path.EndpointA.ChannelConfig.Version = feeICAVersion
 	path.EndpointB.ChannelConfig.Version = feeICAVersion
-	path.EndpointA.ChannelConfig.PortID = DefaultPortID
+	path.EndpointA.ChannelConfig.PortID = defaultPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
 
 	return path
 }
 
-// SetupICAPath performs the InterchainAccounts channel creation handshake using an ibctesting path
-func SetupICAPath(path *ibctesting.Path, owner string) error {
+// SetupPath performs the InterchainAccounts channel creation handshake using an ibctesting path
+func SetupPath(path *ibctesting.Path, owner string) error {
 	if err := RegisterInterchainAccount(path.EndpointA, owner); err != nil {
 		return err
 	}
@@ -66,7 +65,8 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return nil
 }
 
-// RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, commits state changes and updates the testing endpoint accordingly
+// RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
+// commits state changes and updates the testing endpoint accordingly
 func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
@@ -91,15 +91,18 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 // TestFeeInterchainAccounts Integration test to ensure ics29 works with ics27
 func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
-	path := NewICAPath(suite.chainA, suite.chainB)
+	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	err := SetupICAPath(path, DefaultOwnerAddress)
+	err := SetupPath(path, defaultOwnerAddress)
 	suite.Require().NoError(err)
 
 	// assert the newly established channel is fee enabled on both ends
 	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 	suite.Require().True(suite.chainB.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+
+	// register counterparty address on destination chainB as chainA.SenderAccounts[1] for recv fee distribution
+	suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), path.EndpointB.ChannelID)
 
 	// escrow a packet fee for the next send sequence
 	expectedFee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
@@ -172,8 +175,10 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	suite.Require().Empty(packetFees)
 
 	// assert the value of the account balance after fee distribution
+	// NOTE: the balance after fee distribution should be equal to the pre-escrow balance minus the recv fee
+	// as chainA.SenderAccount is used as the msg signer and refund address for msgPayPacketFee above as well as the relyer account for acknowledgements in path.RelayPacket()
 	postDistBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-	suite.Require().Equal(preEscrowBalance, postDistBalance)
+	suite.Require().Equal(preEscrowBalance.SubAmount(defaultRecvFee.AmountOf(sdk.DefaultBondDenom)), postDistBalance)
 }
 
 func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {
