@@ -3,36 +3,24 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// Class defines the expected nft class
-type Class interface {
-	GetId() string
-	GetUri() string
-}
-
-// NFT defines the expected nft
-type NFT interface {
-	GetId() string
-	GetUri() string
-}
-
 // NFTKeeper defines the expected nft keeper
-// TODO
 type NFTKeeper interface {
-	SaveClass(ctx sdk.Context, classID, classURI string) error
-	Mint(ctx sdk.Context, classID, tokenID, tokenURI, receiver string) error
-	Transfer(ctx sdk.Context, classID, tokenID, receiver string) error
-	Burn(ctx sdk.Context, classID, tokenID string) error
+	SaveClass(ctx sdk.Context, class nft.Class) error
+	Mint(ctx sdk.Context, token nft.NFT, receiver sdk.AccAddress) error
+	Transfer(ctx sdk.Context, classID string, nftID string, receiver sdk.AccAddress) error
+	Burn(ctx sdk.Context, classID string, nftID string) error
 
 	GetOwner(ctx sdk.Context, classID string, nftID string) sdk.AccAddress
 	HasClass(ctx sdk.Context, classID string) bool
-	GetClass(ctx sdk.Context, classID string) (Class, bool)
-	GetNFT(ctx sdk.Context, classID, tokenID string) (NFT, bool)
+	GetClass(ctx sdk.Context, classID string) (nft.Class, bool)
+	GetNFT(ctx sdk.Context, classID, nftID string) (nft.NFT, bool)
 }
 
 // ICS4Wrapper defines the expected ICS4Wrapper for middleware
