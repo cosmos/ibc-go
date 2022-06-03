@@ -27,6 +27,20 @@ func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, 
 	}
 }
 
+// NewDefaultMetadataString creates and returns a new JSON encoded version string containing the default ICS27 Metadata values
+// with the provided controller and host connection identifiers
+func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) string {
+	metadata := Metadata{
+		Version:                Version,
+		ControllerConnectionId: controllerConnectionID,
+		HostConnectionId:       hostConnectionID,
+		Encoding:               EncodingProtobuf,
+		TxType:                 TxTypeSDKMultiMsg,
+	}
+
+	return string(ModuleCdc.MustMarshalJSON(&metadata))
+}
+
 // IsPreviousMetadataEqual compares a metadata to a previous version string set in a channel struct.
 // It ensures all fields are equal except the Address string
 func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
