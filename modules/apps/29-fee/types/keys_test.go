@@ -24,18 +24,11 @@ func TestKeyCounterpartyRelayer(t *testing.T) {
 }
 
 func TestKeyDistributionAddress(t *testing.T) {
-	var (
-		relayerAddress = "relayer_address"
-		channelID      = "channel-0"
-	)
-
-	key := types.KeyDistributionAddress(relayerAddress, channelID)
-	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.DistributionAddressKeyPrefix, relayerAddress, channelID))
+	key := types.KeyDistributionAddress("relayer-address", ibctesting.FirstChannelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.DistributionAddressKeyPrefix, "relayer-address", ibctesting.FirstChannelID))
 }
 
 func TestParseKeyDistributionAddress(t *testing.T) {
-	relayerAddress := "relayer_address"
-
 	testCases := []struct {
 		name    string
 		key     string
@@ -43,7 +36,7 @@ func TestParseKeyDistributionAddress(t *testing.T) {
 	}{
 		{
 			"success",
-			string(types.KeyDistributionAddress(relayerAddress, ibctesting.FirstChannelID)),
+			string(types.KeyDistributionAddress("relayer-address", ibctesting.FirstChannelID)),
 			true,
 		},
 		{
@@ -58,7 +51,7 @@ func TestParseKeyDistributionAddress(t *testing.T) {
 
 		if tc.expPass {
 			require.NoError(t, err)
-			require.Equal(t, relayerAddress, address)
+			require.Equal(t, "relayer-address", address)
 			require.Equal(t, ibctesting.FirstChannelID, channelID)
 		} else {
 			require.Error(t, err)
