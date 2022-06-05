@@ -26,10 +26,6 @@ func (k Keeper) OnChanOpenInit(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.UNORDERED, order)
 	}
 
-	if !strings.HasPrefix(portID, types.PortPrefix) {
-		return sdkerrors.Wrapf(types.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", types.PortPrefix, portID)
-	}
-
 	if counterparty.PortId != types.PortID {
 		return sdkerrors.Wrapf(types.ErrInvalidHostPort, "expected %s, got %s", types.PortID, counterparty.PortId)
 	}
@@ -72,10 +68,6 @@ func (k Keeper) OnChanOpenTry(
 
 	if portID != types.PortID {
 		return "", sdkerrors.Wrapf(types.ErrInvalidHostPort, "expected %s, got %s", types.PortID, portID)
-	}
-
-	if !strings.HasPrefix(counterparty.PortId, types.PortPrefix) {
-		return "", sdkerrors.Wrapf(types.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", types.PortPrefix, counterparty.PortId)
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
