@@ -10,22 +10,30 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFees, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress) *GenesisState {
+func NewGenesisState(
+	identifiedFees []IdentifiedPacketFees,
+	feeEnabledChannels []FeeEnabledChannel,
+	registeredRelayers []RegisteredRelayerAddress,
+	forwardRelayers []ForwardRelayerAddress,
+	registeredDistributionAddrs []RegisteredDistributionAddress,
+) *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:     identifiedFees,
-		FeeEnabledChannels: feeEnabledChannels,
-		RegisteredRelayers: registeredRelayers,
-		ForwardRelayers:    forwardRelayers,
+		IdentifiedFees:                  identifiedFees,
+		FeeEnabledChannels:              feeEnabledChannels,
+		RegisteredRelayers:              registeredRelayers,
+		ForwardRelayers:                 forwardRelayers,
+		RegisteredDistributionAddresses: registeredDistributionAddrs,
 	}
 }
 
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:     []IdentifiedPacketFees{},
-		ForwardRelayers:    []ForwardRelayerAddress{},
-		FeeEnabledChannels: []FeeEnabledChannel{},
-		RegisteredRelayers: []RegisteredRelayerAddress{},
+		IdentifiedFees:                  []IdentifiedPacketFees{},
+		ForwardRelayers:                 []ForwardRelayerAddress{},
+		FeeEnabledChannels:              []FeeEnabledChannel{},
+		RegisteredRelayers:              []RegisteredRelayerAddress{},
+		RegisteredDistributionAddresses: []RegisteredDistributionAddress{},
 	}
 }
 
@@ -74,6 +82,21 @@ func (gs GenesisState) Validate() error {
 
 		if err := rel.PacketId.Validate(); err != nil {
 			return err
+		}
+	}
+
+	// Validate DistributionAddresses
+	for _, registeredDistAddr := range gs.RegisteredDistributionAddresses {
+		if _, err := sdk.AccAddressFromBech32(registeredDistAddr.Address); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
+		}
+
+		if strings.TrimSpace(registeredDistAddr.DistributionAddress) == "" {
+			return ErrDistributionAddressEmpty
+		}
+
+		if err := host.ChannelIdentifierValidator(registeredDistAddr.ChannelId); err != nil {
+			return sdkerrors.Wrapf(err, "invalid channel identifier: %s", registeredDistAddr.ChannelId)
 		}
 	}
 

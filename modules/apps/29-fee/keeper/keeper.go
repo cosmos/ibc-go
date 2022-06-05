@@ -259,6 +259,31 @@ func (k Keeper) SetDistributionAddress(ctx sdk.Context, address, distributionAdd
 	store.Set(types.KeyDistributionAddress(address, channelID), []byte(distributionAddress))
 }
 
+// GetAllDistributionAddresses returns all registered distribution addresses
+func (k Keeper) GetAllDistributionAddresses(ctx sdk.Context) []types.RegisteredDistributionAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.DistributionAddressKeyPrefix))
+	defer iterator.Close()
+
+	var distributionAddrs []types.RegisteredDistributionAddress
+	for ; iterator.Valid(); iterator.Next() {
+		addr, channelID, err := types.ParseKeyDistributionAddress(string(iterator.Key()))
+		if err != nil {
+			panic(err)
+		}
+
+		distributionAddr := types.RegisteredDistributionAddress{
+			Address:             addr,
+			DistributionAddress: string(iterator.Value()),
+			ChannelId:           channelID,
+		}
+
+		distributionAddrs = append(distributionAddrs, distributionAddr)
+	}
+
+	return distributionAddrs
+}
+
 // GetFeesInEscrow returns all escrowed packet fees for a given packetID
 func (k Keeper) GetFeesInEscrow(ctx sdk.Context, packetID channeltypes.PacketId) (types.PacketFees, bool) {
 	store := ctx.KVStore(k.storeKey)

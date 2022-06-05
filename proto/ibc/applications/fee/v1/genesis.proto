@@ -22,6 +22,9 @@ message GenesisState {
   // list of forward relayer addresses
   repeated ForwardRelayerAddress forward_relayers = 4
       [(gogoproto.moretags) = "yaml:\"forward_relayers\"", (gogoproto.nullable) = false];
+  // list of registered distribution addresses
+  repeated RegisteredDistributionAddress registered_distribution_addresses = 5
+      [(gogoproto.moretags) = "yaml:\"registered_distribution_addresses\"", (gogoproto.nullable) = false];
 }
 
 // FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
@@ -49,4 +52,14 @@ message ForwardRelayerAddress {
   // unique packet identifer comprised of the channel ID, port ID and sequence
   ibc.core.channel.v1.PacketId packet_id = 2
       [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_id\""];
+}
+
+// RegisteredDistributionAddress contains the relayer address and distribution address for a specific channel
+message RegisteredDistributionAddress {
+  // the relayer address
+  string address = 1;
+  // the distribution address
+  string distribution_address = 2 [(gogoproto.moretags) = "yaml:\"distribution_address\""];
+  // unique channel identifier
+  string channel_id = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }

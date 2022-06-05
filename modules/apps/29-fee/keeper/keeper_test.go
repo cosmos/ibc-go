@@ -276,3 +276,28 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 	suite.Require().Len(addr, len(expectedAddr))
 	suite.Require().Equal(addr, expectedAddr)
 }
+
+func (suite *KeeperTestSuite) TestGetAllDistributionAddresses() {
+	var expectedDistAddrs []types.RegisteredDistributionAddress
+
+	for i := 0; i < 3; i++ {
+		suite.chainA.GetSimApp().IBCFeeKeeper.SetDistributionAddress(
+			suite.chainA.GetContext(),
+			suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			ibctesting.FirstChannelID,
+		)
+
+		registeredDistAddr := types.RegisteredDistributionAddress{
+			Address:             suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			DistributionAddress: suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			ChannelId:           ibctesting.FirstChannelID,
+		}
+
+		expectedDistAddrs = append(expectedDistAddrs, registeredDistAddr)
+	}
+
+	registeredDistAddrs := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllDistributionAddresses(suite.chainA.GetContext())
+	suite.Require().Len(registeredDistAddrs, len(expectedDistAddrs))
+	suite.Require().ElementsMatch(expectedDistAddrs, registeredDistAddrs)
+}
