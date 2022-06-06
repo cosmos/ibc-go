@@ -11,20 +11,20 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// HostIBCModule implements the ICS26 interface for interchain query host chains
-type HostIBCModule struct {
+// IBCModule implements the ICS26 interface for interchain query host chains
+type IBCModule struct {
 	keeper keeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the associated keeper
-func NewIBCModule(k keeper.Keeper) HostIBCModule {
-	return HostIBCModule{
+func NewIBCModule(k keeper.Keeper) IBCModule {
+	return IBCModule{
 		keeper: k,
 	}
 }
 
 // OnChanOpenInit implements the IBCModule interface
-func (im HostIBCModule) OnChanOpenInit(
+func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -38,7 +38,7 @@ func (im HostIBCModule) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCModule interface
-func (im HostIBCModule) OnChanOpenTry(
+func (im IBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -56,7 +56,7 @@ func (im HostIBCModule) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface
-func (im HostIBCModule) OnChanOpenAck(
+func (im IBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -67,7 +67,7 @@ func (im HostIBCModule) OnChanOpenAck(
 }
 
 // OnChanOpenAck implements the IBCModule interface
-func (im HostIBCModule) OnChanOpenConfirm(
+func (im IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -76,11 +76,11 @@ func (im HostIBCModule) OnChanOpenConfirm(
 		return types.ErrHostDisabled
 	}
 
-	return im.keeper.OnChanOpenConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanCloseInit implements the IBCModule interface
-func (im HostIBCModule) OnChanCloseInit(
+func (im IBCModule) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -90,16 +90,16 @@ func (im HostIBCModule) OnChanCloseInit(
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
-func (im HostIBCModule) OnChanCloseConfirm(
+func (im IBCModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
-	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnRecvPacket implements the IBCModule interface
-func (im HostIBCModule) OnRecvPacket(
+func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
@@ -121,7 +121,7 @@ func (im HostIBCModule) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-func (im HostIBCModule) OnAcknowledgementPacket(
+func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -131,7 +131,7 @@ func (im HostIBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (im HostIBCModule) OnTimeoutPacket(
+func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
