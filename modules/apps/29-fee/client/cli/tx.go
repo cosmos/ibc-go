@@ -98,8 +98,8 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 	return cmd
 }
 
-// NewRegisterCounterpartyAddress returns the command to create a MsgRegisterCounterpartyAddress
-func NewRegisterCounterpartyAddress() *cobra.Command {
+// NewRegisterCounterpartyAddressCmd returns the command to create a MsgRegisterCounterpartyAddress
+func NewRegisterCounterpartyAddressCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "register-counterparty [port-id] [channel-id] [address] [counterparty-address] ",
 		Short:   "Register a counterparty relayer address on a given channel.",
@@ -113,6 +113,31 @@ func NewRegisterCounterpartyAddress() *cobra.Command {
 			}
 
 			msg := types.NewMsgRegisterCounterpartyAddress(args[0], args[1], args[2], args[3])
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewRegisterDistributionAddressCmd returns the command to create a MsgRegisterDistributionAddress
+func NewRegisterDistributionAddressCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "register-distribution-address [port-id] [channel-id] [address] [distribution-address] ",
+		Short:   "Register a distribution address on a given channel.",
+		Long:    strings.TrimSpace(`Register a distribution address on a given channel.`),
+		Example: fmt.Sprintf("%s tx ibc-fee register-distribution-address transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5", version.AppName),
+		Args:    cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRegisterDistributionAddress(args[0], args[1], args[2], args[3])
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
