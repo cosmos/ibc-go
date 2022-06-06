@@ -1,4 +1,4 @@
-package nt
+package nfttransfer
 
 import (
 	"context"

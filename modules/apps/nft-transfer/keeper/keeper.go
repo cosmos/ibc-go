@@ -22,8 +22,26 @@ type Keeper struct {
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	nftKeeper     types.NFTKeeper
-	authkeeper    types.AccountKeeper
+	authKeeper    types.AccountKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
+}
+
+// NewKeeper creates a new IBC nft-transfer Keeper instance
+func NewKeeper(
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
+	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	authKeeper types.AccountKeeper, nftKeeper types.NFTKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
+) Keeper {
+	return Keeper{
+		cdc:           cdc,
+		storeKey:      key,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		portKeeper:    portKeeper,
+		authKeeper:    authKeeper,
+		nftKeeper:     nftKeeper,
+		scopedKeeper:  scopedKeeper,
+	}
 }
 
 // Logger returns a module-specific logger.
@@ -71,8 +89,8 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 func (k Keeper) SetEscrowAddress(ctx sdk.Context, portID, channelID string) {
 	// create the escrow address for the tokens
 	escrowAddress := types.GetEscrowAddress(portID, channelID)
-	if !k.authkeeper.HasAccount(ctx, escrowAddress) {
-		acc := k.authkeeper.NewAccountWithAddress(ctx, escrowAddress)
-		k.authkeeper.SetAccount(ctx, acc)
+	if !k.authKeeper.HasAccount(ctx, escrowAddress) {
+		acc := k.authKeeper.NewAccountWithAddress(ctx, escrowAddress)
+		k.authKeeper.SetAccount(ctx, acc)
 	}
 }

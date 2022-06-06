@@ -45,4 +45,5 @@ type AccountKeeper interface {
 	// Set an account in the store.
 	SetAccount(sdk.Context, types.AccountI)
 	HasAccount(ctx sdk.Context, addr sdk.AccAddress) bool
+	GetModuleAddress(name string) sdk.AccAddress
 }

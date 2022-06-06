@@ -9,7 +9,7 @@ import (
 
 const (
 	// ModuleName defines the IBC nft-transfer name
-	ModuleName = "nft-transfer"
+	ModuleName = "nonfungibletokentranfer"
 
 	// Version defines the current version the IBC nft-tranfer
 	// module supports
