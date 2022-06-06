@@ -9,9 +9,6 @@ const (
 	// PortID is the default port id that the interchain query module binds to
 	PortID = "icqhost"
 
-	// PortPrefix is the default port prefix that the interchain query controller submodules bind to
-	PortPrefix = "icqcontroller-"
-
 	// Version defines the current version for interchain query
 	Version = "icq-1"
 

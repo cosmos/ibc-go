@@ -21,10 +21,6 @@ func (k Keeper) SendQuery(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) (uint64, error) {
-	if !k.IsControllerEnabled(ctx) {
-		return 0, types.ErrControllerDisabled
-	}
-
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)

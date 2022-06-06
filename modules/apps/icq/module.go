@@ -25,7 +25,7 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 
-	_ porttypes.IBCModule = HostIBCModule{}
+	_ porttypes.IBCModule = IBCModule{}
 )
 
 // AppModuleBasic is the IBC interchain query AppModuleBasic

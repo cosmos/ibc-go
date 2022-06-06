@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -11,45 +9,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
-
-func (k Keeper) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version string,
-) error {
-	if order != channeltypes.UNORDERED {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.UNORDERED, order)
-	}
-
-	if counterparty.PortId != types.PortID {
-		return sdkerrors.Wrapf(types.ErrInvalidHostPort, "expected %s, got %s", types.PortID, counterparty.PortId)
-	}
-
-	return nil
-}
-
-// OnChanOpenAck sets the active channel if it's valid.
-func (k Keeper) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyVersion string,
-) error {
-	if portID == types.PortID {
-		return sdkerrors.Wrapf(types.ErrInvalidControllerPort, "portID cannot be host chain port ID: %s", types.PortID)
-	}
-
-	if !strings.HasPrefix(portID, types.PortPrefix) {
-		return sdkerrors.Wrapf(types.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", types.PortPrefix, portID)
-	}
-
-	return nil
-}
 
 // OnChanOpenTry performs basic validation of the ICQ channel.
 func (k Keeper) OnChanOpenTry(
@@ -77,24 +36,4 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	return string(types.Version), nil
-}
-
-// OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain
-func (k Keeper) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-
-	return nil
-}
-
-// OnChanCloseConfirm removes the active channel stored in state
-func (k Keeper) OnChanCloseConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-
-	return nil
 }
