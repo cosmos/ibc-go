@@ -56,6 +56,12 @@ service Query {
         "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/counterparty_address";
   }
 
+  // DistributionAddress returns the registered distribution address for a specific channel given the relayer address
+  rpc DistributionAddress(QueryDistributionAddressRequest) returns (QueryDistributionAddressResponse) {
+    option (google.api.http).get =
+        "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/distribution_address";
+  }
+
   // FeeEnabledChannels returns a list of all fee enabled channels
   rpc FeeEnabledChannels(QueryFeeEnabledChannelsRequest) returns (QueryFeeEnabledChannelsResponse) {
     option (google.api.http).get = "/ibc/apps/fee/v1/fee_enabled";
@@ -172,6 +178,20 @@ message QueryCounterpartyAddressRequest {
 message QueryCounterpartyAddressResponse {
   // the counterparty address used to compensate forward relaying
   string counterparty_address = 1 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
+}
+
+// QueryDistributionAddressRequest defines the request type for the DistributionAddress rpc
+message QueryDistributionAddressRequest {
+  // unique channel identifier
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // the relayer address to which the distribution address is registered
+  string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+}
+
+// QueryDistributionAddressResponse defines the response type for the DistributionAddress rpc
+message QueryDistributionAddressResponse {
+  // the distribution address to which packet fees are paid out
+  string distribution_address = 1 [(gogoproto.moretags) = "yaml:\"distribution_address\""];
 }
 
 // QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc

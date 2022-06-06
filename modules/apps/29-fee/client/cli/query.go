@@ -278,6 +278,45 @@ func GetCmdCounterpartyAddress() *cobra.Command {
 	return cmd
 }
 
+// GetCmdDistributionAddress returns the command handler for the Query/DistributionAddress rpc.
+func GetCmdDistributionAddress() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "distribution-address [channel-id] [address]",
+		Short:   "Query the relayer distribution address on a given channel",
+		Long:    "Query the relayer distribution address on a given channel",
+		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf("%s query ibc-fee distribution-address channel-5 cosmos1layxcsmyye0dc0har9sdfzwckaz8sjwlfsj8zs", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			if _, err := sdk.AccAddressFromBech32(args[1]); err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryDistributionAddressRequest{
+				ChannelId:      args[0],
+				RelayerAddress: args[1],
+			}
+
+			res, err := queryClient.DistributionAddress(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdFeeEnabledChannels returns the command handler for the Query/FeeEnabledChannels rpc.
 func GetCmdFeeEnabledChannels() *cobra.Command {
 	cmd := &cobra.Command{

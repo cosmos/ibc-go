@@ -189,6 +189,24 @@ func (k Keeper) CounterpartyAddress(goCtx context.Context, req *types.QueryCount
 	}, nil
 }
 
+// DistributionAddress implements the Query/DistributionAddress gRPC method and returns the registered distribution address to which packet fees are paid out
+func (k Keeper) DistributionAddress(goCtx context.Context, req *types.QueryDistributionAddressRequest) (*types.QueryDistributionAddressResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	distributionAddr, found := k.GetDistributionAddress(ctx, req.RelayerAddress, req.ChannelId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "distribution address not found for address: %s on channel: %s", req.RelayerAddress, req.ChannelId)
+	}
+
+	return &types.QueryDistributionAddressResponse{
+		DistributionAddress: distributionAddr,
+	}, nil
+}
+
 // FeeEnabledChannels implements the Query/FeeEnabledChannels gRPC method and returns a list of fee enabled channels
 func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEnabledChannelsRequest) (*types.QueryFeeEnabledChannelsResponse, error) {
 	if req == nil {
