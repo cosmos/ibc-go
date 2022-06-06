@@ -10,9 +10,9 @@ import (
 )
 
 // GetClassTrace retreives the full identifiers trace and base classId from the store.
-func (k Keeper) GetClassTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (types.ClassTrace, bool) {
+func (k Keeper) GetClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) (types.ClassTrace, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
-	bz := store.Get(denomTraceHash)
+	bz := store.Get(classTraceHash)
 	if bz == nil {
 		return types.ClassTrace{}, false
 	}
