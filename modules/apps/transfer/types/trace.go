@@ -20,11 +20,11 @@ import (
 //
 // Examples:
 //
-// 	- "transfer/channelidone/uatom" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "uatom"}
-//  - "transfer/channelidone/transfer/channelidtwo/uatom" => DenomTrace{Path: "transfer/channelidone/transfer/channelidtwo", BaseDenom: "uatom"}
-//  - "transfer/channelidone/gamm/pool/1" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "gamm/pool/1"}
-//  - "gamm/pool/1" => DenomTrace{Path: "", BaseDenom: "gamm/pool/1"}
-// 	- "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
+// - "transfer/channelidone/uatom" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "uatom"}
+// - "transfer/channelidone/transfer/channelidtwo/uatom" => DenomTrace{Path: "transfer/channelidone/transfer/channelidtwo", BaseDenom: "uatom"}
+// - "transfer/channelidone/gamm/pool/1" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "gamm/pool/1"}
+// - "gamm/pool/1" => DenomTrace{Path: "", BaseDenom: "gamm/pool/1"}
+// - "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
 	denomSplit := strings.Split(rawDenom, "/")
 
@@ -74,9 +74,11 @@ func (dt DenomTrace) GetFullDenomPath() string {
 	return dt.GetPrefix() + dt.BaseDenom
 }
 
+// extractPathAndBaseDenomFromDenomTrace returns the trace path and the base denom from
+// the elements that constitute the complete denom trace.
 func extractPathAndBaseDenomFromDenomTrace(denomTraceItems []string) (string, string) {
-	path := []string{}
-	baseDenom := []string{}
+	var path []string
+	var baseDenom []string
 	length := len(denomTraceItems)
 	for i := 0; i < length; i = i + 2 {
 		if i < length-1 && length > 2 && denomTraceItems[i] == PortID {
