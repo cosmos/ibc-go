@@ -25,7 +25,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 
 	for _, registeredDistAddr := range state.RegisteredDistributionAddresses {
-		k.SetDistributionAddress(ctx, registeredDistAddr.Address, registeredDistAddr.DistributionAddress, registeredDistAddr.ChannelId)
+		k.SetPayeeAddress(ctx, registeredDistAddr.Address, registeredDistAddr.DistributionAddress, registeredDistAddr.ChannelId)
 	}
 }
 
@@ -36,6 +36,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		FeeEnabledChannels:              k.GetAllFeeEnabledChannels(ctx),
 		RegisteredRelayers:              k.GetAllRelayerAddresses(ctx),
 		ForwardRelayers:                 k.GetAllForwardRelayerAddresses(ctx),
-		RegisteredDistributionAddresses: k.GetAllDistributionAddresses(ctx),
+		RegisteredDistributionAddresses: k.GetAllPayeeAddresses(ctx),
 	}
 }

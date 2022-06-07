@@ -29,6 +29,88 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgRegisterPayee defines the request type for the RegisterPayee rpc
+type MsgRegisterPayee struct {
+	// unique port identifier
+	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
+	// unique channel identifier
+	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// the relayer address
+	RelayerAddress string `protobuf:"bytes,3,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty" yaml:"relayer_address"`
+	// the fee payee address
+	Payee string `protobuf:"bytes,4,opt,name=payee,proto3" json:"payee,omitempty"`
+}
+
+func (m *MsgRegisterPayee) Reset()         { *m = MsgRegisterPayee{} }
+func (m *MsgRegisterPayee) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterPayee) ProtoMessage()    {}
+func (*MsgRegisterPayee) Descriptor() ([]byte, []int) {
+	return fileDescriptor_05c93128649f1b96, []int{0}
+}
+func (m *MsgRegisterPayee) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRegisterPayee) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRegisterPayee.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRegisterPayee) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterPayee.Merge(m, src)
+}
+func (m *MsgRegisterPayee) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRegisterPayee) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterPayee.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRegisterPayee proto.InternalMessageInfo
+
+// MsgRegisterPayeeResponse defines the response type for the RegisterPayee rpc
+type MsgRegisterPayeeResponse struct {
+}
+
+func (m *MsgRegisterPayeeResponse) Reset()         { *m = MsgRegisterPayeeResponse{} }
+func (m *MsgRegisterPayeeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterPayeeResponse) ProtoMessage()    {}
+func (*MsgRegisterPayeeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_05c93128649f1b96, []int{1}
+}
+func (m *MsgRegisterPayeeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRegisterPayeeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRegisterPayeeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRegisterPayeeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterPayeeResponse.Merge(m, src)
+}
+func (m *MsgRegisterPayeeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRegisterPayeeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterPayeeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRegisterPayeeResponse proto.InternalMessageInfo
+
 // MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
 type MsgRegisterCounterpartyAddress struct {
 	// the relayer address
@@ -45,7 +127,7 @@ func (m *MsgRegisterCounterpartyAddress) Reset()         { *m = MsgRegisterCount
 func (m *MsgRegisterCounterpartyAddress) String() string { return proto.CompactTextString(m) }
 func (*MsgRegisterCounterpartyAddress) ProtoMessage()    {}
 func (*MsgRegisterCounterpartyAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_05c93128649f1b96, []int{0}
+	return fileDescriptor_05c93128649f1b96, []int{2}
 }
 func (m *MsgRegisterCounterpartyAddress) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -84,7 +166,7 @@ func (m *MsgRegisterCounterpartyAddressResponse) Reset() {
 func (m *MsgRegisterCounterpartyAddressResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRegisterCounterpartyAddressResponse) ProtoMessage()    {}
 func (*MsgRegisterCounterpartyAddressResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_05c93128649f1b96, []int{1}
+	return fileDescriptor_05c93128649f1b96, []int{3}
 }
 func (m *MsgRegisterCounterpartyAddressResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -112,90 +194,6 @@ func (m *MsgRegisterCounterpartyAddressResponse) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_MsgRegisterCounterpartyAddressResponse proto.InternalMessageInfo
-
-// MsgRegisterDistributionAddress defines the request type for the RegisterDistributionAddress rpc
-type MsgRegisterDistributionAddress struct {
-	// the relayer address
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// the fee distribution address
-	DistributionAddress string `protobuf:"bytes,2,opt,name=distribution_address,json=distributionAddress,proto3" json:"distribution_address,omitempty" yaml:"distribution_address"`
-	// unique port identifier
-	PortId string `protobuf:"bytes,3,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
-	// unique channel identifier
-	ChannelId string `protobuf:"bytes,4,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
-}
-
-func (m *MsgRegisterDistributionAddress) Reset()         { *m = MsgRegisterDistributionAddress{} }
-func (m *MsgRegisterDistributionAddress) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterDistributionAddress) ProtoMessage()    {}
-func (*MsgRegisterDistributionAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_05c93128649f1b96, []int{2}
-}
-func (m *MsgRegisterDistributionAddress) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRegisterDistributionAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRegisterDistributionAddress.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRegisterDistributionAddress) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterDistributionAddress.Merge(m, src)
-}
-func (m *MsgRegisterDistributionAddress) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRegisterDistributionAddress) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterDistributionAddress.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRegisterDistributionAddress proto.InternalMessageInfo
-
-// MsgRegisterDistributionAddressResponse defines the response type for the RegisterDistributionAddress rpc
-type MsgRegisterDistributionAddressResponse struct {
-}
-
-func (m *MsgRegisterDistributionAddressResponse) Reset() {
-	*m = MsgRegisterDistributionAddressResponse{}
-}
-func (m *MsgRegisterDistributionAddressResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterDistributionAddressResponse) ProtoMessage()    {}
-func (*MsgRegisterDistributionAddressResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_05c93128649f1b96, []int{3}
-}
-func (m *MsgRegisterDistributionAddressResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRegisterDistributionAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRegisterDistributionAddressResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRegisterDistributionAddressResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterDistributionAddressResponse.Merge(m, src)
-}
-func (m *MsgRegisterDistributionAddressResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRegisterDistributionAddressResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterDistributionAddressResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRegisterDistributionAddressResponse proto.InternalMessageInfo
 
 // MsgPayPacketFee defines the request type for the PayPacketFee rpc
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
@@ -363,10 +361,10 @@ func (m *MsgPayPacketFeeAsyncResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgPayPacketFeeAsyncResponse proto.InternalMessageInfo
 
 func init() {
+	proto.RegisterType((*MsgRegisterPayee)(nil), "ibc.applications.fee.v1.MsgRegisterPayee")
+	proto.RegisterType((*MsgRegisterPayeeResponse)(nil), "ibc.applications.fee.v1.MsgRegisterPayeeResponse")
 	proto.RegisterType((*MsgRegisterCounterpartyAddress)(nil), "ibc.applications.fee.v1.MsgRegisterCounterpartyAddress")
 	proto.RegisterType((*MsgRegisterCounterpartyAddressResponse)(nil), "ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse")
-	proto.RegisterType((*MsgRegisterDistributionAddress)(nil), "ibc.applications.fee.v1.MsgRegisterDistributionAddress")
-	proto.RegisterType((*MsgRegisterDistributionAddressResponse)(nil), "ibc.applications.fee.v1.MsgRegisterDistributionAddressResponse")
 	proto.RegisterType((*MsgPayPacketFee)(nil), "ibc.applications.fee.v1.MsgPayPacketFee")
 	proto.RegisterType((*MsgPayPacketFeeResponse)(nil), "ibc.applications.fee.v1.MsgPayPacketFeeResponse")
 	proto.RegisterType((*MsgPayPacketFeeAsync)(nil), "ibc.applications.fee.v1.MsgPayPacketFeeAsync")
@@ -376,51 +374,53 @@ func init() {
 func init() { proto.RegisterFile("ibc/applications/fee/v1/tx.proto", fileDescriptor_05c93128649f1b96) }
 
 var fileDescriptor_05c93128649f1b96 = []byte{
-	// 698 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x95, 0xbf, 0x4f, 0xdb, 0x40,
-	0x14, 0xc7, 0x63, 0x42, 0x81, 0x5c, 0x11, 0x34, 0x06, 0x4a, 0x08, 0xd4, 0xa6, 0x1e, 0xaa, 0x48,
-	0x15, 0x76, 0xf9, 0xa5, 0xaa, 0x2c, 0x88, 0x50, 0xa1, 0x32, 0xa0, 0xa2, 0x53, 0xa7, 0xaa, 0x12,
-	0x72, 0xce, 0x2f, 0xc6, 0x6d, 0xe2, 0xb3, 0x7c, 0x4e, 0x54, 0xff, 0x07, 0x1d, 0xd9, 0xba, 0xf2,
-	0xe7, 0x30, 0x32, 0x74, 0xe8, 0x64, 0x55, 0xb0, 0x74, 0xce, 0xda, 0xa5, 0x3a, 0x9f, 0x1d, 0x39,
-	0xa9, 0x13, 0xa5, 0x5d, 0xba, 0xdd, 0xdd, 0xfb, 0xbe, 0x5f, 0x1f, 0xdf, 0xf3, 0xa1, 0x4d, 0xa7,
-	0x41, 0x0c, 0xd3, 0xf3, 0x5a, 0x0e, 0x31, 0x03, 0x87, 0xba, 0xcc, 0x68, 0x02, 0x18, 0xdd, 0x6d,
-	0x23, 0xf8, 0xac, 0x7b, 0x3e, 0x0d, 0xa8, 0xbc, 0xea, 0x34, 0x88, 0x9e, 0x55, 0xe8, 0x4d, 0x00,
-	0xbd, 0xbb, 0x5d, 0x5d, 0xb6, 0xa9, 0x4d, 0x63, 0x8d, 0xc1, 0x57, 0x42, 0x5e, 0x7d, 0x3a, 0x2a,
-	0x20, 0xf7, 0xca, 0x48, 0x08, 0xf5, 0xc1, 0x20, 0x97, 0xa6, 0xeb, 0x42, 0x8b, 0x9b, 0x93, 0xa5,
-	0x90, 0x68, 0xbf, 0x24, 0xa4, 0x9c, 0x31, 0x1b, 0x83, 0xed, 0xb0, 0x00, 0xfc, 0x63, 0xda, 0x71,
-	0x03, 0xf0, 0x3d, 0xd3, 0x0f, 0xc2, 0x23, 0xcb, 0xf2, 0x81, 0x31, 0xb9, 0x82, 0x66, 0x4d, 0xb1,
-	0xac, 0x48, 0x9b, 0x52, 0xad, 0x84, 0xd3, 0xad, 0x8c, 0xd1, 0x32, 0xc9, 0x38, 0x5c, 0xa4, 0xb2,
-	0x29, 0x2e, 0xab, 0xab, 0xbd, 0x48, 0x5d, 0x0f, 0xcd, 0x76, 0xeb, 0x40, 0xcb, 0x53, 0x69, 0x78,
-	0x89, 0xe4, 0x64, 0x7b, 0x8e, 0x66, 0x3d, 0xea, 0x07, 0x17, 0x8e, 0x55, 0x29, 0xc6, 0x61, 0xe4,
-	0x5e, 0xa4, 0x2e, 0x88, 0x30, 0x89, 0x41, 0xc3, 0x33, 0x7c, 0x75, 0x6a, 0xc9, 0x7b, 0x08, 0x25,
-	0xed, 0x70, 0xfd, 0x74, 0xac, 0x5f, 0xe9, 0x45, 0x6a, 0x39, 0x49, 0xdb, 0xb7, 0x69, 0xb8, 0x94,
-	0x6c, 0x4e, 0xad, 0x83, 0xb9, 0x2f, 0xd7, 0x6a, 0xe1, 0xe7, 0xb5, 0x5a, 0xd0, 0x6a, 0xe8, 0xd9,
-	0xf8, 0xe6, 0x31, 0x30, 0x8f, 0xba, 0x0c, 0x86, 0x39, 0xbd, 0x76, 0x58, 0xe0, 0x3b, 0x8d, 0x0e,
-	0x07, 0x3f, 0x11, 0x27, 0x2b, 0xe3, 0x30, 0x9a, 0x53, 0x9e, 0x4a, 0xc3, 0x4b, 0x56, 0x4e, 0xb6,
-	0xff, 0xc8, 0x29, 0xa7, 0xf9, 0x3e, 0xa7, 0xab, 0x29, 0xb4, 0x78, 0xc6, 0xec, 0x73, 0x33, 0x3c,
-	0x37, 0xc9, 0x27, 0x08, 0x4e, 0x00, 0xe4, 0x3d, 0x54, 0x6c, 0x02, 0xc4, 0x50, 0x1e, 0xee, 0x6c,
-	0xe8, 0x23, 0xae, 0xb9, 0x7e, 0x02, 0x50, 0x9f, 0xbe, 0x89, 0xd4, 0x02, 0xe6, 0x72, 0xf9, 0x10,
-	0x2d, 0x30, 0xda, 0xf1, 0x09, 0x5c, 0xa4, 0x7d, 0x0a, 0x5c, 0x6b, 0xbd, 0x48, 0x5d, 0x11, 0x75,
-	0x0f, 0xda, 0x35, 0x3c, 0x2f, 0x0e, 0xce, 0x45, 0xd3, 0x6f, 0x50, 0x39, 0x11, 0x64, 0x7a, 0x17,
-	0xac, 0x36, 0x7a, 0x91, 0x5a, 0x19, 0x88, 0x91, 0x45, 0xb0, 0x28, 0xce, 0x8e, 0x53, 0x10, 0xf2,
-	0x63, 0x34, 0xc3, 0x1c, 0xdb, 0x05, 0x5f, 0xa0, 0xc3, 0xc9, 0x4e, 0xae, 0xa2, 0x39, 0x1f, 0x5a,
-	0x66, 0x08, 0x3e, 0xab, 0x3c, 0xd8, 0x2c, 0xd6, 0x4a, 0xb8, 0xbf, 0xcf, 0xc0, 0x5b, 0x43, 0xab,
-	0x43, 0x44, 0xfa, 0xb4, 0xbe, 0x49, 0x68, 0x79, 0xc8, 0x76, 0xc4, 0x42, 0x97, 0xc8, 0xef, 0x50,
-	0xc9, 0x8b, 0x4f, 0x78, 0xcd, 0x02, 0xdc, 0x93, 0x18, 0x1c, 0x9f, 0x66, 0x3d, 0x1d, 0xe1, 0xee,
-	0xb6, 0x2e, 0xfc, 0x4e, 0xad, 0x7a, 0x85, 0x93, 0xeb, 0x45, 0xea, 0xa3, 0xe4, 0x0a, 0xa4, 0xde,
-	0x1a, 0x9e, 0xf3, 0x12, 0x8d, 0xfc, 0x01, 0xa1, 0xe4, 0x9c, 0x7f, 0x8f, 0xa9, 0x38, 0xac, 0x36,
-	0xf2, 0x7b, 0xf4, 0x4b, 0xaa, 0xaf, 0x25, 0xb1, 0xcb, 0x03, 0xb1, 0x9b, 0x00, 0x1a, 0x4e, 0xca,
-	0x3c, 0x01, 0xc8, 0x74, 0xac, 0xa0, 0x8d, 0xbc, 0xae, 0xd2, 0xb6, 0x77, 0xae, 0xa7, 0x51, 0xf1,
-	0x8c, 0xd9, 0xf2, 0x57, 0x09, 0xad, 0x8f, 0xfb, 0xf3, 0xbc, 0x1c, 0x59, 0xdb, 0xf8, 0xa9, 0xad,
-	0x1e, 0xfe, 0xa3, 0x63, 0x5a, 0xe1, 0x40, 0x65, 0x79, 0xb3, 0x3e, 0x51, 0x65, 0x39, 0x8e, 0x93,
-	0x55, 0x36, 0x66, 0xc0, 0xe4, 0x8f, 0x68, 0x7e, 0x60, 0xb8, 0x6a, 0xe3, 0x02, 0x66, 0x95, 0xd5,
-	0x17, 0x93, 0x2a, 0xfb, 0xb9, 0x42, 0x54, 0xfe, 0xf3, 0x6a, 0x6e, 0x4d, 0x1a, 0x26, 0x96, 0x57,
-	0xf7, 0xff, 0x4a, 0x9e, 0xa6, 0xae, 0xbf, 0xbd, 0xb9, 0x53, 0xa4, 0xdb, 0x3b, 0x45, 0xfa, 0x71,
-	0xa7, 0x48, 0x57, 0xf7, 0x4a, 0xe1, 0xf6, 0x5e, 0x29, 0x7c, 0xbf, 0x57, 0x0a, 0xef, 0xf7, 0x6d,
-	0x27, 0xb8, 0xec, 0x34, 0x74, 0x42, 0xdb, 0x06, 0xa1, 0xac, 0x4d, 0x99, 0xe1, 0x34, 0xc8, 0x96,
-	0x4d, 0x8d, 0xee, 0xae, 0xd1, 0xa6, 0x56, 0xa7, 0x05, 0x8c, 0xbf, 0x8b, 0xcc, 0xd8, 0x79, 0xb5,
-	0xc5, 0x9f, 0xc4, 0x20, 0xf4, 0x80, 0x35, 0x66, 0xe2, 0xf7, 0x6e, 0xf7, 0x77, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0x23, 0xd7, 0x5e, 0xd0, 0x88, 0x07, 0x00, 0x00,
+	// 732 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xcf, 0x4f, 0xdb, 0x58,
+	0x10, 0x8e, 0x09, 0xbf, 0x32, 0xb0, 0x40, 0xbc, 0x01, 0x8c, 0x61, 0x6d, 0xd6, 0x87, 0x55, 0x56,
+	0x2b, 0xec, 0x4d, 0x00, 0xad, 0x96, 0x0b, 0x22, 0x48, 0xa8, 0x1c, 0x50, 0x23, 0xab, 0xa7, 0xaa,
+	0x12, 0x72, 0x9c, 0x89, 0x71, 0x9b, 0xe4, 0x59, 0x7e, 0x4e, 0x54, 0xff, 0x07, 0x3d, 0x72, 0xeb,
+	0x95, 0x3f, 0x87, 0x23, 0x87, 0x1e, 0xaa, 0x1e, 0xac, 0x0a, 0x2e, 0x3d, 0x47, 0xea, 0xa9, 0x97,
+	0xca, 0xf6, 0xb3, 0xeb, 0xa4, 0x09, 0x0a, 0xbd, 0xbd, 0x99, 0xf9, 0x66, 0xde, 0x7c, 0x9f, 0x67,
+	0xfc, 0x60, 0xd7, 0x6e, 0x98, 0x9a, 0xe1, 0x38, 0x6d, 0xdb, 0x34, 0x3c, 0x9b, 0x74, 0xa9, 0xd6,
+	0x42, 0xd4, 0xfa, 0x15, 0xcd, 0x7b, 0xab, 0x3a, 0x2e, 0xf1, 0x08, 0xbf, 0x69, 0x37, 0x4c, 0x35,
+	0x8b, 0x50, 0x5b, 0x88, 0x6a, 0xbf, 0x22, 0x96, 0x2c, 0x62, 0x91, 0x08, 0xa3, 0x85, 0xa7, 0x18,
+	0x2e, 0xfe, 0x39, 0xa9, 0x60, 0x98, 0x95, 0x81, 0x98, 0xc4, 0x45, 0xcd, 0xbc, 0x32, 0xba, 0x5d,
+	0x6c, 0x87, 0x61, 0x76, 0x8c, 0x21, 0xca, 0x27, 0x0e, 0xd6, 0x2e, 0xa8, 0xa5, 0xa3, 0x65, 0x53,
+	0x0f, 0xdd, 0xba, 0xe1, 0x23, 0xf2, 0xff, 0xc0, 0x82, 0x43, 0x5c, 0xef, 0xd2, 0x6e, 0x0a, 0xdc,
+	0x2e, 0x57, 0x2e, 0xd4, 0xf8, 0x41, 0x20, 0xaf, 0xf8, 0x46, 0xa7, 0x7d, 0xa4, 0xb0, 0x80, 0xa2,
+	0xcf, 0x87, 0xa7, 0xf3, 0x26, 0x7f, 0x00, 0xc0, 0x4a, 0x86, 0xf8, 0x99, 0x08, 0xbf, 0x3e, 0x08,
+	0xe4, 0x62, 0x8c, 0xff, 0x11, 0x53, 0xf4, 0x02, 0x33, 0xce, 0x9b, 0xfc, 0x29, 0xac, 0xba, 0xd8,
+	0x36, 0x7c, 0x74, 0x2f, 0x8d, 0x66, 0xd3, 0x45, 0x4a, 0x85, 0x7c, 0x94, 0x2a, 0x0e, 0x02, 0x79,
+	0x23, 0x4e, 0x1d, 0x01, 0x28, 0xfa, 0x0a, 0xf3, 0x9c, 0xc4, 0x0e, 0xbe, 0x04, 0x73, 0x4e, 0xd8,
+	0xb0, 0x30, 0x1b, 0xa6, 0xea, 0xb1, 0x71, 0xb4, 0xf8, 0xee, 0x46, 0xce, 0x7d, 0xb9, 0x91, 0x73,
+	0x8a, 0x08, 0xc2, 0x28, 0x37, 0x1d, 0xa9, 0x43, 0xba, 0x14, 0x95, 0x6f, 0x1c, 0x48, 0x99, 0xe0,
+	0x29, 0xe9, 0x75, 0x3d, 0x74, 0x1d, 0xc3, 0xf5, 0xfc, 0xa4, 0xbc, 0x00, 0x0b, 0x49, 0x6f, 0x91,
+	0x0c, 0x7a, 0x62, 0xf2, 0x3a, 0x94, 0xcc, 0x4c, 0x42, 0x4a, 0x21, 0x66, 0x2f, 0x0f, 0x02, 0x79,
+	0x9b, 0xb1, 0x1f, 0x83, 0x52, 0xf4, 0xdf, 0xcd, 0x31, 0xb7, 0x65, 0x44, 0xcf, 0x3f, 0x51, 0xf4,
+	0xd9, 0xe9, 0x44, 0xcf, 0x28, 0x53, 0x86, 0xbf, 0x1e, 0x27, 0x9f, 0xea, 0x74, 0x3d, 0x03, 0xab,
+	0x17, 0xd4, 0xaa, 0x1b, 0x7e, 0xdd, 0x30, 0xdf, 0xa0, 0x77, 0x86, 0xc8, 0x1f, 0x40, 0xbe, 0x85,
+	0x18, 0x89, 0xb2, 0x54, 0xdd, 0x51, 0x27, 0xcc, 0xad, 0x7a, 0x86, 0x58, 0x9b, 0xbd, 0x0d, 0xe4,
+	0x9c, 0x1e, 0xc2, 0xf9, 0x63, 0x58, 0xa1, 0xa4, 0xe7, 0x9a, 0x78, 0x99, 0xf0, 0x8c, 0xe5, 0xda,
+	0x1a, 0x04, 0xf2, 0x7a, 0xdc, 0xf7, 0x70, 0x5c, 0xd1, 0x97, 0x63, 0x47, 0x3d, 0x26, 0xfd, 0x0c,
+	0x8a, 0x0c, 0x90, 0xe1, 0x1e, 0x6b, 0xb5, 0x33, 0x08, 0x64, 0x61, 0xa8, 0x46, 0x56, 0x82, 0xd5,
+	0xd8, 0x77, 0x9a, 0x4e, 0xdf, 0x06, 0xcc, 0x53, 0xdb, 0xea, 0xa2, 0xcb, 0x26, 0x87, 0x59, 0xbc,
+	0x08, 0x8b, 0x6c, 0xc4, 0xa8, 0x30, 0xb7, 0x9b, 0x2f, 0x17, 0xf4, 0xd4, 0xce, 0x88, 0xb7, 0x05,
+	0x9b, 0x23, 0x8a, 0xa4, 0x6a, 0x7d, 0xe0, 0xa0, 0x34, 0x12, 0x3b, 0xa1, 0x7e, 0xd7, 0xe4, 0x5f,
+	0x40, 0xc1, 0x89, 0x3c, 0xc9, 0x52, 0x2d, 0x55, 0xff, 0x88, 0x84, 0x0b, 0xd7, 0x53, 0x4d, 0x76,
+	0xb2, 0x5f, 0x51, 0xe3, 0xbc, 0xf3, 0x66, 0x4d, 0x08, 0x95, 0x1b, 0x04, 0xf2, 0x1a, 0x1b, 0x81,
+	0x24, 0x5b, 0xd1, 0x17, 0x1d, 0x86, 0xe1, 0x5f, 0x01, 0x30, 0x7f, 0xf8, 0x3d, 0x66, 0xa2, 0xb2,
+	0xca, 0xc4, 0xef, 0x91, 0xb6, 0x54, 0xdb, 0x62, 0xb5, 0x8b, 0x43, 0xb5, 0x5b, 0x88, 0x8a, 0xce,
+	0xda, 0x3c, 0x1b, 0x5a, 0x24, 0x09, 0x76, 0xc6, 0xb1, 0x4a, 0x68, 0x57, 0xbf, 0xe6, 0x21, 0x7f,
+	0x41, 0x2d, 0xbe, 0x03, 0xbf, 0x0d, 0xff, 0x49, 0xfe, 0x9e, 0xd8, 0xcc, 0xe8, 0x62, 0x8a, 0x95,
+	0xa9, 0xa1, 0xc9, 0xb5, 0xfc, 0x7b, 0x0e, 0xb6, 0x1f, 0x5b, 0xe0, 0xff, 0xa6, 0x29, 0x39, 0x26,
+	0x51, 0x3c, 0xfe, 0xc5, 0xc4, 0xb4, 0xb3, 0xd7, 0xb0, 0x3c, 0xb4, 0x31, 0xe5, 0xc7, 0x0a, 0x66,
+	0x91, 0xe2, 0xbf, 0xd3, 0x22, 0xd3, 0xbb, 0x7c, 0x28, 0xfe, 0x3c, 0x6f, 0x7b, 0xd3, 0x96, 0x89,
+	0xe0, 0xe2, 0xe1, 0x93, 0xe0, 0xc9, 0xd5, 0xb5, 0xe7, 0xb7, 0xf7, 0x12, 0x77, 0x77, 0x2f, 0x71,
+	0x9f, 0xef, 0x25, 0xee, 0xfa, 0x41, 0xca, 0xdd, 0x3d, 0x48, 0xb9, 0x8f, 0x0f, 0x52, 0xee, 0xe5,
+	0xa1, 0x65, 0x7b, 0x57, 0xbd, 0x86, 0x6a, 0x92, 0x8e, 0x66, 0x12, 0xda, 0x21, 0x54, 0xb3, 0x1b,
+	0xe6, 0x9e, 0x45, 0xb4, 0xfe, 0xbe, 0xd6, 0x21, 0xcd, 0x5e, 0x1b, 0x69, 0xf8, 0x7a, 0x51, 0xad,
+	0xfa, 0xff, 0x5e, 0xf8, 0x70, 0x79, 0xbe, 0x83, 0xb4, 0x31, 0x1f, 0xbd, 0x4a, 0xfb, 0xdf, 0x03,
+	0x00, 0x00, 0xff, 0xff, 0x8c, 0x56, 0x8c, 0xfd, 0x2e, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -435,18 +435,18 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// RegisterPayee defines a rpc handler method for MsgRegisterPayee
+	// RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
+	// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
+	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
+	// relayer, in which case, the latest payee is always used.
+	RegisterPayee(ctx context.Context, in *MsgRegisterPayee, opts ...grpc.CallOption) (*MsgRegisterPayeeResponse, error)
 	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
 	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
 	// counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
 	// destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
 	// may be called more than once by a relayer, in which case, the latest counterparty address is always used.
 	RegisterCounterpartyAddress(ctx context.Context, in *MsgRegisterCounterpartyAddress, opts ...grpc.CallOption) (*MsgRegisterCounterpartyAddressResponse, error)
-	// RegisterDistributionAddress defines a rpc handler method for MsgRegisterDistributionAddress
-	// RegisterDistributionAddress is called by the relayer on each channelEnd and allows them to set an optional
-	// distribution address to which escrowed packet fees will be paid out. The distribution address should be registered
-	// on the source chain from which packets originate as this is where fee distribution takes place. This function may
-	// be called more than once by a relayer, in which case, the latest distribution address is always used.
-	RegisterDistributionAddress(ctx context.Context, in *MsgRegisterDistributionAddress, opts ...grpc.CallOption) (*MsgRegisterDistributionAddressResponse, error)
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
 	// incentivize the relaying of the packet at the next sequence
@@ -467,18 +467,18 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) RegisterCounterpartyAddress(ctx context.Context, in *MsgRegisterCounterpartyAddress, opts ...grpc.CallOption) (*MsgRegisterCounterpartyAddressResponse, error) {
-	out := new(MsgRegisterCounterpartyAddressResponse)
-	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Msg/RegisterCounterpartyAddress", in, out, opts...)
+func (c *msgClient) RegisterPayee(ctx context.Context, in *MsgRegisterPayee, opts ...grpc.CallOption) (*MsgRegisterPayeeResponse, error) {
+	out := new(MsgRegisterPayeeResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Msg/RegisterPayee", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) RegisterDistributionAddress(ctx context.Context, in *MsgRegisterDistributionAddress, opts ...grpc.CallOption) (*MsgRegisterDistributionAddressResponse, error) {
-	out := new(MsgRegisterDistributionAddressResponse)
-	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Msg/RegisterDistributionAddress", in, out, opts...)
+func (c *msgClient) RegisterCounterpartyAddress(ctx context.Context, in *MsgRegisterCounterpartyAddress, opts ...grpc.CallOption) (*MsgRegisterCounterpartyAddressResponse, error) {
+	out := new(MsgRegisterCounterpartyAddressResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Msg/RegisterCounterpartyAddress", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -505,18 +505,18 @@ func (c *msgClient) PayPacketFeeAsync(ctx context.Context, in *MsgPayPacketFeeAs
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// RegisterPayee defines a rpc handler method for MsgRegisterPayee
+	// RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
+	// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
+	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
+	// relayer, in which case, the latest payee is always used.
+	RegisterPayee(context.Context, *MsgRegisterPayee) (*MsgRegisterPayeeResponse, error)
 	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
 	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
 	// counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
 	// destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
 	// may be called more than once by a relayer, in which case, the latest counterparty address is always used.
 	RegisterCounterpartyAddress(context.Context, *MsgRegisterCounterpartyAddress) (*MsgRegisterCounterpartyAddressResponse, error)
-	// RegisterDistributionAddress defines a rpc handler method for MsgRegisterDistributionAddress
-	// RegisterDistributionAddress is called by the relayer on each channelEnd and allows them to set an optional
-	// distribution address to which escrowed packet fees will be paid out. The distribution address should be registered
-	// on the source chain from which packets originate as this is where fee distribution takes place. This function may
-	// be called more than once by a relayer, in which case, the latest distribution address is always used.
-	RegisterDistributionAddress(context.Context, *MsgRegisterDistributionAddress) (*MsgRegisterDistributionAddressResponse, error)
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
 	// incentivize the relaying of the packet at the next sequence
@@ -533,11 +533,11 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
+func (*UnimplementedMsgServer) RegisterPayee(ctx context.Context, req *MsgRegisterPayee) (*MsgRegisterPayeeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterPayee not implemented")
+}
 func (*UnimplementedMsgServer) RegisterCounterpartyAddress(ctx context.Context, req *MsgRegisterCounterpartyAddress) (*MsgRegisterCounterpartyAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterCounterpartyAddress not implemented")
-}
-func (*UnimplementedMsgServer) RegisterDistributionAddress(ctx context.Context, req *MsgRegisterDistributionAddress) (*MsgRegisterDistributionAddressResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterDistributionAddress not implemented")
 }
 func (*UnimplementedMsgServer) PayPacketFee(ctx context.Context, req *MsgPayPacketFee) (*MsgPayPacketFeeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PayPacketFee not implemented")
@@ -548,6 +548,24 @@ func (*UnimplementedMsgServer) PayPacketFeeAsync(ctx context.Context, req *MsgPa
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
+}
+
+func _Msg_RegisterPayee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterPayee)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RegisterPayee(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.applications.fee.v1.Msg/RegisterPayee",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RegisterPayee(ctx, req.(*MsgRegisterPayee))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_RegisterCounterpartyAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -564,24 +582,6 @@ func _Msg_RegisterCounterpartyAddress_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).RegisterCounterpartyAddress(ctx, req.(*MsgRegisterCounterpartyAddress))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_RegisterDistributionAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRegisterDistributionAddress)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).RegisterDistributionAddress(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ibc.applications.fee.v1.Msg/RegisterDistributionAddress",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RegisterDistributionAddress(ctx, req.(*MsgRegisterDistributionAddress))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -627,12 +627,12 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RegisterCounterpartyAddress",
-			Handler:    _Msg_RegisterCounterpartyAddress_Handler,
+			MethodName: "RegisterPayee",
+			Handler:    _Msg_RegisterPayee_Handler,
 		},
 		{
-			MethodName: "RegisterDistributionAddress",
-			Handler:    _Msg_RegisterDistributionAddress_Handler,
+			MethodName: "RegisterCounterpartyAddress",
+			Handler:    _Msg_RegisterCounterpartyAddress_Handler,
 		},
 		{
 			MethodName: "PayPacketFee",
@@ -645,6 +645,80 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "ibc/applications/fee/v1/tx.proto",
+}
+
+func (m *MsgRegisterPayee) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRegisterPayee) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRegisterPayee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Payee) > 0 {
+		i -= len(m.Payee)
+		copy(dAtA[i:], m.Payee)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Payee)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.RelayerAddress) > 0 {
+		i -= len(m.RelayerAddress)
+		copy(dAtA[i:], m.RelayerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RelayerAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.PortId) > 0 {
+		i -= len(m.PortId)
+		copy(dAtA[i:], m.PortId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PortId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRegisterPayeeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRegisterPayeeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRegisterPayeeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
 }
 
 func (m *MsgRegisterCounterpartyAddress) Marshal() (dAtA []byte, err error) {
@@ -714,80 +788,6 @@ func (m *MsgRegisterCounterpartyAddressResponse) MarshalTo(dAtA []byte) (int, er
 }
 
 func (m *MsgRegisterCounterpartyAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRegisterDistributionAddress) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRegisterDistributionAddress) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRegisterDistributionAddress) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.ChannelId) > 0 {
-		i -= len(m.ChannelId)
-		copy(dAtA[i:], m.ChannelId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ChannelId)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.PortId) > 0 {
-		i -= len(m.PortId)
-		copy(dAtA[i:], m.PortId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.PortId)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.DistributionAddress) > 0 {
-		i -= len(m.DistributionAddress)
-		copy(dAtA[i:], m.DistributionAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.DistributionAddress)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Address)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRegisterDistributionAddressResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRegisterDistributionAddressResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRegisterDistributionAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -958,6 +958,40 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *MsgRegisterPayee) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PortId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RelayerAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Payee)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgRegisterPayeeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *MsgRegisterCounterpartyAddress) Size() (n int) {
 	if m == nil {
 		return 0
@@ -984,40 +1018,6 @@ func (m *MsgRegisterCounterpartyAddress) Size() (n int) {
 }
 
 func (m *MsgRegisterCounterpartyAddressResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgRegisterDistributionAddress) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.DistributionAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.PortId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.ChannelId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgRegisterDistributionAddressResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1091,6 +1091,234 @@ func sovTx(x uint64) (n int) {
 }
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *MsgRegisterPayee) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRegisterPayee: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRegisterPayee: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PortId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RelayerAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RelayerAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payee", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Payee = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRegisterPayeeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRegisterPayeeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRegisterPayeeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *MsgRegisterCounterpartyAddress) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -1297,234 +1525,6 @@ func (m *MsgRegisterCounterpartyAddressResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgRegisterCounterpartyAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRegisterDistributionAddress) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterDistributionAddress: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterDistributionAddress: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DistributionAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DistributionAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PortId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ChannelId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRegisterDistributionAddressResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterDistributionAddressResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterDistributionAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

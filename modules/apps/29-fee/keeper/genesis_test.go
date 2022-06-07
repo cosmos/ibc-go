@@ -60,10 +60,10 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().True(found)
 	suite.Require().Equal(genesisState.RegisteredRelayers[0].CounterpartyAddress, addr)
 
-	// check distribution addresses
-	distAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetDistributionAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
+	// check payee addresses
+	payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
 	suite.Require().True(found)
-	suite.Require().Equal(genesisState.RegisteredDistributionAddresses[0].DistributionAddress, distAddr)
+	suite.Require().Equal(genesisState.RegisteredDistributionAddresses[0].DistributionAddress, payeeAddr)
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
@@ -87,8 +87,8 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	// set forward relayer address
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainA.GetContext(), packetID, sender)
 
-	// set distribution address
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetDistributionAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
+	// set payee address
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
 
 	// export genesis
 	genesisState := suite.chainA.GetSimApp().IBCFeeKeeper.ExportGenesis(suite.chainA.GetContext())
@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(sender, genesisState.ForwardRelayers[0].Address)
 	suite.Require().Equal(packetID, genesisState.ForwardRelayers[0].PacketId)
 
-	// check distribution addresses
+	// check payee addresses
 	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredDistributionAddresses[0].Address)
 	suite.Require().Equal(suite.chainB.SenderAccount.GetAddress().String(), genesisState.RegisteredDistributionAddresses[0].DistributionAddress)
 	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.RegisteredDistributionAddresses[0].ChannelId)

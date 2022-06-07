@@ -13,22 +13,12 @@ import (
 
 var validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
-func TestKeyCounterpartyRelayer(t *testing.T) {
-	var (
-		relayerAddress = "relayer_address"
-		channelID      = "channel-0"
-	)
-
-	key := types.KeyCounterpartyRelayer(relayerAddress, channelID)
-	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.CounterpartyRelayerAddressKeyPrefix, relayerAddress, channelID))
+func TestKeyPayeeAddress(t *testing.T) {
+	key := types.KeyPayeeAddress("relayer-address", ibctesting.FirstChannelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.PayeeAddressKeyPrefix, "relayer-address", ibctesting.FirstChannelID))
 }
 
-func TestKeyDistributionAddress(t *testing.T) {
-	key := types.KeyDistributionAddress("relayer-address", ibctesting.FirstChannelID)
-	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.DistributionAddressKeyPrefix, "relayer-address", ibctesting.FirstChannelID))
-}
-
-func TestParseKeyDistributionAddress(t *testing.T) {
+func TestParseKeyPayeeAddress(t *testing.T) {
 	testCases := []struct {
 		name    string
 		key     string
@@ -36,18 +26,18 @@ func TestParseKeyDistributionAddress(t *testing.T) {
 	}{
 		{
 			"success",
-			string(types.KeyDistributionAddress("relayer-address", ibctesting.FirstChannelID)),
+			string(types.KeyPayeeAddress("relayer-address", ibctesting.FirstChannelID)),
 			true,
 		},
 		{
 			"incorrect key - key split has incorrect length",
-			"distributionAddress/relayer_address/transfer/channel-0",
+			"payeeAddress/relayer_address/transfer/channel-0",
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		address, channelID, err := types.ParseKeyDistributionAddress(tc.key)
+		address, channelID, err := types.ParseKeyPayeeAddress(tc.key)
 
 		if tc.expPass {
 			require.NoError(t, err)
@@ -57,6 +47,16 @@ func TestParseKeyDistributionAddress(t *testing.T) {
 			require.Error(t, err)
 		}
 	}
+}
+
+func TestKeyCounterpartyRelayer(t *testing.T) {
+	var (
+		relayerAddress = "relayer_address"
+		channelID      = "channel-0"
+	)
+
+	key := types.KeyCounterpartyRelayer(relayerAddress, channelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.CounterpartyRelayerAddressKeyPrefix, relayerAddress, channelID))
 }
 
 func TestKeyFeesInEscrow(t *testing.T) {

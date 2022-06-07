@@ -91,8 +91,8 @@ func (gs GenesisState) Validate() error {
 			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
 		}
 
-		if strings.TrimSpace(registeredDistAddr.DistributionAddress) == "" {
-			return ErrDistributionAddressEmpty
+		if _, err := sdk.AccAddressFromBech32(registeredDistAddr.DistributionAddress); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
 		}
 
 		if err := host.ChannelIdentifierValidator(registeredDistAddr.ChannelId); err != nil {

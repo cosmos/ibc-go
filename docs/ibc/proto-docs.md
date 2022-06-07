@@ -73,8 +73,8 @@
     - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
     - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
     - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
-    - [MsgRegisterDistributionAddress](#ibc.applications.fee.v1.MsgRegisterDistributionAddress)
-    - [MsgRegisterDistributionAddressResponse](#ibc.applications.fee.v1.MsgRegisterDistributionAddressResponse)
+    - [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee)
+    - [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse)
   
     - [Msg](#ibc.applications.fee.v1.Msg)
   
@@ -1334,28 +1334,28 @@ MsgRegisterCounterpartyAddressResponse defines the response type for the Registe
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterDistributionAddress"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterPayee"></a>
 
-### MsgRegisterDistributionAddress
-MsgRegisterDistributionAddress defines the request type for the RegisterDistributionAddress rpc
+### MsgRegisterPayee
+MsgRegisterPayee defines the request type for the RegisterPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `distribution_address` | [string](#string) |  | the fee distribution address |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer_address` | [string](#string) |  | the relayer address |
+| `payee` | [string](#string) |  | the fee payee address |
 
 
 
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterDistributionAddressResponse"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterPayeeResponse"></a>
 
-### MsgRegisterDistributionAddressResponse
-MsgRegisterDistributionAddressResponse defines the response type for the RegisterDistributionAddress rpc
+### MsgRegisterPayeeResponse
+MsgRegisterPayeeResponse defines the response type for the RegisterPayee rpc
 
 
 
@@ -1375,8 +1375,8 @@ Msg defines the ICS29 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `RegisterPayee` | [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee) | [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse) | RegisterPayee defines a rpc handler method for MsgRegisterPayee RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest payee is always used. | |
 | `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty address is always used. | |
-| `RegisterDistributionAddress` | [MsgRegisterDistributionAddress](#ibc.applications.fee.v1.MsgRegisterDistributionAddress) | [MsgRegisterDistributionAddressResponse](#ibc.applications.fee.v1.MsgRegisterDistributionAddressResponse) | RegisterDistributionAddress defines a rpc handler method for MsgRegisterDistributionAddress RegisterDistributionAddress is called by the relayer on each channelEnd and allows them to set an optional distribution address to which escrowed packet fees will be paid out. The distribution address should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest distribution address is always used. | |
 | `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
 | `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
 
