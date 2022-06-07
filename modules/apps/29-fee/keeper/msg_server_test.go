@@ -9,6 +9,70 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
+func (suite *KeeperTestSuite) TestRegisterPayee() {
+	var (
+		msg *types.MsgRegisterPayee
+	)
+
+	testCases := []struct {
+		name     string
+		expPass  bool
+		malleate func()
+	}{
+		{
+			"success",
+			true,
+			func() {},
+		},
+		{
+			"channel does not exist",
+			false,
+			func() {
+				msg.ChannelId = "channel-100"
+			},
+		},
+		{
+			"channel is not fee enabled",
+			false,
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTest()
+		suite.coordinator.Setup(suite.path)
+
+		msg = types.NewMsgRegisterPayee(
+			suite.path.EndpointA.ChannelConfig.PortID,
+			suite.path.EndpointA.ChannelID,
+			suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+			suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
+		)
+
+		tc.malleate()
+
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+
+			distributionAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetDistributionAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.path.EndpointA.ChannelID,
+			)
+
+			suite.Require().True(found)
+			suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), distributionAddr)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
 func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 	var (
 		sender       string
@@ -65,70 +129,6 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 
 			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
 			suite.Require().Equal(counterparty, counterpartyAddress)
-		} else {
-			suite.Require().Error(err)
-		}
-	}
-}
-
-func (suite *KeeperTestSuite) TestRegisterDistributionAddress() {
-	var (
-		msg *types.MsgRegisterDistributionAddress
-	)
-
-	testCases := []struct {
-		name     string
-		expPass  bool
-		malleate func()
-	}{
-		{
-			"success",
-			true,
-			func() {},
-		},
-		{
-			"channel does not exist",
-			false,
-			func() {
-				msg.ChannelId = "channel-100"
-			},
-		},
-		{
-			"channel is not fee enabled",
-			false,
-			func() {
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.SetupTest()
-		suite.coordinator.Setup(suite.path)
-
-		msg = types.NewMsgRegisterDistributionAddress(
-			suite.path.EndpointA.ChannelConfig.PortID,
-			suite.path.EndpointA.ChannelID,
-			suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
-			suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
-		)
-
-		tc.malleate()
-
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterDistributionAddress(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
-
-		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-
-			distributionAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetDistributionAddress(
-				suite.chainA.GetContext(),
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.path.EndpointA.ChannelID,
-			)
-
-			suite.Require().True(found)
-			suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), distributionAddr)
 		} else {
 			suite.Require().Error(err)
 		}

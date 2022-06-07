@@ -16,6 +16,48 @@ const (
 	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
 )
 
+// NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
+func NewMsgRegisterPayee(portID, channelID, relayerAddr, distributionAddr string) *MsgRegisterPayee {
+	return &MsgRegisterPayee{
+		RelayerAddress:      relayerAddr,
+		DistributionAddress: distributionAddr,
+		PortId:              portID,
+		ChannelId:           channelID,
+	}
+}
+
+// ValidateBasic implements sdk.Msg and performs basic stateless validation
+func (msg MsgRegisterPayee) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
+	}
+
+	if strings.TrimSpace(msg.DistributionAddress) == "" {
+		return ErrDistributionAddressEmpty
+	}
+
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return err
+	}
+
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgRegisterPayee) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{signer}
+}
+
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
 func NewMsgRegisterCounterpartyAddress(portID, channelID, address, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
 	return &MsgRegisterCounterpartyAddress{
@@ -56,48 +98,6 @@ func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{signer}
-}
-
-// NewMsgRegisterDistributionAddress creates a new instance of MsgRegisterDistributionAddress
-func NewMsgRegisterDistributionAddress(portID, channelID, address, distributionAddress string) *MsgRegisterDistributionAddress {
-	return &MsgRegisterDistributionAddress{
-		Address:             address,
-		DistributionAddress: distributionAddress,
-		PortId:              portID,
-		ChannelId:           channelID,
-	}
-}
-
-// ValidateBasic implements sdk.Msg and performs basic stateless validation
-func (msg MsgRegisterDistributionAddress) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Address)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
-	}
-
-	if strings.TrimSpace(msg.DistributionAddress) == "" {
-		return ErrDistributionAddressEmpty
-	}
-
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return err
-	}
-
-	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgRegisterDistributionAddress) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Address)
-	if err != nil {
-		panic(err)
-	}
-
 	return []sdk.AccAddress{signer}
 }
 
