@@ -150,7 +150,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
 
 	// use chainB (host) for ChanOpenInit
 	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icatypes.Version, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icatypes.ModuleName)
-	handler := suite.chainB.GetSimApp().MsgServiceRouter.Handler(msg)
+	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err := handler(suite.chainB.GetContext(), msg)
 
 	suite.Require().Error(err)
@@ -276,7 +276,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 
 	// use chainB (host) for ChanOpenAck
 	msg := channeltypes.NewMsgChannelOpenAck(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelID, TestVersion, proofTry, proofHeight, icatypes.ModuleName)
-	handler := suite.chainB.GetSimApp().MsgServiceRouter.Handler(msg)
+	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainB.GetContext(), msg)
 
 	suite.Require().Error(err)
