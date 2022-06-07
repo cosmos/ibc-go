@@ -11,9 +11,8 @@ linters:
     - depguard
     - dogsled
     - exportloopref
-    # - errcheck
+    - errcheck
     - goconst
-    - godoc
     - gocritic
     - gofmt
     - goimports
@@ -33,7 +32,7 @@ linters:
     - unused
     - unparam
     - misspell
-    # - wsl
+    - golint
     - nolintlint
 
 issues:
