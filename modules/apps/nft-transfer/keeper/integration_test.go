@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 	nftID := "kitty"
 	nftURI := "kittt_uri"
 
-	var ibcClassID string
+	var targetClassID string
 	var packet channeltypes.Packet
 
 	//============================== setup start===============================
@@ -44,57 +44,119 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 	}, path.EndpointA.Chain.SenderAccount.GetAddress())
 	//============================== setup end===============================
 
-	// transfer from chainA to chainB
-	{
-		packet = suite.transferNFT(
-			path.EndpointA,
-			path.EndpointB,
-			classID,
-			nftID,
-			path.EndpointA.Chain.SenderAccount.GetAddress().String(),
-			path.EndpointB.Chain.SenderAccount.GetAddress().String(),
-		)
-	}
+	suite.Run("transfer from chainA to chainB", func() {
+		{
+			packet = suite.transferNFT(
+				path.EndpointA,
+				path.EndpointB,
+				classID,
+				nftID,
+				path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+				path.EndpointB.Chain.SenderAccount.GetAddress().String(),
+				true,
+			)
+		}
+	})
 
-	// receive nft on chainB from chainA
-	{
-		ibcClassID = suite.receiverNFT(
-			path.EndpointA,
-			path.EndpointB,
-			packet,
-		)
-	}
+	suite.Run("receive on chainB from chainA", func() {
+		{
+			targetClassID = suite.receiverNFT(
+				path.EndpointA,
+				path.EndpointB,
+				packet,
+				true,
+			)
+		}
+	})
 
 	// transfer from chainB to chainC
 	path1 := NewTransferPath(suite.chainB, suite.chainC)
-	{
-		suite.coordinator.SetupConnections(path1)
-		suite.coordinator.CreateChannels(path1)
+	suite.Run("transfer from chainB to chainC", func() {
+		{
+			suite.coordinator.SetupConnections(path1)
+			suite.coordinator.CreateChannels(path1)
 
-		packet = suite.transferNFT(
-			path1.EndpointA,
-			path1.EndpointB,
-			ibcClassID,
-			nftID,
-			path.EndpointB.Chain.SenderAccount.GetAddress().String(),
-			path1.EndpointB.Chain.SenderAccount.GetAddress().String(),
-		)
-	}
+			packet = suite.transferNFT(
+				path1.EndpointA,
+				path1.EndpointB,
+				targetClassID,
+				nftID,
+				path.EndpointB.Chain.SenderAccount.GetAddress().String(),
+				path1.EndpointB.Chain.SenderAccount.GetAddress().String(),
+				true,
+			)
+		}
+	})
 
-	// receive nft on chainC from chainB
-	{
-		ibcClassID = suite.receiverNFT(
-			path1.EndpointA,
-			path1.EndpointB,
-			packet,
-		)
-	}
+	suite.Run("receive on chainC from chainB", func() {
+		{
+			targetClassID = suite.receiverNFT(
+				path1.EndpointA,
+				path1.EndpointB,
+				packet,
+				true,
+			)
+		}
+	})
+
+	suite.Run("transfer from chainC back to chainB", func() {
+		{
+			packet = suite.transferNFT(
+				path1.EndpointB,
+				path1.EndpointA,
+				targetClassID,
+				nftID,
+				path1.EndpointB.Chain.SenderAccount.GetAddress().String(),
+				path1.EndpointA.Chain.SenderAccount.GetAddress().String(),
+				false,
+			)
+		}
+	})
+
+	suite.Run("receive on chainB from chainC", func() {
+		{
+			targetClassID = suite.receiverNFT(
+				path1.EndpointB,
+				path1.EndpointA,
+				packet,
+				false,
+			)
+		}
+	})
+
+	suite.Run("transfer from chainB back to chainA", func() {
+		{
+			packet = suite.transferNFT(
+				path.EndpointB,
+				path.EndpointA,
+				targetClassID,
+				nftID,
+				path1.EndpointA.Chain.SenderAccount.GetAddress().String(),
+				path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+				false,
+			)
+		}
+	})
+
+	suite.Run("receive on chainA from chainB", func() {
+		{
+			targetClassID = suite.receiverNFT(
+				path.EndpointB,
+				path.EndpointA,
+				packet,
+				false,
+			)
+
+			suite.Equal(classID, targetClassID, "wrong classID")
+		}
+	})
 }
 
 func (suite *KeeperTestSuite) transferNFT(
 	fromEndpoint, toEndpoint *ibctesting.Endpoint,
 	classID, nftID string,
 	sender, receiver string,
+	isAwayFromOrigin bool,
 ) channeltypes.Packet {
 	msgTransfer := &types.MsgTransfer{
 		SourcePort:    fromEndpoint.ChannelConfig.PortID,
@@ -114,11 +176,18 @@ func (suite *KeeperTestSuite) transferNFT(
 	suite.Require().NoError(err)
 
 	//check escrow token
-	suite.Require().Equal(
-		types.GetEscrowAddress(fromEndpoint.ChannelConfig.PortID, fromEndpoint.ChannelID),
-		fromEndpoint.Chain.GetSimApp().NFTKeeper.GetOwner(fromEndpoint.Chain.GetContext(), classID, nftID),
-		"escrow nft failed",
-	)
+	if isAwayFromOrigin {
+		suite.Require().Equal(
+			types.GetEscrowAddress(fromEndpoint.ChannelConfig.PortID, fromEndpoint.ChannelID),
+			fromEndpoint.Chain.GetSimApp().NFTKeeper.GetOwner(fromEndpoint.Chain.GetContext(), classID, nftID),
+			"escrow nft failed",
+		)
+	} else {
+		suite.Require().False(
+			fromEndpoint.Chain.GetSimApp().NFTKeeper.HasNFT(fromEndpoint.Chain.GetContext(), classID, nftID),
+			"burn nft failed",
+		)
+	}
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	suite.Require().NoError(err)
@@ -129,6 +198,7 @@ func (suite *KeeperTestSuite) transferNFT(
 func (suite *KeeperTestSuite) receiverNFT(
 	fromEndpoint, toEndpoint *ibctesting.Endpoint,
 	packet channeltypes.Packet,
+	isAwayFromOrigin bool,
 ) string {
 
 	var data types.NonFungibleTokenPacketData
@@ -147,25 +217,40 @@ func (suite *KeeperTestSuite) receiverNFT(
 	_, err = toEndpoint.Chain.SendMsgs(recvMsg)
 	suite.Require().NoError(err) // message committed
 
-	//construct classTrace
-	prefixedClassID := types.GetClassPrefix(toEndpoint.ChannelConfig.PortID, toEndpoint.ChannelID) + data.GetClassId()
-	trace := types.ParseClassTrace(prefixedClassID)
-	ibcClassID := trace.IBCClassID()
+	var classID string
 
-	// check class
-	class, found := toEndpoint.Chain.GetSimApp().
-		NFTKeeper.GetClass(toEndpoint.Chain.GetContext(), ibcClassID)
-	suite.Require().True(found, "not found class")
-	suite.Require().Equal(nft.Class{Id: ibcClassID, Uri: data.GetClassUri()}, class, "class not equal")
+	if isAwayFromOrigin {
+		//construct classTrace
+		prefixedClassID := types.GetClassPrefix(toEndpoint.ChannelConfig.PortID, toEndpoint.ChannelID) + data.GetClassId()
+		trace := types.ParseClassTrace(prefixedClassID)
+		classID = trace.IBCClassID()
 
-	// check nft
-	token, found := toEndpoint.Chain.GetSimApp().
-		NFTKeeper.GetNFT(toEndpoint.Chain.GetContext(), ibcClassID, data.GetTokenIds()[0])
-	suite.Require().True(found, "not found class")
-	suite.Require().Equal(
-		nft.NFT{ClassId: ibcClassID, Id: data.GetTokenIds()[0], Uri: data.GetTokenUris()[0]},
-		token,
-		"nft not equal",
-	)
-	return ibcClassID
+		// check class
+		class, found := toEndpoint.Chain.GetSimApp().
+			NFTKeeper.GetClass(toEndpoint.Chain.GetContext(), classID)
+		suite.Require().True(found, "not found class")
+		suite.Require().Equal(nft.Class{Id: classID, Uri: data.GetClassUri()}, class, "class not equal")
+
+		// check nft
+		token, found := toEndpoint.Chain.GetSimApp().
+			NFTKeeper.GetNFT(toEndpoint.Chain.GetContext(), classID, data.GetTokenIds()[0])
+		suite.Require().True(found, "not found class")
+		suite.Require().Equal(
+			nft.NFT{ClassId: classID, Id: data.GetTokenIds()[0], Uri: data.GetTokenUris()[0]},
+			token,
+			"nft not equal",
+		)
+	} else {
+		unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
+			packet.GetSourceChannel(), data.ClassId)
+		classID = types.ParseClassTrace(unprefixedClassID).IBCClassID()
+
+		suite.Require().Equal(
+			data.GetReceiver(),
+			toEndpoint.Chain.GetSimApp().
+				NFTKeeper.GetOwner(toEndpoint.Chain.GetContext(), classID, data.GetTokenIds()[0]).String(),
+			"nft not equal",
+		)
+	}
+	return classID
 }
