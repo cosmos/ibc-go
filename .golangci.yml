@@ -13,6 +13,7 @@ linters:
     - exportloopref
     # - errcheck
     - goconst
+    - godoc
     - gocritic
     - gofmt
     - goimports
