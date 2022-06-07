@@ -8,6 +8,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -24,6 +25,9 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 	classURI := "cat_uri"
 	nftID := "kitty"
 	nftURI := "kittt_uri"
+
+	var ibcClassID string
+	var packet channeltypes.Packet
 
 	//============================== setup start===============================
 	nftKeeper := path.EndpointA.Chain.GetSimApp().NFTKeeper
@@ -42,80 +46,126 @@ func (suite *KeeperTestSuite) TestSendAndReceive() {
 
 	// transfer from chainA to chainB
 	{
-		msgTransfer := &types.MsgTransfer{
-			SourcePort:    path.EndpointA.ChannelConfig.PortID,
-			SourceChannel: path.EndpointA.ChannelID,
-			ClassId:       classID,
-			TokenIds:      []string{nftID},
-			Sender:        path.EndpointA.Chain.SenderAccount.GetAddress().String(),
-			Receiver:      path.EndpointB.Chain.SenderAccount.GetAddress().String(),
-			TimeoutHeight: clienttypes.Height{
-				RevisionNumber: 0,
-				RevisionHeight: 100,
-			},
-			TimeoutTimestamp: 0,
-		}
-
-		_, err = suite.chainA.SendMsgs(msgTransfer)
-		suite.Require().NoError(err)
-
-		suite.Require().Equal(
-			types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
-			path.EndpointA.Chain.GetSimApp().NFTKeeper.GetOwner(path.EndpointA.Chain.GetContext(), classID, nftID),
-			"escrow nft failed",
+		packet = suite.transferNFT(
+			path.EndpointA,
+			path.EndpointB,
+			classID,
+			nftID,
+			path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+			path.EndpointB.Chain.SenderAccount.GetAddress().String(),
 		)
 	}
 
 	// receive nft on chainB from chainA
 	{
-		nonFungibleTokenPacket := types.NewNonFungibleTokenPacketData(
-			classID,
-			classURI,
-			[]string{nftID},
-			[]string{nftURI},
-			suite.chainA.SenderAccount.GetAddress().String(),
-			suite.chainB.SenderAccount.GetAddress().String(),
+		ibcClassID = suite.receiverNFT(
+			path.EndpointA,
+			path.EndpointB,
+			packet,
 		)
-
-		packet := channeltypes.NewPacket(
-			nonFungibleTokenPacket.GetBytes(),
-			1,
-			path.EndpointA.ChannelConfig.PortID,
-			path.EndpointA.ChannelID,
-			path.EndpointB.ChannelConfig.PortID,
-			path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100),
-			0,
-		)
-
-		// get proof of packet commitment from chainA
-		err = path.EndpointB.UpdateClient()
-		suite.Require().NoError(err)
-
-		packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-		proof, proofHeight := path.EndpointA.QueryProof(packetKey)
-
-		recvMsg := channeltypes.NewMsgRecvPacket(
-			packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
-		_, err = suite.chainB.SendMsgs(recvMsg)
-		suite.Require().NoError(err) // message committed
-
-		prefixedClassID := types.GetClassPrefix(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID) + classID
-		trace := types.ParseClassTrace(prefixedClassID)
-
-		class, found := path.EndpointB.Chain.GetSimApp().
-			NFTKeeper.GetClass(path.EndpointB.Chain.GetContext(), trace.IBCClassID())
-		suite.Require().True(found, "not found class")
-		suite.Require().Equal(nft.Class{Id: trace.IBCClassID(), Uri: classURI}, class, "class not equal")
-
-		token, found := path.EndpointB.Chain.GetSimApp().
-			NFTKeeper.GetNFT(path.EndpointB.Chain.GetContext(), trace.IBCClassID(), nftID)
-		suite.Require().True(found, "not found class")
-		suite.Require().Equal(
-			nft.NFT{ClassId: trace.IBCClassID(), Id: nftID, Uri: nftURI},
-			token,
-			"nft not equal",
-		)
-
 	}
 
+	// transfer from chainB to chainC
+	path1 := NewTransferPath(suite.chainB, suite.chainC)
+	{
+		suite.coordinator.SetupConnections(path1)
+		suite.coordinator.CreateChannels(path1)
+
+		packet = suite.transferNFT(
+			path1.EndpointA,
+			path1.EndpointB,
+			ibcClassID,
+			nftID,
+			path.EndpointB.Chain.SenderAccount.GetAddress().String(),
+			path1.EndpointB.Chain.SenderAccount.GetAddress().String(),
+		)
+	}
+
+	// receive nft on chainC from chainB
+	{
+		ibcClassID = suite.receiverNFT(
+			path1.EndpointA,
+			path1.EndpointB,
+			packet,
+		)
+	}
+}
+
+func (suite *KeeperTestSuite) transferNFT(
+	fromEndpoint, toEndpoint *ibctesting.Endpoint,
+	classID, nftID string,
+	sender, receiver string,
+) channeltypes.Packet {
+	msgTransfer := &types.MsgTransfer{
+		SourcePort:    fromEndpoint.ChannelConfig.PortID,
+		SourceChannel: fromEndpoint.ChannelID,
+		ClassId:       classID,
+		TokenIds:      []string{nftID},
+		Sender:        sender,
+		Receiver:      receiver,
+		TimeoutHeight: clienttypes.Height{
+			RevisionNumber: 0,
+			RevisionHeight: 100,
+		},
+		TimeoutTimestamp: 0,
+	}
+
+	res, err := fromEndpoint.Chain.SendMsgs(msgTransfer)
+	suite.Require().NoError(err)
+
+	//check escrow token
+	suite.Require().Equal(
+		types.GetEscrowAddress(fromEndpoint.ChannelConfig.PortID, fromEndpoint.ChannelID),
+		fromEndpoint.Chain.GetSimApp().NFTKeeper.GetOwner(fromEndpoint.Chain.GetContext(), classID, nftID),
+		"escrow nft failed",
+	)
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	suite.Require().NoError(err)
+	return packet
+
+}
+
+func (suite *KeeperTestSuite) receiverNFT(
+	fromEndpoint, toEndpoint *ibctesting.Endpoint,
+	packet channeltypes.Packet,
+) string {
+
+	var data types.NonFungibleTokenPacketData
+	err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
+	suite.Require().NoError(err)
+
+	// get proof of packet commitment from chainA
+	err = toEndpoint.UpdateClient()
+	suite.Require().NoError(err)
+
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := fromEndpoint.QueryProof(packetKey)
+
+	recvMsg := channeltypes.NewMsgRecvPacket(
+		packet, proof, proofHeight, toEndpoint.Chain.SenderAccount.GetAddress().String())
+	_, err = toEndpoint.Chain.SendMsgs(recvMsg)
+	suite.Require().NoError(err) // message committed
+
+	//construct classTrace
+	prefixedClassID := types.GetClassPrefix(toEndpoint.ChannelConfig.PortID, toEndpoint.ChannelID) + data.GetClassId()
+	trace := types.ParseClassTrace(prefixedClassID)
+	ibcClassID := trace.IBCClassID()
+
+	// check class
+	class, found := toEndpoint.Chain.GetSimApp().
+		NFTKeeper.GetClass(toEndpoint.Chain.GetContext(), ibcClassID)
+	suite.Require().True(found, "not found class")
+	suite.Require().Equal(nft.Class{Id: ibcClassID, Uri: data.GetClassUri()}, class, "class not equal")
+
+	// check nft
+	token, found := toEndpoint.Chain.GetSimApp().
+		NFTKeeper.GetNFT(toEndpoint.Chain.GetContext(), ibcClassID, data.GetTokenIds()[0])
+	suite.Require().True(found, "not found class")
+	suite.Require().Equal(
+		nft.NFT{ClassId: ibcClassID, Id: data.GetTokenIds()[0], Uri: data.GetTokenUris()[0]},
+		token,
+		"nft not equal",
+	)
+	return ibcClassID
 }
