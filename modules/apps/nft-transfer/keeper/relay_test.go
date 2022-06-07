@@ -263,3 +263,131 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
+	var (
+		successAck      = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+		failedAck       = channeltypes.NewErrorAcknowledgement("failed packet transfer")
+		path            *ibctesting.Path
+		trace           types.ClassTrace
+		classID         string
+		nftIDs, nftURIs []string
+	)
+
+	baseClassID := "cryptoCat"
+	classURI := "cat_uri"
+	nftID := "kitty"
+	nftURI := "kittt_uri"
+
+	testCases := []struct {
+		msg      string
+		ack      channeltypes.Acknowledgement
+		malleate func()
+		success  bool // success of ack
+		expPass  bool
+	}{
+		{"success ack causes no-op", successAck, func() {}, true, true},
+		{"successful refund when isAwayFromOrigin is false", failedAck, func() {
+			// if isAwayFromOrigin is false, OnAcknowledgementPacket will mint nft to sender again
+
+			// mock SendTransfer
+			classID = types.GetClassPrefix(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+			) + baseClassID
+
+			ibcClassID := types.ParseClassTrace(classID).IBCClassID()
+			suite.chainA.GetSimApp().NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
+				Id:  ibcClassID,
+				Uri: classURI,
+			})
+
+		}, false, true},
+		{"successful refund when isAwayFromOrigin is true", failedAck, func() {
+			// if isAwayFromOrigin is true, OnAcknowledgementPacket will unescrow nft to sender
+
+			// mock SendTransfer
+			classID = types.GetClassPrefix(
+				path.EndpointB.ChannelConfig.PortID,
+				"channel-1",
+			) + baseClassID
+
+			ibcClassID := types.ParseClassTrace(classID).IBCClassID()
+			suite.chainA.GetSimApp().NFTKeeper.SaveClass(suite.chainA.GetContext(), nft.Class{
+				Id:  ibcClassID,
+				Uri: classURI,
+			})
+
+			escrowAddress := types.GetEscrowAddress(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+			)
+
+			suite.chainA.GetSimApp().NFTKeeper.Mint(suite.chainA.GetContext(), nft.NFT{
+				ClassId: ibcClassID,
+				Id:      nftID,
+				Uri:     nftURI,
+			}, escrowAddress)
+
+		}, false, true},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			path = NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			classID = baseClassID
+			nftIDs = []string{nftID}
+			nftURIs = []string{nftURI}
+
+			tc.malleate()
+
+			trace = types.ParseClassTrace(classID)
+			data := types.NewNonFungibleTokenPacketData(
+				trace.GetFullClassPath(),
+				classURI,
+				nftIDs,
+				nftURIs,
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+			)
+
+			packet := channeltypes.NewPacket(
+				data.GetBytes(),
+				1, //not check sequence
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				clienttypes.NewHeight(0, 100),
+				0,
+			)
+
+			err := suite.chainA.GetSimApp().NFTTransferKeeper.OnAcknowledgementPacket(
+				suite.chainA.GetContext(),
+				packet,
+				data, tc.ack,
+			)
+
+			if !tc.expPass {
+				suite.Require().Error(err)
+			}
+
+			suite.Require().NoError(err, "OnAcknowledgementPacket failed")
+			if tc.success {
+				// if successful, nft is hosted in account a or destroyed(executed when SendTransfer)
+				return
+			}
+
+			suite.Require().Equal(
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainA.GetSimApp().NFTKeeper.GetOwner(suite.chainA.GetContext(), trace.IBCClassID(), nftID).String(),
+				"refund failed",
+			)
+		})
+	}
+}

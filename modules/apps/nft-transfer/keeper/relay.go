@@ -162,29 +162,29 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
 func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, data types.NonFungibleTokenPacketData) error {
-	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
 	if err != nil {
 		return err
 	}
 
+	classTrace := types.ParseClassTrace(data.ClassId)
+	voucherClassID := classTrace.IBCClassID()
 	if types.IsAwayFromOrigin(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId) {
 		for _, tokenID := range data.TokenIds {
-			if err := k.nftKeeper.Transfer(ctx, data.ClassId, tokenID, receiver); err != nil {
+			if err := k.nftKeeper.Transfer(ctx, voucherClassID, tokenID, sender); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
 
-	classTrace := types.ParseClassTrace(data.ClassId)
-	voucherClassID := classTrace.IBCClassID()
 	for i, tokenID := range data.TokenIds {
 		if err := k.nftKeeper.Mint(ctx, nft.NFT{
 			ClassId: voucherClassID,
 			Id:      tokenID,
 			Uri:     data.TokenUris[i],
-		}, receiver); err != nil {
+		}, sender); err != nil {
 			return err
 		}
 	}
