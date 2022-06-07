@@ -16,6 +16,7 @@ linters:
     - gocritic
     - gofmt
     - goimports
+    - golint
     - gosec
     - gosimple
     - govet
@@ -32,7 +33,6 @@ linters:
     - unused
     - unparam
     - misspell
-    - golint
     - nolintlint
 
 issues:
