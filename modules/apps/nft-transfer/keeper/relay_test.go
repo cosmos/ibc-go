@@ -2,20 +2,14 @@ package keeper_test
 
 import (
 	"fmt"
-	"testing"
 
 	"github.com/cosmos/cosmos-sdk/x/nft"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
-
-func TestKeeperTestSuite1(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
-}
 
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
