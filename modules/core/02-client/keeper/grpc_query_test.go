@@ -297,7 +297,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 	var (
 		req                *types.QueryConsensusStatesRequest
-		expConsensusStates = []types.ConsensusStateWithHeight{}
+		expConsensusStates []types.ConsensusStateWithHeight
 	)
 
 	testCases := []struct {
@@ -401,7 +401,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 	var (
 		req                      *types.QueryConsensusStateHeightsRequest
-		expConsensusStateHeights = []types.Height{}
+		expConsensusStateHeights []types.Height
 	)
 
 	testCases := []struct {
