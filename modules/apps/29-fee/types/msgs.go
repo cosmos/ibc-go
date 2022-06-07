@@ -19,15 +19,23 @@ const (
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
 func NewMsgRegisterPayee(portID, channelID, relayerAddr, payeeAddr string) *MsgRegisterPayee {
 	return &MsgRegisterPayee{
-		RelayerAddress: relayerAddr,
-		Payee:          payeeAddr,
 		PortId:         portID,
 		ChannelId:      channelID,
+		RelayerAddress: relayerAddr,
+		Payee:          payeeAddr,
 	}
 }
 
 // ValidateBasic implements sdk.Msg and performs basic stateless validation
 func (msg MsgRegisterPayee) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return err
+	}
+
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
+		return err
+	}
+
 	if msg.RelayerAddress == msg.Payee {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "relayer address and payee must not be equal")
 	}
@@ -40,14 +48,6 @@ func (msg MsgRegisterPayee) ValidateBasic() error {
 	_, err = sdk.AccAddressFromBech32(msg.Payee)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from payee address")
-	}
-
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return err
-	}
-
-	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
-		return err
 	}
 
 	return nil

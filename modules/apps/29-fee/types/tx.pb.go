@@ -437,9 +437,9 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// RegisterPayee defines a rpc handler method for MsgRegisterPayee
 	// RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
-	// distribution address to which escrowed packet fees will be paid out. The distribution address should be registered
-	// on the source chain from which packets originate as this is where fee distribution takes place. This function may
-	// be called more than once by a relayer, in which case, the latest distribution address is always used.
+	// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
+	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
+	// relayer, in which case, the latest payee is always used.
 	RegisterPayee(ctx context.Context, in *MsgRegisterPayee, opts ...grpc.CallOption) (*MsgRegisterPayeeResponse, error)
 	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
 	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
@@ -507,9 +507,9 @@ func (c *msgClient) PayPacketFeeAsync(ctx context.Context, in *MsgPayPacketFeeAs
 type MsgServer interface {
 	// RegisterPayee defines a rpc handler method for MsgRegisterPayee
 	// RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
-	// distribution address to which escrowed packet fees will be paid out. The distribution address should be registered
-	// on the source chain from which packets originate as this is where fee distribution takes place. This function may
-	// be called more than once by a relayer, in which case, the latest distribution address is always used.
+	// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
+	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
+	// relayer, in which case, the latest payee is always used.
 	RegisterPayee(context.Context, *MsgRegisterPayee) (*MsgRegisterPayeeResponse, error)
 	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
 	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their

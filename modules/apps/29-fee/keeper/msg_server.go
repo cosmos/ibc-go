@@ -14,9 +14,9 @@ var _ types.MsgServer = Keeper{}
 
 // RegisterPayee defines a rpc handler method for MsgRegisterPayee
 // RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
-// distribution address to which escrowed packet fees will be paid out. The distribution address should be registered
-// on the source chain from which packets originate as this is where fee distribution takes place. This function may
-// be called more than once by a relayer, in which case, the latest distribution address is always used.
+// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
+// packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer,
+// in which case, the latest payee is always used.
 func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee) (*types.MsgRegisterPayeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -31,7 +31,7 @@ func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee
 
 	k.SetPayeeAddress(ctx, msg.RelayerAddress, msg.Payee, msg.ChannelId)
 
-	k.Logger(ctx).Info("registering distribution address for relayer", "relayer address", msg.RelayerAddress, "payee address", msg.Payee, "channel", msg.ChannelId)
+	k.Logger(ctx).Info("registering payee address for relayer", "relayer address", msg.RelayerAddress, "payee address", msg.Payee, "channel", msg.ChannelId)
 
 	return &types.MsgRegisterPayeeResponse{}, nil
 }

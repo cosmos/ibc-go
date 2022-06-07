@@ -148,9 +148,9 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChan
 }
 
 // GetPayeeAddress retrieves the fee payee address stored in state given the provided channel identifier and relayer address
-func (k Keeper) GetPayeeAddress(ctx sdk.Context, address, channelID string) (string, bool) {
+func (k Keeper) GetPayeeAddress(ctx sdk.Context, relayerAddr, channelID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyPayeeAddress(address, channelID)
+	key := types.KeyPayeeAddress(relayerAddr, channelID)
 
 	if !store.Has(key) {
 		return "", false
