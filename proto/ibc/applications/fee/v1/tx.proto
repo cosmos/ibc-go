@@ -48,8 +48,8 @@ message MsgRegisterPayee {
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address
   string relayer_address = 3 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
-  // the fee distribution address
-  string distribution_address = 4 [(gogoproto.moretags) = "yaml:\"distribution_address\""];
+  // the fee payee address
+  string payee = 4;
 }
 
 // MsgRegisterPayeeResponse defines the response type for the RegisterPayee rpc

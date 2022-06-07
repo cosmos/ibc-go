@@ -26,23 +26,24 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 			true,
 		},
 		{
-			"validate with invalid relayer address",
+			"invalid request relayer and payee are equal",
+			func() {
+				msg.RelayerAddress = defaultAccAddress
+				msg.Payee = defaultAccAddress
+			},
+			false,
+		},
+		{
+			"invalid relayer address",
 			func() {
 				msg.RelayerAddress = "invalid-address"
 			},
 			false,
 		},
 		{
-			"invalid distribution address",
+			"invalid payee address",
 			func() {
-				msg.DistributionAddress = ""
-			},
-			false,
-		},
-		{
-			"invalid distribution address: whitespaced empty string",
-			func() {
-				msg.DistributionAddress = "  "
+				msg.Payee = "invalid-address"
 			},
 			false,
 		},
@@ -63,7 +64,10 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		msg = types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
+		relayerAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+		payeeAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+		msg = types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, relayerAddr.String(), payeeAddr.String())
 
 		tc.malleate()
 

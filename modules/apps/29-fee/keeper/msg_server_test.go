@@ -59,14 +59,14 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
 
-			distributionAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetDistributionAddress(
+			payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(
 				suite.chainA.GetContext(),
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.path.EndpointA.ChannelID,
 			)
 
 			suite.Require().True(found)
-			suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), distributionAddr)
+			suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
 		} else {
 			suite.Require().Error(err)
 		}

@@ -25,9 +25,9 @@ const (
 // NewRegisterPayeeCmd returns the command to create a MsgRegisterPayee
 func NewRegisterPayeeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "register-payee [port-id] [channel-id] [relayer-address] [distribution-address] ",
+		Use:     "register-payee [port-id] [channel-id] [relayer-address] [payee-address] ",
 		Short:   "Register a payee on a given channel.",
-		Long:    strings.TrimSpace(`Register a payee's distribution address on a given channel.`),
+		Long:    strings.TrimSpace(`Register a payee address on a given channel.`),
 		Example: fmt.Sprintf("%s tx ibc-fee register-payee transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5", version.AppName),
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {

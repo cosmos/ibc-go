@@ -1326,7 +1326,7 @@ MsgRegisterPayee defines the request type for the RegisterPayee rpc
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 | `relayer_address` | [string](#string) |  | the relayer address |
-| `distribution_address` | [string](#string) |  | the fee distribution address |
+| `payee` | [string](#string) |  | the fee payee address |
 
 
 

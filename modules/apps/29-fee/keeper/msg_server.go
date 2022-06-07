@@ -29,9 +29,9 @@ func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee
 		return nil, types.ErrFeeNotEnabled
 	}
 
-	k.SetDistributionAddress(ctx, msg.RelayerAddress, msg.DistributionAddress, msg.ChannelId)
+	k.SetPayeeAddress(ctx, msg.RelayerAddress, msg.Payee, msg.ChannelId)
 
-	k.Logger(ctx).Info("registering distribution address for relayer", "address", msg.RelayerAddress, "distribution address", msg.DistributionAddress, "channel", msg.ChannelId)
+	k.Logger(ctx).Info("registering distribution address for relayer", "relayer address", msg.RelayerAddress, "payee address", msg.Payee, "channel", msg.ChannelId)
 
 	return &types.MsgRegisterPayeeResponse{}, nil
 }
