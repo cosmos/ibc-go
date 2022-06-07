@@ -304,7 +304,7 @@ func PruneAllExpiredConsensusStates(
 		return false
 	}
 
-	IterateConsensusStateAscending(clientStore, pruneCb)
+	err = IterateConsensusStateAscending(clientStore, pruneCb)
 	if err != nil {
 		return err
 	}
