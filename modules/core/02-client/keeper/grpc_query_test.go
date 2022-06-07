@@ -432,7 +432,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 			true,
 		},
 		{
-			"success: returns concensus heights",
+			"success: returns consensus heights",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
