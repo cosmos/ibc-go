@@ -9,10 +9,10 @@ import "tendermint/abci/types.proto";
 
 // InterchainQueryPacketData is comprised of an ABCI query request and type of query.
 message InterchainQueryPacketData {
-  tendermint.abci.RequestQuery request = 1 [(gogoproto.nullable) = false];
+  repeated tendermint.abci.RequestQuery requests = 1 [(gogoproto.nullable) = false];
 }
 
 // InterchainQueryPacketAck is comprised of an ABCI query response with non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
 message InterchainQueryPacketAck {
-  tendermint.abci.ResponseQuery response = 1 [(gogoproto.nullable) = false];
+  repeated tendermint.abci.ResponseQuery responses = 1 [(gogoproto.nullable) = false];
 }
