@@ -276,3 +276,28 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 	suite.Require().Len(addr, len(expectedAddr))
 	suite.Require().Equal(addr, expectedAddr)
 }
+
+func (suite *KeeperTestSuite) TestGetAllPayeeAddresses() {
+	var expectedPayees []types.RegisteredPayee
+
+	for i := 0; i < 3; i++ {
+		suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+			suite.chainA.GetContext(),
+			suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			ibctesting.FirstChannelID,
+		)
+
+		registeredPayee := types.RegisteredPayee{
+			RelayerAddress: suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			Payee:          suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			ChannelId:      ibctesting.FirstChannelID,
+		}
+
+		expectedPayees = append(expectedPayees, registeredPayee)
+	}
+
+	registeredPayees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllPayeeAddresses(suite.chainA.GetContext())
+	suite.Require().Len(registeredPayees, len(expectedPayees))
+	suite.Require().ElementsMatch(expectedPayees, registeredPayees)
+}
