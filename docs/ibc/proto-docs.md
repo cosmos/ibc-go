@@ -47,8 +47,6 @@
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
     - [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest)
     - [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse)
-    - [QueryDistributionAddressRequest](#ibc.applications.fee.v1.QueryDistributionAddressRequest)
-    - [QueryDistributionAddressResponse](#ibc.applications.fee.v1.QueryDistributionAddressResponse)
     - [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest)
     - [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse)
     - [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest)
@@ -59,6 +57,8 @@
     - [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse)
     - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
     - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
+    - [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest)
+    - [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse)
     - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
     - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
     - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
@@ -970,37 +970,6 @@ QueryCounterpartyAddressResponse defines the response type for the CounterpartyA
 
 
 
-<a name="ibc.applications.fee.v1.QueryDistributionAddressRequest"></a>
-
-### QueryDistributionAddressRequest
-QueryDistributionAddressRequest defines the request type for the DistributionAddress rpc
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address to which the distribution address is registered |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.QueryDistributionAddressResponse"></a>
-
-### QueryDistributionAddressResponse
-QueryDistributionAddressResponse defines the response type for the DistributionAddress rpc
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `distribution_address` | [string](#string) |  | the distribution address to which packet fees are paid out |
-
-
-
-
-
-
 <a name="ibc.applications.fee.v1.QueryFeeEnabledChannelRequest"></a>
 
 ### QueryFeeEnabledChannelRequest
@@ -1159,6 +1128,37 @@ QueryIncentivizedPacketsResponse defines the response type for the IncentivizedP
 
 
 
+<a name="ibc.applications.fee.v1.QueryPayeeRequest"></a>
+
+### QueryPayeeRequest
+QueryPayeeRequest defines the request type for the Payee rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer_address` | [string](#string) |  | the relayer address to which the distribution address is registered |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryPayeeResponse"></a>
+
+### QueryPayeeResponse
+QueryPayeeResponse defines the response type for the Payee rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `payee_address` | [string](#string) |  | the payee address to which packet fees are paid out |
+
+
+
+
+
+
 <a name="ibc.applications.fee.v1.QueryTotalAckFeesRequest"></a>
 
 ### QueryTotalAckFeesRequest
@@ -1268,8 +1268,8 @@ Query defines the ICS29 gRPC querier service.
 | `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees|
 | `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees|
 | `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees|
+| `Payee` | [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest) | [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse) | Payee returns the registered payee address for a specific channel given the relayer address | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/payee|
 | `CounterpartyAddress` | [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest) | [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse) | CounterpartyAddress returns the registered counterparty address for forward relaying | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/counterparty_address|
-| `DistributionAddress` | [QueryDistributionAddressRequest](#ibc.applications.fee.v1.QueryDistributionAddressRequest) | [QueryDistributionAddressResponse](#ibc.applications.fee.v1.QueryDistributionAddressResponse) | DistributionAddress returns the registered distribution address for a specific channel given the relayer address | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/distribution_address|
 | `FeeEnabledChannels` | [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest) | [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse) | FeeEnabledChannels returns a list of all fee enabled channels | GET|/ibc/apps/fee/v1/fee_enabled|
 | `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled|
 

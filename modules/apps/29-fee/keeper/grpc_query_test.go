@@ -409,6 +409,69 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestQueryPayee() {
+	var req *types.QueryPayeeRequest
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"payee address not found: invalid channel",
+			func() {
+				req.ChannelId = "invalid-channel-id"
+			},
+			false,
+		},
+		{
+			"payee address not found: invalid relayer address",
+			func() {
+				req.RelayerAddress = "invalid-addr"
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			pk := secp256k1.GenPrivKey().PubKey()
+			expPayeeAddr := sdk.AccAddress(pk.Address())
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				expPayeeAddr.String(),
+				suite.path.EndpointA.ChannelID,
+			)
+
+			req = &types.QueryPayeeRequest{
+				ChannelId:      suite.path.EndpointA.ChannelID,
+				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+			}
+
+			tc.malleate()
+
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			res, err := suite.queryClient.Payee(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expPayeeAddr.String(), res.PayeeAddress)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 	var req *types.QueryCounterpartyAddressRequest
 
@@ -465,69 +528,6 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expectedCounterpartyAddr.String(), res.CounterpartyAddress)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestQueryDistributionAddress() {
-	var req *types.QueryDistributionAddressRequest
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"success",
-			func() {},
-			true,
-		},
-		{
-			"distribution address not found: invalid channel",
-			func() {
-				req.ChannelId = "invalid-channel-id"
-			},
-			false,
-		},
-		{
-			"distribution address not found: invalid relayer address",
-			func() {
-				req.RelayerAddress = "invalid-addr"
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-
-			pk := secp256k1.GenPrivKey().PubKey()
-			expDistributionAddr := sdk.AccAddress(pk.Address())
-
-			suite.chainA.GetSimApp().IBCFeeKeeper.SetDistributionAddress(
-				suite.chainA.GetContext(),
-				suite.chainA.SenderAccount.GetAddress().String(),
-				expDistributionAddr.String(),
-				suite.path.EndpointA.ChannelID,
-			)
-
-			req = &types.QueryDistributionAddressRequest{
-				ChannelId:      suite.path.EndpointA.ChannelID,
-				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
-			}
-
-			tc.malleate()
-
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.queryClient.DistributionAddress(ctx, req)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(expDistributionAddr.String(), res.DistributionAddress)
 			} else {
 				suite.Require().Error(err)
 			}
