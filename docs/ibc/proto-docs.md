@@ -389,7 +389,7 @@ method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+| `hash` | [string](#string) |  | hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information. |
 
 
 
@@ -549,12 +549,6 @@ field.
 | `height` | [Height](#ibc.core.client.v1.Height) |  | consensus state height |
 | `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | consensus state |
 
-<<<<<<< HEAD
-=======
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information. |
->>>>>>> 23e7e7d (chore: improve DenomTrace grpc (#1342))
 
 
 
