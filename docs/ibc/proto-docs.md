@@ -636,7 +636,7 @@ method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+| `hash` | [string](#string) |  | hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information. |
 
 
 
@@ -1002,12 +1002,8 @@ https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-s
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-<<<<<<< HEAD
 | `result` | [bytes](#bytes) |  |  |
 | `error` | [string](#string) |  |  |
-=======
-| `hash` | [string](#string) |  | hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information. |
->>>>>>> 23e7e7d (chore: improve DenomTrace grpc (#1342))
 
 
 
