@@ -2,11 +2,11 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
 func (suite *KeeperTestSuite) TestDistributeFee() {
@@ -406,6 +406,29 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				expEscrowBal = fee.Total()
 				expRefundBal = expRefundBal.Sub(fee.Total())
 			}, true,
+		},
+		{
+			name: "invalid refund address: no error is returned",
+			malleate: func() {
+				locked = true
+				account := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), govtypes.ModuleName)
+				refundAcc = account.GetAddress()
+
+				for i := 1; i < 6; i++ {
+					// store the fee in state & update escrow account balance
+					packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(i))
+					packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, refundAcc.String(), nil)})
+					identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
+
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
+
+					err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+					suite.Require().NoError(err)
+
+					expIdentifiedPacketFees = append(expIdentifiedPacketFees, identifiedPacketFees)
+				}
+			},
+			expPass: true,
 		},
 	}
 
