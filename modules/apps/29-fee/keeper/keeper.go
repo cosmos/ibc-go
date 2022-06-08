@@ -166,28 +166,28 @@ func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channel
 }
 
 // GetAllPayeeAddresses returns all registered distribution addresses
-func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredDistributionAddress {
+func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeAddressKeyPrefix))
 	defer iterator.Close()
 
-	var distributionAddrs []types.RegisteredDistributionAddress
+	var registeredPayees []types.RegisteredPayee
 	for ; iterator.Valid(); iterator.Next() {
 		addr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
-		distributionAddr := types.RegisteredDistributionAddress{
-			Address:             addr,
-			DistributionAddress: string(iterator.Value()),
-			ChannelId:           channelID,
+		payee := types.RegisteredPayee{
+			RelayerAddress: addr,
+			Payee:          string(iterator.Value()),
+			ChannelId:      channelID,
 		}
 
-		distributionAddrs = append(distributionAddrs, distributionAddr)
+		registeredPayees = append(registeredPayees, payee)
 	}
 
-	return distributionAddrs
+	return registeredPayees
 }
 
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address

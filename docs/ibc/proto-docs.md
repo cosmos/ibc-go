@@ -38,7 +38,7 @@
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
     - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
-    - [RegisteredDistributionAddress](#ibc.applications.fee.v1.RegisteredDistributionAddress)
+    - [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee)
     - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
   
 - [ibc/applications/fee/v1/metadata.proto](#ibc/applications/fee/v1/metadata.proto)
@@ -843,25 +843,25 @@ GenesisState defines the ICS29 fee middleware genesis state
 | ----- | ---- | ----- | ----------- |
 | `identified_fees` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified packet fees |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
+| `registered_payees` | [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee) | repeated | list of registered payees |
 | `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated | list of registered relayer addresses |
 | `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated | list of forward relayer addresses |
-| `registered_distribution_addresses` | [RegisteredDistributionAddress](#ibc.applications.fee.v1.RegisteredDistributionAddress) | repeated | list of registered distribution addresses |
 
 
 
 
 
 
-<a name="ibc.applications.fee.v1.RegisteredDistributionAddress"></a>
+<a name="ibc.applications.fee.v1.RegisteredPayee"></a>
 
-### RegisteredDistributionAddress
-RegisteredDistributionAddress contains the relayer address and distribution address for a specific channel
+### RegisteredPayee
+RegisteredPayee contains the relayer address and payee address for a specific channel
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `distribution_address` | [string](#string) |  | the distribution address |
+| `relayer_address` | [string](#string) |  | the relayer address |
+| `payee` | [string](#string) |  | the payee address |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
 

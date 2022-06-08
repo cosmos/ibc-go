@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -79,6 +80,27 @@ func TestValidateGenesis(t *testing.T) {
 			false,
 		},
 		{
+			"invalid registered payee: invalid relayer address",
+			func() {
+				genState.RegisteredPayees[0].RelayerAddress = ""
+			},
+			false,
+		},
+		{
+			"invalid registered payee: invalid payee address",
+			func() {
+				genState.RegisteredPayees[0].Payee = ""
+			},
+			false,
+		},
+		{
+			"invalid registered payee: invalid channel ID",
+			func() {
+				genState.RegisteredPayees[0].ChannelId = ""
+			},
+			false,
+		},
+		{
 			"invalid registered relayers: invalid sender",
 			func() {
 				genState.RegisteredRelayers[0].Address = ""
@@ -106,31 +128,9 @@ func TestValidateGenesis(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"invalid distribution address: invalid relayer address",
-			func() {
-				genState.RegisteredDistributionAddresses[0].Address = ""
-			},
-			false,
-		},
-		{
-			"invalid distribution address: invalid distribution address",
-			func() {
-				genState.RegisteredDistributionAddresses[0].DistributionAddress = ""
-			},
-			false,
-		},
-		{
-			"invalid distribution address: invalid channel ID",
-			func() {
-				genState.RegisteredDistributionAddresses[0].ChannelId = ""
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {
-
 		genState = &types.GenesisState{
 			IdentifiedFees: []types.IdentifiedPacketFees{
 				{
@@ -156,11 +156,11 @@ func TestValidateGenesis(t *testing.T) {
 					PacketId: channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1),
 				},
 			},
-			RegisteredDistributionAddresses: []types.RegisteredDistributionAddress{
+			RegisteredPayees: []types.RegisteredPayee{
 				{
-					Address:             defaultAccAddress,
-					DistributionAddress: defaultAccAddress,
-					ChannelId:           ibctesting.FirstChannelID,
+					RelayerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					Payee:          sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					ChannelId:      ibctesting.FirstChannelID,
 				},
 			},
 		}

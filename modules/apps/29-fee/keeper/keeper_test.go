@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllDistributionAddresses() {
-	var expectedDistAddrs []types.RegisteredDistributionAddress
+	var expectedPayees []types.RegisteredPayee
 
 	for i := 0; i < 3; i++ {
 		suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
@@ -288,16 +288,16 @@ func (suite *KeeperTestSuite) TestGetAllDistributionAddresses() {
 			ibctesting.FirstChannelID,
 		)
 
-		registeredDistAddr := types.RegisteredDistributionAddress{
-			Address:             suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			DistributionAddress: suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			ChannelId:           ibctesting.FirstChannelID,
+		registeredPayee := types.RegisteredPayee{
+			RelayerAddress: suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			Payee:          suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			ChannelId:      ibctesting.FirstChannelID,
 		}
 
-		expectedDistAddrs = append(expectedDistAddrs, registeredDistAddr)
+		expectedPayees = append(expectedPayees, registeredPayee)
 	}
 
-	registeredDistAddrs := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllPayeeAddresses(suite.chainA.GetContext())
-	suite.Require().Len(registeredDistAddrs, len(expectedDistAddrs))
-	suite.Require().ElementsMatch(expectedDistAddrs, registeredDistAddrs)
+	registeredPayees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllPayeeAddresses(suite.chainA.GetContext())
+	suite.Require().Len(registeredPayees, len(expectedPayees))
+	suite.Require().ElementsMatch(expectedPayees, registeredPayees)
 }

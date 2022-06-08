@@ -35,11 +35,11 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				ChannelId:           ibctesting.FirstChannelID,
 			},
 		},
-		RegisteredDistributionAddresses: []types.RegisteredDistributionAddress{
+		RegisteredPayees: []types.RegisteredPayee{
 			{
-				Address:             suite.chainA.SenderAccount.GetAddress().String(),
-				DistributionAddress: suite.chainB.SenderAccount.GetAddress().String(),
-				ChannelId:           ibctesting.FirstChannelID,
+				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+				Payee:          suite.chainB.SenderAccount.GetAddress().String(),
+				ChannelId:      ibctesting.FirstChannelID,
 			},
 		},
 	}
@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	// check payee addresses
 	payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
 	suite.Require().True(found)
-	suite.Require().Equal(genesisState.RegisteredDistributionAddresses[0].DistributionAddress, payeeAddr)
+	suite.Require().Equal(genesisState.RegisteredPayees[0].Payee, payeeAddr)
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(packetID, genesisState.ForwardRelayers[0].PacketId)
 
 	// check payee addresses
-	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredDistributionAddresses[0].Address)
-	suite.Require().Equal(suite.chainB.SenderAccount.GetAddress().String(), genesisState.RegisteredDistributionAddresses[0].DistributionAddress)
-	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.RegisteredDistributionAddresses[0].ChannelId)
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredPayees[0].RelayerAddress)
+	suite.Require().Equal(suite.chainB.SenderAccount.GetAddress().String(), genesisState.RegisteredPayees[0].Payee)
+	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.RegisteredPayees[0].ChannelId)
 }

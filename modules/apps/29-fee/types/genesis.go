@@ -15,25 +15,25 @@ func NewGenesisState(
 	feeEnabledChannels []FeeEnabledChannel,
 	registeredRelayers []RegisteredRelayerAddress,
 	forwardRelayers []ForwardRelayerAddress,
-	registeredDistributionAddrs []RegisteredDistributionAddress,
+	registeredPayees []RegisteredPayee,
 ) *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:                  identifiedFees,
-		FeeEnabledChannels:              feeEnabledChannels,
-		RegisteredRelayers:              registeredRelayers,
-		ForwardRelayers:                 forwardRelayers,
-		RegisteredDistributionAddresses: registeredDistributionAddrs,
+		IdentifiedFees:     identifiedFees,
+		FeeEnabledChannels: feeEnabledChannels,
+		RegisteredRelayers: registeredRelayers,
+		ForwardRelayers:    forwardRelayers,
+		RegisteredPayees:   registeredPayees,
 	}
 }
 
 // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:                  []IdentifiedPacketFees{},
-		ForwardRelayers:                 []ForwardRelayerAddress{},
-		FeeEnabledChannels:              []FeeEnabledChannel{},
-		RegisteredRelayers:              []RegisteredRelayerAddress{},
-		RegisteredDistributionAddresses: []RegisteredDistributionAddress{},
+		IdentifiedFees:     []IdentifiedPacketFees{},
+		ForwardRelayers:    []ForwardRelayerAddress{},
+		FeeEnabledChannels: []FeeEnabledChannel{},
+		RegisteredRelayers: []RegisteredRelayerAddress{},
+		RegisteredPayees:   []RegisteredPayee{},
 	}
 }
 
@@ -63,6 +63,25 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
+	// Validate RegisteredPayees
+	for _, registeredPayee := range gs.RegisteredPayees {
+		if registeredPayee.RelayerAddress == registeredPayee.Payee {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address and payee address must not be equal")
+		}
+
+		if _, err := sdk.AccAddressFromBech32(registeredPayee.RelayerAddress); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
+		}
+
+		if _, err := sdk.AccAddressFromBech32(registeredPayee.Payee); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert payee address into sdk.AccAddress")
+		}
+
+		if err := host.ChannelIdentifierValidator(registeredPayee.ChannelId); err != nil {
+			return sdkerrors.Wrapf(err, "invalid channel identifier: %s", registeredPayee.ChannelId)
+		}
+	}
+
 	// Validate RegisteredRelayers
 	for _, rel := range gs.RegisteredRelayers {
 		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
@@ -82,21 +101,6 @@ func (gs GenesisState) Validate() error {
 
 		if err := rel.PacketId.Validate(); err != nil {
 			return err
-		}
-	}
-
-	// Validate DistributionAddresses
-	for _, registeredDistAddr := range gs.RegisteredDistributionAddresses {
-		if _, err := sdk.AccAddressFromBech32(registeredDistAddr.Address); err != nil {
-			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
-		}
-
-		if _, err := sdk.AccAddressFromBech32(registeredDistAddr.DistributionAddress); err != nil {
-			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
-		}
-
-		if err := host.ChannelIdentifierValidator(registeredDistAddr.ChannelId); err != nil {
-			return sdkerrors.Wrapf(err, "invalid channel identifier: %s", registeredDistAddr.ChannelId)
 		}
 	}
 
