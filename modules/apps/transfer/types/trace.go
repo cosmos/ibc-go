@@ -35,7 +35,7 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		}
 	}
 
-	path, baseDenom := extractPathAndBaseDenomFromDenomTrace(denomSplit)
+	path, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
 	return DenomTrace{
 		Path:      path,
 		BaseDenom: baseDenom,
@@ -74,17 +74,17 @@ func (dt DenomTrace) GetFullDenomPath() string {
 	return dt.GetPrefix() + dt.BaseDenom
 }
 
-// extractPathAndBaseDenomFromDenomTrace returns the trace path and the base denom from
-// the elements that constitute the complete denom trace.
-func extractPathAndBaseDenomFromDenomTrace(denomTraceItems []string) (string, string) {
+// extractPathAndBaseFromFullDenom returns the trace path and the base denom from
+// the elements that constitute the complete denom.
+func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 	var path []string
 	var baseDenom []string
-	length := len(denomTraceItems)
+	length := len(fullDenomItems)
 	for i := 0; i < length; i = i + 2 {
-		if i < length-1 && length > 2 && denomTraceItems[i] == PortID {
-			path = append(path, denomTraceItems[i], denomTraceItems[i+1])
+		if i < length-1 && length > 2 && fullDenomItems[i] == PortID {
+			path = append(path, fullDenomItems[i], fullDenomItems[i+1])
 		} else {
-			baseDenom = denomTraceItems[i:]
+			baseDenom = fullDenomItems[i:]
 			break
 		}
 	}
@@ -180,7 +180,7 @@ func ValidatePrefixedDenom(denom string) error {
 		return sdkerrors.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
-	path, _ := extractPathAndBaseDenomFromDenomTrace(denomSplit)
+	path, _ := extractPathAndBaseFromFullDenom(denomSplit)
 	if path == "" {
 		// NOTE: base denom contains slashes, so no base denomination validation
 		return nil
