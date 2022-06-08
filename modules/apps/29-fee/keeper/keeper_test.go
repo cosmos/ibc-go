@@ -277,7 +277,7 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 	suite.Require().Equal(addr, expectedAddr)
 }
 
-func (suite *KeeperTestSuite) TestGetAllDistributionAddresses() {
+func (suite *KeeperTestSuite) TestGetAllPayeeAddresses() {
 	var expectedPayees []types.RegisteredPayee
 
 	for i := 0; i < 3; i++ {
