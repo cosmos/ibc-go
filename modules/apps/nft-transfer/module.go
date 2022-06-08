@@ -21,6 +21,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/client/cli"
 	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/keeper"
+	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/simulation"
 	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 )
@@ -152,7 +153,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // GenerateGenesisState creates a randomized GenState of the nft-transfer module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	//simulation.RandomizedGenState(simState)
+	simulation.RandomizedGenState(simState)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
@@ -162,13 +163,12 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 
 // RandomizedParams creates randomized ibc nft-transfer param changes for the simulator.
 func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	//return simulation.ParamChanges(r)
 	return nil
 }
 
 // RegisterStoreDecoder registers a decoder for nft-transfer module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	//sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
 }
 
 // WeightedOperations returns the all the nft-transfer module operations with their respective weights.
