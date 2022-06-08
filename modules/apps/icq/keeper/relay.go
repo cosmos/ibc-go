@@ -17,7 +17,7 @@ func (k Keeper) SendQuery(
 	sourcePort,
 	sourceChannel string,
 	chanCap *capabilitytypes.Capability,
-	req abci.RequestQuery,
+	reqs []abci.RequestQuery,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) (uint64, error) {
@@ -30,7 +30,7 @@ func (k Keeper) SendQuery(
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
 	icqPacketData := types.InterchainQueryPacketData{
-		Request: req,
+		Requests: reqs,
 	}
 
 	return k.createOutgoingPacket(ctx, sourcePort, sourceChannel, destinationPort, destinationChannel, chanCap, icqPacketData, timeoutTimestamp)
@@ -84,31 +84,33 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 		return nil, sdkerrors.Wrapf(icqtypes.ErrUnknownDataType, "cannot unmarshal ICQ packet data")
 	}
 
-	response, err := k.executeQuery(ctx, data.Request)
+	response, err := k.executeQuery(ctx, data.Requests)
 	if err != nil {
 		return nil, err
 	}
 	return response, err
 }
 
-func (k Keeper) executeQuery(ctx sdk.Context, q abci.RequestQuery) ([]byte, error) {
-	if err := k.authenticateQuery(ctx, q); err != nil {
-		return nil, err
-	}
+func (k Keeper) executeQuery(ctx sdk.Context, reqs []abci.RequestQuery) ([]byte, error) {
+	resps := make([]abci.ResponseQuery, len(reqs))
+	for i, req := range reqs {
+		if err := k.authenticateQuery(ctx, req); err != nil {
+			return nil, err
+		}
 
-	response := k.querier.Query(q)
-	// Remove non-deterministic fields from response
-	response = abci.ResponseQuery{
-		Code:     response.Code,
-		Index:    response.Index,
-		Key:      response.Key,
-		Value:    response.Value,
-		ProofOps: response.ProofOps,
-		Height:   response.Height,
+		resp := k.querier.Query(req)
+		// Remove non-deterministic fields from response
+		resps[i] = abci.ResponseQuery{
+			Code:   resp.Code,
+			Index:  resp.Index,
+			Key:    resp.Key,
+			Value:  resp.Value,
+			Height: resp.Height,
+		}
 	}
 
 	ack := icqtypes.InterchainQueryPacketAck{
-		Response: response,
+		Responses: resps,
 	}
 	data, err := icqtypes.ModuleCdc.MarshalJSON(&ack)
 	if err != nil {
