@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 // InitGenesis initializes the icq state and binds to PortID.
@@ -16,8 +15,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	if !k.IsBound(ctx, state.HostPort) {
 		// transfer module binds to the transfer port on InitChain
 		// and claims the returned capability
-		cap := k.BindPort(ctx, state.HostPort)
-		if err := k.ClaimCapability(ctx, cap, host.PortPath(state.HostPort)); err != nil {
+		err := k.BindPort(ctx, state.HostPort)
+		if err != nil {
 			panic(fmt.Sprintf("could not claim port capability: %v", err))
 		}
 	}
@@ -28,7 +27,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 // ExportGenesis exports icq module's portID and denom trace info into its genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		HostPort: types.PortID,
+		HostPort: k.GetPort(ctx),
 		Params:   k.GetParams(ctx),
 	}
 }

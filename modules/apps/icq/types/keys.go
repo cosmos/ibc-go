@@ -1,7 +1,5 @@
 package types
 
-import "fmt"
-
 const (
 	// ModuleName defines the interchain query module name
 	ModuleName = "interchainquery"
@@ -23,14 +21,9 @@ const (
 )
 
 var (
-	// PortKeyPrefix defines the key prefix used to store ports
-	PortKeyPrefix = "port"
+	// PortKey defines the key to store the port ID in store
+	PortKey = []byte{0x01}
 )
-
-// KeyPort creates and returns a new key used for port store operations
-func KeyPort(portID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", PortKeyPrefix, portID))
-}
 
 // ContainsQueryPath returns true if the path is present in allowQueries, otherwise false
 func ContainsQueryPath(allowQueries []string, path string) bool {
