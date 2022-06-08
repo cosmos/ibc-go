@@ -57,17 +57,27 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // BindPort stores the provided portID and binds to it, returning the associated capability
-func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyPort(portID), []byte{0x01})
-
-	return k.portKeeper.BindPort(ctx, portID)
+func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
+	cap := k.portKeeper.BindPort(ctx, portID)
+	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
 }
 
 // IsBound checks if the interchain query already bound to the desired port
 func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
+}
+
+// GetPort returns the portID for the transfer module. Used in ExportGenesis
+func (k Keeper) GetPort(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+	return string(store.Get(types.PortKey))
+}
+
+// SetPort sets the portID for the transfer module. Used in InitGenesis
+func (k Keeper) SetPort(ctx sdk.Context, portID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.PortKey, []byte(portID))
 }
 
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function

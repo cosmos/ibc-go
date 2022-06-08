@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/icq/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
 var (
@@ -96,8 +95,8 @@ func (am AppModule) InitModule(ctx sdk.Context, params types.Params) {
 	am.keeper.SetParams(ctx, params)
 
 	if am.keeper.IsHostEnabled(ctx) {
-		cap := am.keeper.BindPort(ctx, types.PortID)
-		if err := am.keeper.ClaimCapability(ctx, cap, ibchost.PortPath(types.PortID)); err != nil {
+		err := am.keeper.BindPort(ctx, types.PortID)
+		if err != nil {
 			panic(fmt.Sprintf("could not claim port capability: %v", err))
 		}
 	}

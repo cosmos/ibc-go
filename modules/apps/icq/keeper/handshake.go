@@ -25,8 +25,9 @@ func (k Keeper) OnChanOpenTry(
 		return "", sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.UNORDERED, order)
 	}
 
-	if portID != types.PortID {
-		return "", sdkerrors.Wrapf(types.ErrInvalidHostPort, "expected %s, got %s", types.PortID, portID)
+	boundPort := k.GetPort(ctx)
+	if portID != boundPort {
+		return "", sdkerrors.Wrapf(types.ErrInvalidHostPort, "expected %s, got %s", boundPort, portID)
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
