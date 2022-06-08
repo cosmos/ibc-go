@@ -46,6 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (channel) [\#1283](https://github.com/cosmos/ibc-go/pull/1283) The `OnChanOpenInit` application callback now returns a version string in line with the latest [spec changes](https://github.com/cosmos/ibc/pull/629).  
 * (modules/29-fee)[\#1338](https://github.com/cosmos/ibc-go/pull/1338) Renaming `Result` field in `IncentivizedAcknowledgement` to `AppAcknowledgement`.
 * (modules/29-fee)[\#1343](https://github.com/cosmos/ibc-go/pull/1343) Renaming `KeyForwardRelayerAddress` to `KeyRelayerAddressForAsyncAck`, and `ParseKeyForwardRelayerAddress` to `ParseKeyRelayerAddressForAsyncAck`.
+* (apps/27-interchain-accounts)[\#1432](https://github.com/cosmos/ibc-go/pull/1432) Updating `RegisterInterchainAccount` to include an additional `version` argument, supporting ICS29 fee middleware functionality in ICS27 interchain accounts.
 
 ### State Machine Breaking
 
