@@ -211,28 +211,28 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID 
 }
 
 // GetAllRelayerAddresses returns all registered relayer addresses
-func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelayerAddress {
+func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredCounterpartyPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyRelayerAddressKeyPrefix))
 	defer iterator.Close()
 
-	var registeredAddrArr []types.RegisteredRelayerAddress
+	var registeredCounterpartyPayees []types.RegisteredCounterpartyPayee
 	for ; iterator.Valid(); iterator.Next() {
 		address, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
-		addr := types.RegisteredRelayerAddress{
-			Address:             address,
-			CounterpartyAddress: string(iterator.Value()),
-			ChannelId:           channelID,
+		counterpartyPayee := types.RegisteredCounterpartyPayee{
+			RelayerAddress:    address,
+			CounterpartyPayee: string(iterator.Value()),
+			ChannelId:         channelID,
 		}
 
-		registeredAddrArr = append(registeredAddrArr, addr)
+		registeredCounterpartyPayees = append(registeredCounterpartyPayees, counterpartyPayee)
 	}
 
-	return registeredAddrArr
+	return registeredCounterpartyPayees
 }
 
 // SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement

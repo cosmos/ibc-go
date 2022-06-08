@@ -101,16 +101,16 @@ func TestValidateGenesis(t *testing.T) {
 			false,
 		},
 		{
-			"invalid registered relayers: invalid sender",
+			"invalid registered counterparty payees: invalid relayer address",
 			func() {
-				genState.RegisteredRelayers[0].Address = ""
+				genState.RegisteredCounterpartyPayees[0].RelayerAddress = ""
 			},
 			false,
 		},
 		{
-			"invalid registered relayers: invalid counterparty",
+			"invalid registered counterparty payees: invalid counterparty payee",
 			func() {
-				genState.RegisteredRelayers[0].CounterpartyAddress = ""
+				genState.RegisteredCounterpartyPayees[0].CounterpartyPayee = ""
 			},
 			false,
 		},
@@ -144,10 +144,11 @@ func TestValidateGenesis(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			},
-			RegisteredRelayers: []types.RegisteredRelayerAddress{
+			RegisteredCounterpartyPayees: []types.RegisteredCounterpartyPayee{
 				{
-					Address:             defaultAccAddress,
-					CounterpartyAddress: defaultAccAddress,
+					RelayerAddress:    defaultAccAddress,
+					CounterpartyPayee: defaultAccAddress,
+					ChannelId:         ibctesting.FirstChannelID,
 				},
 			},
 			ForwardRelayers: []types.ForwardRelayerAddress{
