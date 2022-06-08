@@ -214,16 +214,9 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 				return err
 			}
 
-			// if the refund address is blocked, skip and continue distribution
-			if k.bankKeeper.BlockedAddr(refundAddr) {
-				continue
-			}
-
 			// refund all fees to refund address
-			// Use SendCoins rather than the module account send functions since refund address may be a user account or module address.
-			moduleAcc := k.GetFeeModuleAddress()
-			if err = k.bankKeeper.SendCoins(cacheCtx, moduleAcc, refundAddr, packetFee.Fee.Total()); err != nil {
-				return err
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAddr, packetFee.Fee.Total()); err != nil {
+				continue
 			}
 
 		}
