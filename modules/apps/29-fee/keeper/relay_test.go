@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 			"success",
 			func() {
 				suite.chainB.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketId(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, 1), suite.chainA.SenderAccount.GetAddress().String())
-				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
 			},
 			true,
 		},

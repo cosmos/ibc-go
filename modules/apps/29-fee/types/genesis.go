@@ -89,7 +89,7 @@ func (gs GenesisState) Validate() error {
 		}
 
 		if strings.TrimSpace(rel.CounterpartyAddress) == "" {
-			return ErrCounterpartyAddressEmpty
+			return ErrCounterpartyPayeeEmpty
 		}
 	}
 

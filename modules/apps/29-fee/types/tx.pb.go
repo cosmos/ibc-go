@@ -111,30 +111,30 @@ func (m *MsgRegisterPayeeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRegisterPayeeResponse proto.InternalMessageInfo
 
-// MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
-type MsgRegisterCounterpartyAddress struct {
-	// the relayer address
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// the counterparty relayer address
-	CounterpartyAddress string `protobuf:"bytes,2,opt,name=counterparty_address,json=counterpartyAddress,proto3" json:"counterparty_address,omitempty" yaml:"counterparty_address"`
+// MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
+type MsgRegisterCounterpartyPayee struct {
 	// unique port identifier
-	PortId string `protobuf:"bytes,3,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
+	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty" yaml:"port_id"`
 	// unique channel identifier
-	ChannelId string `protobuf:"bytes,4,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// the relayer address
+	RelayerAddress string `protobuf:"bytes,3,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty"`
+	// the counterparty relayer address
+	CounterpartyPayee string `protobuf:"bytes,4,opt,name=counterparty_payee,json=counterpartyPayee,proto3" json:"counterparty_payee,omitempty" yaml:"counterparty_payee"`
 }
 
-func (m *MsgRegisterCounterpartyAddress) Reset()         { *m = MsgRegisterCounterpartyAddress{} }
-func (m *MsgRegisterCounterpartyAddress) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterCounterpartyAddress) ProtoMessage()    {}
-func (*MsgRegisterCounterpartyAddress) Descriptor() ([]byte, []int) {
+func (m *MsgRegisterCounterpartyPayee) Reset()         { *m = MsgRegisterCounterpartyPayee{} }
+func (m *MsgRegisterCounterpartyPayee) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterCounterpartyPayee) ProtoMessage()    {}
+func (*MsgRegisterCounterpartyPayee) Descriptor() ([]byte, []int) {
 	return fileDescriptor_05c93128649f1b96, []int{2}
 }
-func (m *MsgRegisterCounterpartyAddress) XXX_Unmarshal(b []byte) error {
+func (m *MsgRegisterCounterpartyPayee) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterCounterpartyAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRegisterCounterpartyPayee) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterCounterpartyAddress.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRegisterCounterpartyPayee.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -144,36 +144,34 @@ func (m *MsgRegisterCounterpartyAddress) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterCounterpartyAddress) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterCounterpartyAddress.Merge(m, src)
+func (m *MsgRegisterCounterpartyPayee) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterCounterpartyPayee.Merge(m, src)
 }
-func (m *MsgRegisterCounterpartyAddress) XXX_Size() int {
+func (m *MsgRegisterCounterpartyPayee) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterCounterpartyAddress) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterCounterpartyAddress.DiscardUnknown(m)
+func (m *MsgRegisterCounterpartyPayee) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterCounterpartyPayee.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterCounterpartyAddress proto.InternalMessageInfo
+var xxx_messageInfo_MsgRegisterCounterpartyPayee proto.InternalMessageInfo
 
-// MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
-type MsgRegisterCounterpartyAddressResponse struct {
+// MsgRegisterCounterpartyPayeeResponse defines the response type for the RegisterCounterpartyPayee rpc
+type MsgRegisterCounterpartyPayeeResponse struct {
 }
 
-func (m *MsgRegisterCounterpartyAddressResponse) Reset() {
-	*m = MsgRegisterCounterpartyAddressResponse{}
-}
-func (m *MsgRegisterCounterpartyAddressResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterCounterpartyAddressResponse) ProtoMessage()    {}
-func (*MsgRegisterCounterpartyAddressResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRegisterCounterpartyPayeeResponse) Reset()         { *m = MsgRegisterCounterpartyPayeeResponse{} }
+func (m *MsgRegisterCounterpartyPayeeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterCounterpartyPayeeResponse) ProtoMessage()    {}
+func (*MsgRegisterCounterpartyPayeeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_05c93128649f1b96, []int{3}
 }
-func (m *MsgRegisterCounterpartyAddressResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRegisterCounterpartyPayeeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterCounterpartyAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRegisterCounterpartyPayeeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterCounterpartyAddressResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRegisterCounterpartyPayeeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -183,17 +181,17 @@ func (m *MsgRegisterCounterpartyAddressResponse) XXX_Marshal(b []byte, determini
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterCounterpartyAddressResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterCounterpartyAddressResponse.Merge(m, src)
+func (m *MsgRegisterCounterpartyPayeeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterCounterpartyPayeeResponse.Merge(m, src)
 }
-func (m *MsgRegisterCounterpartyAddressResponse) XXX_Size() int {
+func (m *MsgRegisterCounterpartyPayeeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterCounterpartyAddressResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterCounterpartyAddressResponse.DiscardUnknown(m)
+func (m *MsgRegisterCounterpartyPayeeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterCounterpartyPayeeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterCounterpartyAddressResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRegisterCounterpartyPayeeResponse proto.InternalMessageInfo
 
 // MsgPayPacketFee defines the request type for the PayPacketFee rpc
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
@@ -363,8 +361,8 @@ var xxx_messageInfo_MsgPayPacketFeeAsyncResponse proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*MsgRegisterPayee)(nil), "ibc.applications.fee.v1.MsgRegisterPayee")
 	proto.RegisterType((*MsgRegisterPayeeResponse)(nil), "ibc.applications.fee.v1.MsgRegisterPayeeResponse")
-	proto.RegisterType((*MsgRegisterCounterpartyAddress)(nil), "ibc.applications.fee.v1.MsgRegisterCounterpartyAddress")
-	proto.RegisterType((*MsgRegisterCounterpartyAddressResponse)(nil), "ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse")
+	proto.RegisterType((*MsgRegisterCounterpartyPayee)(nil), "ibc.applications.fee.v1.MsgRegisterCounterpartyPayee")
+	proto.RegisterType((*MsgRegisterCounterpartyPayeeResponse)(nil), "ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse")
 	proto.RegisterType((*MsgPayPacketFee)(nil), "ibc.applications.fee.v1.MsgPayPacketFee")
 	proto.RegisterType((*MsgPayPacketFeeResponse)(nil), "ibc.applications.fee.v1.MsgPayPacketFeeResponse")
 	proto.RegisterType((*MsgPayPacketFeeAsync)(nil), "ibc.applications.fee.v1.MsgPayPacketFeeAsync")
@@ -374,53 +372,53 @@ func init() {
 func init() { proto.RegisterFile("ibc/applications/fee/v1/tx.proto", fileDescriptor_05c93128649f1b96) }
 
 var fileDescriptor_05c93128649f1b96 = []byte{
-	// 732 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xcf, 0x4f, 0xdb, 0x58,
-	0x10, 0x8e, 0x09, 0xbf, 0x32, 0xb0, 0x40, 0xbc, 0x01, 0x8c, 0x61, 0x6d, 0xd6, 0x87, 0x55, 0x56,
-	0x2b, 0xec, 0x4d, 0x00, 0xad, 0x96, 0x0b, 0x22, 0x48, 0xa8, 0x1c, 0x50, 0x23, 0xab, 0xa7, 0xaa,
-	0x12, 0x72, 0x9c, 0x89, 0x71, 0x9b, 0xe4, 0x59, 0x7e, 0x4e, 0x54, 0xff, 0x07, 0x3d, 0x72, 0xeb,
-	0x95, 0x3f, 0x87, 0x23, 0x87, 0x1e, 0xaa, 0x1e, 0xac, 0x0a, 0x2e, 0x3d, 0x47, 0xea, 0xa9, 0x97,
-	0xca, 0xf6, 0xb3, 0xeb, 0xa4, 0x09, 0x0a, 0xbd, 0xbd, 0x99, 0xf9, 0x66, 0xde, 0x7c, 0x9f, 0x67,
-	0xfc, 0x60, 0xd7, 0x6e, 0x98, 0x9a, 0xe1, 0x38, 0x6d, 0xdb, 0x34, 0x3c, 0x9b, 0x74, 0xa9, 0xd6,
-	0x42, 0xd4, 0xfa, 0x15, 0xcd, 0x7b, 0xab, 0x3a, 0x2e, 0xf1, 0x08, 0xbf, 0x69, 0x37, 0x4c, 0x35,
-	0x8b, 0x50, 0x5b, 0x88, 0x6a, 0xbf, 0x22, 0x96, 0x2c, 0x62, 0x91, 0x08, 0xa3, 0x85, 0xa7, 0x18,
-	0x2e, 0xfe, 0x39, 0xa9, 0x60, 0x98, 0x95, 0x81, 0x98, 0xc4, 0x45, 0xcd, 0xbc, 0x32, 0xba, 0x5d,
-	0x6c, 0x87, 0x61, 0x76, 0x8c, 0x21, 0xca, 0x27, 0x0e, 0xd6, 0x2e, 0xa8, 0xa5, 0xa3, 0x65, 0x53,
-	0x0f, 0xdd, 0xba, 0xe1, 0x23, 0xf2, 0xff, 0xc0, 0x82, 0x43, 0x5c, 0xef, 0xd2, 0x6e, 0x0a, 0xdc,
-	0x2e, 0x57, 0x2e, 0xd4, 0xf8, 0x41, 0x20, 0xaf, 0xf8, 0x46, 0xa7, 0x7d, 0xa4, 0xb0, 0x80, 0xa2,
-	0xcf, 0x87, 0xa7, 0xf3, 0x26, 0x7f, 0x00, 0xc0, 0x4a, 0x86, 0xf8, 0x99, 0x08, 0xbf, 0x3e, 0x08,
-	0xe4, 0x62, 0x8c, 0xff, 0x11, 0x53, 0xf4, 0x02, 0x33, 0xce, 0x9b, 0xfc, 0x29, 0xac, 0xba, 0xd8,
-	0x36, 0x7c, 0x74, 0x2f, 0x8d, 0x66, 0xd3, 0x45, 0x4a, 0x85, 0x7c, 0x94, 0x2a, 0x0e, 0x02, 0x79,
-	0x23, 0x4e, 0x1d, 0x01, 0x28, 0xfa, 0x0a, 0xf3, 0x9c, 0xc4, 0x0e, 0xbe, 0x04, 0x73, 0x4e, 0xd8,
-	0xb0, 0x30, 0x1b, 0xa6, 0xea, 0xb1, 0x71, 0xb4, 0xf8, 0xee, 0x46, 0xce, 0x7d, 0xb9, 0x91, 0x73,
-	0x8a, 0x08, 0xc2, 0x28, 0x37, 0x1d, 0xa9, 0x43, 0xba, 0x14, 0x95, 0x6f, 0x1c, 0x48, 0x99, 0xe0,
-	0x29, 0xe9, 0x75, 0x3d, 0x74, 0x1d, 0xc3, 0xf5, 0xfc, 0xa4, 0xbc, 0x00, 0x0b, 0x49, 0x6f, 0x91,
-	0x0c, 0x7a, 0x62, 0xf2, 0x3a, 0x94, 0xcc, 0x4c, 0x42, 0x4a, 0x21, 0x66, 0x2f, 0x0f, 0x02, 0x79,
-	0x9b, 0xb1, 0x1f, 0x83, 0x52, 0xf4, 0xdf, 0xcd, 0x31, 0xb7, 0x65, 0x44, 0xcf, 0x3f, 0x51, 0xf4,
-	0xd9, 0xe9, 0x44, 0xcf, 0x28, 0x53, 0x86, 0xbf, 0x1e, 0x27, 0x9f, 0xea, 0x74, 0x3d, 0x03, 0xab,
-	0x17, 0xd4, 0xaa, 0x1b, 0x7e, 0xdd, 0x30, 0xdf, 0xa0, 0x77, 0x86, 0xc8, 0x1f, 0x40, 0xbe, 0x85,
-	0x18, 0x89, 0xb2, 0x54, 0xdd, 0x51, 0x27, 0xcc, 0xad, 0x7a, 0x86, 0x58, 0x9b, 0xbd, 0x0d, 0xe4,
-	0x9c, 0x1e, 0xc2, 0xf9, 0x63, 0x58, 0xa1, 0xa4, 0xe7, 0x9a, 0x78, 0x99, 0xf0, 0x8c, 0xe5, 0xda,
-	0x1a, 0x04, 0xf2, 0x7a, 0xdc, 0xf7, 0x70, 0x5c, 0xd1, 0x97, 0x63, 0x47, 0x3d, 0x26, 0xfd, 0x0c,
-	0x8a, 0x0c, 0x90, 0xe1, 0x1e, 0x6b, 0xb5, 0x33, 0x08, 0x64, 0x61, 0xa8, 0x46, 0x56, 0x82, 0xd5,
-	0xd8, 0x77, 0x9a, 0x4e, 0xdf, 0x06, 0xcc, 0x53, 0xdb, 0xea, 0xa2, 0xcb, 0x26, 0x87, 0x59, 0xbc,
-	0x08, 0x8b, 0x6c, 0xc4, 0xa8, 0x30, 0xb7, 0x9b, 0x2f, 0x17, 0xf4, 0xd4, 0xce, 0x88, 0xb7, 0x05,
-	0x9b, 0x23, 0x8a, 0xa4, 0x6a, 0x7d, 0xe0, 0xa0, 0x34, 0x12, 0x3b, 0xa1, 0x7e, 0xd7, 0xe4, 0x5f,
-	0x40, 0xc1, 0x89, 0x3c, 0xc9, 0x52, 0x2d, 0x55, 0xff, 0x88, 0x84, 0x0b, 0xd7, 0x53, 0x4d, 0x76,
-	0xb2, 0x5f, 0x51, 0xe3, 0xbc, 0xf3, 0x66, 0x4d, 0x08, 0x95, 0x1b, 0x04, 0xf2, 0x1a, 0x1b, 0x81,
-	0x24, 0x5b, 0xd1, 0x17, 0x1d, 0x86, 0xe1, 0x5f, 0x01, 0x30, 0x7f, 0xf8, 0x3d, 0x66, 0xa2, 0xb2,
-	0xca, 0xc4, 0xef, 0x91, 0xb6, 0x54, 0xdb, 0x62, 0xb5, 0x8b, 0x43, 0xb5, 0x5b, 0x88, 0x8a, 0xce,
-	0xda, 0x3c, 0x1b, 0x5a, 0x24, 0x09, 0x76, 0xc6, 0xb1, 0x4a, 0x68, 0x57, 0xbf, 0xe6, 0x21, 0x7f,
-	0x41, 0x2d, 0xbe, 0x03, 0xbf, 0x0d, 0xff, 0x49, 0xfe, 0x9e, 0xd8, 0xcc, 0xe8, 0x62, 0x8a, 0x95,
-	0xa9, 0xa1, 0xc9, 0xb5, 0xfc, 0x7b, 0x0e, 0xb6, 0x1f, 0x5b, 0xe0, 0xff, 0xa6, 0x29, 0x39, 0x26,
-	0x51, 0x3c, 0xfe, 0xc5, 0xc4, 0xb4, 0xb3, 0xd7, 0xb0, 0x3c, 0xb4, 0x31, 0xe5, 0xc7, 0x0a, 0x66,
-	0x91, 0xe2, 0xbf, 0xd3, 0x22, 0xd3, 0xbb, 0x7c, 0x28, 0xfe, 0x3c, 0x6f, 0x7b, 0xd3, 0x96, 0x89,
-	0xe0, 0xe2, 0xe1, 0x93, 0xe0, 0xc9, 0xd5, 0xb5, 0xe7, 0xb7, 0xf7, 0x12, 0x77, 0x77, 0x2f, 0x71,
-	0x9f, 0xef, 0x25, 0xee, 0xfa, 0x41, 0xca, 0xdd, 0x3d, 0x48, 0xb9, 0x8f, 0x0f, 0x52, 0xee, 0xe5,
-	0xa1, 0x65, 0x7b, 0x57, 0xbd, 0x86, 0x6a, 0x92, 0x8e, 0x66, 0x12, 0xda, 0x21, 0x54, 0xb3, 0x1b,
-	0xe6, 0x9e, 0x45, 0xb4, 0xfe, 0xbe, 0xd6, 0x21, 0xcd, 0x5e, 0x1b, 0x69, 0xf8, 0x7a, 0x51, 0xad,
-	0xfa, 0xff, 0x5e, 0xf8, 0x70, 0x79, 0xbe, 0x83, 0xb4, 0x31, 0x1f, 0xbd, 0x4a, 0xfb, 0xdf, 0x03,
-	0x00, 0x00, 0xff, 0xff, 0x8c, 0x56, 0x8c, 0xfd, 0x2e, 0x07, 0x00, 0x00,
+	// 721 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x55, 0xcf, 0x6e, 0xd3, 0x4e,
+	0x10, 0x8e, 0x93, 0xb6, 0xbf, 0x66, 0xdb, 0x5f, 0xdb, 0xac, 0xfa, 0xc7, 0xb1, 0x5a, 0xbb, 0x58,
+	0x08, 0x8a, 0x50, 0x6d, 0x92, 0xb6, 0x07, 0x2a, 0x21, 0xd4, 0x54, 0xaa, 0xa8, 0x44, 0x45, 0x64,
+	0x71, 0x42, 0x48, 0x91, 0x63, 0x6f, 0x5c, 0x43, 0xe2, 0xb5, 0xbc, 0x4e, 0x84, 0xaf, 0x9c, 0x38,
+	0x96, 0x37, 0xe8, 0xe3, 0xf4, 0xd8, 0x03, 0x07, 0xc4, 0xc1, 0x42, 0xed, 0x85, 0x1b, 0x92, 0x9f,
+	0x00, 0xad, 0xbd, 0x36, 0x4e, 0xa2, 0x54, 0x81, 0x03, 0xb7, 0xdd, 0x99, 0x6f, 0xbe, 0x99, 0xf9,
+	0x3c, 0xe3, 0x05, 0xdb, 0x76, 0xdb, 0x50, 0x75, 0xd7, 0xed, 0xda, 0x86, 0xee, 0xdb, 0xd8, 0x21,
+	0x6a, 0x07, 0x21, 0x75, 0x50, 0x53, 0xfd, 0x0f, 0x8a, 0xeb, 0x61, 0x1f, 0xc3, 0x0d, 0xbb, 0x6d,
+	0x28, 0x79, 0x84, 0xd2, 0x41, 0x48, 0x19, 0xd4, 0x84, 0x55, 0x0b, 0x5b, 0x38, 0xc6, 0xa8, 0xf4,
+	0x94, 0xc0, 0x85, 0x7b, 0x93, 0x08, 0x69, 0x54, 0x0e, 0x62, 0x60, 0x0f, 0xa9, 0xc6, 0xb9, 0xee,
+	0x38, 0xa8, 0x4b, 0xdd, 0xec, 0x98, 0x40, 0xe4, 0x6f, 0x1c, 0x58, 0x39, 0x23, 0x96, 0x86, 0x2c,
+	0x9b, 0xf8, 0xc8, 0x6b, 0xea, 0x01, 0x42, 0xf0, 0x31, 0xf8, 0xcf, 0xc5, 0x9e, 0xdf, 0xb2, 0x4d,
+	0x9e, 0xdb, 0xe6, 0x76, 0xca, 0x0d, 0x18, 0x85, 0xd2, 0x52, 0xa0, 0xf7, 0xba, 0x87, 0x32, 0x73,
+	0xc8, 0xda, 0x1c, 0x3d, 0x9d, 0x9a, 0x70, 0x1f, 0x00, 0x46, 0x49, 0xf1, 0xc5, 0x18, 0xbf, 0x16,
+	0x85, 0x52, 0x25, 0xc1, 0xff, 0xf6, 0xc9, 0x5a, 0x99, 0x5d, 0x4e, 0x4d, 0x78, 0x0c, 0x96, 0x3d,
+	0xd4, 0xd5, 0x03, 0xe4, 0xb5, 0x74, 0xd3, 0xf4, 0x10, 0x21, 0x7c, 0x29, 0x0e, 0x15, 0xa2, 0x50,
+	0x5a, 0x4f, 0x42, 0x47, 0x00, 0xb2, 0xb6, 0xc4, 0x2c, 0x47, 0x89, 0x01, 0xae, 0x82, 0x59, 0x97,
+	0x16, 0xcc, 0xcf, 0xd0, 0x50, 0x2d, 0xb9, 0x1c, 0xce, 0x7f, 0xba, 0x94, 0x0a, 0x3f, 0x2e, 0xa5,
+	0x82, 0x2c, 0x00, 0x7e, 0xb4, 0x37, 0x0d, 0x11, 0x17, 0x3b, 0x04, 0xc9, 0x1f, 0x8b, 0x60, 0x33,
+	0xe7, 0x3c, 0xc6, 0x7d, 0xc7, 0x47, 0x9e, 0xab, 0x7b, 0x7e, 0xf0, 0xcf, 0x44, 0x78, 0x38, 0x41,
+	0x84, 0xb1, 0x46, 0x5f, 0x02, 0x68, 0xe4, 0x0a, 0x6c, 0xe5, 0xba, 0x6e, 0x6c, 0x45, 0xa1, 0x54,
+	0x65, 0x69, 0xc6, 0x30, 0xb2, 0x56, 0x31, 0x46, 0x3b, 0xcb, 0x09, 0xf4, 0x00, 0xdc, 0xbf, 0x4b,
+	0x83, 0x4c, 0xac, 0x8b, 0x22, 0x58, 0x3e, 0x23, 0x56, 0x53, 0x0f, 0x9a, 0xba, 0xf1, 0x1e, 0xf9,
+	0x27, 0x08, 0xc1, 0x7d, 0x50, 0xea, 0x20, 0x14, 0x6b, 0xb3, 0x50, 0xdf, 0x54, 0x26, 0x0c, 0xaf,
+	0x72, 0x82, 0x50, 0x63, 0xe6, 0x2a, 0x94, 0x0a, 0x1a, 0x85, 0xc3, 0xe7, 0x60, 0x89, 0xe0, 0xbe,
+	0x67, 0xa0, 0x56, 0x2a, 0x6e, 0x22, 0x56, 0x35, 0x0a, 0xa5, 0xb5, 0xa4, 0x8b, 0x61, 0xbf, 0xac,
+	0x2d, 0x26, 0x86, 0x66, 0xa2, 0xf4, 0x0b, 0x50, 0x61, 0x80, 0x9c, 0xe0, 0xc9, 0xe8, 0x6c, 0x46,
+	0xa1, 0xc4, 0x0f, 0x71, 0xe4, 0x75, 0x5f, 0x4e, 0x6c, 0xc7, 0x99, 0xfa, 0xeb, 0x60, 0x8e, 0xd8,
+	0x96, 0x83, 0x3c, 0x36, 0x3e, 0xec, 0x06, 0x05, 0x30, 0xcf, 0xe4, 0x27, 0xfc, 0xec, 0x76, 0x69,
+	0xa7, 0xac, 0x65, 0xf7, 0x9c, 0x74, 0x55, 0xb0, 0x31, 0xa2, 0x48, 0xa6, 0xd6, 0x17, 0x0e, 0xac,
+	0x8e, 0xf8, 0x8e, 0x48, 0xe0, 0x18, 0xf0, 0x35, 0x28, 0xbb, 0xb1, 0x25, 0x1d, 0xaa, 0x85, 0xfa,
+	0x56, 0x2c, 0x1c, 0xdd, 0x51, 0x25, 0x5d, 0xcc, 0x41, 0x4d, 0x49, 0xe2, 0x4e, 0xcd, 0x06, 0x4f,
+	0x95, 0x8b, 0x42, 0x69, 0x85, 0xcd, 0x5d, 0x1a, 0x2d, 0x6b, 0xf3, 0x2e, 0xc3, 0xc0, 0xb7, 0x00,
+	0x30, 0x3b, 0xfd, 0x1e, 0xc5, 0x98, 0x56, 0x9e, 0xf8, 0x3d, 0xb2, 0x92, 0x1a, 0x55, 0xc6, 0x5d,
+	0x19, 0xe2, 0xee, 0xd0, 0xa1, 0x61, 0x65, 0x9e, 0x0c, 0x0d, 0x8b, 0x18, 0x2f, 0xcc, 0x58, 0x57,
+	0x69, 0xdb, 0xf5, 0x9f, 0x25, 0x50, 0x3a, 0x23, 0x16, 0xec, 0x81, 0xff, 0x87, 0x7f, 0x27, 0x8f,
+	0x26, 0x16, 0x33, 0xba, 0x9d, 0x42, 0x6d, 0x6a, 0x68, 0x9a, 0x16, 0x7e, 0xe6, 0x40, 0x75, 0xf2,
+	0x16, 0x1f, 0x4c, 0x43, 0x38, 0x16, 0x26, 0x3c, 0xfb, 0xab, 0xb0, 0xac, 0xa6, 0x77, 0x60, 0x71,
+	0x68, 0x57, 0x76, 0xee, 0xa2, 0xcb, 0x23, 0x85, 0x27, 0xd3, 0x22, 0xb3, 0x5c, 0x01, 0xa8, 0x8c,
+	0x4f, 0xda, 0xee, 0xb4, 0x34, 0x31, 0x5c, 0x38, 0xf8, 0x23, 0x78, 0x9a, 0xba, 0xf1, 0xea, 0xea,
+	0x46, 0xe4, 0xae, 0x6f, 0x44, 0xee, 0xfb, 0x8d, 0xc8, 0x5d, 0xdc, 0x8a, 0x85, 0xeb, 0x5b, 0xb1,
+	0xf0, 0xf5, 0x56, 0x2c, 0xbc, 0x39, 0xb0, 0x6c, 0xff, 0xbc, 0xdf, 0x56, 0x0c, 0xdc, 0x53, 0x0d,
+	0x4c, 0x7a, 0x98, 0xa8, 0x76, 0xdb, 0xd8, 0xb5, 0xb0, 0x3a, 0xd8, 0x53, 0x7b, 0xd8, 0xec, 0x77,
+	0x11, 0xa1, 0x8f, 0x17, 0x51, 0xeb, 0x4f, 0x77, 0xe9, 0xbb, 0xe5, 0x07, 0x2e, 0x22, 0xed, 0xb9,
+	0xf8, 0x51, 0xda, 0xfb, 0x15, 0x00, 0x00, 0xff, 0xff, 0x06, 0xc3, 0x6e, 0xb1, 0x2d, 0x07, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -441,12 +439,12 @@ type MsgClient interface {
 	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
 	// relayer, in which case, the latest payee is always used.
 	RegisterPayee(ctx context.Context, in *MsgRegisterPayee, opts ...grpc.CallOption) (*MsgRegisterPayeeResponse, error)
-	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
-	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
+	// RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee
+	// RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify their
 	// counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
 	// destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
 	// may be called more than once by a relayer, in which case, the latest counterparty address is always used.
-	RegisterCounterpartyAddress(ctx context.Context, in *MsgRegisterCounterpartyAddress, opts ...grpc.CallOption) (*MsgRegisterCounterpartyAddressResponse, error)
+	RegisterCounterpartyPayee(ctx context.Context, in *MsgRegisterCounterpartyPayee, opts ...grpc.CallOption) (*MsgRegisterCounterpartyPayeeResponse, error)
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
 	// incentivize the relaying of the packet at the next sequence
@@ -476,9 +474,9 @@ func (c *msgClient) RegisterPayee(ctx context.Context, in *MsgRegisterPayee, opt
 	return out, nil
 }
 
-func (c *msgClient) RegisterCounterpartyAddress(ctx context.Context, in *MsgRegisterCounterpartyAddress, opts ...grpc.CallOption) (*MsgRegisterCounterpartyAddressResponse, error) {
-	out := new(MsgRegisterCounterpartyAddressResponse)
-	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Msg/RegisterCounterpartyAddress", in, out, opts...)
+func (c *msgClient) RegisterCounterpartyPayee(ctx context.Context, in *MsgRegisterCounterpartyPayee, opts ...grpc.CallOption) (*MsgRegisterCounterpartyPayeeResponse, error) {
+	out := new(MsgRegisterCounterpartyPayeeResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.fee.v1.Msg/RegisterCounterpartyPayee", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -511,12 +509,12 @@ type MsgServer interface {
 	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
 	// relayer, in which case, the latest payee is always used.
 	RegisterPayee(context.Context, *MsgRegisterPayee) (*MsgRegisterPayeeResponse, error)
-	// RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
-	// RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
+	// RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee
+	// RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify their
 	// counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
 	// destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
 	// may be called more than once by a relayer, in which case, the latest counterparty address is always used.
-	RegisterCounterpartyAddress(context.Context, *MsgRegisterCounterpartyAddress) (*MsgRegisterCounterpartyAddressResponse, error)
+	RegisterCounterpartyPayee(context.Context, *MsgRegisterCounterpartyPayee) (*MsgRegisterCounterpartyPayeeResponse, error)
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
 	// incentivize the relaying of the packet at the next sequence
@@ -536,8 +534,8 @@ type UnimplementedMsgServer struct {
 func (*UnimplementedMsgServer) RegisterPayee(ctx context.Context, req *MsgRegisterPayee) (*MsgRegisterPayeeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterPayee not implemented")
 }
-func (*UnimplementedMsgServer) RegisterCounterpartyAddress(ctx context.Context, req *MsgRegisterCounterpartyAddress) (*MsgRegisterCounterpartyAddressResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterCounterpartyAddress not implemented")
+func (*UnimplementedMsgServer) RegisterCounterpartyPayee(ctx context.Context, req *MsgRegisterCounterpartyPayee) (*MsgRegisterCounterpartyPayeeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterCounterpartyPayee not implemented")
 }
 func (*UnimplementedMsgServer) PayPacketFee(ctx context.Context, req *MsgPayPacketFee) (*MsgPayPacketFeeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PayPacketFee not implemented")
@@ -568,20 +566,20 @@ func _Msg_RegisterPayee_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_RegisterCounterpartyAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRegisterCounterpartyAddress)
+func _Msg_RegisterCounterpartyPayee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterCounterpartyPayee)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RegisterCounterpartyAddress(ctx, in)
+		return srv.(MsgServer).RegisterCounterpartyPayee(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.applications.fee.v1.Msg/RegisterCounterpartyAddress",
+		FullMethod: "/ibc.applications.fee.v1.Msg/RegisterCounterpartyPayee",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RegisterCounterpartyAddress(ctx, req.(*MsgRegisterCounterpartyAddress))
+		return srv.(MsgServer).RegisterCounterpartyPayee(ctx, req.(*MsgRegisterCounterpartyPayee))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -631,8 +629,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_RegisterPayee_Handler,
 		},
 		{
-			MethodName: "RegisterCounterpartyAddress",
-			Handler:    _Msg_RegisterCounterpartyAddress_Handler,
+			MethodName: "RegisterCounterpartyPayee",
+			Handler:    _Msg_RegisterCounterpartyPayee_Handler,
 		},
 		{
 			MethodName: "PayPacketFee",
@@ -721,7 +719,7 @@ func (m *MsgRegisterPayeeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRegisterCounterpartyAddress) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterCounterpartyPayee) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -731,48 +729,48 @@ func (m *MsgRegisterCounterpartyAddress) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRegisterCounterpartyAddress) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterCounterpartyPayee) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRegisterCounterpartyAddress) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterCounterpartyPayee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if len(m.CounterpartyPayee) > 0 {
+		i -= len(m.CounterpartyPayee)
+		copy(dAtA[i:], m.CounterpartyPayee)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.CounterpartyPayee)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.RelayerAddress) > 0 {
+		i -= len(m.RelayerAddress)
+		copy(dAtA[i:], m.RelayerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RelayerAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.ChannelId) > 0 {
 		i -= len(m.ChannelId)
 		copy(dAtA[i:], m.ChannelId)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.ChannelId)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x12
 	}
 	if len(m.PortId) > 0 {
 		i -= len(m.PortId)
 		copy(dAtA[i:], m.PortId)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.PortId)))
 		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.CounterpartyAddress) > 0 {
-		i -= len(m.CounterpartyAddress)
-		copy(dAtA[i:], m.CounterpartyAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.CounterpartyAddress)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Address)))
-		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRegisterCounterpartyAddressResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterCounterpartyPayeeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -782,12 +780,12 @@ func (m *MsgRegisterCounterpartyAddressResponse) Marshal() (dAtA []byte, err err
 	return dAtA[:n], nil
 }
 
-func (m *MsgRegisterCounterpartyAddressResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterCounterpartyPayeeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRegisterCounterpartyAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterCounterpartyPayeeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -992,20 +990,12 @@ func (m *MsgRegisterPayeeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRegisterCounterpartyAddress) Size() (n int) {
+func (m *MsgRegisterCounterpartyPayee) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.CounterpartyAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
 	l = len(m.PortId)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -1014,10 +1004,18 @@ func (m *MsgRegisterCounterpartyAddress) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	l = len(m.RelayerAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.CounterpartyPayee)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	return n
 }
 
-func (m *MsgRegisterCounterpartyAddressResponse) Size() (n int) {
+func (m *MsgRegisterCounterpartyPayeeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1320,7 +1318,7 @@ func (m *MsgRegisterPayeeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRegisterCounterpartyAddress) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterCounterpartyPayee) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1343,77 +1341,13 @@ func (m *MsgRegisterCounterpartyAddress) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterCounterpartyAddress: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterCounterpartyPayee: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterCounterpartyAddress: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterCounterpartyPayee: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.CounterpartyAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
 			}
@@ -1445,7 +1379,7 @@ func (m *MsgRegisterCounterpartyAddress) Unmarshal(dAtA []byte) error {
 			}
 			m.PortId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
 			}
@@ -1477,6 +1411,70 @@ func (m *MsgRegisterCounterpartyAddress) Unmarshal(dAtA []byte) error {
 			}
 			m.ChannelId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RelayerAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RelayerAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyPayee", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CounterpartyPayee = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -1498,7 +1496,7 @@ func (m *MsgRegisterCounterpartyAddress) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRegisterCounterpartyAddressResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterCounterpartyPayeeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1521,10 +1519,10 @@ func (m *MsgRegisterCounterpartyAddressResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterCounterpartyAddressResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterCounterpartyPayeeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterCounterpartyAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterCounterpartyPayeeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

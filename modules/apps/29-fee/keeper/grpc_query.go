@@ -179,7 +179,7 @@ func (k Keeper) CounterpartyAddress(goCtx context.Context, req *types.QueryCount
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	counterpartyAddr, found := k.GetCounterpartyAddress(ctx, req.RelayerAddress, req.ChannelId)
+	counterpartyAddr, found := k.GetCounterpartyPayeeAddress(ctx, req.RelayerAddress, req.ChannelId)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "counterparty address not found for address: %s on channel: %s", req.RelayerAddress, req.ChannelId)
 	}
