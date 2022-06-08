@@ -2,14 +2,11 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-<<<<<<< HEAD
-	
-=======
+
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
->>>>>>> b2ca193 (Emit an event to indicate a successful acknowledgement in the ICA module (#1466))
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
 // EmitAcknowledgementEvent emits an event signalling a successful or failed acknowledgement and including the error
