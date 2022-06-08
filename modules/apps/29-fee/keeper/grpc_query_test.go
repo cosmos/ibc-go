@@ -409,8 +409,8 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
-	var req *types.QueryCounterpartyAddressRequest
+func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
+	var req *types.QueryCounterpartyPayeeRequest
 
 	testCases := []struct {
 		name     string
@@ -443,16 +443,16 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			suite.SetupTest() // reset
 
 			pk := secp256k1.GenPrivKey().PubKey()
-			expectedCounterpartyAddr := sdk.AccAddress(pk.Address())
+			expCounterpartyPayeeAddr := sdk.AccAddress(pk.Address())
 
 			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(
 				suite.chainA.GetContext(),
 				suite.chainA.SenderAccount.GetAddress().String(),
-				expectedCounterpartyAddr.String(),
+				expCounterpartyPayeeAddr.String(),
 				suite.path.EndpointA.ChannelID,
 			)
 
-			req = &types.QueryCounterpartyAddressRequest{
+			req = &types.QueryCounterpartyPayeeRequest{
 				ChannelId:      suite.path.EndpointA.ChannelID,
 				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
 			}
@@ -460,11 +460,11 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.queryClient.CounterpartyAddress(ctx, req)
+			res, err := suite.queryClient.CounterpartyPayee(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expectedCounterpartyAddr.String(), res.CounterpartyAddress)
+				suite.Require().Equal(expCounterpartyPayeeAddr.String(), res.CounterpartyPayee)
 			} else {
 				suite.Require().Error(err)
 			}
