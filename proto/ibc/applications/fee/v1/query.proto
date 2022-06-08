@@ -22,37 +22,37 @@ service Query {
   // IncentivizedPacket returns all packet fees for a packet given its identifier
   rpc IncentivizedPacket(QueryIncentivizedPacketRequest) returns (QueryIncentivizedPacketResponse) {
     option (google.api.http).get =
-        "/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/"
-        "{packet_id.sequence}";
+        "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/"
+        "{packet_id.sequence}/incentivized_packet";
   }
 
   // Gets all incentivized packets for a specific channel
   rpc IncentivizedPacketsForChannel(QueryIncentivizedPacketsForChannelRequest)
       returns (QueryIncentivizedPacketsForChannelResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/incentivized_packets/port/{port_id}/channel/{channel_id}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets";
   }
 
   // TotalRecvFees returns the total receive fees for a packet given its identifier
   rpc TotalRecvFees(QueryTotalRecvFeesRequest) returns (QueryTotalRecvFeesResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/"
-                                   "{packet_id.channel_id}/sequence/{packet_id.sequence}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/"
+                                   "sequences/{packet_id.sequence}/total_recv_fees";
   }
 
   // TotalAckFees returns the total acknowledgement fees for a packet given its identifier
   rpc TotalAckFees(QueryTotalAckFeesRequest) returns (QueryTotalAckFeesResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/"
-                                   "{packet_id.channel_id}/sequence/{packet_id.sequence}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/"
+                                   "sequences/{packet_id.sequence}/total_ack_fees";
   }
 
   // TotalTimeoutFees returns the total timeout fees for a packet given its identifier
   rpc TotalTimeoutFees(QueryTotalTimeoutFeesRequest) returns (QueryTotalTimeoutFeesResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/"
-                                   "{packet_id.channel_id}/sequence/{packet_id.sequence}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/"
+                                   "sequences/{packet_id.sequence}/total_timeout_fees";
   }
 
   // CounterpartyAddress returns the registered counterparty address for forward relaying
   rpc CounterpartyAddress(QueryCounterpartyAddressRequest) returns (QueryCounterpartyAddressResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/counterparty_address/{relayer_address}/channel/{channel_id}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/counterparty_address";
   }
 
   // FeeEnabledChannels returns a list of all fee enabled channels
@@ -62,7 +62,7 @@ service Query {
 
   // FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel
   rpc FeeEnabledChannel(QueryFeeEnabledChannelRequest) returns (QueryFeeEnabledChannelResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/fee_enabled/port/{port_id}/channel/{channel_id}";
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled";
   }
 }
 

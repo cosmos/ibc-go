@@ -32,7 +32,7 @@ The `RegisterInterchainAccount` API has been modified to include an additional `
 Consumers of the `RegisterInterchainAccount` are now expected to build the appropriate JSON encoded version string themselves and pass it accordingly. 
 This should be constructed within the interchain accounts authentication module which leverages the APIs exposed via the interchain accounts `controllerKeeper`. 
 
-The following code snippet illustrates how to construct an appropriate interchain accounts Metadata and encode it as a JSON bytestring:
+The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
 
 ```go
 icaMetadata := icatypes.Metadata{
@@ -45,7 +45,7 @@ icaMetadata := icatypes.Metadata{
 
 appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
 if err != nil {
-    retutn err
+    return err
 }
 
 if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, string(appVersion)); err != nil {
@@ -53,7 +53,7 @@ if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId,
 }
 ```
 
-Similarly, if the application stack is configured to route through ICS29 fee middleware and a fee enabled channel is desired, construct the appropriate ICS29 Metadata type:
+Similarly, if the application stack is configured to route through ICS29 fee middleware and a fee enabled channel is desired, construct the appropriate ICS29 `Metadata` type:
 
 ```go
 icaMetadata := icatypes.Metadata{
