@@ -18,13 +18,71 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
-### IS04 - Channel 
+### ICS04 - Channel 
 
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
 This is an API breaking change and as such IBC application developers will have to update any calls to `WriteAcknowledgement`. 
 
 The `OnChanOpenInit` application callback has been modified.
 The return signature now includes the application version as detailed in the latest IBC [spec changes](https://github.com/cosmos/ibc/pull/629).
+
+### ICS27 - Interchain Accounts
+
+The `RegisterInterchainAccount` API has been modified to include an additional `version` argument. This change has been made in order to support ICS29 fee middelware, for relayer incentivization of ICS27 packets.
+Consumers of the `RegisterInterchainAccount` are now expected to build the appropriate JSON encoded version string themselves and pass it accordingly. 
+This should be constructed within the interchain accounts authentication module which leverages the APIs exposed via the interchain accounts `controllerKeeper`. 
+
+The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
+
+```go
+icaMetadata := icatypes.Metadata{
+    Version:                icatypes.Version,
+    ControllerConnectionId: controllerConnectionID,
+    HostConnectionId:       hostConnectionID,
+    Encoding:               icatypes.EncodingProtobuf,
+    TxType:                 icatypes.TxTypeSDKMultiMsg,
+}
+
+appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
+if err != nil {
+    return err
+}
+
+if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, string(appVersion)); err != nil {
+    return err
+}
+```
+
+Similarly, if the application stack is configured to route through ICS29 fee middleware and a fee enabled channel is desired, construct the appropriate ICS29 `Metadata` type:
+
+```go
+icaMetadata := icatypes.Metadata{
+    Version:                icatypes.Version,
+    ControllerConnectionId: controllerConnectionID,
+    HostConnectionId:       hostConnectionID,
+    Encoding:               icatypes.EncodingProtobuf,
+    TxType:                 icatypes.TxTypeSDKMultiMsg,
+}
+
+appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
+if err != nil {
+    return err
+}
+
+feeMetadata := feetypes.Metadata{
+    AppVersion: string(appVersion),
+    FeeVersion: feetypes.Version,
+}
+
+feeEnabledVersion, err := feetypes.ModuleCdc.MarshalJSON(&feeMetadata)
+if err != nil {
+    return err
+}
+
+if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner, string(feeEnabledVersion)); err != nil {
+    return err
+}
+```
 
 ## Relayers
 
