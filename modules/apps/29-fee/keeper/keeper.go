@@ -190,14 +190,14 @@ func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
 	return registeredPayees
 }
 
-// SetCounterpartyPayeeAddress maps the destination chain relayer address to the source relayer address
-// The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
+// SetCounterpartyPayeeAddress maps the destination chain counterparty payee address to the source relayer address
+// The receiving chain must store the mapping from: address -> counterpartyPayeeAddress for the given channel
 func (k Keeper) SetCounterpartyPayeeAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyCounterpartyRelayer(address, channelID), []byte(counterpartyAddress))
 }
 
-// GetCounterpartyPayeeAddress gets the relayer counterparty address given a destination relayer address
+// GetCounterpartyPayeeAddress gets the counterparty payee address given a destination relayer address
 func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyCounterpartyRelayer(address, channelID)
