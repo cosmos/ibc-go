@@ -194,6 +194,7 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 	cacheCtx, writeFn := ctx.CacheContext()
 
 	for _, identifiedPacketFee := range identifiedPacketFees {
+		var failedToSendCoins bool
 		for _, packetFee := range identifiedPacketFee.PacketFees {
 
 			if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
@@ -216,12 +217,14 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 
 			// refund all fees to refund address
 			if err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAddr, packetFee.Fee.Total()); err != nil {
+				failedToSendCoins = true
 				continue
 			}
-
 		}
 
-		k.DeleteFeesInEscrow(cacheCtx, identifiedPacketFee.PacketId)
+		if !failedToSendCoins {
+			k.DeleteFeesInEscrow(cacheCtx, identifiedPacketFee.PacketId)
+		}
 	}
 
 	// NOTE: The context returned by CacheContext() refers to a new EventManager, so it needs to explicitly set events to the original context.
