@@ -57,6 +57,8 @@
     - [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse)
     - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
     - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
+    - [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest)
+    - [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse)
     - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
     - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
     - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
@@ -1127,6 +1129,37 @@ QueryIncentivizedPacketsResponse defines the response type for the IncentivizedP
 
 
 
+<a name="ibc.applications.fee.v1.QueryPayeeRequest"></a>
+
+### QueryPayeeRequest
+QueryPayeeRequest defines the request type for the Payee rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer_address` | [string](#string) |  | the relayer address to which the distribution address is registered |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryPayeeResponse"></a>
+
+### QueryPayeeResponse
+QueryPayeeResponse defines the response type for the Payee rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `payee_address` | [string](#string) |  | the payee address to which packet fees are paid out |
+
+
+
+
+
+
 <a name="ibc.applications.fee.v1.QueryTotalAckFeesRequest"></a>
 
 ### QueryTotalAckFeesRequest
@@ -1236,6 +1269,7 @@ Query defines the ICS29 gRPC querier service.
 | `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees|
 | `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees|
 | `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees|
+| `Payee` | [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest) | [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse) | Payee returns the registered payee address for a specific channel given the relayer address | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/payee|
 | `CounterpartyAddress` | [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest) | [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse) | CounterpartyAddress returns the registered counterparty address for forward relaying | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/counterparty_address|
 | `FeeEnabledChannels` | [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest) | [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse) | FeeEnabledChannels returns a list of all fee enabled channels | GET|/ibc/apps/fee/v1/fee_enabled|
 | `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled|
@@ -1319,8 +1353,8 @@ MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpar
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address |
-| `counterparty_payee` | [string](#string) |  | the counterparty relayer address |
+| `relayer` | [string](#string) |  | the relayer address |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
 
 
@@ -1347,8 +1381,8 @@ MsgRegisterPayee defines the request type for the RegisterPayee rpc
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address |
-| `payee` | [string](#string) |  | the fee payee address |
+| `relayer` | [string](#string) |  | the relayer address |
+| `payee` | [string](#string) |  | the payee address |
 
 
 
@@ -1379,7 +1413,7 @@ Msg defines the ICS29 Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `RegisterPayee` | [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee) | [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse) | RegisterPayee defines a rpc handler method for MsgRegisterPayee RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest payee is always used. | |
-| `RegisterCounterpartyPayee` | [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee) | [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse) | RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty address is always used. | |
+| `RegisterCounterpartyPayee` | [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee) | [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse) | RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty payee address before relaying. This ensures they will be properly compensated for forward relaying since the destination chain must include the registered counterparty payee address in the acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty payee address is always used. | |
 | `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
 | `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
 
@@ -4986,8 +5020,8 @@ and a possible frozen height.
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
 | `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
 | `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
-| `allow_update_after_expiry` | [bool](#bool) |  | This flag, when set to true, will allow governance to recover a client which has expired |
-| `allow_update_after_misbehaviour` | [bool](#bool) |  | This flag, when set to true, will allow governance to unfreeze a client whose chain has experienced a misbehaviour event |
+| `allow_update_after_expiry` | [bool](#bool) |  | **Deprecated.** allow_update_after_expiry is deprecated |
+| `allow_update_after_misbehaviour` | [bool](#bool) |  | **Deprecated.** allow_update_after_misbehaviour is deprecated |
 
 
 

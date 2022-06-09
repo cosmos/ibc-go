@@ -171,6 +171,24 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 	}, nil
 }
 
+// Payee implements the Query/Payee gRPC method and returns the registered payee address to which packet fees are paid out
+func (k Keeper) Payee(goCtx context.Context, req *types.QueryPayeeRequest) (*types.QueryPayeeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	payeeAddr, found := k.GetPayeeAddress(ctx, req.RelayerAddress, req.ChannelId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "payee address not found for address: %s on channel: %s", req.RelayerAddress, req.ChannelId)
+	}
+
+	return &types.QueryPayeeResponse{
+		PayeeAddress: payeeAddr,
+	}, nil
+}
+
 // CounterpartyAddress implements the Query/CounterpartyAddress gRPC method and returns the registered counterparty address for forward relaying
 func (k Keeper) CounterpartyAddress(goCtx context.Context, req *types.QueryCounterpartyAddressRequest) (*types.QueryCounterpartyAddressResponse, error) {
 	if req == nil {
