@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {
@@ -20,27 +21,20 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 		expPass  bool
 	}{
 		{
-			"invalid hex hash",
-			func() {
-				req = &types.QueryDenomTraceRequest{
-					Hash: "!@#!@#!",
-				}
-			},
-			false,
-		},
-		{
-			"not found denom trace",
+			"success: correct ibc denom",
 			func() {
 				expTrace.Path = "transfer/channelToA/transfer/channelToB"
 				expTrace.BaseDenom = "uatom"
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
+
 				req = &types.QueryDenomTraceRequest{
-					Hash: expTrace.Hash().String(),
+					Hash: expTrace.IBCDenom(),
 				}
 			},
-			false,
+			true,
 		},
 		{
-			"success",
+			"success: correct hex hash",
 			func() {
 				expTrace.Path = "transfer/channelToA/transfer/channelToB"
 				expTrace.BaseDenom = "uatom"
@@ -51,6 +45,26 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 				}
 			},
 			true,
+		},
+		{
+			"failure: invalid hash",
+			func() {
+				req = &types.QueryDenomTraceRequest{
+					Hash: "!@#!@#!",
+				}
+			},
+			false,
+		},
+		{
+			"failure: not found denom trace",
+			func() {
+				expTrace.Path = "transfer/channelToA/transfer/channelToB"
+				expTrace.BaseDenom = "uatom"
+				req = &types.QueryDenomTraceRequest{
+					Hash: expTrace.IBCDenom(),
+				}
+			},
+			false,
 		},
 	}
 
@@ -201,6 +215,48 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expHash, res.Hash)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestEscrowAddress() {
+	var (
+		req *types.QueryEscrowAddressRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {
+				req = &types.QueryEscrowAddressRequest{
+					PortId:    ibctesting.TransferPort,
+					ChannelId: ibctesting.FirstChannelID,
+				}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+
+			res, err := suite.queryClient.EscrowAddress(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				expected := types.GetEscrowAddress(ibctesting.TransferPort, ibctesting.FirstChannelID).String()
+				suite.Require().Equal(expected, res.EscrowAddress)
 			} else {
 				suite.Require().Error(err)
 			}

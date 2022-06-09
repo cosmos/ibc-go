@@ -38,7 +38,7 @@ service Query {
 
   // ConsensusStateHeights queries the height of every consensus states associated with a given client.
   rpc ConsensusStateHeights(QueryConsensusStateHeightsRequest) returns (QueryConsensusStateHeightsResponse) {
-    option (google.api.http).get = "/ibc/core/client/v1/consensus_states/heights/{client_id}";
+    option (google.api.http).get = "/ibc/core/client/v1/consensus_states/{client_id}/heights";
   }
 
   // Status queries the status of an IBC client.

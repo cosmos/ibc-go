@@ -9,18 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/metadata"
 
-<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
-=======
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
->>>>>>> 042d818 (chore: Add consensus state heights query (#1336))
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
