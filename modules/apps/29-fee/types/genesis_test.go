@@ -82,7 +82,7 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid registered payee: invalid relayer address",
 			func() {
-				genState.RegisteredPayees[0].RelayerAddress = ""
+				genState.RegisteredPayees[0].Relayer = ""
 			},
 			false,
 		},
@@ -103,7 +103,7 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid registered counterparty payees: invalid relayer address",
 			func() {
-				genState.RegisteredCounterpartyPayees[0].RelayerAddress = ""
+				genState.RegisteredCounterpartyPayees[0].Relayer = ""
 			},
 			false,
 		},
@@ -146,7 +146,7 @@ func TestValidateGenesis(t *testing.T) {
 			},
 			RegisteredCounterpartyPayees: []types.RegisteredCounterpartyPayee{
 				{
-					RelayerAddress:    defaultAccAddress,
+					Relayer:           defaultAccAddress,
 					CounterpartyPayee: defaultAccAddress,
 					ChannelId:         ibctesting.FirstChannelID,
 				},
@@ -159,9 +159,9 @@ func TestValidateGenesis(t *testing.T) {
 			},
 			RegisteredPayees: []types.RegisteredPayee{
 				{
-					RelayerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-					Payee:          sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-					ChannelId:      ibctesting.FirstChannelID,
+					Relayer:   sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					Payee:     sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					ChannelId: ibctesting.FirstChannelID,
 				},
 			},
 		}

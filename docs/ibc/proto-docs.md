@@ -865,7 +865,7 @@ for recv fee distribution)
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `relayer_address` | [string](#string) |  | the relayer address |
+| `relayer` | [string](#string) |  | the relayer address |
 | `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 
@@ -882,7 +882,7 @@ RegisteredPayee contains the relayer address and payee address for a specific ch
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `relayer_address` | [string](#string) |  | the relayer address |
+| `relayer` | [string](#string) |  | the relayer address |
 | `payee` | [string](#string) |  | the payee address |
 | `channel_id` | [string](#string) |  | unique channel identifier |
 

@@ -13,11 +13,11 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 
 	for _, registeredPayee := range state.RegisteredPayees {
-		k.SetPayeeAddress(ctx, registeredPayee.RelayerAddress, registeredPayee.Payee, registeredPayee.ChannelId)
+		k.SetPayeeAddress(ctx, registeredPayee.Relayer, registeredPayee.Payee, registeredPayee.ChannelId)
 	}
 
 	for _, registeredCounterpartyPayee := range state.RegisteredCounterpartyPayees {
-		k.SetCounterpartyPayeeAddress(ctx, registeredCounterpartyPayee.RelayerAddress, registeredCounterpartyPayee.CounterpartyPayee, registeredCounterpartyPayee.ChannelId)
+		k.SetCounterpartyPayeeAddress(ctx, registeredCounterpartyPayee.Relayer, registeredCounterpartyPayee.CounterpartyPayee, registeredCounterpartyPayee.ChannelId)
 	}
 
 	for _, forwardAddr := range state.ForwardRelayers {

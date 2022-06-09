@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 
 	expectedCounterpartyPayee := []types.RegisteredCounterpartyPayee{
 		{
-			RelayerAddress:    relayerAddr,
+			Relayer:           relayerAddr,
 			CounterpartyPayee: counterpartyPayee,
 			ChannelId:         ibctesting.FirstChannelID,
 		},
@@ -289,9 +289,9 @@ func (suite *KeeperTestSuite) TestGetAllPayeeAddresses() {
 		)
 
 		registeredPayee := types.RegisteredPayee{
-			RelayerAddress: suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			Payee:          suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			ChannelId:      ibctesting.FirstChannelID,
+			Relayer:   suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			Payee:     suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			ChannelId: ibctesting.FirstChannelID,
 		}
 
 		expectedPayees = append(expectedPayees, registeredPayee)

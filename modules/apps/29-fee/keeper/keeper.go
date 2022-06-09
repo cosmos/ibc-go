@@ -173,15 +173,15 @@ func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
 
 	var registeredPayees []types.RegisteredPayee
 	for ; iterator.Valid(); iterator.Next() {
-		addr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
 		payee := types.RegisteredPayee{
-			RelayerAddress: addr,
-			Payee:          string(iterator.Value()),
-			ChannelId:      channelID,
+			Relayer:   relayerAddr,
+			Payee:     string(iterator.Value()),
+			ChannelId: channelID,
 		}
 
 		registeredPayees = append(registeredPayees, payee)
@@ -218,13 +218,13 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredCounte
 
 	var registeredCounterpartyPayees []types.RegisteredCounterpartyPayee
 	for ; iterator.Valid(); iterator.Next() {
-		address, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
 		counterpartyPayee := types.RegisteredCounterpartyPayee{
-			RelayerAddress:    address,
+			Relayer:           relayerAddr,
 			CounterpartyPayee: string(iterator.Value()),
 			ChannelId:         channelID,
 		}
