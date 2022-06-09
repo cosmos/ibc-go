@@ -7,7 +7,7 @@ The same types of changes should be grouped.
 Versions and sections should be linkable.
 The latest version comes first.
 The release date of each version is displayed.
-Mention whether you follow Semantic Versioning
+Mention whether you follow Semantic Versioning.
 
 Usage:
 
