@@ -33,7 +33,8 @@ The transfer module will now support slashes in base denoms, so we must iterate 
 ### Upgrade Propsoal
 
 ```go
-app.UpgradeKeeper.SetUpgradeHandler("v3.1.0",
+// Here the upgrade name is the upgrade name set by the chain
+app.UpgradeKeeper.SetUpgradeHandler("supportSlashingDenomUpgrade",
     func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
         // list of traces that must replace the old traces in store
         var newTraces []transfertypes.DenomTrace
@@ -66,7 +67,7 @@ This is only necessary if there are DenomTraces in the store with incorrect trac
 For Transfer it is also necessary to [manually add store upgrades](https://docs.cosmos.network/v0.44/core/upgrade.html#add-storeupgrades-for-new-modules) for the transfer module and then configure the store loader to apply those upgrades in `app.go` if you wish to use the upgrade handler method above.
 
 ```go
-// Here the upgrade name is just an example
+// Here the upgrade name is just an example of the upgrade name set by the chain
 if upgradeInfo.Name == "supportSlashingDenomUpgrade" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height)  {
     storeUpgrades := store.StoreUpgrades{
         Added: []string{transfertypes.StoreKey}
