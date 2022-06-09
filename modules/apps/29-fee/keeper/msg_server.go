@@ -29,18 +29,18 @@ func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee
 		return nil, types.ErrFeeNotEnabled
 	}
 
-	k.SetPayeeAddress(ctx, msg.RelayerAddress, msg.Payee, msg.ChannelId)
+	k.SetPayeeAddress(ctx, msg.Relayer, msg.Payee, msg.ChannelId)
 
-	k.Logger(ctx).Info("registering payee address for relayer", "relayer address", msg.RelayerAddress, "payee address", msg.Payee, "channel", msg.ChannelId)
+	k.Logger(ctx).Info("registering payee address for relayer", "relayer", msg.Relayer, "payee", msg.Payee, "channel", msg.ChannelId)
 
 	return &types.MsgRegisterPayeeResponse{}, nil
 }
 
 // RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee
-// RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify their
-// counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
-// destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
-// may be called more than once by a relayer, in which case, the latest counterparty address is always used.
+// RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty
+// payee address before relaying. This ensures they will be properly compensated for forward relaying since
+// the destination chain must include the registered counterparty payee address in the acknowledgement. This function
+// may be called more than once by a relayer, in which case, the latest counterparty payee address is always used.
 func (k Keeper) RegisterCounterpartyPayee(goCtx context.Context, msg *types.MsgRegisterCounterpartyPayee) (*types.MsgRegisterCounterpartyPayeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -53,9 +53,9 @@ func (k Keeper) RegisterCounterpartyPayee(goCtx context.Context, msg *types.MsgR
 		return nil, types.ErrFeeNotEnabled
 	}
 
-	k.SetCounterpartyPayeeAddress(ctx, msg.RelayerAddress, msg.CounterpartyPayee, msg.ChannelId)
+	k.SetCounterpartyPayeeAddress(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
-	k.Logger(ctx).Info("registering counterparty payee for relayer", "relayer address", msg.RelayerAddress, "counterparty payee address", msg.CounterpartyPayee, "channel", msg.ChannelId)
+	k.Logger(ctx).Info("registering counterparty payee for relayer", "relayer", msg.Relayer, "counterparty payee", msg.CounterpartyPayee, "channel", msg.ChannelId)
 
 	return &types.MsgRegisterCounterpartyPayeeResponse{}, nil
 }

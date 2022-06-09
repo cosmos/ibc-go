@@ -42,7 +42,7 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 		{
 			"invalid request relayer and payee are equal",
 			func() {
-				msg.RelayerAddress = defaultAccAddress
+				msg.Relayer = defaultAccAddress
 				msg.Payee = defaultAccAddress
 			},
 			false,
@@ -50,7 +50,7 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 		{
 			"invalid relayer address",
 			func() {
-				msg.RelayerAddress = "invalid-address"
+				msg.Relayer = "invalid-address"
 			},
 			false,
 		},
@@ -117,7 +117,7 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 		{
 			"validate with incorrect destination relayer address",
 			func() {
-				msg.RelayerAddress = "invalid-address"
+				msg.Relayer = "invalid-address"
 			},
 			false,
 		},
