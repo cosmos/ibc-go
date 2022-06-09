@@ -15,14 +15,14 @@ import (
 // substitute.
 //
 // AllowUpdateAfterMisbehaviour and AllowUpdateAfterExpiry have been deprecated.
-// Please see ADR 026 for more information. 
-// 
+// Please see ADR 026 for more information.
+//
 // The following must always be true:
 //	- The substitute client is the same type as the subject client
 //	- The subject and substitute client states match in all parameters (expect frozen height, latest height, and chain-id)
 //
 // In case 1) before updating the client, the client will be unfrozen by resetting
-// the FrozenHeight to the zero Height. 
+// the FrozenHeight to the zero Height.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
@@ -86,6 +86,11 @@ func IsMatchingClientState(subject, substitute ClientState) bool {
 	substitute.FrozenHeight = clienttypes.ZeroHeight()
 	subject.ChainId = ""
 	substitute.ChainId = ""
+	// sets both sets of flags to true as these flags have been DEPRECATED, see ADR-026 for more information
+	subject.AllowUpdateAfterExpiry = true
+	substitute.AllowUpdateAfterExpiry = true
+	subject.AllowUpdateAfterMisbehaviour = true
+	substitute.AllowUpdateAfterMisbehaviour = true
 
 	return reflect.DeepEqual(subject, substitute)
 }
