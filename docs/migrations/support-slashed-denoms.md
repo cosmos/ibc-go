@@ -30,7 +30,7 @@ To do so, chain binaries should include a migration script that will run when th
 
 The transfer module will now support slashes in base denoms, so we must iterate over current traces to check if any of them are incorrectly formed and correct the trace information.
 
-### Upgrade Propsoal
+### Upgrade Proposal
 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("v3.1.0",
