@@ -62,23 +62,6 @@ app.UpgradeKeeper.SetUpgradeHandler("supportSlashingDenomUpgrade",
 
 This is only necessary if there are DenomTraces in the store with incorrect trace information from previously received coins that had a slash in the base denom. However, it is recommended that any chain upgrading to support slashed denominations runs this code for safety.
 
-#### Add `StoreUpgrades` for Transfer module
-
-For Transfer it is also necessary to [manually add store upgrades](https://docs.cosmos.network/v0.44/core/upgrade.html#add-storeupgrades-for-new-modules) for the transfer module and then configure the store loader to apply those upgrades in `app.go` if you wish to use the upgrade handler method above.
-
-```go
-// Here the upgrade name is just an example of the upgrade name set by the chain
-if upgradeInfo.Name == "supportSlashingDenomUpgrade" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height)  {
-    storeUpgrades := store.StoreUpgrades{
-        Added: []string{transfertypes.StoreKey}
-    }
-
-    app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-}
-```
-
-This ensures that the transfer module's stores are added to the multistore before the migrations begin. 
-
 ### Genesis Migration
 
 If the chain chooses to add support for slashes in base denoms via genesis export, then the trace information must be corrected during genesis migration.
