@@ -171,6 +171,24 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 	}, nil
 }
 
+// Payee implements the Query/Payee gRPC method and returns the registered payee address to which packet fees are paid out
+func (k Keeper) Payee(goCtx context.Context, req *types.QueryPayeeRequest) (*types.QueryPayeeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	payeeAddr, found := k.GetPayeeAddress(ctx, req.Relayer, req.ChannelId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "payee address not found for address: %s on channel: %s", req.Relayer, req.ChannelId)
+	}
+
+	return &types.QueryPayeeResponse{
+		PayeeAddress: payeeAddr,
+	}, nil
+}
+
 // CounterpartyPayee implements the Query/CounterpartyPayee gRPC method and returns the registered counterparty payee address for forward relaying
 func (k Keeper) CounterpartyPayee(goCtx context.Context, req *types.QueryCounterpartyPayeeRequest) (*types.QueryCounterpartyPayeeResponse, error) {
 	if req == nil {
@@ -179,9 +197,9 @@ func (k Keeper) CounterpartyPayee(goCtx context.Context, req *types.QueryCounter
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	counterpartyPayeeAddr, found := k.GetCounterpartyPayeeAddress(ctx, req.RelayerAddress, req.ChannelId)
+	counterpartyPayeeAddr, found := k.GetCounterpartyPayeeAddress(ctx, req.Relayer, req.ChannelId)
 	if !found {
-		return nil, status.Errorf(codes.NotFound, "counterparty payee address not found for address: %s on channel: %s", req.RelayerAddress, req.ChannelId)
+		return nil, status.Errorf(codes.NotFound, "counterparty payee address not found for address: %s on channel: %s", req.Relayer, req.ChannelId)
 	}
 
 	return &types.QueryCounterpartyPayeeResponse{

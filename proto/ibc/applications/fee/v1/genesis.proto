@@ -38,7 +38,7 @@ message FeeEnabledChannel {
 // RegisteredPayee contains the relayer address and payee address for a specific channel
 message RegisteredPayee {
   // the relayer address
-  string relayer_address = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  string relayer = 1;
   // the payee address
   string payee = 2;
   // unique channel identifier
@@ -49,7 +49,7 @@ message RegisteredPayee {
 // for recv fee distribution)
 message RegisteredCounterpartyPayee {
   // the relayer address
-  string relayer_address = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  string relayer = 1;
   // the counterparty payee address
   string counterparty_payee = 2 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
   // unique channel identifier

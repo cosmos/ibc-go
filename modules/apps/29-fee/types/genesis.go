@@ -65,11 +65,11 @@ func (gs GenesisState) Validate() error {
 
 	// Validate RegisteredPayees
 	for _, registeredPayee := range gs.RegisteredPayees {
-		if registeredPayee.RelayerAddress == registeredPayee.Payee {
+		if registeredPayee.Relayer == registeredPayee.Payee {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address and payee address must not be equal")
 		}
 
-		if _, err := sdk.AccAddressFromBech32(registeredPayee.RelayerAddress); err != nil {
+		if _, err := sdk.AccAddressFromBech32(registeredPayee.Relayer); err != nil {
 			return sdkerrors.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
 		}
 
@@ -84,7 +84,7 @@ func (gs GenesisState) Validate() error {
 
 	// Validate RegisteredCounterpartyPayees
 	for _, registeredCounterpartyPayee := range gs.RegisteredCounterpartyPayees {
-		if _, err := sdk.AccAddressFromBech32(registeredCounterpartyPayee.RelayerAddress); err != nil {
+		if _, err := sdk.AccAddressFromBech32(registeredCounterpartyPayee.Relayer); err != nil {
 			return sdkerrors.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
 		}
 

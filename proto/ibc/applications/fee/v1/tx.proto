@@ -18,10 +18,10 @@ service Msg {
   rpc RegisterPayee(MsgRegisterPayee) returns (MsgRegisterPayeeResponse);
 
   // RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee
-  // RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify their
-  // counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
-  // destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
-  // may be called more than once by a relayer, in which case, the latest counterparty address is always used.
+  // RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty
+  // payee address before relaying. This ensures they will be properly compensated for forward relaying since
+  // the destination chain must include the registered counterparty payee address in the acknowledgement. This function
+  // may be called more than once by a relayer, in which case, the latest counterparty payee address is always used.
   rpc RegisterCounterpartyPayee(MsgRegisterCounterpartyPayee) returns (MsgRegisterCounterpartyPayeeResponse);
 
   // PayPacketFee defines a rpc handler method for MsgPayPacketFee
@@ -47,8 +47,8 @@ message MsgRegisterPayee {
   // unique channel identifier
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address
-  string relayer_address = 3 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
-  // the fee payee address
+  string relayer = 3;
+  // the payee address
   string payee = 4;
 }
 
@@ -65,8 +65,8 @@ message MsgRegisterCounterpartyPayee {
   // unique channel identifier
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address
-  string relayer_address = 3;
-  // the counterparty relayer address
+  string relayer = 3;
+  // the counterparty payee address
   string counterparty_payee = 4 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
 }
 

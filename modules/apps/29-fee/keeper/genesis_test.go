@@ -30,14 +30,14 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		},
 		RegisteredPayees: []types.RegisteredPayee{
 			{
-				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
-				Payee:          suite.chainB.SenderAccount.GetAddress().String(),
-				ChannelId:      ibctesting.FirstChannelID,
+				Relayer:   suite.chainA.SenderAccount.GetAddress().String(),
+				Payee:     suite.chainB.SenderAccount.GetAddress().String(),
+				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
 		RegisteredCounterpartyPayees: []types.RegisteredCounterpartyPayee{
 			{
-				RelayerAddress:    suite.chainA.SenderAccount.GetAddress().String(),
+				Relayer:           suite.chainA.SenderAccount.GetAddress().String(),
 				CounterpartyPayee: suite.chainB.SenderAccount.GetAddress().String(),
 				ChannelId:         ibctesting.FirstChannelID,
 			},
@@ -115,12 +115,12 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(packetID, genesisState.ForwardRelayers[0].PacketId)
 
 	// check payee addresses
-	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredPayees[0].RelayerAddress)
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredPayees[0].Relayer)
 	suite.Require().Equal(suite.chainB.SenderAccount.GetAddress().String(), genesisState.RegisteredPayees[0].Payee)
 	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.RegisteredPayees[0].ChannelId)
 
 	// check registered counterparty payee addresses
-	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredCounterpartyPayees[0].RelayerAddress)
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredCounterpartyPayees[0].Relayer)
 	suite.Require().Equal(suite.chainB.SenderAccount.GetAddress().String(), genesisState.RegisteredCounterpartyPayees[0].CounterpartyPayee)
 	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.RegisteredCounterpartyPayees[0].ChannelId)
 }

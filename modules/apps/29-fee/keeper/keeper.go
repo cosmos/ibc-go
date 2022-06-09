@@ -173,15 +173,15 @@ func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
 
 	var registeredPayees []types.RegisteredPayee
 	for ; iterator.Valid(); iterator.Next() {
-		addr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
 		payee := types.RegisteredPayee{
-			RelayerAddress: addr,
-			Payee:          string(iterator.Value()),
-			ChannelId:      channelID,
+			Relayer:   relayerAddr,
+			Payee:     string(iterator.Value()),
+			ChannelId: channelID,
 		}
 
 		registeredPayees = append(registeredPayees, payee)
@@ -190,14 +190,14 @@ func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
 	return registeredPayees
 }
 
-// SetCounterpartyPayeeAddress maps the destination chain relayer address to the source relayer address
-// The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
+// SetCounterpartyPayeeAddress maps the destination chain counterparty payee address to the source relayer address
+// The receiving chain must store the mapping from: address -> counterpartyPayeeAddress for the given channel
 func (k Keeper) SetCounterpartyPayeeAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyCounterpartyRelayer(address, channelID), []byte(counterpartyAddress))
 }
 
-// GetCounterpartyPayeeAddress gets the relayer counterparty address given a destination relayer address
+// GetCounterpartyPayeeAddress gets the counterparty payee address given a destination relayer address
 func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyCounterpartyRelayer(address, channelID)
@@ -218,13 +218,13 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredCounte
 
 	var registeredCounterpartyPayees []types.RegisteredCounterpartyPayee
 	for ; iterator.Valid(); iterator.Next() {
-		address, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
 		counterpartyPayee := types.RegisteredCounterpartyPayee{
-			RelayerAddress:    address,
+			Relayer:           relayerAddr,
 			CounterpartyPayee: string(iterator.Value()),
 			ChannelId:         channelID,
 		}

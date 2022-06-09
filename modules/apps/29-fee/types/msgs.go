@@ -19,10 +19,10 @@ const (
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
 func NewMsgRegisterPayee(portID, channelID, relayerAddr, payeeAddr string) *MsgRegisterPayee {
 	return &MsgRegisterPayee{
-		PortId:         portID,
-		ChannelId:      channelID,
-		RelayerAddress: relayerAddr,
-		Payee:          payeeAddr,
+		PortId:    portID,
+		ChannelId: channelID,
+		Relayer:   relayerAddr,
+		Payee:     payeeAddr,
 	}
 }
 
@@ -36,11 +36,11 @@ func (msg MsgRegisterPayee) ValidateBasic() error {
 		return err
 	}
 
-	if msg.RelayerAddress == msg.Payee {
+	if msg.Relayer == msg.Payee {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "relayer address and payee must not be equal")
 	}
 
-	_, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	_, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from relayer address")
 	}
@@ -55,7 +55,7 @@ func (msg MsgRegisterPayee) ValidateBasic() error {
 
 // GetSigners implements sdk.Msg
 func (msg MsgRegisterPayee) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	signer, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +68,7 @@ func NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpart
 	return &MsgRegisterCounterpartyPayee{
 		PortId:            portID,
 		ChannelId:         channelID,
-		RelayerAddress:    relayerAddr,
+		Relayer:           relayerAddr,
 		CounterpartyPayee: counterpartyPayeeAddr,
 	}
 }
@@ -83,7 +83,7 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 		return err
 	}
 
-	_, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	_, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from relayer address")
 	}
@@ -97,7 +97,7 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 
 // GetSigners implements sdk.Msg
 func (msg MsgRegisterCounterpartyPayee) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	signer, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
 		panic(err)
 	}
