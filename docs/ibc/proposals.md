@@ -39,8 +39,6 @@ The substitute client is used as a "stand in" while the subject is on trial. It 
 a substitute client *after* the subject has become frozen to avoid the substitute from also becoming frozen. 
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry 
 once the proposal passes. 
-<<<<<<< HEAD
-=======
 
 # How to recover an expired client with a governance proposal
 
@@ -87,4 +85,3 @@ After this, it is just a question of who funds the governance deposit and if the
 Please note that from v1.0.0 of ibc-go it will not be allowed for transactions to go to expired clients anymore, so please update to at least this version to prevent similar issues in the future.
 
 Please also note that if the client on the other end of the transaction is also expired, that client will also need to update. This process updates only one client.
->>>>>>> 5e5e2cd (fix: deprecate AllowUpdateAfter...check (#1511))
