@@ -30,7 +30,7 @@ To do so, chain binaries should include a migration script that will run when th
 
 The transfer module will now support slashes in base denoms, so we must iterate over current traces to check if any of them are incorrectly formed and correct the trace information.
 
-### Upgrade Propsoal
+### Upgrade Proposal
 
 ```go
 // Here the upgrade name is the upgrade name set by the chain
