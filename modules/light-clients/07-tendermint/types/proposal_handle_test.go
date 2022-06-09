@@ -32,7 +32,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 				suite.Require().True(ok)
 				// change trusting period so that test should fail
 				substituteClientState.TrustingPeriod = time.Hour * 24 * 7
-			
+
 				tmClientState := substituteClientState
 				tmClientState.ChainId = tmClientState.ChainId + "different chain"
 			},
@@ -71,48 +71,36 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
 		name                         string
-		AllowUpdateAfterExpiry       bool
-		AllowUpdateAfterMisbehaviour bool
 		FreezeClient                 bool
 		ExpireClient                 bool
 		expPass                      bool
 	}{
 		{
 			name:                         "PASS: update checks are deprecated, client is frozen and expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: false,
 			FreezeClient:                 true,
 			ExpireClient:                 true,
 			expPass:                      true,
 		},
 		{
 			name:                         "PASS: update checks are deprecated, not frozen or expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: true,
 			FreezeClient:                 false,
 			ExpireClient:                 false,
 			expPass:                      true,
 		},
 		{
 			name:                         "PASS: update checks are deprecated, not frozen or expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: false,
 			FreezeClient:                 false,
 			ExpireClient:                 false,
 			expPass:                      true,
 		},
 		{
 			name:                         "PASS: update checks are deprecated, client is frozen",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
 			FreezeClient:                 true,
 			ExpireClient:                 false,
 			expPass:                      true,
 		},
 		{
 			name:                         "PASS: update checks are deprecated, client is expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
 			FreezeClient:                 false,
 			ExpireClient:                 true,
 			expPass:                      true,
@@ -133,8 +121,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(subjectPath)
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
-			subjectClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
-			subjectClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
 
 			// apply freezing or expiry as determined by the test case
 			if tc.FreezeClient {
@@ -155,8 +141,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
 			substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
-			substituteClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
-			substituteClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, substituteClientState)
 
 			// update substitute a few times
