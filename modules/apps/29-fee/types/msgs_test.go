@@ -12,6 +12,81 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
+func TestMsgRegisterPayeeValidation(t *testing.T) {
+	var msg *types.MsgRegisterPayee
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid portID",
+			func() {
+				msg.PortId = ""
+			},
+			false,
+		},
+		{
+			"invalid channelID",
+			func() {
+				msg.ChannelId = ""
+			},
+			false,
+		},
+		{
+			"invalid request relayer and payee are equal",
+			func() {
+				msg.RelayerAddress = defaultAccAddress
+				msg.Payee = defaultAccAddress
+			},
+			false,
+		},
+		{
+			"invalid relayer address",
+			func() {
+				msg.RelayerAddress = "invalid-address"
+			},
+			false,
+		},
+		{
+			"invalid payee address",
+			func() {
+				msg.Payee = "invalid-address"
+			},
+			false,
+		},
+	}
+
+	for i, tc := range testCases {
+		relayerAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+		payeeAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+		msg = types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, relayerAddr.String(), payeeAddr.String())
+
+		tc.malleate()
+
+		err := msg.ValidateBasic()
+
+		if tc.expPass {
+			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
+
+func TestRegisterPayeeGetSigners(t *testing.T) {
+	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
+	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
+}
+
 func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 	var msg *types.MsgRegisterCounterpartyAddress
 
