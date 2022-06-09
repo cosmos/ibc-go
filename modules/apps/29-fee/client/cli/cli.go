@@ -42,7 +42,7 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewRegisterPayeeCmd(),
 		NewPayPacketFeeAsyncTxCmd(),
-		NewRegisterCounterpartyAddressCmd(),
+		NewRegisterCounterpartyPayeeCmd(),
 	)
 
 	return txCmd

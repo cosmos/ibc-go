@@ -47,10 +47,10 @@ func NewRegisterPayeeCmd() *cobra.Command {
 	return cmd
 }
 
-// NewRegisterCounterpartyAddressCmd returns the command to create a MsgRegisterCounterpartyAddress
-func NewRegisterCounterpartyAddressCmd() *cobra.Command {
+// NewRegisterCounterpartyPayeeCmd returns the command to create a MsgRegisterCounterpartyPayee
+func NewRegisterCounterpartyPayeeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "register-counterparty [port-id] [channel-id] [address] [counterparty-payee-address] ",
+		Use:     "register-counterparty-payee [port-id] [channel-id] [relayer-address] [payee-address] ",
 		Short:   "Register a counterparty payee address on a given channel.",
 		Long:    strings.TrimSpace(`Register a counterparty payee address on a given channel.`),
 		Example: fmt.Sprintf("%s tx ibc-fee register-counterparty transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh osmo1v5y0tz01llxzf4c2afml8s3awue0ymju22wxx2", version.AppName),
