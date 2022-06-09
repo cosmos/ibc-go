@@ -239,6 +239,45 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 	return cmd
 }
 
+// GetCmdPayee returns the command handler for the Query/Payee rpc.
+func GetCmdPayee() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "payee [channel-id] [relayer-address]",
+		Short:   "Query the relayer payee address on a given channel",
+		Long:    "Query the relayer payee address on a given channel",
+		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf("%s query ibc-fee payee channel-5 cosmos1layxcsmyye0dc0har9sdfzwckaz8sjwlfsj8zs", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			if _, err := sdk.AccAddressFromBech32(args[1]); err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryPayeeRequest{
+				ChannelId:      args[0],
+				RelayerAddress: args[1],
+			}
+
+			res, err := queryClient.Payee(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdCounterpartyAddress returns the command handler for the Query/CounterpartyAddress rpc.
 func GetCmdCounterpartyAddress() *cobra.Command {
 	cmd := &cobra.Command{
