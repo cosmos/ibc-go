@@ -232,34 +232,34 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	// ctx.EventManager().EmitEvent(
-	// 	sdk.NewEvent(
-	// 		types.EventTypePacket,
-	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-	// 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-	// 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-	// 		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-	// 		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-	// 		sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-	// 	),
-	// )
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyClassID, data.ClassId),
+			sdk.NewAttribute(types.AttributeKeyTokenIDs, strings.Join(data.TokenIds, ",")),
+			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+		),
+	)
 
-	// switch resp := ack.Response.(type) {
-	// case *channeltypes.Acknowledgement_Result:
-	// 	ctx.EventManager().EmitEvent(
-	// 		sdk.NewEvent(
-	// 			types.EventTypePacket,
-	// 			sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
-	// 		),
-	// 	)
-	// case *channeltypes.Acknowledgement_Error:
-	// 	ctx.EventManager().EmitEvent(
-	// 		sdk.NewEvent(
-	// 			types.EventTypePacket,
-	// 			sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
-	// 		),
-	// 	)
-	// }
+	switch resp := ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Result:
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
+			),
+		)
+	case *channeltypes.Acknowledgement_Error:
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
+			),
+		)
+	}
 
 	return nil
 }

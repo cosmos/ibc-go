@@ -9,22 +9,22 @@ import (
 
 const (
 	// ModuleName defines the IBC nft-transfer name
-	ModuleName = "nft-transfer"
+	ModuleName = "nonfungibletokentransfer"
 
-	// Version defines the current version the IBC nft-tranfer
+	// Version defines the current version the IBC nft-transfer
 	// module supports
 	Version = "ics721-1"
 
-	// PortID is the default port id that nft-tranfer module binds to
-	PortID = "nft-tranfer"
+	// PortID is the default port id that nft-transfer module binds to
+	PortID = "nft-transfer"
 
-	// StoreKey is the store key string for IBC nft-tranfer
+	// StoreKey is the store key string for IBC nft-transfer
 	StoreKey = ModuleName
 
-	// RouterKey is the message route for IBC nft-tranfer
+	// RouterKey is the message route for IBC nft-transfer
 	RouterKey = ModuleName
 
-	// QuerierRoute is the querier route for IBC nft-tranfer
+	// QuerierRoute is the querier route for IBC nft-transfer
 	QuerierRoute = ModuleName
 
 	// ClassPrefix is the prefix used for internal SDK non-fungible token representation.

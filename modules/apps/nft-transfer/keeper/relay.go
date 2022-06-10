@@ -302,7 +302,7 @@ func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packe
 	// we need to unescrow the token and transfer it to the receiver
 
 	// we should remove the prefix. For example:
-	// p6/c6/p4/c4/p2/c2/nftClas -> p4/c4/p2/c2/nftClass
+	// p6/c6/p4/c4/p2/c2/nftClass -> p4/c4/p2/c2/nftClass
 	unprefixedClassID := types.RemoveClassPrefix(packet.GetSourcePort(),
 		packet.GetSourceChannel(), data.ClassId)
 	voucherClassID := types.ParseClassTrace(unprefixedClassID).IBCClassID()
