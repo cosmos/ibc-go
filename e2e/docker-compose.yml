@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  hermes:
+    # If hermes starts too quickly, it can fail to connect to chain-1 and chain-2 (even though we're using depends_on)
+    # after a few restarts it will eventually succeed.
+    restart: always
+    image: hermes:latest
+    depends_on:
+      - chain-1
+      - chain-2
+    entrypoint: ["sleep", "infinity"]
+
+  chain-1:
+    image: simd:latest
+    entrypoint: ["sleep", "infinity"]
+    environment:
+      BINARY: "simd"
+      CHAIN_ID: "test-1"
+      CHAIN_DIR: "./data"
+      VAL_MNEMONIC: "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion"
+      WALLET_MNEMONIC_1: "banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass"
+      WALLET_MNEMONIC_2: "veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only"
+      RLY_MNEMONIC: "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
+      P2PPORT: "16656"
+      RPCPORT: "16657"
+      RESTPORT: "1316"
+      ROSETTA: "8080"
+      GRPCPORT: "8090"
+      GRPCWEB: "8091"
+    ports:
+      - "16656"
+      - "16657"
+      - "1316"
+      - "8080"
+      - "8090"
+      - "8091"
+
+    build:
+      context: .
+      dockerfile: simd-docker/Dockerfile
+
+  chain-2:
+    image: simd:latest
+    entrypoint: ["sleep", "infinity"]
+    environment:
+      BINARY: "simd"
+      CHAIN_ID: "test-2"
+      CHAIN_DIR: "./data"
+      VAL_MNEMONIC: "angry twist harsh drastic left brass behave host shove marriage fall update business leg direct reward object ugly security warm tuna model broccoli choice"
+      WALLET_MNEMONIC_1: "vacuum burst ordinary enact leaf rabbit gather lend left chase park action dish danger green jeans lucky dish mesh language collect acquire waste load"
+      WALLET_MNEMONIC_2: "open attitude harsh casino rent attitude midnight debris describe spare cancel crisp olive ride elite gallery leaf buffalo sheriff filter rotate path begin soldier"
+      RLY_MNEMONIC: "record gift you once hip style during joke field prize dust unique length more pencil transfer quit train device arrive energy sort steak upset"
+      P2PPORT: "26656"
+      RPCPORT: "26657"
+      RESTPORT: "1317"
+      ROSETTA: "8081"
+      GRPCPORT: "9090"
+      GRPCWEB: "9091"
+    ports:
+      - "26656"
+      - "26657:26657"
+      - "1317"
+      - "8081"
+      - "9090"
+      - "9091"
+
+# docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce

@@ -7,10 +7,36 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	dockerClient "github.com/docker/docker/client"
 	"github.com/spf13/pflag"
 	"os"
+	"strings"
 	"testing"
 )
+
+const (
+	TestChain1ID      = "test-1"
+	TestChain2ID      = "test-2"
+	TestContainerName = "simd-docker-chain-1-1"
+)
+
+func TestTokenTransfer(t *testing.T) {
+	// This test assumes a testing environment is available already.
+	cli, err := dockerClient.NewClientWithOpts(dockerClient.FromEnv)
+	if err != nil {
+		panic(err)
+	}
+	cmdString := "simd q ibc channel channels --home ./data/test-1 --node tcp://localhost:16657"
+	//cmdString := "simd tx ibc-transfer transfer transfer channel-0 $WALLET_3 1000stake --from $WALLET_1 --home ./data/test-1 --keyring-backend test --chain-id test-1 --node tcp://localhost:16657"
+
+	command := strings.Split(cmdString, " ")
+
+	res, err := Exec(context.TODO(), cli, TestContainerName, command)
+	panicIfErr(err)
+
+	out := res.Combined()
+	fmt.Println(out)
+}
 
 func TestSomething(t *testing.T) {
 	encodingConfig := simapp.MakeTestEncodingConfig()
@@ -50,6 +76,7 @@ func TestSomething(t *testing.T) {
 
 func panicIfErr(err error) {
 	if err != nil {
+		fmt.Println(err)
 		panic(err)
 	}
 }
