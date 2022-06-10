@@ -267,12 +267,25 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
-	if found {
-		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
+	if !found {
+		// call underlying callback
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 	}
 
-	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
+	if !found {
+		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
+		return nil
+	}
+
+	payeeAddr, err := sdk.AccAddressFromBech32(payee)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+	}
+
+	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, payeeAddr.String(), payeeAddr, feesInEscrow.PacketFees, packetID)
+
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -293,12 +306,26 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
-	if found {
-		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
+	if !found {
+		// call underlying callback
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+
 	}
 
-	// call underlying callback
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
+	if !found {
+		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
+		return nil
+	}
+
+	payeeAddr, err := sdk.AccAddressFromBech32(payee)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+	}
+
+	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
+
+	return nil
 }
 
 // SendPacket implements the ICS4 Wrapper interface
