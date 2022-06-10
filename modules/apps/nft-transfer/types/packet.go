@@ -21,7 +21,7 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-// NewNonFungibleTokenPacketData contructs a new NonFungibleTokenPacketData instance
+// NewNonFungibleTokenPacketData constructs a new NonFungibleTokenPacketData instance
 func NewNonFungibleTokenPacketData(
 	classID, classURI string,
 	tokenIDs, tokenURI []string,
@@ -73,7 +73,7 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 	return nil
 }
 
-// GetBytes is a helper for serialising
+// GetBytes is a helper for serializing
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&nftpd))
 }

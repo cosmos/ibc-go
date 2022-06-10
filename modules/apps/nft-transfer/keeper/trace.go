@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/nft-transfer/types"
 )
 
-// GetClassTrace retreives the full identifiers trace and base classId from the store.
+// GetClassTrace retrieves the full identifiers trace and base classId from the store.
 func (k Keeper) GetClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) (types.ClassTrace, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
 	bz := store.Get(classTraceHash)
