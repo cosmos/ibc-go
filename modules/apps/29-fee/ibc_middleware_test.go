@@ -608,80 +608,328 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 }
 
 // different channel than sending chain
-func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
+// func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
+// 	var (
+// 		ack                    []byte
+// 		packetFee              types.PacketFee
+// 		originalBalance        sdk.Coins
+// 		expectedBalance        sdk.Coins
+// 		expectedRelayerBalance sdk.Coins
+// 		expLocked              bool
+// 	)
+
+// 	testCases := []struct {
+// 		name               string
+// 		malleate           func()
+// 		expFeesDistributed bool
+// 		expPass            bool
+// 	}{
+// 		{
+// 			"success",
+// 			func() {
+// 				expectedRelayerBalance = packetFee.Fee.RecvFee.Add(packetFee.Fee.AckFee[0])
+// 			},
+// 			true,
+// 			true,
+// 		},
+// 		{
+// 			"success with registered payee",
+// 			func() {
+// 				suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+// 					suite.chainA.GetContext(),
+// 					suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+// 					suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
+// 					suite.path.EndpointA.ChannelID,
+// 				)
+
+// 				expectedRelayerBalance = packetFee.Fee.RecvFee.Add(packetFee.Fee.AckFee[0])
+// 			},
+// 			true,
+// 			true,
+// 		},
+// 		{
+// 			"no op success without a packet fee",
+// 			func() {
+// 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+// 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
+
+// 				ack = types.IncentivizedAcknowledgement{
+// 					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
+// 					ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+// 				}.Acknowledgement()
+
+// 				expectedBalance = originalBalance
+// 			},
+// 			true,
+// 			true,
+// 		},
+// 		{
+// 			"ack wrong format",
+// 			func() {
+// 				ack = []byte("unsupported acknowledgement format")
+
+// 				expectedBalance = originalBalance
+// 			},
+// 			false,
+// 			false,
+// 		},
+// 		{
+// 			"channel is not fee not enabled, success",
+// 			func() {
+// 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+// 				ack = ibcmock.MockAcknowledgement.Acknowledgement()
+
+// 				expectedBalance = originalBalance
+// 			},
+// 			false,
+// 			true,
+// 		},
+// 		{
+// 			"success: fee module is disabled, skip fee logic",
+// 			func() {
+// 				lockFeeModule(suite.chainA)
+// 				expLocked = true
+
+// 				expectedBalance = originalBalance
+// 			},
+// 			false,
+// 			true,
+// 		},
+// 		{
+// 			"fail on distribute receive fee (blocked address)",
+// 			func() {
+// 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+
+// 				ack = types.IncentivizedAcknowledgement{
+// 					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
+// 					ForwardRelayerAddress: blockedAddr.String(),
+// 				}.Acknowledgement()
+
+// 				expectedRelayerBalance = packetFee.Fee.AckFee
+// 				expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee...)
+// 			},
+// 			false,
+// 			true,
+// 		},
+// 		{
+// 			"fail on no distribution by escrow account out of balance",
+// 			func() {
+// 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+// 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
+// 				suite.Require().NoError(err)
+
+// 				// expectedBalance and expectedRelayerBalance don't change
+// 				expectedBalance = originalBalance.Add(smallAmount...)
+// 				expectedRelayerBalance = sdk.NewCoins()
+
+// 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+
+// 				expLocked = true
+// 			},
+// 			false,
+// 			true,
+// 		},
+// 	}
+
+// 	for _, tc := range testCases {
+// 		tc := tc
+// 		suite.Run(tc.name, func() {
+// 			suite.SetupTest()
+// 			suite.coordinator.Setup(suite.path)
+
+// 			// reset vars
+// 			expLocked = false
+// 			expectedRelayerBalance = sdk.Coins{}
+
+// 			// lookup module callbacks
+// 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+// 			suite.Require().NoError(err)
+
+// 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+// 			suite.Require().True(ok)
+
+// 			// escrow the packet fee
+// 			packet := suite.CreateMockPacket()
+// 			packetID := channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+// 			packetFee = types.NewPacketFee(
+// 				types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee),
+// 				suite.chainA.SenderAccount.GetAddress().String(),
+// 				[]string{},
+// 			)
+
+// 			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+// 			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, packetFee.Fee.Total())
+// 			suite.Require().NoError(err)
+
+// 			relayerAddr := suite.chainB.SenderAccount.GetAddress()
+
+// 			// must be changed explicitly
+// 			ack = types.NewIncentivizedAcknowledgement(relayerAddr.String(), ibcmock.MockAcknowledgement.Acknowledgement(), true).Acknowledgement()
+
+// 			// log original sender balance
+// 			// NOTE: balance is logged after escrowing tokens
+// 			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+
+// 			// default to success case
+// 			expectedBalance = originalBalance.Add(packetFee.Fee.TimeoutFee[0])
+
+// 			// malleate test case
+// 			tc.malleate()
+
+// 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, relayerAddr)
+
+// 			if tc.expPass {
+// 				suite.Require().NoError(err)
+// 			} else {
+// 				suite.Require().Error(err)
+// 			}
+
+// 			suite.Require().Equal(expLocked, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+
+// 			suite.Require().Equal(
+// 				expectedBalance,
+// 				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+// 			)
+
+// 			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
+// 			if tc.expFeesDistributed {
+// 				// there should no longer be a fee in escrow for this packet
+// 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+// 				suite.Require().False(found)
+// 			}
+
+// 			suite.Require().Equal(
+// 				expectedRelayerBalance,
+// 				relayerBalance,
+// 			)
+// 		})
+// 	}
+// }
+
+func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
 	var (
-		ack                    []byte
-		packetFee              types.PacketFee
-		originalBalance        sdk.Coins
-		expectedBalance        sdk.Coins
-		expectedRelayerBalance sdk.Coins
-		expLocked              bool
+		ack                 []byte
+		packetID            channeltypes.PacketId
+		packetFee           types.PacketFee
+		refundAddr          sdk.AccAddress
+		relayerAddr         sdk.AccAddress
+		expRefundAccBalance sdk.Coins
+		expPayeeAccBalance  sdk.Coins
 	)
 
 	testCases := []struct {
-		name               string
-		malleate           func()
-		expFeesDistributed bool
-		expPass            bool
+		name      string
+		malleate  func()
+		expPass   bool
+		expResult func()
 	}{
 		{
 			"success",
 			func() {
-				expectedRelayerBalance = packetFee.Fee.RecvFee.Add(packetFee.Fee.AckFee[0])
+				// retrieve the relayer acc balance and add the expected recv and ack fees
+				relayerAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
+				expPayeeAccBalance = relayerAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
+
+				// retrieve the refund acc balance and add the expected timeout fees
+				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
+				expRefundAccBalance = refundAccBalance.Add(packetFee.Fee.TimeoutFee...)
 			},
 			true,
-			true,
+			func() {
+				// assert that the packet fees have been distributed
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().False(found)
+
+				relayerAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom)
+				suite.Require().Equal(expPayeeAccBalance, sdk.NewCoins(relayerAccBalance))
+
+				refundAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom)
+				suite.Require().Equal(expRefundAccBalance, sdk.NewCoins(refundAccBalance))
+
+				// TODO: remove?
+				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+			},
 		},
 		{
-			"no op success without a packet fee",
+			"success: with registered payee",
 			func() {
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
+				payeeAddr := suite.chainA.SenderAccounts[2].SenderAccount.GetAddress()
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+					suite.chainA.GetContext(),
+					suite.chainA.SenderAccount.GetAddress().String(),
+					payeeAddr.String(),
+					suite.path.EndpointA.ChannelID,
+				)
+
+				// retrieve the payee acc balance and add the expected recv and ack fees
+				payeeAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), payeeAddr, sdk.DefaultBondDenom))
+				expPayeeAccBalance = payeeAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
+
+				// retrieve the refund acc balance and add the expected timeout fees
+				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
+				expRefundAccBalance = refundAccBalance.Add(packetFee.Fee.TimeoutFee...)
+			},
+			true,
+			func() {
+				// assert that the packet fees have been distributed
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().False(found)
+
+				payeeAddr := suite.chainA.SenderAccounts[2].SenderAccount.GetAddress()
+				payeeAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), payeeAddr, sdk.DefaultBondDenom)
+				suite.Require().Equal(expPayeeAccBalance, sdk.NewCoins(payeeAccBalance))
+
+				refundAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom)
+				suite.Require().Equal(expRefundAccBalance, sdk.NewCoins(refundAccBalance))
+
+				// TODO: remove?
+				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+			},
+		},
+		{
+			"success: no op without a packet fee",
+			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 
 				ack = types.IncentivizedAcknowledgement{
 					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
-					ForwardRelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					ForwardRelayerAddress: "",
 				}.Acknowledgement()
-
-				expectedBalance = originalBalance
 			},
 			true,
-			true,
-		},
-		{
-			"ack wrong format",
 			func() {
-				ack = []byte("unsupported acknowledgement format")
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().False(found)
 
-				expectedBalance = originalBalance
+				// TODO: remove?
+				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
-			false,
-			false,
 		},
 		{
-			"channel is not fee not enabled, success",
+			"success: channel is not fee not enabled",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 				ack = ibcmock.MockAcknowledgement.Acknowledgement()
-
-				expectedBalance = originalBalance
 			},
-			false,
+
 			true,
+			func() {
+				// TODO: Remove?
+				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+			},
 		},
 		{
 			"success: fee module is disabled, skip fee logic",
 			func() {
 				lockFeeModule(suite.chainA)
-				expLocked = true
-
-				expectedBalance = originalBalance
 			},
-			false,
 			true,
+			func() {
+				suite.Require().Equal(true, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+			},
 		},
 		{
-			"fail on distribute receive fee (blocked address)",
+			"success: fail to distribute recv fee (blocked address), returned to refund account",
 			func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
@@ -690,29 +938,51 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 					ForwardRelayerAddress: blockedAddr.String(),
 				}.Acknowledgement()
 
-				expectedRelayerBalance = packetFee.Fee.AckFee
-				expectedBalance = expectedBalance.Add(packetFee.Fee.RecvFee...)
+				// retrieve the relayer acc balance and add the expected ack fees
+				relayerAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
+				expPayeeAccBalance = relayerAccBalance.Add(packetFee.Fee.AckFee...)
+
+				// retrieve the refund acc balance and add the expected recv fees and timeout fees
+				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
+				expRefundAccBalance = refundAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.TimeoutFee...)
 			},
-			false,
 			true,
+			func() {
+				// assert that the packet fees have been distributed
+				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+				suite.Require().False(found)
+
+				relayerAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom)
+				suite.Require().Equal(expPayeeAccBalance, sdk.NewCoins(relayerAccBalance))
+
+				refundAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom)
+				suite.Require().Equal(expRefundAccBalance, sdk.NewCoins(refundAccBalance))
+
+				// TODO: remove?
+				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+			},
 		},
 		{
 			"fail on no distribution by escrow account out of balance",
 			func() {
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetSequence())
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
-
-				// expectedBalance and expectedRelayerBalance don't change
-				expectedBalance = originalBalance.Add(smallAmount...)
-				expectedRelayerBalance = sdk.NewCoins()
-
-				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
-
-				expLocked = true
+			},
+			true,
+			func() {
+				suite.Require().Equal(true, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+			},
+		},
+		{
+			"ack wrong format",
+			func() {
+				ack = []byte("unsupported acknowledgement format")
 			},
 			false,
-			true,
+			func() {
+				// TODO: remove?
+				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+			},
 		},
 	}
 
@@ -720,53 +990,30 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			expLocked = false
-
 			suite.coordinator.Setup(suite.path)
+
+			relayerAddr = suite.chainA.SenderAccounts[0].SenderAccount.GetAddress()
+			refundAddr = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress()
+
 			packet := suite.CreateMockPacket()
+			packetID = channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			packetFee = types.NewPacketFee(types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee), refundAddr.String(), nil)
 
-			expectedRelayerBalance = sdk.Coins{} // reset
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
 
-			// set up module and callbacks
+			err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAddr, types.ModuleName, packetFee.Fee.Total())
+			suite.Require().NoError(err)
+
+			ack = types.NewIncentivizedAcknowledgement(relayerAddr.String(), ibcmock.MockAcknowledgement.Acknowledgement(), true).Acknowledgement()
+
+			tc.malleate() // malleate mutates test data
+
+			// retrieve module callbacks
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
-
-			// escrow the packet fee
-			packetID := channeltypes.NewPacketId(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-			packetFee = types.NewPacketFee(
-				types.Fee{
-					RecvFee:    defaultRecvFee,
-					AckFee:     defaultAckFee,
-					TimeoutFee: defaultTimeoutFee,
-				},
-				suite.chainA.SenderAccount.GetAddress().String(),
-				[]string{},
-			)
-
-			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
-			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, packetFee.Fee.Total())
-			suite.Require().NoError(err)
-
-			relayerAddr := suite.chainB.SenderAccount.GetAddress()
-
-			// must be changed explicitly
-			ack = types.IncentivizedAcknowledgement{
-				AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
-				ForwardRelayerAddress: relayerAddr.String(),
-			}.Acknowledgement()
-
-			// log original sender balance
-			// NOTE: balance is logged after escrowing tokens
-			originalBalance = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-
-			// default to success case
-			expectedBalance = originalBalance.Add(packetFee.Fee.TimeoutFee[0])
-
-			// malleate test case
-			tc.malleate()
 
 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, relayerAddr)
 
@@ -776,24 +1023,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().Error(err)
 			}
 
-			suite.Require().Equal(expLocked, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
-
-			suite.Require().Equal(
-				expectedBalance,
-				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
-			)
-
-			relayerBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, ibctesting.TestCoin.Denom))
-			if tc.expFeesDistributed {
-				// there should no longer be a fee in escrow for this packet
-				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
-				suite.Require().False(found)
-			}
-
-			suite.Require().Equal(
-				expectedRelayerBalance,
-				relayerBalance,
-			)
+			tc.expResult()
 		})
 	}
 }
