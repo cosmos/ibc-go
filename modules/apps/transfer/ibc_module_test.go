@@ -5,6 +5,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -24,9 +25,13 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
+		},
+		{
+			"empty version string", func() {
+				channel.Version = ""
+			}, true,
 		},
 		{
 			"max channels reached", func() {
@@ -74,27 +79,24 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				Version:        types.Version,
 			}
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
+			var err error
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-			suite.Require().True(ok)
-
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
+			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.GetVersion(),
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(version, "")
 			}
-
 		})
 	}
 }
@@ -113,7 +115,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -187,7 +188,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
 			}
-
 		})
 	}
 }
@@ -200,7 +200,6 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -237,7 +236,6 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }

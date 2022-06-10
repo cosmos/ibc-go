@@ -36,7 +36,6 @@ func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
-
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
@@ -62,6 +61,11 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capabi
 // GetChannel wraps IBC ChannelKeeper's GetChannel function
 func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool) {
 	return k.channelKeeper.GetChannel(ctx, portID, channelID)
+}
+
+// GetPacketCommitment wraps IBC ChannelKeeper's GetPacketCommitment function
+func (k Keeper) GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte {
+	return k.channelKeeper.GetPacketCommitment(ctx, portID, channelID, sequence)
 }
 
 // GetNextSequenceSend wraps IBC ChannelKeeper's GetNextSequenceSend function
@@ -143,6 +147,49 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChan
 	return enabledChArr
 }
 
+// GetPayeeAddress retrieves the fee payee address stored in state given the provided channel identifier and relayer address
+func (k Keeper) GetPayeeAddress(ctx sdk.Context, relayerAddr, channelID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyPayeeAddress(relayerAddr, channelID)
+
+	if !store.Has(key) {
+		return "", false
+	}
+
+	return string(store.Get(key)), true
+}
+
+// SetPayeeAddress stores the fee payee address in state keyed by the provided channel identifier and relayer address
+func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyPayeeAddress(relayerAddr, channelID), []byte(payeeAddr))
+}
+
+// GetAllPayeeAddresses returns all registered payees
+func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeAddressKeyPrefix))
+	defer iterator.Close()
+
+	var registeredPayees []types.RegisteredPayee
+	for ; iterator.Valid(); iterator.Next() {
+		addr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
+		if err != nil {
+			panic(err)
+		}
+
+		payee := types.RegisteredPayee{
+			RelayerAddress: addr,
+			Payee:          string(iterator.Value()),
+			ChannelId:      channelID,
+		}
+
+		registeredPayees = append(registeredPayees, payee)
+	}
+
+	return registeredPayees
+}
+
 // SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
 func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
@@ -191,13 +238,13 @@ func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelaye
 // SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement
 func (k Keeper) SetRelayerAddressForAsyncAck(ctx sdk.Context, packetID channeltypes.PacketId, address string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyForwardRelayerAddress(packetID), []byte(address))
+	store.Set(types.KeyRelayerAddressForAsyncAck(packetID), []byte(address))
 }
 
 // GetRelayerAddressForAsyncAck gets forward relayer address for a particular packet
 func (k Keeper) GetRelayerAddressForAsyncAck(ctx sdk.Context, packetID channeltypes.PacketId) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyForwardRelayerAddress(packetID)
+	key := types.KeyRelayerAddressForAsyncAck(packetID)
 	if !store.Has(key) {
 		return "", false
 	}
@@ -214,7 +261,7 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []types.ForwardRe
 
 	var forwardRelayerAddr []types.ForwardRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
-		packetID, err := types.ParseKeyForwardRelayerAddress(string(iterator.Key()))
+		packetID, err := types.ParseKeyRelayerAddressForAsyncAck(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
@@ -233,7 +280,7 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []types.ForwardRe
 // Deletes the forwardRelayerAddr associated with the packetID
 func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetID channeltypes.PacketId) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyForwardRelayerAddress(packetID)
+	key := types.KeyRelayerAddressForAsyncAck(packetID)
 	store.Delete(key)
 }
 

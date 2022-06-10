@@ -20,22 +20,23 @@ func GetCmdIncentivizedPacket() *cobra.Command {
 		Short:   "Query for an unrelayed incentivized packet by port-id, channel-id and packet sequence.",
 		Long:    "Query for an unrelayed incentivized packet by port-id, channel-id and packet sequence.",
 		Args:    cobra.ExactArgs(3),
-		Example: fmt.Sprintf("%s query ibc-fee packet-by-id", version.AppName),
+		Example: fmt.Sprintf("%s query ibc-fee packet", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			portID, channelID := args[0], args[1]
 			seq, err := strconv.ParseUint(args[2], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			packetID := channeltypes.PacketId{
-				PortId:    args[0],
-				ChannelId: args[1],
-				Sequence:  seq,
+			packetID := channeltypes.NewPacketId(portID, channelID, seq)
+
+			if err := packetID.Validate(); err != nil {
+				return err
 			}
 
 			req := &types.QueryIncentivizedPacketRequest{
@@ -238,6 +239,45 @@ func GetCmdTotalTimeoutFees() *cobra.Command {
 	return cmd
 }
 
+// GetCmdPayee returns the command handler for the Query/Payee rpc.
+func GetCmdPayee() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "payee [channel-id] [relayer-address]",
+		Short:   "Query the relayer payee address on a given channel",
+		Long:    "Query the relayer payee address on a given channel",
+		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf("%s query ibc-fee payee channel-5 cosmos1layxcsmyye0dc0har9sdfzwckaz8sjwlfsj8zs", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			if _, err := sdk.AccAddressFromBech32(args[1]); err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryPayeeRequest{
+				ChannelId:      args[0],
+				RelayerAddress: args[1],
+			}
+
+			res, err := queryClient.Payee(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdCounterpartyAddress returns the command handler for the Query/CounterpartyAddress rpc.
 func GetCmdCounterpartyAddress() *cobra.Command {
 	cmd := &cobra.Command{
@@ -271,6 +311,8 @@ func GetCmdCounterpartyAddress() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }

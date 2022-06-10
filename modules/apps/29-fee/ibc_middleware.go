@@ -1,6 +1,8 @@
 package fee
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -12,22 +14,25 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// IBCModule implements the ICS26 callbacks for the fee middleware given the fee keeper and the underlying application.
-type IBCModule struct {
-	keeper keeper.Keeper
+var _ porttypes.Middleware = &IBCMiddleware{}
+
+// IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
+// fee keeper and the underlying application.
+type IBCMiddleware struct {
 	app    porttypes.IBCModule
+	keeper keeper.Keeper
 }
 
-// NewIBCModule creates a new IBCModule given the keeper and underlying application
-func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
-	return IBCModule{
-		keeper: k,
+// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+	return IBCMiddleware{
 		app:    app,
+		keeper: k,
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface
-func (im IBCModule) OnChanOpenInit(
+// OnChanOpenInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -36,31 +41,50 @@ func (im IBCModule) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
+) (string, error) {
 	var versionMetadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
-		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-		// application.
-		return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-			chanCap, counterparty, version)
+
+	if strings.TrimSpace(version) == "" {
+		// default version
+		versionMetadata = types.Metadata{
+			FeeVersion: types.Version,
+			AppVersion: "",
+		}
+	} else {
+		if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
+			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
+			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
+			// application.
+			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+				chanCap, counterparty, version)
+		}
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
+	}
+
+	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
+	if err != nil {
+		return "", err
+	}
+
+	versionMetadata.AppVersion = appVersion
+	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+	if err != nil {
+		return "", err
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 
 	// call underlying app's OnChanOpenInit callback with the appVersion
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, versionMetadata.AppVersion)
+	return string(versionBytes), nil
 }
 
-// OnChanOpenTry implements the IBCModule interface
+// OnChanOpenTry implements the IBCMiddleware interface
 // If the channel is not fee enabled the underlying application version will be returned
 // If the channel is fee enabled we merge the underlying application version with the ics29 version
-func (im IBCModule) OnChanOpenTry(
+func (im IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -91,7 +115,6 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	versionMetadata.AppVersion = appVersion
-
 	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
 	if err != nil {
 		return "", err
@@ -100,8 +123,8 @@ func (im IBCModule) OnChanOpenTry(
 	return string(versionBytes), nil
 }
 
-// OnChanOpenAck implements the IBCModule interface
-func (im IBCModule) OnChanOpenAck(
+// OnChanOpenAck implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -113,7 +136,7 @@ func (im IBCModule) OnChanOpenAck(
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		var versionMetadata types.Metadata
 		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return sdkerrors.Wrap(types.ErrInvalidVersion, "failed to unmarshal ICS29 counterparty version metadata")
+			return sdkerrors.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
@@ -128,8 +151,8 @@ func (im IBCModule) OnChanOpenAck(
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
-// OnChanOpenConfirm implements the IBCModule interface
-func (im IBCModule) OnChanOpenConfirm(
+// OnChanOpenConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -138,8 +161,8 @@ func (im IBCModule) OnChanOpenConfirm(
 	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
-// OnChanCloseInit implements the IBCModule interface
-func (im IBCModule) OnChanCloseInit(
+// OnChanCloseInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -148,6 +171,14 @@ func (im IBCModule) OnChanCloseInit(
 		return err
 	}
 
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return nil
+	}
+
+	if im.keeper.IsLocked(ctx) {
+		return types.ErrFeeModuleLocked
+	}
+
 	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
 		return err
 	}
@@ -155,8 +186,8 @@ func (im IBCModule) OnChanCloseInit(
 	return nil
 }
 
-// OnChanCloseConfirm implements the IBCModule interface
-func (im IBCModule) OnChanCloseConfirm(
+// OnChanCloseConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -165,6 +196,14 @@ func (im IBCModule) OnChanCloseConfirm(
 		return err
 	}
 
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return nil
+	}
+
+	if im.keeper.IsLocked(ctx) {
+		return types.ErrFeeModuleLocked
+	}
+
 	if err := im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID); err != nil {
 		return err
 	}
@@ -172,9 +211,9 @@ func (im IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-// OnRecvPacket implements the IBCModule interface.
+// OnRecvPacket implements the IBCMiddleware interface.
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (im IBCModule) OnRecvPacket(
+func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -197,9 +236,9 @@ func (im IBCModule) OnRecvPacket(
 	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
 
-// OnAcknowledgementPacket implements the IBCModule interface
+// OnAcknowledgementPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (im IBCModule) OnAcknowledgementPacket(
+func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -209,7 +248,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	ack := new(types.IncentivizedAcknowledgement)
+	var ack = &types.IncentivizedAcknowledgement{}
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
@@ -223,25 +262,22 @@ func (im IBCModule) OnAcknowledgementPacket(
 		// for fee enabled channels
 		//
 		// Please see ADR 004 for more information.
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 	}
 
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees)
-
-		// removes the fees from the store as fees are now paid
-		im.keeper.DeleteFeesInEscrow(ctx, packetID)
+		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
 	}
 
 	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.Result, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 }
 
-// OnTimeoutPacket implements the IBCModule interface
+// OnTimeoutPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (im IBCModule) OnTimeoutPacket(
+func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -258,17 +294,33 @@ func (im IBCModule) OnTimeoutPacket(
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if found {
-		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees)
-
-		// removes the fee from the store as fee is now paid
-		im.keeper.DeleteFeesInEscrow(ctx, packetID)
+		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
 	}
 
 	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
+// SendPacket implements the ICS4 Wrapper interface
+func (im IBCMiddleware) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet exported.PacketI,
+) error {
+	return im.keeper.SendPacket(ctx, chanCap, packet)
+}
+
+// WriteAcknowledgement implements the ICS4 Wrapper interface
+func (im IBCMiddleware) WriteAcknowledgement(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet exported.PacketI,
+	ack exported.Acknowledgement,
+) error {
+	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+}
+
 // GetAppVersion returns the application version of the underlying application
-func (im IBCModule) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }

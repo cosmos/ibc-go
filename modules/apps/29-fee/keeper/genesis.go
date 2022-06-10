@@ -23,6 +23,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, enabledChan := range state.FeeEnabledChannels {
 		k.SetFeeEnabled(ctx, enabledChan.PortId, enabledChan.ChannelId)
 	}
+
+	for _, registeredPayee := range state.RegisteredPayees {
+		k.SetPayeeAddress(ctx, registeredPayee.RelayerAddress, registeredPayee.Payee, registeredPayee.ChannelId)
+	}
 }
 
 // ExportGenesis returns the fee middleware application exported genesis
@@ -32,5 +36,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		FeeEnabledChannels: k.GetAllFeeEnabledChannels(ctx),
 		RegisteredRelayers: k.GetAllRelayerAddresses(ctx),
 		ForwardRelayers:    k.GetAllForwardRelayerAddresses(ctx),
+		RegisteredPayees:   k.GetAllPayeeAddresses(ctx),
 	}
 }

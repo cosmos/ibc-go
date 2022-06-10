@@ -11,9 +11,43 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-var (
-	validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
-)
+var validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+
+func TestKeyPayeeAddress(t *testing.T) {
+	key := types.KeyPayeeAddress("relayer-address", ibctesting.FirstChannelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.PayeeAddressKeyPrefix, "relayer-address", ibctesting.FirstChannelID))
+}
+
+func TestParseKeyPayeeAddress(t *testing.T) {
+	testCases := []struct {
+		name    string
+		key     string
+		expPass bool
+	}{
+		{
+			"success",
+			string(types.KeyPayeeAddress("relayer-address", ibctesting.FirstChannelID)),
+			true,
+		},
+		{
+			"incorrect key - key split has incorrect length",
+			"payeeAddress/relayer_address/transfer/channel-0",
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		address, channelID, err := types.ParseKeyPayeeAddress(tc.key)
+
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, "relayer-address", address)
+			require.Equal(t, ibctesting.FirstChannelID, channelID)
+		} else {
+			require.Error(t, err)
+		}
+	}
+}
 
 func TestKeyCounterpartyRelayer(t *testing.T) {
 	var (
@@ -69,7 +103,6 @@ func TestParseKeyFeeEnabled(t *testing.T) {
 }
 
 func TestParseKeyFeesInEscrow(t *testing.T) {
-
 	testCases := []struct {
 		name    string
 		key     string
@@ -105,7 +138,6 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 }
 
 func TestParseKeyForwardRelayerAddress(t *testing.T) {
-
 	testCases := []struct {
 		name    string
 		key     string
@@ -113,7 +145,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 	}{
 		{
 			"success",
-			string(types.KeyForwardRelayerAddress(validPacketID)),
+			string(types.KeyRelayerAddressForAsyncAck(validPacketID)),
 			true,
 		},
 		{
@@ -129,7 +161,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		packetID, err := types.ParseKeyForwardRelayerAddress(tc.key)
+		packetID, err := types.ParseKeyRelayerAddressForAsyncAck(tc.key)
 
 		if tc.expPass {
 			require.NoError(t, err)
@@ -141,9 +173,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 }
 
 func TestParseKeyCounterpartyRelayer(t *testing.T) {
-	var (
-		relayerAddress = "relayer_address"
-	)
+	relayerAddress := "relayer_address"
 
 	testCases := []struct {
 		name    string

@@ -21,6 +21,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdTotalAckFees(),
 		GetCmdTotalTimeoutFees(),
 		GetCmdIncentivizedPacketsForChannel(),
+		GetCmdPayee(),
 		GetCmdCounterpartyAddress(),
 		GetCmdFeeEnabledChannel(),
 		GetCmdFeeEnabledChannels(),
@@ -40,8 +41,9 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
+		NewRegisterPayeeCmd(),
 		NewPayPacketFeeAsyncTxCmd(),
-		NewRegisterCounterpartyAddress(),
+		NewRegisterCounterpartyAddressCmd(),
 	)
 
 	return txCmd

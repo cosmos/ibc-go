@@ -28,6 +28,9 @@ const (
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
 
+	// PayeeAddressKeyPrefix is the key prefix for the fee payee address stored in state
+	PayeeAddressKeyPrefix = "payeeAddress"
+
 	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
 
@@ -70,6 +73,23 @@ func ParseKeyFeeEnabled(key string) (portID, channelID string, err error) {
 	return portID, channelID, nil
 }
 
+// KeyPayeeAddress returns the key for relayer address -> payee address mapping
+func KeyPayeeAddress(relayerAddr, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", PayeeAddressKeyPrefix, relayerAddr, channelID))
+}
+
+// ParseKeyPayeeAddress returns the registered relayer addresss and channelID used to the store the fee payee address
+func ParseKeyPayeeAddress(key string) (relayerAddr, channelID string, err error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 3 {
+		return "", "", sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 3, len(keySplit),
+		)
+	}
+
+	return keySplit[1], keySplit[2], nil
+}
+
 // KeyCounterpartyRelayer returns the key for relayer address -> counterparty address mapping
 func KeyCounterpartyRelayer(address, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyRelayerAddressKeyPrefix, address, channelID))
@@ -87,13 +107,13 @@ func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, 
 	return keySplit[1], keySplit[2], nil
 }
 
-// KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
-func KeyForwardRelayerAddress(packetID channeltypes.PacketId) []byte {
+// KeyRelayerAddressForAsyncAck returns the key for packetID -> forwardAddress mapping
+func KeyRelayerAddressForAsyncAck(packetID channeltypes.PacketId) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s/%d", ForwardRelayerPrefix, packetID.PortId, packetID.ChannelId, packetID.Sequence))
 }
 
-// ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packetID
-func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
+// ParseKeyRelayerAddressForAsyncAck parses the key used to store the forward relayer address and returns the packetID
+func ParseKeyRelayerAddressForAsyncAck(key string) (channeltypes.PacketId, error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 4 {
 		return channeltypes.PacketId{}, sdkerrors.Wrapf(

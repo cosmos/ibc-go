@@ -16,11 +16,59 @@ const (
 	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
 )
 
+// NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
+func NewMsgRegisterPayee(portID, channelID, relayerAddr, payeeAddr string) *MsgRegisterPayee {
+	return &MsgRegisterPayee{
+		PortId:         portID,
+		ChannelId:      channelID,
+		RelayerAddress: relayerAddr,
+		Payee:          payeeAddr,
+	}
+}
+
+// ValidateBasic implements sdk.Msg and performs basic stateless validation
+func (msg MsgRegisterPayee) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return err
+	}
+
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
+		return err
+	}
+
+	if msg.RelayerAddress == msg.Payee {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "relayer address and payee must not be equal")
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from relayer address")
+	}
+
+	_, err = sdk.AccAddressFromBech32(msg.Payee)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from payee address")
+	}
+
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgRegisterPayee) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.RelayerAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{signer}
+}
+
 // NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
-func NewMsgRegisterCounterpartyAddress(address, counterpartyAddress, channelID string) *MsgRegisterCounterpartyAddress {
+func NewMsgRegisterCounterpartyAddress(portID, channelID, address, counterpartyAddress string) *MsgRegisterCounterpartyAddress {
 	return &MsgRegisterCounterpartyAddress{
 		Address:             address,
 		CounterpartyAddress: counterpartyAddress,
+		PortId:              portID,
 		ChannelId:           channelID,
 	}
 }
@@ -34,6 +82,11 @@ func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
 
 	if strings.TrimSpace(msg.CounterpartyAddress) == "" {
 		return ErrCounterpartyAddressEmpty
+	}
+
+	// validate portId
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return err
 	}
 
 	// validate channelId

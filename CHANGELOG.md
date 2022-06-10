@@ -38,29 +38,43 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#1247](https://github.com/cosmos/ibc-go/pull/1247) Bump SDK version to v0.45.3 and Tendermint to version 0.34.19
+* [\#1300](https://github.com/cosmos/ibc-go/pull/1300) Bump SDK version to v0.45.4
 
 ### API Breaking
 
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
+* (channel) [\#1283](https://github.com/cosmos/ibc-go/pull/1283) The `OnChanOpenInit` application callback now returns a version string in line with the latest [spec changes](https://github.com/cosmos/ibc/pull/629).  
+* (modules/29-fee)[\#1338](https://github.com/cosmos/ibc-go/pull/1338) Renaming `Result` field in `IncentivizedAcknowledgement` to `AppAcknowledgement`.
+* (modules/29-fee)[\#1343](https://github.com/cosmos/ibc-go/pull/1343) Renaming `KeyForwardRelayerAddress` to `KeyRelayerAddressForAsyncAck`, and `ParseKeyForwardRelayerAddress` to `ParseKeyRelayerAddressForAsyncAck`.
+* (apps/27-interchain-accounts)[\#1432](https://github.com/cosmos/ibc-go/pull/1432) Updating `RegisterInterchainAccount` to include an additional `version` argument, supporting ICS29 fee middleware functionality in ICS27 interchain accounts.
 
 ### State Machine Breaking
 
 ### Improvements
 
+* (cleanup) [\#1335](https://github.com/cosmos/ibc-go/pull/1335/) `gofumpt -w -l .` to standardize the code layout more strictly than `go fmt ./...`
+* (transfer) [\#1342](https://github.com/cosmos/ibc-go/pull/1342) `DenomTrace` grpc now takes in either an `ibc denom` or a `hash` instead of only accepting a `hash`.
+* (modules/core/keeper) [\#1284](https://github.com/cosmos/ibc-go/pull/1284) Add sanity check for the keepers passed into `ibckeeper.NewKeeper`. `ibckeeper.NewKeeper` now panics if any of the keepers passed in is empty.
 * (middleware) [\#1022](https://github.com/cosmos/ibc-go/pull/1022) Add `GetAppVersion` to the ICS4Wrapper interface. This function should be used by IBC applications to obtain their own version since the version set in the channel structure may be wrapped many times by middleware. 
 * (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
 * (modules/core/04-channel) [\#1232](https://github.com/cosmos/ibc-go/pull/1232) Updating params on `NewPacketId` and moving to bottom of file. 
 * (modules/core/04-channel) [\#1279](https://github.com/cosmos/ibc-go/pull/1279) Add selected channel version to MsgChanOpenInitResponse and MsgChanOpenTryResponse. Emit channel version during OpenInit/OpenTry
 * (app/29-fee) [\#1305](https://github.com/cosmos/ibc-go/pull/1305) Change version string for fee module to `ics29-1`
+* (app/29-fee) [\#1341](https://github.com/cosmos/ibc-go/pull/1341) Check if the fee module is locked and if the fee module is enabled before refunding all fees
+* (transfer) [\#1414](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnRecvPacket` and `OnAcknowledgementPacket`.
+* (modules/core/04-channel) [\#1464](https://github.com/cosmos/ibc-go/pull/1464) Emit a channel close event when an ordered channel is closed.
+* (modules/light-clients/07-tendermint) [\#1118](https://github.com/cosmos/ibc-go/pull/1118) Deprecating `AllowUpdateAfterExpiry and AllowUpdateAfterMisbehaviour`. See ADR-026 for context.
 
 ### Features
 
+* (modules/core/02-client) [\#1336](https://github.com/cosmos/ibc-go/pull/1336) Adding Query/ConsensusStateHeights gRPC for fetching the height of every consensus state associated with a client.
 * [\#276](https://github.com/cosmos/ibc-go/pull/276) Adding the Fee Middleware module v1
 * (apps/29-fee) [\#1229](https://github.com/cosmos/ibc-go/pull/1229) Adding CLI commands for getting all unrelayed incentivized packets and packet by packet-id. 
 * (apps/29-fee) [\#1224](https://github.com/cosmos/ibc-go/pull/1224) Adding Query/CounterpartyAddress and CLI to ICS29 fee middleware
 * (apps/29-fee) [\#1225](https://github.com/cosmos/ibc-go/pull/1225) Adding Query/FeeEnabledChannel and Query/FeeEnabledChannels with CLIs to ICS29 fee middleware.
 * (modules/apps/29-fee) [\#1230](https://github.com/cosmos/ibc-go/pull/1230) Adding CLI command for getting incentivized packets for a specific channel-id. 
+* (modules/apps/transfer) [\#1416](https://github.com/cosmos/ibc-go/pull/1416) Adding gRPC endpoint for getting an escrow account for a given port-id and channel-id. 
+* (modules/apps/27-interchain-accounts) [\#1512](https://github.com/cosmos/ibc-go/pull/1512) Allowing ICA modules to handle all message types with "*".
 
 ### Bug Fixes
 
@@ -116,6 +130,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (channel) [\#644](https://github.com/cosmos/ibc-go/pull/644) Adds `GetChannelConnection` to the ChannelKeeper. This function returns the connectionID and connection state associated with a channel. 
 * (channel) [\#647](https://github.com/cosmos/ibc-go/pull/647) Reorganizes channel handshake handling to set channel state after IBC application callbacks. 
 * (client) [\#724](https://github.com/cosmos/ibc-go/pull/724) `IsRevisionFormat` and `IsClientIDFormat` have been updated to disallow newlines before the dash used to separate the chainID and revision number, and the client type and client sequence. 
+* (interchain-accounts) [\#1466](https://github.com/cosmos/ibc-go/pull/1466) Emit event when there is an acknowledgement during `OnRecvPacket`.
 
 ### Features
 

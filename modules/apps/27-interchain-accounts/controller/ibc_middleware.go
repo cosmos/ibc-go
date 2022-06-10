@@ -13,27 +13,30 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// IBCModule implements the ICS26 interface for interchain accounts controller chains
-type IBCModule struct {
-	keeper keeper.Keeper
+var _ porttypes.Middleware = &IBCMiddleware{}
+
+// IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
+// ICA controller keeper and the underlying application.
+type IBCMiddleware struct {
 	app    porttypes.IBCModule
+	keeper keeper.Keeper
 }
 
-// NewIBCModule creates a new IBCModule given the associated keeper and underlying application
-func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
-	return IBCModule{
-		keeper: k,
+// IBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+	return IBCMiddleware{
 		app:    app,
+		keeper: k,
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface
+// OnChanOpenInit implements the IBCMiddleware interface
 //
 // Interchain Accounts is implemented to act as middleware for connected authentication modules on
 // the controller side. The connected modules may not change the controller side portID or
 // version. They will be allowed to perform custom logic without changing
 // the parameters stored within a channel struct.
-func (im IBCModule) OnChanOpenInit(
+func (im IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -42,22 +45,27 @@ func (im IBCModule) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
+) (string, error) {
 	if !im.keeper.IsControllerEnabled(ctx) {
-		return types.ErrControllerSubModuleDisabled
+		return "", types.ErrControllerSubModuleDisabled
 	}
 
 	if err := im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
-		return err
+		return "", err
 	}
 
-	// call underlying app's OnChanOpenInit callback with the appVersion
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, version)
+	// call underlying app's OnChanOpenInit callback with the passed in version
+	// the version returned is discarded as the ica-auth module does not have permission to edit the version string.
+	// ics27 will always return the version string containing the Metadata struct which is created during the `RegisterInterchainAccount` call.
+	if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
+		return "", err
+	}
+
+	return version, nil
 }
 
-// OnChanOpenTry implements the IBCModule interface
-func (im IBCModule) OnChanOpenTry(
+// OnChanOpenTry implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -70,13 +78,13 @@ func (im IBCModule) OnChanOpenTry(
 	return "", sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-// OnChanOpenAck implements the IBCModule interface
+// OnChanOpenAck implements the IBCMiddleware interface
 //
 // Interchain Accounts is implemented to act as middleware for connected authentication modules on
 // the controller side. The connected modules may not change the portID or
 // version. They will be allowed to perform custom logic without changing
 // the parameters stored within a channel struct.
-func (im IBCModule) OnChanOpenAck(
+func (im IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -95,8 +103,8 @@ func (im IBCModule) OnChanOpenAck(
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
-// OnChanOpenAck implements the IBCModule interface
-func (im IBCModule) OnChanOpenConfirm(
+// OnChanOpenAck implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -104,8 +112,8 @@ func (im IBCModule) OnChanOpenConfirm(
 	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-// OnChanCloseInit implements the IBCModule interface
-func (im IBCModule) OnChanCloseInit(
+// OnChanCloseInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -114,8 +122,8 @@ func (im IBCModule) OnChanCloseInit(
 	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
-// OnChanCloseConfirm implements the IBCModule interface
-func (im IBCModule) OnChanCloseConfirm(
+// OnChanCloseConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -123,8 +131,8 @@ func (im IBCModule) OnChanCloseConfirm(
 	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
-// OnRecvPacket implements the IBCModule interface
-func (im IBCModule) OnRecvPacket(
+// OnRecvPacket implements the IBCMiddleware interface
+func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
@@ -132,8 +140,8 @@ func (im IBCModule) OnRecvPacket(
 	return channeltypes.NewErrorAcknowledgement("cannot receive packet on controller chain")
 }
 
-// OnAcknowledgementPacket implements the IBCModule interface
-func (im IBCModule) OnAcknowledgementPacket(
+// OnAcknowledgementPacket implements the IBCMiddleware interface
+func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -147,8 +155,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
-// OnTimeoutPacket implements the IBCModule interface
-func (im IBCModule) OnTimeoutPacket(
+// OnTimeoutPacket implements the IBCMiddleware interface
+func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -164,7 +172,26 @@ func (im IBCModule) OnTimeoutPacket(
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
+// SendPacket implements the ICS4 Wrapper interface
+func (im IBCMiddleware) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet ibcexported.PacketI,
+) error {
+	panic("SendPacket not supported for ICA controller module. Please use SendTx")
+}
+
+// WriteAcknowledgement implements the ICS4 Wrapper interface
+func (im IBCMiddleware) WriteAcknowledgement(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet ibcexported.PacketI,
+	ack ibcexported.Acknowledgement,
+) error {
+	panic("WriteAcknowledgement not supported for ICA controller module")
+}
+
 // GetAppVersion returns the interchain accounts metadata.
-func (im IBCModule) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
