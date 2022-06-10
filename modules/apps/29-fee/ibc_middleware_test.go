@@ -607,7 +607,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
+func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		ack                 []byte
 		packetID            channeltypes.PacketId
@@ -646,9 +646,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
 
 				refundAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom)
 				suite.Require().Equal(expRefundAccBalance, sdk.NewCoins(refundAccBalance))
-
-				// TODO: remove?
-				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
 		},
 		{
@@ -682,9 +679,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
 
 				refundAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom)
 				suite.Require().Equal(expRefundAccBalance, sdk.NewCoins(refundAccBalance))
-
-				// TODO: remove?
-				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
 		},
 		{
@@ -701,9 +695,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
 			func() {
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
 				suite.Require().False(found)
-
-				// TODO: remove?
-				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
 		},
 		{
@@ -714,10 +705,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
 			},
 
 			true,
-			func() {
-				// TODO: Remove?
-				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
-			},
+			func() {},
 		},
 		{
 			"success: fee module is disabled, skip fee logic",
@@ -758,9 +746,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
 
 				refundAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom)
 				suite.Require().Equal(expRefundAccBalance, sdk.NewCoins(refundAccBalance))
-
-				// TODO: remove?
-				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
 		},
 		{
@@ -780,10 +765,21 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket2() {
 				ack = []byte("unsupported acknowledgement format")
 			},
 			false,
+			func() {},
+		},
+		{
+			"invalid registered payee address",
 			func() {
-				// TODO: remove?
-				suite.Require().Equal(false, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
+				payeeAddr := "invalid-address"
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+					suite.chainA.GetContext(),
+					suite.chainA.SenderAccount.GetAddress().String(),
+					payeeAddr,
+					suite.path.EndpointA.ChannelID,
+				)
 			},
+			false,
+			func() {},
 		},
 	}
 
@@ -837,6 +833,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		expectedBalance sdk.Coins
 		expLocked       bool
 	)
+
 	testCases := []struct {
 		name              string
 		malleate          func()
