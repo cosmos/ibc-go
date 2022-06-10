@@ -6,16 +6,37 @@ import (
 	dockerTypes "github.com/docker/docker/api/types"
 	dockerClient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/stretchr/testify/assert"
+	"strings"
+	"testing"
 )
+
+func DockerExec(t *testing.T, ctx context.Context, cli dockerClient.APIClient, id string, cmd []string) ExecResult {
+	res, err := Exec(ctx, cli, id, cmd, true)
+	assert.NoError(t, err)
+	t.Logf("Command: %s", strings.Join(cmd, " "))
+	t.Logf("Output: %+v", res.Combined())
+	assert.Equal(t, res.ExitCode, 0)
+	return res
+}
+
+func DockerExecUnattached(t *testing.T, ctx context.Context, cli dockerClient.APIClient, id string, cmd []string) ExecResult {
+	res, err := Exec(ctx, cli, id, cmd, false)
+	assert.NoError(t, err)
+	t.Logf("Command: %s", strings.Join(cmd, " "))
+	t.Logf("Output: %+v", res.Combined())
+	assert.Equal(t, res.ExitCode, 0)
+	return res
+}
 
 // Exec executes a command in the given docker container. This function is necessary to strip  leading bytes
 // which denote stdin/stderr. This was originally found on this Stack Overflow question
 // https://stackoverflow.com/questions/52774830/docker-exec-command-from-golang-api
-func Exec(ctx context.Context, cli dockerClient.APIClient, id string, cmd []string) (ExecResult, error) {
+func Exec(ctx context.Context, cli dockerClient.APIClient, id string, cmd []string, attached bool) (ExecResult, error) {
 	// prepare exec
 	execConfig := dockerTypes.ExecConfig{
-		AttachStdout: true,
-		AttachStderr: true,
+		AttachStdout: attached,
+		AttachStderr: attached,
 		Cmd:          cmd,
 	}
 	cresp, err := cli.ContainerExecCreate(ctx, id, execConfig)

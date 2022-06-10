@@ -1,14 +1,14 @@
 version: "3.9"
 services:
-  hermes:
-    # If hermes starts too quickly, it can fail to connect to chain-1 and chain-2 (even though we're using depends_on)
-    # after a few restarts it will eventually succeed.
-    restart: always
-    image: hermes:latest
-    depends_on:
-      - chain-1
-      - chain-2
-    entrypoint: ["sleep", "infinity"]
+#  hermes:
+#    # If hermes starts too quickly, it can fail to connect to chain-1 and chain-2 (even though we're using depends_on)
+#    # after a few restarts it will eventually succeed.
+#    restart: always
+#    image: hermes:latest
+#    depends_on:
+#      - chain-1
+#      - chain-2
+#    entrypoint: ["sleep", "infinity"]
 
   chain-1:
     image: simd:latest
@@ -34,10 +34,6 @@ services:
       - "8080"
       - "8090"
       - "8091"
-
-    build:
-      context: .
-      dockerfile: simd-docker/Dockerfile
 
   chain-2:
     image: simd:latest
