@@ -28,6 +28,9 @@ const (
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
 
+	// PayeeAddressKeyPrefix is the key prefix for the fee payee address stored in state
+	PayeeAddressKeyPrefix = "payeeAddress"
+
 	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
 	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
 
@@ -68,6 +71,23 @@ func ParseKeyFeeEnabled(key string) (portID, channelID string, err error) {
 	channelID = keySplit[2]
 
 	return portID, channelID, nil
+}
+
+// KeyPayeeAddress returns the key for relayer address -> payee address mapping
+func KeyPayeeAddress(relayerAddr, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", PayeeAddressKeyPrefix, relayerAddr, channelID))
+}
+
+// ParseKeyPayeeAddress returns the registered relayer addresss and channelID used to the store the fee payee address
+func ParseKeyPayeeAddress(key string) (relayerAddr, channelID string, err error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 3 {
+		return "", "", sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 3, len(keySplit),
+		)
+	}
+
+	return keySplit[1], keySplit[2], nil
 }
 
 // KeyCounterpartyRelayer returns the key for relayer address -> counterparty address mapping

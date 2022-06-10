@@ -16,11 +16,14 @@ message GenesisState {
   // list of fee enabled channels
   repeated FeeEnabledChannel fee_enabled_channels = 2
       [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
+  // list of registered payees
+  repeated RegisteredPayee registered_payees = 3
+      [(gogoproto.moretags) = "yaml:\"registered_payees\"", (gogoproto.nullable) = false];
   // list of registered relayer addresses
-  repeated RegisteredRelayerAddress registered_relayers = 3
+  repeated RegisteredRelayerAddress registered_relayers = 4
       [(gogoproto.moretags) = "yaml:\"registered_relayers\"", (gogoproto.nullable) = false];
   // list of forward relayer addresses
-  repeated ForwardRelayerAddress forward_relayers = 4
+  repeated ForwardRelayerAddress forward_relayers = 5
       [(gogoproto.moretags) = "yaml:\"forward_relayers\"", (gogoproto.nullable) = false];
 }
 
@@ -30,6 +33,16 @@ message FeeEnabledChannel {
   string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
   // unique channel identifier
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+}
+
+// RegisteredPayee contains the relayer address and payee address for a specific channel
+message RegisteredPayee {
+  // the relayer address
+  string relayer_address = 1 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  // the payee address
+  string payee = 2;
+  // unique channel identifier
+  string channel_id = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
 // RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
