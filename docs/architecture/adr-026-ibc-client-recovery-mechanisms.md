@@ -49,7 +49,7 @@ We elect not to deal with chains which have actually halted, which is necessaril
     1. The second client is a substitute client. It carries all the state for the client which may be updated. It must have identitical client and chain parameters to the client which may be updated (except for latest height, frozen height, and chain-id). It should be continually updated during the voting period. 
     1. If this governance proposal passes, the client on trial will be updated to the latest state of the substitute.
 
-    Previously, AllowUpdateAfterExpiry and AllowUpdateAfterMisbehaviour were used to signal the recovery options for an expired or frozen client, and governance proposals were not allowed to overwrite the client if these parameters were set to false. However, this has now been deprecated because a code migration can overwrite the client and consensus states regardless of the value of these parameters. If governance would vote to overwrite a client or consensus state, it is likely that governance would also willing to perform a code migration to do the same.
+    Previously, `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehaviour` were used to signal the recovery options for an expired or frozen client, and governance proposals were not allowed to overwrite the client if these parameters were set to false. However, this has now been deprecated because a code migration can overwrite the client and consensus states regardless of the value of these parameters. If governance would vote to overwrite a client or consensus state, it is likely that governance would also willing to perform a code migration to do the same.
 
 
 Note that clients frozen due to misbehaviour must wait for the evidence to expire to avoid becoming refrozen. 
