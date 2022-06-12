@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -601,6 +602,31 @@ func NewSimApp(
 	app.SetAnteHandler(anteHandler)
 
 	app.SetEndBlocker(app.EndBlocker)
+
+	app.UpgradeKeeper.SetUpgradeHandler("supportSlashedDenomsUpgrade",
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			// list of traces that must replace the old traces in store
+			var newTraces []ibctransfertypes.DenomTrace
+			app.TransferKeeper.IterateDenomTraces(ctx,
+				func(dt ibctransfertypes.DenomTrace) bool {
+					// check if the new way of splitting FullDenom
+					// into Trace and BaseDenom is the same as the current
+					// DenomTrace.
+					// If it isn't then store the new DenomTrace in the list of new traces.
+					newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
+					if !reflect.DeepEqual(newTrace, dt) {
+						newTraces = append(newTraces, newTrace)
+					}
+					return false
+				})
+
+			// replace the outdated traces with the new trace information
+			for _, nt := range newTraces {
+				app.TransferKeeper.SetDenomTrace(ctx, nt)
+			}
+
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
