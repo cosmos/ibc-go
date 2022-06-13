@@ -610,13 +610,14 @@ func NewSimApp(
 			app.TransferKeeper.IterateDenomTraces(ctx,
 				func(dt ibctransfertypes.DenomTrace) bool {
 					// check if the new way of splitting FullDenom
-					// into Trace and BaseDenom is the same as the current
-					// DenomTrace.
+					// into Trace and BaseDenom passes validation and
+					// is the same as the current DenomTrace.
 					// If it isn't then store the new DenomTrace in the list of new traces.
 					newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
-					if !reflect.DeepEqual(newTrace, dt) {
+					if err := newTrace.Validate(); err == nil && !reflect.DeepEqual(newTrace, dt) {
 						newTraces = append(newTraces, newTrace)
 					}
+
 					return false
 				})
 
