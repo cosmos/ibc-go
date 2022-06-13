@@ -275,7 +275,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
 		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
-		return nil
+
+		// call underlying callback
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 	}
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
@@ -283,9 +285,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
 	}
 
-	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, payeeAddr.String(), payeeAddr, feesInEscrow.PacketFees, packetID)
+	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
 
-	return nil
+	// call underlying callback
+	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -309,7 +312,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	if !found {
 		// call underlying callback
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
-
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -325,7 +327,8 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
 
-	return nil
+	// call underlying callback
+	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
 // SendPacket implements the ICS4 Wrapper interface

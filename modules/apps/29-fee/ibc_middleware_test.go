@@ -649,7 +649,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 		},
 		{
-			"success: with registered payee",
+			"success: with registered payee address",
 			func() {
 				payeeAddr := suite.chainA.SenderAccounts[2].SenderAccount.GetAddress()
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
@@ -658,6 +658,9 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 					payeeAddr.String(),
 					suite.path.EndpointA.ChannelID,
 				)
+
+				// reassign ack.ForwardRelayerAddress to the registered payee address
+				ack = types.NewIncentivizedAcknowledgement(payeeAddr.String(), ibcmock.MockAcknowledgement.Acknowledgement(), true).Acknowledgement()
 
 				// retrieve the payee acc balance and add the expected recv and ack fees
 				payeeAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), payeeAddr, sdk.DefaultBondDenom))
@@ -722,10 +725,8 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
-				ack = types.IncentivizedAcknowledgement{
-					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),
-					ForwardRelayerAddress: blockedAddr.String(),
-				}.Acknowledgement()
+				// reassign ack.ForwardRelayerAddress to a blocked address
+				ack = types.NewIncentivizedAcknowledgement(blockedAddr.String(), ibcmock.MockAcknowledgement.Acknowledgement(), true).Acknowledgement()
 
 				// retrieve the relayer acc balance and add the expected ack fees
 				relayerAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
@@ -749,7 +750,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 		},
 		{
-			"fail on no distribution by escrow account out of balance",
+			"fail on fee distribution by escrow account out of balance",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
