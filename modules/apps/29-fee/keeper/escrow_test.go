@@ -375,6 +375,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 		{
 			"invalid refund acc address", func() {
 				// store the fee in state & update escrow account balance
+				expectEscrowFeesToBeDeleted = false
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 				identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
@@ -385,7 +386,10 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.Require().NoError(err)
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
-			}, false,
+
+				expEscrowBal = fee.Total()
+				expRefundBal = expRefundBal.Sub(fee.Total())
+			}, true,
 		},
 		{
 			"distributing to blocked address is skipped", func() {

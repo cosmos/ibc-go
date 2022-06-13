@@ -212,7 +212,8 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 
 			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 			if err != nil {
-				return err
+				failedToSendCoins = true
+				continue
 			}
 
 			// refund all fees to refund address
