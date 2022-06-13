@@ -117,7 +117,7 @@ func (up *UpgradeProposal) ValidateBasic() error {
 	}
 
 	if !reflect.DeepEqual(clientState, clientState.ZeroCustomFields()) {
-		return sdkerrors.Wrap(err, "upgraded client state is not zeroed out")
+		return sdkerrors.Wrap(ErrInvalidUpgradeProposal, "upgraded client state is not zeroed out")
 	}
 
 	return nil

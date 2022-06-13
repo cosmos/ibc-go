@@ -109,20 +109,31 @@ func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 	}{
 		{
 			"success", func() {
-				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, cs)
+				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, cs.ZeroCustomFields())
 				suite.Require().NoError(err)
 			}, true,
 		},
 		{
 			"fails validate abstract - empty title", func() {
-				proposal, err = types.NewUpgradeProposal("", ibctesting.Description, plan, cs)
+				proposal, err = types.NewUpgradeProposal("", ibctesting.Description, plan, cs.ZeroCustomFields())
 				suite.Require().NoError(err)
+			}, false,
+		},
+		{
+			"non zeroed fields", func() {
+				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, &ibctmtypes.ClientState{
+					FrozenHeight: types.Height{
+						RevisionHeight: 10,
+					},
+				})
+				suite.Require().NoError(err)
+
 			}, false,
 		},
 		{
 			"plan height is zero", func() {
 				invalidPlan := upgradetypes.Plan{Name: "ibc upgrade", Height: 0}
-				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, invalidPlan, cs)
+				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, invalidPlan, cs.ZeroCustomFields())
 				suite.Require().NoError(err)
 			}, false,
 		},
