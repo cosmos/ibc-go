@@ -317,7 +317,9 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
 	if !found {
 		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
-		return nil
+
+		// call underlying callback
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
 	payeeAddr, err := sdk.AccAddressFromBech32(payee)
