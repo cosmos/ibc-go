@@ -345,7 +345,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			}, false,
 		},
 		{
-			"RefundFeesOnChannelClosure fails - invalid refund address", func() {
+			"RefundFeesOnChannelClosure continues - invalid refund address", func() {
 				// store the fee in state & update escrow account balance
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
@@ -354,7 +354,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 				suite.Require().NoError(err)
 			},
-			false,
+			true,
 		},
 		{
 			"fee module locked", func() {
@@ -434,7 +434,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			}, false,
 		},
 		{
-			"RefundChannelFeesOnClosure fails - refund address is invalid", func() {
+			"RefundChannelFeesOnClosure continues - refund address is invalid", func() {
 				// store the fee in state & update escrow account balance
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
@@ -443,7 +443,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 				suite.Require().NoError(err)
 			},
-			false,
+			true,
 		},
 		{
 			"fee module locked", func() {
