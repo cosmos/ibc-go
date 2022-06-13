@@ -88,11 +88,15 @@ func migrateGenesisSlashedDenomsUpgrade(appState types.AppMap, clientCtx client.
 
 		substituteTraces := make([]ibctransfertypes.DenomTrace, len(transferGenState.DenomTraces))
 		for i, dt := range transferGenState.DenomTraces {
-			// replace all previous traces with the latest trace
+			// replace all previous traces with the latest trace if validation passes
 			// note most traces will have same value
 			newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
 
-			substituteTraces[i] = newTrace
+			if err := newTrace.Validate(); err != nil {
+				substituteTraces[i] = dt
+			} else {
+				substituteTraces[i] = newTrace
+			}
 		}
 
 		transferGenState.DenomTraces = substituteTraces
