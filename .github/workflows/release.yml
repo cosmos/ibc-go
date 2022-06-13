@@ -27,3 +27,12 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build simd image
+        uses: docker/build-push-action@v1
+        with:
+          registry: ghcr.io
+          username: ""
+          password: ""
+          repository: cosmos/ibc-go-simd
+          tags: ${{ github.ref_name }}
