@@ -14,9 +14,9 @@ var _ types.MsgServer = Keeper{}
 
 // RegisterPayee defines a rpc handler method for MsgRegisterPayee
 // RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
-// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
-// packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer,
-// in which case, the latest payee is always used.
+// payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on
+// the source chain from which packets originate as this is where fee distribution takes place. This function may be
+// called more than once by a relayer, in which case, the latest payee is always used.
 func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee) (*types.MsgRegisterPayeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

@@ -433,16 +433,15 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// RegisterPayee defines a rpc handler method for MsgRegisterPayee
 	// RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
-	// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
-	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
-	// relayer, in which case, the latest payee is always used.
+	// payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on
+	// the source chain from which packets originate as this is where fee distribution takes place. This function may be
+	// called more than once by a relayer, in which case, the latest payee is always used.
 	RegisterPayee(ctx context.Context, in *MsgRegisterPayee, opts ...grpc.CallOption) (*MsgRegisterPayeeResponse, error)
 	// RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee
 	// RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty
 	// payee address before relaying. This ensures they will be properly compensated for forward relaying since
-	// the destination chain may include the registered counterparty payee address in the acknowledgement. This function
+	// the destination chain must include the registered counterparty payee address in the acknowledgement. This function
 	// may be called more than once by a relayer, in which case, the latest counterparty payee address is always used.
-	// A registered payee on the source chain will always override a registered counterparty payee.
 	RegisterCounterpartyPayee(ctx context.Context, in *MsgRegisterCounterpartyPayee, opts ...grpc.CallOption) (*MsgRegisterCounterpartyPayeeResponse, error)
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
@@ -504,16 +503,15 @@ func (c *msgClient) PayPacketFeeAsync(ctx context.Context, in *MsgPayPacketFeeAs
 type MsgServer interface {
 	// RegisterPayee defines a rpc handler method for MsgRegisterPayee
 	// RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
-	// payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
-	// packets originate as this is where fee distribution takes place. This function may be called more than once by a
-	// relayer, in which case, the latest payee is always used.
+	// payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on
+	// the source chain from which packets originate as this is where fee distribution takes place. This function may be
+	// called more than once by a relayer, in which case, the latest payee is always used.
 	RegisterPayee(context.Context, *MsgRegisterPayee) (*MsgRegisterPayeeResponse, error)
 	// RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee
 	// RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty
 	// payee address before relaying. This ensures they will be properly compensated for forward relaying since
-	// the destination chain may include the registered counterparty payee address in the acknowledgement. This function
+	// the destination chain must include the registered counterparty payee address in the acknowledgement. This function
 	// may be called more than once by a relayer, in which case, the latest counterparty payee address is always used.
-	// A registered payee on the source chain will always override a registered counterparty payee.
 	RegisterCounterpartyPayee(context.Context, *MsgRegisterCounterpartyPayee) (*MsgRegisterCounterpartyPayeeResponse, error)
 	// PayPacketFee defines a rpc handler method for MsgPayPacketFee
 	// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
