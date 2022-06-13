@@ -14,8 +14,9 @@ import (
 )
 
 // VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
-// It will zero out all client-specific fields (e.g. TrustingPeriod and verify all data
+// It will zero out all client-specific fields (e.g. TrustingPeriod) and verify all data
 // in client state that must be the same across all valid Tendermint clients for the new chain.
+// Zeroing out the submitted client prevents the proposal from containing information governance is not actually voting on.
 // VerifyUpgrade will return an error if:
 // - the upgradedClient is not a Tendermint ClientState
 // - the latest height of the client state does not have the same revision number or has a greater
