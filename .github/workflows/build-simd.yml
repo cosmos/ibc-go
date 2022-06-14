@@ -1,6 +1,6 @@
 name: Create and publish simd Docker image
 
-on: workflow_dispatch
+on:  [workflow_dispatch, pull_request]
 
 env:
   REGISTRY: ghcr.io
