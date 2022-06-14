@@ -34,20 +34,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
-
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
-### Features
-
-### Bug Fixes
-
 ## [v1.4.1](https://github.com/cosmos/ibc-go/releases/tag/v1.4.1) - 2022-06-14
 
 ### Improvements
