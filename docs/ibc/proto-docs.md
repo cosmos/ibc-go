@@ -73,8 +73,8 @@
     - [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync)
     - [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse)
     - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
-    - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
-    - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
+    - [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee)
+    - [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse)
     - [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee)
     - [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse)
   
@@ -1342,28 +1342,28 @@ MsgPayPacketFeeResponse defines the response type for the PayPacketFee rpc
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayee"></a>
 
-### MsgRegisterCounterpartyAddress
-MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
+### MsgRegisterCounterpartyPayee
+MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
 
 
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse"></a>
 
-### MsgRegisterCounterpartyAddressResponse
-MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
+### MsgRegisterCounterpartyPayeeResponse
+MsgRegisterCounterpartyPayeeResponse defines the response type for the RegisterCounterpartyPayee rpc
 
 
 
@@ -1380,8 +1380,8 @@ MsgRegisterPayee defines the request type for the RegisterPayee rpc
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address |
-| `payee` | [string](#string) |  | the fee payee address |
+| `relayer` | [string](#string) |  | the relayer address |
+| `payee` | [string](#string) |  | the payee address |
 
 
 
@@ -1411,8 +1411,8 @@ Msg defines the ICS29 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterPayee` | [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee) | [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse) | RegisterPayee defines a rpc handler method for MsgRegisterPayee RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest payee is always used. | |
-| `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty address is always used. | |
+| `RegisterPayee` | [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee) | [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse) | RegisterPayee defines a rpc handler method for MsgRegisterPayee RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest payee is always used. | |
+| `RegisterCounterpartyPayee` | [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee) | [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse) | RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty payee address before relaying. This ensures they will be properly compensated for forward relaying since the destination chain must include the registered counterparty payee address in the acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty payee address is always used. | |
 | `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
 | `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
 
