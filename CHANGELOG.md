@@ -54,10 +54,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#1267](https://github.com/cosmos/ibc-go/pull/1267) Bump SDK version to v0.44.8 and Tendermint to version 0.34.19
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (transfer) [\#1342](https://github.com/cosmos/ibc-go/pull/1342) `DenomTrace` grpc now takes in either an `ibc denom` or a `hash` instead of only accepting a `hash`.
@@ -65,8 +61,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/keeper) [\#1284](https://github.com/cosmos/ibc-go/pull/1284) Add sanity check for the keepers passed into `ibckeeper.NewKeeper`. `ibckeeper.NewKeeper` now panics if any of the keepers passed in is empty.
 * (transfer) [\#1414](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnRecvPacket` and `OnAcknowledgementPacket`.
 * (modules/core/04-channel) [\#1464](https://github.com/cosmos/ibc-go/pull/1464) Emit a channel close event when an ordered channel is closed.
-
-### Features
 
 ### Bug Fixes
 
