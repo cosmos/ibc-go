@@ -28,11 +28,11 @@ const (
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
 
-	// PayeeAddressKeyPrefix is the key prefix for the fee payee address stored in state
-	PayeeAddressKeyPrefix = "payeeAddress"
+	// PayeeKeyPrefix is the key prefix for the fee payee address stored in state
+	PayeeKeyPrefix = "payee"
 
-	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
-	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
+	// CounterpartyPayeeKeyPrefix is the key prefix for the counterparty payee address mapping
+	CounterpartyPayeeKeyPrefix = "counterpartyPayee"
 
 	// FeesInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeesInEscrowPrefix = "feesInEscrow"
@@ -73,9 +73,9 @@ func ParseKeyFeeEnabled(key string) (portID, channelID string, err error) {
 	return portID, channelID, nil
 }
 
-// KeyPayeeAddress returns the key for relayer address -> payee address mapping
-func KeyPayeeAddress(relayerAddr, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", PayeeAddressKeyPrefix, relayerAddr, channelID))
+// KeyPayee returns the key for relayer address -> payee address mapping
+func KeyPayee(relayerAddr, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", PayeeKeyPrefix, relayerAddr, channelID))
 }
 
 // ParseKeyPayeeAddress returns the registered relayer addresss and channelID used to the store the fee payee address
@@ -90,13 +90,13 @@ func ParseKeyPayeeAddress(key string) (relayerAddr, channelID string, err error)
 	return keySplit[1], keySplit[2], nil
 }
 
-// KeyCounterpartyRelayer returns the key for relayer address -> counterparty address mapping
-func KeyCounterpartyRelayer(address, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyRelayerAddressKeyPrefix, address, channelID))
+// KeyCounterpartyPayee returns the key for relayer address -> counterparty payee address mapping
+func KeyCounterpartyPayee(address, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyPayeeKeyPrefix, address, channelID))
 }
 
-// ParseKeyCounterpartyRelayer returns the registered relayer address and channelID used to store the counterpartyrelayer address
-func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, error error) {
+// ParseKeyCounterpartyPayee returns the registered relayer address and channelID used to store the counterparty payee address
+func ParseKeyCounterpartyPayee(key string) (address string, channelID string, error error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {
 		return "", "", sdkerrors.Wrapf(

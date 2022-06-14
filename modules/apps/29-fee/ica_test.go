@@ -102,7 +102,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	suite.Require().True(suite.chainB.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 
 	// register counterparty address on destination chainB as chainA.SenderAccounts[1] for recv fee distribution
-	suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), path.EndpointB.ChannelID)
+	suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), path.EndpointB.ChannelID)
 
 	// escrow a packet fee for the next send sequence
 	expectedFee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
