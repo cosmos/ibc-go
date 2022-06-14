@@ -29,10 +29,10 @@ func (suite TypesTestSuite) TestAcknowledgement() {
 			false,
 		},
 		{
-			"empty faied ack",
+			"empty failed ack",
 			types.NewErrorAcknowledgement("  "),
 			false,
-			false,
+			true,
 		},
 		{
 			"nil response",
