@@ -165,8 +165,8 @@ func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channel
 	store.Set(types.KeyPayee(relayerAddr, channelID), []byte(payeeAddr))
 }
 
-// GetAllPayeeAddresses returns all registered payees addresses
-func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
+// GetAllPayees returns all registered payees addresses
+func (k Keeper) GetAllPayees(ctx sdk.Context) []types.RegisteredPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeKeyPrefix))
 	defer iterator.Close()
