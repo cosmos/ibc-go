@@ -42,7 +42,7 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 		{
 			"invalid request relayer and payee are equal",
 			func() {
-				msg.RelayerAddress = defaultAccAddress
+				msg.Relayer = defaultAccAddress
 				msg.Payee = defaultAccAddress
 			},
 			false,
@@ -50,7 +50,7 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 		{
 			"invalid relayer address",
 			func() {
-				msg.RelayerAddress = "invalid-address"
+				msg.Relayer = "invalid-address"
 			},
 			false,
 		},
@@ -87,8 +87,8 @@ func TestRegisterPayeeGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
 }
 
-func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
-	var msg *types.MsgRegisterCounterpartyAddress
+func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
+	var msg *types.MsgRegisterCounterpartyPayee
 
 	testCases := []struct {
 		name     string
@@ -101,23 +101,9 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 			true,
 		},
 		{
-			"validate with incorrect destination relayer address",
+			"invalid portID",
 			func() {
-				msg.Address = "invalid-address"
-			},
-			false,
-		},
-		{
-			"invalid counterparty address",
-			func() {
-				msg.CounterpartyAddress = ""
-			},
-			false,
-		},
-		{
-			"invalid counterparty address: whitespaced empty string",
-			func() {
-				msg.CounterpartyAddress = "  "
+				msg.PortId = ""
 			},
 			false,
 		},
@@ -129,16 +115,30 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 			false,
 		},
 		{
-			"invalid portID",
+			"validate with incorrect destination relayer address",
 			func() {
-				msg.PortId = ""
+				msg.Relayer = "invalid-address"
+			},
+			false,
+		},
+		{
+			"invalid counterparty payee address",
+			func() {
+				msg.CounterpartyPayee = ""
+			},
+			false,
+		},
+		{
+			"invalid counterparty payee address: whitespaced empty string",
+			func() {
+				msg.CounterpartyPayee = "  "
 			},
 			false,
 		},
 	}
 
 	for i, tc := range testCases {
-		msg = types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
+		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
 
 		tc.malleate()
 
@@ -154,7 +154,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	msg := types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
+	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
 }
 

@@ -13,12 +13,12 @@ import (
 
 var validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
-func TestKeyPayeeAddress(t *testing.T) {
-	key := types.KeyPayeeAddress("relayer-address", ibctesting.FirstChannelID)
-	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.PayeeAddressKeyPrefix, "relayer-address", ibctesting.FirstChannelID))
+func TestKeyPayee(t *testing.T) {
+	key := types.KeyPayee("relayer-address", ibctesting.FirstChannelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.PayeeKeyPrefix, "relayer-address", ibctesting.FirstChannelID))
 }
 
-func TestParseKeyPayeeAddress(t *testing.T) {
+func TestParseKeyPayee(t *testing.T) {
 	testCases := []struct {
 		name    string
 		key     string
@@ -26,7 +26,7 @@ func TestParseKeyPayeeAddress(t *testing.T) {
 	}{
 		{
 			"success",
-			string(types.KeyPayeeAddress("relayer-address", ibctesting.FirstChannelID)),
+			string(types.KeyPayee("relayer-address", ibctesting.FirstChannelID)),
 			true,
 		},
 		{
@@ -49,14 +49,14 @@ func TestParseKeyPayeeAddress(t *testing.T) {
 	}
 }
 
-func TestKeyCounterpartyRelayer(t *testing.T) {
+func TestKeyCounterpartyPayee(t *testing.T) {
 	var (
 		relayerAddress = "relayer_address"
 		channelID      = "channel-0"
 	)
 
-	key := types.KeyCounterpartyRelayer(relayerAddress, channelID)
-	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.CounterpartyRelayerAddressKeyPrefix, relayerAddress, channelID))
+	key := types.KeyCounterpartyPayee(relayerAddress, channelID)
+	require.Equal(t, string(key), fmt.Sprintf("%s/%s/%s", types.CounterpartyPayeeKeyPrefix, relayerAddress, channelID))
 }
 
 func TestKeyFeesInEscrow(t *testing.T) {
@@ -172,7 +172,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 	}
 }
 
-func TestParseKeyCounterpartyRelayer(t *testing.T) {
+func TestParseKeyCounterpartyPayee(t *testing.T) {
 	relayerAddress := "relayer_address"
 
 	testCases := []struct {
@@ -182,7 +182,7 @@ func TestParseKeyCounterpartyRelayer(t *testing.T) {
 	}{
 		{
 			"success",
-			string(types.KeyCounterpartyRelayer(relayerAddress, ibctesting.FirstChannelID)),
+			string(types.KeyCounterpartyPayee(relayerAddress, ibctesting.FirstChannelID)),
 			true,
 		},
 		{
@@ -193,7 +193,7 @@ func TestParseKeyCounterpartyRelayer(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		address, channelID, err := types.ParseKeyCounterpartyRelayer(tc.key)
+		address, channelID, err := types.ParseKeyCounterpartyPayee(tc.key)
 
 		if tc.expPass {
 			require.NoError(t, err)

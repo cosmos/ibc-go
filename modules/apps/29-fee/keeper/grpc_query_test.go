@@ -508,7 +508,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			pk := secp256k1.GenPrivKey().PubKey()
 			expectedCounterpartyAddr := sdk.AccAddress(pk.Address())
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(
 				suite.chainA.GetContext(),
 				suite.chainA.SenderAccount.GetAddress().String(),
 				expectedCounterpartyAddr.String(),

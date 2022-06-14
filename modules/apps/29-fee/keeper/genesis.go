@@ -13,7 +13,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 
 	for _, relayer := range state.RegisteredRelayers {
-		k.SetCounterpartyAddress(ctx, relayer.Address, relayer.CounterpartyAddress, relayer.ChannelId)
+		k.SetCounterpartyPayeeAddress(ctx, relayer.Address, relayer.CounterpartyAddress, relayer.ChannelId)
 	}
 
 	for _, forwardAddr := range state.ForwardRelayers {
