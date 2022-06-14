@@ -14,20 +14,24 @@ Though relaying is permissionless and completely decentralized and accessible, i
 
 Initially, a [simple proposal](https://github.com/cosmos/ibc/pull/577/files) was created to incentivize relaying on ICS20 token transfers on the destination chain. However, the proposal was specific to ICS20 token transfers and would have to be reimplemented in this format on every other IBC application module. 
 
-After much discussion, the proposal was expanded to a [general incentivisation design](https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment) that can be adopted by any ICS application protocol as [middleware](../../ibc/middleware/develop.md). THe first version of fee payments middleware will only support incentivisation of new channels, however, channel upgradeability will enable incentivisation of all existing channels.
+After much discussion, the proposal was expanded to a [general incentivisation design](https://github.com/cosmos/ibc/tree/master/spec/app/ics-029-fee-payment) that can be adopted by any ICS application protocol as [middleware](../../ibc/middleware/develop.md).
 
 ## Concepts 
 
-ICS29 fee payments in this middleware design are built on the assumption that sender chains are the source of incentives — the chain that sends the packets is the same chain that pays out fees to operators. Therefore, the middleware enables the registering of addresses associated with each party involved in relaying the packet on the source chain, and the escrowing of fees by any party which will be paid out to each party on completion of the packet lifecycle. This registration process can be automated on start up of relayer infrastructure.
+ICS29 fee payments in this middleware design are built on the assumption that sender chains are the source of incentives — the chain on which packets are sent is the same chain that fee distribution to relayer operators takes place. Therefore, the middleware enables the registering of addresses associated with each party involved in relaying the packet on the source chain, and the escrowing of fees by any party which will be paid out to each party on completion of the packet lifecycle. This registration process can be automated on start up of relayer infrastructure.
 
-`forward relayer`: The relayer that submits the recvPacket message for a given packet (on the destination chain)
+`Forward relayer`: The relayer that submits the `MsgRecvPacket` message for a given packet (on the destination chain).
 
-`reverse relayer`: The relayer that submits the acknowledgePacket message for a given packet (on the source chain)
+`Reverse relayer`: The relayer that submits the `MsgAcknowledgement` message for a given packet (on the source chain).
 
-`timeout relayer`: The relayer that submits the timeoutPacket or timeoutOnClose messages for a given packet (on the source chain)
+`Timeout relayer`: The relayer that submits the `MsgTimeout` or `MsgTimeoutOnClose` messages for a given packet (on the source chain).
 
-`payee`: The account address on the source chain to be paid on completion of the packet lifecycle
+`Payee`: The account address on the source chain to be paid on completion of the packet lifecycle. The packet lifecycle on the source chain completes with the receipt of a `MsgTimeout`/`MsgTimeoutOnClose` or a `MsgAcknowledgement`.
 
-`counterparty payee`: The account address to be paid on completion of the packet lifecycle on the destination chain
+`Counterparty payee`: The account address to be paid on completion of the packet lifecycle on the destination chain. The package lifecycle on the destination chain completes with a successful `MsgRecvPacket`.
 
-`refund address`: The address of the account paying for the fees
+`Refund address`: The address of the account paying for the incentivization of packet relaying. The account is refunded timeout fees upon successful acknowledgement. In the event of a packet timeout, both acknowledgement and receive fees are refunded.
+
+## Known Limitations
+
+The first version of fee payments middleware will only support incentivisation of new channels, however, channel upgradeability will enable incentivisation of all existing channels.
