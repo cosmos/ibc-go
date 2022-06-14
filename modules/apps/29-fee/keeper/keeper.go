@@ -147,17 +147,60 @@ func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChan
 	return enabledChArr
 }
 
-// SetCounterpartyAddress maps the destination chain relayer address to the source relayer address
-// The receiving chain must store the mapping from: address -> counterpartyAddress for the given channel
-func (k Keeper) SetCounterpartyAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
+// GetPayeeAddress retrieves the fee payee address stored in state given the provided channel identifier and relayer address
+func (k Keeper) GetPayeeAddress(ctx sdk.Context, relayerAddr, channelID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyCounterpartyRelayer(address, channelID), []byte(counterpartyAddress))
+	key := types.KeyPayee(relayerAddr, channelID)
+
+	if !store.Has(key) {
+		return "", false
+	}
+
+	return string(store.Get(key)), true
 }
 
-// GetCounterpartyAddress gets the relayer counterparty address given a destination relayer address
-func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address, channelID string) (string, bool) {
+// SetPayeeAddress stores the fee payee address in state keyed by the provided channel identifier and relayer address
+func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyCounterpartyRelayer(address, channelID)
+	store.Set(types.KeyPayee(relayerAddr, channelID), []byte(payeeAddr))
+}
+
+// GetAllPayeeAddresses returns all registered payees
+func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeKeyPrefix))
+	defer iterator.Close()
+
+	var registeredPayees []types.RegisteredPayee
+	for ; iterator.Valid(); iterator.Next() {
+		addr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
+		if err != nil {
+			panic(err)
+		}
+
+		payee := types.RegisteredPayee{
+			RelayerAddress: addr,
+			Payee:          string(iterator.Value()),
+			ChannelId:      channelID,
+		}
+
+		registeredPayees = append(registeredPayees, payee)
+	}
+
+	return registeredPayees
+}
+
+// SetCounterpartyPayeeAddress maps the destination chain counterparty payee address to the source relayer address
+// The receiving chain must store the mapping from: address -> counterpartyPayeeAddress for the given channel
+func (k Keeper) SetCounterpartyPayeeAddress(ctx sdk.Context, address, counterpartyAddress, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyCounterpartyPayee(address, channelID), []byte(counterpartyAddress))
+}
+
+// GetCounterpartyPayeeAddress gets the counterparty payee address given a destination relayer address
+func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.KeyCounterpartyPayee(address, channelID)
 
 	if !store.Has(key) {
 		return "", false
@@ -170,12 +213,12 @@ func (k Keeper) GetCounterpartyAddress(ctx sdk.Context, address, channelID strin
 // GetAllRelayerAddresses returns all registered relayer addresses
 func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyRelayerAddressKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyPayeeKeyPrefix))
 	defer iterator.Close()
 
 	var registeredAddrArr []types.RegisteredRelayerAddress
 	for ; iterator.Valid(); iterator.Next() {
-		address, channelID, err := types.ParseKeyCounterpartyRelayer(string(iterator.Key()))
+		address, channelID, err := types.ParseKeyCounterpartyPayee(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}

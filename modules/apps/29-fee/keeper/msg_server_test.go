@@ -9,12 +9,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
+func (suite *KeeperTestSuite) TestRegisterPayee() {
 	var (
-		sender       string
-		counterparty string
-		channelID    string
-		ctx          sdk.Context
+		msg *types.MsgRegisterPayee
 	)
 
 	testCases := []struct {
@@ -28,43 +25,122 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 			func() {},
 		},
 		{
-			"counterparty is an arbitrary string",
-			true,
-			func() { counterparty = "arbitrary-string" },
-		},
-		{
 			"channel does not exist",
 			false,
-			func() { channelID = "channel-22" },
+			func() {
+				msg.ChannelId = "channel-100"
+			},
 		},
 		{
 			"channel is not fee enabled",
 			false,
 			func() {
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(ctx, suite.path.EndpointA.ChannelConfig.PortID, channelID)
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		ctx = suite.chainA.GetContext()
-		suite.coordinator.Setup(suite.path) // setup channel
+		suite.coordinator.Setup(suite.path)
 
-		sender = suite.chainA.SenderAccount.GetAddress().String()
-		counterparty = suite.chainB.SenderAccount.GetAddress().String()
-		channelID = suite.path.EndpointA.ChannelID
+		msg = types.NewMsgRegisterPayee(
+			suite.path.EndpointA.ChannelConfig.PortID,
+			suite.path.EndpointA.ChannelID,
+			suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+			suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
+		)
 
 		tc.malleate()
 
-		msg := types.NewMsgRegisterCounterpartyAddress(suite.path.EndpointA.ChannelConfig.PortID, channelID, sender, counterparty)
-		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyAddress(sdk.WrapSDKContext(ctx), msg)
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 		if tc.expPass {
-			suite.Require().NoError(err) // message committed
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
 
-			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
-			suite.Require().Equal(counterparty, counterpartyAddress)
+			payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.path.EndpointA.ChannelID,
+			)
+
+			suite.Require().True(found)
+			suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
+	var (
+		msg                  *types.MsgRegisterCounterpartyPayee
+		expCounterpartyPayee string
+	)
+
+	testCases := []struct {
+		name     string
+		expPass  bool
+		malleate func()
+	}{
+		{
+			"success",
+			true,
+			func() {},
+		},
+		{
+			"counterparty payee is an arbitrary string",
+			true,
+			func() {
+				msg.CounterpartyPayee = "arbitrary-string"
+				expCounterpartyPayee = "arbitrary-string"
+			},
+		},
+		{
+			"channel does not exist",
+			false,
+			func() {
+				msg.ChannelId = "channel-100"
+			},
+		},
+		{
+			"channel is not fee enabled",
+			false,
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTest()
+		suite.coordinator.Setup(suite.path) // setup channel
+
+		expCounterpartyPayee = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String()
+		msg = types.NewMsgRegisterCounterpartyPayee(
+			suite.path.EndpointA.ChannelConfig.PortID,
+			suite.path.EndpointA.ChannelID,
+			suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+			expCounterpartyPayee,
+		)
+
+		tc.malleate()
+
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+
+			counterpartyPayee, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				ibctesting.FirstChannelID,
+			)
+
+			suite.Require().True(found)
+			suite.Require().Equal(expCounterpartyPayee, counterpartyPayee)
 		} else {
 			suite.Require().Error(err)
 		}

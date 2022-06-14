@@ -10,12 +10,19 @@ import (
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFees, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress) *GenesisState {
+func NewGenesisState(
+	identifiedFees []IdentifiedPacketFees,
+	feeEnabledChannels []FeeEnabledChannel,
+	registeredRelayers []RegisteredRelayerAddress,
+	forwardRelayers []ForwardRelayerAddress,
+	registeredPayees []RegisteredPayee,
+) *GenesisState {
 	return &GenesisState{
 		IdentifiedFees:     identifiedFees,
 		FeeEnabledChannels: feeEnabledChannels,
 		RegisteredRelayers: registeredRelayers,
 		ForwardRelayers:    forwardRelayers,
+		RegisteredPayees:   registeredPayees,
 	}
 }
 
@@ -26,6 +33,7 @@ func DefaultGenesisState() *GenesisState {
 		ForwardRelayers:    []ForwardRelayerAddress{},
 		FeeEnabledChannels: []FeeEnabledChannel{},
 		RegisteredRelayers: []RegisteredRelayerAddress{},
+		RegisteredPayees:   []RegisteredPayee{},
 	}
 }
 
@@ -55,6 +63,25 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
+	// Validate RegisteredPayees
+	for _, registeredPayee := range gs.RegisteredPayees {
+		if registeredPayee.RelayerAddress == registeredPayee.Payee {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address and payee address must not be equal")
+		}
+
+		if _, err := sdk.AccAddressFromBech32(registeredPayee.RelayerAddress); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
+		}
+
+		if _, err := sdk.AccAddressFromBech32(registeredPayee.Payee); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert payee address into sdk.AccAddress")
+		}
+
+		if err := host.ChannelIdentifierValidator(registeredPayee.ChannelId); err != nil {
+			return sdkerrors.Wrapf(err, "invalid channel identifier: %s", registeredPayee.ChannelId)
+		}
+	}
+
 	// Validate RegisteredRelayers
 	for _, rel := range gs.RegisteredRelayers {
 		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
@@ -62,7 +89,7 @@ func (gs GenesisState) Validate() error {
 		}
 
 		if strings.TrimSpace(rel.CounterpartyAddress) == "" {
-			return ErrCounterpartyAddressEmpty
+			return ErrCounterpartyPayeeEmpty
 		}
 	}
 
