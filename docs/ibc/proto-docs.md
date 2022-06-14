@@ -73,8 +73,8 @@
     - [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync)
     - [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse)
     - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
-    - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
-    - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
+    - [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee)
+    - [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse)
     - [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee)
     - [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse)
   
@@ -1342,28 +1342,28 @@ MsgPayPacketFeeResponse defines the response type for the PayPacketFee rpc
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayee"></a>
 
-### MsgRegisterCounterpartyAddress
-MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
+### MsgRegisterCounterpartyPayee
+MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
 
 
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse"></a>
 
-### MsgRegisterCounterpartyAddressResponse
-MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
+### MsgRegisterCounterpartyPayeeResponse
+MsgRegisterCounterpartyPayeeResponse defines the response type for the RegisterCounterpartyPayee rpc
 
 
 
@@ -1380,8 +1380,8 @@ MsgRegisterPayee defines the request type for the RegisterPayee rpc
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address |
-| `payee` | [string](#string) |  | the fee payee address |
+| `relayer` | [string](#string) |  | the relayer address |
+| `payee` | [string](#string) |  | the payee address |
 
 
 
@@ -1411,8 +1411,8 @@ Msg defines the ICS29 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterPayee` | [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee) | [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse) | RegisterPayee defines a rpc handler method for MsgRegisterPayee RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest payee is always used. | |
-| `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty address is always used. | |
+| `RegisterPayee` | [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee) | [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse) | RegisterPayee defines a rpc handler method for MsgRegisterPayee RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest payee is always used. | |
+| `RegisterCounterpartyPayee` | [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee) | [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse) | RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty payee address before relaying. This ensures they will be properly compensated for forward relaying since the destination chain must include the registered counterparty payee address in the acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty payee address is always used. | |
 | `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
 | `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
 
@@ -3499,7 +3499,7 @@ Query provides defines the gRPC querier service
 | `ClientStates` | [QueryClientStatesRequest](#ibc.core.client.v1.QueryClientStatesRequest) | [QueryClientStatesResponse](#ibc.core.client.v1.QueryClientStatesResponse) | ClientStates queries all the IBC light clients of a chain. | GET|/ibc/core/client/v1/client_states|
 | `ConsensusState` | [QueryConsensusStateRequest](#ibc.core.client.v1.QueryConsensusStateRequest) | [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse) | ConsensusState queries a consensus state associated with a client state at a given height. | GET|/ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}|
 | `ConsensusStates` | [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest) | [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse) | ConsensusStates queries all the consensus state associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}|
-| `ConsensusStateHeights` | [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest) | [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse) | ConsensusStateHeights queries the height of every consensus states associated with a given client. | GET|/ibc/core/client/v1/consensus_states/heights/{client_id}|
+| `ConsensusStateHeights` | [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest) | [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse) | ConsensusStateHeights queries the height of every consensus states associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}/heights|
 | `ClientStatus` | [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest) | [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse) | Status queries the status of an IBC client. | GET|/ibc/core/client/v1/client_status/{client_id}|
 | `ClientParams` | [QueryClientParamsRequest](#ibc.core.client.v1.QueryClientParamsRequest) | [QueryClientParamsResponse](#ibc.core.client.v1.QueryClientParamsResponse) | ClientParams queries all parameters of the ibc client. | GET|/ibc/client/v1/params|
 | `UpgradedClientState` | [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest) | [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse) | UpgradedClientState queries an Upgraded IBC light client. | GET|/ibc/core/client/v1/upgraded_client_states|
@@ -5019,8 +5019,8 @@ and a possible frozen height.
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
 | `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
 | `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
-| `allow_update_after_expiry` | [bool](#bool) |  | This flag, when set to true, will allow governance to recover a client which has expired |
-| `allow_update_after_misbehaviour` | [bool](#bool) |  | This flag, when set to true, will allow governance to unfreeze a client whose chain has experienced a misbehaviour event |
+| `allow_update_after_expiry` | [bool](#bool) |  | **Deprecated.** allow_update_after_expiry is deprecated |
+| `allow_update_after_misbehaviour` | [bool](#bool) |  | **Deprecated.** allow_update_after_misbehaviour is deprecated |
 
 
 

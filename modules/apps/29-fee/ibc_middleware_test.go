@@ -345,7 +345,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			}, false,
 		},
 		{
-			"RefundFeesOnChannelClosure fails - invalid refund address", func() {
+			"RefundFeesOnChannelClosure continues - invalid refund address", func() {
 				// store the fee in state & update escrow account balance
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
@@ -354,7 +354,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 				suite.Require().NoError(err)
 			},
-			false,
+			true,
 		},
 		{
 			"fee module locked", func() {
@@ -434,7 +434,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			}, false,
 		},
 		{
-			"RefundChannelFeesOnClosure fails - refund address is invalid", func() {
+			"RefundChannelFeesOnClosure continues - refund address is invalid", func() {
 				// store the fee in state & update escrow account balance
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
@@ -443,7 +443,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 				suite.Require().NoError(err)
 			},
-			false,
+			true,
 		},
 		{
 			"fee module locked", func() {
@@ -539,7 +539,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 		{
 			"forward address is not found",
 			func() {
-				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), "", suite.path.EndpointB.ChannelID)
+				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), "", suite.path.EndpointB.ChannelID)
 			},
 			false,
 			true,
@@ -566,7 +566,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
+			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
 
 			// malleate test case
 			tc.malleate()
@@ -575,7 +575,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 
 			switch {
 			case tc.name == "success":
-				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
+				forwardAddr, _ := suite.chainB.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
 
 				expectedAck := types.IncentivizedAcknowledgement{
 					AppAcknowledgement:    ibcmock.MockAcknowledgement.Acknowledgement(),

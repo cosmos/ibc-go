@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().True(isEnabled)
 
 	// check relayers
-	addr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
+	addr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(genesisState.RegisteredRelayers[0].CounterpartyAddress, addr)
 
@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	sender := suite.chainA.SenderAccount.GetAddress().String()
 	counterparty := suite.chainB.SenderAccount.GetAddress().String()
 	// set counterparty address
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainA.GetContext(), sender, counterparty, ibctesting.FirstChannelID)
 
 	// set forward relayer address
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainA.GetContext(), packetID, sender)
