@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
 		},
 	}
 
-	counterpartyPayeeAddr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllRelayerAddresses(suite.chainA.GetContext())
+	counterpartyPayeeAddr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllCounterpartyPayees(suite.chainA.GetContext())
 	suite.Require().Len(counterpartyPayeeAddr, len(expectedCounterpartyPayee))
 	suite.Require().Equal(counterpartyPayeeAddr, expectedCounterpartyPayee)
 }

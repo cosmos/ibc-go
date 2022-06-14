@@ -35,7 +35,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		IdentifiedFees:               k.GetAllIdentifiedPacketFees(ctx),
 		FeeEnabledChannels:           k.GetAllFeeEnabledChannels(ctx),
 		RegisteredPayees:             k.GetAllPayeeAddresses(ctx),
-		RegisteredCounterpartyPayees: k.GetAllRelayerAddresses(ctx),
+		RegisteredCounterpartyPayees: k.GetAllCounterpartyPayees(ctx),
 		ForwardRelayers:              k.GetAllForwardRelayerAddresses(ctx),
 	}
 }
