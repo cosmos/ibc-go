@@ -38,6 +38,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
+## [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0) - 2022-06-14
+
+### Dependencies
+
 * [\#404](https://github.com/cosmos/ibc-go/pull/404) Bump Go version to 1.17
 * [\#1300](https://github.com/cosmos/ibc-go/pull/1300) Bump SDK version to v0.45.4
 
@@ -64,11 +78,57 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 * (apps/transfer) [\#1451](https://github.com/cosmos/ibc-go/pull/1451) Fixing the support for base denoms that contain slashes.
 
+## [v1.4.1](https://github.com/cosmos/ibc-go/releases/tag/v1.4.1) - 2022-06-14
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+* (transfer) [\#1342](https://github.com/cosmos/ibc-go/pull/1342) `DenomTrace` grpc now takes in either an `ibc denom` or a `hash` instead of only accepting a `hash`.
+* (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
+* (modules/core/keeper) [\#1284](https://github.com/cosmos/ibc-go/pull/1284) Add sanity check for the keepers passed into `ibckeeper.NewKeeper`. `ibckeeper.NewKeeper` now panics if any of the keepers passed in is empty.
+* (transfer) [\#1414](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnRecvPacket` and `OnAcknowledgementPacket`.
+* (modules/core/04-channel) [\#1464](https://github.com/cosmos/ibc-go/pull/1464) Emit a channel close event when an ordered channel is closed.
+
+### Features
+
+### Bug Fixes
+
+* (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
+
 ## [v1.4.0](https://github.com/cosmos/ibc-go/releases/tag/v1.4.0) - 2022-03-15
 
 ### Dependencies
 
 * [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
+
+## [v1.3.1](https://github.com/cosmos/ibc-go/releases/tag/v1.3.1) - 2022-06-14
+
+### Dependencies
+
+* [\#1267](https://github.com/cosmos/ibc-go/pull/1267) Bump SDK version to v0.44.8 and Tendermint to version 0.34.19
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+* (transfer) [\#1342](https://github.com/cosmos/ibc-go/pull/1342) `DenomTrace` grpc now takes in either an `ibc denom` or a `hash` instead of only accepting a `hash`.
+* (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
+* (modules/core/keeper) [\#1284](https://github.com/cosmos/ibc-go/pull/1284) Add sanity check for the keepers passed into `ibckeeper.NewKeeper`. `ibckeeper.NewKeeper` now panics if any of the keepers passed in is empty.
+* (transfer) [\#1414](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnRecvPacket` and `OnAcknowledgementPacket`.
+* (modules/core/04-channel) [\#1464](https://github.com/cosmos/ibc-go/pull/1464) Emit a channel close event when an ordered channel is closed.
+
+### Features
+
+### Bug Fixes
+
+* (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 
 ## [v1.3.0](https://github.com/cosmos/ibc-go/releases/tag/v1.3.0) - 2022-03-15
 
