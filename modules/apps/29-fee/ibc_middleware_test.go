@@ -749,7 +749,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 		},
 		{
-			"fee distribution fails by escrow account out of balance",
+			"fail: fee distribution fails by escrow account out of balance",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
@@ -927,7 +927,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			},
 		},
 		{
-			"no op if identified packet fee doesn't exist",
+			"sucess: no op if identified packet fee doesn't exist",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 			},
