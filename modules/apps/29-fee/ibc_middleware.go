@@ -231,7 +231,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	// if forwardRelayer is not found we refund recv_fee
-	forwardRelayer, _ := im.keeper.GetCounterpartyAddress(ctx, relayer.String(), packet.GetDestChannel())
+	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
 
 	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
 }
