@@ -259,22 +259,22 @@ func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllRelayerAddresses() {
-	sender := suite.chainA.SenderAccount.GetAddress().String()
-	counterparty := suite.chainB.SenderAccount.GetAddress().String()
+	relayerAddr := suite.chainA.SenderAccount.GetAddress().String()
+	counterpartyPayee := suite.chainB.SenderAccount.GetAddress().String()
 
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainA.GetContext(), sender, counterparty, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainA.GetContext(), relayerAddr, counterpartyPayee, ibctesting.FirstChannelID)
 
-	expectedAddr := []types.RegisteredRelayerAddress{
+	expectedCounterpartyPayee := []types.RegisteredCounterpartyPayee{
 		{
-			Address:             sender,
-			CounterpartyAddress: counterparty,
-			ChannelId:           ibctesting.FirstChannelID,
+			Relayer:           relayerAddr,
+			CounterpartyPayee: counterpartyPayee,
+			ChannelId:         ibctesting.FirstChannelID,
 		},
 	}
 
-	addr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllRelayerAddresses(suite.chainA.GetContext())
-	suite.Require().Len(addr, len(expectedAddr))
-	suite.Require().Equal(addr, expectedAddr)
+	counterpartyPayeeAddr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllCounterpartyPayees(suite.chainA.GetContext())
+	suite.Require().Len(counterpartyPayeeAddr, len(expectedCounterpartyPayee))
+	suite.Require().Equal(counterpartyPayeeAddr, expectedCounterpartyPayee)
 }
 
 func (suite *KeeperTestSuite) TestGetAllPayeeAddresses() {
@@ -289,9 +289,9 @@ func (suite *KeeperTestSuite) TestGetAllPayeeAddresses() {
 		)
 
 		registeredPayee := types.RegisteredPayee{
-			RelayerAddress: suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			Payee:          suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			ChannelId:      ibctesting.FirstChannelID,
+			Relayer:   suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			Payee:     suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			ChannelId: ibctesting.FirstChannelID,
 		}
 
 		expectedPayees = append(expectedPayees, registeredPayee)

@@ -38,8 +38,8 @@
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
     - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
+    - [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee)
     - [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee)
-    - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
   
 - [ibc/applications/fee/v1/metadata.proto](#ibc/applications/fee/v1/metadata.proto)
     - [Metadata](#ibc.applications.fee.v1.Metadata)
@@ -848,8 +848,26 @@ GenesisState defines the ICS29 fee middleware genesis state
 | `identified_fees` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified packet fees |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
 | `registered_payees` | [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee) | repeated | list of registered payees |
-| `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated | list of registered relayer addresses |
+| `registered_counterparty_payees` | [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee) | repeated | list of registered counterparty payees |
 | `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated | list of forward relayer addresses |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.RegisteredCounterpartyPayee"></a>
+
+### RegisteredCounterpartyPayee
+RegisteredCounterpartyPayee contains the relayer address and counterparty payee address for a specific channel (used
+for recv fee distribution)
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
 
 
@@ -864,26 +882,9 @@ RegisteredPayee contains the relayer address and payee address for a specific ch
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `relayer_address` | [string](#string) |  | the relayer address |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
 | `payee` | [string](#string) |  | the payee address |
-| `channel_id` | [string](#string) |  | unique channel identifier |
-
-
-
-
-
-
-<a name="ibc.applications.fee.v1.RegisteredRelayerAddress"></a>
-
-### RegisteredRelayerAddress
-RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
-| `channel_id` | [string](#string) |  | unique channel identifier |
 
 
 
