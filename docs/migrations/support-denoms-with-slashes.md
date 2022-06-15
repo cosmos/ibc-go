@@ -40,7 +40,7 @@ app.UpgradeKeeper.SetUpgradeHandler("supportSlashedDenomsUpgrade",
                 // is the same as the current DenomTrace.
                 // If it isn't then store the new DenomTrace in the list of new traces.
                 newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
-                if err := newTrace.Validate(); err == nil && !reflect.DeepEqual(newTrace, dt) {
+                if err := newTrace.Validate(); err == nil && !equalTraces(newTrace, dt) {
                     newTraces = append(newTraces, newTrace)
                 }
 
@@ -54,6 +54,10 @@ app.UpgradeKeeper.SetUpgradeHandler("supportSlashedDenomsUpgrade",
 
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     })
+    
+func equalTraces(dtA, dtB ibctransfertypes.DenomTrace) bool {
+    return dtA.BaseDenom == dtB.BaseDenom && dtA.Path == dtB.Path
+}
 ```
 
 This is only necessary if there are denom traces in the store with incorrect trace information from previously received coins that had a slash in the base denom. However, it is recommended that any chain upgrading to support base denominations with slashes runs this code for safety.

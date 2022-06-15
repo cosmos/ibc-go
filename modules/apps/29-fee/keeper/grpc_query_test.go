@@ -432,7 +432,7 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 		{
 			"payee address not found: invalid relayer address",
 			func() {
-				req.RelayerAddress = "invalid-addr"
+				req.Relayer = "invalid-addr"
 			},
 			false,
 		},
@@ -453,8 +453,8 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 			)
 
 			req = &types.QueryPayeeRequest{
-				ChannelId:      suite.path.EndpointA.ChannelID,
-				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+				ChannelId: suite.path.EndpointA.ChannelID,
+				Relayer:   suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()
@@ -472,8 +472,8 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
-	var req *types.QueryCounterpartyAddressRequest
+func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
+	var req *types.QueryCounterpartyPayeeRequest
 
 	testCases := []struct {
 		name     string
@@ -495,7 +495,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 		{
 			"counterparty address not found: invalid address",
 			func() {
-				req.RelayerAddress = "invalid-addr"
+				req.Relayer = "invalid-addr"
 			},
 			false,
 		},
@@ -506,28 +506,28 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			suite.SetupTest() // reset
 
 			pk := secp256k1.GenPrivKey().PubKey()
-			expectedCounterpartyAddr := sdk.AccAddress(pk.Address())
+			expCounterpartyPayeeAddr := sdk.AccAddress(pk.Address())
 
 			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(
 				suite.chainA.GetContext(),
 				suite.chainA.SenderAccount.GetAddress().String(),
-				expectedCounterpartyAddr.String(),
+				expCounterpartyPayeeAddr.String(),
 				suite.path.EndpointA.ChannelID,
 			)
 
-			req = &types.QueryCounterpartyAddressRequest{
-				ChannelId:      suite.path.EndpointA.ChannelID,
-				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+			req = &types.QueryCounterpartyPayeeRequest{
+				ChannelId: suite.path.EndpointA.ChannelID,
+				Relayer:   suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.queryClient.CounterpartyAddress(ctx, req)
+			res, err := suite.queryClient.CounterpartyPayee(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expectedCounterpartyAddr.String(), res.CounterpartyAddress)
+				suite.Require().Equal(expCounterpartyPayeeAddr.String(), res.CounterpartyPayee)
 			} else {
 				suite.Require().Error(err)
 			}
