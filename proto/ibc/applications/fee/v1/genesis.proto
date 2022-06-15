@@ -37,23 +37,23 @@ message FeeEnabledChannel {
 
 // RegisteredPayee contains the relayer address and payee address for a specific channel
 message RegisteredPayee {
-  // the relayer address
-  string relayer = 1;
-  // the payee address
-  string payee = 2;
   // unique channel identifier
-  string channel_id = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // the relayer address
+  string relayer = 2;
+  // the payee address
+  string payee = 3;
 }
 
 // RegisteredCounterpartyPayee contains the relayer address and counterparty payee address for a specific channel (used
 // for recv fee distribution)
 message RegisteredCounterpartyPayee {
-  // the relayer address
-  string relayer = 1;
-  // the counterparty payee address
-  string counterparty_payee = 2 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
   // unique channel identifier
-  string channel_id = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // the relayer address
+  string relayer = 2;
+  // the counterparty payee address
+  string counterparty_payee = 3 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
 }
 
 // ForwardRelayerAddress contains the forward relayer address and PacketId used for async acknowledgements
