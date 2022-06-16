@@ -27,15 +27,29 @@ func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, 
 	}
 }
 
+// NewDefaultMetadata creates and returns a new ICS27 Metadata instance containing the default ICS27 Metadata values
+// with the provided controller and host connection identifiers
+func NewDefaultMetadata(connectionConnectionID, hostConnectionID string) Metadata {
+	metadata := Metadata{
+		ControllerConnectionId: connectionConnectionID,
+		HostConnectionId:       hostConnectionID,
+		Encoding:               EncodingProtobuf,
+		TxType:                 TxTypeSDKMultiMsg,
+		Version:                Version,
+	}
+
+	return metadata
+}
+
 // NewDefaultMetadataString creates and returns a new JSON encoded version string containing the default ICS27 Metadata values
 // with the provided controller and host connection identifiers
 func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) string {
 	metadata := Metadata{
-		Version:                Version,
 		ControllerConnectionId: controllerConnectionID,
 		HostConnectionId:       hostConnectionID,
 		Encoding:               EncodingProtobuf,
 		TxType:                 TxTypeSDKMultiMsg,
+		Version:                Version,
 	}
 
 	return string(ModuleCdc.MustMarshalJSON(&metadata))
