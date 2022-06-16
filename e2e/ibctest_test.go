@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -12,6 +13,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"testing"
+	"time"
 )
 
 var ibcChainAConfig ibc.ChainConfig
@@ -66,8 +68,8 @@ func TestIBCTest(t *testing.T) {
 	home := t.TempDir() // Must be before chain cleanup to avoid test error during cleanup.
 
 	l := zap.NewExample()
-	srcChain := cosmos.NewCosmosChain(t.Name(), ibcChainAConfig, 1, 1, l)
-	dstChain := cosmos.NewCosmosChain(t.Name(), ibcChainBConfig, 1, 1, l)
+	srcChain := cosmos.NewCosmosChain(t.Name(), ibcChainAConfig, 1, 0, l)
+	dstChain := cosmos.NewCosmosChain(t.Name(), ibcChainBConfig, 1, 0, l)
 
 	srcChainCfg := srcChain.Config()
 	dstChainCfg := dstChain.Config()
@@ -102,30 +104,72 @@ func TestIBCTest(t *testing.T) {
 	req := require.New(rep.TestifyT(t))
 	eRep := rep.RelayerExecReporter(t)
 
+	blockSqlite := ibctest.DefaultBlockDatabaseFilepath()
+	t.Logf("View block history using sqlite console at %s", blockSqlite)
+
 	req.NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:  t.Name(),
 		HomeDir:   home,
 		Pool:      pool,
 		NetworkID: network,
+		//BlockDatabaseFile: blockSqlite,
 	}))
 
-	err := test.WaitForBlocks(ctx, 10, srcChain)
-	req.NoError(err, "simapp chain a failed to make blocks")
-	err = test.WaitForBlocks(ctx, 10, dstChain)
-	req.NoError(err, "simapp chain b failed to make blocks")
+	err := r.CreateConnections(ctx, eRep, pathName)
+	req.NoError(err, "error creating connection")
 
-	users := ibctest.GetAndFundTestUsers(t, ctx, "prefix", 10000, srcChain, dstChain)
+	channels, err := r.GetChannels(ctx, eRep, srcChain.Config().ChainID)
 
-	err = r.CreateChannel(ctx, eRep, pathName, ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          "unordered",
-		Version:        "ics20-1",
-	})
-	req.NoError(err)
+	req.NoError(err, fmt.Sprintf("failed to get channels: %s", err))
+	req.Len(channels, 1, fmt.Sprintf("channel count invalid. expected: 1, actual: %d", len(channels)))
+	t.Logf("channels: %+v", channels)
+
+	//err := test.WaitForBlocks(ctx, 10, srcChain)
+	//req.NoError(err, "simapp chain a failed to make blocks")
+	//err = test.WaitForBlocks(ctx, 10, dstChain)
+	//req.NoError(err, "simapp chain b failed to make blocks")
+
+	users := ibctest.GetAndFundTestUsers(t, ctx, "some-prefix", 10000, srcChain, dstChain)
 
 	srcUser := users[0]
 	dstUser := users[1]
+
+	tx, err := srcChain.SendIBCTransfer(ctx, "channel-0", srcUser.KeyName, ibc.WalletAmount{
+		Address: srcUser.Bech32Address(dstChainCfg.Bech32Prefix),
+		Denom:   srcChain.Config().Denom,
+		Amount:  1000,
+	}, nil)
+
+	req.NoError(err)
+	req.NoError(tx.Validate())
+
+	err = r.StartRelayer(ctx, eRep, pathName)
+	req.NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
+
+	// wait for relayer to start up
+	time.Sleep(5 * time.Second)
+
+	t.Cleanup(func() {
+		if err := r.StopRelayer(ctx, eRep); err != nil {
+			t.Logf("error stopping relayer: %v", err)
+		}
+	})
+
+	//err = r.CreateChannel(ctx, eRep, pathName, ibc.CreateChannelOptions{
+	//	SourcePortName: "transfer",
+	//	DestPortName:   "transfer",
+	//	Order:          "unordered",
+	//	Version:        "ics20-1",
+	//})
+	//req.NoError(err)
+
+	//channels, err := r.GetChannels(ctx, eRep, srcChain.Config().ChainID)
+	//
+	//req.NoError(err, fmt.Sprintf("failed to get channels: %s", err))
+	//req.Len(channels, 1, fmt.Sprintf("channel count invalid. expected: 1, actual: %d", len(channels)))
+
+	//srcUser := users[0]
+	//dstUser := users[1]
 
 	//userAddressBytes, err := dstChain.GetAddress(ctx, dstUser.KeyName)
 	//req.NoError(err)
@@ -137,19 +181,23 @@ func TestIBCTest(t *testing.T) {
 
 	//t.Logf("BEFORE: bal: %d", bal)
 	//
-	tx, err := srcChain.SendIBCTransfer(ctx, "channel-0", srcUser.KeyName, ibc.WalletAmount{
-		Address: srcUser.Bech32Address(dstChainCfg.Bech32Prefix),
-		Denom:   srcChain.Config().Denom,
-		Amount:  1000,
-	}, nil)
+	//tx, err := srcChain.SendIBCTransfer(ctx, channels[0].ChannelID, srcUser.KeyName, ibc.WalletAmount{
+	//	Address: srcUser.Bech32Address(dstChainCfg.Bech32Prefix),
+	//	Denom:   srcChain.Config().Denom,
+	//	Amount:  1000,
+	//}, nil)
+	//
+	//req.NoError(err)
+	//req.NoError(tx.Validate())
 
-	req.NoError(err)
-	req.NoError(tx.Validate())
+	//err = test.WaitForBlocks(ctx, 10, srcChain)
+	//req.NoError(err, "simapp chain a failed to make blocks")
+	//err = test.WaitForBlocks(ctx, 10, dstChain)
+	//req.NoError(err, "simapp chain b failed to make blocks")
 
-	err = test.WaitForBlocks(ctx, 10, srcChain)
-	req.NoError(err, "simapp chain a failed to make blocks")
-	err = test.WaitForBlocks(ctx, 10, dstChain)
-	req.NoError(err, "simapp chain b failed to make blocks")
+	srcAck, err := test.PollForAck(ctx, srcChain, tx.Height, tx.Height+pollHeightMax, tx.Packet)
+	req.NoError(err, "failed to get acknowledgement on source chain")
+	req.NoError(srcAck.Validate(), "invalid acknowledgement on source chain")
 
 	// get ibc denom for dst denom on src chain
 	srcDemonTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom("transfer", "channel-0", srcChainCfg.Denom))
@@ -169,5 +217,4 @@ func TestIBCTest(t *testing.T) {
 	//t.Logf("AFTER: bal: %d", bal)
 
 	req.NotEmpty(dstFinalBalance)
-
 }
