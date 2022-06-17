@@ -3,106 +3,39 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/ibc-go/v3/e2e/setup"
 	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/testreporter"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 	"golang.org/x/sync/errgroup"
+	"strings"
 	"testing"
 	"time"
 )
-
-var ibcChainAConfig ibc.ChainConfig
-var ibcChainBConfig ibc.ChainConfig
-
-func newSimappConfig(name, chainId, denom string) ibc.ChainConfig {
-	tc := testconfig.FromEnv()
-	return ibc.ChainConfig{
-		Type:    "cosmos",
-		Name:    name,
-		ChainID: chainId,
-		Images: []ibc.DockerImage{
-			{
-				Repository: tc.SimdImage,
-				Version:    tc.SimdTag,
-			},
-		},
-		Bin:            "simd",
-		Bech32Prefix:   "cosmos",
-		Denom:          denom,
-		GasPrices:      fmt.Sprintf("0.01%s", denom),
-		GasAdjustment:  1.3,
-		TrustingPeriod: "508h",
-		NoHostMount:    false,
-	}
-}
-
-func init() {
-	ibcChainAConfig = newSimappConfig("simapp-a", "chain-a", "atoma")
-	ibcChainBConfig = newSimappConfig("simapp-b", "chain-b", "atomb")
-}
 
 const (
 	pollHeightMax = uint64(50)
 )
 
 func TestTokenTransfer(t *testing.T) {
-	pool, network := ibctest.DockerSetup(t)
-	home := t.TempDir() // Must be before chain cleanup to avoid test error during cleanup.
-
-	l := zap.NewExample()
-	srcChain := cosmos.NewCosmosChain(t.Name(), ibcChainAConfig, 1, 1, l)
-	dstChain := cosmos.NewCosmosChain(t.Name(), ibcChainBConfig, 1, 1, l)
-
-	srcChainCfg := srcChain.Config()
-	dstChainCfg := dstChain.Config()
-
-	ctx := context.Background()
-	t.Cleanup(func() {
-		for _, c := range []*cosmos.CosmosChain{srcChain, dstChain} {
-			if err := c.Cleanup(ctx); err != nil {
-				t.Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
-			}
-		}
-	})
-
-	r := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t)).Build(
-		t, pool, network, home,
-	)
-
-	pathName := "test-path"
-	ic := ibctest.NewInterchain().
-		AddChain(srcChain).
-		AddChain(dstChain).
-		AddRelayer(r, "r").
-		AddLink(ibctest.InterchainLink{
-			Chain1:  srcChain,
-			Chain2:  dstChain,
-			Relayer: r,
-			Path:    pathName,
-		})
-
+	ctx := context.TODO()
 	rep := testreporter.NewNopReporter()
 	req := require.New(rep.TestifyT(t))
 	eRep := rep.RelayerExecReporter(t)
 
-	req.NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
-		TestName:  t.Name(),
-		HomeDir:   home,
-		Pool:      pool,
-		NetworkID: network,
-	}))
+	srcChain, dstChain, relayer := setup.StandardTwoChainEnvironment(t, req, eRep)
 
-	users := ibctest.GetAndFundTestUsers(t, ctx, "some-prefix", 10_000_000, srcChain, dstChain)
+	srcChainCfg := srcChain.Config()
+	dstChainCfg := dstChain.Config()
 
-	srcUser := users[0]
-	dstUser := users[1]
+	testUsers := ibctest.GetAndFundTestUsers(t, ctx, strings.ReplaceAll(t.Name(), " ", "-"), 10_000_000, srcChain, dstChain)
+
+	srcUser := testUsers[0]
+	dstUser := testUsers[1]
 
 	// will send ibc transfers from user wallet on both chains to their own respective wallet on the other chain
 	testCoinSrcToDst := ibc.WalletAmount{
@@ -141,24 +74,23 @@ func TestTokenTransfer(t *testing.T) {
 		return nil
 	})
 
-	require.NoError(t, eg.Wait())
-	require.NoError(t, srcTx.Validate(), "source ibc transfer tx is invalid")
-	require.NoError(t, dstTx.Validate(), "destination ibc transfer tx is invalid")
+	req.NoError(eg.Wait())
+	req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
+	req.NoError(dstTx.Validate(), "destination ibc transfer tx is invalid")
 
-	channels, err := r.GetChannels(ctx, eRep, srcChain.Config().ChainID)
+	channels, err := relayer.GetChannels(ctx, eRep, srcChain.Config().ChainID)
 
 	req.NoError(err, fmt.Sprintf("failed to get channels: %s", err))
 	req.Len(channels, 1, fmt.Sprintf("channel count invalid. expected: 1, actual: %d", len(channels)))
-	t.Logf("channels: %+v", channels)
 
-	err = r.StartRelayer(ctx, eRep, pathName)
+	err = relayer.StartRelayer(ctx, eRep, testconfig.TestPath)
 	req.NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
 
 	// wait for relayer to start up
 	time.Sleep(5 * time.Second)
 
 	t.Cleanup(func() {
-		if err := r.StopRelayer(ctx, eRep); err != nil {
+		if err := relayer.StopRelayer(ctx, eRep); err != nil {
 			t.Logf("error stopping relayer: %v", err)
 		}
 	})

@@ -7,9 +7,9 @@ import (
 
 const (
 	DefaultSimdImage = "ghcr.io/cosmos/ibc-go-simd"
-
-	SimdImageEnv = "SIMD_IMAGE"
-	SimdTagEnv   = "SIMD_TAG"
+	TestPath         = "test-path"
+	SimdImageEnv     = "SIMD_IMAGE"
+	SimdTagEnv       = "SIMD_TAG"
 )
 
 type TestConfig struct {
