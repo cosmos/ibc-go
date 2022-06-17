@@ -324,6 +324,9 @@ benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
 
+e2e-test:
+	@go test -v ./e2e --run $(test)
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################

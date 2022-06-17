@@ -161,3 +161,17 @@ jobs:
         with:
           file: ./coverage.txt
         if: env.GIT_DIFF
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    strategy:
+      fail-fast: false
+      matrix:
+        test-name:
+          - TestTokenTransfer
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run e2e Test
+        run: |
+          make e2e-test test=${{ matrix.test-name }}"

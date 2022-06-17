@@ -50,7 +50,7 @@ const (
 	pollHeightMax = uint64(50)
 )
 
-func TestSimappIBCTest(t *testing.T) {
+func TestTokenTransfer(t *testing.T) {
 
 	pool, network := ibctest.DockerSetup(t)
 	home := t.TempDir() // Must be before chain cleanup to avoid test error during cleanup.
@@ -179,9 +179,6 @@ func TestSimappIBCTest(t *testing.T) {
 
 	dstFinalBalance, err := dstChain.GetBalance(ctx, srcUser.Bech32Address(dstChainCfg.Bech32Prefix), dstIbcDenom)
 	req.NoError(err, "failed to get balance from dest chain")
-
-	t.Logf("SRC: %d", srcFinalBalance)
-	t.Logf("DST: %d", dstFinalBalance)
 
 	totalFees := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
 	expectedDifference := testCoinSrcToDst.Amount + totalFees
