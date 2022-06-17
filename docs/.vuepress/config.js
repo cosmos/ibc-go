@@ -209,6 +209,23 @@ module.exports = {
           ]
         },
         {
+          title: "IBC Middleware Modules",
+          children: [
+            {
+              title: "ICS29 Fee Middleware",
+              directory: true,
+              path: "/middleware",
+              children: [
+                {
+                    title: "Overview",
+                    directory: false,
+                    path: "/middleware/ics29-fee/overview.html"
+                }, 
+            ]
+            },
+          ]
+        },
+        {
           title: "Migrations",
           children: [
             {
