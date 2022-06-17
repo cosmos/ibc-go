@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -21,14 +22,15 @@ var ibcChainAConfig ibc.ChainConfig
 var ibcChainBConfig ibc.ChainConfig
 
 func newSimappConfig(name, chainId, denom string) ibc.ChainConfig {
+	tc := testconfig.FromEnv()
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
 		ChainID: chainId,
 		Images: []ibc.DockerImage{
 			{
-				Repository: "ghcr.io/cosmos/ibc-go-simd",
-				Version:    "v3.0.0",
+				Repository: tc.SimdImage,
+				Version:    tc.SimdTag,
 			},
 		},
 		Bin:            "simd",
@@ -51,7 +53,6 @@ const (
 )
 
 func TestTokenTransfer(t *testing.T) {
-
 	pool, network := ibctest.DockerSetup(t)
 	home := t.TempDir() // Must be before chain cleanup to avoid test error during cleanup.
 
