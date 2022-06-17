@@ -193,6 +193,7 @@ jobs:
     needs: docker-build
     env:
       SIMD_TAG: pr-${{ github.event.number }}
+      SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
     strategy:
       fail-fast: false
       matrix:
