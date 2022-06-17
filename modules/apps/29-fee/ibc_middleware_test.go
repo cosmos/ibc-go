@@ -749,7 +749,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 		},
 		{
-			"fail: fee distribution fails by escrow account out of balance",
+			"fail: fee distribution fails and fee module is locked when escrow account does not have sufficient funds",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
