@@ -174,10 +174,10 @@ func TestSimappIBCTest(t *testing.T) {
 	srcDemonTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom("transfer", "channel-0", srcChainCfg.Denom))
 	dstIbcDenom := srcDemonTrace.IBCDenom()
 
-	srcFinalBalance, err := srcChain.GetBalance(ctx, dstUser.Bech32Address(srcChainCfg.Bech32Prefix), srcChainCfg.Denom)
+	srcFinalBalance, err := srcChain.GetBalance(ctx, srcUser.Bech32Address(srcChainCfg.Bech32Prefix), srcChainCfg.Denom)
 	req.NoError(err, "failed to get balance from source chain")
 
-	dstFinalBalance, err := dstChain.GetBalance(ctx, dstUser.Bech32Address(dstChainCfg.Bech32Prefix), dstIbcDenom)
+	dstFinalBalance, err := dstChain.GetBalance(ctx, srcUser.Bech32Address(dstChainCfg.Bech32Prefix), dstIbcDenom)
 	req.NoError(err, "failed to get balance from dest chain")
 
 	t.Logf("SRC: %d", srcFinalBalance)
