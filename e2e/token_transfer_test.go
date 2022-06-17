@@ -94,48 +94,53 @@ func TestTokenTransfer(t *testing.T) {
 	// wait for relayer to start up
 	time.Sleep(5 * time.Second)
 
-	srcAck, err := test.PollForAck(ctx, srcChain, srcTx.Height, srcTx.Height+pollHeightMax, srcTx.Packet)
-	req.NoError(err, "failed to get acknowledgement on source chain")
-	req.NoError(srcAck.Validate(), "invalid acknowledgement on source chain")
+	t.Run("User on Chain1 has the correct balance on both chains", func(t *testing.T) {
+		srcAck, err := test.PollForAck(ctx, srcChain, srcTx.Height, srcTx.Height+pollHeightMax, srcTx.Packet)
+		req.NoError(err, "failed to get acknowledgement on source chain")
+		req.NoError(srcAck.Validate(), "invalid acknowledgement on source chain")
 
-	// get ibc denom for dst denom on src chain
-	srcDemonTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(channels[0].Counterparty.PortID, channels[0].Counterparty.ChannelID, srcChainCfg.Denom))
-	dstIbcDenom := srcDemonTrace.IBCDenom()
+		srcChainInitialBalance := int64(10_000_000)
 
-	srcFinalBalance, err := srcChain.GetBalance(ctx, srcUser.Bech32Address(srcChainCfg.Bech32Prefix), srcChainCfg.Denom)
-	req.NoError(err, "failed to get balance from source chain")
+		// get ibc denom for dst denom on src chain
+		srcDemonTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(channels[0].Counterparty.PortID, channels[0].Counterparty.ChannelID, srcChainCfg.Denom))
+		dstIbcDenom := srcDemonTrace.IBCDenom()
 
-	dstFinalBalance, err := dstChain.GetBalance(ctx, srcUser.Bech32Address(dstChainCfg.Bech32Prefix), dstIbcDenom)
-	req.NoError(err, "failed to get balance from dest chain")
+		srcFinalBalance, err := srcChain.GetBalance(ctx, srcUser.Bech32Address(srcChainCfg.Bech32Prefix), srcChainCfg.Denom)
+		req.NoError(err, "failed to get balance from source chain")
 
-	totalFees := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-	expectedDifference := testCoinSrcToDst.Amount + totalFees
+		dstFinalBalance, err := dstChain.GetBalance(ctx, srcUser.Bech32Address(dstChainCfg.Bech32Prefix), dstIbcDenom)
+		req.NoError(err, "failed to get balance from dest chain")
 
-	srcInitialBalance := int64(10_000_000)
-	req.Equal(srcInitialBalance-expectedDifference, srcFinalBalance, "source address should have paid the full amount + gas fees")
-	req.Equal(testCoinSrcToDst.Amount, dstFinalBalance, "destination address should be match the amount sent")
+		totalFees := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
+		expectedDifference := testCoinSrcToDst.Amount + totalFees
 
-	dstAck, err := test.PollForAck(ctx, dstChain, dstTx.Height, dstTx.Height+pollHeightMax, dstTx.Packet)
-	req.NoError(err, "failed to get acknowledgement on destination chain")
-	req.NoError(dstAck.Validate(), "invalid acknowledgement on source chain")
+		req.Equal(srcChainInitialBalance-expectedDifference, srcFinalBalance, "source address should have paid the full amount + gas fees")
+		req.Equal(testCoinSrcToDst.Amount, dstFinalBalance, "destination address should be match the amount sent")
+	})
 
-	srcInitialBalance = int64(0)
-	dstInitialBalance := int64(10_000_000)
+	t.Run("User on Chain2 has the correct balance on both chains", func(t *testing.T) {
+		dstAck, err := test.PollForAck(ctx, dstChain, dstTx.Height, dstTx.Height+pollHeightMax, dstTx.Packet)
+		req.NoError(err, "failed to get acknowledgement on destination chain")
+		req.NoError(dstAck.Validate(), "invalid acknowledgement on source chain")
 
-	dstDenom := dstChainCfg.Denom
-	// get ibc denom for dst denom on src chain
-	dstDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(channels[0].PortID, channels[0].ChannelID, dstDenom))
-	srcIbcDenom := dstDenomTrace.IBCDenom()
+		srcChainInitialBalance := int64(0)
+		dstChainInitialBalance := int64(10_000_000)
 
-	srcFinalBalance, err = srcChain.GetBalance(ctx, dstUser.Bech32Address(srcChainCfg.Bech32Prefix), srcIbcDenom)
-	req.NoError(err, "failed to get balance from source chain")
+		dstDenom := dstChainCfg.Denom
+		// get ibc denom for dst denom on src chain
+		dstDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(channels[0].PortID, channels[0].ChannelID, dstDenom))
+		srcIbcDenom := dstDenomTrace.IBCDenom()
 
-	dstFinalBalance, err = dstChain.GetBalance(ctx, dstUser.Bech32Address(dstChainCfg.Bech32Prefix), dstDenom)
-	req.NoError(err, "failed to get balance from dest chain")
+		srcFinalBalance, err := srcChain.GetBalance(ctx, dstUser.Bech32Address(srcChainCfg.Bech32Prefix), srcIbcDenom)
+		req.NoError(err, "failed to get balance from source chain")
 
-	totalFees = dstChain.GetGasFeesInNativeDenom(dstTx.GasSpent)
-	expectedDifference = testCoinDstToSrc.Amount + totalFees
+		dstFinalBalance, err := dstChain.GetBalance(ctx, dstUser.Bech32Address(dstChainCfg.Bech32Prefix), dstDenom)
+		req.NoError(err, "failed to get balance from dest chain")
 
-	req.Equal(srcInitialBalance+testCoinDstToSrc.Amount, srcFinalBalance)
-	req.Equal(dstInitialBalance-expectedDifference, dstFinalBalance)
+		totalFees := dstChain.GetGasFeesInNativeDenom(dstTx.GasSpent)
+		expectedDifference := testCoinDstToSrc.Amount + totalFees
+
+		req.Equal(srcChainInitialBalance+testCoinDstToSrc.Amount, srcFinalBalance)
+		req.Equal(dstChainInitialBalance-expectedDifference, dstFinalBalance)
+	})
 }
