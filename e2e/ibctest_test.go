@@ -183,6 +183,10 @@ func TestSimappIBCTest(t *testing.T) {
 	t.Logf("SRC: %d", srcFinalBalance)
 	t.Logf("DST: %d", dstFinalBalance)
 
-	req.NoError(err)
-	req.NotEmpty(dstFinalBalance)
+	totalFees := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
+	expectedDifference := testCoinSrcToDst.Amount + totalFees
+
+	srcInitialBalance := int64(10_000_000)
+	req.Equal(srcInitialBalance-expectedDifference, srcFinalBalance, "source address should have paid the full amount + gas fees")
+	req.Equal(testCoinSrcToDst.Amount, dstFinalBalance, "destination address should be match the amount sent")
 }
