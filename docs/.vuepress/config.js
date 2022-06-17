@@ -133,9 +133,9 @@ module.exports = {
               path: "/apps",
               children: [
                 {
-                    title: "Overview",
-                    directory: false,
-                    path: "/apps/interchain-accounts/overview.html"
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/interchain-accounts/overview.html"
                 }, 
                 {
                   title: "Authentication Modules",
@@ -148,9 +148,9 @@ module.exports = {
                   path: "/apps/interchain-accounts/active-channels.html"
                 },
                 {
-                    title: "Integration",
-                    directory: false,
-                    path: "/apps/interchain-accounts/integration.html"
+                  title: "Integration",
+                  directory: false,
+                  path: "/apps/interchain-accounts/integration.html"
                 },
                 {
                   title: "Parameters",
@@ -161,6 +161,48 @@ module.exports = {
                   title: "Transactions",
                   directory: false,
                   path: "/apps/interchain-accounts/transactions.html"
+                },
+            ]
+            },
+            {
+              title: "Transfer",
+              directory: true,
+              path: "/apps",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/transfer/overview.html"
+                }, 
+                {
+                  title: "State",
+                  directory: false,
+                  path: "/apps/transfer/state.html"
+                },
+                {
+                  title: "State Transitions",
+                  directory: false,
+                  path: "/apps/transfer/state-transitions.html"
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/transfer/messages.html"
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/apps/transfer/events.html"
+                },
+                {
+                  title: "Metrics",
+                  directory: false,
+                  path: "/apps/transfer/metrics.html"
+                },
+                {
+                  title: "Params",
+                  directory: false,
+                  path: "/apps/transfer/params.html"
                 },
             ]
             },

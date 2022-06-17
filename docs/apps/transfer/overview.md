@@ -2,9 +2,17 @@
 order: 1
 -->
 
-# Concepts
+# Overview
 
-## Acknowledgements
+Learn about what the token Transfer module is {synopsis}
+
+## What is the Transfer module?
+
+Transfer is the Cosmos SDK implementation of the [ICS-20]((https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer)) protocol, which enables cross-chain fungible token transfers.
+
+## Concepts
+
+### Acknowledgements
 
 ICS20 uses the recommended acknowledgement format as specified by [ICS 04](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope).
 
@@ -14,7 +22,7 @@ with the value `[]byte{byte(1)}` in the `Response` field.
 An unsuccessful receive of a transfer packet will result in an Error Acknowledgement being written
 with the error message in the `Response` field.
 
-## Denomination trace
+### Denomination trace
 
 The denomination trace corresponds to the information that allows a token to be traced back to its
 origin chain. It contains a sequence of port and channel identifiers ordered from the most recent to
@@ -33,11 +41,11 @@ acting as the "sink zone".
 
 It is strongly recommended to read the full details of [ADR 001: Coin Source Tracing](../../architecture/adr-001-coin-source-tracing.md) to understand the implications and context of the IBC token representations.
 
-### UX suggestions for clients
+## UX suggestions for clients
 
 For clients (wallets, exchanges, applications, block explorers, etc) that want to display the source of the token, it is recommended to use the following alternatives for each of the cases below:
 
-#### Direct connection
+### Direct connection
 
 If the denomination trace contains a single identifier prefix pair (as in the example above), then
 the easiest way to retrieve the chain and light client identifier is to map the trace information
