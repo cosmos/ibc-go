@@ -165,23 +165,23 @@ func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channel
 	store.Set(types.KeyPayee(relayerAddr, channelID), []byte(payeeAddr))
 }
 
-// GetAllPayeeAddresses returns all registered payees
-func (k Keeper) GetAllPayeeAddresses(ctx sdk.Context) []types.RegisteredPayee {
+// GetAllPayees returns all registered payees addresses
+func (k Keeper) GetAllPayees(ctx sdk.Context) []types.RegisteredPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeKeyPrefix))
 	defer iterator.Close()
 
 	var registeredPayees []types.RegisteredPayee
 	for ; iterator.Valid(); iterator.Next() {
-		addr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyPayeeAddress(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
 		payee := types.RegisteredPayee{
-			RelayerAddress: addr,
-			Payee:          string(iterator.Value()),
-			ChannelId:      channelID,
+			Relayer:   relayerAddr,
+			Payee:     string(iterator.Value()),
+			ChannelId: channelID,
 		}
 
 		registeredPayees = append(registeredPayees, payee)
@@ -210,29 +210,29 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID 
 	return addr, true
 }
 
-// GetAllRelayerAddresses returns all registered relayer addresses
-func (k Keeper) GetAllRelayerAddresses(ctx sdk.Context) []types.RegisteredRelayerAddress {
+// GetAllCounterpartyPayees returns all registered counterparty payee addresses
+func (k Keeper) GetAllCounterpartyPayees(ctx sdk.Context) []types.RegisteredCounterpartyPayee {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyPayeeKeyPrefix))
 	defer iterator.Close()
 
-	var registeredAddrArr []types.RegisteredRelayerAddress
+	var registeredCounterpartyPayees []types.RegisteredCounterpartyPayee
 	for ; iterator.Valid(); iterator.Next() {
-		address, channelID, err := types.ParseKeyCounterpartyPayee(string(iterator.Key()))
+		relayerAddr, channelID, err := types.ParseKeyCounterpartyPayee(string(iterator.Key()))
 		if err != nil {
 			panic(err)
 		}
 
-		addr := types.RegisteredRelayerAddress{
-			Address:             address,
-			CounterpartyAddress: string(iterator.Value()),
-			ChannelId:           channelID,
+		counterpartyPayee := types.RegisteredCounterpartyPayee{
+			Relayer:           relayerAddr,
+			CounterpartyPayee: string(iterator.Value()),
+			ChannelId:         channelID,
 		}
 
-		registeredAddrArr = append(registeredAddrArr, addr)
+		registeredCounterpartyPayees = append(registeredCounterpartyPayees, counterpartyPayee)
 	}
 
-	return registeredAddrArr
+	return registeredCounterpartyPayees
 }
 
 // SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement

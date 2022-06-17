@@ -22,7 +22,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdTotalTimeoutFees(),
 		GetCmdIncentivizedPacketsForChannel(),
 		GetCmdPayee(),
-		GetCmdCounterpartyAddress(),
+		GetCmdCounterpartyPayee(),
 		GetCmdFeeEnabledChannel(),
 		GetCmdFeeEnabledChannels(),
 	)
