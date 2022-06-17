@@ -63,6 +63,10 @@ module.exports = {
         "label": "v2.2.0",
         "key": "v2.2.0"
       },
+      {
+        "label": "v2.3.0",
+        "key": "v2.3.0"
+      },
     ],
     topbar: {
       banner: true
