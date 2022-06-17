@@ -12,11 +12,13 @@ const (
 	SimdTagEnv       = "SIMD_TAG"
 )
 
+// TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
 	SimdImage string
 	SimdTag   string
 }
 
+// FromEnv returns a TestConfig constructed from environment variables.
 func FromEnv() TestConfig {
 	simdImage, ok := os.LookupEnv(SimdImageEnv)
 	if !ok {
