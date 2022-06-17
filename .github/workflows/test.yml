@@ -184,7 +184,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: pr-${{ github.event.number }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
 
   e2e:
