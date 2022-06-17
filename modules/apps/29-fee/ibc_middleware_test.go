@@ -935,7 +935,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {},
 		},
 		{
-			"success: fail to distribute timeout fee (blocked address), returned to refund account"
+			"success: fail to distribute timeout fee (blocked address), returned to refund account",
 			func() {
 				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 			},
