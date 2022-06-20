@@ -267,9 +267,25 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
-	if found {
-		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
+	if !found {
+		// call underlying callback
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
 	}
+
+	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
+	if !found {
+		im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, relayer, feesInEscrow.PacketFees, packetID)
+
+		// call underlying callback
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+	}
+
+	payeeAddr, err := sdk.AccAddressFromBech32(payee)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+	}
+
+	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
 	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
@@ -293,9 +309,25 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	packetID := channeltypes.NewPacketId(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
-	if found {
-		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
+	if !found {
+		// call underlying callback
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
+
+	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
+	if !found {
+		im.keeper.DistributePacketFeesOnTimeout(ctx, relayer, feesInEscrow.PacketFees, packetID)
+
+		// call underlying callback
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	payeeAddr, err := sdk.AccAddressFromBech32(payee)
+	if err != nil {
+		return sdkerrors.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
+	}
+
+	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
