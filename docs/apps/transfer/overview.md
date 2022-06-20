@@ -8,7 +8,7 @@ Learn about what the token Transfer module is {synopsis}
 
 ## What is the Transfer module?
 
-Transfer is the Cosmos SDK implementation of the [ICS-20]((https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer)) protocol, which enables cross-chain fungible token transfers.
+Transfer is the Cosmos SDK implementation of the [ICS-20](https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer) protocol, which enables cross-chain fungible token transfers.
 
 ## Concepts
 
