@@ -61,8 +61,6 @@ func NewicqPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.PortID = icqtypes.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	//path.EndpointA.ChannelConfig.Version = TestVersion
-	//path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
 }
@@ -136,8 +134,6 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
 			path = NewicqPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			//err := RegisterInterchainQuery(path.EndpointA, TestOwnerAddress)
-			//suite.Require().NoError(err)
 			path.EndpointB.ChannelID = ibctesting.FirstChannelID
 
 			// default values
@@ -187,9 +183,6 @@ func (suite *InterchainQueriesTestSuite) TestChanOpenAck() {
 	path := NewicqPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	//err := RegisterInterchainQuery(path.EndpointA, TestOwnerAddress)
-	//suite.Require().NoError(err)
-
 	err := path.EndpointB.ChanOpenTry()
 	suite.Require().NoError(err)
 
@@ -238,9 +231,6 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenConfirm() {
 			suite.SetupTest()
 			path := NewicqPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-
-			//err := RegisterInterchainQuery(path.EndpointA, TestOwnerAddress)
-			//suite.Require().NoError(err)
 
 			err := path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
