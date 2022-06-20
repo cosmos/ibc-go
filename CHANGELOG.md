@@ -70,7 +70,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
 * (apps/29-fee)[\#1343](https://github.com/cosmos/ibc-go/pull/1523) Fixed an issue where a bad refund address would prevent channel closure.
-* (modules/core/02-client)[\#1529](https://github.com/cosmos/ibc-go/pull/1529) Client state must be zeroed out for `UpgradeProposals` to pass validation.
+* (modules/core/02-client)[\#1529](https://github.com/cosmos/ibc-go/pull/1529) ClientState must be zeroed out for `UpgradeProposals` to pass validation.
 
 ## [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) - 2022-04-16
 
