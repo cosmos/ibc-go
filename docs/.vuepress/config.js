@@ -115,16 +115,6 @@ module.exports = {
               directory: false,
               path: "/migrations/sdk-to-v1.html"
             },
-            {
-              title: "IBC-Go v1 to v2",
-              directory: false,
-              path: "/migrations/v1-to-v2.html"
-            },
-            {
-              title: "IBC-Go v2 to v3",
-              directory: false,
-              path: "/migrations/ibc-migration-043.html"
-            },
           ]
         },
         {
