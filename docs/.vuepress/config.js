@@ -111,7 +111,7 @@ module.exports = {
               path: "/migrations/support-denoms-with-slashes.html"
             },
             {
-              title: "SDK v0.43 to IBC-Go v1",
+              title: "v0.43 SDK to IBC-Go v1.0.0",
               directory: false,
               path: "/migrations/ibc-migration-043.html"
             },
