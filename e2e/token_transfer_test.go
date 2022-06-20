@@ -7,10 +7,12 @@ import (
 	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/strangelove-ventures/ibctest"
+	"github.com/strangelove-ventures/ibctest/conformance"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/testreporter"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 	"golang.org/x/sync/errgroup"
 	"strings"
 	"testing"
@@ -20,6 +22,17 @@ import (
 const (
 	pollHeightMax = uint64(50)
 )
+
+func TestConformance(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	cf := ibctest.NewBuiltinChainFactory(logger, []*ibctest.ChainSpec{
+		{Name: "simapp-a", ChainConfig: setup.NewSimappConfig("simapp-a", "chain-a", "atoma")},
+		{Name: "simapp-b", ChainConfig: setup.NewSimappConfig("simapp-b", "chain-b", "atomb")},
+	})
+	rf := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger)
+
+	conformance.TestChainPair(t, cf, rf, testreporter.NewNopReporter())
+}
 
 func TestTokenTransfer(t *testing.T) {
 	ctx := context.TODO()

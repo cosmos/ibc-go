@@ -72,16 +72,16 @@ type Options struct {
 }
 
 func defaultSetupOpts() *Options {
-	chainAConfig := newSimappConfig("simapp-a", "chain-a", "atoma")
-	chainBConfig := newSimappConfig("simapp-b", "chain-b", "atomb")
+	chainAConfig := NewSimappConfig("simapp-a", "chain-a", "atoma")
+	chainBConfig := NewSimappConfig("simapp-b", "chain-b", "atomb")
 	return &Options{
 		ChainAConfig: &chainAConfig,
 		ChainBConfig: &chainBConfig,
 	}
 }
 
-// newSimappConfig creates an ibc configuration for simd.
-func newSimappConfig(name, chainId, denom string) ibc.ChainConfig {
+// NewSimappConfig creates an ibc configuration for simd.
+func NewSimappConfig(name, chainId, denom string) ibc.ChainConfig {
 	tc := testconfig.FromEnv()
 	return ibc.ChainConfig{
 		Type:    "cosmos",
