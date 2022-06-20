@@ -701,7 +701,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 		},
 		{
-			"success: channel is not fee not enabled",
+			"success: channel is not fee enabled",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 				ack = ibcmock.MockAcknowledgement.Acknowledgement()
@@ -749,7 +749,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 		},
 		{
-			"fail: fee distribution fails by escrow account out of balance",
+			"fail: fee distribution fails and fee module is locked when escrow account does not have sufficient funds",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
@@ -909,7 +909,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			},
 		},
 		{
-			"success: channel is not fee not enabled",
+			"success: channel is not fee enabled",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
@@ -927,7 +927,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			},
 		},
 		{
-			"sucess: no op if identified packet fee doesn't exist",
+			"success: no op if identified packet fee doesn't exist",
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 			},
@@ -935,7 +935,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {},
 		},
 		{
-			"fee distribution fails for timeout fee (blocked address)",
+			"success: fail to distribute timeout fee (blocked address), returned to refund account",
 			func() {
 				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 			},
@@ -943,7 +943,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {},
 		},
 		{
-			"fail on fee distribution by escrow account out of balance",
+			"fee distribution fails and fee module is locked when escrow account does not have sufficient funds",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), smallAmount)
 				suite.Require().NoError(err)
