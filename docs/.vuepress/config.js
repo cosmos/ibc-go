@@ -113,7 +113,7 @@ module.exports = {
             {
               title: "SDK v0.43 to IBC-Go v1",
               directory: false,
-              path: "/migrations/sdk-to-v1.html"
+              path: "/migrations/ibc-migration-043.html"
             },
           ]
         },
