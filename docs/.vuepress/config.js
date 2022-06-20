@@ -167,8 +167,30 @@ module.exports = {
           ]
         },
         {
+          title: "IBC Middleware Modules",
+          children: [
+            {
+              title: "ICS29 Fee Middleware",
+              directory: true,
+              path: "/middleware",
+              children: [
+                {
+                    title: "Overview",
+                    directory: false,
+                    path: "/middleware/ics29-fee/overview.html"
+                }, 
+            ]
+            },
+          ]
+        },
+        {
           title: "Migrations",
           children: [
+            {
+              title: "Support transfer of coins whose base denom contains slashes",
+              directory: false,
+              path: "/migrations/support-denoms-with-slashes.html"
+            },
             {
               title: "SDK v0.43 to IBC-Go v1",
               directory: false,
