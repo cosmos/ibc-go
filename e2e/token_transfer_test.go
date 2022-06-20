@@ -3,16 +3,17 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/v3/e2e/setup"
 	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/conformance"
+	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/testreporter"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 	"golang.org/x/sync/errgroup"
 	"strings"
 	"testing"
@@ -23,15 +24,80 @@ const (
 	pollHeightMax = uint64(50)
 )
 
-func TestConformance(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	cf := ibctest.NewBuiltinChainFactory(logger, []*ibctest.ChainSpec{
-		{Name: "simapp-a", ChainConfig: setup.NewSimappConfig("simapp-a", "chain-a", "atoma")},
-		{Name: "simapp-b", ChainConfig: setup.NewSimappConfig("simapp-b", "chain-b", "atomb")},
-	})
-	rf := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger)
+//func TestConformance(t *testing.T) {
+//	logger := zaptest.NewLogger(t)
+//	cf := ibctest.NewBuiltinChainFactory(logger, []*ibctest.ChainSpec{
+//		{Name: "simapp-a", ChainConfig: setup.NewSimappConfig("simapp-a", "chain-a", "atoma")},
+//		{Name: "simapp-b", ChainConfig: setup.NewSimappConfig("simapp-b", "chain-b", "atomb")},
+//	})
+//	rf := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger)
+//
+//	conformance.TestChainPair(t, cf, rf, testreporter.NewNopReporter())
+//}
 
-	conformance.TestChainPair(t, cf, rf, testreporter.NewNopReporter())
+type FeeChain struct {
+	*cosmos.CosmosChain
+}
+
+func (fc *FeeChain) RegisterCounterPartyPayee(ctx context.Context, chain1Address, chain2Address string) error {
+	tn := fc.ChainNodes[0]
+	cmd := []string{tn.Chain.Config().Bin,
+		"tx",
+		"ibc-fee",
+		"register-counterparty-payee",
+		"transfer",
+		"channel-0",
+		strings.TrimSpace(chain2Address),
+		strings.TrimSpace(chain1Address),
+		"--from", strings.TrimSpace(chain2Address),
+		"--keyring-backend", keyring.BackendTest,
+		"--home", tn.NodeHome(),
+		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
+		"--output", "json",
+		"--chain-id", fc.Config().ChainID,
+		"--yes",
+	}
+
+	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
+	if err != nil {
+		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+	}
+
+	return nil
+
+}
+
+func TestFeeMiddleware(t *testing.T) {
+	ctx := context.TODO()
+	rep := testreporter.NewNopReporter()
+	req := require.New(rep.TestifyT(t))
+	eRep := rep.RelayerExecReporter(t)
+
+	srcChain, dstChain, _ := setup.StandardTwoChainEnvironment(t, req, eRep, setup.FeeMiddlewareOptions())
+
+	testUsers := ibctest.GetAndFundTestUsers(t, ctx, strings.ReplaceAll(t.Name(), " ", "-"), 10_000_000, srcChain, dstChain)
+
+	srcUser := testUsers[0]
+	dstUser := testUsers[1]
+
+	//err = relayer.StartRelayer(ctx, eRep, testconfig.TestPath)
+	//req.NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
+	//t.Cleanup(func() {
+	//	if err := relayer.StopRelayer(ctx, eRep); err != nil {
+	//		t.Logf("error stopping relayer: %v", err)
+	//	}
+	//})
+
+	// wait for relayer to start up
+	//time.Sleep(5 * time.Second)
+
+	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
+
+	time.Sleep(10 * time.Second)
+
+	dstFeeChain := &FeeChain{CosmosChain: dstChain}
+
+	req.NoError(dstFeeChain.RegisterCounterPartyPayee(ctx, srcUser.Bech32Address(srcChain.Config().Bech32Prefix), dstUser.Bech32Address(dstFeeChain.Config().Bech32Prefix)))
 }
 
 func TestTokenTransfer(t *testing.T) {
