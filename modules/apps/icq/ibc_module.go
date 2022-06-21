@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/icq/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
@@ -34,7 +35,42 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return "", sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+	if !im.keeper.IsHostEnabled(ctx) {
+		return "", types.ErrHostDisabled
+	}
+
+	if err := ValidateICQChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+		return "", err
+	}
+
+	if version != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
+	}
+
+	// Claim channel capability passed back by IBC module
+	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		return "", err
+	}
+
+	return version, nil
+}
+
+func ValidateICQChannelParams(
+	ctx sdk.Context,
+	keeper keeper.Keeper,
+	order channeltypes.Order,
+	portID string,
+	channelID string,
+) error {
+	if order != channeltypes.UNORDERED {
+		return sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.UNORDERED, order)
+	}
+
+	boundPort := keeper.GetPort(ctx)
+	if portID != boundPort {
+		return sdkerrors.Wrapf(types.ErrInvalidHostPort, "expected %s, got %s", boundPort, portID)
+	}
+	return nil
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -52,7 +88,26 @@ func (im IBCModule) OnChanOpenTry(
 		return "", types.ErrHostDisabled
 	}
 
-	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	if err := ValidateICQChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+		return "", err
+	}
+
+	if counterpartyVersion != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", counterpartyVersion, types.Version)
+	}
+
+	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
+	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
+	// If module can already authenticate the capability then module already owns it so we don't need to claim
+	// Otherwise, module does not have channel capability and we must claim it from IBC
+	if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+		// Only claim channel capability passed back by IBC module if we do not already own it
+		if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return "", err
+		}
+	}
+
+	return types.Version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -63,7 +118,14 @@ func (im IBCModule) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	return sdkerrors.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+	if !im.keeper.IsHostEnabled(ctx) {
+		return types.ErrHostDisabled
+	}
+
+	if counterpartyVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", counterpartyVersion, types.Version)
+	}
+	return nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -75,7 +137,6 @@ func (im IBCModule) OnChanOpenConfirm(
 	if !im.keeper.IsHostEnabled(ctx) {
 		return types.ErrHostDisabled
 	}
-
 	return nil
 }
 
@@ -85,8 +146,7 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// Disallow user-initiated channel closing for interchain query channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
