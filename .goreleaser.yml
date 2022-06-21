@@ -18,8 +18,8 @@ builds:
       - darwin
     # for goarch use defaults: 386, amd64 and arm64.
     ignore:
-       - goos: darwin
-         goarch: arm64
+      - goos: darwin
+        goarch: arm64
 
 checksum:
   name_template: SHA256SUMS-{{.Version}}.txt
