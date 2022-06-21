@@ -59,8 +59,8 @@ func NewicqPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icqtypes.PortID
 	path.EndpointB.ChannelConfig.PortID = icqtypes.PortID
-	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
+	path.EndpointA.ChannelConfig.Order = channeltypes.UNORDERED
+	path.EndpointB.ChannelConfig.Order = channeltypes.UNORDERED
 
 	return path
 }
@@ -91,7 +91,7 @@ func (suite *InterchainQueriesTestSuite) TestChanOpenInit() {
 	suite.coordinator.SetupConnections(path)
 
 	// use chainB (host) for ChanOpenInit
-	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icqtypes.Version, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icqtypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icqtypes.Version, channeltypes.UNORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icqtypes.ModuleName)
 	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err := handler(suite.chainB.GetContext(), msg)
 
@@ -118,11 +118,6 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
 				suite.chainB.GetSimApp().ICQKeeper.SetParams(suite.chainB.GetContext(), icqtypes.NewParams(false, []string{}))
 			}, false,
 		},
-		{
-			"icq callback fails - invalid channel order", func() {
-				channel.Ordering = channeltypes.UNORDERED
-			}, false,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -140,7 +135,7 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
-				Ordering:       channeltypes.ORDERED,
+				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
 				Version:        path.EndpointB.ChannelConfig.Version,
@@ -187,7 +182,7 @@ func (suite *InterchainQueriesTestSuite) TestChanOpenAck() {
 	suite.Require().NoError(err)
 
 	// chainA maliciously sets channel to TRYOPEN
-	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
+	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
 	suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 
 	// commit state changes so proof can be created
@@ -367,7 +362,7 @@ func (suite *InterchainQueriesTestSuite) TestOnRecvPacket() {
 					Path:   fmt.Sprintf("store/%s/key", host.StoreKey),
 					Height: 0,
 					Data:   []byte("key1"),
-					Prove:  true,
+					Prove:  false,
 				},
 			}
 
