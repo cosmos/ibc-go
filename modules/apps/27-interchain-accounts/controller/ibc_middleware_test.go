@@ -131,6 +131,16 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			"success", func() {}, true,
 		},
 		{
+			"ICA auth module modification of channel version is ignored", func() {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					return "invalid-version", nil
+				}
+			}, true,
+		},
+		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			}, false,
