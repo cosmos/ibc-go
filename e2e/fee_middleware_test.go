@@ -29,10 +29,10 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 	users := ibctest.GetAndFundTestUsers(t, ctx, strings.ReplaceAll(t.Name(), " ", "-"), startingTokenAmount, srcChain, dstChain, srcChain, dstChain)
 
 	srcRelayUser := users[0]
-	dstRelayUser := users[1]
+	invalidDstRelayUser := users[1]
 
-	wallet1Chain1 := users[2]
-	wallet3Chain2 := users[3]
+	chain1Wallet := users[2]
+	chain2Wallet := users[3]
 
 	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
@@ -40,18 +40,18 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 	srcFeeChain := &e2efee.FeeMiddlewareChain{CosmosChain: srcChain}
 
 	t.Run("Register Counter Party Payee", func(t *testing.T) {
-		req.NoError(dstFeeChain.RegisterCounterPartyPayee(ctx, srcRelayUser.Bech32Address(srcChain.Config().Bech32Prefix), dstRelayUser.Bech32Address(dstFeeChain.Config().Bech32Prefix)))
+		req.NoError(dstFeeChain.RegisterCounterPartyPayee(ctx, srcRelayUser.Bech32Address(srcChain.Config().Bech32Prefix), invalidDstRelayUser.Bech32Address(dstFeeChain.Config().Bech32Prefix)))
 		time.Sleep(5 * time.Second)
 	})
 
 	t.Run("Verify Counter Party Payee", func(t *testing.T) {
-		address, err := dstFeeChain.QueryCounterPartyPayee(ctx, dstRelayUser.Bech32Address(dstFeeChain.Config().Bech32Prefix))
+		address, err := dstFeeChain.QueryCounterPartyPayee(ctx, invalidDstRelayUser.Bech32Address(dstFeeChain.Config().Bech32Prefix))
 		req.NoError(err)
 		req.Equal(srcRelayUser.Bech32Address(srcChain.Config().Bech32Prefix), address)
 	})
 
 	testCoinWallet1ToWallet3 := ibc.WalletAmount{
-		Address: wallet3Chain2.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
+		Address: chain2Wallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
 		Denom:   srcChain.Config().Denom,
 		Amount:  10000,
 	}
@@ -61,13 +61,13 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 	t.Run("Send IBC transfer", func(t *testing.T) {
 		// send a transfer from wallet 1 on src chain to wallet 3 on dst chain
 		var err error
-		srcTx, err = srcChain.SendIBCTransfer(ctx, "channel-0", wallet1Chain1.KeyName, testCoinWallet1ToWallet3, nil)
+		srcTx, err = srcChain.SendIBCTransfer(ctx, "channel-0", chain1Wallet.KeyName, testCoinWallet1ToWallet3, nil)
 		req.NoError(err)
 		req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
 	})
 
 	t.Run("Verify tokens have been escrowed", func(t *testing.T) {
-		actualBalance, err := srcChain.GetBalance(ctx, wallet1Chain1.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
+		actualBalance, err := srcChain.GetBalance(ctx, chain1Wallet.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
 		req.NoError(err)
 
 		expected := startingTokenAmount - testCoinWallet1ToWallet3.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
@@ -82,7 +82,7 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 		err := srcFeeChain.QueryPackets(ctx)
 		req.NoError(err)
 
-		err = srcFeeChain.PayPacketFee(ctx, wallet1Chain1.KeyName, recvFee, ackFee, timeoutFee)
+		err = srcFeeChain.PayPacketFee(ctx, chain1Wallet.KeyName, recvFee, ackFee, timeoutFee)
 		req.NoError(err)
 
 		// wait so that incentivised packets will show up
@@ -94,7 +94,7 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 		req.NoError(err)
 
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := srcChain.GetBalance(ctx, wallet1Chain1.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
+		actualBalance, err := srcChain.GetBalance(ctx, chain1Wallet.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
 		req.NoError(err)
 
 		expected := startingTokenAmount - testCoinWallet1ToWallet3.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
@@ -121,7 +121,7 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Verify recv fees are refunded when no forward relayer is found", func(t *testing.T) {
-		actualBalance, err := srcChain.GetBalance(ctx, wallet1Chain1.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
+		actualBalance, err := srcChain.GetBalance(ctx, chain1Wallet.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
 		req.NoError(err)
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
