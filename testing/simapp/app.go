@@ -306,7 +306,7 @@ func NewSimApp(
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
-	scopedICQMockKeeper := app.CapabilityKeeper.ScopeToModule(icqtypes.ModuleName)
+	scopedICQMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icqtypes.ModuleName)
 
 	// seal capability keeper after scoping modules
 	app.CapabilityKeeper.Seal()

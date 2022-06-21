@@ -1,7 +1,6 @@
 package icq_test
 
 import (
-	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +10,7 @@ import (
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmstate "github.com/tendermint/tendermint/state"
 
+	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
 	icqtypes "github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -33,6 +33,9 @@ var (
 
 	// TestVersion defines a resuable interchainaccounts version string for testing purposes
 	TestVersion = "icq-1"
+
+	TestQueryPath = "/store/params/key"
+	TestQueryData = "icqhost/HostEnabled"
 )
 
 type InterchainQueriesTestSuite struct {
@@ -45,7 +48,7 @@ type InterchainQueriesTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func TestIcqTestSuite(t *testing.T) {
+func TestInterchainQuerySuite(t *testing.T) {
 	suite.Run(t, new(InterchainQueriesTestSuite))
 }
 
@@ -55,18 +58,23 @@ func (suite *InterchainQueriesTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
-func NewicqPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+func NewICQPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icqtypes.PortID
 	path.EndpointB.ChannelConfig.PortID = icqtypes.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.UNORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.UNORDERED
+	path.EndpointA.ChannelConfig.Version = TestVersion
+	path.EndpointB.ChannelConfig.Version = TestVersion
 
 	return path
 }
 
-// SetupicqPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
-func SetupicqPath(path *ibctesting.Path, owner string) error {
+// SetupICQPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
+func SetupICQPath(path *ibctesting.Path) error {
+	if err := path.EndpointA.ChanOpenInit(); err != nil {
+		return err
+	}
 
 	if err := path.EndpointB.ChanOpenTry(); err != nil {
 		return err
@@ -87,7 +95,7 @@ func SetupicqPath(path *ibctesting.Path, owner string) error {
 // ChainA is the controller chain. ChainB is the host chain
 func (suite *InterchainQueriesTestSuite) TestChanOpenInit() {
 	suite.SetupTest() // reset
-	path := NewicqPath(suite.chainA, suite.chainB)
+	path := NewICQPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
 	// use chainB (host) for ChanOpenInit
@@ -126,7 +134,7 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewicqPath(suite.chainA, suite.chainB)
+			path = NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			path.EndpointB.ChannelID = ibctesting.FirstChannelID
@@ -175,7 +183,7 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
 // ChainA is the controller chain. ChainB is the host chain
 func (suite *InterchainQueriesTestSuite) TestChanOpenAck() {
 	suite.SetupTest() // reset
-	path := NewicqPath(suite.chainA, suite.chainB)
+	path := NewICQPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
 	err := path.EndpointB.ChanOpenTry()
@@ -224,7 +232,7 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenConfirm() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			path := NewicqPath(suite.chainA, suite.chainB)
+			path := NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			err := path.EndpointB.ChanOpenTry()
@@ -256,10 +264,10 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenConfirm() {
 
 // OnChanCloseInit on host (chainB)
 func (suite *InterchainQueriesTestSuite) TestOnChanCloseInit() {
-	path := NewicqPath(suite.chainA, suite.chainB)
+	path := NewICQPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	err := SetupicqPath(path, TestOwnerAddress)
+	err := SetupICQPath(path)
 	suite.Require().NoError(err)
 
 	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
@@ -295,10 +303,10 @@ func (suite *InterchainQueriesTestSuite) TestOnChanCloseConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewicqPath(suite.chainA, suite.chainB)
+			path = NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupicqPath(path, TestOwnerAddress)
+			err := SetupICQPath(path)
 			suite.Require().NoError(err)
 
 			tc.malleate() // malleate mutates test data
@@ -351,17 +359,17 @@ func (suite *InterchainQueriesTestSuite) TestOnRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := NewicqPath(suite.chainA, suite.chainB)
+			path := NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-			err := SetupicqPath(path, TestOwnerAddress)
+			err := SetupICQPath(path)
 			suite.Require().NoError(err)
 
 			// build packet data
 			requests := []abcitypes.RequestQuery{
 				{
-					Path:   fmt.Sprintf("store/%s/key", host.StoreKey),
+					Path:   TestQueryPath,
 					Height: 0,
-					Data:   []byte("key1"),
+					Data:   []byte(TestQueryData),
 					Prove:  false,
 				},
 			}
@@ -384,14 +392,14 @@ func (suite *InterchainQueriesTestSuite) TestOnRecvPacket() {
 				}
 			}
 
-			expectedTxResponse, err := proto.Marshal(&icqtypes.InterchainQueryPacketAck{
+			expectedTxResponse, err := types.ModuleCdc.MarshalJSON(&icqtypes.InterchainQueryPacketAck{
 				Responses: resps,
 			})
 			suite.Require().NoError(err)
 
 			expectedAck := channeltypes.NewResultAcknowledgement(expectedTxResponse)
 
-			params := icqtypes.NewParams(true, []string{"key1"})
+			params := icqtypes.NewParams(true, []string{TestQueryPath})
 			suite.chainB.GetSimApp().ICQKeeper.SetParams(suite.chainB.GetContext(), params)
 
 			// malleate packetData for test cases
@@ -439,10 +447,10 @@ func (suite *InterchainQueriesTestSuite) TestOnAcknowledgementPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := NewicqPath(suite.chainA, suite.chainB)
+			path := NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupicqPath(path, TestOwnerAddress)
+			err := SetupICQPath(path)
 			suite.Require().NoError(err)
 
 			tc.malleate() // malleate mutates test data
@@ -493,10 +501,10 @@ func (suite *InterchainQueriesTestSuite) TestOnTimeoutPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := NewicqPath(suite.chainA, suite.chainB)
+			path := NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupicqPath(path, TestOwnerAddress)
+			err := SetupICQPath(path)
 			suite.Require().NoError(err)
 
 			tc.malleate() // malleate mutates test data
