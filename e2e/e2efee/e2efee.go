@@ -2,6 +2,7 @@ package e2efee
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
@@ -62,6 +63,38 @@ func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context) error {
 
 	return nil
 
+}
+
+type QueryOutput struct {
+	CounterPartyPayee string `json:"counterparty_payee"`
+}
+
+func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, chain2Address string) (string, error) {
+	tn := fc.ChainNodes[0]
+	cmd := []string{tn.Chain.Config().Bin,
+		"q",
+		"ibc-fee",
+		"counterparty-payee",
+		"channel-0",
+		chain2Address,
+		"--home", tn.NodeHome(),
+		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
+		"--output", "json",
+		"--chain-id", fc.Config().ChainID,
+	}
+
+	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
+	if err != nil {
+		return "", dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+	}
+
+	stdOutBytes := []byte(stdout)
+	res := &QueryOutput{}
+	if err := json.Unmarshal(stdOutBytes, res); err != nil {
+		return "", err
+	}
+
+	return res.CounterPartyPayee, nil
 }
 
 func (fc *FeeMiddlewareChain) PayPacketFee(ctx context.Context, fromAddress string, recvFee, ackFee, timeoutFee int64) error {

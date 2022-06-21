@@ -32,9 +32,11 @@ func StandardTwoChainEnvironment(t *testing.T, req *require.Assertions, eRep *te
 	chain2 := cosmos.NewCosmosChain(t.Name(), *opts.ChainBConfig, 1, 0, logger)
 
 	t.Cleanup(func() {
-		for _, c := range []*cosmos.CosmosChain{chain1, chain2} {
-			if err := c.Cleanup(ctx); err != nil {
-				t.Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
+		if !t.Failed() {
+			for _, c := range []*cosmos.CosmosChain{chain1, chain2} {
+				if err := c.Cleanup(ctx); err != nil {
+					t.Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
+				}
 			}
 		}
 	})

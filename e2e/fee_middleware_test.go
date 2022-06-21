@@ -28,7 +28,6 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 
 	users := ibctest.GetAndFundTestUsers(t, ctx, strings.ReplaceAll(t.Name(), " ", "-"), startingTokenAmount, srcChain, dstChain, srcChain, dstChain)
 
-	// TODO: use real relayer addresses
 	srcRelayUser := users[0]
 	dstRelayUser := users[1]
 
@@ -42,6 +41,13 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 
 	t.Run("Register Counter Party Payee", func(t *testing.T) {
 		req.NoError(dstFeeChain.RegisterCounterPartyPayee(ctx, srcRelayUser.Bech32Address(srcChain.Config().Bech32Prefix), dstRelayUser.Bech32Address(dstFeeChain.Config().Bech32Prefix)))
+		time.Sleep(5 * time.Second)
+	})
+
+	t.Run("Verify Counter Party Payee", func(t *testing.T) {
+		address, err := dstFeeChain.QueryCounterPartyPayee(ctx, dstRelayUser.Bech32Address(dstFeeChain.Config().Bech32Prefix))
+		req.NoError(err)
+		req.Equal(srcRelayUser.Bech32Address(srcChain.Config().Bech32Prefix), address)
 	})
 
 	testCoinWallet1ToWallet3 := ibc.WalletAmount{
@@ -99,8 +105,10 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 		err := relayer.StartRelayer(ctx, eRep, testconfig.TestPath)
 		req.NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
 		t.Cleanup(func() {
-			if err := relayer.StopRelayer(ctx, eRep); err != nil {
-				t.Logf("error stopping relayer: %v", err)
+			if !t.Failed() {
+				if err := relayer.StopRelayer(ctx, eRep); err != nil {
+					t.Logf("error stopping relayer: %v", err)
+				}
 			}
 		})
 		// wait for relayer to start.
@@ -112,13 +120,13 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 
 	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
-	t.Run("Verify ack and recv fees are paid and timeout is refunded", func(t *testing.T) {
+	t.Run("Verify recv fees are refunded when no forward relayer is found", func(t *testing.T) {
 		actualBalance, err := srcChain.GetBalance(ctx, wallet1Chain1.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
 		req.NoError(err)
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := startingTokenAmount - testCoinWallet1ToWallet3.Amount - gasFee - ackFee - recvFee
-		req.Equal(actualBalance, expected)
+		expected := startingTokenAmount - testCoinWallet1ToWallet3.Amount - gasFee - ackFee
+		req.Equal(expected, actualBalance)
 	})
 }
