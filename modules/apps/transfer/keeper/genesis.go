@@ -28,12 +28,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 
 	k.SetParams(ctx, state.Params)
-
-	// check if the module account exists
-	moduleAcc := k.GetTransferAccount(ctx)
-	if moduleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
-	}
 }
 
 // ExportGenesis exports ibc-transfer module's portID and denom trace info into its genesis state.

@@ -17,13 +17,6 @@ func (Header) ClientType() string {
 	return exported.Solomachine
 }
 
-// GetHeight returns the current sequence number as the height.
-// Return clientexported.Height to satisfy interface
-// Revision number is always 0 for a solo-machine
-func (h Header) GetHeight() exported.Height {
-	return clienttypes.NewHeight(0, h.Sequence)
-}
-
 // GetPubKey unmarshals the new public key into a cryptotypes.PubKey type.
 // An error is returned if the new public key is nil or the cached value
 // is not a PubKey.

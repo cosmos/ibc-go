@@ -10,6 +10,7 @@ import (
 	"github.com/ChainSafe/log15"
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
+	merkleTypes "github.com/ComposableFi/go-merkle-trees/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -86,7 +87,7 @@ func (cs *ClientState) verifyHeader(
 	commitmentHash := crypto.Keccak256(commitmentBytes)
 
 	// array of leaves in the authority merkle root.
-	var authorityLeaves []merkle.Leaf
+	var authorityLeaves []merkleTypes.Leaf
 
 	for i := 0; i < len(signedCommitment.Signatures); i++ {
 		signature := signedCommitment.Signatures[i]
@@ -98,7 +99,7 @@ func (cs *ClientState) verifyHeader(
 
 		// convert public key to ethereum address.
 		address := crypto.PubkeyToAddress(*pubkey)
-		authorityLeaf := merkle.Leaf{
+		authorityLeaf := merkleTypes.Leaf{
 			Hash:  crypto.Keccak256(address[:]),
 			Index: signature.AuthorityIndex,
 		}
@@ -145,7 +146,7 @@ func (cs *ClientState) verifyHeader(
 				}
 				// we treat this leaf as the latest leaf in the mmr
 				mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
-				mmrLeaves := []mmr.Leaf{
+				mmrLeaves := []merkleTypes.Leaf{
 					{
 						Hash:  crypto.Keccak256(mmrLeafBytes),
 						Index: mmrUpdateProof.MmrLeafIndex,
@@ -192,7 +193,7 @@ func (cs *ClientState) verifyHeader(
 }
 
 func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Proof, error) {
-	var mmrLeaves = make([]mmr.Leaf, len(beefyHeader.ParachainHeaders))
+	var mmrLeaves = make([]merkleTypes.Leaf, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
 	for i := 0; i < len(beefyHeader.ParachainHeaders); i++ {
@@ -203,7 +204,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 		binary.LittleEndian.PutUint32(paraIdScale[:], parachainHeader.ParaId)
 		// scale encode to get parachain heads leaf bytes
 		headsLeafBytes := append(paraIdScale, parachainHeader.ParachainHeader...)
-		headsLeaf := []merkle.Leaf{
+		headsLeaf := []merkleTypes.Leaf{
 			{
 				Hash:  crypto.Keccak256(headsLeafBytes),
 				Index: parachainHeader.HeadsLeafIndex,
@@ -239,7 +240,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 			return nil, sdkerrors.Wrap(err, ErrInvalidMMRLeaf.Error())
 		}
 
-		mmrLeaves[i] = mmr.Leaf{
+		mmrLeaves[i] = merkleTypes.Leaf{
 			Hash: crypto.Keccak256(mmrLeafBytes),
 			// based on our knowledge of the beefy protocol, and the structure of MMRs
 			// we are be able to reconstruct the leaf index of this mmr leaf
@@ -253,7 +254,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 	return mmrProof, nil
 }
 
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	beefyHeader, ok := clientMsg.(*Header)
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, beefyHeader)

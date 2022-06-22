@@ -52,21 +52,25 @@ type ClientState interface {
 	// Clients must return their status. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status
 
-	// Checks for evidence of a misbehaviour in Header or Misbehaviour type
-	CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg ClientMessage) bool
-
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
+
+	// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
+	// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
+	// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
+	// if the ClientMessage fails to verify.
+	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
+
+	// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
+	// has already been verified.
+	CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg ClientMessage) bool
 
 	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage)
 
-	// VerifyClientMessage verifies a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
-	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
-
 	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
-	// An error is returned if ClientMessage is of type Misbehaviour
-	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) error
+	// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
+	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 
 	// Update and Misbehaviour functions
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
@@ -206,7 +210,6 @@ type ConsensusState interface {
 type ClientMessage interface {
 	proto.Message
 
-	GetHeight() Height
 	ClientType() string
 	ValidateBasic() error
 }
