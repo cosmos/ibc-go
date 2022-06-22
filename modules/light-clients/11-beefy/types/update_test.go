@@ -78,6 +78,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	for count := 0; count < 100; count++ {
+		// TODO: make chennel input if there is one case only
 		select {
 		case msg, ok := <-ch:
 			require.True(t, ok, "error reading channel")

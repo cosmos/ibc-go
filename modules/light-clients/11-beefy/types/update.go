@@ -334,15 +334,16 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 		// since header has already been submitted in a previous UpdateClient.
 		prevConsState, _ := GetConsensusState(clientStore, cdc, tmHeader.GetHeight())
 		if prevConsState != nil {
+
+			// if DeepEqual is false:
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
-				return false
-			}
-
+			//
+			// if DeepEqual is true:
 			// A consensus state already exists for this height, but it does not match the provided header.
 			// The assumption is that Header has already been validated. Thus we can return true as misbehaviour is present
-			return true
+			return !reflect.DeepEqual(prevConsState, tmHeader.ConsensusState())
+
 		}
 
 		// Check that consensus state timestamps are monotonic
