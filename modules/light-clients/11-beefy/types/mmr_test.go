@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
+	"github.com/ComposableFi/go-merkle-trees/hasher"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	merkleTypes "github.com/ComposableFi/go-merkle-trees/types"
 	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
@@ -82,7 +83,7 @@ func TestMultiLeafMmrProofs(t *testing.T) {
 		146, 200, 40, 236, 116, 241, 209, 1, 223, 30, 128, 62, 112,
 	}
 
-	root, err := mmr.NewProof(size, proofItems, leaves, types.Keccak256{}).CalculateRoot()
+	root, err := mmr.NewProof(size, proofItems, leaves, hasher.Keccak256Hasher{}).CalculateRoot()
 	require.NoError(t, err)
 
 	require.Equal(t, expectedRoot, root)
