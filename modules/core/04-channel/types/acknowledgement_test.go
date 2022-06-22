@@ -1,6 +1,9 @@
 package types_test
 
-import "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+import (
+	"fmt"
+	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+)
 
 // tests acknowledgement.ValidateBasic and acknowledgement.GetBytes
 func (suite TypesTestSuite) TestAcknowledgement() {
@@ -18,7 +21,7 @@ func (suite TypesTestSuite) TestAcknowledgement() {
 		},
 		{
 			"valid failed ack",
-			types.NewErrorAcknowledgement("error"),
+			types.NewErrorAcknowledgement(fmt.Errorf("error")),
 			false,
 			true,
 		},
@@ -30,7 +33,7 @@ func (suite TypesTestSuite) TestAcknowledgement() {
 		},
 		{
 			"empty failed ack",
-			types.NewErrorAcknowledgement("  "),
+			types.NewErrorAcknowledgement(fmt.Errorf("  ")),
 			false,
 			true,
 		},

@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/events"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
@@ -137,7 +139,9 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return channeltypes.NewErrorAcknowledgement("cannot receive packet on controller chain")
+	err := fmt.Errorf("cannot receive packet on controller chain")
+	events.EmitAcknowledgementErrorEvent(ctx, err)
+	return channeltypes.NewErrorAcknowledgement(err)
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface

@@ -9,7 +9,6 @@ import (
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmstate "github.com/tendermint/tendermint/state"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -79,22 +78,4 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)
-}
-
-// TestAcknowledgementError will verify that only a constant string and
-// ABCI error code are used in constructing the acknowledgement error string
-func (suite *TypesTestSuite) TestAcknowledgementError() {
-	// same ABCI error code used
-	err := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 1")
-	errSameABCICode := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 2")
-
-	// different ABCI error code used
-	errDifferentABCICode := sdkerrors.ErrNotFound
-
-	ack := types.NewErrorAcknowledgement(err)
-	ackSameABCICode := types.NewErrorAcknowledgement(errSameABCICode)
-	ackDifferentABCICode := types.NewErrorAcknowledgement(errDifferentABCICode)
-
-	suite.Require().Equal(ack, ackSameABCICode)
-	suite.Require().NotEqual(ack, ackDifferentABCICode)
 }

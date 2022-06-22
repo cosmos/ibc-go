@@ -29,16 +29,9 @@ func NewResultAcknowledgement(result []byte) Acknowledgement {
 // type in the Response field.
 // NOTE: Acknowledgements are written into state and thus, changes made to error strings included in packet acknowledgements
 // risk an app hash divergence when nodes in a network are running different patch versions of software.
-func NewErrorAcknowledgement(errMsg string) Acknowledgement {
+func NewErrorAcknowledgement(err error) Acknowledgement {
 	// the ABCI code is included in the abcitypes.ResponseDeliverTx hash
 	// constructed in Tendermint and is therefore deterministic
-
-	errMsg = strings.TrimSpace(errMsg)
-	var err error
-	if errMsg != "" {
-		err = fmt.Errorf(errMsg)
-	}
-
 	_, code, _ := sdkerrors.ABCIInfo(err, false) // discard non-determinstic codespace and log values
 
 	return Acknowledgement{

@@ -179,7 +179,7 @@ func (im IBCModule) OnRecvPacket(
 
 	var data types.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
+		ack = channeltypes.NewErrorAcknowledgement(fmt.Errorf("cannot unmarshal ICS-20 transfer packet data"))
 	}
 
 	// only attempt the application logic if the packet data
@@ -187,7 +187,7 @@ func (im IBCModule) OnRecvPacket(
 	if ack.Success() {
 		err := im.keeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {
-			ack = types.NewErrorAcknowledgement(err)
+			ack = channeltypes.NewErrorAcknowledgement(err)
 		}
 	}
 
