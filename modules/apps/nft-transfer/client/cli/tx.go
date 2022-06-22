@@ -34,8 +34,8 @@ in the form {revision}-{height} using the "packet-timeout-height" flag. Relative
 height queried from the latest consensus state corresponding to the counterparty channel. Relative timeout timestamp 
 is added to the greater value of the local clock time and the block timestamp queried from the latest consensus state 
 corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
-		Example: fmt.Sprintf("%s tx nft-transfer transfer [src-port] [src-channel] [classID] [tokenIDs]", version.AppName),
-		Args:    cobra.ExactArgs(4),
+		Example: fmt.Sprintf("%s tx nft-transfer transfer [src-port] [src-channel] [receiver] [classID] [tokenIDs]", version.AppName),
+		Args:    cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
