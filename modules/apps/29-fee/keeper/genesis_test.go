@@ -7,18 +7,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
-	// build PacketId & Fee
-	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
-	fee := types.Fee{
-		RecvFee:    defaultRecvFee,
-		AckFee:     defaultAckFee,
-		TimeoutFee: defaultTimeoutFee,
-	}
-
-	// relayer addresses
-	sender := suite.chainA.SenderAccount.GetAddress().String()
-	counterparty := suite.chainB.SenderAccount.GetAddress().String()
 
 	genesisState := types.GenesisState{
 		IdentifiedFees: []types.IdentifiedPacketFees{
@@ -26,8 +15,8 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				PacketId: packetID,
 				PacketFees: []types.PacketFee{
 					{
-						Fee:           fee,
-						RefundAddress: refundAcc.String(),
+						Fee:           types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee),
+						RefundAddress: suite.chainA.SenderAccount.GetAddress().String(),
 						Relayers:      nil,
 					},
 				},
@@ -39,11 +28,18 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 				ChannelId: ibctesting.FirstChannelID,
 			},
 		},
-		RegisteredRelayers: []types.RegisteredRelayerAddress{
+		RegisteredPayees: []types.RegisteredPayee{
 			{
-				Address:             sender,
-				CounterpartyAddress: counterparty,
-				ChannelId:           ibctesting.FirstChannelID,
+				Relayer:   suite.chainA.SenderAccount.GetAddress().String(),
+				Payee:     suite.chainB.SenderAccount.GetAddress().String(),
+				ChannelId: ibctesting.FirstChannelID,
+			},
+		},
+		RegisteredCounterpartyPayees: []types.RegisteredCounterpartyPayee{
+			{
+				Relayer:           suite.chainA.SenderAccount.GetAddress().String(),
+				CounterpartyPayee: suite.chainB.SenderAccount.GetAddress().String(),
+				ChannelId:         ibctesting.FirstChannelID,
 			},
 		},
 	}
@@ -59,10 +55,15 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	isEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
 	suite.Require().True(isEnabled)
 
-	// check relayers
-	addr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(suite.chainA.GetContext(), sender, ibctesting.FirstChannelID)
+	// check payee addresses
+	payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
 	suite.Require().True(found)
-	suite.Require().Equal(genesisState.RegisteredRelayers[0].CounterpartyAddress, addr)
+	suite.Require().Equal(genesisState.RegisteredPayees[0].Payee, payeeAddr)
+
+	// check relayers
+	counterpartyPayeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(genesisState.RegisteredCounterpartyPayees[0].CounterpartyPayee, counterpartyPayeeAddr)
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
@@ -72,23 +73,29 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	// setup & escrow the packet fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
 	packetID := channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
-	fee := types.Fee{
-		RecvFee:    defaultRecvFee,
-		AckFee:     defaultAckFee,
-		TimeoutFee: defaultTimeoutFee,
-	}
+	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
 
-	// relayer addresses
-	sender := suite.chainA.SenderAccount.GetAddress().String()
-	counterparty := suite.chainB.SenderAccount.GetAddress().String()
-	// set counterparty address
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(suite.chainA.GetContext(), sender, counterparty, ibctesting.FirstChannelID)
+	// set payee address
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+		suite.chainA.GetContext(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		ibctesting.FirstChannelID,
+	)
+
+	// set counterparty payee address
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(
+		suite.chainA.GetContext(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		ibctesting.FirstChannelID,
+	)
 
 	// set forward relayer address
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainA.GetContext(), packetID, sender)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainA.GetContext(), packetID, suite.chainA.SenderAccount.GetAddress().String())
 
 	// export genesis
 	genesisState := suite.chainA.GetSimApp().IBCFeeKeeper.ExportGenesis(suite.chainA.GetContext())
@@ -103,11 +110,17 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().Equal(refundAcc.String(), genesisState.IdentifiedFees[0].PacketFees[0].RefundAddress)
 	suite.Require().Equal([]string(nil), genesisState.IdentifiedFees[0].PacketFees[0].Relayers)
 
-	// check registered relayer addresses
-	suite.Require().Equal(sender, genesisState.RegisteredRelayers[0].Address)
-	suite.Require().Equal(counterparty, genesisState.RegisteredRelayers[0].CounterpartyAddress)
-
-	// check registered relayer addresses
-	suite.Require().Equal(sender, genesisState.ForwardRelayers[0].Address)
+	// check forward relayer addresses
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.ForwardRelayers[0].Address)
 	suite.Require().Equal(packetID, genesisState.ForwardRelayers[0].PacketId)
+
+	// check payee addresses
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredPayees[0].Relayer)
+	suite.Require().Equal(suite.chainB.SenderAccount.GetAddress().String(), genesisState.RegisteredPayees[0].Payee)
+	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.RegisteredPayees[0].ChannelId)
+
+	// check registered counterparty payee addresses
+	suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), genesisState.RegisteredCounterpartyPayees[0].Relayer)
+	suite.Require().Equal(suite.chainB.SenderAccount.GetAddress().String(), genesisState.RegisteredCounterpartyPayees[0].CounterpartyPayee)
+	suite.Require().Equal(ibctesting.FirstChannelID, genesisState.RegisteredCounterpartyPayees[0].ChannelId)
 }

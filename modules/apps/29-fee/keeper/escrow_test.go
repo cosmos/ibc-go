@@ -2,12 +2,11 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v3/testing/mock"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
 func (suite *KeeperTestSuite) TestDistributeFee() {
@@ -313,12 +312,13 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 
 func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 	var (
-		expIdentifiedPacketFees []types.IdentifiedPacketFees
-		expEscrowBal            sdk.Coins
-		expRefundBal            sdk.Coins
-		refundAcc               sdk.AccAddress
-		fee                     types.Fee
-		locked                  bool
+		expIdentifiedPacketFees     []types.IdentifiedPacketFees
+		expEscrowBal                sdk.Coins
+		expRefundBal                sdk.Coins
+		refundAcc                   sdk.AccAddress
+		fee                         types.Fee
+		locked                      bool
+		expectEscrowFeesToBeDeleted bool
 	)
 
 	testCases := []struct {
@@ -411,6 +411,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 		{
 			"invalid refund acc address", func() {
 				// store the fee in state & update escrow account balance
+				expectEscrowFeesToBeDeleted = false
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
 				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 				identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
@@ -421,10 +422,14 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.Require().NoError(err)
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
-			}, false,
+
+				expEscrowBal = fee.Total()
+				expRefundBal = expRefundBal.Sub(fee.Total())
+			}, true,
 		},
 		{
 			"distributing to blocked address is skipped", func() {
+				expectEscrowFeesToBeDeleted = false
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 
 				// store the fee in state & update escrow account balance
@@ -454,6 +459,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 			expIdentifiedPacketFees = []types.IdentifiedPacketFees{}
 			expEscrowBal = sdk.Coins{}
 			locked = false
+			expectEscrowFeesToBeDeleted = true
 
 			// setup
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
@@ -500,10 +506,9 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.Require().Equal(expEscrowBal, escrowBal) // escrow balance should be empty
 				suite.Require().Equal(expRefundBal, refundBal) // all packets should have been refunded
 
-				// all fees in escrow should be deleted for this channel
-				suite.Require().Empty(suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
+				// all fees in escrow should be deleted if expected for this channel
+				suite.Require().Equal(expectEscrowFeesToBeDeleted, len(suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)) == 0)
 			}
-
 		})
 	}
 }
