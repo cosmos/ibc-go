@@ -3,10 +3,10 @@ package types_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 var frozenHeight = clienttypes.NewHeight(0, 1)
@@ -70,40 +70,40 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 // this is to prevent headers from failing when attempting to update later.
 func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
-		name                         string
-		FreezeClient                 bool
-		ExpireClient                 bool
-		expPass                      bool
+		name         string
+		FreezeClient bool
+		ExpireClient bool
+		expPass      bool
 	}{
 		{
-			name:                         "PASS: update checks are deprecated, client is frozen and expired",
-			FreezeClient:                 true,
-			ExpireClient:                 true,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, client is frozen and expired",
+			FreezeClient: true,
+			ExpireClient: true,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, not frozen or expired",
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, not frozen or expired",
+			FreezeClient: false,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, not frozen or expired",
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, not frozen or expired",
+			FreezeClient: false,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, client is frozen",
-			FreezeClient:                 true,
-			ExpireClient:                 false,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, client is frozen",
+			FreezeClient: true,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, client is expired",
-			FreezeClient:                 false,
-			ExpireClient:                 true,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, client is expired",
+			FreezeClient: false,
+			ExpireClient: true,
+			expPass:      true,
 		},
 	}
 
