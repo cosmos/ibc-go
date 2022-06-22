@@ -8,6 +8,7 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/log15"
+	"github.com/ComposableFi/go-merkle-trees/hasher"
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,18 +19,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/crypto"
 )
-
-type Keccak256 struct{}
-
-func (b Keccak256) Merge(left, right interface{}) interface{} {
-	l := left.([]byte)
-	r := right.([]byte)
-	return crypto.Keccak256(append(l, r...))
-}
-
-func (b Keccak256) Hash(data []byte) ([]byte, error) {
-	return crypto.Keccak256(data), nil
-}
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
@@ -114,7 +103,7 @@ func (cs *ClientState) verifyHeader(
 	case cs.Authority.Id:
 		// here we construct a merkle proof, and verify that the public keys which produced this signature
 		// are part of the current round.
-		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, Keccak256{})
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, hasher.Keccak256Hasher{})
 		valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
 		if err != nil || !valid {
 			return sdkerrors.Wrap(err, ErrAuthoritySetUnknown.Error())
@@ -122,7 +111,7 @@ func (cs *ClientState) verifyHeader(
 
 	// new authority set has kicked in
 	case cs.NextAuthoritySet.Id:
-		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, Keccak256{})
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, hasher.Keccak256Hasher{})
 		valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
 		if err != nil || !valid {
 			return sdkerrors.Wrap(err, ErrAuthoritySetUnknown.Error())
@@ -151,7 +140,7 @@ func (cs *ClientState) verifyHeader(
 						Index: mmrUpdateProof.MmrLeafIndex,
 					},
 				}
-				mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
+				mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, hasher.Keccak256Hasher{})
 				// verify that the leaf is valid, for the signed mmr-root-hash
 				if !mmrProof.Verify(payload.PayloadData[:]) {
 					return sdkerrors.Wrap(err, ErrFailedVerifyMMRLeaf.Error()) // error!, mmr proof is invalid
@@ -209,7 +198,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 				Index: parachainHeader.HeadsLeafIndex,
 			},
 		}
-		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, Keccak256{})
+		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, hasher.Keccak256Hasher{})
 		// todo: merkle.Proof.Root() should return fixed bytes
 		parachainHeadsRoot, err := parachainHeadsProof.Root()
 		// TODO: verify extrinsic root here once trie lib is fixed.
@@ -248,7 +237,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 		}
 	}
 
-	mmrProof := mmr.NewProof(beefyHeader.MmrSize, beefyHeader.MmrProofs, mmrLeaves, Keccak256{})
+	mmrProof := mmr.NewProof(beefyHeader.MmrSize, beefyHeader.MmrProofs, mmrLeaves, hasher.Keccak256Hasher{})
 
 	return mmrProof, nil
 }
