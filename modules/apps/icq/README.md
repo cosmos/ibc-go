@@ -200,4 +200,4 @@ fmt.Println("Query Response: ", resp.String())
 
 Another implementation of Interchain Queries is by the use of KV store which can be seen implemented here by [QuickSilver](https://github.com/ingenuity-build/quicksilver/tree/main/x/interchainquery)
 
-The implementation works even if the host side hasn't implemented ICQ, however, it lacks IBC standards. 
+The implementation works even if the host side hasn't implemented ICQ, however, it does not fully leverage the IBC standards. 
