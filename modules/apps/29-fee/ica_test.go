@@ -118,7 +118,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	postEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	suite.Require().Equal(postEscrowBalance.AddAmount(expectedFee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
 
-	packetID := channeltypes.NewPacketId(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
+	packetID := channeltypes.NewPacketID(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
 	packetFees, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedFee, packetFees.PacketFees[0].Fee)
