@@ -50,7 +50,7 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 		req.Equal(srcRelayUser.Bech32Address(srcChain.Config().Bech32Prefix), address)
 	})
 
-	testCoinWallet1ToWallet3 := ibc.WalletAmount{
+	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
 		Address: chain2Wallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
 		Denom:   srcChain.Config().Denom,
 		Amount:  10000,
@@ -59,9 +59,8 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 	var srcTx ibc.Tx
 
 	t.Run("Send IBC transfer", func(t *testing.T) {
-		// send a transfer from wallet 1 on src chain to wallet 3 on dst chain
 		var err error
-		srcTx, err = srcChain.SendIBCTransfer(ctx, "channel-0", chain1Wallet.KeyName, testCoinWallet1ToWallet3, nil)
+		srcTx, err = srcChain.SendIBCTransfer(ctx, "channel-0", chain1Wallet.KeyName, chain1WalletToChain2WalletAmount, nil)
 		req.NoError(err)
 		req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
 	})
@@ -70,7 +69,7 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 		actualBalance, err := srcChain.GetBalance(ctx, chain1Wallet.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
 		req.NoError(err)
 
-		expected := startingTokenAmount - testCoinWallet1ToWallet3.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
+		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
 		req.Equal(expected, actualBalance)
 	})
 
@@ -97,7 +96,7 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 		actualBalance, err := srcChain.GetBalance(ctx, chain1Wallet.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
 		req.NoError(err)
 
-		expected := startingTokenAmount - testCoinWallet1ToWallet3.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
+		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
 		req.Equal(expected, actualBalance)
 	})
 
@@ -126,7 +125,7 @@ func TestFeeMiddlewareAsync(t *testing.T) {
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := startingTokenAmount - testCoinWallet1ToWallet3.Amount - gasFee - ackFee
+		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee
 		req.Equal(expected, actualBalance)
 	})
 }

@@ -65,10 +65,6 @@ func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context) error {
 
 }
 
-type QueryOutput struct {
-	CounterPartyPayee string `json:"counterparty_payee"`
-}
-
 func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, chain2Address string) (string, error) {
 	tn := fc.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
@@ -86,6 +82,10 @@ func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, chain2
 	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
 	if err != nil {
 		return "", dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+	}
+
+	type QueryOutput struct {
+		CounterPartyPayee string `json:"counterparty_payee"`
 	}
 
 	stdOutBytes := []byte(stdout)
