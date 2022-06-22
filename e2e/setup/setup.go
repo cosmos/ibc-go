@@ -4,16 +4,24 @@ import (
 	"context"
 	"fmt"
 	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
+	"github.com/ory/dockertest/v3"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/relayer"
-	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/testreporter"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"testing"
 )
+
+func NewRelayer(t *testing.T, logger *zap.Logger, pool *dockertest.Pool, network string, home string) ibc.Relayer {
+	r := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main")).Build(
+		t, pool, network, home,
+	)
+	return r
+}
 
 // StandardTwoChainEnvironment creates two default simapp containers as well as a go relayer container.
 // the relayer that is returned is not yet started.
@@ -61,23 +69,23 @@ func StandardTwoChainEnvironment(t *testing.T, req *require.Assertions, eRep *te
 		HomeDir:          home,
 		Pool:             pool,
 		NetworkID:        network,
-		SkipPathCreation: opts.SkipPathCreation,
+		SkipPathCreation: true,
 	}))
 
 	// all channels & connections were created in ic.Build
-	if !opts.SkipPathCreation {
-		return chain1, chain2, r
-	}
-
-	req.NoError(r.GeneratePath(ctx, eRep, chain1.Config().ChainID, chain2.Config().ChainID, testconfig.TestPath))
-	req.NoError(r.CreateClients(ctx, eRep, testconfig.TestPath))
-
-	// The client isn't created immediately -- wait for two blocks to ensure the clients are ready.
-	req.NoError(test.WaitForBlocks(ctx, 2, chain1, chain2))
-	req.NoError(r.CreateConnections(ctx, eRep, testconfig.TestPath))
-	req.NoError(r.CreateChannel(ctx, eRep, testconfig.TestPath, *opts.CreateChannelOptions))
-
+	//if !opts.SkipPathCreation {
 	return chain1, chain2, r
+	//}
+	//
+	//req.NoError(r.GeneratePath(ctx, eRep, chain1.Config().ChainID, chain2.Config().ChainID, testconfig.TestPath))
+	//req.NoError(r.CreateClients(ctx, eRep, testconfig.TestPath))
+	//
+	//// The client isn't created immediately -- wait for two blocks to ensure the clients are ready.
+	//req.NoError(test.WaitForBlocks(ctx, 2, chain1, chain2))
+	//req.NoError(r.CreateConnections(ctx, eRep, testconfig.TestPath))
+	//req.NoError(r.CreateChannel(ctx, eRep, testconfig.TestPath, *opts.CreateChannelOptions))
+
+	//return chain1, chain2, r
 }
 
 // ConfigurationFunc allows for arbitrary configuration of the setup Options.

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
+	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"strings"
 )
@@ -14,14 +15,14 @@ type FeeMiddlewareChain struct {
 	*cosmos.CosmosChain
 }
 
-func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, chain1Address, chain2Address string) error {
+func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, chain1Address, chain2Address, portId, channelId string) error {
 	tn := fc.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"tx",
 		"ibc-fee",
 		"register-counterparty-payee",
-		"transfer",
-		"channel-0",
+		portId,
+		channelId,
 		strings.TrimSpace(chain2Address),
 		strings.TrimSpace(chain1Address),
 		"--from", strings.TrimSpace(chain2Address),
@@ -42,14 +43,14 @@ func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, cha
 
 }
 
-func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context) error {
+func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context, portId, channelId string) (types.QueryIncentivizedPacketsResponse, error) {
 	tn := fc.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"q",
 		"ibc-fee",
 		"packets-for-channel",
-		"transfer",
-		"channel-0",
+		portId,
+		channelId,
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
 		"--output", "json",
@@ -58,20 +59,27 @@ func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context) error {
 
 	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
 	if err != nil {
-		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+		return types.QueryIncentivizedPacketsResponse{}, dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
 	}
 
-	return nil
+	respBytes := []byte(stdout)
+	response := types.QueryIncentivizedPacketsResponse{}
+	//if err := types.ModuleCdc.Unmarshal(respBytes, &response); err != nil {
+	if err := json.Unmarshal(respBytes, &response); err != nil {
+		return types.QueryIncentivizedPacketsResponse{}, err
+	}
+
+	return response, nil
 
 }
 
-func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, chain2Address string) (string, error) {
+func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, chain2Address, channelID string) (string, error) {
 	tn := fc.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"q",
 		"ibc-fee",
 		"counterparty-payee",
-		"channel-0",
+		channelID,
 		chain2Address,
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
@@ -97,15 +105,15 @@ func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, chain2
 	return res.CounterPartyPayee, nil
 }
 
-func (fc *FeeMiddlewareChain) PayPacketFee(ctx context.Context, fromAddress string, recvFee, ackFee, timeoutFee int64) error {
+func (fc *FeeMiddlewareChain) PayPacketFee(ctx context.Context, fromAddress, portId, channelId string, sequenceNumber, recvFee, ackFee, timeoutFee int64) error {
 	tn := fc.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"tx",
 		"ibc-fee",
 		"pay-packet-fee",
-		"transfer",
-		"channel-0",
-		"1",
+		portId,
+		channelId,
+		fmt.Sprintf("%d", sequenceNumber),
 		"--from", fromAddress,
 		"--recv-fee", fmt.Sprintf("%d%s", recvFee, fc.Config().Denom),
 		"--ack-fee", fmt.Sprintf("%d%s", ackFee, fc.Config().Denom),

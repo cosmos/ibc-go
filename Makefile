@@ -12,6 +12,7 @@ MOCKS_DIR = $(CURDIR)/tests/mocks
 HTTPS_GIT := https://github.com/cosmos/ibc-go.git
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.0.0-rc8
+TEST_CONTAINERS=$(shell docker ps --filter "label=ibc-test" -a -q)
 
 export GO111MODULE = on
 
@@ -324,7 +325,13 @@ benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
 
-e2e-test:
+cleanup-ibc-test-containers:
+	for id in $(TEST_CONTAINERS) ; do \
+		$(DOCKER) stop $$id ; \
+		$(DOCKER) rm $$id ; \
+	done
+
+e2e-test: cleanup-ibc-test-containers
 	@go test -v ./e2e --run $(test)
 
 ###############################################################################
