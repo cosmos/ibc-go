@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"fmt"
+
 	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
