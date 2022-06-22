@@ -132,6 +132,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"ICA auth module modification of channel version is ignored", func() {
+				// NOTE: explicitly modify the channel version via the auth module callback,
+				// ensuring the expected JSON encoded metadata is not modified upon return
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, version string,
@@ -210,9 +212,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			)
 
 			if tc.expPass {
-				expMetadata := icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-
-				suite.Require().Equal(expMetadata, version)
+				suite.Require().Equal(icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID), version)
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
