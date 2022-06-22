@@ -409,8 +409,71 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
-	var req *types.QueryCounterpartyAddressRequest
+func (suite *KeeperTestSuite) TestQueryPayee() {
+	var req *types.QueryPayeeRequest
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"payee address not found: invalid channel",
+			func() {
+				req.ChannelId = "invalid-channel-id"
+			},
+			false,
+		},
+		{
+			"payee address not found: invalid relayer address",
+			func() {
+				req.Relayer = "invalid-addr"
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			pk := secp256k1.GenPrivKey().PubKey()
+			expPayeeAddr := sdk.AccAddress(pk.Address())
+
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				expPayeeAddr.String(),
+				suite.path.EndpointA.ChannelID,
+			)
+
+			req = &types.QueryPayeeRequest{
+				ChannelId: suite.path.EndpointA.ChannelID,
+				Relayer:   suite.chainA.SenderAccount.GetAddress().String(),
+			}
+
+			tc.malleate()
+
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			res, err := suite.queryClient.Payee(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expPayeeAddr.String(), res.PayeeAddress)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
+	var req *types.QueryCounterpartyPayeeRequest
 
 	testCases := []struct {
 		name     string
@@ -432,7 +495,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 		{
 			"counterparty address not found: invalid address",
 			func() {
-				req.RelayerAddress = "invalid-addr"
+				req.Relayer = "invalid-addr"
 			},
 			false,
 		},
@@ -443,28 +506,28 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyAddress() {
 			suite.SetupTest() // reset
 
 			pk := secp256k1.GenPrivKey().PubKey()
-			expectedCounterpartyAddr := sdk.AccAddress(pk.Address())
+			expCounterpartyPayeeAddr := sdk.AccAddress(pk.Address())
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyAddress(
+			suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(
 				suite.chainA.GetContext(),
 				suite.chainA.SenderAccount.GetAddress().String(),
-				expectedCounterpartyAddr.String(),
+				expCounterpartyPayeeAddr.String(),
 				suite.path.EndpointA.ChannelID,
 			)
 
-			req = &types.QueryCounterpartyAddressRequest{
-				ChannelId:      suite.path.EndpointA.ChannelID,
-				RelayerAddress: suite.chainA.SenderAccount.GetAddress().String(),
+			req = &types.QueryCounterpartyPayeeRequest{
+				ChannelId: suite.path.EndpointA.ChannelID,
+				Relayer:   suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-			res, err := suite.queryClient.CounterpartyAddress(ctx, req)
+			res, err := suite.queryClient.CounterpartyPayee(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expectedCounterpartyAddr.String(), res.CounterpartyAddress)
+				suite.Require().Equal(expCounterpartyPayeeAddr.String(), res.CounterpartyPayee)
 			} else {
 				suite.Require().Error(err)
 			}

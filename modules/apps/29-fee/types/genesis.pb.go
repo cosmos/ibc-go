@@ -30,10 +30,12 @@ type GenesisState struct {
 	IdentifiedFees []IdentifiedPacketFees `protobuf:"bytes,1,rep,name=identified_fees,json=identifiedFees,proto3" json:"identified_fees" yaml:"identified_fees"`
 	// list of fee enabled channels
 	FeeEnabledChannels []FeeEnabledChannel `protobuf:"bytes,2,rep,name=fee_enabled_channels,json=feeEnabledChannels,proto3" json:"fee_enabled_channels" yaml:"fee_enabled_channels"`
-	// list of registered relayer addresses
-	RegisteredRelayers []RegisteredRelayerAddress `protobuf:"bytes,3,rep,name=registered_relayers,json=registeredRelayers,proto3" json:"registered_relayers" yaml:"registered_relayers"`
+	// list of registered payees
+	RegisteredPayees []RegisteredPayee `protobuf:"bytes,3,rep,name=registered_payees,json=registeredPayees,proto3" json:"registered_payees" yaml:"registered_payees"`
+	// list of registered counterparty payees
+	RegisteredCounterpartyPayees []RegisteredCounterpartyPayee `protobuf:"bytes,4,rep,name=registered_counterparty_payees,json=registeredCounterpartyPayees,proto3" json:"registered_counterparty_payees" yaml:"registered_counterparty_payees"`
 	// list of forward relayer addresses
-	ForwardRelayers []ForwardRelayerAddress `protobuf:"bytes,4,rep,name=forward_relayers,json=forwardRelayers,proto3" json:"forward_relayers" yaml:"forward_relayers"`
+	ForwardRelayers []ForwardRelayerAddress `protobuf:"bytes,5,rep,name=forward_relayers,json=forwardRelayers,proto3" json:"forward_relayers" yaml:"forward_relayers"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -83,9 +85,16 @@ func (m *GenesisState) GetFeeEnabledChannels() []FeeEnabledChannel {
 	return nil
 }
 
-func (m *GenesisState) GetRegisteredRelayers() []RegisteredRelayerAddress {
+func (m *GenesisState) GetRegisteredPayees() []RegisteredPayee {
 	if m != nil {
-		return m.RegisteredRelayers
+		return m.RegisteredPayees
+	}
+	return nil
+}
+
+func (m *GenesisState) GetRegisteredCounterpartyPayees() []RegisteredCounterpartyPayee {
+	if m != nil {
+		return m.RegisteredCounterpartyPayees
 	}
 	return nil
 }
@@ -152,28 +161,28 @@ func (m *FeeEnabledChannel) GetChannelId() string {
 	return ""
 }
 
-// RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
-type RegisteredRelayerAddress struct {
-	// the relayer address
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// the counterparty relayer address
-	CounterpartyAddress string `protobuf:"bytes,2,opt,name=counterparty_address,json=counterpartyAddress,proto3" json:"counterparty_address,omitempty" yaml:"counterparty_address"`
+// RegisteredPayee contains the relayer address and payee address for a specific channel
+type RegisteredPayee struct {
 	// unique channel identifier
-	ChannelId string `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// the relayer address
+	Relayer string `protobuf:"bytes,2,opt,name=relayer,proto3" json:"relayer,omitempty"`
+	// the payee address
+	Payee string `protobuf:"bytes,3,opt,name=payee,proto3" json:"payee,omitempty"`
 }
 
-func (m *RegisteredRelayerAddress) Reset()         { *m = RegisteredRelayerAddress{} }
-func (m *RegisteredRelayerAddress) String() string { return proto.CompactTextString(m) }
-func (*RegisteredRelayerAddress) ProtoMessage()    {}
-func (*RegisteredRelayerAddress) Descriptor() ([]byte, []int) {
+func (m *RegisteredPayee) Reset()         { *m = RegisteredPayee{} }
+func (m *RegisteredPayee) String() string { return proto.CompactTextString(m) }
+func (*RegisteredPayee) ProtoMessage()    {}
+func (*RegisteredPayee) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7191992e856dff95, []int{2}
 }
-func (m *RegisteredRelayerAddress) XXX_Unmarshal(b []byte) error {
+func (m *RegisteredPayee) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *RegisteredRelayerAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *RegisteredPayee) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_RegisteredRelayerAddress.Marshal(b, m, deterministic)
+		return xxx_messageInfo_RegisteredPayee.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -183,35 +192,100 @@ func (m *RegisteredRelayerAddress) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *RegisteredRelayerAddress) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RegisteredRelayerAddress.Merge(m, src)
+func (m *RegisteredPayee) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisteredPayee.Merge(m, src)
 }
-func (m *RegisteredRelayerAddress) XXX_Size() int {
+func (m *RegisteredPayee) XXX_Size() int {
 	return m.Size()
 }
-func (m *RegisteredRelayerAddress) XXX_DiscardUnknown() {
-	xxx_messageInfo_RegisteredRelayerAddress.DiscardUnknown(m)
+func (m *RegisteredPayee) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisteredPayee.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RegisteredRelayerAddress proto.InternalMessageInfo
+var xxx_messageInfo_RegisteredPayee proto.InternalMessageInfo
 
-func (m *RegisteredRelayerAddress) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
-}
-
-func (m *RegisteredRelayerAddress) GetCounterpartyAddress() string {
-	if m != nil {
-		return m.CounterpartyAddress
-	}
-	return ""
-}
-
-func (m *RegisteredRelayerAddress) GetChannelId() string {
+func (m *RegisteredPayee) GetChannelId() string {
 	if m != nil {
 		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *RegisteredPayee) GetRelayer() string {
+	if m != nil {
+		return m.Relayer
+	}
+	return ""
+}
+
+func (m *RegisteredPayee) GetPayee() string {
+	if m != nil {
+		return m.Payee
+	}
+	return ""
+}
+
+// RegisteredCounterpartyPayee contains the relayer address and counterparty payee address for a specific channel (used
+// for recv fee distribution)
+type RegisteredCounterpartyPayee struct {
+	// unique channel identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
+	// the relayer address
+	Relayer string `protobuf:"bytes,2,opt,name=relayer,proto3" json:"relayer,omitempty"`
+	// the counterparty payee address
+	CounterpartyPayee string `protobuf:"bytes,3,opt,name=counterparty_payee,json=counterpartyPayee,proto3" json:"counterparty_payee,omitempty" yaml:"counterparty_payee"`
+}
+
+func (m *RegisteredCounterpartyPayee) Reset()         { *m = RegisteredCounterpartyPayee{} }
+func (m *RegisteredCounterpartyPayee) String() string { return proto.CompactTextString(m) }
+func (*RegisteredCounterpartyPayee) ProtoMessage()    {}
+func (*RegisteredCounterpartyPayee) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7191992e856dff95, []int{3}
+}
+func (m *RegisteredCounterpartyPayee) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RegisteredCounterpartyPayee) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RegisteredCounterpartyPayee.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RegisteredCounterpartyPayee) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisteredCounterpartyPayee.Merge(m, src)
+}
+func (m *RegisteredCounterpartyPayee) XXX_Size() int {
+	return m.Size()
+}
+func (m *RegisteredCounterpartyPayee) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisteredCounterpartyPayee.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisteredCounterpartyPayee proto.InternalMessageInfo
+
+func (m *RegisteredCounterpartyPayee) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *RegisteredCounterpartyPayee) GetRelayer() string {
+	if m != nil {
+		return m.Relayer
+	}
+	return ""
+}
+
+func (m *RegisteredCounterpartyPayee) GetCounterpartyPayee() string {
+	if m != nil {
+		return m.CounterpartyPayee
 	}
 	return ""
 }
@@ -228,7 +302,7 @@ func (m *ForwardRelayerAddress) Reset()         { *m = ForwardRelayerAddress{} }
 func (m *ForwardRelayerAddress) String() string { return proto.CompactTextString(m) }
 func (*ForwardRelayerAddress) ProtoMessage()    {}
 func (*ForwardRelayerAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7191992e856dff95, []int{3}
+	return fileDescriptor_7191992e856dff95, []int{4}
 }
 func (m *ForwardRelayerAddress) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -274,7 +348,8 @@ func (m *ForwardRelayerAddress) GetPacketId() types.PacketId {
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "ibc.applications.fee.v1.GenesisState")
 	proto.RegisterType((*FeeEnabledChannel)(nil), "ibc.applications.fee.v1.FeeEnabledChannel")
-	proto.RegisterType((*RegisteredRelayerAddress)(nil), "ibc.applications.fee.v1.RegisteredRelayerAddress")
+	proto.RegisterType((*RegisteredPayee)(nil), "ibc.applications.fee.v1.RegisteredPayee")
+	proto.RegisterType((*RegisteredCounterpartyPayee)(nil), "ibc.applications.fee.v1.RegisteredCounterpartyPayee")
 	proto.RegisterType((*ForwardRelayerAddress)(nil), "ibc.applications.fee.v1.ForwardRelayerAddress")
 }
 
@@ -283,44 +358,48 @@ func init() {
 }
 
 var fileDescriptor_7191992e856dff95 = []byte{
-	// 579 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0x4d, 0x6f, 0xd4, 0x30,
-	0x14, 0xdc, 0xb4, 0x55, 0x4b, 0x5d, 0xd4, 0x0f, 0xb7, 0xa5, 0x51, 0x11, 0x49, 0x31, 0x42, 0xaa,
-	0x40, 0x4d, 0xb4, 0x2d, 0x1c, 0xe0, 0xc6, 0x22, 0x8a, 0xf6, 0x04, 0x32, 0x9c, 0xb8, 0x44, 0xf9,
-	0x78, 0x49, 0x2d, 0xb2, 0x71, 0x64, 0xbb, 0x41, 0xcb, 0x8d, 0x0b, 0x1c, 0xe1, 0x17, 0x71, 0xee,
-	0xb1, 0x47, 0x4e, 0x2b, 0xd4, 0xfe, 0x83, 0xfe, 0x02, 0x94, 0x38, 0xe9, 0x6e, 0x97, 0x0d, 0xe2,
-	0xf6, 0x62, 0xcf, 0xbc, 0x19, 0x8f, 0xf3, 0x8c, 0x1e, 0xb2, 0x20, 0x74, 0xfd, 0x3c, 0x4f, 0x59,
-	0xe8, 0x2b, 0xc6, 0x33, 0xe9, 0xc6, 0x00, 0x6e, 0xd1, 0x75, 0x13, 0xc8, 0x40, 0x32, 0xe9, 0xe4,
-	0x82, 0x2b, 0x8e, 0x77, 0x58, 0x10, 0x3a, 0x93, 0x30, 0x27, 0x06, 0x70, 0x8a, 0xee, 0xee, 0x56,
-	0xc2, 0x13, 0x5e, 0x61, 0xdc, 0xb2, 0xd2, 0xf0, 0xdd, 0xfb, 0x6d, 0x5d, 0x4b, 0xd6, 0x04, 0x24,
-	0xe4, 0x02, 0xdc, 0xf0, 0xc4, 0xcf, 0x32, 0x48, 0xcb, 0xed, 0xba, 0xd4, 0x10, 0xf2, 0x7d, 0x01,
-	0xdd, 0x7e, 0xad, 0x6d, 0xbc, 0x53, 0xbe, 0x02, 0x5c, 0xa0, 0x35, 0x16, 0x41, 0xa6, 0x58, 0xcc,
-	0x20, 0xf2, 0x62, 0x00, 0x69, 0x1a, 0x7b, 0xf3, 0xfb, 0x2b, 0x87, 0x07, 0x4e, 0x8b, 0x3f, 0xa7,
-	0x7f, 0x8d, 0x7f, 0xeb, 0x87, 0x1f, 0x41, 0x1d, 0x03, 0xc8, 0x9e, 0x75, 0x36, 0xb2, 0x3b, 0x57,
-	0x23, 0xfb, 0xce, 0xd0, 0x1f, 0xa4, 0xcf, 0xc9, 0x54, 0x4f, 0x42, 0x57, 0xc7, 0x2b, 0x25, 0x1e,
-	0x7f, 0x31, 0xd0, 0x56, 0x0c, 0xe0, 0x41, 0xe6, 0x07, 0x29, 0x44, 0x5e, 0x6d, 0x53, 0x9a, 0x73,
-	0x95, 0xfa, 0xa3, 0x56, 0xf5, 0x63, 0x80, 0x57, 0x9a, 0xf3, 0x52, 0x53, 0x7a, 0x0f, 0x6a, 0xe9,
-	0xbb, 0x5a, 0x7a, 0x56, 0x57, 0x42, 0x71, 0x3c, 0xcd, 0x93, 0xf8, 0xab, 0x81, 0x36, 0x05, 0x24,
-	0x4c, 0x2a, 0x10, 0x10, 0x79, 0x02, 0x52, 0x7f, 0x08, 0x42, 0x9a, 0xf3, 0x95, 0x85, 0x6e, 0xab,
-	0x05, 0x7a, 0xcd, 0xa1, 0x9a, 0xf2, 0x22, 0x8a, 0x04, 0x48, 0xd9, 0x23, 0xb5, 0x93, 0x5d, 0xed,
-	0x64, 0x46, 0x6f, 0x42, 0xb1, 0x98, 0x66, 0x4b, 0xfc, 0x19, 0xad, 0xc7, 0x5c, 0x7c, 0xf2, 0xc5,
-	0x84, 0x89, 0x85, 0xca, 0x84, 0xd3, 0x9e, 0x83, 0x26, 0x4c, 0x39, 0xb0, 0x6b, 0x07, 0x3b, 0x75,
-	0x16, 0x53, 0x5d, 0x09, 0x5d, 0x8b, 0x6f, 0xf0, 0x24, 0x29, 0xd0, 0xc6, 0x5f, 0x91, 0xe2, 0xc7,
-	0x68, 0x29, 0xe7, 0x42, 0x79, 0x2c, 0x32, 0x8d, 0x3d, 0x63, 0x7f, 0xb9, 0x87, 0xaf, 0x46, 0xf6,
-	0xaa, 0xee, 0x59, 0x6f, 0x10, 0xba, 0x58, 0x56, 0xfd, 0x08, 0x3f, 0x41, 0xa8, 0xce, 0xb9, 0xc4,
-	0xcf, 0x55, 0xf8, 0xed, 0xab, 0x91, 0xbd, 0xa1, 0xf1, 0xe3, 0x3d, 0x42, 0x97, 0xeb, 0x8f, 0x7e,
-	0x44, 0x7e, 0x1a, 0xc8, 0x6c, 0x0b, 0x12, 0x9b, 0x68, 0xc9, 0xd7, 0xa5, 0xd6, 0xa7, 0xcd, 0x27,
-	0xa6, 0x68, 0x2b, 0xe4, 0xa7, 0x99, 0x02, 0x91, 0xfb, 0x42, 0x0d, 0xbd, 0x06, 0xa6, 0x65, 0xed,
-	0xf1, 0x6f, 0x30, 0x0b, 0x45, 0xe8, 0xe6, 0xe4, 0x72, 0xa3, 0x76, 0xf3, 0x00, 0xf3, 0xff, 0x79,
-	0x80, 0x6f, 0x06, 0xda, 0x9e, 0x79, 0x09, 0xff, 0x70, 0xff, 0x1e, 0x2d, 0xe7, 0xd5, 0xcc, 0x34,
-	0x49, 0xad, 0x1c, 0xde, 0xab, 0x6e, 0xb8, 0x9c, 0x5a, 0xa7, 0x19, 0xd5, 0xa2, 0xeb, 0xe8, 0xc9,
-	0xea, 0x47, 0x3d, 0xb3, 0xbe, 0xd0, 0xf5, 0x3a, 0xfc, 0x86, 0x4d, 0xe8, 0xad, 0xbc, 0xc1, 0xbc,
-	0x39, 0xbb, 0xb0, 0x8c, 0xf3, 0x0b, 0xcb, 0xf8, 0x7d, 0x61, 0x19, 0x3f, 0x2e, 0xad, 0xce, 0xf9,
-	0xa5, 0xd5, 0xf9, 0x75, 0x69, 0x75, 0x3e, 0x3c, 0x4d, 0x98, 0x3a, 0x39, 0x0d, 0x9c, 0x90, 0x0f,
-	0xdc, 0x90, 0xcb, 0x01, 0x97, 0x2e, 0x0b, 0xc2, 0x83, 0x84, 0xbb, 0xc5, 0x91, 0x3b, 0xe0, 0xd1,
-	0x69, 0x0a, 0xb2, 0x7c, 0x54, 0xa4, 0x7b, 0xf8, 0xec, 0xa0, 0x7c, 0x4f, 0xd4, 0x30, 0x07, 0x19,
-	0x2c, 0x56, 0x8f, 0xc5, 0xd1, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe9, 0x33, 0x0f, 0x78, 0xca,
-	0x04, 0x00, 0x00,
+	// 648 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcd, 0x4e, 0xd4, 0x40,
+	0x1c, 0xdf, 0x82, 0x80, 0x0c, 0x06, 0xd8, 0x09, 0x48, 0x05, 0xe9, 0xe2, 0x18, 0x12, 0xa2, 0xd9,
+	0x36, 0x7c, 0x78, 0xd0, 0x9b, 0x25, 0x62, 0x36, 0x31, 0x91, 0x8c, 0x9e, 0xbc, 0x6c, 0xba, 0xed,
+	0xbf, 0x4b, 0xe3, 0x6e, 0xa7, 0x99, 0x19, 0x96, 0xac, 0x37, 0x4f, 0x5e, 0x7d, 0x0d, 0xe3, 0x23,
+	0xf8, 0x02, 0x1c, 0x39, 0x7a, 0xda, 0x18, 0x78, 0x83, 0x7d, 0x02, 0x33, 0x9d, 0x29, 0x2c, 0xfb,
+	0x61, 0x38, 0x78, 0x9b, 0xe9, 0xfc, 0xbe, 0xa6, 0xbf, 0xc9, 0x1f, 0x6d, 0x27, 0x8d, 0xd0, 0x0b,
+	0xb2, 0xac, 0x95, 0x84, 0x81, 0x4c, 0x58, 0x2a, 0xbc, 0x18, 0xc0, 0xeb, 0xec, 0x7a, 0x4d, 0x48,
+	0x41, 0x24, 0xc2, 0xcd, 0x38, 0x93, 0x0c, 0xaf, 0x25, 0x8d, 0xd0, 0x1d, 0x84, 0xb9, 0x31, 0x80,
+	0xdb, 0xd9, 0x5d, 0x5f, 0x69, 0xb2, 0x26, 0xcb, 0x31, 0x9e, 0x5a, 0x69, 0xf8, 0xfa, 0x93, 0x49,
+	0xaa, 0x8a, 0x35, 0x00, 0x09, 0x19, 0x07, 0x2f, 0x3c, 0x09, 0xd2, 0x14, 0x5a, 0xea, 0xd8, 0x2c,
+	0x35, 0x84, 0xfc, 0x9c, 0x41, 0x0f, 0xde, 0xea, 0x18, 0x1f, 0x64, 0x20, 0x01, 0x77, 0xd0, 0x52,
+	0x12, 0x41, 0x2a, 0x93, 0x38, 0x81, 0xa8, 0x1e, 0x03, 0x08, 0xdb, 0xda, 0x9a, 0xde, 0x59, 0xd8,
+	0xab, 0xba, 0x13, 0xf2, 0xb9, 0xb5, 0x6b, 0xfc, 0x71, 0x10, 0x7e, 0x06, 0x79, 0x04, 0x20, 0x7c,
+	0xe7, 0xbc, 0x57, 0x29, 0xf5, 0x7b, 0x95, 0x87, 0xdd, 0xa0, 0xdd, 0x7a, 0x45, 0x86, 0x34, 0x09,
+	0x5d, 0xbc, 0xf9, 0xa2, 0xf0, 0xf8, 0xab, 0x85, 0x56, 0x62, 0x80, 0x3a, 0xa4, 0x41, 0xa3, 0x05,
+	0x51, 0xdd, 0xc4, 0x14, 0xf6, 0x54, 0xee, 0xfe, 0x6c, 0xa2, 0xfb, 0x11, 0xc0, 0x1b, 0xcd, 0x39,
+	0xd4, 0x14, 0xff, 0xa9, 0xb1, 0xde, 0xd0, 0xd6, 0xe3, 0x54, 0x09, 0xc5, 0xf1, 0x30, 0x4f, 0xe0,
+	0x33, 0x54, 0xe6, 0xd0, 0x4c, 0x84, 0x04, 0x0e, 0x51, 0x3d, 0x0b, 0xba, 0xea, 0xf6, 0xd3, 0xb9,
+	0xff, 0xce, 0x44, 0x7f, 0x7a, 0xcd, 0x38, 0x56, 0x04, 0x7f, 0xcb, 0xb8, 0xdb, 0xda, 0x7d, 0x44,
+	0x90, 0xd0, 0x65, 0x7e, 0x9b, 0x22, 0xf0, 0x0f, 0x0b, 0x39, 0x03, 0xc0, 0x90, 0x9d, 0xa6, 0x12,
+	0x78, 0x16, 0x70, 0xd9, 0x2d, 0x62, 0xdc, 0xcb, 0x63, 0x1c, 0xdc, 0x21, 0xc6, 0xe1, 0x00, 0x5b,
+	0x47, 0xaa, 0x9a, 0x48, 0xdb, 0x23, 0x91, 0xc6, 0x38, 0x11, 0xfa, 0x98, 0x4f, 0xd6, 0x12, 0xf8,
+	0x0b, 0x5a, 0x8e, 0x19, 0x3f, 0x0b, 0x78, 0x54, 0xe7, 0xd0, 0x0a, 0xba, 0xc0, 0x85, 0x3d, 0x93,
+	0x87, 0x73, 0x27, 0x77, 0xa4, 0x09, 0x54, 0xe3, 0x5f, 0x47, 0x11, 0x07, 0x21, 0xfc, 0x8a, 0x89,
+	0xb5, 0x66, 0x7a, 0x1a, 0x52, 0x25, 0x74, 0x29, 0xbe, 0xc5, 0x13, 0xa4, 0x83, 0xca, 0x23, 0x75,
+	0xe3, 0xe7, 0x68, 0x2e, 0x63, 0x5c, 0xd6, 0x93, 0xc8, 0xb6, 0xb6, 0xac, 0x9d, 0x79, 0x1f, 0xf7,
+	0x7b, 0x95, 0x45, 0xad, 0x69, 0x0e, 0x08, 0x9d, 0x55, 0xab, 0x5a, 0x84, 0x0f, 0x10, 0x32, 0x6f,
+	0x40, 0xe1, 0xa7, 0x72, 0xfc, 0x6a, 0xbf, 0x57, 0x29, 0x6b, 0xfc, 0xcd, 0x19, 0xa1, 0xf3, 0x66,
+	0x53, 0x8b, 0xc8, 0x19, 0x5a, 0x1a, 0xaa, 0x79, 0x48, 0xc8, 0xba, 0x9b, 0x10, 0xb6, 0xd1, 0x9c,
+	0xb9, 0x9e, 0xf6, 0xa6, 0xc5, 0x16, 0xaf, 0xa0, 0x99, 0xfc, 0xff, 0xdb, 0xd3, 0xf9, 0x77, 0xbd,
+	0x21, 0xbf, 0x2c, 0xb4, 0xf1, 0x8f, 0x66, 0xff, 0x7b, 0x8a, 0x77, 0x08, 0x8f, 0x3e, 0x09, 0x1d,
+	0xc9, 0xdf, 0xec, 0xf7, 0x2a, 0x8f, 0x8c, 0xee, 0x08, 0x86, 0xd0, 0x72, 0x38, 0x9c, 0x8e, 0x7c,
+	0xb3, 0xd0, 0xea, 0xd8, 0xea, 0x55, 0x82, 0x40, 0x2f, 0x75, 0x68, 0x5a, 0x6c, 0xf1, 0x47, 0x34,
+	0x9f, 0xe5, 0x53, 0xa4, 0xe8, 0x67, 0x61, 0x6f, 0x33, 0x7f, 0x57, 0x6a, 0x8e, 0xb9, 0xc5, 0xf0,
+	0xea, 0xec, 0xba, 0x7a, 0xd6, 0xd4, 0x22, 0xdf, 0x36, 0xcf, 0x68, 0xd9, 0x54, 0x5e, 0xb0, 0x09,
+	0xbd, 0x9f, 0x15, 0x98, 0xf7, 0xe7, 0x97, 0x8e, 0x75, 0x71, 0xe9, 0x58, 0x7f, 0x2e, 0x1d, 0xeb,
+	0xfb, 0x95, 0x53, 0xba, 0xb8, 0x72, 0x4a, 0xbf, 0xaf, 0x9c, 0xd2, 0xa7, 0x17, 0xcd, 0x44, 0x9e,
+	0x9c, 0x36, 0xdc, 0x90, 0xb5, 0xbd, 0x90, 0x89, 0x36, 0x13, 0x5e, 0xd2, 0x08, 0xab, 0x4d, 0xe6,
+	0x75, 0xf6, 0xbd, 0x36, 0x8b, 0x4e, 0x5b, 0x20, 0xd4, 0x98, 0x15, 0xde, 0xde, 0xcb, 0xaa, 0x9a,
+	0xb0, 0xb2, 0x9b, 0x81, 0x68, 0xcc, 0xe6, 0xe3, 0x73, 0xff, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x87, 0x75, 0xda, 0x18, 0xdc, 0x05, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -354,13 +433,27 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintGenesis(dAtA, i, uint64(size))
 			}
 			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.RegisteredCounterpartyPayees) > 0 {
+		for iNdEx := len(m.RegisteredCounterpartyPayees) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.RegisteredCounterpartyPayees[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
 			dAtA[i] = 0x22
 		}
 	}
-	if len(m.RegisteredRelayers) > 0 {
-		for iNdEx := len(m.RegisteredRelayers) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.RegisteredPayees) > 0 {
+		for iNdEx := len(m.RegisteredPayees) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.RegisteredRelayers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.RegisteredPayees[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -439,7 +532,7 @@ func (m *FeeEnabledChannel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *RegisteredRelayerAddress) Marshal() (dAtA []byte, err error) {
+func (m *RegisteredPayee) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -449,34 +542,78 @@ func (m *RegisteredRelayerAddress) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *RegisteredRelayerAddress) MarshalTo(dAtA []byte) (int, error) {
+func (m *RegisteredPayee) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *RegisteredRelayerAddress) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *RegisteredPayee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if len(m.Payee) > 0 {
+		i -= len(m.Payee)
+		copy(dAtA[i:], m.Payee)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Payee)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Relayer) > 0 {
+		i -= len(m.Relayer)
+		copy(dAtA[i:], m.Relayer)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Relayer)))
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.ChannelId) > 0 {
 		i -= len(m.ChannelId)
 		copy(dAtA[i:], m.ChannelId)
 		i = encodeVarintGenesis(dAtA, i, uint64(len(m.ChannelId)))
 		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RegisteredCounterpartyPayee) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RegisteredCounterpartyPayee) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RegisteredCounterpartyPayee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.CounterpartyPayee) > 0 {
+		i -= len(m.CounterpartyPayee)
+		copy(dAtA[i:], m.CounterpartyPayee)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.CounterpartyPayee)))
+		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.CounterpartyAddress) > 0 {
-		i -= len(m.CounterpartyAddress)
-		copy(dAtA[i:], m.CounterpartyAddress)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.CounterpartyAddress)))
+	if len(m.Relayer) > 0 {
+		i -= len(m.Relayer)
+		copy(dAtA[i:], m.Relayer)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Relayer)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Address)))
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.ChannelId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -552,8 +689,14 @@ func (m *GenesisState) Size() (n int) {
 			n += 1 + l + sovGenesis(uint64(l))
 		}
 	}
-	if len(m.RegisteredRelayers) > 0 {
-		for _, e := range m.RegisteredRelayers {
+	if len(m.RegisteredPayees) > 0 {
+		for _, e := range m.RegisteredPayees {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.RegisteredCounterpartyPayees) > 0 {
+		for _, e := range m.RegisteredCounterpartyPayees {
 			l = e.Size()
 			n += 1 + l + sovGenesis(uint64(l))
 		}
@@ -584,21 +727,42 @@ func (m *FeeEnabledChannel) Size() (n int) {
 	return n
 }
 
-func (m *RegisteredRelayerAddress) Size() (n int) {
+func (m *RegisteredPayee) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
-	l = len(m.CounterpartyAddress)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
 	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.Relayer)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.Payee)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	return n
+}
+
+func (m *RegisteredCounterpartyPayee) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.Relayer)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.CounterpartyPayee)
 	if l > 0 {
 		n += 1 + l + sovGenesis(uint64(l))
 	}
@@ -725,7 +889,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RegisteredRelayers", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RegisteredPayees", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -752,12 +916,46 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RegisteredRelayers = append(m.RegisteredRelayers, RegisteredRelayerAddress{})
-			if err := m.RegisteredRelayers[len(m.RegisteredRelayers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.RegisteredPayees = append(m.RegisteredPayees, RegisteredPayee{})
+			if err := m.RegisteredPayees[len(m.RegisteredPayees)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RegisteredCounterpartyPayees", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RegisteredCounterpartyPayees = append(m.RegisteredCounterpartyPayees, RegisteredCounterpartyPayee{})
+			if err := m.RegisteredCounterpartyPayees[len(m.RegisteredCounterpartyPayees)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ForwardRelayers", wireType)
 			}
@@ -926,7 +1124,7 @@ func (m *FeeEnabledChannel) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *RegisteredRelayerAddress) Unmarshal(dAtA []byte) error {
+func (m *RegisteredPayee) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -949,77 +1147,13 @@ func (m *RegisteredRelayerAddress) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RegisteredRelayerAddress: wiretype end group for non-group")
+			return fmt.Errorf("proto: RegisteredPayee: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RegisteredRelayerAddress: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: RegisteredPayee: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.CounterpartyAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
 			}
@@ -1050,6 +1184,216 @@ func (m *RegisteredRelayerAddress) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Relayer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Relayer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payee", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Payee = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RegisteredCounterpartyPayee) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RegisteredCounterpartyPayee: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RegisteredCounterpartyPayee: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Relayer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Relayer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyPayee", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CounterpartyPayee = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
