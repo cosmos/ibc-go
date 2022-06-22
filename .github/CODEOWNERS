@@ -23,13 +23,8 @@
 
 # CODEOWNERS for the light-clients
 
-/modules/light-clients/ @colin-axner @fedekunze @AdityaSripal 
-/proto/ibc/lightclients/ @colin-axner @fedekunze @AdityaSripal 
-
-## CODEOWNERS for light-clients/07-tendermint
-
-/modules/light-clients/07-tendermint @seantking @damiannolan
-/proto/ibc/lightclients/tendermint @seantking @damiannolan
+/modules/light-clients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
+/proto/ibc/lightclients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
 
 # CODEOWNERS for ICS 20
 
