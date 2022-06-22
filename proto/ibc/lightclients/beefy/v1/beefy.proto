@@ -72,7 +72,7 @@ message CommitmentSignature {
   bytes signature = 1;
 
   // authority leaf index in the merkle tree.
-  uint32 authority_index = 2;
+  uint64 authority_index = 2;
 }
 
 // signed commitment data
@@ -159,10 +159,10 @@ message ParachainHeader {
   repeated bytes parachain_heads_proof = 4;
 
   // leaf index for parachain heads proof
-  uint32 heads_leaf_index = 5;
+  uint64 heads_leaf_index = 5;
 
   // total number of para heads in parachain_heads_root
-  uint32 heads_total_count = 6;
+  uint64 heads_total_count = 6;
 
   // trie merkle proof of inclusion in header.extrinsic_root
   repeated bytes extrinsic_proof = 7;
@@ -196,7 +196,7 @@ message BeefyAuthoritySet {
   uint64 id = 1;
 
   // size of the authority set
-  uint32 len = 2;
+  uint64 len = 2;
 
   // merkle root of the sorted authority public keys.
   bytes authority_root = 3 [(gogoproto.customtype) = "[32]byte"];

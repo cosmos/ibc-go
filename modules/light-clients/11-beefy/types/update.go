@@ -67,8 +67,8 @@ func (cs *ClientState) verifyHeader(
 	// checking signatures is expensive (667 authorities for kusama),
 	// we want to know if these sigs meet the minimum threshold before proceeding
 	// and are by a known authority set (the current one, or the next one)
-	if authoritiesThreshold(*cs.Authority) > uint32(len(signedCommitment.Signatures)) ||
-		authoritiesThreshold(*cs.NextAuthoritySet) > uint32(len(signedCommitment.Signatures)) {
+	if authoritiesThreshold(*cs.Authority) > uint64(len(signedCommitment.Signatures)) ||
+		authoritiesThreshold(*cs.NextAuthoritySet) > uint64(len(signedCommitment.Signatures)) {
 		return ErrCommitmentNotFinal
 	}
 
@@ -257,17 +257,18 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	beefyHeader, ok := clientMsg.(*Header)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, beefyHeader)
+		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 
 	consensusStates := make(map[clienttypes.Height]*ConsensusState)
+	heights := []exported.Height{}
 
 	// iterate over each parachain header and set them in the store.
 	for _, v := range beefyHeader.ParachainHeaders {
 		// decode parachain header bytes to struct
 		header, err := DecodeParachainHeader(v.ParachainHeader)
 		if err != nil {
-			return sdkerrors.Wrap(err, "failed to decode parachain header")
+			panic(fmt.Errorf("failed to decode parachain header"))
 		}
 
 		// TODO: IBC should allow height to be generic
@@ -286,16 +287,16 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		trieProof := trie.NewEmptyTrie()
 		// load the extrinsics proof which is basically a partial trie
 		// that encodes the timestamp extrinsic
-		errr := trieProof.LoadFromProof(v.ExtrinsicProof, header.ExtrinsicsRoot[:])
-		if errr != nil {
-			return sdkerrors.Wrap(err, "failed to load extrinsic proof")
+		err = trieProof.LoadFromProof(v.ExtrinsicProof, header.ExtrinsicsRoot[:])
+		if err != nil {
+			panic(fmt.Errorf("failed to load extrinsic proof"))
 		}
 		// the timestamp extrinsic is stored under the key 0u32 in big endian
 		key := make([]byte, 4)
 		timestamp, err := DecodeExtrinsicTimestamp(trieProof.Get(key))
 
 		if err != nil {
-			return sdkerrors.Wrap(err, "failed to decode timestamp extrinsic")
+			panic(fmt.Errorf("ailed to decode timestamp extrinsic"))
 		}
 
 		var ibcCommitmentRoot []byte
@@ -316,6 +317,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 			Timestamp: timestamp,
 			Root:      ibcCommitmentRoot,
 		}
+		heights = append(heights, height)
 	}
 
 	// only set consensus states after doing checks
@@ -328,7 +330,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	setClientState(clientStore, cdc, &cs)
 
-	return nil
+	return heights
 }
 
 // CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
@@ -407,7 +409,7 @@ func (cs ClientState) GetLeafIndexForBlockNumber(blockNumber uint32) uint32 {
 	return leafIndex
 }
 
-func authoritiesThreshold(authoritySet BeefyAuthoritySet) uint32 {
+func authoritiesThreshold(authoritySet BeefyAuthoritySet) uint64 {
 	return 2*authoritySet.Len/3 + 1
 }
 
