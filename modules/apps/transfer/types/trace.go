@@ -80,7 +80,7 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 	var path []string
 	var baseDenom []string
 	length := len(fullDenomItems)
-	for i := 0; i < length; i = i + 2 {
+	for i := 0; i < length; i += 2 {
 		if i < length-1 && length > 2 && fullDenomItems[i] == PortID {
 			path = append(path, fullDenomItems[i], fullDenomItems[i+1])
 		} else {
