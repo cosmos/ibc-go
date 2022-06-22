@@ -2,13 +2,14 @@ package simapp
 
 import (
 	"encoding/json"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -653,7 +654,6 @@ func (app *SimApp) setAnteHandler(txConfig client.TxConfig, indexEventsStr []str
 			IBCKeeper: app.IBCKeeper,
 		},
 	)
-
 	if err != nil {
 		panic(err)
 	}

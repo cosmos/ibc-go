@@ -17,9 +17,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-var (
-	_ porttypes.IBCModule = IBCModule{}
-)
+var _ porttypes.IBCModule = IBCModule{}
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {

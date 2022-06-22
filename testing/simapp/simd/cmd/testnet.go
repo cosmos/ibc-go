@@ -272,7 +272,6 @@ func initGenFiles(
 ) error {
 	appGenState := mbm.DefaultGenesis(clientCtx.Codec)
 
-
 	// set the accounts in the genesis state
 	var authGenState authtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appGenState[authtypes.ModuleName], &authGenState)

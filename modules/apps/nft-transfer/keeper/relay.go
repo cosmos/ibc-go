@@ -124,8 +124,8 @@ func (k Keeper) SendTransfer(
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet,
-	data types.NonFungibleTokenPacketData) error {
-
+	data types.NonFungibleTokenPacketData,
+) error {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
 		return err
@@ -270,7 +270,8 @@ func (k Keeper) createOutgoingPacket(ctx sdk.Context,
 // were burnt in the sending chain and will unescrow the token to receiver
 // in the destination chain
 func (k Keeper) processReceivedPacket(ctx sdk.Context, packet channeltypes.Packet,
-	data types.NonFungibleTokenPacketData) error {
+	data types.NonFungibleTokenPacketData,
+) error {
 	if types.IsAwayFromOrigin(packet.GetSourcePort(), packet.GetSourceChannel(), data.ClassId) {
 		// since SendPacket did not prefix the classID, we must prefix classID here
 		classPrefix := types.GetClassPrefix(packet.GetDestPort(), packet.GetDestChannel())

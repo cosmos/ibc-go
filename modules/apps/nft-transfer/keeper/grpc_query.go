@@ -20,7 +20,8 @@ var _ types.QueryServer = Keeper{}
 
 // ClassTrace implements the Query/ClassTrace gRPC method
 func (k Keeper) ClassTrace(c context.Context,
-	req *types.QueryClassTraceRequest) (*types.QueryClassTraceResponse, error) {
+	req *types.QueryClassTraceRequest,
+) (*types.QueryClassTraceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -46,7 +47,8 @@ func (k Keeper) ClassTrace(c context.Context,
 
 // ClassTraces implements the Query/ClassTraces gRPC method
 func (k Keeper) ClassTraces(c context.Context,
-	req *types.QueryClassTracesRequest) (*types.QueryClassTracesResponse, error) {
+	req *types.QueryClassTracesRequest,
+) (*types.QueryClassTracesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -75,7 +77,8 @@ func (k Keeper) ClassTraces(c context.Context,
 
 // ClassHash implements the Query/ClassHash gRPC method
 func (k Keeper) ClassHash(c context.Context,
-	req *types.QueryClassHashRequest) (*types.QueryClassHashResponse, error) {
+	req *types.QueryClassHashRequest,
+) (*types.QueryClassHashResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -103,7 +106,8 @@ func (k Keeper) ClassHash(c context.Context,
 
 // EscrowAddress implements the EscrowAddress gRPC method
 func (k Keeper) EscrowAddress(c context.Context,
-	req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+	req *types.QueryEscrowAddressRequest,
+) (*types.QueryEscrowAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
