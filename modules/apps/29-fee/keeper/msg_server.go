@@ -33,6 +33,8 @@ func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee
 
 	k.Logger(ctx).Info("registering payee address for relayer", "relayer", msg.Relayer, "payee", msg.Payee, "channel", msg.ChannelId)
 
+	EmitRegisteredPayeeEvent(ctx, msg.Relayer, msg.Payee, msg.ChannelId)
+
 	return &types.MsgRegisterPayeeResponse{}, nil
 }
 
@@ -56,6 +58,8 @@ func (k Keeper) RegisterCounterpartyPayee(goCtx context.Context, msg *types.MsgR
 	k.SetCounterpartyPayeeAddress(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
 	k.Logger(ctx).Info("registering counterparty payee for relayer", "relayer", msg.Relayer, "counterparty payee", msg.CounterpartyPayee, "channel", msg.ChannelId)
+
+	EmitRegisteredCounterpartyPayeeEvent(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
 	return &types.MsgRegisterCounterpartyPayeeResponse{}, nil
 }
