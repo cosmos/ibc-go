@@ -11,8 +11,8 @@ Learn how to configure the Fee Middleware module with IBC applications. The foll
 * [IBC middleware development](../../ibc/middleware/develop.md) {prereq}
 * [IBC middleware integration](../../ibc/middleware/integration.md) {prereq}
 
-The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle messages correctly.
-For Cosmos SDK chains this is done via the `app/app.go` file, where modules are setup and configured in order to bootstrap the blockchain app.
+The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
+For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
 
 ## Configuring an application stack with Fee Middleware
 
@@ -25,7 +25,7 @@ by wrapping it with the Fee Middleware module.
 ### Transfer
 
 See below for an example of how to create an application stack using `transfer` and `29-fee`.
-The in-line comments describe the execution flow of packets from the application stack through core IBC.
+The in-line comments describe the execution flow of packets between the application stack through core IBC.
 
 ```go
 // Create Transfer Stack
@@ -51,7 +51,7 @@ ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ### Interchain Accounts
 
 See below for an example of how to create an application stack using `27-interchain-accounts` and `29-fee`.
-The in-line comments describe the execution flow of packets from the application stack through core IBC.
+The in-line comments describe the execution flow of packets between the application stack through core IBC.
 
 ```go
 // Create Interchain Accounts Stack
