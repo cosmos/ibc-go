@@ -40,8 +40,8 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 	)
 }
 
-// EmitRegisteredPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel
-func EmitRegisteredPayeeEvent(ctx sdk.Context, relayer, payee, channelID string) {
+// EmitRegisterPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel
+func EmitRegisterPayeeEvent(ctx sdk.Context, relayer, payee, channelID string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRegisterPayee,
@@ -56,8 +56,8 @@ func EmitRegisteredPayeeEvent(ctx sdk.Context, relayer, payee, channelID string)
 	})
 }
 
-// EmitRegisteredCounterpartyPayeeEvent emits an event containing information of a registered counterparty payee for a relayer on a particular channel
-func EmitRegisteredCounterpartyPayeeEvent(ctx sdk.Context, relayer, counterpartyPayee, channelID string) {
+// EmitRegisterCounterpartyPayeeEvent emits an event containing information of a registered counterparty payee for a relayer on a particular channel
+func EmitRegisterCounterpartyPayeeEvent(ctx sdk.Context, relayer, counterpartyPayee, channelID string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRegisterCounterpartyPayee,
