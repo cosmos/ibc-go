@@ -191,6 +191,11 @@ module.exports = {
                     directory: false,
                     path: "/middleware/ics29-fee/overview.html"
                 }, 
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/ics29-fee/integration.html"
+              }, 
             ]
             },
           ]
