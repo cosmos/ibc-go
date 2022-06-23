@@ -95,11 +95,11 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 				//	req.Len(packets.IncentivizedPackets, 1)
 				//})
 
-				expecteUserOneBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
-				t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expecteUserOneBal))
+				expectedSenderOneBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
+				t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expectedSenderOneBal))
 
-				expectedUserTwoBal := startingTokenAmount - recvFee - ackFee - timeoutFee
-				t.Run("Balance from second sender should be lowered by sum of recv ack and timeout (not IBC transfer amount)", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, expectedUserTwoBal))
+				expectedSenderTwoBal := startingTokenAmount - recvFee - ackFee - timeoutFee
+				t.Run("Balance from second sender should be lowered by sum of recv ack and timeout (not IBC transfer amount)", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, expectedSenderTwoBal))
 			})
 
 			t.Run("Start relayer", func(t *testing.T) {
@@ -112,11 +112,11 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 
 			// once the relayer has relayed the packets, the timeout fee should be refunded.
 			gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-			senderOneExpectedBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee - recvFee
-			t.Run("Verify timeout fee is refunded on successful relay of packets for first sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, senderOneExpectedBal))
+			expectedSenderOneBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee - recvFee
+			t.Run("Verify timeout fee is refunded on successful relay of packets for first sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expectedSenderOneBal))
 
-			senderTwoExpectedBal := startingTokenAmount - ackFee - recvFee
-			t.Run("Verify timeout fee is refunded on successful relay of packets for second sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, senderTwoExpectedBal))
+			expectedSenderTwoBal := startingTokenAmount - ackFee - recvFee
+			t.Run("Verify timeout fee is refunded on successful relay of packets for second sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, expectedSenderTwoBal))
 		})
 	})
 }
