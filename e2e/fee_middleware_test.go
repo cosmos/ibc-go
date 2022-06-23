@@ -79,13 +79,13 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 				t.Run("Paying packet fee should succeed", func(t *testing.T) {
 					s.Req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainSenderOne.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
 					// wait so that incentivised packets will show up
-					time.Sleep(2 * time.Second)
+					time.Sleep(5 * time.Second)
 				})
 
 				t.Run("Paying packet fee with second sender should succeed", func(t *testing.T) {
 					s.Req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainSenderTwo.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
 					// wait so that incentivised packets will show up
-					time.Sleep(2 * time.Second)
+					time.Sleep(5 * time.Second)
 				})
 
 				// TODO: query method not umarshalling json correctly yet.

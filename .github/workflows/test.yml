@@ -188,20 +188,32 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
 
+  build-test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+      - id: set-matrix
+        run: |
+          matrix="$(go run .github/scripts/main.go)"
+          echo ${matrix}
+          echo "::set-output name=matrix::${matrix}"
+
+
   fee-middleware-e2e:
     runs-on: ubuntu-latest
-    needs: docker-build
+    needs: [docker-build, build-test-matrix]
     env:
       SIMD_TAG: pr-${{ github.event.number }}
       SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
     strategy:
       fail-fast: false
-      matrix:
-        test-name:
-          - TestFeeMiddlewareAsyncMultipleSenders
-          - TestFeeMiddlewareAsyncSingleSender
-          - TestFeeMiddlewareAsyncSingleSenderTimesOut
-          - TestFeeMiddlewareAsyncSingleSenderNoCounterPartyAddress
+      matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
+
     steps:
       - uses: actions/checkout@v3
       - name: Log in to the Container registry
