@@ -25,6 +25,7 @@ by wrapping it with the Fee Middleware module.
 ### Transfer
 
 See below for an example of how to create an application stack using `transfer` and `29-fee`.
+The following `transferStack` is configured in `app/app.go` and added to the IBC `Router`.
 The in-line comments describe the execution flow of packets between the application stack and IBC core.
 
 ```go
@@ -51,6 +52,7 @@ ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ### Interchain Accounts
 
 See below for an example of how to create an application stack using `27-interchain-accounts` and `29-fee`.
+The following `icaControllerStack` and `icaHostStack` are configured in `app/app.go` and added to the IBC `Router` with the associated authentication module.
 The in-line comments describe the execution flow of packets between the application stack and IBC core.
 
 ```go
