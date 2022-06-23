@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/events"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
@@ -141,7 +140,8 @@ func (im IBCMiddleware) OnRecvPacket(
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	err := fmt.Errorf("cannot receive packet on controller chain")
-	events.EmitAcknowledgementErrorEvent(ctx, err)
+	ack := channeltypes.NewErrorAcknowledgement(err)
+	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 	return channeltypes.NewErrorAcknowledgement(err)
 }
 
