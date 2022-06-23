@@ -2,21 +2,14 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"github.com/cosmos/ibc-go/v3/e2e/e2efee"
-	"github.com/cosmos/ibc-go/v3/e2e/setup"
-	"github.com/ory/dockertest/v3"
+	"github.com/cosmos/ibc-go/v3/e2e/testsuite"
 	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/testreporter"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
-	"golang.org/x/sync/errgroup"
-	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
@@ -27,120 +20,26 @@ func TestFeeMiddlewareTestSuite(t *testing.T) {
 }
 
 type FeeMiddlewareTestSuite struct {
-	suite.Suite
-	srcChain, dstChain *e2efee.FeeMiddlewareChain
-	logger             *zap.Logger
-	pool               *dockertest.Pool
-	network            string
-	relayers           map[string]ibc.Relayer
+	testsuite.E2ETestSuite
+	chainPairs map[string]feeMiddlewareChainPair
 }
 
-func (s *FeeMiddlewareTestSuite) createRelayerAndChannel(ctx context.Context, req *require.Assertions, eRep *testreporter.RelayerExecReporter) (ibc.Relayer, ibc.ChannelOutput, ibc.ChannelOutput, func(t *testing.T)) {
-
-	home, err := ioutil.TempDir("", "")
-	req.NoError(err)
-
-	//home := s.T().TempDir() // Must be before chain cleanup to avoid test error during cleanup.
-	r := setup.NewRelayer(s.T(), s.logger, s.pool, s.network, home)
-
-	pathName := fmt.Sprintf("%s-path", s.T().Name())
-	pathName = strings.ReplaceAll(pathName, "/", "-")
-
-	ic := ibctest.NewInterchain().
-		AddChain(s.srcChain).
-		AddChain(s.dstChain).
-		AddRelayer(r, "r").
-		AddLink(ibctest.InterchainLink{
-			Chain1:  s.srcChain,
-			Chain2:  s.dstChain,
-			Relayer: r,
-			Path:    pathName,
-		})
-
-	req.NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
-		TestName:         s.T().Name(),
-		HomeDir:          home,
-		Pool:             s.pool,
-		NetworkID:        s.network,
-		SkipPathCreation: true,
-	}))
-
-	req.NoError(r.GeneratePath(ctx, eRep, s.srcChain.Config().ChainID, s.dstChain.Config().ChainID, pathName))
-	req.NoError(r.CreateClients(ctx, eRep, pathName))
-
-	// The client isn't created immediately -- wait for two blocks to ensure the clients are ready.
-	req.NoError(test.WaitForBlocks(ctx, 2, s.srcChain, s.dstChain))
-	req.NoError(r.CreateConnections(ctx, eRep, pathName))
-	req.NoError(r.CreateChannel(ctx, eRep, pathName, ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          "unordered",
-		Version:        "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}",
-	}))
-
-	// Now validate that the channels correctly report as created.
-	// GetChannels takes around two seconds with rly,
-	// so getting the channels concurrently is a measurable speedup.
-	eg, egCtx := errgroup.WithContext(ctx)
-	var srcChainChannels, dstChainChannels []ibc.ChannelOutput
-	eg.Go(func() error {
-		var err error
-		srcChainChannels, err = r.GetChannels(egCtx, eRep, s.srcChain.Config().ChainID)
-		return err
-	})
-	eg.Go(func() error {
-		var err error
-		dstChainChannels, err = r.GetChannels(egCtx, eRep, s.dstChain.Config().ChainID)
-		return err
-	})
-	req.NoError(eg.Wait(), "failure retrieving channels")
-
-	return r, srcChainChannels[len(srcChainChannels)-1], dstChainChannels[len(dstChainChannels)-1], func(t *testing.T) {
-		err := r.StartRelayer(ctx, eRep, pathName)
-		req.NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
-		t.Cleanup(func() {
-			if !t.Failed() {
-				if err := r.StopRelayer(ctx, eRep); err != nil {
-					t.Logf("error stopping relayer: %v", err)
-				}
-			}
-		})
-		// wait for relayer to start.
-		time.Sleep(time.Second * 10)
-	}
-}
 func (s *FeeMiddlewareTestSuite) SetupSuite() {
-
-	ctx := context.Background()
-	pool, network := ibctest.DockerSetup(s.T())
-
-	s.logger = zap.NewExample()
-	s.pool = pool
-	s.network = network
-
-	chainAConfig := setup.NewSimappConfig("simapp-a", "chain-a", "atoma")
-	chainBConfig := setup.NewSimappConfig("simapp-b", "chain-b", "atomb")
-	logger := zaptest.NewLogger(s.T())
-	srcChain := cosmos.NewCosmosChain(s.T().Name(), chainAConfig, 1, 0, logger)
-	dstChain := cosmos.NewCosmosChain(s.T().Name(), chainBConfig, 1, 0, logger)
-
-	s.T().Cleanup(func() {
-		if !s.T().Failed() {
-			for _, c := range []*cosmos.CosmosChain{srcChain, dstChain} {
-				if err := c.Cleanup(ctx); err != nil {
-					s.T().Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
-				}
-			}
-		}
-	})
-
-	s.srcChain = &e2efee.FeeMiddlewareChain{CosmosChain: srcChain}
-	s.dstChain = &e2efee.FeeMiddlewareChain{CosmosChain: dstChain}
-
+	s.chainPairs = map[string]feeMiddlewareChainPair{}
 }
 
 func (s *FeeMiddlewareTestSuite) SetupTest() {
+	srcChain, dstChain := s.CreateCosmosChains()
+	s.chainPairs[s.T().Name()] = feeMiddlewareChainPair{
+		srcChain: &e2efee.FeeMiddlewareChain{CosmosChain: srcChain},
+		dstChain: &e2efee.FeeMiddlewareChain{CosmosChain: dstChain},
+	}
+}
 
+// feeMiddlewareChainPair holds the source and destination chain.
+// for these tests, we need to wrap the cosmos.CosmosChain to provide more functionality.
+type feeMiddlewareChainPair struct {
+	srcChain, dstChain *e2efee.FeeMiddlewareChain
 }
 
 func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
@@ -150,9 +49,13 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
 	req := require.New(rep.TestifyT(t))
 	eRep := rep.RelayerExecReporter(t)
 
-	relayer, srcChainChannel, dstChainChannel, startRelayerFunc := s.createRelayerAndChannel(ctx, req, eRep)
+	chainPair, ok := s.chainPairs[t.Name()]
+	req.True(ok)
 
-	srcChain, dstChain := s.srcChain, s.dstChain
+	srcChain := chainPair.srcChain
+	dstChain := chainPair.dstChain
+
+	relayer, srcChainChannel, startRelayerFunc := s.CreateRelayerAndChannel(ctx, srcChain, dstChain, req, eRep)
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -181,13 +84,13 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
 	req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Register Counter Party Payee", func(t *testing.T) {
-		req.NoError(dstChain.RegisterCounterPartyPayee(ctx, dstRelayWallet.Address, srcRelayWallet.Address, dstChainChannel.PortID, dstChainChannel.ChannelID))
+		req.NoError(dstChain.RegisterCounterPartyPayee(ctx, dstRelayWallet.Address, srcRelayWallet.Address, srcChainChannel.Counterparty.PortID, srcChainChannel.Counterparty.ChannelID))
 		// give some time for update
 		time.Sleep(time.Second * 5)
 	})
 
 	t.Run("Verify Counter Party Payee", func(t *testing.T) {
-		address, err := dstChain.QueryCounterPartyPayee(ctx, dstRelayWallet.Address, dstChainChannel.ChannelID)
+		address, err := dstChain.QueryCounterPartyPayee(ctx, dstRelayWallet.Address, srcChainChannel.Counterparty.ChannelID)
 		req.NoError(err)
 		req.Equal(srcRelayWallet.Address, address)
 	})
