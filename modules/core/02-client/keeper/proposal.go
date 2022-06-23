@@ -96,6 +96,9 @@ func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal)
 		return err
 	}
 
+	// emitting an event for handling client upgrade proposal
+	EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+
 	// sets the new upgraded client in last height committed on this chain is at plan.Height,
 	// since the chain will panic at plan.Height and new chain will resume at plan.Height
 	return k.upgradeKeeper.SetUpgradedClient(ctx, p.Plan.Height, bz)
