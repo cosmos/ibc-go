@@ -21,25 +21,6 @@ func TestFeeMiddlewareTestSuite(t *testing.T) {
 
 type FeeMiddlewareTestSuite struct {
 	testsuite.E2ETestSuite
-	chainPairs map[string]feeMiddlewareChainPair
-}
-
-func (s *FeeMiddlewareTestSuite) SetupSuite() {
-	s.chainPairs = map[string]feeMiddlewareChainPair{}
-}
-
-func (s *FeeMiddlewareTestSuite) SetupTest() {
-	srcChain, dstChain := s.CreateCosmosChains()
-	s.chainPairs[s.T().Name()] = feeMiddlewareChainPair{
-		srcChain: &e2efee.FeeMiddlewareChain{CosmosChain: srcChain},
-		dstChain: &e2efee.FeeMiddlewareChain{CosmosChain: dstChain},
-	}
-}
-
-// feeMiddlewareChainPair holds the source and destination chain.
-// for these tests, we need to wrap the cosmos.CosmosChain to provide more functionality.
-type feeMiddlewareChainPair struct {
-	srcChain, dstChain *e2efee.FeeMiddlewareChain
 }
 
 func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
@@ -49,13 +30,9 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
 	req := require.New(rep.TestifyT(t))
 	eRep := rep.RelayerExecReporter(t)
 
-	chainPair, ok := s.chainPairs[t.Name()]
-	req.True(ok)
+	srcChain, dstChain := s.GetChains()
 
-	srcChain := chainPair.srcChain
-	dstChain := chainPair.dstChain
-
-	relayer, srcChainChannel, startRelayerFunc := s.CreateRelayerAndChannel(ctx, srcChain, dstChain, req, eRep)
+	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, req, eRep, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -64,35 +41,27 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
 	srcChainWallet := users[0]
 	dstChainWallet := users[1]
 
-	srcRelayWallet, ok := relayer.GetWallet(srcChain.Config().ChainID)
-	req.True(ok)
-	dstRelayWallet, ok := relayer.GetWallet(dstChain.Config().ChainID)
-	req.True(ok)
+	t.Run("Relayer wallets can be recovered", func(t *testing.T) {
+		req.NoError(s.RecoverRelayerWallets(ctx, relayer))
+	})
 
-	req.NoError(srcChain.RecoverKeyring(ctx, "rly1", srcRelayWallet.Mnemonic))
-	req.NoError(dstChain.RecoverKeyring(ctx, "rly2", dstRelayWallet.Mnemonic))
-
-	srcRelayBal, err := srcChain.GetBalance(ctx, srcRelayWallet.Address, srcChain.Config().Denom)
-	req.NoError(err)
-	t.Logf("SRC RELAY BAL %d", srcRelayBal)
-	req.NotEmpty(srcRelayBal)
-	dstRelayBal, err := dstChain.GetBalance(ctx, dstRelayWallet.Address, dstChain.Config().Denom)
-	req.NoError(err)
-	t.Logf("DST RELAY BAL %d", dstRelayBal)
-	req.NotEmpty(dstRelayBal)
+	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
+	t.Run("Relayer wallets can be fetched", func(t *testing.T) {
+		req.NoError(err)
+	})
 
 	req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Register Counter Party Payee", func(t *testing.T) {
-		req.NoError(dstChain.RegisterCounterPartyPayee(ctx, dstRelayWallet.Address, srcRelayWallet.Address, srcChainChannel.Counterparty.PortID, srcChainChannel.Counterparty.ChannelID))
+		req.NoError(e2efee.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
 		// give some time for update
 		time.Sleep(time.Second * 5)
 	})
 
 	t.Run("Verify Counter Party Payee", func(t *testing.T) {
-		address, err := dstChain.QueryCounterPartyPayee(ctx, dstRelayWallet.Address, srcChainChannel.Counterparty.ChannelID)
+		address, err := e2efee.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcChainChannelInfo.Counterparty.ChannelID)
 		req.NoError(err)
-		req.Equal(srcRelayWallet.Address, address)
+		req.Equal(srcRelayerWallet.Address, address)
 	})
 
 	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
@@ -104,7 +73,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
 	var srcTx ibc.Tx
 	t.Run("Send IBC transfer", func(t *testing.T) {
 		var err error
-		srcTx, err = srcChain.SendIBCTransfer(ctx, srcChainChannel.ChannelID, srcChainWallet.KeyName, chain1WalletToChain2WalletAmount, nil)
+		srcTx, err = srcChain.SendIBCTransfer(ctx, srcChainChannelInfo.ChannelID, srcChainWallet.KeyName, chain1WalletToChain2WalletAmount, nil)
 		req.NoError(err)
 		req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
 	})
@@ -123,13 +92,13 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
 
 	t.Run("Pay packet fee", func(t *testing.T) {
 		t.Run("Before paying packet fee there should be no incentivized packets", func(t *testing.T) {
-			packets, err := srcChain.QueryPackets(ctx, srcChainChannel.PortID, srcChainChannel.PortID)
+			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
 			req.NoError(err)
 			req.Len(packets.IncentivizedPackets, 0)
 		})
 
 		t.Run("Paying packet fee should succeed", func(t *testing.T) {
-			err := srcChain.PayPacketFee(ctx, srcChainWallet.KeyName, srcChainChannel.PortID, srcChainChannel.ChannelID, 1, recvFee, ackFee, timeoutFee)
+			err := e2efee.PayPacketFee(ctx, srcChain, srcChainWallet.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee)
 			req.NoError(err)
 
 			// wait so that incentivised packets will show up
@@ -153,18 +122,21 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddleware() {
 		req.Equal(expected, actualBalance)
 	})
 
-	t.Run("Start relayer", startRelayerFunc)
+	t.Run("Start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
 
 	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Packets should have been relayed", func(t *testing.T) {
-		packets, err := srcChain.QueryPackets(ctx, srcChainChannel.PortID, srcChainChannel.ChannelID)
+		packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
 		req.NoError(err)
 		req.Len(packets.IncentivizedPackets, 0)
 	})
 
-	t.Run("Verify recv fees are refunded when no forward relayer is found", func(t *testing.T) {
-		actualBalance, err := srcChain.GetBalance(ctx, srcChainWallet.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
+	t.Run("Verify timeout fee is refunded on successful relay of packets", func(t *testing.T) {
+
+		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainWallet)
 		req.NoError(err)
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)

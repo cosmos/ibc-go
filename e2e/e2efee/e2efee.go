@@ -8,32 +8,27 @@ import (
 	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/ibc"
 )
 
-type FeeMiddlewareChain struct {
-	*cosmos.CosmosChain
-}
-
-func (fc *FeeMiddlewareChain) RecoverKeyring(ctx context.Context, name, mnemonic string) error {
-	tn := fc.ChainNodes[0]
+func RecoverKeyring(ctx context.Context, chain *cosmos.CosmosChain, name, mnemonic string) error {
+	tn := chain.ChainNodes[0]
 
 	cmd := []string{
 		"bash",
 		"-c",
-		fmt.Sprintf(`echo "%s" | %s keys add %s --recover --keyring-backend %s --home %s`, mnemonic, fc.Config().Bin, name, keyring.BackendTest, tn.NodeHome()),
+		fmt.Sprintf(`echo "%s" | %s keys add %s --recover --keyring-backend %s --home %s`, mnemonic, chain.Config().Bin, name, keyring.BackendTest, tn.NodeHome()),
 	}
 
 	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
 	if err != nil {
 		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
 	}
-
 	return nil
-
 }
 
-func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, relayerAddress, counterPartyPayee, portId, channelId string) error {
-	tn := fc.ChainNodes[0]
+func RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, counterPartyPayee, portId, channelId string) error {
+	tn := chain.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"tx",
 		"ibc-fee",
@@ -47,7 +42,7 @@ func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, rel
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
 		"--output", "json",
-		"--chain-id", fc.Config().ChainID,
+		"--chain-id", chain.Config().ChainID,
 		"--yes",
 	}
 
@@ -60,8 +55,8 @@ func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, rel
 
 }
 
-func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context, portId, channelId string) (types.QueryIncentivizedPacketsResponse, error) {
-	tn := fc.ChainNodes[0]
+func QueryPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) (types.QueryIncentivizedPacketsResponse, error) {
+	tn := chain.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"q",
 		"ibc-fee",
@@ -71,7 +66,7 @@ func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context, portId, channelI
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
 		"--output", "json",
-		"--chain-id", fc.Config().ChainID,
+		"--chain-id", chain.Config().ChainID,
 	}
 
 	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
@@ -90,8 +85,8 @@ func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context, portId, channelI
 
 }
 
-func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, relayerAddress, channelID string) (string, error) {
-	tn := fc.ChainNodes[0]
+func QueryCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, channelID string) (string, error) {
+	tn := chain.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"q",
 		"ibc-fee",
@@ -101,7 +96,7 @@ func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, relaye
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
 		"--output", "json",
-		"--chain-id", fc.Config().ChainID,
+		"--chain-id", chain.Config().ChainID,
 	}
 
 	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
@@ -122,8 +117,8 @@ func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, relaye
 	return res.CounterPartyPayee, nil
 }
 
-func (fc *FeeMiddlewareChain) PayPacketFee(ctx context.Context, fromAddress, portId, channelId string, sequenceNumber, recvFee, ackFee, timeoutFee int64) error {
-	tn := fc.ChainNodes[0]
+func PayPacketFee(ctx context.Context, chain *cosmos.CosmosChain, fromAddress, portId, channelId string, sequenceNumber, recvFee, ackFee, timeoutFee int64) error {
+	tn := chain.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"tx",
 		"ibc-fee",
@@ -132,14 +127,14 @@ func (fc *FeeMiddlewareChain) PayPacketFee(ctx context.Context, fromAddress, por
 		channelId,
 		fmt.Sprintf("%d", sequenceNumber),
 		"--from", fromAddress,
-		"--recv-fee", fmt.Sprintf("%d%s", recvFee, fc.Config().Denom),
-		"--ack-fee", fmt.Sprintf("%d%s", ackFee, fc.Config().Denom),
-		"--timeout-fee", fmt.Sprintf("%d%s", timeoutFee, fc.Config().Denom),
+		"--recv-fee", fmt.Sprintf("%d%s", recvFee, chain.Config().Denom),
+		"--ack-fee", fmt.Sprintf("%d%s", ackFee, chain.Config().Denom),
+		"--timeout-fee", fmt.Sprintf("%d%s", timeoutFee, chain.Config().Denom),
 		"--keyring-backend", keyring.BackendTest,
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
 		"--output", "json",
-		"--chain-id", fc.Config().ChainID,
+		"--chain-id", chain.Config().ChainID,
 		"--yes",
 	}
 
@@ -149,4 +144,13 @@ func (fc *FeeMiddlewareChain) PayPacketFee(ctx context.Context, fromAddress, por
 	}
 
 	return nil
+}
+
+// FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
+func FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
+	return func(opts *ibc.CreateChannelOptions) {
+		opts.Version = "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}"
+		opts.DestPortName = "transfer"
+		opts.SourcePortName = "transfer"
+	}
 }
