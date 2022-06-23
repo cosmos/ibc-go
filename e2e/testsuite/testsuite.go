@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
+	"github.com/cosmos/ibc-go/v3/e2e/e2efee"
 	"github.com/cosmos/ibc-go/v3/e2e/setup"
 	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
 	"github.com/ory/dockertest/v3"
@@ -20,6 +21,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"io/ioutil"
 	"strings"
+	"testing"
 	"time"
 )
 
@@ -31,6 +33,8 @@ type E2ETestSuite struct {
 	pool             *dockertest.Pool
 	network          string
 	startRelayerFunc func(relayer ibc.Relayer)
+	Rep              *testreporter.Reporter
+	Req              *require.Assertions
 }
 
 type chainPair struct {
@@ -143,10 +147,15 @@ func (s *E2ETestSuite) SetupTest() {
 		srcChain: srcChain,
 		dstChain: dstChain,
 	}
+	s.Rep = testreporter.NewNopReporter()
+	s.Req = require.New(s.Rep.TestifyT(s.T()))
 }
 
-func (s *E2ETestSuite) CreateRelayerAndChannel(ctx context.Context, req *require.Assertions, eRep *testreporter.RelayerExecReporter, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
+func (s *E2ETestSuite) CreateRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	srcChain, dstChain := s.GetChains()
+
+	req := s.Req
+	eRep := s.Rep.RelayerExecReporter(s.T())
 
 	home, err := ioutil.TempDir("", "")
 	req.NoError(err)
@@ -267,4 +276,48 @@ func getChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.User) (
 		return -1, err
 	}
 	return bal, nil
+}
+
+func (s *E2ETestSuite) AssertRelayerWalletsCanBeRecovered(ctx context.Context, relayer ibc.Relayer) func(t *testing.T) {
+	return func(t *testing.T) {
+		s.Req.NoError(s.RecoverRelayerWallets(ctx, relayer))
+	}
+}
+
+func (s *E2ETestSuite) AssertCounterPartyPayeeCanBeRegistered(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, counterPartyPayee, portId, channelId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		s.Req.NoError(e2efee.RegisterCounterPartyPayee(ctx, chain, relayerAddress, counterPartyPayee, portId, channelId))
+		// give some time for update
+		time.Sleep(time.Second * 5)
+	}
+}
+
+func (s *E2ETestSuite) AssertCounterPartyPayeeCanBeVerified(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, channelID, expectedAddress string) func(t *testing.T) {
+	return func(t *testing.T) {
+		actualAddress, err := e2efee.QueryCounterPartyPayee(ctx, chain, relayerAddress, channelID)
+		s.Req.NoError(err)
+		s.Req.Equal(expectedAddress, actualAddress)
+	}
+}
+func (s *E2ETestSuite) AssertSourceChainNativeBalance(ctx context.Context, user *ibctest.User, expected int64) func(t *testing.T) {
+	return func(t *testing.T) {
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, user)
+		s.Req.NoError(err)
+		s.Req.Equal(expected, actualBalance)
+	}
+}
+
+func (s *E2ETestSuite) AssertDestinationChainNativeBalance(ctx context.Context, user *ibctest.User, expected int64) func(t *testing.T) {
+	return func(t *testing.T) {
+		actualBalance, err := s.GetDestinationChainNativeBalance(ctx, user)
+		s.Req.NoError(err)
+		s.Req.Equal(expected, actualBalance)
+	}
+}
+func (s *E2ETestSuite) AssertEmptyPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		packets, err := e2efee.QueryPackets(ctx, chain, portId, channelId)
+		s.Req.NoError(err)
+		s.Req.Len(packets.IncentivizedPackets, 0)
+	}
 }

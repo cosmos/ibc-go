@@ -6,8 +6,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/e2e/testsuite"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
-	"github.com/strangelove-ventures/ibctest/testreporter"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
@@ -24,13 +22,10 @@ type FeeMiddlewareTestSuite struct {
 func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 	t := s.T()
 	ctx := context.TODO()
-	rep := testreporter.NewNopReporter()
-	req := require.New(rep.TestifyT(t))
-	eRep := rep.RelayerExecReporter(t)
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, req, eRep, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -38,142 +33,101 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 	srcChainSenderTwo := s.CreateUserOnSourceChain(ctx, startingTokenAmount)
 	dstChainWallet := s.CreateUserOnDestinationChain(ctx, startingTokenAmount)
 
-	t.Run("Relayer wallets can be recovered", func(t *testing.T) {
-		req.NoError(s.RecoverRelayerWallets(ctx, relayer))
-	})
+	t.Run("Relayer wallets can be recovered", s.AssertRelayerWalletsCanBeRecovered(ctx, relayer))
 
 	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
 	t.Run("Relayer wallets can be fetched", func(t *testing.T) {
-		req.NoError(err)
+		s.Req.NoError(err)
 	})
 
-	req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
+	s.Req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
-	t.Run("Register Counter Party Payee", func(t *testing.T) {
-		req.NoError(e2efee.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
-		// give some time for update
-		time.Sleep(time.Second * 5)
-	})
+	t.Run("Register Counter Party Payee", s.AssertCounterPartyPayeeCanBeRegistered(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
+	t.Run("Verify Counter Party Payee", s.AssertCounterPartyPayeeCanBeVerified(ctx, dstChain, dstRelayerWallet.Address, srcChainChannelInfo.Counterparty.ChannelID, srcRelayerWallet.Address))
+	t.Run("Test fee middleware with multiple senders", func(t *testing.T) {
 
-	t.Run("Verify Counter Party Payee", func(t *testing.T) {
-		address, err := e2efee.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcChainChannelInfo.Counterparty.ChannelID)
-		req.NoError(err)
-		req.Equal(srcRelayerWallet.Address, address)
-	})
+		chain1WalletToChain2WalletAmount := ibc.WalletAmount{
+			Address: dstChainWallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
+			Denom:   srcChain.Config().Denom,
+			Amount:  10000,
+		}
 
-	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
-		Address: dstChainWallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
-		Denom:   srcChain.Config().Denom,
-		Amount:  10000,
-	}
+		var srcTx ibc.Tx
 
-	var srcTx ibc.Tx
-	t.Run("Send IBC transfer", func(t *testing.T) {
-		var err error
-		srcTx, err = srcChain.SendIBCTransfer(ctx, srcChainChannelInfo.ChannelID, srcChainSenderOne.KeyName, chain1WalletToChain2WalletAmount, nil)
-		req.NoError(err)
-		req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
-	})
+		t.Run("Test IBC transfer", func(t *testing.T) {
+			t.Run("Send IBC transfer", func(t *testing.T) {
+				var err error
+				srcTx, err = srcChain.SendIBCTransfer(ctx, srcChainChannelInfo.ChannelID, srcChainSenderOne.KeyName, chain1WalletToChain2WalletAmount, nil)
+				s.Req.NoError(err)
+				s.Req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
+			})
 
-	t.Run("Verify tokens have been escrowed", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderOne)
-		req.NoError(err)
-
-		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-		req.Equal(expected, actualBalance)
-	})
-
-	recvFee := int64(50)
-	ackFee := int64(25)
-	timeoutFee := int64(10)
-
-	t.Run("Pay packet fee", func(t *testing.T) {
-		t.Run("Before paying packet fee there should be no incentivized packets", func(t *testing.T) {
-			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
-			req.NoError(err)
-			req.Len(packets.IncentivizedPackets, 0)
+			expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
+			t.Run("Verify tokens have been escrowed", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expected))
 		})
 
-		t.Run("Paying packet fee should succeed", func(t *testing.T) {
-			req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainSenderOne.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
-			// wait so that incentivised packets will show up
-			time.Sleep(5 * time.Second)
+		t.Run("Test Packet Fees", func(t *testing.T) {
+
+			recvFee := int64(50)
+			ackFee := int64(25)
+			timeoutFee := int64(10)
+
+			t.Run("Pay packet fee", func(t *testing.T) {
+
+				t.Run("Before paying packet fee there should be no incentivized packets", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
+
+				t.Run("Paying packet fee should succeed", func(t *testing.T) {
+					s.Req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainSenderOne.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
+					// wait so that incentivised packets will show up
+					time.Sleep(2 * time.Second)
+				})
+
+				t.Run("Paying packet fee with second sender should succeed", func(t *testing.T) {
+					s.Req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainSenderTwo.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
+					// wait so that incentivised packets will show up
+					time.Sleep(2 * time.Second)
+				})
+
+				// TODO: query method not umarshalling json correctly yet.
+				//t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
+				//	packets, err := srcChain.QueryPackets(ctx, "transfer", "channel-0")
+				//	req.NoError(err)
+				//	req.Len(packets.IncentivizedPackets, 1)
+				//})
+
+				expecteUserOneBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
+				t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expecteUserOneBal))
+
+				expectedUserTwoBal := startingTokenAmount - recvFee - ackFee - timeoutFee
+				t.Run("Balance from second sender should be lowered by sum of recv ack and timeout (not IBC transfer amount)", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, expectedUserTwoBal))
+			})
+
+			t.Run("Start relayer", func(t *testing.T) {
+				s.StartRelayer(relayer)
+			})
+
+			s.Req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
+
+			t.Run("Packets should have been relayed", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
+
+			// once the relayer has relayed the packets, the timeout fee should be refunded.
+			gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
+			senderOneExpectedBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee - recvFee
+			t.Run("Verify timeout fee is refunded on successful relay of packets for first sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, senderOneExpectedBal))
+
+			senderTwoExpectedBal := startingTokenAmount - ackFee - recvFee
+			t.Run("Verify timeout fee is refunded on successful relay of packets for second sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, senderTwoExpectedBal))
 		})
-
-		t.Run("Paying packet fee with second sender should succeed", func(t *testing.T) {
-			req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainSenderTwo.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
-			// wait so that incentivised packets will show up
-			time.Sleep(5 * time.Second)
-		})
-
-		// TODO: query method not umarshalling json correctly yet.
-		//t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
-		//	packets, err := srcChain.QueryPackets(ctx, "transfer", "channel-0")
-		//	req.NoError(err)
-		//	req.Len(packets.IncentivizedPackets, 1)
-		//})
-	})
-
-	t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", func(t *testing.T) {
-		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderOne)
-		req.NoError(err)
-
-		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
-		req.Equal(expected, actualBalance)
-	})
-
-	t.Run("Balance from second sender should be lowered by sum of recv ack and timeout (not IBC transfer amount)", func(t *testing.T) {
-		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderTwo)
-		req.NoError(err)
-
-		expected := startingTokenAmount - recvFee - ackFee - timeoutFee
-		req.Equal(expected, actualBalance)
-	})
-
-	t.Run("Start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
-
-	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
-
-	t.Run("Packets should have been relayed", func(t *testing.T) {
-		packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
-		req.NoError(err)
-		req.Len(packets.IncentivizedPackets, 0)
-	})
-
-	t.Run("Verify timeout fee is refunded on successful relay of packets for first sender", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderOne)
-		req.NoError(err)
-
-		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee - recvFee
-		req.Equal(expected, actualBalance)
-	})
-
-	t.Run("Verify timeout fee is refunded on successful relay of packets for second sender", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderTwo)
-		req.NoError(err)
-
-		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := startingTokenAmount - ackFee - recvFee
-		req.Equal(expected, actualBalance)
 	})
 }
 
 func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
-	rep := testreporter.NewNopReporter()
-	req := require.New(rep.TestifyT(t))
-	eRep := rep.RelayerExecReporter(t)
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, req, eRep, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -181,26 +135,26 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 	dstChainWallet := s.CreateUserOnDestinationChain(ctx, startingTokenAmount)
 
 	t.Run("Relayer wallets can be recovered", func(t *testing.T) {
-		req.NoError(s.RecoverRelayerWallets(ctx, relayer))
+		s.Req.NoError(s.RecoverRelayerWallets(ctx, relayer))
 	})
 
 	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
 	t.Run("Relayer wallets can be fetched", func(t *testing.T) {
-		req.NoError(err)
+		s.Req.NoError(err)
 	})
 
-	req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
+	s.Req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Register Counter Party Payee", func(t *testing.T) {
-		req.NoError(e2efee.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
+		s.Req.NoError(e2efee.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
 		// give some time for update
 		time.Sleep(time.Second * 5)
 	})
 
 	t.Run("Verify Counter Party Payee", func(t *testing.T) {
 		address, err := e2efee.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcChainChannelInfo.Counterparty.ChannelID)
-		req.NoError(err)
-		req.Equal(srcRelayerWallet.Address, address)
+		s.Req.NoError(err)
+		s.Req.Equal(srcRelayerWallet.Address, address)
 	})
 
 	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
@@ -213,16 +167,16 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 	t.Run("Send IBC transfer", func(t *testing.T) {
 		var err error
 		srcTx, err = srcChain.SendIBCTransfer(ctx, srcChainChannelInfo.ChannelID, srcChainWallet.KeyName, chain1WalletToChain2WalletAmount, nil)
-		req.NoError(err)
-		req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
+		s.Req.NoError(err)
+		s.Req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
 	})
 
 	t.Run("Verify tokens have been escrowed", func(t *testing.T) {
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 
 	recvFee := int64(50)
@@ -230,14 +184,10 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 	timeoutFee := int64(10)
 
 	t.Run("Pay packet fee", func(t *testing.T) {
-		t.Run("Before paying packet fee there should be no incentivized packets", func(t *testing.T) {
-			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
-			req.NoError(err)
-			req.Len(packets.IncentivizedPackets, 0)
-		})
+		t.Run("Before paying packet fee there should be no incentivized packets", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
 
 		t.Run("Paying packet fee should succeed", func(t *testing.T) {
-			req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainWallet.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
+			s.Req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainWallet.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
 
 			// wait so that incentivised packets will show up
 			time.Sleep(5 * time.Second)
@@ -254,46 +204,39 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 
 	t.Run("Start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
 
-	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
+	s.Req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
-	t.Run("Packets should have been relayed", func(t *testing.T) {
-		packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
-		req.NoError(err)
-		req.Len(packets.IncentivizedPackets, 0)
-	})
+	t.Run("Packets should have been relayed", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
 
 	t.Run("Verify timeout fee is refunded on successful relay of packets", func(t *testing.T) {
 
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee - recvFee
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 }
 
 func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 	t := s.T()
 	ctx := context.TODO()
-	rep := testreporter.NewNopReporter()
-	req := require.New(rep.TestifyT(t))
-	eRep := rep.RelayerExecReporter(t)
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, req, eRep, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -301,26 +244,26 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 	dstChainWallet := s.CreateUserOnDestinationChain(ctx, startingTokenAmount)
 
 	t.Run("Relayer wallets can be recovered", func(t *testing.T) {
-		req.NoError(s.RecoverRelayerWallets(ctx, relayer))
+		s.Req.NoError(s.RecoverRelayerWallets(ctx, relayer))
 	})
 
 	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
 	t.Run("Relayer wallets can be fetched", func(t *testing.T) {
-		req.NoError(err)
+		s.Req.NoError(err)
 	})
 
-	req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
+	s.Req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Register Counter Party Payee", func(t *testing.T) {
-		req.NoError(e2efee.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
+		s.Req.NoError(e2efee.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
 		// give some time for update
 		time.Sleep(time.Second * 5)
 	})
 
 	t.Run("Verify Counter Party Payee", func(t *testing.T) {
 		address, err := e2efee.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcChainChannelInfo.Counterparty.ChannelID)
-		req.NoError(err)
-		req.Equal(srcRelayerWallet.Address, address)
+		s.Req.NoError(err)
+		s.Req.Equal(srcRelayerWallet.Address, address)
 	})
 
 	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
@@ -335,17 +278,17 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 		srcTx, err = srcChain.SendIBCTransfer(ctx, srcChainChannelInfo.ChannelID, srcChainWallet.KeyName, chain1WalletToChain2WalletAmount, &ibc.IBCTimeout{
 			NanoSeconds: 100, // want it to timeout immediately
 		})
-		req.NoError(err)
-		req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
+		s.Req.NoError(err)
+		s.Req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
 		time.Sleep(1 * time.Second) // cause timeout
 	})
 
 	t.Run("Verify tokens have been escrowed (relayer has not yet picked up the packet)", func(t *testing.T) {
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 
 	recvFee := int64(50)
@@ -353,14 +296,10 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 	timeoutFee := int64(10)
 
 	t.Run("Pay packet fee", func(t *testing.T) {
-		t.Run("Before paying packet fee there should be no incentivized packets", func(t *testing.T) {
-			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
-			req.NoError(err)
-			req.Len(packets.IncentivizedPackets, 0)
-		})
+		t.Run("Before paying packet fee there should be no incentivized packets", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
 
 		t.Run("Paying packet fee should succeed", func(t *testing.T) {
-			req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainWallet.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
+			s.Req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainWallet.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
 
 			// wait so that incentivised packets will show up
 			time.Sleep(5 * time.Second)
@@ -377,24 +316,24 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 
 	t.Run("Start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
 
-	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
+	s.Req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Funds recv and ack should be refunded as the packet timed out", func(t *testing.T) {
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		expected := startingTokenAmount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - timeoutFee
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 }
 
@@ -402,13 +341,10 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPartyAddress() {
 	t := s.T()
 	ctx := context.TODO()
-	rep := testreporter.NewNopReporter()
-	req := require.New(rep.TestifyT(t))
-	eRep := rep.RelayerExecReporter(t)
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, req, eRep, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -416,7 +352,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 	dstChainWallet := s.CreateUserOnDestinationChain(ctx, startingTokenAmount)
 
 	t.Run("Relayer wallets can be recovered", func(t *testing.T) {
-		req.NoError(s.RecoverRelayerWallets(ctx, relayer))
+		s.Req.NoError(s.RecoverRelayerWallets(ctx, relayer))
 	})
 
 	//srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
@@ -424,7 +360,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 	//	req.NoError(err)
 	//})
 
-	req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
+	s.Req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
 	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
 		Address: dstChainWallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
@@ -436,16 +372,16 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 	t.Run("Send IBC transfer", func(t *testing.T) {
 		var err error
 		srcTx, err = srcChain.SendIBCTransfer(ctx, srcChainChannelInfo.ChannelID, srcChainWallet.KeyName, chain1WalletToChain2WalletAmount, nil)
-		req.NoError(err)
-		req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
+		s.Req.NoError(err)
+		s.Req.NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
 	})
 
 	t.Run("Verify tokens have been escrowed", func(t *testing.T) {
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 
 	recvFee := int64(50)
@@ -453,14 +389,10 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 	timeoutFee := int64(10)
 
 	t.Run("Pay packet fee", func(t *testing.T) {
-		t.Run("Before paying packet fee there should be no incentivized packets", func(t *testing.T) {
-			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
-			req.NoError(err)
-			req.Len(packets.IncentivizedPackets, 0)
-		})
+		t.Run("Before paying packet fee there should be no incentivized packets", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
 
 		t.Run("Paying packet fee should succeed", func(t *testing.T) {
-			req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainWallet.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
+			s.Req.NoError(e2efee.PayPacketFee(ctx, srcChain, srcChainWallet.KeyName, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID, 1, recvFee, ackFee, timeoutFee))
 
 			// wait so that incentivised packets will show up
 			time.Sleep(5 * time.Second)
@@ -477,32 +409,28 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 
 	t.Run("Start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
 
-	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
+	s.Req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
-	t.Run("Packets should have been relayed", func(t *testing.T) {
-		packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
-		req.NoError(err)
-		req.Len(packets.IncentivizedPackets, 0)
-	})
+	t.Run("Packets should have been relayed", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
 
 	t.Run("Verify timeout fee and recv fee are refunded on successful relay of packets when there is no counter party address", func(t *testing.T) {
 
 		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-		req.NoError(err)
+		s.Req.NoError(err)
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee
-		req.Equal(expected, actualBalance)
+		s.Req.Equal(expected, actualBalance)
 	})
 }
