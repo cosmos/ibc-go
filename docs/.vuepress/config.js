@@ -229,11 +229,16 @@ module.exports = {
               path: "/middleware",
               children: [
                 {
-                    title: "Overview",
-                    directory: false,
-                    path: "/middleware/ics29-fee/overview.html"
+                  title: "Overview",
+                  directory: false,
+                  path: "/middleware/ics29-fee/overview.html"
                 }, 
-            ]
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/ics29-fee/integration.html"
+                },
+              ]
             },
           ]
         },
