@@ -27,7 +27,7 @@ func isTestFunction(f *ast.FuncDecl) bool {
 }
 
 type GithubActionTestMatrix struct {
-	Includes []TestCaseSuitePair `json:"includes"`
+	Includes []TestCaseSuitePair `json:"include"`
 }
 
 type TestCaseSuitePair struct {

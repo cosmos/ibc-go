@@ -201,7 +201,7 @@ jobs:
         run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
 
 
-  fee-middleware-e2e:
+  e2e:
     runs-on: ubuntu-latest
     needs: [docker-build, build-test-matrix]
     env:
