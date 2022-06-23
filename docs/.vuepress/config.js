@@ -195,8 +195,8 @@ module.exports = {
                   title: "Integration",
                   directory: false,
                   path: "/middleware/ics29-fee/integration.html"
-              }, 
-            ]
+                }, 
+              ]
             },
           ]
         },
