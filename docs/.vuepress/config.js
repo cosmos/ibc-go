@@ -182,7 +182,7 @@ module.exports = {
           title: "IBC Middleware Modules",
           children: [
             {
-              title: "ICS29 Fee Middleware",
+              title: "Fee Middleware",
               directory: true,
               path: "/middleware",
               children: [
