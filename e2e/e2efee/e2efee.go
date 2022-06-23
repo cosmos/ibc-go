@@ -8,14 +8,31 @@ import (
 	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
-	"strings"
 )
 
 type FeeMiddlewareChain struct {
 	*cosmos.CosmosChain
 }
 
-func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, chain1Address, chain2Address, portId, channelId string) error {
+func (fc *FeeMiddlewareChain) RecoverKeyring(ctx context.Context, name, mnemonic string) error {
+	tn := fc.ChainNodes[0]
+
+	cmd := []string{
+		"bash",
+		"-c",
+		fmt.Sprintf(`echo "%s" | %s keys add %s --recover --keyring-backend %s --home %s`, mnemonic, fc.Config().Bin, name, keyring.BackendTest, tn.NodeHome()),
+	}
+
+	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
+	if err != nil {
+		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+	}
+
+	return nil
+
+}
+
+func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, relayerAddress, counterPartyPayee, portId, channelId string) error {
 	tn := fc.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"tx",
@@ -23,9 +40,9 @@ func (fc *FeeMiddlewareChain) RegisterCounterPartyPayee(ctx context.Context, cha
 		"register-counterparty-payee",
 		portId,
 		channelId,
-		strings.TrimSpace(chain2Address),
-		strings.TrimSpace(chain1Address),
-		"--from", strings.TrimSpace(chain2Address),
+		relayerAddress,
+		counterPartyPayee,
+		"--from", relayerAddress,
 		"--keyring-backend", keyring.BackendTest,
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
@@ -73,14 +90,14 @@ func (fc *FeeMiddlewareChain) QueryPackets(ctx context.Context, portId, channelI
 
 }
 
-func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, chain2Address, channelID string) (string, error) {
+func (fc *FeeMiddlewareChain) QueryCounterPartyPayee(ctx context.Context, relayerAddress, channelID string) (string, error) {
 	tn := fc.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"q",
 		"ibc-fee",
 		"counterparty-payee",
 		channelID,
-		chain2Address,
+		relayerAddress,
 		"--home", tn.NodeHome(),
 		"--node", fmt.Sprintf("tcp://%s:26657", tn.HostName()),
 		"--output", "json",
