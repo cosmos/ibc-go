@@ -145,9 +145,9 @@ module.exports = {
               path: "/apps",
               children: [
                 {
-                    title: "Overview",
-                    directory: false,
-                    path: "/apps/interchain-accounts/overview.html"
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/interchain-accounts/overview.html"
                 }, 
                 {
                   title: "Authentication Modules",
@@ -160,9 +160,9 @@ module.exports = {
                   path: "/apps/interchain-accounts/active-channels.html"
                 },
                 {
-                    title: "Integration",
-                    directory: false,
-                    path: "/apps/interchain-accounts/integration.html"
+                  title: "Integration",
+                  directory: false,
+                  path: "/apps/interchain-accounts/integration.html"
                 },
                 {
                   title: "Parameters",
@@ -187,11 +187,16 @@ module.exports = {
               path: "/middleware",
               children: [
                 {
-                    title: "Overview",
-                    directory: false,
-                    path: "/middleware/ics29-fee/overview.html"
+                  title: "Overview",
+                  directory: false,
+                  path: "/middleware/ics29-fee/overview.html"
                 }, 
-            ]
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/ics29-fee/integration.html"
+                },
+              ]
             },
           ]
         },
