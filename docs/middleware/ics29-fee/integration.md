@@ -4,7 +4,7 @@ order: 2
 
 # Integration
 
-Learn how to configure the Fee Middleware module with IBC applications. The following document only applies for Cosmos SDK chains.  {synopsis}
+Learn how to configure the Fee Middleware module with IBC applications. The following document is intended for developers building on top of the Cosmos SDK and only applies for Cosmos SDK chains. {synopsis}
 
 ## Pre-requisite Readings
 
