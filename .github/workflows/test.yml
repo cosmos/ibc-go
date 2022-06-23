@@ -228,4 +228,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run e2e Test
         run: |
-          make e2e-test suite={{ matrix.suite }} test=${{ matrix.test }}
+          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
