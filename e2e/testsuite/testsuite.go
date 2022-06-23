@@ -233,6 +233,16 @@ func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 	s.startRelayerFunc(relayer)
 }
 
+func (s *E2ETestSuite) CreateUserOnSourceChain(ctx context.Context, amount int64) *ibctest.User {
+	srcChain, _ := s.GetChains()
+	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, srcChain)[0]
+}
+
+func (s *E2ETestSuite) CreateUserOnDestinationChain(ctx context.Context, amount int64) *ibctest.User {
+	_, dstChain := s.GetChains()
+	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, dstChain)[0]
+}
+
 func (s *E2ETestSuite) GetSourceChainBalance(ctx context.Context, user *ibctest.User) (int64, error) {
 	srcChain, _ := s.GetChains()
 	return getChainBalance(ctx, srcChain, user)
