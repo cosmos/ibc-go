@@ -52,7 +52,8 @@ func (im IBCMiddleware) OnChanOpenInit(
 		return "", types.ErrControllerSubModuleDisabled
 	}
 
-	if err := im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
+	version, err := im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
+	if err != nil {
 		return "", err
 	}
 
