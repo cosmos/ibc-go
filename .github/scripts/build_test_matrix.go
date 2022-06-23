@@ -27,8 +27,12 @@ func isTestFunction(f *ast.FuncDecl) bool {
 }
 
 type GithubActionTestMatrix struct {
-	Test  []string `json:"test"`
-	Suite []string `json:"suite"`
+	Pairs []Pair `json:"include"`
+}
+
+type Pair struct {
+	Test  string `json:"test"`
+	Suite string `json:"suite"`
 }
 
 func main() {
@@ -77,14 +81,19 @@ func main() {
 	}
 
 	gh := GithubActionTestMatrix{
-		Test:  []string{},
-		Suite: []string{},
+		Pairs: []Pair{},
+		//Test:  []string{},
+		//Suite: []string{},
 	}
 
 	for testSuiteName, testCases := range testSuiteMapping {
 		for _, testCaseName := range testCases {
-			gh.Test = append(gh.Test, testCaseName)
-			gh.Suite = append(gh.Suite, testSuiteName)
+			gh.Pairs = append(gh.Pairs, Pair{
+				Test:  testCaseName,
+				Suite: testSuiteName,
+			})
+			//gh.Test = append(gh.Test, testCaseName)
+			//gh.Suite = append(gh.Suite, testSuiteName)
 		}
 	}
 
