@@ -176,6 +176,48 @@ module.exports = {
                 },
             ]
             },
+            {
+              title: "Transfer",
+              directory: true,
+              path: "/apps",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/transfer/overview.html"
+                }, 
+                {
+                  title: "State",
+                  directory: false,
+                  path: "/apps/transfer/state.html"
+                },
+                {
+                  title: "State Transitions",
+                  directory: false,
+                  path: "/apps/transfer/state-transitions.html"
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/transfer/messages.html"
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/apps/transfer/events.html"
+                },
+                {
+                  title: "Metrics",
+                  directory: false,
+                  path: "/apps/transfer/metrics.html"
+                },
+                {
+                  title: "Params",
+                  directory: false,
+                  path: "/apps/transfer/params.html"
+                },
+            ]
+            },
           ]
         },
         {
