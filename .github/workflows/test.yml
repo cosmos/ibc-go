@@ -209,7 +209,7 @@ jobs:
       SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
     strategy:
       fail-fast: false
-      matrix: ${{ needs.build-test-matrix.outputs.matrix }}
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - name: Log in to the Container registry
