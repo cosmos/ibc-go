@@ -84,7 +84,7 @@ func main() {
 	for testSuiteName, testCases := range testSuiteMapping {
 		for _, testCaseName := range testCases {
 			gh.Test = append(gh.Test, testCaseName)
-			gh.Test = append(gh.Suite, testSuiteName)
+			gh.Suite = append(gh.Suite, testSuiteName)
 		}
 	}
 
