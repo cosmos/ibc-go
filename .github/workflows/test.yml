@@ -198,8 +198,9 @@ jobs:
       fail-fast: false
       matrix:
         test-name:
-          - TestTokenTransfer
-          - TestFeeMiddlewareAsync
+          - TestFeeMiddlewareAsyncMultipleSenders
+          - TestFeeMiddlewareAsyncSingleSender
+          - TestFeeMiddlewareAsyncSingleSenderTimesOut
     steps:
       - uses: actions/checkout@v3
       - name: Log in to the Container registry
