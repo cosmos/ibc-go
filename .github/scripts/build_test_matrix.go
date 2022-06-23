@@ -92,7 +92,7 @@ func main() {
 		}
 	}
 
-	ghBytes, err := json.MarshalIndent(gh, "", " ")
+	ghBytes, err := json.Marshal(gh)
 	if err != nil {
 		panic(err)
 	}
