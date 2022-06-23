@@ -19,8 +19,7 @@ func NewRelayer(t *testing.T, logger *zap.Logger, pool *dockertest.Pool, network
 }
 
 // NewSimappConfig creates an ibc configuration for simd.
-func NewSimappConfig(name, chainId, denom string) ibc.ChainConfig {
-	tc := testconfig.FromEnv()
+func NewSimappConfig(tc testconfig.TestConfig, name, chainId, denom string) ibc.ChainConfig {
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,

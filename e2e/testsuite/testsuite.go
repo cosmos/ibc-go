@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/v3/e2e/setup"
+	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
 	"github.com/ory/dockertest/v3"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -109,8 +110,9 @@ func (s *E2ETestSuite) createCosmosChains() (*cosmos.CosmosChain, *cosmos.Cosmos
 	s.pool = pool
 	s.network = network
 
-	chainAConfig := setup.NewSimappConfig("simapp-a", "chain-a", "atoma")
-	chainBConfig := setup.NewSimappConfig("simapp-b", "chain-b", "atomb")
+	tc := testconfig.FromEnv()
+	chainAConfig := setup.NewSimappConfig(tc, "simapp-a", "chain-a", "atoma")
+	chainBConfig := setup.NewSimappConfig(tc, "simapp-b", "chain-b", "atomb")
 	logger := zaptest.NewLogger(s.T())
 	srcChain := cosmos.NewCosmosChain(s.T().Name(), chainAConfig, 1, 0, logger)
 	dstChain := cosmos.NewCosmosChain(s.T().Name(), chainBConfig, 1, 0, logger)
@@ -226,29 +228,34 @@ func (s *E2ETestSuite) CreateRelayerAndChannel(ctx context.Context, req *require
 	return r, srcChainChannels[len(srcChainChannels)-1]
 }
 
+// StartRelayer starts the given relayer.
 func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 	if s.startRelayerFunc == nil {
-		panic("cannot start relayer before it is creatd!")
+		panic("cannot start relayer before it is created!")
 	}
 	s.startRelayerFunc(relayer)
 }
 
+// CreateUserOnSourceChain creates a user with the given amount of funds on the source chain.
 func (s *E2ETestSuite) CreateUserOnSourceChain(ctx context.Context, amount int64) *ibctest.User {
 	srcChain, _ := s.GetChains()
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, srcChain)[0]
 }
 
+// CreateUserOnDestinationChain creates a user with the given amount of funds on the destination chain.
 func (s *E2ETestSuite) CreateUserOnDestinationChain(ctx context.Context, amount int64) *ibctest.User {
 	_, dstChain := s.GetChains()
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, dstChain)[0]
 }
 
-func (s *E2ETestSuite) GetSourceChainBalance(ctx context.Context, user *ibctest.User) (int64, error) {
+// GetSourceChainNativeBalance gets the balance of a given user on the source chain.
+func (s *E2ETestSuite) GetSourceChainNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
 	srcChain, _ := s.GetChains()
 	return getChainBalance(ctx, srcChain, user)
 }
 
-func (s *E2ETestSuite) GetDestinationChainBalance(ctx context.Context, user *ibctest.User) (int64, error) {
+// GetDestinationChainNativeBalance gets the balance of a given user on the destination chain.
+func (s *E2ETestSuite) GetDestinationChainNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
 	_, dstChain := s.GetChains()
 	return getChainBalance(ctx, dstChain, user)
 }

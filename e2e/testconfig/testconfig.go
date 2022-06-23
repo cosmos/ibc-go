@@ -7,7 +7,6 @@ import (
 
 const (
 	DefaultSimdImage = "ghcr.io/cosmos/ibc-go-simd"
-	TestPath         = "test-path"
 	SimdImageEnv     = "SIMD_IMAGE"
 	SimdTagEnv       = "SIMD_TAG"
 )

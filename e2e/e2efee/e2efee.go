@@ -11,22 +11,6 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 )
 
-func RecoverKeyring(ctx context.Context, chain *cosmos.CosmosChain, name, mnemonic string) error {
-	tn := chain.ChainNodes[0]
-
-	cmd := []string{
-		"bash",
-		"-c",
-		fmt.Sprintf(`echo "%s" | %s keys add %s --recover --keyring-backend %s --home %s`, mnemonic, chain.Config().Bin, name, keyring.BackendTest, tn.NodeHome()),
-	}
-
-	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
-	if err != nil {
-		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
-	}
-	return nil
-}
-
 func RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, counterPartyPayee, portId, channelId string) error {
 	tn := chain.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,

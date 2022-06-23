@@ -76,7 +76,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 	})
 
 	t.Run("Verify tokens have been escrowed", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainSenderOne)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderOne)
 		req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
@@ -116,7 +116,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 
 	t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainSenderOne)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderOne)
 		req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
@@ -125,7 +125,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 
 	t.Run("Balance from second sender should be lowered by sum of recv ack and timeout (not IBC transfer amount)", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainSenderTwo)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderTwo)
 		req.NoError(err)
 
 		expected := startingTokenAmount - recvFee - ackFee - timeoutFee
@@ -145,7 +145,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 	})
 
 	t.Run("Verify timeout fee is refunded on successful relay of packets for first sender", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainSenderOne)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderOne)
 		req.NoError(err)
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
@@ -155,7 +155,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 	})
 
 	t.Run("Verify timeout fee is refunded on successful relay of packets for second sender", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainSenderTwo)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainSenderTwo)
 		req.NoError(err)
 
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
@@ -218,7 +218,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 	})
 
 	t.Run("Verify tokens have been escrowed", func(t *testing.T) {
-		actualBalance, err := srcChain.GetBalance(ctx, srcChainWallet.Bech32Address(srcChain.Config().Bech32Prefix), srcChain.Config().Denom)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
 		req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
@@ -253,7 +253,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainWallet)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
 		req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
@@ -274,7 +274,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 
 	t.Run("Verify timeout fee is refunded on successful relay of packets", func(t *testing.T) {
 
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainWallet)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
 		req.NoError(err)
 
 		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
@@ -341,7 +341,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 	})
 
 	t.Run("Verify tokens have been escrowed (relayer has not yet picked up the packet)", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainWallet)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
 		req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
@@ -376,7 +376,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainWallet)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
 		req.NoError(err)
 
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
@@ -390,7 +390,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 	req.NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("Funds recv and ack should be refunded as the packet timed out", func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainBalance(ctx, srcChainWallet)
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
 		req.NoError(err)
 
 		expected := startingTokenAmount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - timeoutFee

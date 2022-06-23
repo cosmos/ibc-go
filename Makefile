@@ -332,7 +332,6 @@ cleanup-ibc-test-containers:
 	done
 
 e2e-test: cleanup-ibc-test-containers
-	@#go test -v ./e2e --run $(test) -testify.m TestMethodA
 	@go test -v ./e2e --run FeeMiddlewareTestSuite -testify.m $(test)
 
 ###############################################################################
