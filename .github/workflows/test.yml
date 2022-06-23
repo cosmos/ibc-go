@@ -199,9 +199,7 @@ jobs:
           go-version: 1.17
       - id: set-matrix
         run: |
-          matrix="$(go run .github/scripts/main.go)"
-          echo ${matrix}
-          echo "::set-output name=matrix::${matrix}"
+          echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
 
 
   fee-middleware-e2e:
