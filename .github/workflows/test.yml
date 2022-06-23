@@ -201,6 +201,7 @@ jobs:
           - TestFeeMiddlewareAsyncMultipleSenders
           - TestFeeMiddlewareAsyncSingleSender
           - TestFeeMiddlewareAsyncSingleSenderTimesOut
+          - TestFeeMiddlewareAsyncSingleSenderNoCounterPartyAddress
     steps:
       - uses: actions/checkout@v3
       - name: Log in to the Container registry
