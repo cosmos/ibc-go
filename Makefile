@@ -332,7 +332,7 @@ cleanup-ibc-test-containers:
 	done
 
 e2e-test: cleanup-ibc-test-containers
-	@go test -v ./e2e --run FeeMiddlewareTestSuite -testify.m $(test)
+	@go test -v ./e2e --run $(suite) -testify.m $(test)
 
 ###############################################################################
 ###                                Linting                                  ###
