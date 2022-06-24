@@ -14,6 +14,7 @@ import (
 	feetypes "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 	simappparams "github.com/cosmos/ibc-go/v3/testing/simapp/params"
+	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
@@ -59,7 +60,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareSyncSingleSender() {
 
 	srcChain, _ := s.GetChains()
 
-	s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 	srcChainSenderOne := s.CreateUserOnSourceChain(ctx, startingTokenAmount)
@@ -137,7 +138,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -175,7 +176,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 			})
 
 			expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-			t.Run("Verify tokens have been escrowed", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expected))
+			t.Run("Verify tokens have been escrowed", s.AssertChainNativeBalance(ctx, srcChain, srcChainSenderOne, expected))
 		})
 
 		t.Run("Test Packet Fees", func(t *testing.T) {
@@ -208,10 +209,10 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 				//})
 
 				expectedSenderOneBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
-				t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expectedSenderOneBal))
+				t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", s.AssertChainNativeBalance(ctx, srcChain, srcChainSenderOne, expectedSenderOneBal))
 
 				expectedSenderTwoBal := startingTokenAmount - recvFee - ackFee - timeoutFee
-				t.Run("Balance from second sender should be lowered by sum of recv ack and timeout (not IBC transfer amount)", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, expectedSenderTwoBal))
+				t.Run("Balance from second sender should be lowered by sum of recv ack and timeout (not IBC transfer amount)", s.AssertChainNativeBalance(ctx, srcChain, srcChainSenderTwo, expectedSenderTwoBal))
 			})
 
 			t.Run("Start relayer", func(t *testing.T) {
@@ -225,10 +226,10 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 			// once the relayer has relayed the packets, the timeout fee should be refunded.
 			gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
 			expectedSenderOneBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee - recvFee
-			t.Run("Verify timeout fee is refunded on successful relay of packets for first sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderOne, expectedSenderOneBal))
+			t.Run("Verify timeout fee is refunded on successful relay of packets for first sender", s.AssertChainNativeBalance(ctx, srcChain, srcChainSenderOne, expectedSenderOneBal))
 
 			expectedSenderTwoBal := startingTokenAmount - ackFee - recvFee
-			t.Run("Verify timeout fee is refunded on successful relay of packets for second sender", s.AssertSourceChainNativeBalance(ctx, srcChainSenderTwo, expectedSenderTwoBal))
+			t.Run("Verify timeout fee is refunded on successful relay of packets for second sender", s.AssertChainNativeBalance(ctx, srcChain, srcChainSenderTwo, expectedSenderTwoBal))
 		})
 	})
 }
@@ -239,7 +240,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -348,7 +349,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -456,7 +457,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 
 	srcChain, dstChain := s.GetChains()
 
-	relayer, srcChainChannelInfo := s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -545,4 +546,23 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee
 		s.Req.Equal(expected, actualBalance)
 	})
+}
+
+// Utility and assertion functions
+// AssertCounterPartyPayeeCanBeRegistered attempts to register a counter party payee, and asserts there is no error.
+func (s *FeeMiddlewareTestSuite) AssertCounterPartyPayeeCanBeRegistered(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, counterPartyPayee, portId, channelId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		s.Req.NoError(e2efee.RegisterCounterPartyPayee(ctx, chain, relayerAddress, counterPartyPayee, portId, channelId))
+		// give some time for update
+		time.Sleep(time.Second * 5)
+	}
+}
+
+// AssertCounterPartyPayeeCanBeVerified asserts that the given relayer address has the expected counter party address.
+func (s *FeeMiddlewareTestSuite) AssertCounterPartyPayeeCanBeVerified(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, channelID, expectedAddress string) func(t *testing.T) {
+	return func(t *testing.T) {
+		actualAddress, err := e2efee.QueryCounterPartyPayee(ctx, chain, relayerAddress, channelID)
+		s.Req.NoError(err)
+		s.Req.Equal(expectedAddress, actualAddress)
+	}
 }

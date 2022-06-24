@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/e2e/e2efee"
 	"github.com/cosmos/ibc-go/v3/e2e/setup"
 	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -43,12 +44,43 @@ type chainPair struct {
 
 // GetChains returns a src and dst chain that can be used in a test. The pair returned
 // is unique to the current test being run.
-func (s *E2ETestSuite) GetChains() (*cosmos.CosmosChain, *cosmos.CosmosChain) {
-	chainPair, ok := s.chainPairs[s.T().Name()]
-	if !ok {
-		panic(fmt.Sprintf("no chain pair found for test %s", s.T().Name()))
+func (s *E2ETestSuite) GetChains(chainOpts ...func(*ChainOptions)) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
+	if s.chainPairs == nil {
+		s.chainPairs = map[string]chainPair{}
 	}
-	return chainPair.srcChain, chainPair.dstChain
+	cp, ok := s.chainPairs[s.T().Name()]
+	if ok {
+		return cp.srcChain, cp.dstChain
+	}
+
+	chainOptions := defaultChainOptions()
+	for _, opt := range chainOpts {
+		opt(&chainOptions)
+	}
+
+	srcChain, dstChain := s.CreateCosmosChains(chainOptions)
+	cp = chainPair{
+		srcChain: srcChain,
+		dstChain: dstChain,
+	}
+	s.chainPairs[s.T().Name()] = cp
+
+	return cp.srcChain, cp.dstChain
+}
+
+func defaultChainOptions() ChainOptions {
+	tc := testconfig.FromEnv()
+	srcChainCfg := setup.NewSimappConfig(tc, "simapp-a", "chain-a", "atoma")
+	dstChainCfg := setup.NewSimappConfig(tc, "simapp-b", "chain-b", "atomb")
+	return ChainOptions{
+		SrcChainConfig: &srcChainCfg,
+		DstChainConfig: &dstChainCfg,
+	}
+}
+
+func (s *E2ETestSuite) SetupTest() {
+	s.Rep = testreporter.NewNopReporter()
+	s.Req = require.New(s.Rep.TestifyT(s.T()))
 }
 
 // GetRelayerWallets returns the relayer wallets associated with the source and destination chains.
@@ -104,9 +136,9 @@ func recoverKeyring(ctx context.Context, chain *cosmos.CosmosChain, name, mnemon
 	return nil
 }
 
-// createCosmosChains creates two separate chains in docker containers.
+// CreateCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
-func (s *E2ETestSuite) createCosmosChains() (*cosmos.CosmosChain, *cosmos.CosmosChain) {
+func (s *E2ETestSuite) CreateCosmosChains(chainOptions ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
 	ctx := context.Background()
 	pool, network := ibctest.DockerSetup(s.T())
 
@@ -114,12 +146,9 @@ func (s *E2ETestSuite) createCosmosChains() (*cosmos.CosmosChain, *cosmos.Cosmos
 	s.pool = pool
 	s.network = network
 
-	tc := testconfig.FromEnv()
-	chainAConfig := setup.NewSimappConfig(tc, "simapp-a", "chain-a", "atoma")
-	chainBConfig := setup.NewSimappConfig(tc, "simapp-b", "chain-b", "atomb")
 	logger := zaptest.NewLogger(s.T())
-	srcChain := cosmos.NewCosmosChain(s.T().Name(), chainAConfig, 1, 0, logger)
-	dstChain := cosmos.NewCosmosChain(s.T().Name(), chainBConfig, 1, 0, logger)
+	srcChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.SrcChainConfig, 1, 0, logger)
+	dstChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.DstChainConfig, 1, 0, logger)
 
 	s.T().Cleanup(func() {
 		if !s.T().Failed() {
@@ -134,26 +163,13 @@ func (s *E2ETestSuite) createCosmosChains() (*cosmos.CosmosChain, *cosmos.Cosmos
 	return srcChain, dstChain
 }
 
-func (s *E2ETestSuite) SetupSuite() {
-	s.chainPairs = map[string]chainPair{}
+type ChainOptions struct {
+	SrcChainConfig *ibc.ChainConfig
+	DstChainConfig *ibc.ChainConfig
 }
 
-// SetupTest creates two cosmos.CosmosChain instances and maps them to the test name so they
-// are accessible within the test.
-// NOTE: if this method is implemented in other test suites, they will need to call E2ETestSuite.SetupTest manually.
-func (s *E2ETestSuite) SetupTest() {
-	srcChain, dstChain := s.createCosmosChains()
-	s.chainPairs[s.T().Name()] = chainPair{
-		srcChain: srcChain,
-		dstChain: dstChain,
-	}
-	s.Rep = testreporter.NewNopReporter()
-	s.Req = require.New(s.Rep.TestifyT(s.T()))
-}
-
-func (s *E2ETestSuite) CreateRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
+func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	srcChain, dstChain := s.GetChains()
-
 	req := s.Req
 	eRep := s.Rep.RelayerExecReporter(s.T())
 
@@ -187,7 +203,7 @@ func (s *E2ETestSuite) CreateRelayerAndChannel(ctx context.Context, channelOpts 
 	req.NoError(r.GeneratePath(ctx, eRep, srcChain.Config().ChainID, dstChain.Config().ChainID, pathName))
 	req.NoError(r.CreateClients(ctx, eRep, pathName))
 
-	defaultChannelsOpts := &ibc.CreateChannelOptions{
+	channelOptions := &ibc.CreateChannelOptions{
 		SourcePortName: "transfer",
 		DestPortName:   "transfer",
 		Order:          "unordered",
@@ -195,13 +211,13 @@ func (s *E2ETestSuite) CreateRelayerAndChannel(ctx context.Context, channelOpts 
 	}
 
 	for _, opt := range channelOpts {
-		opt(defaultChannelsOpts)
+		opt(channelOptions)
 	}
 
 	// The client isn't created immediately -- wait for two blocks to ensure the clients are ready.
 	req.NoError(test.WaitForBlocks(ctx, 2, srcChain, dstChain))
 	req.NoError(r.CreateConnections(ctx, eRep, pathName))
-	req.NoError(r.CreateChannel(ctx, eRep, pathName, *defaultChannelsOpts))
+	req.NoError(r.CreateChannel(ctx, eRep, pathName, *channelOptions))
 
 	// Now validate that the channels correctly report as created.
 	// GetChannels takes around two seconds with rly,
@@ -260,18 +276,31 @@ func (s *E2ETestSuite) CreateUserOnDestinationChain(ctx context.Context, amount 
 // GetSourceChainNativeBalance gets the balance of a given user on the source chain.
 func (s *E2ETestSuite) GetSourceChainNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
 	srcChain, _ := s.GetChains()
-	return getChainBalance(ctx, srcChain, user)
+	return GetNativeChainBalance(ctx, srcChain, user)
 }
 
 // GetDestinationChainNativeBalance gets the balance of a given user on the destination chain.
 func (s *E2ETestSuite) GetDestinationChainNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
 	_, dstChain := s.GetChains()
-	return getChainBalance(ctx, dstChain, user)
+	return GetNativeChainBalance(ctx, dstChain, user)
 }
 
-// getChainBalance returns the balance of a specific user on a chain using the native denom.
-func getChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.User) (int64, error) {
+// GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
+func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.User) (int64, error) {
 	bal, err := chain.GetBalance(ctx, user.Bech32Address(chain.Config().Bech32Prefix), chain.Config().Denom)
+	if err != nil {
+		return -1, err
+	}
+	return bal, nil
+}
+
+func GetCounterPartyChainBalance(ctx context.Context, nativeChain, counterPartyChain ibc.Chain, user *ibctest.User, counterPartyPortId, counterPartyChannelId string) (int64, error) {
+	nativeChainDenom := nativeChain.Config().Denom
+
+	nativeDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(counterPartyPortId, counterPartyChannelId, nativeChainDenom))
+	counterPartyIBCDenom := nativeDenomTrace.IBCDenom()
+
+	bal, err := counterPartyChain.GetBalance(ctx, user.Bech32Address(counterPartyChain.Config().Bech32Prefix), counterPartyIBCDenom)
 	if err != nil {
 		return -1, err
 	}
@@ -284,36 +313,14 @@ func (s *E2ETestSuite) AssertRelayerWalletsCanBeRecovered(ctx context.Context, r
 	}
 }
 
-func (s *E2ETestSuite) AssertCounterPartyPayeeCanBeRegistered(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, counterPartyPayee, portId, channelId string) func(t *testing.T) {
+func (s *E2ETestSuite) AssertChainNativeBalance(ctx context.Context, chain ibc.Chain, user *ibctest.User, expected int64) func(t *testing.T) {
 	return func(t *testing.T) {
-		s.Req.NoError(e2efee.RegisterCounterPartyPayee(ctx, chain, relayerAddress, counterPartyPayee, portId, channelId))
-		// give some time for update
-		time.Sleep(time.Second * 5)
-	}
-}
-
-func (s *E2ETestSuite) AssertCounterPartyPayeeCanBeVerified(ctx context.Context, chain *cosmos.CosmosChain, relayerAddress, channelID, expectedAddress string) func(t *testing.T) {
-	return func(t *testing.T) {
-		actualAddress, err := e2efee.QueryCounterPartyPayee(ctx, chain, relayerAddress, channelID)
-		s.Req.NoError(err)
-		s.Req.Equal(expectedAddress, actualAddress)
-	}
-}
-func (s *E2ETestSuite) AssertSourceChainNativeBalance(ctx context.Context, user *ibctest.User, expected int64) func(t *testing.T) {
-	return func(t *testing.T) {
-		actualBalance, err := s.GetSourceChainNativeBalance(ctx, user)
+		actualBalance, err := GetNativeChainBalance(ctx, chain, user)
 		s.Req.NoError(err)
 		s.Req.Equal(expected, actualBalance)
 	}
 }
 
-func (s *E2ETestSuite) AssertDestinationChainNativeBalance(ctx context.Context, user *ibctest.User, expected int64) func(t *testing.T) {
-	return func(t *testing.T) {
-		actualBalance, err := s.GetDestinationChainNativeBalance(ctx, user)
-		s.Req.NoError(err)
-		s.Req.Equal(expected, actualBalance)
-	}
-}
 func (s *E2ETestSuite) AssertEmptyPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) func(t *testing.T) {
 	return func(t *testing.T) {
 		packets, err := e2efee.QueryPackets(ctx, chain, portId, channelId)
