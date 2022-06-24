@@ -15,7 +15,7 @@ Learn how to incentivize IBC packets using the ICS29-Fee module. {synopsis}
 Different types of end users:
 
 - CLI users who want to manually incentivize IBC packets
-- Client Developers
+- Client developers
 
 
 The Fee Middleware module allows end users to add a 'tip' to each IBC packet which will incentivize relayer operators to relay packets between chains. GRPC endpoints are exposed for client developers as well as a simple CLI for manually incentivizing IBC packets.
