@@ -4,7 +4,7 @@ order: 6
 
 # For end users
 
-Learn how to incentivize IBC packets using the ICS29-Fee module. {synopsis}
+Learn how to incentivize IBC packets using the ICS29 Fee Middleware module. {synopsis}
 
 ## Pre-requisite readings
 
