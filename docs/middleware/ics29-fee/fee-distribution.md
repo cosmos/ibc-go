@@ -41,6 +41,19 @@ type MsgRegisterCounterpartyPayee struct {
 }
 ```
 
+This message is expected to fail if:
+
+- `PortId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
+- `ChannelId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
+- `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/basics/accounts.md#Addresses)).
+- `CounterpartyPayee` is empty.
+
+See below for an example CLI command:
+
+```
+simd tx ibc-fee register-counterparty-payee transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh osmo1v5y0tz01llxzf4c2afml8s3awue0ymju22wxx2 --from cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh
+```
+
 ## Register a payee address for reverse and timeout relaying
 
 As mentioned previously in [ICS29 Concepts](../ics29-fee/overview.md#concepts), the reverse relayer describes the actor who performs the submission of `MsgAcknowledgement` on the source chain. 
@@ -62,4 +75,17 @@ type MsgRegisterPayee struct {
 	// the payee address
 	Payee string
 }
+```
+
+This message is expected to fail if:
+
+- `PortId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
+- `ChannelId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
+- `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/basics/accounts.md#Addresses)).
+- `Payee` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/basics/accounts.md#Addresses)).
+
+See below for an example CLI command:
+
+```
+simd tx ibc-fee register-payee transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5 --from cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh
 ```
