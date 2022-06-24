@@ -6,7 +6,7 @@ order: 6
 
 Learn how to incentivize IBC packets using the ICS29-Fee module. {synopsis}
 
-## Pre-requisite Readings
+## Pre-requisite readings
 
 * [Fee Middleware](overview.md) {prereq}
 
