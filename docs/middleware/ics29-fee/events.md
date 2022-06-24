@@ -4,7 +4,6 @@ order: 5
 
 # Events
 
-## 
 ## `MsgPayPacketFee`, `MsgPayPacketFeeAsync`
 
 | Type                    | Attribute Key   | Attribute Value |
@@ -31,6 +30,6 @@ order: 5
 | Type                        | Attribute Key      | Attribute Value     |
 |-----------------------------|--------------------|---------------------|
 | register_counterparty_payee | relayer            | {relayer}           |
-| register_counterparty_payee | counterparty_payee | {counterpartyPayee} |            |
+| register_counterparty_payee | counterparty_payee | {counterpartyPayee} |
 | register_counterparty_payee | channel_id         | {channelID}         |
 | message                     | module             | fee-ibc             |
