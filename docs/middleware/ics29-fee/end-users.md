@@ -22,7 +22,7 @@ The Fee Middleware module allows end users to add a 'tip' to each IBC packet whi
 
 ## CLI Users
 
-For an in depth guide on how to use the ICS29 Fee module using the CLI please take a look at the [wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible-token-transfers#asynchronous-incentivization-of-a-fungible-token-transfer) on the `ibc-go` repo.
+For an in depth guide on how to use the ICS29 Fee Middleware module using the CLI please take a look at the [wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible-token-transfers#asynchronous-incentivization-of-a-fungible-token-transfer) on the `ibc-go` repo.
 
 ## Client Developers
 
