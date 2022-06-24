@@ -238,6 +238,11 @@ module.exports = {
                   directory: false,
                   path: "/middleware/ics29-fee/integration.html"
                 },
+                {
+                  title: "Fee Messages",
+                  directory: false,
+                  path: "/middleware/ics29-fee/msgs.html"
+                },
               ]
             },
           ]
