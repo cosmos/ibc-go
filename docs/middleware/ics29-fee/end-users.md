@@ -1,0 +1,31 @@
+<!--
+order: 6
+-->
+
+# For End Users
+
+Learn how to incentivize IBC packets using the ICS29-Fee module. {synopsis}
+
+## Pre-requisite Readings
+
+* [Fee Middleware](overview.md) {prereq}
+
+## Summary
+
+Different types of end users:
+
+- CLI Users who want to manually incentivize IBC packets
+- Client Developers
+
+
+The Fee Middleware module allows end users to add a 'tip' to each IBC packet which will incentivize relayer operators to relay packets between chains. GRPC endpoints are exposed for client developers as well as a simple CLI for manually incentivizing IBC packets.
+
+## CLI Users
+
+For an in depth guide on how to use the ICS29 Fee module using the CLI please take a look at the [wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible-token-transfers#asynchronous-incentivization-of-a-fungible-token-transfer) on the `ibc-go` repo.
+
+## Client Developers
+
+Client developers can read more about the relevant ICS29 message types in the [Escrowing and paying out fees section]().
+
+[CosmJS](https://github.com/cosmos/cosmjs) is a useful client tool for signing and broadcasting cosmos SDK messages.
