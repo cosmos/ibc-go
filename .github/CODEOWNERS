@@ -16,10 +16,15 @@
 /modules/core/ @colin-axner @fedekunze @AdityaSripal 
 /proto/ibc/core/ @colin-axner @fedekunze @AdityaSripal 
 
+## CODEOWNERS for core/02-client
+
+/modules/core/02-client @seantking @damiannolan
+/proto/ibc/core/client @seantking @damiannolan
+
 # CODEOWNERS for the light-clients
 
-/modules/light-clients/ @colin-axner @fedekunze @AdityaSripal 
-/proto/ibc/lightclients/ @colin-axner @fedekunze @AdityaSripal 
+/modules/light-clients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
+/proto/ibc/lightclients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
 
 # CODEOWNERS for ICS 20
 
