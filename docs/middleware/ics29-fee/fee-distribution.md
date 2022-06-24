@@ -16,7 +16,6 @@ Packet fees are divided into 3 distinct amounts in order to compensate relayer o
 - `AckFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgAcknowledgement`.
 - `TimeoutFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgTimeout`.
 
-
 ## Register a payee address for forward relaying
 
 As mentioned previously in [ICS29 Concepts](../ics29-fee/overview.md#concepts), the forward relayer describes the actor who performs the submission of `MsgRecvPacket` on the destination chain. 
