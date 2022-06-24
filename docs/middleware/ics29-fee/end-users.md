@@ -2,7 +2,7 @@
 order: 6
 -->
 
-# For End Users
+# For end users
 
 Learn how to incentivize IBC packets using the ICS29-Fee module. {synopsis}
 
