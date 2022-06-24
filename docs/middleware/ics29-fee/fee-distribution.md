@@ -1,0 +1,65 @@
+<!--
+order: 4
+-->
+
+# Fee Distribution
+
+Learn about payee registration for distribution of packet fees. The following document is intended for relayer operators {synopsis}
+
+## Pre-requisite Readings
+
+* [Fee Middleware](overview.md) {prereq}
+
+Packet fees are divided into 3 distinct amounts in order to compensate relayer operators for packet relaying on fee enabled IBC channels.
+
+- `RecvFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgRecvPacket`.
+- `AckFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgAcknowledgement`.
+- `TimeoutFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgTimeout`.
+
+
+## Register a payee address for forward relaying
+
+As mentioned previously in [ICS29 Concepts](../ics29-fee/overview.md#concepts), the forward relayer describes the actor who performs the submission of `MsgRecvPacket` on the destination chain. 
+Fee distribution for incentivized packet relays takes place on the packet source chain. 
+Relayer operators are expected to register a counterparty payee address, in order to be compensated accordingly with `RecvFees` upon completion of a packet lifecycle. 
+The counterparty payee address registered on the destination chain is encoded into the packet acknowledgement and communicated as such to the source chain for fee distribution.
+If a counterparty payee is not registered for the forward relayer on the destination chain, the escrowed fees will be refunded upon fee distribution.
+
+A transaction must be submitted to the desintation chain including a `CounterpartyPayee` address of an account on the source chain.
+The transaction must be signed by the `Relayer`.
+
+```go
+type MsgRegisterCounterpartyPayee struct {
+	// unique port identifier
+	PortId string
+	// unique channel identifier
+	ChannelId string
+	// the relayer address
+	Relayer string
+	// the counterparty payee address
+	CounterpartyPayee string
+}
+```
+
+## Register a payee address for reverse and timeout relaying
+
+As mentioned previously in [ICS29 Concepts](../ics29-fee/overview.md#concepts), the reverse relayer describes the actor who performs the submission of `MsgAcknowledgement` on the source chain. 
+Similarly the timeout relayer describes the actor who performs the submission of `MsgTimeout` on the source chain.
+Relayer operators may choose to register an optional payee address, in order to be compensated accordingly with `AckFees` and `TimeoutFees` upon completion of a packet life cycle.
+If a payee is not registered for the reverse or timeout relayer on the source chain, then fee distribution assumes the default behaviour, where fees are paid out to the relayer account which delivers `MsgAcknowledgement` or `MsgTimeout`.
+
+A transaction must be submitted to the source chain including a `Payee` address of an account on the source chain.
+The transaction must be signed by the `Relayer`.
+
+```go
+type MsgRegisterPayee struct {
+	// unique port identifier
+	PortId string
+	// unique channel identifier
+	ChannelId string
+	// the relayer address
+	Relayer string
+	// the payee address
+	Payee string
+}
+```
