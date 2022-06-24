@@ -18,7 +18,7 @@ Different types of end users:
 - Client developers
 
 
-The Fee Middleware module allows end users to add a 'tip' to each IBC packet which will incentivize relayer operators to relay packets between chains. GRPC endpoints are exposed for client developers as well as a simple CLI for manually incentivizing IBC packets.
+The Fee Middleware module allows end users to add a 'tip' to each IBC packet which will incentivize relayer operators to relay packets between chains. gRPC endpoints are exposed for client developers as well as a simple CLI for manually incentivizing IBC packets.
 
 ## CLI Users
 
