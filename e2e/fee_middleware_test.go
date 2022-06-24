@@ -2,8 +2,18 @@ package e2e
 
 import (
 	"context"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/ibc-go/v3/e2e/e2efee"
 	"github.com/cosmos/ibc-go/v3/e2e/testsuite"
+	feetypes "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	simappparams "github.com/cosmos/ibc-go/v3/testing/simapp/params"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
@@ -11,12 +21,114 @@ import (
 	"time"
 )
 
+var (
+	encCfg    simappparams.EncodingConfig
+	txBuilder client.TxBuilder
+)
+
+func init() {
+	encCfg = simapp.MakeTestEncodingConfig()
+	txBuilder = encCfg.TxConfig.NewTxBuilder()
+
+}
 func TestFeeMiddlewareTestSuite(t *testing.T) {
 	suite.Run(t, new(FeeMiddlewareTestSuite))
 }
 
 type FeeMiddlewareTestSuite struct {
 	testsuite.E2ETestSuite
+}
+
+func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareSyncSingleSender() {
+
+	//t.Run("Relayer wallets can be recovered", s.AssertRelayerWalletsCanBeRecovered(ctx, relayer))
+	//
+	//srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
+	//t.Run("Relayer wallets can be fetched", func(t *testing.T) {
+	//	s.Req.NoError(err)
+	//})
+	//
+	//
+	//feetypes.MsgPayPacketFee{}
+	//feetypes.NewMsgRegisterCounterpartyPayee()
+	//transfertypes.NewMsgTransfer()
+	//
+
+	t := s.T()
+	ctx := context.TODO()
+
+	srcChain, _ := s.GetChains()
+
+	s.CreateRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+
+	startingTokenAmount := int64(10_000_000)
+	srcChainSenderOne := s.CreateUserOnSourceChain(ctx, startingTokenAmount)
+
+	srChainDenom := srcChain.Config().Denom
+
+	defaultRecvFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(100)}}
+	defaultAckFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(200)}}
+	defaultTimeoutFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(300)}}
+	fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+
+	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(fee, "transfer", "channel-0", srcChainSenderOne.Bech32Address(srcChain.Config().Bech32Prefix), nil)
+
+	err := txBuilder.SetMsgs(payPacketFeeMsg)
+	s.Req.NoError(err)
+
+	//txBuilder.SetGasLimit(...)
+	//txBuilder.SetFeeAmount(...)
+	txBuilder.SetMemo("ibc-test")
+
+	//txBuilder.SetTimeoutHeight(...)
+	//info, err := srcChain.ChainNodes[0].GetKey(srcChainSenderOne.KeyName)
+	priv1, _, _ := testdata.KeyTestPubAddr()
+	privs := []cryptotypes.PrivKey{priv1}
+	accNums := []uint64{0} // The accounts' account numbers
+	accSeqs := []uint64{0} // The accounts' sequence numbers
+
+	var sigsV2 []signing.SignatureV2
+	for i, priv := range privs {
+		sigV2 := signing.SignatureV2{
+			PubKey: priv.PubKey(),
+			Data: &signing.SingleSignatureData{
+				SignMode:  encCfg.TxConfig.SignModeHandler().DefaultMode(),
+				Signature: nil,
+			},
+			Sequence: accSeqs[i],
+		}
+
+		sigsV2 = append(sigsV2, sigV2)
+	}
+	err = txBuilder.SetSignatures(sigsV2...)
+	s.Req.NoError(err)
+
+	// Second round: all signer infos are set, so each signer can sign.
+	sigsV2 = []signing.SignatureV2{}
+	for i, priv := range privs {
+		signerData := xauthsigning.SignerData{
+			ChainID:       srcChain.Config().ChainID,
+			AccountNumber: accNums[i],
+			Sequence:      accSeqs[i],
+		}
+		sigV2, err := tx.SignWithPrivKey(
+			encCfg.TxConfig.SignModeHandler().DefaultMode(), signerData,
+			txBuilder, priv, encCfg.TxConfig, accSeqs[i])
+		s.Req.NoError(err)
+		sigsV2 = append(sigsV2, sigV2)
+	}
+	err = txBuilder.SetSignatures(sigsV2...)
+	s.Req.NoError(err)
+
+	//txBuilder.GetTx(
+	//s.Req.NoError(err)
+	//
+	txJSONBytes, err := encCfg.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+	s.Req.NoError(err)
+
+	txJSON := string(txJSONBytes)
+	t.Logf("JSON: %s", txJSON)
+
 }
 
 func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
