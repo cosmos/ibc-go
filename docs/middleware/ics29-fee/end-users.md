@@ -14,7 +14,7 @@ Learn how to incentivize IBC packets using the ICS29-Fee module. {synopsis}
 
 Different types of end users:
 
-- CLI Users who want to manually incentivize IBC packets
+- CLI users who want to manually incentivize IBC packets
 - Client Developers
 
 
