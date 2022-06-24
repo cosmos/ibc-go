@@ -143,7 +143,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	err := fmt.Errorf("cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
-	return channeltypes.NewErrorAcknowledgement(err)
+	return ack
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface

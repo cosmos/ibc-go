@@ -192,17 +192,18 @@ func (im IBCModule) OnRecvPacket(
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
 
-	if ackErr != nil {
-		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
-	}
-
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
 		err := im.keeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
+			ackErr = err
 		}
+	}
+
+	if ackErr != nil {
+		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
 	ctx.EventManager().EmitEvent(
