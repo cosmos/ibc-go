@@ -12,9 +12,9 @@ Learn about payee registration for distribution of packet fees. The following do
 
 Packet fees are divided into 3 distinct amounts in order to compensate relayer operators for packet relaying on fee enabled IBC channels.
 
-- `RecvFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgRecvPacket`.
-- `AckFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgAcknowledgement`.
-- `TimeoutFee`: The sum of all packet fees distributed to a payee for successful execution of `MsgTimeout`.
+- `RecvFee`: The sum of all packet receive fees distributed to a payee for successful execution of `MsgRecvPacket`.
+- `AckFee`: The sum of all packet acknowledgement fees distributed to a payee for successful execution of `MsgAcknowledgement`.
+- `TimeoutFee`: The sum of all packet timeout fees distributed to a payee for successful execution of `MsgTimeout`.
 
 ## Register a payee address for forward relaying
 
