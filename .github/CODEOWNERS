@@ -18,13 +18,17 @@
 
 ## CODEOWNERS for core/02-client
 
-/modules/core/02-client @seantking @damiannolan
-/proto/ibc/core/client @seantking @damiannolan
+/modules/core/02-client/ @seantking @damiannolan
+/proto/ibc/core/client/ @seantking @damiannolan
 
 # CODEOWNERS for the light-clients
 
 /modules/light-clients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
 /proto/ibc/lightclients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
+
+# CODEOWNERS for docs
+
+/docs/ @colin-axner @AdityaSripal @seantking @damiannolan @charleenfei @chatton @crodriguezvega
 
 # CODEOWNERS for ICS 20
 
