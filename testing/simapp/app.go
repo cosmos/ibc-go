@@ -43,7 +43,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	simappparams "github.com/cosmos/ibc-go/v4/testing/simapp/params"
 
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
@@ -103,6 +102,7 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v4/modules/core/keeper"
 	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
+  simappparams "github.com/cosmos/ibc-go/v4/testing/simapp/params"
 
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -164,6 +164,7 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
+		mock.ModuleName:                nil,
 	}
 )
 
@@ -654,6 +655,12 @@ func (app *SimApp) LoadHeight(height int64) error {
 func (app *SimApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
+		// do not add mock module to blocked addresses
+		// this is only used for testing
+		if acc == mock.ModuleName {
+			continue
+		}
+
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
