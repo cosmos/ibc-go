@@ -891,6 +891,450 @@ func (m *MsgAcknowledgementResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgAcknowledgementResponse proto.InternalMessageInfo
 
+// MsgChanelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
+type MsgChannelUpgradeInit struct {
+}
+
+func (m *MsgChannelUpgradeInit) Reset()         { *m = MsgChannelUpgradeInit{} }
+func (m *MsgChannelUpgradeInit) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeInit) ProtoMessage()    {}
+func (*MsgChannelUpgradeInit) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{20}
+}
+func (m *MsgChannelUpgradeInit) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeInit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeInit.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeInit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeInit.Merge(m, src)
+}
+func (m *MsgChannelUpgradeInit) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeInit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeInit.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeInit proto.InternalMessageInfo
+
+// MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
+type MsgChannelUpgradeInitResponse struct {
+}
+
+func (m *MsgChannelUpgradeInitResponse) Reset()         { *m = MsgChannelUpgradeInitResponse{} }
+func (m *MsgChannelUpgradeInitResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeInitResponse) ProtoMessage()    {}
+func (*MsgChannelUpgradeInitResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{21}
+}
+func (m *MsgChannelUpgradeInitResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeInitResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeInitResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeInitResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeInitResponse.Merge(m, src)
+}
+func (m *MsgChannelUpgradeInitResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeInitResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeInitResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeInitResponse proto.InternalMessageInfo
+
+// MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
+type MsgChannelUpgradeTry struct {
+}
+
+func (m *MsgChannelUpgradeTry) Reset()         { *m = MsgChannelUpgradeTry{} }
+func (m *MsgChannelUpgradeTry) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeTry) ProtoMessage()    {}
+func (*MsgChannelUpgradeTry) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{22}
+}
+func (m *MsgChannelUpgradeTry) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeTry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeTry.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeTry) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeTry.Merge(m, src)
+}
+func (m *MsgChannelUpgradeTry) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeTry) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeTry.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeTry proto.InternalMessageInfo
+
+// MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
+type MsgChannelUpgradeTryResponse struct {
+}
+
+func (m *MsgChannelUpgradeTryResponse) Reset()         { *m = MsgChannelUpgradeTryResponse{} }
+func (m *MsgChannelUpgradeTryResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeTryResponse) ProtoMessage()    {}
+func (*MsgChannelUpgradeTryResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{23}
+}
+func (m *MsgChannelUpgradeTryResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeTryResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeTryResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeTryResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeTryResponse.Merge(m, src)
+}
+func (m *MsgChannelUpgradeTryResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeTryResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeTryResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeTryResponse proto.InternalMessageInfo
+
+// MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
+type MsgChannelUpgradeAck struct {
+}
+
+func (m *MsgChannelUpgradeAck) Reset()         { *m = MsgChannelUpgradeAck{} }
+func (m *MsgChannelUpgradeAck) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeAck) ProtoMessage()    {}
+func (*MsgChannelUpgradeAck) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{24}
+}
+func (m *MsgChannelUpgradeAck) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeAck) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeAck.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeAck) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeAck.Merge(m, src)
+}
+func (m *MsgChannelUpgradeAck) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeAck) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeAck.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeAck proto.InternalMessageInfo
+
+// MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
+type MsgChannelUpgradeAckResponse struct {
+}
+
+func (m *MsgChannelUpgradeAckResponse) Reset()         { *m = MsgChannelUpgradeAckResponse{} }
+func (m *MsgChannelUpgradeAckResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeAckResponse) ProtoMessage()    {}
+func (*MsgChannelUpgradeAckResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{25}
+}
+func (m *MsgChannelUpgradeAckResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeAckResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeAckResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeAckResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeAckResponse.Merge(m, src)
+}
+func (m *MsgChannelUpgradeAckResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeAckResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeAckResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeAckResponse proto.InternalMessageInfo
+
+// MsgChannelUpgradeConfirm defines the request type for the ChannelUpgradeConfirm rpc
+type MsgChannelUpgradeConfirm struct {
+}
+
+func (m *MsgChannelUpgradeConfirm) Reset()         { *m = MsgChannelUpgradeConfirm{} }
+func (m *MsgChannelUpgradeConfirm) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeConfirm) ProtoMessage()    {}
+func (*MsgChannelUpgradeConfirm) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{26}
+}
+func (m *MsgChannelUpgradeConfirm) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeConfirm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeConfirm.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeConfirm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeConfirm.Merge(m, src)
+}
+func (m *MsgChannelUpgradeConfirm) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeConfirm) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeConfirm.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeConfirm proto.InternalMessageInfo
+
+// MsgChannelUpgradeConfirmResponse defines the MsgChannelUpgradeConfirm response type
+type MsgChannelUpgradeConfirmResponse struct {
+}
+
+func (m *MsgChannelUpgradeConfirmResponse) Reset()         { *m = MsgChannelUpgradeConfirmResponse{} }
+func (m *MsgChannelUpgradeConfirmResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeConfirmResponse) ProtoMessage()    {}
+func (*MsgChannelUpgradeConfirmResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{27}
+}
+func (m *MsgChannelUpgradeConfirmResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeConfirmResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeConfirmResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeConfirmResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeConfirmResponse.Merge(m, src)
+}
+func (m *MsgChannelUpgradeConfirmResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeConfirmResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeConfirmResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeConfirmResponse proto.InternalMessageInfo
+
+// MsgChannelUpgradeTimeout defines the request type for the ChannelUpgradeTimeout rpc
+type MsgChannelUpgradeTimeout struct {
+}
+
+func (m *MsgChannelUpgradeTimeout) Reset()         { *m = MsgChannelUpgradeTimeout{} }
+func (m *MsgChannelUpgradeTimeout) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeTimeout) ProtoMessage()    {}
+func (*MsgChannelUpgradeTimeout) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{28}
+}
+func (m *MsgChannelUpgradeTimeout) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeTimeout) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeTimeout.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeTimeout) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeTimeout.Merge(m, src)
+}
+func (m *MsgChannelUpgradeTimeout) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeTimeout) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeTimeout.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeTimeout proto.InternalMessageInfo
+
+// MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
+type MsgChannelUpgradeTimeoutResponse struct {
+}
+
+func (m *MsgChannelUpgradeTimeoutResponse) Reset()         { *m = MsgChannelUpgradeTimeoutResponse{} }
+func (m *MsgChannelUpgradeTimeoutResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeTimeoutResponse) ProtoMessage()    {}
+func (*MsgChannelUpgradeTimeoutResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{29}
+}
+func (m *MsgChannelUpgradeTimeoutResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeTimeoutResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeTimeoutResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeTimeoutResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeTimeoutResponse.Merge(m, src)
+}
+func (m *MsgChannelUpgradeTimeoutResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeTimeoutResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeTimeoutResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeTimeoutResponse proto.InternalMessageInfo
+
+// MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
+type MsgChannelUpgradeCancel struct {
+}
+
+func (m *MsgChannelUpgradeCancel) Reset()         { *m = MsgChannelUpgradeCancel{} }
+func (m *MsgChannelUpgradeCancel) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeCancel) ProtoMessage()    {}
+func (*MsgChannelUpgradeCancel) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{30}
+}
+func (m *MsgChannelUpgradeCancel) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeCancel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeCancel.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeCancel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeCancel.Merge(m, src)
+}
+func (m *MsgChannelUpgradeCancel) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeCancel) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeCancel.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeCancel proto.InternalMessageInfo
+
+// MsgChannelUpgradeCancelResponse defines the MsgChannelUpgradeCancel response type
+type MsgChannelUpgradeCancelResponse struct {
+}
+
+func (m *MsgChannelUpgradeCancelResponse) Reset()         { *m = MsgChannelUpgradeCancelResponse{} }
+func (m *MsgChannelUpgradeCancelResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgChannelUpgradeCancelResponse) ProtoMessage()    {}
+func (*MsgChannelUpgradeCancelResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bc4637e0ac3fc7b7, []int{31}
+}
+func (m *MsgChannelUpgradeCancelResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgChannelUpgradeCancelResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgChannelUpgradeCancelResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgChannelUpgradeCancelResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgChannelUpgradeCancelResponse.Merge(m, src)
+}
+func (m *MsgChannelUpgradeCancelResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgChannelUpgradeCancelResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgChannelUpgradeCancelResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgChannelUpgradeCancelResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterEnum("ibc.core.channel.v1.ResponseResultType", ResponseResultType_name, ResponseResultType_value)
 	proto.RegisterType((*MsgChannelOpenInit)(nil), "ibc.core.channel.v1.MsgChannelOpenInit")
@@ -913,93 +1357,117 @@ func init() {
 	proto.RegisterType((*MsgTimeoutOnCloseResponse)(nil), "ibc.core.channel.v1.MsgTimeoutOnCloseResponse")
 	proto.RegisterType((*MsgAcknowledgement)(nil), "ibc.core.channel.v1.MsgAcknowledgement")
 	proto.RegisterType((*MsgAcknowledgementResponse)(nil), "ibc.core.channel.v1.MsgAcknowledgementResponse")
+	proto.RegisterType((*MsgChannelUpgradeInit)(nil), "ibc.core.channel.v1.MsgChannelUpgradeInit")
+	proto.RegisterType((*MsgChannelUpgradeInitResponse)(nil), "ibc.core.channel.v1.MsgChannelUpgradeInitResponse")
+	proto.RegisterType((*MsgChannelUpgradeTry)(nil), "ibc.core.channel.v1.MsgChannelUpgradeTry")
+	proto.RegisterType((*MsgChannelUpgradeTryResponse)(nil), "ibc.core.channel.v1.MsgChannelUpgradeTryResponse")
+	proto.RegisterType((*MsgChannelUpgradeAck)(nil), "ibc.core.channel.v1.MsgChannelUpgradeAck")
+	proto.RegisterType((*MsgChannelUpgradeAckResponse)(nil), "ibc.core.channel.v1.MsgChannelUpgradeAckResponse")
+	proto.RegisterType((*MsgChannelUpgradeConfirm)(nil), "ibc.core.channel.v1.MsgChannelUpgradeConfirm")
+	proto.RegisterType((*MsgChannelUpgradeConfirmResponse)(nil), "ibc.core.channel.v1.MsgChannelUpgradeConfirmResponse")
+	proto.RegisterType((*MsgChannelUpgradeTimeout)(nil), "ibc.core.channel.v1.MsgChannelUpgradeTimeout")
+	proto.RegisterType((*MsgChannelUpgradeTimeoutResponse)(nil), "ibc.core.channel.v1.MsgChannelUpgradeTimeoutResponse")
+	proto.RegisterType((*MsgChannelUpgradeCancel)(nil), "ibc.core.channel.v1.MsgChannelUpgradeCancel")
+	proto.RegisterType((*MsgChannelUpgradeCancelResponse)(nil), "ibc.core.channel.v1.MsgChannelUpgradeCancelResponse")
 }
 
 func init() { proto.RegisterFile("ibc/core/channel/v1/tx.proto", fileDescriptor_bc4637e0ac3fc7b7) }
 
 var fileDescriptor_bc4637e0ac3fc7b7 = []byte{
-	// 1294 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x58, 0x4d, 0x6f, 0xe2, 0x56,
-	0x17, 0xc6, 0x40, 0x20, 0x39, 0xe4, 0x4d, 0x88, 0x49, 0x32, 0xc4, 0x24, 0x98, 0xd7, 0x8b, 0x49,
-	0x94, 0x2a, 0x30, 0x49, 0x66, 0x54, 0x4d, 0x54, 0xa9, 0x0a, 0x94, 0x51, 0xa3, 0x36, 0x1f, 0x32,
-	0xa4, 0x52, 0xd3, 0xaa, 0x08, 0xcc, 0x1d, 0x62, 0x01, 0x36, 0xb5, 0x0d, 0x33, 0xfc, 0x83, 0x51,
-	0x56, 0xb3, 0x1e, 0x29, 0xd2, 0x54, 0x5d, 0x55, 0x5d, 0x4c, 0x7f, 0xc6, 0x2c, 0x67, 0xd5, 0x56,
-	0x5d, 0xa0, 0x2a, 0xd9, 0x74, 0xcd, 0x2f, 0xa8, 0x7c, 0x7d, 0x6d, 0x0c, 0xd8, 0x8a, 0x33, 0x93,
-	0x64, 0xba, 0xf3, 0xbd, 0xe7, 0xb9, 0xe7, 0x9c, 0xfb, 0x9c, 0xe7, 0x7e, 0x19, 0x96, 0xc5, 0x8a,
-	0x90, 0x11, 0x64, 0x05, 0x65, 0x84, 0xd3, 0xb2, 0x24, 0xa1, 0x46, 0xa6, 0xb3, 0x99, 0xd1, 0x9e,
-	0xa7, 0x5b, 0x8a, 0xac, 0xc9, 0x74, 0x4c, 0xac, 0x08, 0x69, 0xdd, 0x9a, 0x26, 0xd6, 0x74, 0x67,
-	0x93, 0x99, 0xaf, 0xc9, 0x35, 0x19, 0xdb, 0x33, 0xfa, 0x97, 0x01, 0x65, 0xd8, 0x81, 0xa3, 0x86,
-	0x88, 0x24, 0x4d, 0xf7, 0x63, 0x7c, 0x11, 0xc0, 0xff, 0x9d, 0x22, 0x99, 0x6e, 0x31, 0x84, 0xfb,
-	0x89, 0x02, 0x7a, 0x5f, 0xad, 0xe5, 0x8c, 0xce, 0xc3, 0x16, 0x92, 0xf6, 0x24, 0x51, 0xa3, 0x3f,
-	0x81, 0x70, 0x4b, 0x56, 0xb4, 0x92, 0x58, 0x8d, 0x53, 0x29, 0x6a, 0x6d, 0x2a, 0x4b, 0xf7, 0x7b,
-	0xec, 0x4c, 0xb7, 0xdc, 0x6c, 0xec, 0x70, 0xc4, 0xc0, 0xf1, 0x21, 0xfd, 0x6b, 0xaf, 0x4a, 0x7f,
-	0x06, 0x61, 0xe2, 0x34, 0xee, 0x4f, 0x51, 0x6b, 0x91, 0xad, 0xe5, 0xb4, 0xc3, 0x24, 0xd2, 0x24,
-	0x46, 0x36, 0xf8, 0xb6, 0xc7, 0xfa, 0x78, 0x73, 0x08, 0xbd, 0x08, 0x21, 0x55, 0xac, 0x49, 0x48,
-	0x89, 0x07, 0xf4, 0x48, 0x3c, 0x69, 0xed, 0x4c, 0xbe, 0x78, 0xcd, 0xfa, 0xfe, 0x79, 0xcd, 0xfa,
-	0xb8, 0x06, 0x30, 0xe3, 0x29, 0xf2, 0x48, 0x6d, 0xc9, 0x92, 0x8a, 0xe8, 0x87, 0x00, 0xc4, 0xd5,
-	0x20, 0xdb, 0x85, 0x7e, 0x8f, 0x9d, 0x33, 0xb2, 0x1d, 0xd8, 0x38, 0x7e, 0x8a, 0x34, 0xf6, 0xaa,
-	0x74, 0x1c, 0xc2, 0x1d, 0xa4, 0xa8, 0xa2, 0x2c, 0xe1, 0x9c, 0xa7, 0x78, 0xb3, 0xc9, 0xfd, 0x1e,
-	0x80, 0xb9, 0xe1, 0x70, 0x45, 0xa5, 0x7b, 0x3d, 0x42, 0x0e, 0x20, 0xd6, 0x52, 0x50, 0x47, 0x94,
-	0xdb, 0x6a, 0xc9, 0x96, 0x1b, 0x0e, 0x94, 0x4d, 0xf6, 0x7b, 0x2c, 0x43, 0x06, 0x8e, 0x83, 0x38,
-	0x7e, 0xce, 0xec, 0xcd, 0x59, 0xc9, 0xda, 0x08, 0x0e, 0x5c, 0x9f, 0x60, 0x1e, 0xe6, 0x05, 0xb9,
-	0x2d, 0x69, 0x48, 0x69, 0x95, 0x15, 0xad, 0x5b, 0x32, 0xe7, 0x1d, 0xc4, 0xe9, 0xb0, 0xfd, 0x1e,
-	0x9b, 0x20, 0x54, 0x39, 0xa0, 0x38, 0x3e, 0x66, 0xef, 0xfe, 0xc6, 0xe8, 0xd5, 0x49, 0x6f, 0x29,
-	0xb2, 0xfc, 0xb4, 0x24, 0x4a, 0xa2, 0x16, 0x9f, 0x48, 0x51, 0x6b, 0xd3, 0x76, 0xd2, 0x07, 0x36,
-	0x8e, 0x9f, 0xc2, 0x0d, 0xac, 0xaa, 0x13, 0x98, 0x36, 0x2c, 0xa7, 0x48, 0xac, 0x9d, 0x6a, 0xf1,
-	0x10, 0x9e, 0x0c, 0x63, 0x9b, 0x8c, 0xa1, 0xde, 0xce, 0x66, 0xfa, 0x4b, 0x8c, 0xc8, 0x26, 0xf4,
-	0xa9, 0xf4, 0x7b, 0x6c, 0xcc, 0xee, 0xd7, 0x18, 0xcd, 0xf1, 0x11, 0xdc, 0x34, 0x90, 0x36, 0x19,
-	0x85, 0x5d, 0x64, 0xf4, 0x08, 0x96, 0xc6, 0xea, 0x6a, 0xa9, 0xc8, 0xa6, 0x07, 0x6a, 0x58, 0x0f,
-	0x7f, 0x8c, 0xe9, 0x61, 0x57, 0xa8, 0x5f, 0x4f, 0x0f, 0xc3, 0x12, 0xf5, 0x7b, 0x94, 0xe8, 0x09,
-	0xdc, 0x1b, 0xaa, 0x88, 0xcd, 0x05, 0x5e, 0x29, 0x59, 0xae, 0xdf, 0x63, 0x93, 0x0e, 0xa5, 0xb3,
-	0xfb, 0x5b, 0xb0, 0x5b, 0x06, 0x8a, 0xba, 0x0d, 0x4d, 0x6c, 0x82, 0x51, 0xea, 0x92, 0xa6, 0x74,
-	0x89, 0x24, 0xe6, 0xfb, 0x3d, 0x36, 0x6a, 0x2f, 0x9d, 0xa6, 0x74, 0x39, 0x7e, 0x12, 0x7f, 0xeb,
-	0xab, 0xea, 0xe3, 0x0a, 0x22, 0x31, 0x2a, 0x88, 0x5d, 0xa1, 0x6e, 0x0a, 0x82, 0xfb, 0xd5, 0x0f,
-	0x0b, 0xc3, 0xd6, 0x9c, 0x2c, 0x3d, 0x15, 0x95, 0xe6, 0x5d, 0x94, 0xde, 0xa2, 0xb2, 0x2c, 0xd4,
-	0x71, 0xb1, 0x1d, 0xa8, 0x2c, 0x0b, 0x75, 0x93, 0x4a, 0x5d, 0x90, 0xa3, 0x54, 0x06, 0x6f, 0x85,
-	0xca, 0x09, 0x17, 0x2a, 0x59, 0x58, 0x71, 0x24, 0xcb, 0xa2, 0xf3, 0x15, 0x05, 0xb1, 0x01, 0x22,
-	0xd7, 0x90, 0x55, 0x74, 0xfd, 0x83, 0xe6, 0xfd, 0xc8, 0xbc, 0xfa, 0x80, 0x59, 0x81, 0x84, 0x43,
-	0x6e, 0x56, 0xee, 0x6f, 0xfc, 0xb0, 0x38, 0x62, 0xbf, 0x43, 0x2d, 0x0c, 0x6f, 0xb5, 0x81, 0xf7,
-	0xdc, 0x6a, 0xef, 0x56, 0x0e, 0x29, 0x48, 0x3a, 0x13, 0x66, 0x71, 0xfa, 0xd2, 0x0f, 0xff, 0xdb,
-	0x57, 0x6b, 0x3c, 0x12, 0x3a, 0x47, 0x65, 0xa1, 0x8e, 0x34, 0xfa, 0x31, 0x84, 0x5a, 0xf8, 0x0b,
-	0x33, 0x19, 0xd9, 0x4a, 0x38, 0x9e, 0x71, 0x06, 0x98, 0x1c, 0x71, 0x64, 0x00, 0xfd, 0x04, 0xa2,
-	0x46, 0xba, 0x82, 0xdc, 0x6c, 0x8a, 0x5a, 0x13, 0x49, 0x1a, 0xa6, 0x77, 0x3a, 0x9b, 0xe8, 0xf7,
-	0xd8, 0x7b, 0xf6, 0x09, 0x0d, 0x10, 0x1c, 0x3f, 0x8b, 0xbb, 0x72, 0x56, 0xcf, 0x18, 0x69, 0x81,
-	0x5b, 0x21, 0x2d, 0xe8, 0x42, 0xda, 0x0f, 0x78, 0xc3, 0x19, 0x30, 0x62, 0x9d, 0x4d, 0x9f, 0x43,
-	0x48, 0x41, 0x6a, 0xbb, 0x61, 0x30, 0x33, 0xb3, 0xb5, 0xea, 0xc8, 0x8c, 0x09, 0xe7, 0x31, 0xb4,
-	0xd8, 0x6d, 0x21, 0x9e, 0x0c, 0xdb, 0x09, 0xea, 0x31, 0xb8, 0xbf, 0xfc, 0x00, 0xfb, 0x6a, 0xad,
-	0x28, 0x36, 0x91, 0xdc, 0xbe, 0x19, 0xbe, 0xdb, 0x92, 0x82, 0x04, 0x24, 0x76, 0x50, 0xd5, 0x8d,
-	0xef, 0x01, 0xc2, 0xe4, 0xfb, 0xd8, 0xea, 0xb9, 0x55, 0xbe, 0xbf, 0x02, 0x5a, 0x42, 0xcf, 0xb5,
-	0x92, 0x8a, 0x7e, 0x6c, 0x23, 0x49, 0x40, 0x25, 0x05, 0x09, 0x1d, 0xcc, 0x7d, 0x30, 0xbb, 0xd2,
-	0xef, 0xb1, 0x4b, 0x86, 0x87, 0x71, 0x0c, 0xc7, 0x47, 0xf5, 0xce, 0x02, 0xe9, 0xd3, 0xeb, 0xe1,
-	0x41, 0xf1, 0xdf, 0xe1, 0x6b, 0x34, 0xe1, 0xf6, 0xa6, 0x2b, 0xf7, 0xca, 0xb8, 0x82, 0x10, 0xef,
-	0x87, 0x12, 0x5e, 0x51, 0xff, 0x85, 0x02, 0x7e, 0x0a, 0x11, 0xb2, 0xac, 0xf4, 0x8c, 0xc8, 0xe6,
-	0xb4, 0xd8, 0xef, 0xb1, 0xf4, 0xd0, 0x9a, 0xd3, 0x8d, 0x1c, 0x6f, 0x6c, 0x63, 0x46, 0xee, 0xb7,
-	0xb9, 0x3d, 0x39, 0x57, 0x7e, 0xe2, 0x43, 0x2b, 0x1f, 0x72, 0xa9, 0x7c, 0x05, 0xdf, 0x22, 0x86,
-	0x6b, 0x73, 0xd3, 0x02, 0xf8, 0xcd, 0x8f, 0xe5, 0xb5, 0x2b, 0xd4, 0x25, 0xf9, 0x59, 0x03, 0x55,
-	0x6b, 0x08, 0xef, 0x57, 0x1f, 0xa0, 0x80, 0x35, 0x98, 0x2d, 0x0f, 0x7b, 0x33, 0x04, 0xc0, 0x8f,
-	0x76, 0x0f, 0x6a, 0xac, 0x0f, 0xac, 0xba, 0xd5, 0x18, 0x1b, 0xcd, 0x1a, 0xef, 0xea, 0x8d, 0x8f,
-	0x7c, 0x04, 0x09, 0xf8, 0xd1, 0x38, 0xc2, 0xd8, 0x0d, 0xd7, 0x65, 0xfd, 0x17, 0x0a, 0xe8, 0x71,
-	0x10, 0xfd, 0x08, 0x52, 0x7c, 0xbe, 0x70, 0x74, 0x78, 0x50, 0xc8, 0x97, 0xf8, 0x7c, 0xe1, 0xf8,
-	0xeb, 0x62, 0xa9, 0xf8, 0xed, 0x51, 0xbe, 0x74, 0x7c, 0x50, 0x38, 0xca, 0xe7, 0xf6, 0x9e, 0xec,
-	0xe5, 0xbf, 0x88, 0xfa, 0x98, 0xd9, 0xb3, 0xf3, 0x54, 0xc4, 0xd6, 0x45, 0xaf, 0xc2, 0x92, 0xe3,
-	0xb0, 0x83, 0xc3, 0xc3, 0xa3, 0x28, 0xc5, 0x4c, 0x9e, 0x9d, 0xa7, 0x82, 0xfa, 0x37, 0xbd, 0x01,
-	0xcb, 0x8e, 0xc0, 0xc2, 0x71, 0x2e, 0x97, 0x2f, 0x14, 0xa2, 0x7e, 0x26, 0x72, 0x76, 0x9e, 0x0a,
-	0x93, 0x26, 0x13, 0x7c, 0xf1, 0x73, 0xd2, 0xb7, 0xf5, 0x66, 0x12, 0x02, 0xfb, 0x6a, 0x8d, 0xae,
-	0xc3, 0xec, 0xe8, 0x6b, 0xdf, 0x79, 0xf6, 0xe3, 0x6f, 0x6e, 0x26, 0xe3, 0x11, 0x68, 0xf1, 0x7c,
-	0x0a, 0x33, 0x23, 0x0f, 0xe9, 0xfb, 0x1e, 0x5c, 0x14, 0x95, 0x2e, 0x93, 0xf6, 0x86, 0x73, 0x89,
-	0xa4, 0xdf, 0x88, 0xbd, 0x44, 0xda, 0x15, 0xea, 0x9e, 0x22, 0xd9, 0x5e, 0x06, 0xb4, 0x06, 0xb4,
-	0xc3, 0xab, 0x60, 0xdd, 0x83, 0x17, 0x82, 0x65, 0xb6, 0xbc, 0x63, 0xad, 0xa8, 0x12, 0x44, 0xc7,
-	0x2e, 0xcf, 0x6b, 0x57, 0xf8, 0xb1, 0x90, 0xcc, 0x03, 0xaf, 0x48, 0x2b, 0xde, 0x33, 0x88, 0x39,
-	0x5e, 0x78, 0xbd, 0x38, 0x32, 0xe7, 0xb9, 0x7d, 0x0d, 0xb0, 0x15, 0xf8, 0x7b, 0x00, 0xdb, 0xad,
-	0x90, 0x73, 0x73, 0x31, 0xc0, 0x30, 0xeb, 0x57, 0x63, 0x2c, 0xef, 0x05, 0x08, 0x9b, 0x17, 0x20,
-	0xd6, 0x6d, 0x18, 0x01, 0x30, 0xab, 0x57, 0x00, 0xec, 0xda, 0x1b, 0x39, 0x9b, 0xef, 0x5f, 0x31,
-	0x94, 0xe0, 0xdc, 0xb5, 0xe7, 0x72, 0x9e, 0xd4, 0x61, 0x76, 0xf4, 0x10, 0x70, 0xcd, 0x72, 0x04,
-	0xe8, 0xbe, 0x78, 0x5d, 0x36, 0xc9, 0x6c, 0xe1, 0xed, 0x45, 0x92, 0x7a, 0x77, 0x91, 0xa4, 0xfe,
-	0xbe, 0x48, 0x52, 0x2f, 0x2f, 0x93, 0xbe, 0x77, 0x97, 0x49, 0xdf, 0x9f, 0x97, 0x49, 0xdf, 0xc9,
-	0xe3, 0x9a, 0xa8, 0x9d, 0xb6, 0x2b, 0x69, 0x41, 0x6e, 0x66, 0x04, 0x59, 0x6d, 0xca, 0x6a, 0x46,
-	0xac, 0x08, 0x1b, 0x35, 0x39, 0xd3, 0xd9, 0xce, 0x34, 0xe5, 0x6a, 0xbb, 0x81, 0x54, 0xe3, 0xc7,
-	0xe3, 0x83, 0x87, 0x1b, 0xe6, 0xbf, 0x47, 0xad, 0xdb, 0x42, 0x6a, 0x25, 0x84, 0xff, 0x3b, 0x6e,
-	0xff, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x51, 0x2e, 0xf7, 0xe5, 0x06, 0x15, 0x00, 0x00,
+	// 1475 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x59, 0x5f, 0x6f, 0xd3, 0xd6,
+	0x1b, 0x4e, 0xd2, 0x90, 0xd2, 0xb7, 0xfc, 0xda, 0xd4, 0x6d, 0x21, 0xb8, 0x25, 0x0e, 0xfe, 0x4d,
+	0xd0, 0xb1, 0x35, 0xa1, 0x85, 0x6a, 0x02, 0x4d, 0x9a, 0x9a, 0x2c, 0x68, 0xd5, 0xd6, 0x3f, 0x72,
+	0xd2, 0x49, 0x63, 0xd3, 0xa2, 0xc4, 0x39, 0xb8, 0x56, 0x12, 0x3b, 0xd8, 0x4e, 0x20, 0x93, 0x76,
+	0x39, 0x09, 0x71, 0xc5, 0x35, 0x12, 0x12, 0xd3, 0xae, 0xa6, 0x5d, 0x6c, 0x1f, 0x83, 0x4b, 0xae,
+	0xb6, 0x69, 0x17, 0xd1, 0x04, 0x37, 0xbb, 0xce, 0x27, 0x98, 0x7c, 0x7c, 0x6c, 0x9f, 0xc4, 0x36,
+	0x71, 0xa0, 0x85, 0xdd, 0xd9, 0xe7, 0x3c, 0xe7, 0x79, 0xcf, 0x79, 0xde, 0xe7, 0x9c, 0xf7, 0x38,
+	0x81, 0x55, 0xb9, 0x26, 0xe6, 0x44, 0x55, 0x43, 0x39, 0xf1, 0xa8, 0xaa, 0x28, 0xa8, 0x99, 0xeb,
+	0x6e, 0xe4, 0x8c, 0xfb, 0xd9, 0xb6, 0xa6, 0x1a, 0x2a, 0xb3, 0x28, 0xd7, 0xc4, 0xac, 0xd9, 0x9b,
+	0x25, 0xbd, 0xd9, 0xee, 0x06, 0xbb, 0x24, 0xa9, 0x92, 0x8a, 0xfb, 0x73, 0xe6, 0x93, 0x05, 0x65,
+	0x39, 0x97, 0xa8, 0x29, 0x23, 0xc5, 0x30, 0x79, 0xac, 0x27, 0x02, 0xb8, 0xe8, 0x17, 0xc9, 0xa6,
+	0xc5, 0x10, 0xfe, 0xc7, 0x28, 0x30, 0xbb, 0xba, 0x54, 0xb0, 0x1a, 0xf7, 0xdb, 0x48, 0xd9, 0x51,
+	0x64, 0x83, 0xf9, 0x00, 0xa6, 0xdb, 0xaa, 0x66, 0x54, 0xe4, 0x7a, 0x2a, 0x9a, 0x89, 0xae, 0xcd,
+	0xe4, 0x99, 0x41, 0x9f, 0x9b, 0xeb, 0x55, 0x5b, 0xcd, 0x9b, 0x3c, 0xe9, 0xe0, 0x85, 0x84, 0xf9,
+	0xb4, 0x53, 0x67, 0x3e, 0x86, 0x69, 0x42, 0x9a, 0x8a, 0x65, 0xa2, 0x6b, 0xb3, 0x9b, 0xab, 0x59,
+	0x9f, 0x45, 0x64, 0x49, 0x8c, 0x7c, 0xfc, 0x59, 0x9f, 0x8b, 0x08, 0xf6, 0x10, 0xe6, 0x2c, 0x24,
+	0x74, 0x59, 0x52, 0x90, 0x96, 0x9a, 0x32, 0x23, 0x09, 0xe4, 0xed, 0xe6, 0xe9, 0x07, 0x4f, 0xb9,
+	0xc8, 0x3f, 0x4f, 0xb9, 0x08, 0xdf, 0x04, 0xd6, 0x3b, 0x45, 0x01, 0xe9, 0x6d, 0x55, 0xd1, 0x11,
+	0x73, 0x1d, 0x80, 0x50, 0xb9, 0xb3, 0x5d, 0x1e, 0xf4, 0xb9, 0x05, 0x6b, 0xb6, 0x6e, 0x1f, 0x2f,
+	0xcc, 0x90, 0x97, 0x9d, 0x3a, 0x93, 0x82, 0xe9, 0x2e, 0xd2, 0x74, 0x59, 0x55, 0xf0, 0x9c, 0x67,
+	0x04, 0xfb, 0x95, 0xff, 0x7d, 0x0a, 0x16, 0x86, 0xc3, 0x95, 0xb5, 0xde, 0x64, 0x82, 0xec, 0xc1,
+	0x62, 0x5b, 0x43, 0x5d, 0x59, 0xed, 0xe8, 0x15, 0x6a, 0x6e, 0x38, 0x50, 0x3e, 0x3d, 0xe8, 0x73,
+	0x2c, 0x19, 0xe8, 0x05, 0xf1, 0xc2, 0x82, 0xdd, 0x5a, 0x70, 0x26, 0x4b, 0x09, 0x3c, 0x35, 0xb9,
+	0xc0, 0x02, 0x2c, 0x89, 0x6a, 0x47, 0x31, 0x90, 0xd6, 0xae, 0x6a, 0x46, 0xaf, 0x62, 0xaf, 0x3b,
+	0x8e, 0xa7, 0xc3, 0x0d, 0xfa, 0xdc, 0x0a, 0x91, 0xca, 0x07, 0xc5, 0x0b, 0x8b, 0x74, 0xf3, 0x97,
+	0x56, 0xab, 0x29, 0x7a, 0x5b, 0x53, 0xd5, 0x3b, 0x15, 0x59, 0x91, 0x8d, 0xd4, 0xa9, 0x4c, 0x74,
+	0xed, 0x0c, 0x2d, 0xba, 0xdb, 0xc7, 0x0b, 0x33, 0xf8, 0x05, 0xbb, 0xea, 0x36, 0x9c, 0xb1, 0x7a,
+	0x8e, 0x90, 0x2c, 0x1d, 0x19, 0xa9, 0x04, 0x5e, 0x0c, 0x4b, 0x2d, 0xc6, 0x72, 0x6f, 0x77, 0x23,
+	0xfb, 0x19, 0x46, 0xe4, 0x57, 0xcc, 0xa5, 0x0c, 0xfa, 0xdc, 0x22, 0xcd, 0x6b, 0x8d, 0xe6, 0x85,
+	0x59, 0xfc, 0x6a, 0x21, 0x29, 0x1b, 0x4d, 0x07, 0xd8, 0x68, 0x0b, 0xce, 0x7b, 0xf2, 0xea, 0xb8,
+	0x88, 0xf2, 0x43, 0x74, 0xd8, 0x0f, 0x7f, 0x78, 0xfc, 0xb0, 0x2d, 0x36, 0x26, 0xf3, 0xc3, 0xb0,
+	0x45, 0x63, 0x21, 0x2d, 0x7a, 0x1b, 0xce, 0x0d, 0x65, 0x84, 0xa2, 0xc0, 0x3b, 0x25, 0xcf, 0x0f,
+	0xfa, 0x5c, 0xda, 0x27, 0x75, 0x34, 0xdf, 0x32, 0xdd, 0xe3, 0x3a, 0xea, 0x24, 0x3c, 0xb1, 0x01,
+	0x56, 0xaa, 0x2b, 0x86, 0xd6, 0x23, 0x96, 0x58, 0x1a, 0xf4, 0xb9, 0x24, 0x9d, 0x3a, 0x43, 0xeb,
+	0xf1, 0xc2, 0x69, 0xfc, 0x6c, 0xee, 0xaa, 0x77, 0x6b, 0x88, 0x95, 0x51, 0x43, 0x6c, 0x8b, 0x0d,
+	0xdb, 0x10, 0xfc, 0x2f, 0x31, 0x58, 0x1e, 0xee, 0x2d, 0xa8, 0xca, 0x1d, 0x59, 0x6b, 0xbd, 0x8d,
+	0xd4, 0x3b, 0x52, 0x56, 0xc5, 0x06, 0x4e, 0xb6, 0x8f, 0x94, 0x55, 0xb1, 0x61, 0x4b, 0x69, 0x1a,
+	0x72, 0x54, 0xca, 0xf8, 0x89, 0x48, 0x79, 0x2a, 0x40, 0x4a, 0x0e, 0x2e, 0xf8, 0x8a, 0xe5, 0xc8,
+	0xf9, 0x38, 0x0a, 0x8b, 0x2e, 0xa2, 0xd0, 0x54, 0x75, 0x34, 0x79, 0xa1, 0x79, 0x3d, 0x31, 0xc7,
+	0x17, 0x98, 0x0b, 0xb0, 0xe2, 0x33, 0x37, 0x67, 0xee, 0xbf, 0xc6, 0xe0, 0xec, 0x48, 0xff, 0x5b,
+	0xf4, 0xc2, 0xf0, 0x51, 0x3b, 0xf5, 0x9a, 0x47, 0xed, 0xdb, 0xb5, 0x43, 0x06, 0xd2, 0xfe, 0x82,
+	0x39, 0x9a, 0x3e, 0x8a, 0xc1, 0xff, 0x76, 0x75, 0x49, 0x40, 0x62, 0xf7, 0xa0, 0x2a, 0x36, 0x90,
+	0xc1, 0xdc, 0x80, 0x44, 0x1b, 0x3f, 0x61, 0x25, 0x67, 0x37, 0x57, 0x7c, 0x6b, 0x9c, 0x05, 0x26,
+	0x25, 0x8e, 0x0c, 0x60, 0x6e, 0x41, 0xd2, 0x9a, 0xae, 0xa8, 0xb6, 0x5a, 0xb2, 0xd1, 0x42, 0x8a,
+	0x81, 0xe5, 0x3d, 0x93, 0x5f, 0x19, 0xf4, 0xb9, 0x73, 0xf4, 0x82, 0x5c, 0x04, 0x2f, 0xcc, 0xe3,
+	0xa6, 0x82, 0xd3, 0xe2, 0x11, 0x6d, 0xea, 0x44, 0x44, 0x8b, 0x07, 0x88, 0xf6, 0x2d, 0x3e, 0x70,
+	0x5c, 0x45, 0x9c, 0xda, 0xf4, 0x09, 0x24, 0x34, 0xa4, 0x77, 0x9a, 0x96, 0x32, 0x73, 0x9b, 0x97,
+	0x7d, 0x95, 0xb1, 0xe1, 0x02, 0x86, 0x96, 0x7b, 0x6d, 0x24, 0x90, 0x61, 0x37, 0xe3, 0x66, 0x0c,
+	0xfe, 0xaf, 0x18, 0xc0, 0xae, 0x2e, 0x95, 0xe5, 0x16, 0x52, 0x3b, 0xc7, 0xa3, 0x77, 0x47, 0xd1,
+	0x90, 0x88, 0xe4, 0x2e, 0xaa, 0x07, 0xe9, 0xed, 0x22, 0x6c, 0xbd, 0x0f, 0x9d, 0x96, 0x13, 0xd5,
+	0xfb, 0x73, 0x60, 0x14, 0x74, 0xdf, 0xa8, 0xe8, 0xe8, 0x6e, 0x07, 0x29, 0x22, 0xaa, 0x68, 0x48,
+	0xec, 0x62, 0xed, 0xe3, 0xf9, 0x0b, 0x83, 0x3e, 0x77, 0xde, 0x62, 0xf0, 0x62, 0x78, 0x21, 0x69,
+	0x36, 0x96, 0x48, 0x9b, 0x99, 0x8f, 0x10, 0x8e, 0xff, 0x1a, 0x5f, 0xa3, 0x89, 0xb6, 0xc7, 0x9d,
+	0xb9, 0xc7, 0xd6, 0x15, 0x84, 0xb0, 0xef, 0x2b, 0x78, 0x47, 0xfd, 0x17, 0x12, 0xf8, 0x11, 0xcc,
+	0x92, 0x6d, 0x65, 0xce, 0x88, 0x1c, 0x4e, 0x67, 0x07, 0x7d, 0x8e, 0x19, 0xda, 0x73, 0x66, 0x27,
+	0x2f, 0x58, 0xc7, 0x98, 0x35, 0xf7, 0x93, 0x3c, 0x9e, 0xfc, 0x33, 0x7f, 0xea, 0x4d, 0x33, 0x9f,
+	0x08, 0xc8, 0x7c, 0x0d, 0xdf, 0x22, 0x86, 0x73, 0x73, 0xdc, 0x06, 0xf8, 0x2d, 0x86, 0xed, 0xb5,
+	0x2d, 0x36, 0x14, 0xf5, 0x5e, 0x13, 0xd5, 0x25, 0x84, 0xcf, 0xab, 0x37, 0x70, 0xc0, 0x1a, 0xcc,
+	0x57, 0x87, 0xd9, 0x2c, 0x03, 0x08, 0xa3, 0xcd, 0x6e, 0x8e, 0xcd, 0x81, 0xf5, 0xa0, 0x1c, 0xe3,
+	0x4e, 0x3b, 0xc7, 0xdb, 0xe6, 0xcb, 0x3b, 0x2e, 0x41, 0x22, 0xfe, 0x68, 0x1c, 0x51, 0xec, 0xb8,
+	0xf3, 0x72, 0x91, 0xbe, 0x23, 0x1e, 0xb6, 0x25, 0xad, 0x5a, 0xc7, 0x57, 0x87, 0xa0, 0x9b, 0x11,
+	0x05, 0x71, 0x2a, 0x61, 0x06, 0x96, 0x3c, 0x80, 0xb2, 0xd6, 0xa3, 0x28, 0xd2, 0xb0, 0xea, 0x87,
+	0x78, 0x25, 0xc3, 0xb6, 0xd8, 0x18, 0xc3, 0x40, 0x5f, 0x76, 0xdf, 0x83, 0x94, 0xa7, 0x9f, 0x54,
+	0x6c, 0x8a, 0x85, 0x87, 0x4c, 0x10, 0xea, 0x95, 0x4c, 0x64, 0x6f, 0x8c, 0x61, 0x1a, 0x39, 0x3b,
+	0xf9, 0xff, 0xc3, 0x39, 0x6f, 0xb4, 0xaa, 0x22, 0xa2, 0x26, 0x45, 0x74, 0x11, 0xb8, 0x00, 0x90,
+	0xcd, 0x73, 0xe5, 0xe7, 0x28, 0x30, 0xde, 0x44, 0x32, 0x5b, 0x90, 0x11, 0x8a, 0xa5, 0x83, 0xfd,
+	0xbd, 0x52, 0xb1, 0x22, 0x14, 0x4b, 0x87, 0x5f, 0x94, 0x2b, 0xe5, 0xaf, 0x0e, 0x8a, 0x95, 0xc3,
+	0xbd, 0xd2, 0x41, 0xb1, 0xb0, 0x73, 0x6b, 0xa7, 0xf8, 0x69, 0x32, 0xc2, 0xce, 0x3f, 0x7c, 0x92,
+	0x99, 0xa5, 0x9a, 0x98, 0xcb, 0x70, 0xde, 0x77, 0xd8, 0xde, 0xfe, 0xfe, 0x41, 0x32, 0xca, 0x9e,
+	0x7e, 0xf8, 0x24, 0x13, 0x37, 0x9f, 0x99, 0x75, 0x58, 0xf5, 0x05, 0x96, 0x0e, 0x0b, 0x85, 0x62,
+	0xa9, 0x94, 0x8c, 0xb1, 0xb3, 0x0f, 0x9f, 0x64, 0xa6, 0xc9, 0x2b, 0x1b, 0x7f, 0xf0, 0x53, 0x3a,
+	0xb2, 0xf9, 0xc3, 0x1c, 0x4c, 0xed, 0xea, 0x12, 0xd3, 0x80, 0xf9, 0xd1, 0x5f, 0x64, 0xfc, 0x1d,
+	0xea, 0xfd, 0x5d, 0x84, 0xcd, 0x85, 0x04, 0x3a, 0x7b, 0xe1, 0x08, 0xe6, 0x46, 0x7e, 0xec, 0xb8,
+	0x14, 0x82, 0xa2, 0xac, 0xf5, 0xd8, 0x6c, 0x38, 0x5c, 0x40, 0x24, 0xf3, 0xab, 0x25, 0x4c, 0xa4,
+	0x6d, 0xb1, 0x11, 0x2a, 0x12, 0x65, 0x68, 0xc6, 0x00, 0xc6, 0xe7, 0xcb, 0xed, 0x4a, 0x08, 0x16,
+	0x82, 0x65, 0x37, 0xc3, 0x63, 0x9d, 0xa8, 0x0a, 0x24, 0x3d, 0x1f, 0x38, 0x6b, 0x63, 0x78, 0x1c,
+	0x24, 0x7b, 0x35, 0x2c, 0xd2, 0x89, 0x77, 0x0f, 0x16, 0x7d, 0x3f, 0x4a, 0xc2, 0x10, 0xd9, 0xeb,
+	0xbc, 0x36, 0x01, 0xd8, 0x09, 0xfc, 0x0d, 0x00, 0x75, 0x73, 0xe7, 0x83, 0x28, 0x5c, 0x0c, 0x7b,
+	0x65, 0x3c, 0xc6, 0x61, 0x2f, 0xc1, 0xb4, 0x7d, 0x49, 0xe5, 0x82, 0x86, 0x11, 0x00, 0x7b, 0x79,
+	0x0c, 0x80, 0xf6, 0xde, 0xc8, 0xfd, 0xe9, 0xd2, 0x98, 0xa1, 0x04, 0x17, 0xec, 0xbd, 0x80, 0x9a,
+	0xdf, 0x80, 0xf9, 0xd1, 0x42, 0x1d, 0x38, 0xcb, 0x11, 0x60, 0xf0, 0xe6, 0x0d, 0x2a, 0x64, 0xae,
+	0xd1, 0xa9, 0xda, 0x32, 0xd6, 0xe8, 0x14, 0x76, 0xac, 0xd1, 0x7d, 0x6a, 0x16, 0x73, 0x17, 0x16,
+	0x3c, 0xe5, 0x88, 0x79, 0x3f, 0x1c, 0x91, 0x79, 0x70, 0x6c, 0x84, 0x86, 0x06, 0x87, 0x34, 0x8f,
+	0x8f, 0x90, 0x21, 0xcd, 0x13, 0x64, 0x23, 0x34, 0xd4, 0x09, 0xf9, 0x3d, 0x2c, 0xfb, 0x16, 0x3b,
+	0x66, 0x3d, 0x1c, 0x97, 0xbd, 0xc5, 0xb6, 0x26, 0x82, 0x07, 0x87, 0xb7, 0x37, 0x45, 0xc8, 0xf0,
+	0xf6, 0x16, 0xd9, 0x9a, 0x08, 0xee, 0x84, 0xff, 0x0e, 0x96, 0xfc, 0xea, 0x2a, 0xf3, 0x61, 0xc8,
+	0xd5, 0x60, 0x34, 0x7b, 0x7d, 0x12, 0xb4, 0x1d, 0x3b, 0x5f, 0x7a, 0xf6, 0x22, 0x1d, 0x7d, 0xfe,
+	0x22, 0x1d, 0xfd, 0xfb, 0x45, 0x3a, 0xfa, 0xe8, 0x65, 0x3a, 0xf2, 0xfc, 0x65, 0x3a, 0xf2, 0xe7,
+	0xcb, 0x74, 0xe4, 0xf6, 0x0d, 0x49, 0x36, 0x8e, 0x3a, 0xb5, 0xac, 0xa8, 0xb6, 0x72, 0xa2, 0xaa,
+	0xb7, 0x54, 0x3d, 0x27, 0xd7, 0xc4, 0x75, 0x49, 0xcd, 0x75, 0xaf, 0xe5, 0x5a, 0x6a, 0xbd, 0xd3,
+	0x44, 0xba, 0xf5, 0x97, 0xc7, 0xd5, 0xeb, 0xeb, 0xf6, 0xbf, 0x1e, 0x46, 0xaf, 0x8d, 0xf4, 0x5a,
+	0x02, 0xff, 0xe3, 0x71, 0xed, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x6f, 0xbd, 0x8c, 0x84, 0x80,
+	0x19, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1035,6 +1503,18 @@ type MsgClient interface {
 	TimeoutOnClose(ctx context.Context, in *MsgTimeoutOnClose, opts ...grpc.CallOption) (*MsgTimeoutOnCloseResponse, error)
 	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 	Acknowledgement(ctx context.Context, in *MsgAcknowledgement, opts ...grpc.CallOption) (*MsgAcknowledgementResponse, error)
+	// ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
+	ChannelUpgradeInit(ctx context.Context, in *MsgChannelUpgradeInit, opts ...grpc.CallOption) (*MsgChannelUpgradeInitResponse, error)
+	// ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
+	ChannelUpgradeTry(ctx context.Context, in *MsgChannelUpgradeTry, opts ...grpc.CallOption) (*MsgChannelUpgradeTryResponse, error)
+	// ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
+	ChannelUpgradeAck(ctx context.Context, in *MsgChannelUpgradeAck, opts ...grpc.CallOption) (*MsgChannelUpgradeAckResponse, error)
+	// ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
+	ChannelUpgradeConfirm(ctx context.Context, in *MsgChannelUpgradeConfirm, opts ...grpc.CallOption) (*MsgChannelUpgradeConfirmResponse, error)
+	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout
+	ChannelUpgradeTimeout(ctx context.Context, in *MsgChannelUpgradeTimeout, opts ...grpc.CallOption) (*MsgChannelUpgradeTimeoutResponse, error)
+	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel
+	ChannelUpgradeCancel(ctx context.Context, in *MsgChannelUpgradeCancel, opts ...grpc.CallOption) (*MsgChannelUpgradeCancelResponse, error)
 }
 
 type msgClient struct {
@@ -1135,6 +1615,60 @@ func (c *msgClient) Acknowledgement(ctx context.Context, in *MsgAcknowledgement,
 	return out, nil
 }
 
+func (c *msgClient) ChannelUpgradeInit(ctx context.Context, in *MsgChannelUpgradeInit, opts ...grpc.CallOption) (*MsgChannelUpgradeInitResponse, error) {
+	out := new(MsgChannelUpgradeInitResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/ChannelUpgradeInit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeTry(ctx context.Context, in *MsgChannelUpgradeTry, opts ...grpc.CallOption) (*MsgChannelUpgradeTryResponse, error) {
+	out := new(MsgChannelUpgradeTryResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/ChannelUpgradeTry", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeAck(ctx context.Context, in *MsgChannelUpgradeAck, opts ...grpc.CallOption) (*MsgChannelUpgradeAckResponse, error) {
+	out := new(MsgChannelUpgradeAckResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/ChannelUpgradeAck", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeConfirm(ctx context.Context, in *MsgChannelUpgradeConfirm, opts ...grpc.CallOption) (*MsgChannelUpgradeConfirmResponse, error) {
+	out := new(MsgChannelUpgradeConfirmResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/ChannelUpgradeConfirm", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeTimeout(ctx context.Context, in *MsgChannelUpgradeTimeout, opts ...grpc.CallOption) (*MsgChannelUpgradeTimeoutResponse, error) {
+	out := new(MsgChannelUpgradeTimeoutResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/ChannelUpgradeTimeout", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeCancel(ctx context.Context, in *MsgChannelUpgradeCancel, opts ...grpc.CallOption) (*MsgChannelUpgradeCancelResponse, error) {
+	out := new(MsgChannelUpgradeCancelResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v1.Msg/ChannelUpgradeCancel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit.
@@ -1158,6 +1692,18 @@ type MsgServer interface {
 	TimeoutOnClose(context.Context, *MsgTimeoutOnClose) (*MsgTimeoutOnCloseResponse, error)
 	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 	Acknowledgement(context.Context, *MsgAcknowledgement) (*MsgAcknowledgementResponse, error)
+	// ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
+	ChannelUpgradeInit(context.Context, *MsgChannelUpgradeInit) (*MsgChannelUpgradeInitResponse, error)
+	// ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
+	ChannelUpgradeTry(context.Context, *MsgChannelUpgradeTry) (*MsgChannelUpgradeTryResponse, error)
+	// ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
+	ChannelUpgradeAck(context.Context, *MsgChannelUpgradeAck) (*MsgChannelUpgradeAckResponse, error)
+	// ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
+	ChannelUpgradeConfirm(context.Context, *MsgChannelUpgradeConfirm) (*MsgChannelUpgradeConfirmResponse, error)
+	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout
+	ChannelUpgradeTimeout(context.Context, *MsgChannelUpgradeTimeout) (*MsgChannelUpgradeTimeoutResponse, error)
+	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel
+	ChannelUpgradeCancel(context.Context, *MsgChannelUpgradeCancel) (*MsgChannelUpgradeCancelResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1193,6 +1739,24 @@ func (*UnimplementedMsgServer) TimeoutOnClose(ctx context.Context, req *MsgTimeo
 }
 func (*UnimplementedMsgServer) Acknowledgement(ctx context.Context, req *MsgAcknowledgement) (*MsgAcknowledgementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Acknowledgement not implemented")
+}
+func (*UnimplementedMsgServer) ChannelUpgradeInit(ctx context.Context, req *MsgChannelUpgradeInit) (*MsgChannelUpgradeInitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeInit not implemented")
+}
+func (*UnimplementedMsgServer) ChannelUpgradeTry(ctx context.Context, req *MsgChannelUpgradeTry) (*MsgChannelUpgradeTryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeTry not implemented")
+}
+func (*UnimplementedMsgServer) ChannelUpgradeAck(ctx context.Context, req *MsgChannelUpgradeAck) (*MsgChannelUpgradeAckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeAck not implemented")
+}
+func (*UnimplementedMsgServer) ChannelUpgradeConfirm(ctx context.Context, req *MsgChannelUpgradeConfirm) (*MsgChannelUpgradeConfirmResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeConfirm not implemented")
+}
+func (*UnimplementedMsgServer) ChannelUpgradeTimeout(ctx context.Context, req *MsgChannelUpgradeTimeout) (*MsgChannelUpgradeTimeoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeTimeout not implemented")
+}
+func (*UnimplementedMsgServer) ChannelUpgradeCancel(ctx context.Context, req *MsgChannelUpgradeCancel) (*MsgChannelUpgradeCancelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeCancel not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -1379,6 +1943,114 @@ func _Msg_Acknowledgement_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ChannelUpgradeInit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeInit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeInit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v1.Msg/ChannelUpgradeInit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeInit(ctx, req.(*MsgChannelUpgradeInit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeTry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeTry)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeTry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v1.Msg/ChannelUpgradeTry",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeTry(ctx, req.(*MsgChannelUpgradeTry))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeAck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeAck)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeAck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v1.Msg/ChannelUpgradeAck",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeAck(ctx, req.(*MsgChannelUpgradeAck))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeConfirm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeConfirm)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeConfirm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v1.Msg/ChannelUpgradeConfirm",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeConfirm(ctx, req.(*MsgChannelUpgradeConfirm))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeTimeout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeTimeout)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeTimeout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v1.Msg/ChannelUpgradeTimeout",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeTimeout(ctx, req.(*MsgChannelUpgradeTimeout))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeCancel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeCancel)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeCancel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v1.Msg/ChannelUpgradeCancel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeCancel(ctx, req.(*MsgChannelUpgradeCancel))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.core.channel.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -1422,6 +2094,30 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Acknowledgement",
 			Handler:    _Msg_Acknowledgement_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeInit",
+			Handler:    _Msg_ChannelUpgradeInit_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeTry",
+			Handler:    _Msg_ChannelUpgradeTry_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeAck",
+			Handler:    _Msg_ChannelUpgradeAck_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeConfirm",
+			Handler:    _Msg_ChannelUpgradeConfirm_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeTimeout",
+			Handler:    _Msg_ChannelUpgradeTimeout_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeCancel",
+			Handler:    _Msg_ChannelUpgradeCancel_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2317,6 +3013,282 @@ func (m *MsgAcknowledgementResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgChannelUpgradeInit) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeInit) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeInit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeInitResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeInitResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeInitResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeTry) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeTry) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeTry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeTryResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeTryResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeTryResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeAck) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeAck) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeAck) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeAckResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeAckResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeAckResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeConfirm) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeConfirm) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeConfirm) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeConfirmResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeConfirmResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeConfirmResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeTimeout) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeTimeout) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeTimeout) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeTimeoutResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeTimeoutResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeTimeoutResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeCancel) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeCancel) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeCancel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgChannelUpgradeCancelResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgChannelUpgradeCancelResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgChannelUpgradeCancelResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -2699,6 +3671,114 @@ func (m *MsgAcknowledgementResponse) Size() (n int) {
 	if m.Result != 0 {
 		n += 1 + sovTx(uint64(m.Result))
 	}
+	return n
+}
+
+func (m *MsgChannelUpgradeInit) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeInitResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeTry) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeTryResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeAck) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeAckResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeConfirm) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeConfirmResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeTimeout) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeTimeoutResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeCancel) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgChannelUpgradeCancelResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -5467,6 +6547,606 @@ func (m *MsgAcknowledgementResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeInit) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeInit: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeInit: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeInitResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeInitResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeInitResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeTry) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTry: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTry: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeTryResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTryResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTryResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeAck) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeAck: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeAck: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeAckResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeAckResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeAckResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeConfirm) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeConfirm: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeConfirm: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeConfirmResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeConfirmResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeConfirmResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeTimeout) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTimeout: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTimeout: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeTimeoutResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTimeoutResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeTimeoutResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeCancel) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeCancel: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeCancel: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgChannelUpgradeCancelResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgChannelUpgradeCancelResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgChannelUpgradeCancelResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

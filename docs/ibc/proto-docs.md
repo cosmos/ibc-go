@@ -196,6 +196,18 @@
     - [MsgChannelOpenInitResponse](#ibc.core.channel.v1.MsgChannelOpenInitResponse)
     - [MsgChannelOpenTry](#ibc.core.channel.v1.MsgChannelOpenTry)
     - [MsgChannelOpenTryResponse](#ibc.core.channel.v1.MsgChannelOpenTryResponse)
+    - [MsgChannelUpgradeAck](#ibc.core.channel.v1.MsgChannelUpgradeAck)
+    - [MsgChannelUpgradeAckResponse](#ibc.core.channel.v1.MsgChannelUpgradeAckResponse)
+    - [MsgChannelUpgradeCancel](#ibc.core.channel.v1.MsgChannelUpgradeCancel)
+    - [MsgChannelUpgradeCancelResponse](#ibc.core.channel.v1.MsgChannelUpgradeCancelResponse)
+    - [MsgChannelUpgradeConfirm](#ibc.core.channel.v1.MsgChannelUpgradeConfirm)
+    - [MsgChannelUpgradeConfirmResponse](#ibc.core.channel.v1.MsgChannelUpgradeConfirmResponse)
+    - [MsgChannelUpgradeInit](#ibc.core.channel.v1.MsgChannelUpgradeInit)
+    - [MsgChannelUpgradeInitResponse](#ibc.core.channel.v1.MsgChannelUpgradeInitResponse)
+    - [MsgChannelUpgradeTimeout](#ibc.core.channel.v1.MsgChannelUpgradeTimeout)
+    - [MsgChannelUpgradeTimeoutResponse](#ibc.core.channel.v1.MsgChannelUpgradeTimeoutResponse)
+    - [MsgChannelUpgradeTry](#ibc.core.channel.v1.MsgChannelUpgradeTry)
+    - [MsgChannelUpgradeTryResponse](#ibc.core.channel.v1.MsgChannelUpgradeTryResponse)
     - [MsgRecvPacket](#ibc.core.channel.v1.MsgRecvPacket)
     - [MsgRecvPacketResponse](#ibc.core.channel.v1.MsgRecvPacketResponse)
     - [MsgTimeout](#ibc.core.channel.v1.MsgTimeout)
@@ -206,6 +218,10 @@
     - [ResponseResultType](#ibc.core.channel.v1.ResponseResultType)
   
     - [Msg](#ibc.core.channel.v1.Msg)
+  
+- [ibc/core/channel/v1/upgrade.proto](#ibc/core/channel/v1/upgrade.proto)
+    - [ErrorReceipt](#ibc.core.channel.v1.ErrorReceipt)
+    - [UpgradeTimeout](#ibc.core.channel.v1.UpgradeTimeout)
   
 - [ibc/core/client/v1/genesis.proto](#ibc/core/client/v1/genesis.proto)
     - [GenesisMetadata](#ibc.core.client.v1.GenesisMetadata)
@@ -2976,6 +2992,126 @@ MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 
 
 
+<a name="ibc.core.channel.v1.MsgChannelUpgradeAck"></a>
+
+### MsgChannelUpgradeAck
+MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeAckResponse"></a>
+
+### MsgChannelUpgradeAckResponse
+MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeCancel"></a>
+
+### MsgChannelUpgradeCancel
+MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeCancelResponse"></a>
+
+### MsgChannelUpgradeCancelResponse
+MsgChannelUpgradeCancelResponse defines the MsgChannelUpgradeCancel response type
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeConfirm"></a>
+
+### MsgChannelUpgradeConfirm
+MsgChannelUpgradeConfirm defines the request type for the ChannelUpgradeConfirm rpc
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeConfirmResponse"></a>
+
+### MsgChannelUpgradeConfirmResponse
+MsgChannelUpgradeConfirmResponse defines the MsgChannelUpgradeConfirm response type
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeInit"></a>
+
+### MsgChannelUpgradeInit
+MsgChanelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeInitResponse"></a>
+
+### MsgChannelUpgradeInitResponse
+MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeTimeout"></a>
+
+### MsgChannelUpgradeTimeout
+MsgChannelUpgradeTimeout defines the request type for the ChannelUpgradeTimeout rpc
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeTimeoutResponse"></a>
+
+### MsgChannelUpgradeTimeoutResponse
+MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeTry"></a>
+
+### MsgChannelUpgradeTry
+MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.MsgChannelUpgradeTryResponse"></a>
+
+### MsgChannelUpgradeTryResponse
+MsgChannelUpgradeTryResponse defines the MsgChannelUpgradeTry response type
+
+
+
+
+
+
 <a name="ibc.core.channel.v1.MsgRecvPacket"></a>
 
 ### MsgRecvPacket
@@ -3114,6 +3250,63 @@ Msg defines the ibc/channel Msg service.
 | `Timeout` | [MsgTimeout](#ibc.core.channel.v1.MsgTimeout) | [MsgTimeoutResponse](#ibc.core.channel.v1.MsgTimeoutResponse) | Timeout defines a rpc handler method for MsgTimeout. | |
 | `TimeoutOnClose` | [MsgTimeoutOnClose](#ibc.core.channel.v1.MsgTimeoutOnClose) | [MsgTimeoutOnCloseResponse](#ibc.core.channel.v1.MsgTimeoutOnCloseResponse) | TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose. | |
 | `Acknowledgement` | [MsgAcknowledgement](#ibc.core.channel.v1.MsgAcknowledgement) | [MsgAcknowledgementResponse](#ibc.core.channel.v1.MsgAcknowledgementResponse) | Acknowledgement defines a rpc handler method for MsgAcknowledgement. | |
+| `ChannelUpgradeInit` | [MsgChannelUpgradeInit](#ibc.core.channel.v1.MsgChannelUpgradeInit) | [MsgChannelUpgradeInitResponse](#ibc.core.channel.v1.MsgChannelUpgradeInitResponse) | ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit. | |
+| `ChannelUpgradeTry` | [MsgChannelUpgradeTry](#ibc.core.channel.v1.MsgChannelUpgradeTry) | [MsgChannelUpgradeTryResponse](#ibc.core.channel.v1.MsgChannelUpgradeTryResponse) | ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry. | |
+| `ChannelUpgradeAck` | [MsgChannelUpgradeAck](#ibc.core.channel.v1.MsgChannelUpgradeAck) | [MsgChannelUpgradeAckResponse](#ibc.core.channel.v1.MsgChannelUpgradeAckResponse) | ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck. | |
+| `ChannelUpgradeConfirm` | [MsgChannelUpgradeConfirm](#ibc.core.channel.v1.MsgChannelUpgradeConfirm) | [MsgChannelUpgradeConfirmResponse](#ibc.core.channel.v1.MsgChannelUpgradeConfirmResponse) | ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm. | |
+| `ChannelUpgradeTimeout` | [MsgChannelUpgradeTimeout](#ibc.core.channel.v1.MsgChannelUpgradeTimeout) | [MsgChannelUpgradeTimeoutResponse](#ibc.core.channel.v1.MsgChannelUpgradeTimeoutResponse) | ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout | |
+| `ChannelUpgradeCancel` | [MsgChannelUpgradeCancel](#ibc.core.channel.v1.MsgChannelUpgradeCancel) | [MsgChannelUpgradeCancelResponse](#ibc.core.channel.v1.MsgChannelUpgradeCancelResponse) | ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/channel/v1/upgrade.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/channel/v1/upgrade.proto
+
+
+
+<a name="ibc.core.channel.v1.ErrorReceipt"></a>
+
+### ErrorReceipt
+ErrorReceipt defines a type which encapsulates the upgrade sequence and error associated with the
+upgrade handshake failure. When a channel upgrade handshake is aborted both chains are expected to increment to the
+next sequence.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | the channel upgrade sequence |
+| `error` | [string](#string) |  | the error message detailing the cause of failure |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.UpgradeTimeout"></a>
+
+### UpgradeTimeout
+UpgradeTimeout defines a type which encapsulates the upgrade timeout values at which the counterparty
+must no longer proceed with the upgrade handshake.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the upgrade times out |
+| `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the upgrade times out |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 

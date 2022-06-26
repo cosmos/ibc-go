@@ -39,6 +39,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgAcknowledgement{},
 		&MsgTimeout{},
 		&MsgTimeoutOnClose{},
+		&MsgChannelUpgradeInit{},
+		&MsgChannelUpgradeTry{},
+		&MsgChannelUpgradeAck{},
+		&MsgChannelUpgradeConfirm{},
+		&MsgChannelUpgradeTimeout{},
+		&MsgChannelUpgradeCancel{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

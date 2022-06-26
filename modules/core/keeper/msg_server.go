@@ -644,3 +644,33 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 
 	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
 }
+
+// ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
+func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeInit) (*channeltypes.MsgChannelUpgradeInitResponse, error) {
+	return nil, nil
+}
+
+// ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
+func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
+	return nil, nil
+}
+
+// ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
+func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
+	return nil, nil
+}
+
+// ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
+func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
+	return nil, nil
+}
+
+// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
+func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
+	return nil, nil
+}
+
+// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
+func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
+	return nil, nil
+}

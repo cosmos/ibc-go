@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/base64"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -492,4 +493,112 @@ func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
+}
+
+var _ sdk.Msg = &MsgChannelUpgradeInit{}
+
+// NewMsgChannelUpgradeInit constructs a new MsgChannelUpgradeInit
+// nolint:interfacer
+func NewMsgChannelUpgradeInit() *MsgChannelUpgradeInit {
+	return &MsgChannelUpgradeInit{}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelUpgradeInit) ValidateBasic() error {
+	return errors.New("error method not implemented")
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelUpgradeInit) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
+}
+
+var _ sdk.Msg = &MsgChannelUpgradeTry{}
+
+// NewMsgChannelUpgradeTry constructs a new MsgChannelUpgradeTry
+// nolint:interfacer
+func NewMsgChannelUpgradeTry() *MsgChannelUpgradeTry {
+	return &MsgChannelUpgradeTry{}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelUpgradeTry) ValidateBasic() error {
+	return errors.New("error method not implemented")
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelUpgradeTry) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
+}
+
+var _ sdk.Msg = &MsgChannelUpgradeAck{}
+
+// NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
+// nolint:interfacer
+func NewMsgChannelUpgradeAck() *MsgChannelUpgradeAck {
+	return &MsgChannelUpgradeAck{}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelUpgradeAck) ValidateBasic() error {
+	return errors.New("error method not implemented")
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelUpgradeAck) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
+}
+
+var _ sdk.Msg = &MsgChannelUpgradeConfirm{}
+
+// NewMsgChannelUpgradeConfirm constructs a new MsgChannelUpgradeConfirm
+// nolint:interfacer
+func NewMsgChannelUpgradeConfirm() *MsgChannelUpgradeConfirm {
+	return &MsgChannelUpgradeConfirm{}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
+	return errors.New("error method not implemented")
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelUpgradeConfirm) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
+}
+
+var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
+
+// NewMsgChannelUpgradeTimeout constructs a new MsgChannelUpgradeTimeout
+// nolint:interfacer
+func NewMsgChannelUpgradeTimeout() *MsgChannelUpgradeTimeout {
+	return &MsgChannelUpgradeTimeout{}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
+	return errors.New("error method not implemented")
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelUpgradeTimeout) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
+}
+
+var _ sdk.Msg = &MsgChannelUpgradeCancel{}
+
+// NewMsgChannelUpgradeCancel constructs a new MsgChannelUpgradeCancel
+// nolint:interfacer
+func NewMsgChannelUpgradeCancel() *MsgChannelUpgradeCancel {
+	return &MsgChannelUpgradeCancel{}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
+	return errors.New("error method not implemented")
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelUpgradeCancel) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{}
 }
