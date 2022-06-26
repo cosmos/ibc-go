@@ -164,7 +164,7 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
-		mock.ModuleName:                nil,
+		ibcmock.ModuleName:                nil,
 	}
 )
 
@@ -657,7 +657,7 @@ func (app *SimApp) ModuleAccountAddrs() map[string]bool {
 	for acc := range maccPerms {
 		// do not add mock module to blocked addresses
 		// this is only used for testing
-		if acc == mock.ModuleName {
+		if acc == ibcmock.ModuleName {
 			continue
 		}
 
