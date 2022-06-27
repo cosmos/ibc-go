@@ -253,6 +253,11 @@ module.exports = {
                   directory: false,
                   path: "/middleware/ics29-fee/fee-distribution.html"
                 },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/middleware/ics29-fee/events.html"
+                },
               ]
             },
           ]
