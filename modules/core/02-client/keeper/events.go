@@ -76,7 +76,7 @@ func EmitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64)
 		sdk.NewEvent(
 			types.EventTypeUpgradeClientProposal,
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprint(height)),
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
 		),
 	)
 }

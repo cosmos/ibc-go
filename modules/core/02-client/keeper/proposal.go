@@ -98,11 +98,12 @@ func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal)
 
 	// sets the new upgraded client in last height committed on this chain is at plan.Height,
 	// since the chain will panic at plan.Height and new chain will resume at plan.Height
-	err = k.upgradeKeeper.SetUpgradedClient(ctx, p.Plan.Height, bz)
-	if err == nil {
-		// emitting an event for handling client upgrade proposal
-		EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+	if err = k.upgradeKeeper.SetUpgradedClient(ctx, p.Plan.Height, bz); err != nil {
+		return err
 	}
 
-	return err
+	// emitting an event for handling client upgrade proposal
+	EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+
+	return nil
 }
