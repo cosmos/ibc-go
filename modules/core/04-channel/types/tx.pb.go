@@ -1511,9 +1511,9 @@ type MsgClient interface {
 	ChannelUpgradeAck(ctx context.Context, in *MsgChannelUpgradeAck, opts ...grpc.CallOption) (*MsgChannelUpgradeAckResponse, error)
 	// ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
 	ChannelUpgradeConfirm(ctx context.Context, in *MsgChannelUpgradeConfirm, opts ...grpc.CallOption) (*MsgChannelUpgradeConfirmResponse, error)
-	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout
+	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
 	ChannelUpgradeTimeout(ctx context.Context, in *MsgChannelUpgradeTimeout, opts ...grpc.CallOption) (*MsgChannelUpgradeTimeoutResponse, error)
-	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel
+	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
 	ChannelUpgradeCancel(ctx context.Context, in *MsgChannelUpgradeCancel, opts ...grpc.CallOption) (*MsgChannelUpgradeCancelResponse, error)
 }
 
@@ -1700,9 +1700,9 @@ type MsgServer interface {
 	ChannelUpgradeAck(context.Context, *MsgChannelUpgradeAck) (*MsgChannelUpgradeAckResponse, error)
 	// ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
 	ChannelUpgradeConfirm(context.Context, *MsgChannelUpgradeConfirm) (*MsgChannelUpgradeConfirmResponse, error)
-	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout
+	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
 	ChannelUpgradeTimeout(context.Context, *MsgChannelUpgradeTimeout) (*MsgChannelUpgradeTimeoutResponse, error)
-	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel
+	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
 	ChannelUpgradeCancel(context.Context, *MsgChannelUpgradeCancel) (*MsgChannelUpgradeCancelResponse, error)
 }
 

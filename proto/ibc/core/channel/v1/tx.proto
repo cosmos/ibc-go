@@ -53,10 +53,10 @@ service Msg {
   // ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
   rpc ChannelUpgradeConfirm(MsgChannelUpgradeConfirm) returns (MsgChannelUpgradeConfirmResponse);
 
-  // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout
+  // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
   rpc ChannelUpgradeTimeout(MsgChannelUpgradeTimeout) returns (MsgChannelUpgradeTimeoutResponse);
 
-  // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel
+  // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
   rpc ChannelUpgradeCancel(MsgChannelUpgradeCancel) returns (MsgChannelUpgradeCancelResponse);
 }
 

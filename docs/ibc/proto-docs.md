@@ -3254,8 +3254,8 @@ Msg defines the ibc/channel Msg service.
 | `ChannelUpgradeTry` | [MsgChannelUpgradeTry](#ibc.core.channel.v1.MsgChannelUpgradeTry) | [MsgChannelUpgradeTryResponse](#ibc.core.channel.v1.MsgChannelUpgradeTryResponse) | ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry. | |
 | `ChannelUpgradeAck` | [MsgChannelUpgradeAck](#ibc.core.channel.v1.MsgChannelUpgradeAck) | [MsgChannelUpgradeAckResponse](#ibc.core.channel.v1.MsgChannelUpgradeAckResponse) | ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck. | |
 | `ChannelUpgradeConfirm` | [MsgChannelUpgradeConfirm](#ibc.core.channel.v1.MsgChannelUpgradeConfirm) | [MsgChannelUpgradeConfirmResponse](#ibc.core.channel.v1.MsgChannelUpgradeConfirmResponse) | ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm. | |
-| `ChannelUpgradeTimeout` | [MsgChannelUpgradeTimeout](#ibc.core.channel.v1.MsgChannelUpgradeTimeout) | [MsgChannelUpgradeTimeoutResponse](#ibc.core.channel.v1.MsgChannelUpgradeTimeoutResponse) | ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout | |
-| `ChannelUpgradeCancel` | [MsgChannelUpgradeCancel](#ibc.core.channel.v1.MsgChannelUpgradeCancel) | [MsgChannelUpgradeCancelResponse](#ibc.core.channel.v1.MsgChannelUpgradeCancelResponse) | ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel | |
+| `ChannelUpgradeTimeout` | [MsgChannelUpgradeTimeout](#ibc.core.channel.v1.MsgChannelUpgradeTimeout) | [MsgChannelUpgradeTimeoutResponse](#ibc.core.channel.v1.MsgChannelUpgradeTimeoutResponse) | ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout. | |
+| `ChannelUpgradeCancel` | [MsgChannelUpgradeCancel](#ibc.core.channel.v1.MsgChannelUpgradeCancel) | [MsgChannelUpgradeCancelResponse](#ibc.core.channel.v1.MsgChannelUpgradeCancelResponse) | ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel. | |
 
  <!-- end services -->
 
