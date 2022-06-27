@@ -176,8 +176,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
 
 			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-
+			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 			tc.malleate()
 
