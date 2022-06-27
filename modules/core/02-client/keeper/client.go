@@ -27,7 +27,6 @@ func (k Keeper) CreateClient(
 
 	clientID := k.GenerateClientIdentifier(ctx, clientState.ClientType())
 
-	k.SetClientState(ctx, clientID, clientState)
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
 
 	// verifies initial consensus state against client state and initializes client store with any client-specific metadata
@@ -36,6 +35,7 @@ func (k Keeper) CreateClient(
 		return "", err
 	}
 
+	k.SetClientState(ctx, clientID, clientState)
 	k.SetClientConsensusState(ctx, clientID, clientState.GetLatestHeight(), consensusState)
 
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
