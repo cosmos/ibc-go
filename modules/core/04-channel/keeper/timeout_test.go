@@ -47,6 +47,31 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// need to update chainA's client representing chainB to prove missing ack
 			path.EndpointA.UpdateClient()
 		}, true},
+		{"success: ORDERED but channel is not OPEN", func() {
+			ordered = true
+			path.SetChannelOrdered()
+
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), uint64(suite.chainB.GetContext().BlockTime().UnixNano()))
+			path.EndpointA.SendPacket(packet)
+			// need to update chainA's client representing chainB to prove missing ack
+			path.EndpointA.UpdateClient()
+
+			err := path.EndpointA.SetChannelClosed()
+			suite.Require().NoError(err)
+		}, true},
+		{"success: UNORDERED but channel is not OPEN", func() {
+			ordered = false
+
+			suite.coordinator.Setup(path)
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), disabledTimeoutTimestamp)
+			path.EndpointA.SendPacket(packet)
+			// need to update chainA's client representing chainB to prove missing ack
+			path.EndpointA.UpdateClient()
+
+			err := path.EndpointA.SetChannelClosed()
+			suite.Require().NoError(err)
+		}, true},
 		{"packet already timed out: ORDERED", func() {
 			expError = types.ErrNoOpMsg
 			ordered = true
@@ -79,18 +104,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// use wrong channel naming
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
-		}, false},
-		{"channel not open", func() {
-			expError = types.ErrInvalidChannelState
-			suite.coordinator.Setup(path)
-			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.GetClientState().GetLatestHeight().Increment().(clienttypes.Height), disabledTimeoutTimestamp)
-			err := path.EndpointA.SendPacket(packet)
-			suite.Require().NoError(err)
-			// need to update chainA's client representing chainB to prove missing ack
-			path.EndpointA.UpdateClient()
-
-			err = path.EndpointA.SetChannelClosed()
-			suite.Require().NoError(err)
 		}, false},
 		{"packet destination port ≠ channel counterparty port", func() {
 			expError = types.ErrInvalidPacket
