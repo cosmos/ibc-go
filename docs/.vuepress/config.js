@@ -224,7 +224,7 @@ module.exports = {
           title: "IBC Middleware Modules",
           children: [
             {
-              title: "ICS29 Fee Middleware",
+              title: "Fee Middleware",
               directory: true,
               path: "/middleware",
               children: [
@@ -242,6 +242,16 @@ module.exports = {
                   title: "End Users",
                   directory: false,
                   path: "/middleware/ics29-fee/end-users.html"
+                },
+                {
+                  title: "Fee Messages",
+                  directory: false,
+                  path: "/middleware/ics29-fee/msgs.html"
+                },
+                {
+                  title: "Fee Distribution",
+                  directory: false,
+                  path: "/middleware/ics29-fee/fee-distribution.html"
                 },
               ]
             },
