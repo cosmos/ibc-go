@@ -11,8 +11,7 @@ import (
 // headers at the same height would have convinced the light client.
 //
 func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
-
-	return nil
+	panic("implement me")
 }
 
 // checkMisbehaviourHeader checks that a Header in Misbehaviour is valid misbehaviour given
@@ -20,6 +19,5 @@ func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore sdk.KVSto
 func checkMisbehaviourHeader(
 	clientState *ClientState, consState *ConsensusState, header *Header, currentTimestamp time.Time,
 ) error {
-
-	return nil
+	panic("implement me")
 }

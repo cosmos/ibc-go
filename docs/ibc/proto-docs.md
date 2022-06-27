@@ -4,6 +4,95 @@
 
 ## Table of Contents
 
+- [ibc/applications/fee/v1/ack.proto](#ibc/applications/fee/v1/ack.proto)
+    - [IncentivizedAcknowledgement](#ibc.applications.fee.v1.IncentivizedAcknowledgement)
+  
+- [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
+    - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
+    - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
+    - [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight)
+    - [Height](#ibc.core.client.v1.Height)
+    - [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState)
+    - [Params](#ibc.core.client.v1.Params)
+    - [UpgradeProposal](#ibc.core.client.v1.UpgradeProposal)
+  
+- [ibc/core/channel/v1/channel.proto](#ibc/core/channel/v1/channel.proto)
+    - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
+    - [Channel](#ibc.core.channel.v1.Channel)
+    - [Counterparty](#ibc.core.channel.v1.Counterparty)
+    - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
+    - [Packet](#ibc.core.channel.v1.Packet)
+    - [PacketId](#ibc.core.channel.v1.PacketId)
+    - [PacketState](#ibc.core.channel.v1.PacketState)
+  
+    - [Order](#ibc.core.channel.v1.Order)
+    - [State](#ibc.core.channel.v1.State)
+  
+- [ibc/applications/fee/v1/fee.proto](#ibc/applications/fee/v1/fee.proto)
+    - [Fee](#ibc.applications.fee.v1.Fee)
+    - [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees)
+    - [PacketFee](#ibc.applications.fee.v1.PacketFee)
+    - [PacketFees](#ibc.applications.fee.v1.PacketFees)
+  
+- [ibc/applications/fee/v1/genesis.proto](#ibc/applications/fee/v1/genesis.proto)
+    - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
+    - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
+    - [GenesisState](#ibc.applications.fee.v1.GenesisState)
+    - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
+  
+- [ibc/applications/fee/v1/metadata.proto](#ibc/applications/fee/v1/metadata.proto)
+    - [Metadata](#ibc.applications.fee.v1.Metadata)
+  
+- [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
+    - [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest)
+    - [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse)
+    - [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest)
+    - [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse)
+    - [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest)
+    - [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse)
+    - [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest)
+    - [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse)
+    - [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest)
+    - [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse)
+    - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
+    - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
+    - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
+    - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
+    - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
+    - [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse)
+    - [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest)
+    - [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse)
+  
+    - [Query](#ibc.applications.fee.v1.Query)
+  
+- [ibc/applications/fee/v1/tx.proto](#ibc/applications/fee/v1/tx.proto)
+    - [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee)
+    - [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync)
+    - [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse)
+    - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
+    - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
+    - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
+  
+    - [Msg](#ibc.applications.fee.v1.Msg)
+  
+- [ibc/applications/interchain_accounts/controller/v1/controller.proto](#ibc/applications/interchain_accounts/controller/v1/controller.proto)
+    - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
+  
+- [ibc/applications/interchain_accounts/controller/v1/query.proto](#ibc/applications/interchain_accounts/controller/v1/query.proto)
+    - [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse)
+  
+    - [Query](#ibc.applications.interchain_accounts.controller.v1.Query)
+  
+- [ibc/applications/interchain_accounts/host/v1/host.proto](#ibc/applications/interchain_accounts/host/v1/host.proto)
+    - [Params](#ibc.applications.interchain_accounts.host.v1.Params)
+  
+- [ibc/applications/interchain_accounts/host/v1/query.proto](#ibc/applications/interchain_accounts/host/v1/query.proto)
+    - [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse)
+  
+    - [Query](#ibc.applications.interchain_accounts.host.v1.Query)
+  
 - [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
     - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
   
@@ -42,15 +131,6 @@
   
     - [Query](#ibc.applications.transfer.v1.Query)
   
-- [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
-    - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
-    - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
-    - [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight)
-    - [Height](#ibc.core.client.v1.Height)
-    - [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState)
-    - [Params](#ibc.core.client.v1.Params)
-    - [UpgradeProposal](#ibc.core.client.v1.UpgradeProposal)
-  
 - [ibc/applications/transfer/v1/tx.proto](#ibc/applications/transfer/v1/tx.proto)
     - [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer)
     - [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse)
@@ -59,17 +139,6 @@
   
 - [ibc/applications/transfer/v2/packet.proto](#ibc/applications/transfer/v2/packet.proto)
     - [FungibleTokenPacketData](#ibc.applications.transfer.v2.FungibleTokenPacketData)
-  
-- [ibc/core/channel/v1/channel.proto](#ibc/core/channel/v1/channel.proto)
-    - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
-    - [Channel](#ibc.core.channel.v1.Channel)
-    - [Counterparty](#ibc.core.channel.v1.Counterparty)
-    - [IdentifiedChannel](#ibc.core.channel.v1.IdentifiedChannel)
-    - [Packet](#ibc.core.channel.v1.Packet)
-    - [PacketState](#ibc.core.channel.v1.PacketState)
-  
-    - [Order](#ibc.core.channel.v1.Order)
-    - [State](#ibc.core.channel.v1.State)
   
 - [ibc/core/channel/v1/genesis.proto](#ibc/core/channel/v1/genesis.proto)
     - [GenesisState](#ibc.core.channel.v1.GenesisState)
@@ -217,21 +286,6 @@
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
-- [ibc/lightclients/beefy/v1/beefy.proto](#ibc/lightclients/beefy/v1/beefy.proto)
-    - [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet)
-    - [BeefyMmrLeaf](#ibc.lightclients.beefy.v1.BeefyMmrLeaf)
-    - [BeefyMmrLeafPartial](#ibc.lightclients.beefy.v1.BeefyMmrLeafPartial)
-    - [ClientState](#ibc.lightclients.beefy.v1.ClientState)
-    - [Commitment](#ibc.lightclients.beefy.v1.Commitment)
-    - [CommitmentSignature](#ibc.lightclients.beefy.v1.CommitmentSignature)
-    - [ConsensusState](#ibc.lightclients.beefy.v1.ConsensusState)
-    - [Header](#ibc.lightclients.beefy.v1.Header)
-    - [Misbehaviour](#ibc.lightclients.beefy.v1.Misbehaviour)
-    - [MmrUpdateProof](#ibc.lightclients.beefy.v1.MmrUpdateProof)
-    - [ParachainHeader](#ibc.lightclients.beefy.v1.ParachainHeader)
-    - [PayloadItem](#ibc.lightclients.beefy.v1.PayloadItem)
-    - [SignedCommitment](#ibc.lightclients.beefy.v1.SignedCommitment)
-  
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -280,6 +334,1164 @@
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="ibc/applications/fee/v1/ack.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/ack.proto
+
+
+
+<a name="ibc.applications.fee.v1.IncentivizedAcknowledgement"></a>
+
+### IncentivizedAcknowledgement
+IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [bytes](#bytes) |  | the underlying app acknowledgement result bytes |
+| `forward_relayer_address` | [string](#string) |  | the relayer address which submits the recv packet message |
+| `underlying_app_success` | [bool](#bool) |  | success flag of the base application callback |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/client/v1/client.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/client/v1/client.proto
+
+
+
+<a name="ibc.core.client.v1.ClientConsensusStates"></a>
+
+### ClientConsensusStates
+ClientConsensusStates defines all the stored consensus states for a given
+client.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | client identifier |
+| `consensus_states` | [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight) | repeated | consensus states and their heights associated with the client |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.ClientUpdateProposal"></a>
+
+### ClientUpdateProposal
+ClientUpdateProposal is a governance proposal. If it passes, the substitute
+client's latest consensus state is copied over to the subject client. The proposal
+handler may fail if the subject and the substitute do not match in client and
+chain parameters (with exception to latest height, frozen height, and chain-id).
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | the title of the update proposal |
+| `description` | [string](#string) |  | the description of the proposal |
+| `subject_client_id` | [string](#string) |  | the client identifier for the client to be updated if the proposal passes |
+| `substitute_client_id` | [string](#string) |  | the substitute client identifier for the client standing in for the subject client |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.ConsensusStateWithHeight"></a>
+
+### ConsensusStateWithHeight
+ConsensusStateWithHeight defines a consensus state with an additional height
+field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [Height](#ibc.core.client.v1.Height) |  | consensus state height |
+| `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | consensus state |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.Height"></a>
+
+### Height
+Height is a monotonically increasing data type
+that can be compared against another Height for the purposes of updating and
+freezing clients
+
+Normally the RevisionHeight is incremented at each height while keeping
+RevisionNumber the same. However some consensus algorithms may choose to
+reset the height in certain conditions e.g. hard forks, state-machine
+breaking changes In these cases, the RevisionNumber is incremented so that
+height continues to be monitonically increasing even as the RevisionHeight
+gets reset
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `revision_number` | [uint64](#uint64) |  | the revision that the client is currently on |
+| `revision_height` | [uint64](#uint64) |  | the height within the given revision |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.IdentifiedClientState"></a>
+
+### IdentifiedClientState
+IdentifiedClientState defines a client state with an additional client
+identifier field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | client identifier |
+| `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | client state |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.Params"></a>
+
+### Params
+Params defines the set of IBC light client parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_clients` | [string](#string) | repeated | allowed_clients defines the list of allowed client state types. |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.UpgradeProposal"></a>
+
+### UpgradeProposal
+UpgradeProposal is a gov Content type for initiating an IBC breaking
+upgrade.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `plan` | [cosmos.upgrade.v1beta1.Plan](#cosmos.upgrade.v1beta1.Plan) |  |  |
+| `upgraded_client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | An UpgradedClientState must be provided to perform an IBC breaking upgrade. This will make the chain commit to the correct upgraded (self) client state before the upgrade occurs, so that connecting chains can verify that the new upgraded client is valid by verifying a proof on the previous version of the chain. This will allow IBC connections to persist smoothly across planned chain upgrades |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/channel/v1/channel.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/channel/v1/channel.proto
+
+
+
+<a name="ibc.core.channel.v1.Acknowledgement"></a>
+
+### Acknowledgement
+Acknowledgement is the recommended acknowledgement format to be used by
+app-specific protocols.
+NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
+conflicts with other protobuf message formats used for acknowledgements.
+The first byte of any message with this format will be the non-ASCII values
+`0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
+https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [bytes](#bytes) |  |  |
+| `error` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Channel"></a>
+
+### Channel
+Channel defines pipeline for exactly-once packet delivery between specific
+modules on separate blockchains, which has at least one end capable of
+sending packets and one end capable of receiving packets.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
+| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
+| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
+| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Counterparty"></a>
+
+### Counterparty
+Counterparty defines a channel end counterparty
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | port on the counterparty chain which owns the other end of the channel. |
+| `channel_id` | [string](#string) |  | channel end on the counterparty chain |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.IdentifiedChannel"></a>
+
+### IdentifiedChannel
+IdentifiedChannel defines a channel with additional port and channel
+identifier fields.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
+| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
+| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
+| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
+| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
+| `port_id` | [string](#string) |  | port identifier |
+| `channel_id` | [string](#string) |  | channel identifier |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.Packet"></a>
+
+### Packet
+Packet defines a type that carries data across different chains through IBC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | number corresponds to the order of sends and receives, where a Packet with an earlier sequence number must be sent and received before a Packet with a later sequence number. |
+| `source_port` | [string](#string) |  | identifies the port on the sending chain. |
+| `source_channel` | [string](#string) |  | identifies the channel end on the sending chain. |
+| `destination_port` | [string](#string) |  | identifies the port on the receiving chain. |
+| `destination_channel` | [string](#string) |  | identifies the channel end on the receiving chain. |
+| `data` | [bytes](#bytes) |  | actual opaque bytes transferred directly to the application module |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the packet times out |
+| `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the packet times out |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.PacketId"></a>
+
+### PacketId
+PacketId is an identifer for a unique Packet
+Source chains refer to packets by source port/channel
+Destination chains refer to packets by destination port/channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | channel port identifier |
+| `channel_id` | [string](#string) |  | channel unique identifier |
+| `sequence` | [uint64](#uint64) |  | packet sequence |
+
+
+
+
+
+
+<a name="ibc.core.channel.v1.PacketState"></a>
+
+### PacketState
+PacketState defines the generic type necessary to retrieve and store
+packet commitments, acknowledgements, and receipts.
+Caller is responsible for knowing the context necessary to interpret this
+state as a commitment, acknowledgement, or a receipt.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | channel port identifier. |
+| `channel_id` | [string](#string) |  | channel unique identifier. |
+| `sequence` | [uint64](#uint64) |  | packet sequence. |
+| `data` | [bytes](#bytes) |  | embedded data that represents packet state. |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.core.channel.v1.Order"></a>
+
+### Order
+Order defines if a channel is ORDERED or UNORDERED
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| ORDER_NONE_UNSPECIFIED | 0 | zero-value for channel ordering |
+| ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
+| ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
+
+
+
+<a name="ibc.core.channel.v1.State"></a>
+
+### State
+State defines if a channel is in one of the following states:
+CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STATE_UNINITIALIZED_UNSPECIFIED | 0 | Default State |
+| STATE_INIT | 1 | A channel has just started the opening handshake. |
+| STATE_TRYOPEN | 2 | A channel has acknowledged the handshake step on the counterparty chain. |
+| STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
+| STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/fee/v1/fee.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/fee.proto
+
+
+
+<a name="ibc.applications.fee.v1.Fee"></a>
+
+### Fee
+Fee defines the ICS29 receive, acknowledgement and timeout fees
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `recv_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet receive fee |
+| `ack_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet acknowledgement fee |
+| `timeout_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the packet timeout fee |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.IdentifiedPacketFees"></a>
+
+### IdentifiedPacketFees
+IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of the channel ID, port ID and sequence |
+| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated | list of packet fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.PacketFee"></a>
+
+### PacketFee
+PacketFee contains ICS29 relayer fees, refund address and optional list of permitted relayers
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  | fee encapsulates the recv, ack and timeout fees associated with an IBC packet |
+| `refund_address` | [string](#string) |  | the refund address for unspent fees |
+| `relayers` | [string](#string) | repeated | optional list of relayers permitted to receive fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.PacketFees"></a>
+
+### PacketFees
+PacketFees contains a list of type PacketFee
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_fees` | [PacketFee](#ibc.applications.fee.v1.PacketFee) | repeated | list of packet fees |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/fee/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/genesis.proto
+
+
+
+<a name="ibc.applications.fee.v1.FeeEnabledChannel"></a>
+
+### FeeEnabledChannel
+FeeEnabledChannel contains the PortID & ChannelID for a fee enabled channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.ForwardRelayerAddress"></a>
+
+### ForwardRelayerAddress
+ForwardRelayerAddress contains the forward relayer address and PacketId used for async acknowledgements
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | the forward relayer address |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifer comprised of the channel ID, port ID and sequence |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the ICS29 fee middleware genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `identified_fees` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified packet fees |
+| `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
+| `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated | list of registered relayer addresses |
+| `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated | list of forward relayer addresses |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.RegisteredRelayerAddress"></a>
+
+### RegisteredRelayerAddress
+RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | the relayer address |
+| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/fee/v1/metadata.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/metadata.proto
+
+
+
+<a name="ibc.applications.fee.v1.Metadata"></a>
+
+### Metadata
+Metadata defines the ICS29 channel specific metadata encoded into the channel version bytestring
+See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#Versioning
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee_version` | [string](#string) |  | fee_version defines the ICS29 fee version |
+| `app_version` | [string](#string) |  | app_version defines the underlying application version, which may or may not be a JSON encoded bytestring |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/fee/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/query.proto
+
+
+
+<a name="ibc.applications.fee.v1.QueryCounterpartyAddressRequest"></a>
+
+### QueryCounterpartyAddressRequest
+QueryCounterpartyAddressRequest defines the request type for the CounterpartyAddress rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer_address` | [string](#string) |  | the relayer address to which the counterparty is registered |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryCounterpartyAddressResponse"></a>
+
+### QueryCounterpartyAddressResponse
+QueryCounterpartyAddressResponse defines the response type for the CounterpartyAddress rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `counterparty_address` | [string](#string) |  | the counterparty address used to compensate forward relaying |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryFeeEnabledChannelRequest"></a>
+
+### QueryFeeEnabledChannelRequest
+QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryFeeEnabledChannelResponse"></a>
+
+### QueryFeeEnabledChannelResponse
+QueryFeeEnabledChannelResponse defines the response type for the FeeEnabledChannel rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee_enabled` | [bool](#bool) |  | boolean flag representing the fee enabled channel status |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest"></a>
+
+### QueryFeeEnabledChannelsRequest
+QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+| `query_height` | [uint64](#uint64) |  | block height at which to query |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse"></a>
+
+### QueryFeeEnabledChannelsResponse
+QueryFeeEnabledChannelsResponse defines the response type for the FeeEnabledChannels rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketRequest"></a>
+
+### QueryIncentivizedPacketRequest
+QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of channel ID, port ID and sequence |
+| `query_height` | [uint64](#uint64) |  | block height at which to query |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketResponse"></a>
+
+### QueryIncentivizedPacketResponse
+QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incentivized_packet` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) |  | the identified fees for the incentivized packet |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest"></a>
+
+### QueryIncentivizedPacketsForChannelRequest
+QueryIncentivizedPacketsForChannelRequest defines the request type for querying for all incentivized packets
+for a specific channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+| `query_height` | [uint64](#uint64) |  | Height to query at |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse"></a>
+
+### QueryIncentivizedPacketsForChannelResponse
+QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | Map of all incentivized_packets |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsRequest"></a>
+
+### QueryIncentivizedPacketsRequest
+QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+| `query_height` | [uint64](#uint64) |  | block height at which to query |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryIncentivizedPacketsResponse"></a>
+
+### QueryIncentivizedPacketsResponse
+QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPackets rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incentivized_packets` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified fees for incentivized packets |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalAckFeesRequest"></a>
+
+### QueryTotalAckFeesRequest
+QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalAckFeesResponse"></a>
+
+### QueryTotalAckFeesResponse
+QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ack_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet acknowledgement fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalRecvFeesRequest"></a>
+
+### QueryTotalRecvFeesRequest
+QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalRecvFeesResponse"></a>
+
+### QueryTotalRecvFeesResponse
+QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `recv_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet receive fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest"></a>
+
+### QueryTotalTimeoutFeesRequest
+QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | the packet identifier for the associated fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse"></a>
+
+### QueryTotalTimeoutFeesResponse
+QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `timeout_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | the total packet timeout fees |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.fee.v1.Query"></a>
+
+### Query
+Query defines the ICS29 gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | IncentivizedPackets returns all incentivized packets and their associated fees | GET|/ibc/apps/fee/v1/incentivized_packets|
+| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | IncentivizedPacket returns all packet fees for a packet given its identifier | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `IncentivizedPacketsForChannel` | [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest) | [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse) | Gets all incentivized packets for a specific channel | GET|/ibc/apps/fee/v1/incentivized_packets/port/{port_id}/channel/{channel_id}|
+| `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
+| `CounterpartyAddress` | [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest) | [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse) | CounterpartyAddress returns the registered counterparty address for forward relaying | GET|/ibc/apps/fee/v1/counterparty_address/{relayer_address}/channel/{channel_id}|
+| `FeeEnabledChannels` | [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest) | [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse) | FeeEnabledChannels returns a list of all fee enabled channels | GET|/ibc/apps/fee/v1/fee_enabled|
+| `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/fee_enabled/port/{port_id}/channel/{channel_id}|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/fee/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/fee/v1/tx.proto
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFee"></a>
+
+### MsgPayPacketFee
+MsgPayPacketFee defines the request type for the PayPacketFee rpc
+This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
+paid for
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fee` | [Fee](#ibc.applications.fee.v1.Fee) |  | fee encapsulates the recv, ack and timeout fees associated with an IBC packet |
+| `source_port_id` | [string](#string) |  | the source port unique identifier |
+| `source_channel_id` | [string](#string) |  | the source channel unique identifer |
+| `signer` | [string](#string) |  | account address to refund fee if necessary |
+| `relayers` | [string](#string) | repeated | optional list of relayers permitted to the receive packet fees |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsync"></a>
+
+### MsgPayPacketFeeAsync
+MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
+This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `packet_id` | [ibc.core.channel.v1.PacketId](#ibc.core.channel.v1.PacketId) |  | unique packet identifier comprised of the channel ID, port ID and sequence |
+| `packet_fee` | [PacketFee](#ibc.applications.fee.v1.PacketFee) |  | the packet fee associated with a particular IBC packet |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse"></a>
+
+### MsgPayPacketFeeAsyncResponse
+MsgPayPacketFeeAsyncResponse defines the response type for the PayPacketFeeAsync rpc
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgPayPacketFeeResponse"></a>
+
+### MsgPayPacketFeeResponse
+MsgPayPacketFeeResponse defines the response type for the PayPacketFee rpc
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
+
+### MsgRegisterCounterpartyAddress
+MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | the relayer address |
+| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse"></a>
+
+### MsgRegisterCounterpartyAddressResponse
+MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.fee.v1.Msg"></a>
+
+### Msg
+Msg defines the ICS29 Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
+| `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
+| `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/controller/v1/controller.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/controller/v1/controller.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.Params"></a>
+
+### Params
+Params defines the set of on-chain interchain accounts parameters.
+The following parameters may be used to disable the controller submodule.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `controller_enabled` | [bool](#bool) |  | controller_enabled enables or disables the controller submodule. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/controller/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/controller/v1/query.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse) | Params queries all parameters of the ICA controller submodule. | GET|/ibc/apps/interchain_accounts/controller/v1/params|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/host/v1/host.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/host/v1/host.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.Params"></a>
+
+### Params
+Params defines the set of on-chain interchain accounts parameters.
+The following parameters may be used to disable the host submodule.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `host_enabled` | [bool](#bool) |  | host_enabled enables or disables the host submodule. |
+| `allow_messages` | [string](#string) | repeated | allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/host/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/host/v1/query.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.interchain_accounts.host.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse) | Params queries all parameters of the ICA host submodule. | GET|/ibc/apps/interchain_accounts/host/v1/params|
+
+ <!-- end services -->
 
 
 
@@ -751,153 +1963,6 @@ Query provides defines the gRPC querier service.
 
 
 
-<a name="ibc/core/client/v1/client.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/core/client/v1/client.proto
-
-
-
-<a name="ibc.core.client.v1.ClientConsensusStates"></a>
-
-### ClientConsensusStates
-ClientConsensusStates defines all the stored consensus states for a given
-client.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client identifier |
-| `consensus_states` | [ConsensusStateWithHeight](#ibc.core.client.v1.ConsensusStateWithHeight) | repeated | consensus states and their heights associated with the client |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.ClientUpdateProposal"></a>
-
-### ClientUpdateProposal
-ClientUpdateProposal is a governance proposal. If it passes, the substitute
-client's latest consensus state is copied over to the subject client. The proposal
-handler may fail if the subject and the substitute do not match in client and
-chain parameters (with exception to latest height, frozen height, and chain-id).
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  | the title of the update proposal |
-| `description` | [string](#string) |  | the description of the proposal |
-| `subject_client_id` | [string](#string) |  | the client identifier for the client to be updated if the proposal passes |
-| `substitute_client_id` | [string](#string) |  | the substitute client identifier for the client standing in for the subject client |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.ConsensusStateWithHeight"></a>
-
-### ConsensusStateWithHeight
-ConsensusStateWithHeight defines a consensus state with an additional height
-field.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `height` | [Height](#ibc.core.client.v1.Height) |  | consensus state height |
-| `consensus_state` | [google.protobuf.Any](#google.protobuf.Any) |  | consensus state |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.Height"></a>
-
-### Height
-Height is a monotonically increasing data type
-that can be compared against another Height for the purposes of updating and
-freezing clients
-
-Normally the RevisionHeight is incremented at each height while keeping
-RevisionNumber the same. However some consensus algorithms may choose to
-reset the height in certain conditions e.g. hard forks, state-machine
-breaking changes In these cases, the RevisionNumber is incremented so that
-height continues to be monitonically increasing even as the RevisionHeight
-gets reset
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `revision_number` | [uint64](#uint64) |  | the revision that the client is currently on |
-| `revision_height` | [uint64](#uint64) |  | the height within the given revision |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.IdentifiedClientState"></a>
-
-### IdentifiedClientState
-IdentifiedClientState defines a client state with an additional client
-identifier field.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client identifier |
-| `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | client state |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.Params"></a>
-
-### Params
-Params defines the set of IBC light client parameters.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `allowed_clients` | [string](#string) | repeated | allowed_clients defines the list of allowed client state types. |
-
-
-
-
-
-
-<a name="ibc.core.client.v1.UpgradeProposal"></a>
-
-### UpgradeProposal
-UpgradeProposal is a gov Content type for initiating an IBC breaking
-upgrade.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  |  |
-| `description` | [string](#string) |  |  |
-| `plan` | [cosmos.upgrade.v1beta1.Plan](#cosmos.upgrade.v1beta1.Plan) |  |  |
-| `upgraded_client_state` | [google.protobuf.Any](#google.protobuf.Any) |  | An UpgradedClientState must be provided to perform an IBC breaking upgrade. This will make the chain commit to the correct upgraded (self) client state before the upgrade occurs, so that connecting chains can verify that the new upgraded client is valid by verifying a proof on the previous version of the chain. This will allow IBC connections to persist smoothly across planned chain upgrades |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/applications/transfer/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -984,175 +2049,6 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 
 
  <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/core/channel/v1/channel.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/core/channel/v1/channel.proto
-
-
-
-<a name="ibc.core.channel.v1.Acknowledgement"></a>
-
-### Acknowledgement
-Acknowledgement is the recommended acknowledgement format to be used by
-app-specific protocols.
-NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
-conflicts with other protobuf message formats used for acknowledgements.
-The first byte of any message with this format will be the non-ASCII values
-`0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
-https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `result` | [bytes](#bytes) |  |  |
-| `error` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.Channel"></a>
-
-### Channel
-Channel defines pipeline for exactly-once packet delivery between specific
-modules on separate blockchains, which has at least one end capable of
-sending packets and one end capable of receiving packets.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
-| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
-| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
-| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
-| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.Counterparty"></a>
-
-### Counterparty
-Counterparty defines a channel end counterparty
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | port on the counterparty chain which owns the other end of the channel. |
-| `channel_id` | [string](#string) |  | channel end on the counterparty chain |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.IdentifiedChannel"></a>
-
-### IdentifiedChannel
-IdentifiedChannel defines a channel with additional port and channel
-identifier fields.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `state` | [State](#ibc.core.channel.v1.State) |  | current state of the channel end |
-| `ordering` | [Order](#ibc.core.channel.v1.Order) |  | whether the channel is ordered or unordered |
-| `counterparty` | [Counterparty](#ibc.core.channel.v1.Counterparty) |  | counterparty channel end |
-| `connection_hops` | [string](#string) | repeated | list of connection identifiers, in order, along which packets sent on this channel will travel |
-| `version` | [string](#string) |  | opaque channel version, which is agreed upon during the handshake |
-| `port_id` | [string](#string) |  | port identifier |
-| `channel_id` | [string](#string) |  | channel identifier |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.Packet"></a>
-
-### Packet
-Packet defines a type that carries data across different chains through IBC
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `sequence` | [uint64](#uint64) |  | number corresponds to the order of sends and receives, where a Packet with an earlier sequence number must be sent and received before a Packet with a later sequence number. |
-| `source_port` | [string](#string) |  | identifies the port on the sending chain. |
-| `source_channel` | [string](#string) |  | identifies the channel end on the sending chain. |
-| `destination_port` | [string](#string) |  | identifies the port on the receiving chain. |
-| `destination_channel` | [string](#string) |  | identifies the channel end on the receiving chain. |
-| `data` | [bytes](#bytes) |  | actual opaque bytes transferred directly to the application module |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | block height after which the packet times out |
-| `timeout_timestamp` | [uint64](#uint64) |  | block timestamp (in nanoseconds) after which the packet times out |
-
-
-
-
-
-
-<a name="ibc.core.channel.v1.PacketState"></a>
-
-### PacketState
-PacketState defines the generic type necessary to retrieve and store
-packet commitments, acknowledgements, and receipts.
-Caller is responsible for knowing the context necessary to interpret this
-state as a commitment, acknowledgement, or a receipt.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | channel port identifier. |
-| `channel_id` | [string](#string) |  | channel unique identifier. |
-| `sequence` | [uint64](#uint64) |  | packet sequence. |
-| `data` | [bytes](#bytes) |  | embedded data that represents packet state. |
-
-
-
-
-
- <!-- end messages -->
-
-
-<a name="ibc.core.channel.v1.Order"></a>
-
-### Order
-Order defines if a channel is ORDERED or UNORDERED
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| ORDER_NONE_UNSPECIFIED | 0 | zero-value for channel ordering |
-| ORDER_UNORDERED | 1 | packets can be delivered in any order, which may differ from the order in which they were sent. |
-| ORDER_ORDERED | 2 | packets are delivered exactly in the order which they were sent |
-
-
-
-<a name="ibc.core.channel.v1.State"></a>
-
-### State
-State defines if a channel is in one of the following states:
-CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| STATE_UNINITIALIZED_UNSPECIFIED | 0 | Default State |
-| STATE_INIT | 1 | A channel has just started the opening handshake. |
-| STATE_TRYOPEN | 2 | A channel has acknowledged the handshake step on the counterparty chain. |
-| STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
-| STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
-
 
  <!-- end enums -->
 
@@ -1910,6 +2806,7 @@ MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  |  |
+| `version` | [string](#string) |  |  |
 
 
 
@@ -1943,6 +2840,11 @@ value will be ignored by core IBC.
 
 ### MsgChannelOpenTryResponse
 MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [string](#string) |  |  |
 
 
 
@@ -2516,13 +3418,13 @@ type.
 
 ### MsgUpdateClient
 MsgUpdateClient defines an sdk.Msg to update a IBC client state using
-the given header.
+the given client message.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client unique identifier |
-| `header` | [google.protobuf.Any](#google.protobuf.Any) |  | header to update the light client |
+| `client_message` | [google.protobuf.Any](#google.protobuf.Any) |  | client message to update the light client |
 | `signer` | [string](#string) |  | signer address |
 
 
@@ -3265,253 +4167,6 @@ GenesisState defines the ibc module's genesis state.
 
 
 
-<a name="ibc/lightclients/beefy/v1/beefy.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/lightclients/beefy/v1/beefy.proto
-
-
-
-<a name="ibc.lightclients.beefy.v1.BeefyAuthoritySet"></a>
-
-### BeefyAuthoritySet
-Beefy Authority Info
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `id` | [uint64](#uint64) |  | Id of the authority set, it should be strictly increasing |
-| `len` | [uint32](#uint32) |  | size of the authority set |
-| `authority_root` | [bytes](#bytes) |  | merkle root of the sorted authority public keys. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.BeefyMmrLeaf"></a>
-
-### BeefyMmrLeaf
-BeefyMmrLeaf leaf data
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `version` | [uint32](#uint32) |  | leaf version |
-| `parent_number` | [uint32](#uint32) |  | parent block for this leaf |
-| `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
-| `beefy_next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | beefy next authority set. |
-| `parachain_heads` | [bytes](#bytes) |  | merkle root hash of parachain heads included in the leaf. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.BeefyMmrLeafPartial"></a>
-
-### BeefyMmrLeafPartial
-Partial data for MmrLeaf
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `version` | [uint32](#uint32) |  | leaf version |
-| `parent_number` | [uint32](#uint32) |  | parent block for this leaf |
-| `parent_hash` | [bytes](#bytes) |  | parent hash for this leaf |
-| `beefy_next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | next authority set. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.ClientState"></a>
-
-### ClientState
-ClientState from Beefy tracks the current validator set, latest height,
-and a possible frozen height.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `mmr_root_hash` | [bytes](#bytes) |  | Latest mmr root hash |
-| `latest_beefy_height` | [uint32](#uint32) |  | block number for the latest mmr_root_hash |
-| `frozen_height` | [uint64](#uint64) |  | Block height when the client was frozen due to a misbehaviour |
-| `beefy_activation_block` | [uint32](#uint32) |  | block number that the beefy protocol was activated on the relay chain. This should be the first block in the merkle-mountain-range tree. |
-| `authority` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the current round |
-| `next_authority_set` | [BeefyAuthoritySet](#ibc.lightclients.beefy.v1.BeefyAuthoritySet) |  | authorities for the next round |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.Commitment"></a>
-
-### Commitment
-Commitment message signed by beefy validators
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `payload` | [PayloadItem](#ibc.lightclients.beefy.v1.PayloadItem) | repeated | array of payload items signed by Beefy validators |
-| `block_numer` | [uint32](#uint32) |  | block number for this commitment |
-| `validator_set_id` | [uint64](#uint64) |  | validator set that signed this commitment |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.CommitmentSignature"></a>
-
-### CommitmentSignature
-Signature belonging to a single validator
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `signature` | [bytes](#bytes) |  | actual signature bytes |
-| `authority_index` | [uint32](#uint32) |  | authority leaf index in the merkle tree. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.ConsensusState"></a>
-
-### ConsensusState
-ConsensusState defines the consensus state from Tendermint.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
-| `root` | [bytes](#bytes) |  | packet commitment root |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.Header"></a>
-
-### Header
-Header contains the neccessary data to proove finality about IBC commitments
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `parachain_headers` | [ParachainHeader](#ibc.lightclients.beefy.v1.ParachainHeader) | repeated | parachain headers needed for proofs and ConsensusState |
-| `mmr_proofs` | [bytes](#bytes) | repeated | mmr proofs for the headers gotten from rpc "mmr_generateProofs" |
-| `mmr_size` | [uint64](#uint64) |  | size of the mmr for the given proof |
-| `mmr_update_proof` | [MmrUpdateProof](#ibc.lightclients.beefy.v1.MmrUpdateProof) |  | optional payload to update the mmr root hash. |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.Misbehaviour"></a>
-
-### Misbehaviour
-Misbehaviour is a wrapper over two conflicting Headers
-that implements Misbehaviour interface expected by ICS-02
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `header_1` | [Header](#ibc.lightclients.beefy.v1.Header) |  |  |
-| `header_2` | [Header](#ibc.lightclients.beefy.v1.Header) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.MmrUpdateProof"></a>
-
-### MmrUpdateProof
-data needed to update the client
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `mmr_leaf` | [BeefyMmrLeaf](#ibc.lightclients.beefy.v1.BeefyMmrLeaf) |  | the new mmr leaf SCALE encoded. |
-| `mmr_leaf_index` | [uint64](#uint64) |  | leaf index for the mmr_leaf |
-| `mmr_proof` | [bytes](#bytes) | repeated | proof that this mmr_leaf index is valid. |
-| `signed_commitment` | [SignedCommitment](#ibc.lightclients.beefy.v1.SignedCommitment) |  | signed commitment data |
-| `authorities_proof` | [bytes](#bytes) | repeated | generated using full authority list from runtime |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.ParachainHeader"></a>
-
-### ParachainHeader
-data needed to prove parachain header inclusion in mmr.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `parachain_header` | [bytes](#bytes) |  | scale-encoded parachain header bytes |
-| `mmr_leaf_partial` | [BeefyMmrLeafPartial](#ibc.lightclients.beefy.v1.BeefyMmrLeafPartial) |  | reconstructed MmrLeaf, see beefy-go spec |
-| `para_id` | [uint32](#uint32) |  | para_id of the header. |
-| `parachain_heads_proof` | [bytes](#bytes) | repeated | proofs for our header in the parachain heads root |
-| `heads_leaf_index` | [uint32](#uint32) |  | leaf index for parachain heads proof |
-| `heads_total_count` | [uint32](#uint32) |  | total number of para heads in parachain_heads_root |
-| `extrinsic_proof` | [bytes](#bytes) | repeated | trie merkle proof of inclusion in header.extrinsic_root this already encodes the actual extrinsic |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.PayloadItem"></a>
-
-### PayloadItem
-Actual payload items
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `payload_id` | [bytes](#bytes) |  | 2-byte payload id |
-| `payload_data` | [bytes](#bytes) |  | arbitrary length payload data., eg mmr_root_hash |
-
-
-
-
-
-
-<a name="ibc.lightclients.beefy.v1.SignedCommitment"></a>
-
-### SignedCommitment
-signed commitment data
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `commitment` | [Commitment](#ibc.lightclients.beefy.v1.Commitment) |  | commitment data being signed |
-| `signatures` | [CommitmentSignature](#ibc.lightclients.beefy.v1.CommitmentSignature) | repeated | gotten from rpc subscription |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/lightclients/solomachine/v1/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -4173,8 +4828,8 @@ and a possible frozen height.
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
 | `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
 | `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
-| `allow_update_after_expiry` | [bool](#bool) |  | This flag, when set to true, will allow governance to recover a client which has expired |
-| `allow_update_after_misbehaviour` | [bool](#bool) |  | This flag, when set to true, will allow governance to unfreeze a client whose chain has experienced a misbehaviour event |
+| `allow_update_after_expiry` | [bool](#bool) |  | **Deprecated.** allow_update_after_expiry is deprecated |
+| `allow_update_after_misbehaviour` | [bool](#bool) |  | **Deprecated.** allow_update_after_misbehaviour is deprecated |
 
 
 

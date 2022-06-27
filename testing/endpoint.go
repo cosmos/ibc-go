@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -152,6 +153,59 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	require.NoError(endpoint.Chain.T, err)
 
 	return endpoint.Chain.sendMsgs(msg)
+}
+
+// UpgradeChain will upgrade a chain's chainID to the next revision number.
+// It will also update the counterparty client.
+// TODO: implement actual upgrade chain functionality via scheduling an upgrade
+// and upgrading the client via MsgUpgradeClient
+// see reference https://github.com/cosmos/ibc-go/pull/1169
+func (endpoint *Endpoint) UpgradeChain() error {
+	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
+		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
+	}
+
+	clientState := endpoint.Counterparty.GetClientState().(*ibctmtypes.ClientState)
+
+	// increment revision number in chainID
+
+	oldChainID := clientState.ChainId
+	if !clienttypes.IsRevisionFormat(oldChainID) {
+		return fmt.Errorf("cannot upgrade chain which is not of revision format: %s", oldChainID)
+	}
+
+	revisionNumber := clienttypes.ParseChainID(oldChainID)
+	newChainID, err := clienttypes.SetRevisionNumber(oldChainID, revisionNumber+1)
+	if err != nil {
+		return err
+	}
+
+	// update chain
+	endpoint.Chain.ChainID = newChainID
+	endpoint.Chain.CurrentHeader.ChainID = newChainID
+	endpoint.Chain.NextBlock() // commit changes
+
+	// update counterparty client manually
+	clientState.ChainId = newChainID
+	clientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
+	endpoint.Counterparty.SetClientState(clientState)
+
+	consensusState := &ibctmtypes.ConsensusState{
+		Timestamp:          endpoint.Chain.LastHeader.GetTime(),
+		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
+		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,
+	}
+	endpoint.Counterparty.SetConsensusState(consensusState, clientState.GetLatestHeight())
+
+	// ensure the next update isn't identical to the one set in state
+	endpoint.Chain.Coordinator.IncrementTime()
+	endpoint.Chain.NextBlock()
+
+	if err = endpoint.Counterparty.UpdateClient(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ConnOpenInit will construct and execute a MsgConnectionOpenInit on the associated endpoint.
@@ -328,7 +382,14 @@ func (endpoint *Endpoint) ChanOpenAck() error {
 		proof, height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
-	return endpoint.Chain.sendMsgs(msg)
+
+	if err = endpoint.Chain.sendMsgs(msg); err != nil {
+		return err
+	}
+
+	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+
+	return nil
 }
 
 // ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated endpoint.

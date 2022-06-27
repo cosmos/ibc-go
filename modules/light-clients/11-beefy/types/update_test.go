@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/ComposableFi/go-merkle-trees/hasher"
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	client "github.com/ComposableFi/go-substrate-rpc-client/v4"
@@ -77,6 +78,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	for count := 0; count < 100; count++ {
+		// TODO: make chennel input if there is one case only
 		select {
 		case msg, ok := <-ch:
 			require.True(t, ok, "error reading channel")
@@ -113,7 +115,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				authorityLeaves = append(authorityLeaves, crypto.Keccak256(v))
 			}
 
-			authorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(authorityLeaves)
+			authorityTree, err := merkle.NewTree(hasher.Keccak256Hasher{}).FromLeaves(authorityLeaves)
 			require.NoError(t, err)
 
 			var nextAuthorityLeaves [][]byte
@@ -121,7 +123,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				nextAuthorityLeaves = append(nextAuthorityLeaves, crypto.Keccak256(v))
 			}
 
-			nextAuthorityTree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(nextAuthorityLeaves)
+			nextAuthorityTree, err := merkle.NewTree(hasher.Keccak256Hasher{}).FromLeaves(nextAuthorityLeaves)
 			require.NoError(t, err)
 
 			if clientState == nil {
@@ -134,12 +136,12 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					BeefyActivationBlock: 0,
 					Authority: &types.BeefyAuthoritySet{
 						Id:            uint64(signedCommitment.Commitment.ValidatorSetID),
-						Len:           uint32(len(authorities)),
+						Len:           uint64(len(authorities)),
 						AuthorityRoot: &authorityTreeRoot,
 					},
 					NextAuthoritySet: &types.BeefyAuthoritySet{
 						Id:            uint64(signedCommitment.Commitment.ValidatorSetID) + 1,
-						Len:           uint32(len(nextAuthorities)),
+						Len:           uint64(len(nextAuthorities)),
 						AuthorityRoot: &nextAuthorityTreeRoot,
 					},
 				}
@@ -236,7 +238,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				var paraHeadsLeaves [][]byte
 				// index of our parachain header in the
 				// parachain heads merkle root
-				var index uint32
+				var index uint64
 
 				count := 0
 
@@ -257,15 +259,15 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					paraHeadsLeaves = append(paraHeadsLeaves, crypto.Keccak256(leaf))
 					if paraId == PARA_ID {
 						// note index of paraId
-						index = uint32(count)
+						index = uint64(count)
 					}
 					count++
 				}
 
-				tree, err := merkle.NewTree(types.Keccak256{}).FromLeaves(paraHeadsLeaves)
+				tree, err := merkle.NewTree(hasher.Keccak256Hasher{}).FromLeaves(paraHeadsLeaves)
 				require.NoError(t, err)
 
-				paraHeadsProof := tree.Proof([]uint32{index})
+				paraHeadsProof := tree.Proof([]uint64{index})
 				authorityRoot := bytes32(v.Leaf.BeefyNextAuthoritySet.Root[:])
 				parentHash := bytes32(v.Leaf.ParentNumberAndHash.Hash[:])
 
@@ -277,14 +279,14 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 						ParentHash:   &parentHash,
 						BeefyNextAuthoritySet: types.BeefyAuthoritySet{
 							Id:            v.Leaf.BeefyNextAuthoritySet.ID,
-							Len:           v.Leaf.BeefyNextAuthoritySet.Len,
+							Len:           uint64(v.Leaf.BeefyNextAuthoritySet.Len),
 							AuthorityRoot: &authorityRoot,
 						},
 					},
 					ParachainHeadsProof: paraHeadsProof.ProofHashes(),
 					ParaId:              PARA_ID,
 					HeadsLeafIndex:      index,
-					HeadsTotalCount:     uint32(len(paraHeadsLeaves)),
+					HeadsTotalCount:     uint64(len(paraHeadsLeaves)),
 				}
 
 				parachainHeaders = append(parachainHeaders, &header)
@@ -310,16 +312,16 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				mmrBatchProofItems[i] = mmrBatchProof.Proof.Items[i][:]
 			}
 			var signatures []*types.CommitmentSignature
-			var authorityIndices []uint32
+			var authorityIndices []uint64
 			// luckily for us, this is already sorted and maps to the right authority index in the authority root.
 			for i, v := range signedCommitment.Signatures {
 				if v.IsSome() {
 					_, sig := v.Unwrap()
 					signatures = append(signatures, &types.CommitmentSignature{
 						Signature:      sig[:],
-						AuthorityIndex: uint32(i),
+						AuthorityIndex: uint64(i),
 					})
-					authorityIndices = append(authorityIndices, uint32(i))
+					authorityIndices = append(authorityIndices, uint64(i))
 				}
 			}
 
@@ -335,7 +337,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					ParachainHeads: &ParachainHeads,
 					BeefyNextAuthoritySet: types.BeefyAuthoritySet{
 						Id:            latestLeaf.BeefyNextAuthoritySet.ID,
-						Len:           latestLeaf.BeefyNextAuthoritySet.Len,
+						Len:           uint64(latestLeaf.BeefyNextAuthoritySet.Len),
 						AuthorityRoot: &BeefyNextAuthoritySetRoot,
 					},
 				},
@@ -377,8 +379,7 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				ctx := sdk.Context{}
 				store := k.ClientStore(ctx, "1234")
 
-				err = clientState.UpdateState(sdk.Context{}, nil, store, &header)
-				require.NoError(t, err)
+				clientState.UpdateState(sdk.Context{}, nil, store, &header)
 			}
 
 			// TODO: assert that the consensus states were actually persisted

@@ -107,8 +107,8 @@ func (cs *ClientState) VerifyClientMessage(
 	panic("legacy solo machine is deprecated!")
 }
 
-// UpdateState panics!
-func (cs *ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) error {
+// UpdateState panis!
+func (cs *ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) []exported.Height {
 	panic("legacy solo machine is deprecated!")
 }
 

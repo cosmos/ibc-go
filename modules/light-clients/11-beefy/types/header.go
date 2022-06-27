@@ -3,9 +3,10 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"log"
 	"time"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
@@ -98,7 +99,8 @@ func (h Header) ValidateBasic() error {
 		}
 
 		if ext := t.Get(key); len(ext) == 0 {
-			// todo: error
+			// TODO: error
+			panic("implement me")
 		}
 
 		// todo: decode extrinsic.
@@ -112,5 +114,4 @@ func (h Header) ValidateBasic() error {
 // is not a PubKey.
 func (h Header) GetPubKey() (cryptotypes.PubKey, error) {
 	panic("implement me")
-	return nil, nil
 }

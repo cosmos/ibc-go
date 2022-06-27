@@ -53,6 +53,5 @@ dependency-graph.png
 *.out
 *.synctex.gz
 
-github.com/
 *.history
 

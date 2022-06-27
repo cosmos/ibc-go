@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -62,11 +61,6 @@ func NewKeeper(
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
-}
-
-// GetTransferAccount returns the ICS20 - transfers ModuleAccount
-func (k Keeper) GetTransferAccount(ctx sdk.Context) authtypes.ModuleAccountI {
-	return k.authKeeper.GetModuleAccount(ctx, types.ModuleName)
 }
 
 // IsBound checks if the transfer module is already bound to the desired port

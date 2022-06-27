@@ -2,13 +2,16 @@ package types_test
 
 import (
 	"encoding/hex"
+	"testing"
+
 	"github.com/ChainSafe/gossamer/lib/trie"
+	"github.com/ComposableFi/go-merkle-trees/hasher"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
+	merkleTypes "github.com/ComposableFi/go-merkle-trees/types"
 	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestTrieProof(t *testing.T) {
@@ -51,10 +54,10 @@ func TestMultiLeafMmrProofs(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	var leaves []mmr.Leaf
+	var leaves []merkleTypes.Leaf
 
 	for _, leaf := range opaqueLeaves {
-		leaves = append(leaves, mmr.Leaf{
+		leaves = append(leaves, merkleTypes.Leaf{
 			Index: leaf.Index,
 			Hash:  crypto.Keccak256(leaf.Leaf),
 		})
@@ -80,7 +83,7 @@ func TestMultiLeafMmrProofs(t *testing.T) {
 		146, 200, 40, 236, 116, 241, 209, 1, 223, 30, 128, 62, 112,
 	}
 
-	root, err := mmr.NewProof(size, proofItems, leaves, types.Keccak256{}).CalculateRoot()
+	root, err := mmr.NewProof(size, proofItems, leaves, hasher.Keccak256Hasher{}).CalculateRoot()
 	require.NoError(t, err)
 
 	require.Equal(t, expectedRoot, root)

@@ -45,12 +45,12 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	header, err := clienttypes.UnpackClientMessage(msg.Header)
+	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, header); err != nil {
+	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, clientMsg); err != nil {
 		return nil, err
 	}
 
@@ -196,6 +196,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 
 	return &channeltypes.MsgChannelOpenInitResponse{
 		ChannelId: channelID,
+		Version:   msg.Channel.Version,
 	}, nil
 }
 
@@ -234,7 +235,9 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	return &channeltypes.MsgChannelOpenTryResponse{}, nil
+	return &channeltypes.MsgChannelOpenTryResponse{
+		Version: version,
+	}, nil
 }
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.

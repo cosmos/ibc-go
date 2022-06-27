@@ -86,10 +86,10 @@ func NewCreateClientCmd() *cobra.Command {
 // NewUpdateClientCmd defines the command to update an IBC client.
 func NewUpdateClientCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:     "update [client-id] [path/to/header.json]",
-		Short:   "update existing client with a header",
-		Long:    "update existing client with a header",
-		Example: fmt.Sprintf("%s tx ibc %s update [client-id] [path/to/header.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
+		Use:     "update [client-id] [path/to/client_msg.json]",
+		Short:   "update existing client with a client message",
+		Long:    "update existing client with a client message, for example a header, misbehaviour or batch update",
+		Example: fmt.Sprintf("%s tx ibc %s update [client-id] [path/to/client_msg.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -100,22 +100,22 @@ func NewUpdateClientCmd() *cobra.Command {
 
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			var header exported.ClientMessage
-			headerContentOrFileName := args[1]
-			if err := cdc.UnmarshalInterfaceJSON([]byte(headerContentOrFileName), &header); err != nil {
+			var clientMsg exported.ClientMessage
+			clientMsgContentOrFileName := args[1]
+			if err := cdc.UnmarshalInterfaceJSON([]byte(clientMsgContentOrFileName), &clientMsg); err != nil {
 
 				// check for file path if JSON input is not provided
-				contents, err := ioutil.ReadFile(headerContentOrFileName)
+				contents, err := ioutil.ReadFile(clientMsgContentOrFileName)
 				if err != nil {
 					return fmt.Errorf("neither JSON input nor path to .json file for header were provided: %w", err)
 				}
 
-				if err := cdc.UnmarshalInterfaceJSON(contents, &header); err != nil {
+				if err := cdc.UnmarshalInterfaceJSON(contents, &clientMsg); err != nil {
 					return fmt.Errorf("error unmarshalling header file: %w", err)
 				}
 			}
 
-			msg, err := types.NewMsgUpdateClient(clientID, header, clientCtx.GetFromAddress().String())
+			msg, err := types.NewMsgUpdateClient(clientID, clientMsg, clientCtx.GetFromAddress().String())
 			if err != nil {
 				return err
 			}
@@ -127,6 +127,8 @@ func NewUpdateClientCmd() *cobra.Command {
 
 // NewSubmitMisbehaviourCmd defines the command to submit a misbehaviour to prevent
 // future updates.
+// Deprecated: NewSubmitMisbehaviourCmd is deprecated and will be removed in a future release.
+// Please use NewUpdateClientCmd instead.
 func NewSubmitMisbehaviourCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "misbehaviour [clientID] [path/to/misbehaviour.json]",

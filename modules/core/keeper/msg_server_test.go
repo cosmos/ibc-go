@@ -21,7 +21,7 @@ import (
 const height = 10
 
 var (
-	timeoutHeight = clienttypes.NewHeight(0, 10000)
+	timeoutHeight = clienttypes.NewHeight(1, 10000)
 	maxSequence   = uint64(10)
 )
 
@@ -660,15 +660,13 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 func (suite *KeeperTestSuite) TestUpgradeClient() {
 	var (
 		path              *ibctesting.Path
+		newChainID        string
+		newClientHeight   clienttypes.Height
 		upgradedClient    exported.ClientState
 		upgradedConsState exported.ConsensusState
 		lastHeight        exported.Height
 		msg               *clienttypes.MsgUpgradeClient
 	)
-
-	newClientHeight := clienttypes.NewHeight(1, 1)
-	newChainId := "newChainId-1"
-
 	cases := []struct {
 		name    string
 		setup   func()
@@ -677,8 +675,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		{
 			name: "successful upgrade",
 			setup: func() {
-
-				upgradedClient = ibctmtypes.NewClientState(newChainId, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				upgradedClient = ibctmtypes.NewClientState(newChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 				// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 				upgradedClient = upgradedClient.ZeroCustomFields()
 
@@ -718,8 +715,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		{
 			name: "VerifyUpgrade fails",
 			setup: func() {
-
-				upgradedClient = ibctmtypes.NewClientState(newChainId, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				upgradedClient = ibctmtypes.NewClientState(newChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 				// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 				upgradedClient = upgradedClient.ZeroCustomFields()
 
@@ -756,9 +752,18 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupClients(path)
 
+		var err error
+		clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
+		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
+
+		newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
+		suite.Require().NoError(err)
+
+		newClientHeight = clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1)
+
 		tc.setup()
 
-		_, err := keeper.Keeper.UpgradeClient(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+		_, err = keeper.Keeper.UpgradeClient(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err, "upgrade handler failed on valid case: %s", tc.name)

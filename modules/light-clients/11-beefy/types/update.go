@@ -8,8 +8,10 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/log15"
+	"github.com/ComposableFi/go-merkle-trees/hasher"
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
+	merkleTypes "github.com/ComposableFi/go-merkle-trees/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -18,18 +20,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/crypto"
 )
-
-type Keccak256 struct{}
-
-func (b Keccak256) Merge(left, right interface{}) interface{} {
-	l := left.([]byte)
-	r := right.([]byte)
-	return crypto.Keccak256(append(l, r...))
-}
-
-func (b Keccak256) Hash(data []byte) ([]byte, error) {
-	return crypto.Keccak256(data), nil
-}
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
@@ -66,8 +56,8 @@ func (cs *ClientState) verifyHeader(
 	// checking signatures is expensive (667 authorities for kusama),
 	// we want to know if these sigs meet the minimum threshold before proceeding
 	// and are by a known authority set (the current one, or the next one)
-	if authoritiesThreshold(*cs.Authority) > uint32(len(signedCommitment.Signatures)) ||
-		authoritiesThreshold(*cs.NextAuthoritySet) > uint32(len(signedCommitment.Signatures)) {
+	if authoritiesThreshold(*cs.Authority) > uint64(len(signedCommitment.Signatures)) ||
+		authoritiesThreshold(*cs.NextAuthoritySet) > uint64(len(signedCommitment.Signatures)) {
 		return ErrCommitmentNotFinal
 	}
 
@@ -86,7 +76,7 @@ func (cs *ClientState) verifyHeader(
 	commitmentHash := crypto.Keccak256(commitmentBytes)
 
 	// array of leaves in the authority merkle root.
-	var authorityLeaves []merkle.Leaf
+	var authorityLeaves []merkleTypes.Leaf
 
 	for i := 0; i < len(signedCommitment.Signatures); i++ {
 		signature := signedCommitment.Signatures[i]
@@ -98,7 +88,7 @@ func (cs *ClientState) verifyHeader(
 
 		// convert public key to ethereum address.
 		address := crypto.PubkeyToAddress(*pubkey)
-		authorityLeaf := merkle.Leaf{
+		authorityLeaf := merkleTypes.Leaf{
 			Hash:  crypto.Keccak256(address[:]),
 			Index: signature.AuthorityIndex,
 		}
@@ -114,7 +104,7 @@ func (cs *ClientState) verifyHeader(
 	case cs.Authority.Id:
 		// here we construct a merkle proof, and verify that the public keys which produced this signature
 		// are part of the current round.
-		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, Keccak256{})
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, hasher.Keccak256Hasher{})
 		valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
 		if err != nil || !valid {
 			return sdkerrors.Wrap(err, ErrAuthoritySetUnknown.Error())
@@ -122,7 +112,7 @@ func (cs *ClientState) verifyHeader(
 
 	// new authority set has kicked in
 	case cs.NextAuthoritySet.Id:
-		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, Keccak256{})
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, hasher.Keccak256Hasher{})
 		valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
 		if err != nil || !valid {
 			return sdkerrors.Wrap(err, ErrAuthoritySetUnknown.Error())
@@ -145,13 +135,13 @@ func (cs *ClientState) verifyHeader(
 				}
 				// we treat this leaf as the latest leaf in the mmr
 				mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
-				mmrLeaves := []mmr.Leaf{
+				mmrLeaves := []merkleTypes.Leaf{
 					{
 						Hash:  crypto.Keccak256(mmrLeafBytes),
 						Index: mmrUpdateProof.MmrLeafIndex,
 					},
 				}
-				mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, Keccak256{})
+				mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, hasher.Keccak256Hasher{})
 				// verify that the leaf is valid, for the signed mmr-root-hash
 				if !mmrProof.Verify(payload.PayloadData[:]) {
 					return sdkerrors.Wrap(err, ErrFailedVerifyMMRLeaf.Error()) // error!, mmr proof is invalid
@@ -192,7 +182,7 @@ func (cs *ClientState) verifyHeader(
 }
 
 func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Proof, error) {
-	var mmrLeaves = make([]mmr.Leaf, len(beefyHeader.ParachainHeaders))
+	var mmrLeaves = make([]merkleTypes.Leaf, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
 	for i := 0; i < len(beefyHeader.ParachainHeaders); i++ {
@@ -203,13 +193,13 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 		binary.LittleEndian.PutUint32(paraIdScale[:], parachainHeader.ParaId)
 		// scale encode to get parachain heads leaf bytes
 		headsLeafBytes := append(paraIdScale, parachainHeader.ParachainHeader...)
-		headsLeaf := []merkle.Leaf{
+		headsLeaf := []merkleTypes.Leaf{
 			{
 				Hash:  crypto.Keccak256(headsLeafBytes),
 				Index: parachainHeader.HeadsLeafIndex,
 			},
 		}
-		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, Keccak256{})
+		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, hasher.Keccak256Hasher{})
 		// todo: merkle.Proof.Root() should return fixed bytes
 		parachainHeadsRoot, err := parachainHeadsProof.Root()
 		// TODO: verify extrinsic root here once trie lib is fixed.
@@ -239,7 +229,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 			return nil, sdkerrors.Wrap(err, ErrInvalidMMRLeaf.Error())
 		}
 
-		mmrLeaves[i] = mmr.Leaf{
+		mmrLeaves[i] = merkleTypes.Leaf{
 			Hash: crypto.Keccak256(mmrLeafBytes),
 			// based on our knowledge of the beefy protocol, and the structure of MMRs
 			// we are be able to reconstruct the leaf index of this mmr leaf
@@ -248,25 +238,26 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 		}
 	}
 
-	mmrProof := mmr.NewProof(beefyHeader.MmrSize, beefyHeader.MmrProofs, mmrLeaves, Keccak256{})
+	mmrProof := mmr.NewProof(beefyHeader.MmrSize, beefyHeader.MmrProofs, mmrLeaves, hasher.Keccak256Hasher{})
 
 	return mmrProof, nil
 }
 
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	beefyHeader, ok := clientMsg.(*Header)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, beefyHeader)
+		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 
 	consensusStates := make(map[clienttypes.Height]*ConsensusState)
+	heights := []exported.Height{}
 
 	// iterate over each parachain header and set them in the store.
 	for _, v := range beefyHeader.ParachainHeaders {
 		// decode parachain header bytes to struct
 		header, err := DecodeParachainHeader(v.ParachainHeader)
 		if err != nil {
-			return sdkerrors.Wrap(err, "failed to decode parachain header")
+			panic(fmt.Errorf("failed to decode parachain header"))
 		}
 
 		// TODO: IBC should allow height to be generic
@@ -285,16 +276,16 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		trieProof := trie.NewEmptyTrie()
 		// load the extrinsics proof which is basically a partial trie
 		// that encodes the timestamp extrinsic
-		errr := trieProof.LoadFromProof(v.ExtrinsicProof, header.ExtrinsicsRoot[:])
-		if errr != nil {
-			return sdkerrors.Wrap(err, "failed to load extrinsic proof")
+		err = trieProof.LoadFromProof(v.ExtrinsicProof, header.ExtrinsicsRoot[:])
+		if err != nil {
+			panic(fmt.Errorf("failed to load extrinsic proof"))
 		}
 		// the timestamp extrinsic is stored under the key 0u32 in big endian
 		key := make([]byte, 4)
 		timestamp, err := DecodeExtrinsicTimestamp(trieProof.Get(key))
 
 		if err != nil {
-			return sdkerrors.Wrap(err, "failed to decode timestamp extrinsic")
+			panic(fmt.Errorf("ailed to decode timestamp extrinsic"))
 		}
 
 		var ibcCommitmentRoot []byte
@@ -315,6 +306,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 			Timestamp: timestamp,
 			Root:      ibcCommitmentRoot,
 		}
+		heights = append(heights, height)
 	}
 
 	// only set consensus states after doing checks
@@ -327,7 +319,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	setClientState(clientStore, cdc, &cs)
 
-	return nil
+	return heights
 }
 
 // CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
@@ -342,15 +334,16 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 		// since header has already been submitted in a previous UpdateClient.
 		prevConsState, _ := GetConsensusState(clientStore, cdc, tmHeader.GetHeight())
 		if prevConsState != nil {
+
+			// if DeepEqual is false:
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
-				return false
-			}
-
+			//
+			// if DeepEqual is true:
 			// A consensus state already exists for this height, but it does not match the provided header.
 			// The assumption is that Header has already been validated. Thus we can return true as misbehaviour is present
-			return true
+			return !reflect.DeepEqual(prevConsState, tmHeader.ConsensusState())
+
 		}
 
 		// Check that consensus state timestamps are monotonic
@@ -406,7 +399,7 @@ func (cs ClientState) GetLeafIndexForBlockNumber(blockNumber uint32) uint32 {
 	return leafIndex
 }
 
-func authoritiesThreshold(authoritySet BeefyAuthoritySet) uint32 {
+func authoritiesThreshold(authoritySet BeefyAuthoritySet) uint64 {
 	return 2*authoritySet.Len/3 + 1
 }
 
