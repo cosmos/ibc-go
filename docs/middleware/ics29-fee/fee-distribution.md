@@ -24,7 +24,7 @@ Relayer operators are expected to register a counterparty payee address, in orde
 The counterparty payee address registered on the destination chain is encoded into the packet acknowledgement and communicated as such to the source chain for fee distribution.
 If a counterparty payee is not registered for the forward relayer on the destination chain, the escrowed fees will be refunded upon fee distribution.
 
-A transaction must be submitted to the desintation chain including a `CounterpartyPayee` address of an account on the source chain.
+A transaction must be submitted to the destination chain including a `CounterpartyPayee` address of an account on the source chain.
 The transaction must be signed by the `Relayer`.
 
 ```go
