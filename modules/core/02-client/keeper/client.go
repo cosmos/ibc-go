@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
-
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,13 +38,11 @@ func (k Keeper) CreateClient(
 
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
 
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "create"},
-			1,
-			[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientState.ClientType())},
-		)
-	}()
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"ibc", "client", "create"},
+		1,
+		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientState.ClientType())},
+	)
 
 	EmitCreateClientEvent(ctx, clientID, clientState)
 
@@ -76,17 +72,15 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
 
-		defer func() {
-			telemetry.IncrCounterWithLabels(
-				[]string{"ibc", "client", "misbehaviour"},
-				1,
-				[]metrics.Label{
-					telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
-					telemetry.NewLabel(types.LabelClientID, clientID),
-					telemetry.NewLabel(types.LabelMsgType, "update"),
-				},
-			)
-		}()
+		defer telemetry.IncrCounterWithLabels(
+			[]string{"ibc", "client", "misbehaviour"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientID, clientID),
+				telemetry.NewLabel(types.LabelMsgType, "update"),
+			},
+		)
 
 		EmitSubmitMisbehaviourEvent(ctx, clientID, clientState)
 
@@ -97,25 +91,18 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "update"},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
-				telemetry.NewLabel(types.LabelClientID, clientID),
-				telemetry.NewLabel(types.LabelUpdateType, "msg"),
-			},
-		)
-	}()
-
-	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
-	// This prevents the event value from containing invalid UTF-8 characters
-	// which may cause data to be lost when JSON encoding/decoding.
-	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(k.cdc, clientMsg))
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"ibc", "client", "update"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+			telemetry.NewLabel(types.LabelClientID, clientID),
+			telemetry.NewLabel(types.LabelUpdateType, "msg"),
+		},
+	)
 
 	// emitting events in the keeper emits for both begin block and handler client updates
-	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, clientMsgStr)
+	EmitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, k.cdc, clientMsg)
 
 	return nil
 }
@@ -143,16 +130,14 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 
 	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
 
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "upgrade"},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, upgradedClient.ClientType()),
-				telemetry.NewLabel(types.LabelClientID, clientID),
-			},
-		)
-	}()
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"ibc", "client", "upgrade"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel(types.LabelClientType, upgradedClient.ClientType()),
+			telemetry.NewLabel(types.LabelClientID, clientID),
+		},
+	)
 
 	EmitUpgradeClientEvent(ctx, clientID, upgradedClient)
 
