@@ -28,4 +28,4 @@ For an in depth guide on how to use the ICS29 Fee Middleware module using the CL
 
 Client developers can read more about the relevant ICS29 message types in the [Escrowing and paying out fees section]().
 
-[CosmJS](https://github.com/cosmos/cosmjs) is a useful client tool for signing and broadcasting cosmos SDK messages.
+[CosmJS](https://github.com/cosmos/cosmjs) is a useful client library for signing and broadcasting Cosmos SDK messages.
