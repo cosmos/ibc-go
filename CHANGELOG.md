@@ -61,6 +61,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (app/29-fee) [\#1305](https://github.com/cosmos/ibc-go/pull/1305) Change version string for fee module to `ics29-1`
 * (app/29-fee) [\#1341](https://github.com/cosmos/ibc-go/pull/1341) Check if the fee module is locked and if the fee module is enabled before refunding all fees
 * (testing/simapp) [\#1397](https://github.com/cosmos/ibc-go/pull/1397) Adding mock module to maccperms and adding check to ensure mock module is not a blocked account address. 
+* (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal. 
 
 ### Features
 
