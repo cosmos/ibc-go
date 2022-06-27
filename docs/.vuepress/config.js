@@ -242,7 +242,8 @@ module.exports = {
                   title: "Fee Messages",
                   directory: false,
                   path: "/middleware/ics29-fee/msgs.html"
-                }
+                },
+                {
                   title: "Fee Distribution",
                   directory: false,
                   path: "/middleware/ics29-fee/fee-distribution.html"

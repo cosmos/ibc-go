@@ -12,11 +12,16 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
 
     ```
     type MsgPayPacketFee struct{
-	    Fee                 Fee
-	    SourcePortId        string
-	    SourceChannelId     string
-	    Signer              string
-	    Relayers            []string
+      // fee encapsulates the recv, ack and timeout fees associated with an IBC packet
+      Fee                 Fee
+      // the source port unique identifier
+      SourcePortId        string
+      // the source channel unique identifer
+      SourceChannelId     string
+      // account address to refund fee if necessary
+      Signer              string
+      // optional list of relayers permitted to the receive packet fee
+      Relayers            []string
     }
     ```
 
@@ -34,9 +39,11 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
 
     ```
     type MsgPayPacketFeeAsync struct {
-		PacketId            channeltypes.PacketId
-		PacketFee           PacketFee
-	}
+      // unique packet identifier comprised of the channel ID, port ID and sequence
+      PacketId            channeltypes.PacketId
+      // the packet fee associated with a particular IBC packet
+      PacketFee           PacketFee
+    }
     ```
 
     where the `PacketFee` also specifies the `Fee` to be paid as well as the refund address for fees which are not paid out
@@ -48,7 +55,7 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
     }
     ```
 
-Please see our [wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible-token-transfers) for example flows on how to use these messages to incentivise a token transfer channel.
+Please see our [wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible-token-transfers) for example flows on how to use these messages to incentivise a token transfer channel using a CLI.
 
 # Paying out the escrowed fees
     
