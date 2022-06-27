@@ -27,7 +27,7 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 		}
 	}
 
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIncentivizedPacket,
 			sdk.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
@@ -37,7 +37,11 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 			sdk.NewAttribute(types.AttributeKeyAckFee, totalAckFees.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutFee, totalTimeoutFees.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 }
 
 // EmitRegisterPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel
