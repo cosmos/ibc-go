@@ -50,6 +50,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* (channel) [\#1586](https://github.com/cosmos/ibc-go/pull/1586) Timeouts now succeed even if the channel is not OPEN. This makes optimistic sending safe to use.
+
 ### Improvements
 
 * (cleanup) [\#1335](https://github.com/cosmos/ibc-go/pull/1335/) `gofumpt -w -l .` to standardize the code layout more strictly than `go fmt ./...`
