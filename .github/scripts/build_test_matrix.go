@@ -30,7 +30,7 @@ type TestSuitePair struct {
 func main() {
 	githubActionMatrixJsonString, err := getGithubActionMatrixForTests("e2e")
 	if err != nil {
-		fmt.Sprintf("error generating github action json: %s", err)
+		fmt.Printf("error generating github action json: %s", err)
 		os.Exit(1)
 	}
 	fmt.Println(githubActionMatrixJsonString)
@@ -38,11 +38,11 @@ func main() {
 
 // getGithubActionMatrixForTests returns a json string representing the contents that should go in the matrix
 // field in a github action workflow. This string can be used with `fromJSON(str)` to dynamically build
-// the workflow matrix to include all E2E tests under the rootPath directory.
-func getGithubActionMatrixForTests(rootPath string) (string, error) {
+// the workflow matrix to include all E2E tests under the e2eRootDirectory directory.
+func getGithubActionMatrixForTests(e2eRootDirectory string) (string, error) {
 	testSuiteMapping := map[string][]string{}
 	fset := token.NewFileSet()
-	err := filepath.Walk(rootPath, func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(e2eRootDirectory, func(path string, info fs.FileInfo, err error) error {
 		// only look at test files
 		if !strings.HasSuffix(path, testFileNameSuffix) {
 			return nil
