@@ -6,7 +6,7 @@ order: 3
 
 The fee middleware module exposes two different ways to pay fees for relaying IBC packets:
 
-1. `MsgPayPacketFee`, which enables the escrowing of fees for a packet at the next sequence send and should be combined into one `MultiMsgTx` with the message that will be paid for. 
+1. `MsgPayPacketFee`, which enables the escrowing of fees for a packet at the next sequence send and should be combined into one `MultiMsgTx` with the message that will be paid for.  
 
     Note that the `Relayers` field has been set up to allow for an optional whitelist of relayers permitted to receive this fee, however, this feature has not yet been enabled at this time.
 
@@ -36,6 +36,8 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
     ```
 
 2. `MsgPayPacketFeeAsync`, which enables the asynchronous escrowing of fees for a specified packet:
+
+    Note that a packet can be 'topped up' multiple times with additional fees of any coin denomination by broadcasting multiple `MsgPayPacketFeeAsync` messages.
 
     ```
     type MsgPayPacketFeeAsync struct {
