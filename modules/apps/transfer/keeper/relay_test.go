@@ -345,12 +345,14 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 	testCases := []struct {
 		msg      string
-		malleate func()
+		malleate func(suite *KeeperTestSuite)
 		expPass  bool
 	}{
 		{
 			"successful timeout from sender as source chain",
-			func() {
+			func(suite *KeeperTestSuite) {
+				suite.coordinator.Setup(path)
+
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
@@ -360,7 +362,9 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"successful timeout from external chain",
-			func() {
+			func(suite *KeeperTestSuite) {
+				suite.coordinator.Setup(path)
+
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
@@ -369,20 +373,42 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			}, true,
 		},
 		{
+			"successful timeout when channel is not OPEN",
+			func(suite *KeeperTestSuite) {
+				// only do the channel INIT step so that we can timeout
+				// before channel is OPEN
+				suite.coordinator.SetupConnections(path)
+				err := path.EndpointA.ChanOpenInit()
+				suite.Require().NoError(err)
+
+				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
+				coin := sdk.NewCoin(trace.IBCDenom(), amount)
+
+				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+			}, true,
+		},
+		{
 			"no balance for coin denom",
-			func() {
+			func(suite *KeeperTestSuite) {
+				suite.coordinator.Setup(path)
+
 				trace = types.ParseDenomTrace("bitcoin")
 			}, false,
 		},
 		{
 			"unescrow failed",
-			func() {
+			func(suite *KeeperTestSuite) {
+				suite.coordinator.Setup(path)
+
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 			}, false,
 		},
 		{
 			"mint failed",
-			func() {
+			func(suite *KeeperTestSuite) {
+				suite.coordinator.Setup(path)
+
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				amount = sdk.OneInt()
 				sender = "invalid address"
@@ -397,11 +423,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			suite.SetupTest() // reset
 
 			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
 			amount = sdk.NewInt(100) // must be explicitly changed
 			sender = suite.chainA.SenderAccount.GetAddress().String()
 
-			tc.malleate()
+			tc.malleate(suite)
 
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), sender, suite.chainB.SenderAccount.GetAddress().String())
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
