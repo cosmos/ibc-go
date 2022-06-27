@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
