@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -150,6 +151,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		expEscrowBalance sdk.Coins
 		expFeesInEscrow  []types.PacketFee
 		msg              *types.MsgPayPacketFee
+		fee              types.Fee
 	)
 
 	testCases := []struct {
@@ -177,6 +179,15 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
 				expFeesInEscrow = append(expFeesInEscrow, packetFee)
+			},
+			true,
+		},
+		{
+			"refund account is module account",
+			func() {
+				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(disttypes.ModuleName).String()
+				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
+				expFeesInEscrow = []types.PacketFee{expPacketFee}
 			},
 			true,
 		},
@@ -239,7 +250,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
-			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			msg = types.NewMsgPayPacketFee(
 				fee,
 				suite.path.EndpointA.ChannelConfig.PortID,
