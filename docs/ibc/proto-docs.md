@@ -38,14 +38,15 @@
     - [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel)
     - [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress)
     - [GenesisState](#ibc.applications.fee.v1.GenesisState)
-    - [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress)
+    - [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee)
+    - [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee)
   
 - [ibc/applications/fee/v1/metadata.proto](#ibc/applications/fee/v1/metadata.proto)
     - [Metadata](#ibc.applications.fee.v1.Metadata)
   
 - [ibc/applications/fee/v1/query.proto](#ibc/applications/fee/v1/query.proto)
-    - [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest)
-    - [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse)
+    - [QueryCounterpartyPayeeRequest](#ibc.applications.fee.v1.QueryCounterpartyPayeeRequest)
+    - [QueryCounterpartyPayeeResponse](#ibc.applications.fee.v1.QueryCounterpartyPayeeResponse)
     - [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest)
     - [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse)
     - [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest)
@@ -56,6 +57,8 @@
     - [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse)
     - [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest)
     - [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse)
+    - [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest)
+    - [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse)
     - [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest)
     - [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse)
     - [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest)
@@ -70,8 +73,10 @@
     - [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync)
     - [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse)
     - [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse)
-    - [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress)
-    - [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse)
+    - [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee)
+    - [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse)
+    - [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee)
+    - [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse)
   
     - [Msg](#ibc.applications.fee.v1.Msg)
   
@@ -216,6 +221,8 @@
     - [QueryClientStatesResponse](#ibc.core.client.v1.QueryClientStatesResponse)
     - [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest)
     - [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse)
+    - [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest)
+    - [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse)
     - [QueryConsensusStateRequest](#ibc.core.client.v1.QueryConsensusStateRequest)
     - [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse)
     - [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest)
@@ -840,7 +847,8 @@ GenesisState defines the ICS29 fee middleware genesis state
 | ----- | ---- | ----- | ----------- |
 | `identified_fees` | [IdentifiedPacketFees](#ibc.applications.fee.v1.IdentifiedPacketFees) | repeated | list of identified packet fees |
 | `fee_enabled_channels` | [FeeEnabledChannel](#ibc.applications.fee.v1.FeeEnabledChannel) | repeated | list of fee enabled channels |
-| `registered_relayers` | [RegisteredRelayerAddress](#ibc.applications.fee.v1.RegisteredRelayerAddress) | repeated | list of registered relayer addresses |
+| `registered_payees` | [RegisteredPayee](#ibc.applications.fee.v1.RegisteredPayee) | repeated | list of registered payees |
+| `registered_counterparty_payees` | [RegisteredCounterpartyPayee](#ibc.applications.fee.v1.RegisteredCounterpartyPayee) | repeated | list of registered counterparty payees |
 | `forward_relayers` | [ForwardRelayerAddress](#ibc.applications.fee.v1.ForwardRelayerAddress) | repeated | list of forward relayer addresses |
 
 
@@ -848,17 +856,35 @@ GenesisState defines the ICS29 fee middleware genesis state
 
 
 
-<a name="ibc.applications.fee.v1.RegisteredRelayerAddress"></a>
+<a name="ibc.applications.fee.v1.RegisteredCounterpartyPayee"></a>
 
-### RegisteredRelayerAddress
-RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
+### RegisteredCounterpartyPayee
+RegisteredCounterpartyPayee contains the relayer address and counterparty payee address for a specific channel (used
+for recv fee distribution)
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
 | `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.RegisteredPayee"></a>
+
+### RegisteredPayee
+RegisteredPayee contains the relayer address and payee address for a specific channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `payee` | [string](#string) |  | the payee address |
 
 
 
@@ -914,31 +940,31 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 
 
 
-<a name="ibc.applications.fee.v1.QueryCounterpartyAddressRequest"></a>
+<a name="ibc.applications.fee.v1.QueryCounterpartyPayeeRequest"></a>
 
-### QueryCounterpartyAddressRequest
-QueryCounterpartyAddressRequest defines the request type for the CounterpartyAddress rpc
+### QueryCounterpartyPayeeRequest
+QueryCounterpartyPayeeRequest defines the request type for the CounterpartyPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `channel_id` | [string](#string) |  | unique channel identifier |
-| `relayer_address` | [string](#string) |  | the relayer address to which the counterparty is registered |
+| `relayer` | [string](#string) |  | the relayer address to which the counterparty is registered |
 
 
 
 
 
 
-<a name="ibc.applications.fee.v1.QueryCounterpartyAddressResponse"></a>
+<a name="ibc.applications.fee.v1.QueryCounterpartyPayeeResponse"></a>
 
-### QueryCounterpartyAddressResponse
-QueryCounterpartyAddressResponse defines the response type for the CounterpartyAddress rpc
+### QueryCounterpartyPayeeResponse
+QueryCounterpartyPayeeResponse defines the response type for the CounterpartyPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `counterparty_address` | [string](#string) |  | the counterparty address used to compensate forward relaying |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address used to compensate forward relaying |
 
 
 
@@ -1103,6 +1129,37 @@ QueryIncentivizedPacketsResponse defines the response type for the IncentivizedP
 
 
 
+<a name="ibc.applications.fee.v1.QueryPayeeRequest"></a>
+
+### QueryPayeeRequest
+QueryPayeeRequest defines the request type for the Payee rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address to which the distribution address is registered |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.QueryPayeeResponse"></a>
+
+### QueryPayeeResponse
+QueryPayeeResponse defines the response type for the Payee rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `payee_address` | [string](#string) |  | the payee address to which packet fees are paid out |
+
+
+
+
+
+
 <a name="ibc.applications.fee.v1.QueryTotalAckFeesRequest"></a>
 
 ### QueryTotalAckFeesRequest
@@ -1207,14 +1264,15 @@ Query defines the ICS29 gRPC querier service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `IncentivizedPackets` | [QueryIncentivizedPacketsRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsRequest) | [QueryIncentivizedPacketsResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsResponse) | IncentivizedPackets returns all incentivized packets and their associated fees | GET|/ibc/apps/fee/v1/incentivized_packets|
-| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | IncentivizedPacket returns all packet fees for a packet given its identifier | GET|/ibc/apps/fee/v1/incentivized_packet/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `IncentivizedPacketsForChannel` | [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest) | [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse) | Gets all incentivized packets for a specific channel | GET|/ibc/apps/fee/v1/incentivized_packets/port/{port_id}/channel/{channel_id}|
-| `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_recv_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_ack_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/total_timeout_fees/port/{packet_id.port_id}/channel/{packet_id.channel_id}/sequence/{packet_id.sequence}|
-| `CounterpartyAddress` | [QueryCounterpartyAddressRequest](#ibc.applications.fee.v1.QueryCounterpartyAddressRequest) | [QueryCounterpartyAddressResponse](#ibc.applications.fee.v1.QueryCounterpartyAddressResponse) | CounterpartyAddress returns the registered counterparty address for forward relaying | GET|/ibc/apps/fee/v1/counterparty_address/{relayer_address}/channel/{channel_id}|
+| `IncentivizedPacket` | [QueryIncentivizedPacketRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketRequest) | [QueryIncentivizedPacketResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketResponse) | IncentivizedPacket returns all packet fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/incentivized_packet|
+| `IncentivizedPacketsForChannel` | [QueryIncentivizedPacketsForChannelRequest](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest) | [QueryIncentivizedPacketsForChannelResponse](#ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse) | Gets all incentivized packets for a specific channel | GET|/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets|
+| `TotalRecvFees` | [QueryTotalRecvFeesRequest](#ibc.applications.fee.v1.QueryTotalRecvFeesRequest) | [QueryTotalRecvFeesResponse](#ibc.applications.fee.v1.QueryTotalRecvFeesResponse) | TotalRecvFees returns the total receive fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees|
+| `TotalAckFees` | [QueryTotalAckFeesRequest](#ibc.applications.fee.v1.QueryTotalAckFeesRequest) | [QueryTotalAckFeesResponse](#ibc.applications.fee.v1.QueryTotalAckFeesResponse) | TotalAckFees returns the total acknowledgement fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees|
+| `TotalTimeoutFees` | [QueryTotalTimeoutFeesRequest](#ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest) | [QueryTotalTimeoutFeesResponse](#ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse) | TotalTimeoutFees returns the total timeout fees for a packet given its identifier | GET|/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees|
+| `Payee` | [QueryPayeeRequest](#ibc.applications.fee.v1.QueryPayeeRequest) | [QueryPayeeResponse](#ibc.applications.fee.v1.QueryPayeeResponse) | Payee returns the registered payee address for a specific channel given the relayer address | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/payee|
+| `CounterpartyPayee` | [QueryCounterpartyPayeeRequest](#ibc.applications.fee.v1.QueryCounterpartyPayeeRequest) | [QueryCounterpartyPayeeResponse](#ibc.applications.fee.v1.QueryCounterpartyPayeeResponse) | CounterpartyPayee returns the registered counterparty payee for forward relaying | GET|/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/counterparty_payee|
 | `FeeEnabledChannels` | [QueryFeeEnabledChannelsRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest) | [QueryFeeEnabledChannelsResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse) | FeeEnabledChannels returns a list of all fee enabled channels | GET|/ibc/apps/fee/v1/fee_enabled|
-| `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/fee_enabled/port/{port_id}/channel/{channel_id}|
+| `FeeEnabledChannel` | [QueryFeeEnabledChannelRequest](#ibc.applications.fee.v1.QueryFeeEnabledChannelRequest) | [QueryFeeEnabledChannelResponse](#ibc.applications.fee.v1.QueryFeeEnabledChannelResponse) | FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel | GET|/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/fee_enabled|
 
  <!-- end services -->
 
@@ -1285,28 +1343,56 @@ MsgPayPacketFeeResponse defines the response type for the PayPacketFee rpc
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddress"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayee"></a>
 
-### MsgRegisterCounterpartyAddress
-MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
+### MsgRegisterCounterpartyPayee
+MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | the relayer address |
-| `counterparty_address` | [string](#string) |  | the counterparty relayer address |
 | `port_id` | [string](#string) |  | unique port identifier |
 | `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `counterparty_payee` | [string](#string) |  | the counterparty payee address |
 
 
 
 
 
 
-<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse"></a>
+<a name="ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse"></a>
 
-### MsgRegisterCounterpartyAddressResponse
-MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
+### MsgRegisterCounterpartyPayeeResponse
+MsgRegisterCounterpartyPayeeResponse defines the response type for the RegisterCounterpartyPayee rpc
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgRegisterPayee"></a>
+
+### MsgRegisterPayee
+MsgRegisterPayee defines the request type for the RegisterPayee rpc
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  | unique port identifier |
+| `channel_id` | [string](#string) |  | unique channel identifier |
+| `relayer` | [string](#string) |  | the relayer address |
+| `payee` | [string](#string) |  | the payee address |
+
+
+
+
+
+
+<a name="ibc.applications.fee.v1.MsgRegisterPayeeResponse"></a>
+
+### MsgRegisterPayeeResponse
+MsgRegisterPayeeResponse defines the response type for the RegisterPayee rpc
 
 
 
@@ -1326,7 +1412,8 @@ Msg defines the ICS29 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
+| `RegisterPayee` | [MsgRegisterPayee](#ibc.applications.fee.v1.MsgRegisterPayee) | [MsgRegisterPayeeResponse](#ibc.applications.fee.v1.MsgRegisterPayeeResponse) | RegisterPayee defines a rpc handler method for MsgRegisterPayee RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on the source chain from which packets originate as this is where fee distribution takes place. This function may be called more than once by a relayer, in which case, the latest payee is always used. | |
+| `RegisterCounterpartyPayee` | [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee) | [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse) | RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty payee address before relaying. This ensures they will be properly compensated for forward relaying since the destination chain must include the registered counterparty payee address in the acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty payee address is always used. | |
 | `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
 | `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
 
@@ -3236,6 +3323,40 @@ method. It returns the current status of the IBC client.
 
 
 
+<a name="ibc.core.client.v1.QueryConsensusStateHeightsRequest"></a>
+
+### QueryConsensusStateHeightsRequest
+QueryConsensusStateHeightsRequest is the request type for Query/ConsensusStateHeights
+RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | client identifier |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination request |
+
+
+
+
+
+
+<a name="ibc.core.client.v1.QueryConsensusStateHeightsResponse"></a>
+
+### QueryConsensusStateHeightsResponse
+QueryConsensusStateHeightsResponse is the response type for the
+Query/ConsensusStateHeights RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `consensus_state_heights` | [Height](#ibc.core.client.v1.Height) | repeated | consensus state heights |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination response |
+
+
+
+
+
+
 <a name="ibc.core.client.v1.QueryConsensusStateRequest"></a>
 
 ### QueryConsensusStateRequest
@@ -3379,6 +3500,7 @@ Query provides defines the gRPC querier service
 | `ClientStates` | [QueryClientStatesRequest](#ibc.core.client.v1.QueryClientStatesRequest) | [QueryClientStatesResponse](#ibc.core.client.v1.QueryClientStatesResponse) | ClientStates queries all the IBC light clients of a chain. | GET|/ibc/core/client/v1/client_states|
 | `ConsensusState` | [QueryConsensusStateRequest](#ibc.core.client.v1.QueryConsensusStateRequest) | [QueryConsensusStateResponse](#ibc.core.client.v1.QueryConsensusStateResponse) | ConsensusState queries a consensus state associated with a client state at a given height. | GET|/ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}|
 | `ConsensusStates` | [QueryConsensusStatesRequest](#ibc.core.client.v1.QueryConsensusStatesRequest) | [QueryConsensusStatesResponse](#ibc.core.client.v1.QueryConsensusStatesResponse) | ConsensusStates queries all the consensus state associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}|
+| `ConsensusStateHeights` | [QueryConsensusStateHeightsRequest](#ibc.core.client.v1.QueryConsensusStateHeightsRequest) | [QueryConsensusStateHeightsResponse](#ibc.core.client.v1.QueryConsensusStateHeightsResponse) | ConsensusStateHeights queries the height of every consensus states associated with a given client. | GET|/ibc/core/client/v1/consensus_states/{client_id}/heights|
 | `ClientStatus` | [QueryClientStatusRequest](#ibc.core.client.v1.QueryClientStatusRequest) | [QueryClientStatusResponse](#ibc.core.client.v1.QueryClientStatusResponse) | Status queries the status of an IBC client. | GET|/ibc/core/client/v1/client_status/{client_id}|
 | `ClientParams` | [QueryClientParamsRequest](#ibc.core.client.v1.QueryClientParamsRequest) | [QueryClientParamsResponse](#ibc.core.client.v1.QueryClientParamsResponse) | ClientParams queries all parameters of the ibc client. | GET|/ibc/client/v1/params|
 | `UpgradedClientState` | [QueryUpgradedClientStateRequest](#ibc.core.client.v1.QueryUpgradedClientStateRequest) | [QueryUpgradedClientStateResponse](#ibc.core.client.v1.QueryUpgradedClientStateResponse) | UpgradedClientState queries an Upgraded IBC light client. | GET|/ibc/core/client/v1/upgraded_client_states|
@@ -4898,8 +5020,8 @@ and a possible frozen height.
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Latest height the client was updated to |
 | `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated | Proof specifications used in verifying counterparty state |
 | `upgrade_path` | [string](#string) | repeated | Path at which next upgraded client will be committed. Each element corresponds to the key for a single CommitmentProof in the chained proof. NOTE: ClientState must stored under `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using the default upgrade module, upgrade_path should be []string{"upgrade", "upgradedIBCState"}` |
-| `allow_update_after_expiry` | [bool](#bool) |  | This flag, when set to true, will allow governance to recover a client which has expired |
-| `allow_update_after_misbehaviour` | [bool](#bool) |  | This flag, when set to true, will allow governance to unfreeze a client whose chain has experienced a misbehaviour event |
+| `allow_update_after_expiry` | [bool](#bool) |  | **Deprecated.** allow_update_after_expiry is deprecated |
+| `allow_update_after_misbehaviour` | [bool](#bool) |  | **Deprecated.** allow_update_after_misbehaviour is deprecated |
 
 
 
