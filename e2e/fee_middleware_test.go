@@ -2,11 +2,13 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/ibc-go/v3/e2e/e2efee"
@@ -18,6 +20,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
+	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
+	"google.golang.org/grpc"
 	"testing"
 	"time"
 )
@@ -41,7 +45,7 @@ type FeeMiddlewareTestSuite struct {
 }
 
 // TODO: wip test, depends on https://github.com/strangelove-ventures/ibctest/issues/172
-func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
+func (s *FeeMiddlewareTestSuite) TestSyncSingleSender() {
 
 	//t.Run("Relayer wallets can be recovered", s.AssertRelayerWalletsCanBeRecovered(ctx, relayer))
 	//
@@ -56,6 +60,7 @@ func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
 	//transfertypes.NewMsgTransfer()
 	//
 
+	const user1Mnemonic = "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
 	t := s.T()
 	ctx := context.TODO()
 
@@ -64,10 +69,10 @@ func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
 	s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
 
 	startingTokenAmount := int64(10_000_000)
-	srcChainSenderOne := s.CreateUserOnSourceChain(ctx, startingTokenAmount)
+	srcChainSenderOne := s.CreateUserOnSourceChainWithMnemonic(ctx, startingTokenAmount, user1Mnemonic)
+	//userPrivateKey := tmed25519.GenPrivKeyFromSecret([]byte(user1Mnemonic))
 
 	srChainDenom := srcChain.Config().Denom
-
 	defaultRecvFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(100)}}
 	defaultAckFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(200)}}
 	defaultTimeoutFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(300)}}
@@ -84,10 +89,15 @@ func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
 
 	//txBuilder.SetTimeoutHeight(...)
 	//info, err := srcChain.ChainNodes[0].GetKey(srcChainSenderOne.KeyName)
-	priv1, _, _ := testdata.KeyTestPubAddr()
-	privs := []cryptotypes.PrivKey{priv1}
-	accNums := []uint64{0} // The accounts' account numbers
-	accSeqs := []uint64{0} // The accounts' sequence numbers
+	//priv1, _, _ := testdata.KeyTestPubAddr()
+
+	//a := &ed25519.PrivKey{Key: genPrivKey(crypto.CReader())}
+	priv := &ed25519.PrivKey{Key: []byte(tmed25519.GenPrivKeyFromSecret([]byte(user1Mnemonic)))}
+
+	privs := []cryptotypes.PrivKey{priv}
+
+	accNums := []uint64{1} // The accounts' account numbers
+	accSeqs := []uint64{1} // The accounts' sequence numbers
 
 	var sigsV2 []signing.SignatureV2
 	for i, priv := range privs {
@@ -131,6 +141,30 @@ func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
 	txJSON := string(txJSONBytes)
 	t.Logf("JSON: %s", txJSON)
 
+	// Create a connection to the gRPC server.
+	grpcConn, err := grpc.Dial(
+		srcChain.GetGRPCAddress(), // Or your gRPC server address.
+		grpc.WithInsecure(),
+	)
+	s.Req.NoError(err)
+	defer grpcConn.Close()
+
+	// Broadcast the tx via gRPC. We create a new client for the Protobuf Tx
+	// service.
+
+	txClient := txtypes.NewServiceClient(grpcConn)
+	// We then call the BroadcastTx method on this client.
+	grpcRes, err := txClient.BroadcastTx(
+		ctx,
+		&txtypes.BroadcastTxRequest{
+			Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
+			TxBytes: txJSONBytes,
+		},
+	)
+	s.Req.NoError(err)
+	s.Req.NotNil(grpcRes)
+	fmt.Println(grpcRes.TxResponse.Code) // Should be `0` if the tx is successful
+	s.Req.Equal(0, grpcRes.TxResponse.Code)
 }
 
 func (s *FeeMiddlewareTestSuite) TestAsyncMultipleSenders() {

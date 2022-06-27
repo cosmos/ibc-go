@@ -126,7 +126,7 @@ func recoverKeyring(ctx context.Context, chain *cosmos.CosmosChain, name, mnemon
 	cmd := []string{
 		"bash",
 		"-c",
-		fmt.Sprintf(`echo "%s" | %s keys add %s --recover --keyring-backend %s --home %s`, mnemonic, chain.Config().Bin, name, keyring.BackendTest, tn.NodeHome()),
+		fmt.Sprintf(`echo "%s" | %s keys add %s --recover --keyring-backend %s --home %s --output json`, mnemonic, chain.Config().Bin, name, keyring.BackendTest, tn.NodeHome()),
 	}
 
 	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
@@ -265,6 +265,12 @@ func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 func (s *E2ETestSuite) CreateUserOnSourceChain(ctx context.Context, amount int64) *ibctest.User {
 	srcChain, _ := s.GetChains()
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, srcChain)[0]
+}
+
+// CreateUserOnSourceChainWithMnemonic creates a user with the given amount of funds on the source chain from the given mnemonic.
+func (s *E2ETestSuite) CreateUserOnSourceChainWithMnemonic(ctx context.Context, amount int64, mnemonic string) *ibctest.User {
+	srcChain, _ := s.GetChains()
+	return ibctest.GetAndFundTestUserWithMnemonic(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), mnemonic, amount, srcChain)
 }
 
 // CreateUserOnDestinationChain creates a user with the given amount of funds on the destination chain.

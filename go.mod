@@ -166,3 +166,5 @@ require (
 	modernc.org/token v1.0.0 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 )
+
+replace github.com/strangelove-ventures/ibctest => ../ibctest
