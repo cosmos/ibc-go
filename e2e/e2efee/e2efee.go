@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 )
@@ -36,10 +36,9 @@ func RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, r
 	}
 
 	return nil
-
 }
 
-func QueryPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) (types.QueryIncentivizedPacketsResponse, error) {
+func QueryPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) (QueryIncentivizedPacketsResponse, error) {
 	tn := chain.ChainNodes[0]
 	cmd := []string{tn.Chain.Config().Bin,
 		"q",
@@ -55,14 +54,14 @@ func QueryPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channe
 
 	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
 	if err != nil {
-		return types.QueryIncentivizedPacketsResponse{}, dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+		return QueryIncentivizedPacketsResponse{}, dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
 	}
 
 	respBytes := []byte(stdout)
-	response := types.QueryIncentivizedPacketsResponse{}
+	response := QueryIncentivizedPacketsResponse{}
 	//if err := types.ModuleCdc.Unmarshal(respBytes, &response); err != nil {
 	if err := json.Unmarshal(respBytes, &response); err != nil {
-		return types.QueryIncentivizedPacketsResponse{}, err
+		return QueryIncentivizedPacketsResponse{}, err
 	}
 
 	return response, nil
@@ -137,4 +136,46 @@ func FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
 		opts.DestPortName = "transfer"
 		opts.SourcePortName = "transfer"
 	}
+}
+
+// TODO: remove all of these types and import the protobuff generated type.
+
+type QueryIncentivizedPacketsResponse struct {
+	// list of identified fees for incentivized packets
+	IncentivizedPackets []IdentifiedPacketFees `json:"incentivized_packets"`
+}
+
+// IdentifiedPacketFees contains a list of type PacketFee and associated PacketId
+type IdentifiedPacketFees struct {
+	// unique packet identifier comprised of the channel ID, port ID and sequence
+	PacketId PacketId `json:"packet_id"`
+	// list of packet fees
+	PacketFees []PacketFee `json:"packet_fees"`
+}
+
+type PacketId struct {
+	// channel port identifier
+	PortId string `json:"port_id,omitempty"`
+	// channel unique identifier
+	ChannelId string `json:"channel_id,omitempty"`
+	// packet sequence
+	Sequence string `json:"sequence,omitempty"`
+}
+
+type PacketFee struct {
+	// fee encapsulates the recv, ack and timeout fees associated with an IBC packet
+	Fee Fee `json:"fee"`
+	// the refund address for unspent fees
+	RefundAddress string `json:"refund_address,omitempty"`
+	// optional list of relayers permitted to receive fees
+	Relayers []string `json:"relayers,omitempty"`
+}
+
+type Fee struct {
+	// the packet receive fee
+	RecvFee sdktypes.Coins `json:"recv_fee"`
+	// the packet acknowledgement fee
+	AckFee sdktypes.Coins `json:"ack_fee"`
+	// the packet timeout fee
+	TimeoutFee sdktypes.Coins `json:"timeout_fee"`
 }

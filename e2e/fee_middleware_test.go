@@ -40,7 +40,8 @@ type FeeMiddlewareTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareSyncSingleSender() {
+// TODO: wip test, depends on https://github.com/strangelove-ventures/ibctest/issues/172
+func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
 
 	//t.Run("Relayer wallets can be recovered", s.AssertRelayerWalletsCanBeRecovered(ctx, relayer))
 	//
@@ -132,7 +133,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareSyncSingleSender() {
 
 }
 
-func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
+func (s *FeeMiddlewareTestSuite) TestAsyncMultipleSenders() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -201,12 +202,27 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 					time.Sleep(5 * time.Second)
 				})
 
-				// TODO: query method not umarshalling json correctly yet.
-				//t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
-				//	packets, err := srcChain.QueryPackets(ctx, "transfer", "channel-0")
-				//	req.NoError(err)
-				//	req.Len(packets.IncentivizedPackets, 1)
-				//})
+				t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
+					packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
+					s.Req.NoError(err)
+					s.Req.Len(packets.IncentivizedPackets, 1)
+					s.Req.Len(packets.IncentivizedPackets[0].PacketFees, 2)
+
+					expectedRecv, expectedAck, exectedTimeout := convertFeeAmountsToCoins(srcChain.Config().Denom, recvFee, ackFee, timeoutFee)
+
+					t.Run("test first packet fee", func(t *testing.T) {
+						actualFee := packets.IncentivizedPackets[0].PacketFees[0].Fee
+						s.Req.True(actualFee.RecvFee.IsEqual(expectedRecv))
+						s.Req.True(actualFee.AckFee.IsEqual(expectedAck))
+						s.Req.True(actualFee.TimeoutFee.IsEqual(exectedTimeout))
+					})
+					t.Run("test second packet fee", func(t *testing.T) {
+						actualFee := packets.IncentivizedPackets[0].PacketFees[1].Fee
+						s.Req.True(actualFee.RecvFee.IsEqual(expectedRecv))
+						s.Req.True(actualFee.AckFee.IsEqual(expectedAck))
+						s.Req.True(actualFee.TimeoutFee.IsEqual(exectedTimeout))
+					})
+				})
 
 				expectedSenderOneBal := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
 				t.Run("Balance from first sender should be lowered by sum of recv ack and timeout and IBC transfer amount", s.AssertChainNativeBalance(ctx, srcChain, srcChainSenderOne, expectedSenderOneBal))
@@ -234,7 +250,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncMultipleSenders() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
+func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -306,12 +322,17 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 			time.Sleep(5 * time.Second)
 		})
 
-		// TODO: query method not umarshalling json correctly yet.
-		//t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
-		//	packets, err := srcChain.QueryPackets(ctx, "transfer", "channel-0")
-		//	req.NoError(err)
-		//	req.Len(packets.IncentivizedPackets, 1)
-		//})
+		t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
+			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
+			s.Req.NoError(err)
+			s.Req.Len(packets.IncentivizedPackets, 1)
+			actualFee := packets.IncentivizedPackets[0].PacketFees[0].Fee
+
+			expectedRecv, expectedAck, exectedTimeout := convertFeeAmountsToCoins(srcChain.Config().Denom, recvFee, ackFee, timeoutFee)
+			s.Req.True(actualFee.RecvFee.IsEqual(expectedRecv))
+			s.Req.True(actualFee.AckFee.IsEqual(expectedAck))
+			s.Req.True(actualFee.TimeoutFee.IsEqual(exectedTimeout))
+		})
 	})
 
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
@@ -343,7 +364,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSender() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
+func (s *FeeMiddlewareTestSuite) TestAsyncSingleSenderTimesOut() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -418,12 +439,17 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 			time.Sleep(5 * time.Second)
 		})
 
-		// TODO: query method not umarshalling json correctly yet.
-		//t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
-		//	packets, err := srcChain.QueryPackets(ctx, "transfer", "channel-0")
-		//	req.NoError(err)
-		//	req.Len(packets.IncentivizedPackets, 1)
-		//})
+		t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
+			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
+			s.Req.NoError(err)
+			s.Req.Len(packets.IncentivizedPackets, 1)
+			actualFee := packets.IncentivizedPackets[0].PacketFees[0].Fee
+
+			expectedRecv, expectedAck, exectedTimeout := convertFeeAmountsToCoins(srcChain.Config().Denom, recvFee, ackFee, timeoutFee)
+			s.Req.True(actualFee.RecvFee.IsEqual(expectedRecv))
+			s.Req.True(actualFee.AckFee.IsEqual(expectedAck))
+			s.Req.True(actualFee.TimeoutFee.IsEqual(exectedTimeout))
+		})
 	})
 
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
@@ -451,7 +477,7 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderTimesOut() {
 }
 
 //  When packet is incentivized from single sender AND counterparty payee address is not set AND token transfer succeeds, then recv fees are refunded.
-func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPartyAddress() {
+func (s *FeeMiddlewareTestSuite) TestAsyncSingleSenderNoCounterPartyAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -467,11 +493,6 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 	t.Run("Relayer wallets can be recovered", func(t *testing.T) {
 		s.Req.NoError(s.RecoverRelayerWallets(ctx, relayer))
 	})
-
-	//srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
-	//t.Run("Relayer wallets can be fetched", func(t *testing.T) {
-	//	req.NoError(err)
-	//})
 
 	s.Req.NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
@@ -511,12 +532,17 @@ func (s *FeeMiddlewareTestSuite) TestFeeMiddlewareAsyncSingleSenderNoCounterPart
 			time.Sleep(5 * time.Second)
 		})
 
-		// TODO: query method not umarshalling json correctly yet.
-		//t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
-		//	packets, err := srcChain.QueryPackets(ctx, "transfer", "channel-0")
-		//	req.NoError(err)
-		//	req.Len(packets.IncentivizedPackets, 1)
-		//})
+		t.Run("After paying packet fee there should be incentivized packets", func(t *testing.T) {
+			packets, err := e2efee.QueryPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID)
+			s.Req.NoError(err)
+			s.Req.Len(packets.IncentivizedPackets, 1)
+			actualFee := packets.IncentivizedPackets[0].PacketFees[0].Fee
+
+			expectedRecv, expectedAck, exectedTimeout := convertFeeAmountsToCoins(srcChain.Config().Denom, recvFee, ackFee, timeoutFee)
+			s.Req.True(actualFee.RecvFee.IsEqual(expectedRecv))
+			s.Req.True(actualFee.AckFee.IsEqual(expectedAck))
+			s.Req.True(actualFee.TimeoutFee.IsEqual(exectedTimeout))
+		})
 	})
 
 	t.Run("Balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
@@ -565,4 +591,18 @@ func (s *FeeMiddlewareTestSuite) AssertCounterPartyPayeeCanBeVerified(ctx contex
 		s.Req.NoError(err)
 		s.Req.Equal(expectedAddress, actualAddress)
 	}
+}
+
+func convertFeeAmountsToCoins(denom string, recvFee, ackFee, timeoutFee int64) (sdk.Coins, sdk.Coins, sdk.Coins) {
+	recvCoins := sdk.NewCoins(
+		sdk.NewCoin(denom, sdk.NewInt(recvFee)),
+	)
+	ackCoins := sdk.NewCoins(
+		sdk.NewCoin(denom, sdk.NewInt(ackFee)),
+	)
+	timeoutCoins := sdk.NewCoins(
+		sdk.NewCoin(denom, sdk.NewInt(timeoutFee)),
+	)
+
+	return recvCoins, ackCoins, timeoutCoins
 }
