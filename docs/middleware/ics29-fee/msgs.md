@@ -2,7 +2,7 @@
 order: 3
 -->
 
-# Escrowing and paying out fees
+# Escrowing fees
 
 The fee middleware module exposes two different ways to pay fees for relaying IBC packets:
 
@@ -27,7 +27,6 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
 	    RecvFee             types.Coins
 	    AckFee              types.Coins
 	    TimeoutFee          types.Coin`
-
     }
     ```
 
@@ -55,7 +54,7 @@ Please see our [wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible
     
 In the case of a successful transaction, `RecvFee` will be paid out to the designated counterparty payee address which has been registered on the receiver chain and sent back with the `MsgAcknowledgement`, `AckFee` will be paid out to the relayer address which has submitted the `MsgAcknowledgement` on the sending chain (or the registered payee in case one has been registered for the relayer address), and `TimeoutFee` will be reimbursed to the account which escrowed the fee. In cases of timeout transactions, `RecvFee` and `AckFee` will be reimbursed. 
 
-Please note that fee payments are built on the assumption that sender chains are the source of incentives — the chain that sends the packets is the same chain where fee payments will occur -- please see [our wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible-token-transfers#register-the-counterparty-payee) to understand the flow for registering payee and counterparty payee (fee receiving) addresses.
+Please note that fee payments are built on the assumption that sender chains are the source of incentives — the chain that sends the packets is the same chain where fee payments will occur -- please see the [relayer operator section](../ics29-fee/fee-distribution.md) to understand the flow for registering payee and counterparty payee (fee receiving) addresses.
 
 # A locked fee middleware module
 
