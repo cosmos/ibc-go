@@ -38,15 +38,15 @@ func (im IBCModule) OnChanOpenInit(
     chanCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
     version string,
-) error {
+) (string, error) {
     // the authentication module *must* claim the channel capability on OnChanOpenInit
     if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-        return err
+        return version, err
     }
 
     // perform custom logic
 
-    return nil
+    return version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -157,7 +157,7 @@ if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID
 return nil
 ```
 
-The `version` argument is used to support ICS29 fee middleware for relayer incentivization of ICS27 packets. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly.
+The `version` argument is used to support ICS29 fee middleware for relayer incentivization of ICS27 packets. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
 
 The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
 
