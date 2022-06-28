@@ -2,26 +2,16 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/ibc-go/v3/e2e/e2efee"
 	"github.com/cosmos/ibc-go/v3/e2e/testsuite"
-	feetypes "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 	simappparams "github.com/cosmos/ibc-go/v3/testing/simapp/params"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
-	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
-	"google.golang.org/grpc"
 	"testing"
 	"time"
 )
@@ -44,127 +34,128 @@ type FeeMiddlewareTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// TODO: wip test, depends on https://github.com/strangelove-ventures/ibctest/issues/172
-func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
-
-	//t.Run("Relayer wallets can be recovered", s.AssertRelayerWalletsCanBeRecovered(ctx, relayer))
-	//
-	//srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
-	//t.Run("Relayer wallets can be fetched", func(t *testing.T) {
-	//	s.Req.NoError(err)
-	//})
-	//
-	//
-	//feetypes.MsgPayPacketFee{}
-	//feetypes.NewMsgRegisterCounterpartyPayee()
-	//transfertypes.NewMsgTransfer()
-	//
-
-	const user1Mnemonic = "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
-	t := s.T()
-	ctx := context.TODO()
-
-	s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
-	srcChain, _ := s.GetChains()
-
-	startingTokenAmount := int64(10_000_000)
-	srcChainSenderOne := s.CreateUserOnSourceChainWithMnemonic(ctx, startingTokenAmount, user1Mnemonic)
-	//userPrivateKey := tmed25519.GenPrivKeyFromSecret([]byte(user1Mnemonic))
-
-	srChainDenom := srcChain.Config().Denom
-	defaultRecvFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(100)}}
-	defaultAckFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(200)}}
-	defaultTimeoutFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(300)}}
-	fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-
-	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(fee, "transfer", "channel-0", srcChainSenderOne.Bech32Address(srcChain.Config().Bech32Prefix), nil)
-
-	err := txBuilder.SetMsgs(payPacketFeeMsg)
-	s.Req.NoError(err)
-
-	//txBuilder.SetGasLimit(...)
-	//txBuilder.SetFeeAmount(...)
-	txBuilder.SetMemo("ibc-test")
-
-	//txBuilder.SetTimeoutHeight(...)
-	//info, err := srcChain.ChainNodes[0].GetKey(srcChainSenderOne.KeyName)
-	//priv1, _, _ := testdata.KeyTestPubAddr()
-
-	//a := &ed25519.PrivKey{Key: genPrivKey(crypto.CReader())}
-	priv := &ed25519.PrivKey{Key: []byte(tmed25519.GenPrivKeyFromSecret([]byte(user1Mnemonic)))}
-
-	privs := []cryptotypes.PrivKey{priv}
-
-	accNums := []uint64{1} // The accounts' account numbers
-	accSeqs := []uint64{1} // The accounts' sequence numbers
-
-	var sigsV2 []signing.SignatureV2
-	for i, priv := range privs {
-		sigV2 := signing.SignatureV2{
-			PubKey: priv.PubKey(),
-			Data: &signing.SingleSignatureData{
-				SignMode:  encCfg.TxConfig.SignModeHandler().DefaultMode(),
-				Signature: nil,
-			},
-			Sequence: accSeqs[i],
-		}
-
-		sigsV2 = append(sigsV2, sigV2)
-	}
-	err = txBuilder.SetSignatures(sigsV2...)
-	s.Req.NoError(err)
-
-	// Second round: all signer infos are set, so each signer can sign.
-	sigsV2 = []signing.SignatureV2{}
-	for i, priv := range privs {
-		signerData := xauthsigning.SignerData{
-			ChainID:       srcChain.Config().ChainID,
-			AccountNumber: accNums[i],
-			Sequence:      accSeqs[i],
-		}
-		sigV2, err := tx.SignWithPrivKey(
-			encCfg.TxConfig.SignModeHandler().DefaultMode(), signerData,
-			txBuilder, priv, encCfg.TxConfig, accSeqs[i])
-		s.Req.NoError(err)
-		sigsV2 = append(sigsV2, sigV2)
-	}
-	err = txBuilder.SetSignatures(sigsV2...)
-	s.Req.NoError(err)
-
-	//txBuilder.GetTx(
-	//s.Req.NoError(err)
-	//
-	txJSONBytes, err := encCfg.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
-	s.Req.NoError(err)
-
-	txJSON := string(txJSONBytes)
-	t.Logf("JSON: %s", txJSON)
-
-	// Create a connection to the gRPC server.
-	grpcConn, err := grpc.Dial(
-		srcChain.GetGRPCAddress(), // Or your gRPC server address.
-		grpc.WithInsecure(),
-	)
-	s.Req.NoError(err)
-	defer grpcConn.Close()
-
-	// Broadcast the tx via gRPC. We create a new client for the Protobuf Tx
-	// service.
-
-	txClient := txtypes.NewServiceClient(grpcConn)
-	// We then call the BroadcastTx method on this client.
-	grpcRes, err := txClient.BroadcastTx(
-		ctx,
-		&txtypes.BroadcastTxRequest{
-			Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
-			TxBytes: txJSONBytes,
-		},
-	)
-	s.Req.NoError(err)
-	s.Req.NotNil(grpcRes)
-	fmt.Println(grpcRes.TxResponse.Code) // Should be `0` if the tx is successful
-	s.Req.Equal(0, grpcRes.TxResponse.Code)
-}
+//
+//// TODO: wip test, depends on https://github.com/strangelove-ventures/ibctest/issues/172
+//func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
+//
+//	//t.Run("Relayer wallets can be recovered", s.AssertRelayerWalletsCanBeRecovered(ctx, relayer))
+//	//
+//	//srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
+//	//t.Run("Relayer wallets can be fetched", func(t *testing.T) {
+//	//	s.Req.NoError(err)
+//	//})
+//	//
+//	//
+//	//feetypes.MsgPayPacketFee{}
+//	//feetypes.NewMsgRegisterCounterpartyPayee()
+//	//transfertypes.NewMsgTransfer()
+//	//
+//
+//	const user1Mnemonic = "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
+//	t := s.T()
+//	ctx := context.TODO()
+//
+//	s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+//	srcChain, _ := s.GetChains()
+//
+//	startingTokenAmount := int64(10_000_000)
+//	srcChainSenderOne := s.CreateUserOnSourceChainWithMnemonic(ctx, startingTokenAmount, user1Mnemonic)
+//	//userPrivateKey := tmed25519.GenPrivKeyFromSecret([]byte(user1Mnemonic))
+//
+//	srChainDenom := srcChain.Config().Denom
+//	defaultRecvFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(100)}}
+//	defaultAckFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(200)}}
+//	defaultTimeoutFee := sdk.Coins{sdk.Coin{Denom: srChainDenom, Amount: sdk.NewInt(300)}}
+//	fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+//
+//	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(fee, "transfer", "channel-0", srcChainSenderOne.Bech32Address(srcChain.Config().Bech32Prefix), nil)
+//
+//	err := txBuilder.SetMsgs(payPacketFeeMsg)
+//	s.Req.NoError(err)
+//
+//	//txBuilder.SetGasLimit(...)
+//	//txBuilder.SetFeeAmount(...)
+//	txBuilder.SetMemo("ibc-test")
+//
+//	//txBuilder.SetTimeoutHeight(...)
+//	//info, err := srcChain.ChainNodes[0].GetKey(srcChainSenderOne.KeyName)
+//	//priv1, _, _ := testdata.KeyTestPubAddr()
+//
+//	//a := &ed25519.PrivKey{Key: genPrivKey(crypto.CReader())}
+//	priv := &ed25519.PrivKey{Key: []byte(tmed25519.GenPrivKeyFromSecret([]byte(user1Mnemonic)))}
+//
+//	privs := []cryptotypes.PrivKey{priv}
+//
+//	accNums := []uint64{1} // The accounts' account numbers
+//	accSeqs := []uint64{1} // The accounts' sequence numbers
+//
+//	var sigsV2 []signing.SignatureV2
+//	for i, priv := range privs {
+//		sigV2 := signing.SignatureV2{
+//			PubKey: priv.PubKey(),
+//			Data: &signing.SingleSignatureData{
+//				SignMode:  encCfg.TxConfig.SignModeHandler().DefaultMode(),
+//				Signature: nil,
+//			},
+//			Sequence: accSeqs[i],
+//		}
+//
+//		sigsV2 = append(sigsV2, sigV2)
+//	}
+//	err = txBuilder.SetSignatures(sigsV2...)
+//	s.Req.NoError(err)
+//
+//	// Second round: all signer infos are set, so each signer can sign.
+//	sigsV2 = []signing.SignatureV2{}
+//	for i, priv := range privs {
+//		signerData := xauthsigning.SignerData{
+//			ChainID:       srcChain.Config().ChainID,
+//			AccountNumber: accNums[i],
+//			Sequence:      accSeqs[i],
+//		}
+//		sigV2, err := tx.SignWithPrivKey(
+//			encCfg.TxConfig.SignModeHandler().DefaultMode(), signerData,
+//			txBuilder, priv, encCfg.TxConfig, accSeqs[i])
+//		s.Req.NoError(err)
+//		sigsV2 = append(sigsV2, sigV2)
+//	}
+//	err = txBuilder.SetSignatures(sigsV2...)
+//	s.Req.NoError(err)
+//
+//	//txBuilder.GetTx(
+//	//s.Req.NoError(err)
+//	//
+//	txJSONBytes, err := encCfg.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+//	s.Req.NoError(err)
+//
+//	txJSON := string(txJSONBytes)
+//	t.Logf("JSON: %s", txJSON)
+//
+//	// Create a connection to the gRPC server.
+//	grpcConn, err := grpc.Dial(
+//		srcChain.GetGRPCAddress(), // Or your gRPC server address.
+//		grpc.WithInsecure(),
+//	)
+//	s.Req.NoError(err)
+//	defer grpcConn.Close()
+//
+//	// Broadcast the tx via gRPC. We create a new client for the Protobuf Tx
+//	// service.
+//
+//	txClient := txtypes.NewServiceClient(grpcConn)
+//	// We then call the BroadcastTx method on this client.
+//	grpcRes, err := txClient.BroadcastTx(
+//		ctx,
+//		&txtypes.BroadcastTxRequest{
+//			Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
+//			TxBytes: txJSONBytes,
+//		},
+//	)
+//	s.Req.NoError(err)
+//	s.Req.NotNil(grpcRes)
+//	fmt.Println(grpcRes.TxResponse.Code) // Should be `0` if the tx is successful
+//	s.Req.Equal(0, grpcRes.TxResponse.Code)
+//}
 
 func (s *FeeMiddlewareTestSuite) TestAsyncMultipleSenders() {
 	t := s.T()

@@ -263,11 +263,11 @@ func (s *E2ETestSuite) CreateUserOnSourceChain(ctx context.Context, amount int64
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, srcChain)[0]
 }
 
-// CreateUserOnSourceChainWithMnemonic creates a user with the given amount of funds on the source chain from the given mnemonic.
-func (s *E2ETestSuite) CreateUserOnSourceChainWithMnemonic(ctx context.Context, amount int64, mnemonic string) *ibctest.User {
-	srcChain, _ := s.GetChains()
-	return ibctest.GetAndFundTestUserWithMnemonic(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), mnemonic, amount, srcChain)
-}
+//// CreateUserOnSourceChainWithMnemonic creates a user with the given amount of funds on the source chain from the given mnemonic.
+//func (s *E2ETestSuite) CreateUserOnSourceChainWithMnemonic(ctx context.Context, amount int64, mnemonic string) *ibctest.User {
+//	srcChain, _ := s.GetChains()
+//	return ibctest.GetAndFundTestUserWithMnemonic(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), mnemonic, amount, srcChain)
+//}
 
 // CreateUserOnDestinationChain creates a user with the given amount of funds on the destination chain.
 func (s *E2ETestSuite) CreateUserOnDestinationChain(ctx context.Context, amount int64) *ibctest.User {
