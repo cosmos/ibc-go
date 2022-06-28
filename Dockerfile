@@ -20,4 +20,4 @@ FROM ubuntu:20.04
 
 COPY --from=builder /go/build/simd /bin/simd
 
-ENTRYPOINT ["simd"]
+#ENTRYPOINT ["simd"]

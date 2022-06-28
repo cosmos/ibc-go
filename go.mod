@@ -167,4 +167,4 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 )
 
-replace github.com/strangelove-ventures/ibctest => ../ibctest
+//replace github.com/strangelove-ventures/ibctest => ../ibctest

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 )
@@ -30,12 +29,8 @@ func RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, r
 		"--yes",
 	}
 
-	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
-	if err != nil {
-		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
-	}
-
-	return nil
+	_, _, err := tn.Exec(ctx, cmd, nil)
+	return err
 }
 
 func QueryPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) (QueryIncentivizedPacketsResponse, error) {
@@ -52,15 +47,14 @@ func QueryPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channe
 		"--chain-id", chain.Config().ChainID,
 	}
 
-	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
 	if err != nil {
-		return QueryIncentivizedPacketsResponse{}, dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+		return QueryIncentivizedPacketsResponse{}, err
 	}
 
-	respBytes := []byte(stdout)
 	response := QueryIncentivizedPacketsResponse{}
 	//if err := types.ModuleCdc.Unmarshal(respBytes, &response); err != nil {
-	if err := json.Unmarshal(respBytes, &response); err != nil {
+	if err := json.Unmarshal(stdout, &response); err != nil {
 		return QueryIncentivizedPacketsResponse{}, err
 	}
 
@@ -82,18 +76,17 @@ func QueryCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, rela
 		"--chain-id", chain.Config().ChainID,
 	}
 
-	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
 	if err != nil {
-		return "", dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
+		return "", err
 	}
 
 	type QueryOutput struct {
 		CounterPartyPayee string `json:"counterparty_payee"`
 	}
 
-	stdOutBytes := []byte(stdout)
 	res := &QueryOutput{}
-	if err := json.Unmarshal(stdOutBytes, res); err != nil {
+	if err := json.Unmarshal(stdout, res); err != nil {
 		return "", err
 	}
 
@@ -121,12 +114,8 @@ func PayPacketFee(ctx context.Context, chain *cosmos.CosmosChain, fromAddress, p
 		"--yes",
 	}
 
-	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
-	if err != nil {
-		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
-	}
-
-	return nil
+	_, _, err := tn.Exec(ctx, cmd, nil)
+	return err
 }
 
 // FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.

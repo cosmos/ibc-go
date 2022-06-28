@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/ibc-go/v3/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/v3/e2e/e2efee"
 	"github.com/cosmos/ibc-go/v3/e2e/setup"
 	"github.com/cosmos/ibc-go/v3/e2e/testconfig"
@@ -129,11 +128,8 @@ func recoverKeyring(ctx context.Context, chain *cosmos.CosmosChain, name, mnemon
 		fmt.Sprintf(`echo "%s" | %s keys add %s --recover --keyring-backend %s --home %s --output json`, mnemonic, chain.Config().Bin, name, keyring.BackendTest, tn.NodeHome()),
 	}
 
-	exitCode, stdout, stderr, err := tn.NodeJob(ctx, cmd)
-	if err != nil {
-		return dockerutil.HandleNodeJobError(exitCode, stdout, stderr, err)
-	}
-	return nil
+	_, _, err := tn.Exec(ctx, cmd, nil)
+	return err
 }
 
 // CreateCosmosChains creates two separate chains in docker containers.
