@@ -360,7 +360,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					registerDenom()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,
-						channeltypes.NewErrorAcknowledgement("MBT Error Acknowledgement"))
+						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)
 				}

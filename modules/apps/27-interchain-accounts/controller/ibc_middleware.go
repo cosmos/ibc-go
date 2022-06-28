@@ -138,7 +138,10 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return channeltypes.NewErrorAcknowledgement("cannot receive packet on controller chain")
+	err := sdkerrors.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
+	ack := channeltypes.NewErrorAcknowledgement(err)
+	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
+	return ack
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface

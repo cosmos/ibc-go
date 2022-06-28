@@ -403,7 +403,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
-					return channeltypes.NewErrorAcknowledgement("failed OnRecvPacket mock callback")
+					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
 			}, true,
 		},
