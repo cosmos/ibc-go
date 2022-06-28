@@ -2,6 +2,7 @@ package transfer
 
 import (
 	"fmt"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	"math"
 	"strings"
 
@@ -180,7 +181,7 @@ func (im IBCModule) OnRecvPacket(
 	var data types.FungibleTokenPacketData
 	var ackErr error
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ackErr = fmt.Errorf("cannot unmarshal ICS-20 transfer packet data")
+		ackErr = sdkerrors.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot unmarshal ICS-20 transfer packet data")
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
 

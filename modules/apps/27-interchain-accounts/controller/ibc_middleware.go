@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -140,7 +138,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	err := fmt.Errorf("cannot receive packet on controller chain")
+	err := sdkerrors.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 	return ack
