@@ -1027,8 +1027,8 @@ github.com/spf13/viper v1.12.0/go.mod h1:b6COn30jlNxbm/V2IqWiNWkJ+vZNiMNksliPCiu
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
 github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570/go.mod h1:8OR4w3TdeIHIh1g6EMY5p0gVNOovcWC+1vpc7naMuAw=
 github.com/steakknife/hamming v0.0.0-20180906055917-c99c65617cd3/go.mod h1:hpGUWaI9xL8pRQCTXQgocU38Qw1g0Us7n5PxxTwTCYU=
-github.com/strangelove-ventures/ibctest v0.0.0-20220622222041-8d2819f7a64c h1:f6fJDnmff71KZQXnhosLhbXSGziK6/qOH4ykPWnTlIE=
-github.com/strangelove-ventures/ibctest v0.0.0-20220622222041-8d2819f7a64c/go.mod h1:t3iz43R1/j4s8amDiZ+VHER9NOdTm3vpWnI6JnTkq58=
+github.com/strangelove-ventures/ibctest v0.0.0-20220627205259-b3cee1559184 h1:P3DK/kmtJZ85h65cjR+O5SO+R7UWqWPOJbu+tkWaiOU=
+github.com/strangelove-ventures/ibctest v0.0.0-20220627205259-b3cee1559184/go.mod h1:t3iz43R1/j4s8amDiZ+VHER9NOdTm3vpWnI6JnTkq58=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v1.0.0/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
