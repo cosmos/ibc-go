@@ -25,8 +25,8 @@ func (s *TransferTestSuite) TestBasicIBCTransfer() {
 	t := s.T()
 	ctx := context.TODO()
 
-	srcChain, dstChain := s.GetChains()
 	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx)
+	srcChain, dstChain := s.GetChains()
 
 	t.Run("test IBC transfer", func(t *testing.T) {
 

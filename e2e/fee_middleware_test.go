@@ -64,9 +64,8 @@ func (s *FeeMiddlewareTestSuite) _TestSyncSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
 
-	srcChain, _ := s.GetChains()
-
 	s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	srcChain, _ := s.GetChains()
 
 	startingTokenAmount := int64(10_000_000)
 	srcChainSenderOne := s.CreateUserOnSourceChainWithMnemonic(ctx, startingTokenAmount, user1Mnemonic)
@@ -171,9 +170,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncMultipleSenders() {
 	t := s.T()
 	ctx := context.TODO()
 
-	srcChain, dstChain := s.GetChains()
-
 	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	srcChain, dstChain := s.GetChains()
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -286,9 +284,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
 
-	srcChain, dstChain := s.GetChains()
-
 	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	srcChain, dstChain := s.GetChains()
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -400,9 +397,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSenderTimesOut() {
 	t := s.T()
 	ctx := context.TODO()
 
-	srcChain, dstChain := s.GetChains()
-
 	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	srcChain, dstChain := s.GetChains()
 
 	startingTokenAmount := int64(10_000_000)
 
@@ -512,9 +508,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSenderNoCounterPartyAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
-	srcChain, dstChain := s.GetChains()
-
 	relayer, srcChainChannelInfo := s.CreateChainsRelayerAndChannel(ctx, e2efee.FeeMiddlewareChannelOptions())
+	srcChain, dstChain := s.GetChains()
 
 	startingTokenAmount := int64(10_000_000)
 
