@@ -170,18 +170,13 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	// so that we can delete consensus state and all associated metadata.
 	var (
 		pruneHeight exported.Height
-		pruneError  error
 	)
 
 	pruneCb := func(height exported.Height) bool {
 		consState, found := GetConsensusState(clientStore, cdc, height)
 		// this error should never occur
 		if !found {
-			pruneError = sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height)
-			if pruneError != nil {
-				panic(pruneError)
-			}
-			return true
+			panic(sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height))
 		}
 
 		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
