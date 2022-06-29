@@ -27,6 +27,8 @@ If a counterparty payee is not registered for the forward relayer on the destina
 A transaction must be submitted to the destination chain including a `CounterpartyPayee` address of an account on the source chain.
 The transaction must be signed by the `Relayer`.
 
+Note: If a module account address is used as the `CounterpartyPayee` it is recommended to [turn off invariant checks](https://github.com/cosmos/ibc-go/blob/71d7480c923f4227453e8a80f51be01ae7ee845e/testing/simapp/app.go#L659) for that module. 
+
 ```go
 type MsgRegisterCounterpartyPayee struct {
 	// unique port identifier
@@ -62,6 +64,8 @@ If a payee is not registered for the reverse or timeout relayer on the source ch
 
 A transaction must be submitted to the source chain including a `Payee` address of an account on the source chain.
 The transaction must be signed by the `Relayer`.
+
+Note: If a module account address is used as the `Payee` it is recommended to [turn off invariant checks](https://github.com/cosmos/ibc-go/blob/71d7480c923f4227453e8a80f51be01ae7ee845e/testing/simapp/app.go#L659) for that module.
 
 ```go
 type MsgRegisterPayee struct {

@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		successAck = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		failedAck  = channeltypes.NewErrorAcknowledgement("failed packet transfer")
+		failedAck  = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
 		trace      types.DenomTrace
 		amount     sdk.Int
 		path       *ibctesting.Path

@@ -106,13 +106,13 @@ func (im IBCModule) OnRecvPacket(
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	if !im.keeper.IsHostEnabled(ctx) {
-		return types.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
+		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
 	txResponse, err := im.keeper.OnRecvPacket(ctx, packet)
 	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
-		ack = types.NewErrorAcknowledgement(err)
+		ack = channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	// Emit an event indicating a successful or failed acknowledgement.
