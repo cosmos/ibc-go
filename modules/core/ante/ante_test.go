@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/ante"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/ante"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 type AnteTestSuite struct {

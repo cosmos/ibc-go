@@ -25,7 +25,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v3/testing/simapp/helpers"
+	"github.com/cosmos/ibc-go/v4/testing/simapp/helpers"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
