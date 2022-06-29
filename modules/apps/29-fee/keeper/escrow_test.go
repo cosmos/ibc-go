@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v4/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestDistributeFee() {
@@ -19,6 +20,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		refundAccBal      sdk.Coin
 		packetFee         types.PacketFee
 		packetFees        []types.PacketFee
+		fee               types.Fee
 	)
 
 	testCases := []struct {
@@ -28,7 +30,10 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees = []types.PacketFee{packetFee, packetFee}
+			},
 			func() {
 				// check if fees has been deleted
 				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
@@ -58,7 +63,29 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			},
 		},
 		{
+			"success: refund account is module account",
+			func() {
+				refundAcc = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(mock.ModuleName)
+
+				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees = []types.PacketFee{packetFee, packetFee}
+
+				// fund mock account
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), mock.ModuleName, packetFee.Fee.Total().Add(packetFee.Fee.Total()...))
+				suite.Require().NoError(err)
+			},
+			func() {
+				// check if the refund acc has been refunded the timeoutFee
+				expectedRefundAccBal := defaultTimeoutFee[0].Add(defaultTimeoutFee[0])
+				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
+				suite.Require().Equal(expectedRefundAccBal, balance)
+			},
+		},
+		{
 			"escrow account out of balance, fee module becomes locked - no distribution", func() {
+				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees = []types.PacketFee{packetFee, packetFee}
+
 				// pass in an extra packet fee
 				packetFees = append(packetFees, packetFee)
 			},
@@ -77,6 +104,9 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		{
 			"invalid forward address",
 			func() {
+				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees = []types.PacketFee{packetFee, packetFee}
+
 				forwardRelayer = "invalid address"
 			},
 			func() {
@@ -89,6 +119,9 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		{
 			"invalid forward address: blocked address",
 			func() {
+				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees = []types.PacketFee{packetFee, packetFee}
+
 				forwardRelayer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 			},
 			func() {
@@ -101,6 +134,9 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		{
 			"invalid receiver address: ack fee returned to sender",
 			func() {
+				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees = []types.PacketFee{packetFee, packetFee}
+
 				reverseRelayer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 			},
 			func() {
@@ -113,6 +149,9 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		{
 			"invalid refund address: no-op, timeout fee remains in escrow",
 			func() {
+				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
+				packetFees = []types.PacketFee{packetFee, packetFee}
+
 				packetFees[0].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 				packetFees[1].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 			},
@@ -138,17 +177,14 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
 
 			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+
+			tc.malleate()
 
 			// escrow the packet fees & store the fees in state
-			packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
-			packetFees = []types.PacketFee{packetFee, packetFee}
-
 			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
 			err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, packetFee.Fee.Total().Add(packetFee.Fee.Total()...))
 			suite.Require().NoError(err)
-
-			tc.malleate()
 
 			// fetch the account balances before fee distribution (forward, reverse, refund)
 			forwardAccAddress, _ := sdk.AccAddressFromBech32(forwardRelayer)
