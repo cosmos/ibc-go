@@ -2,9 +2,9 @@ package keeper
 
 import (
 	"encoding/hex"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
