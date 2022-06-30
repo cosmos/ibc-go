@@ -17,26 +17,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// checkTrustedHeader checks that consensus state matches trusted fields of Header
-func checkTrustedHeader(header *Header, consState *ConsensusState) error {
-	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
-	if err != nil {
-		return sdkerrors.Wrap(err, "trusted validator set in not tendermint validator set type")
-	}
-
-	// assert that trustedVals is NextValidators of last trusted header
-	// to do this, we check that trustedVals.Hash() == consState.NextValidatorsHash
-	tvalHash := tmTrustedValidators.Hash()
-	if !bytes.Equal(consState.NextValidatorsHash, tvalHash) {
-		return sdkerrors.Wrapf(
-			ErrInvalidValidatorSet,
-			"trusted validators %s, does not hash to latest trusted validators. Expected: %X, got: %X",
-			header.TrustedValidators, consState.NextValidatorsHash, tvalHash,
-		)
-	}
-	return nil
-}
-
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
@@ -190,15 +170,13 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	// so that we can delete consensus state and all associated metadata.
 	var (
 		pruneHeight exported.Height
-		pruneError  error
 	)
 
 	pruneCb := func(height exported.Height) bool {
 		consState, found := GetConsensusState(clientStore, cdc, height)
 		// this error should never occur
 		if !found {
-			pruneError = sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height)
-			return true
+			panic(sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height))
 		}
 
 		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
@@ -209,9 +187,6 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 	}
 
 	IterateConsensusStateAscending(clientStore, pruneCb)
-	if pruneError != nil {
-		panic(pruneError)
-	}
 
 	// if pruneHeight is set, delete consensus state and metadata
 	if pruneHeight != nil {
@@ -230,11 +205,11 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 		// Check if the Client store already has a consensus state for the header's height
 		// If the consensus state exists, and it matches the header then we return early
 		// since header has already been submitted in a previous UpdateClient.
-		prevConsState, _ := GetConsensusState(clientStore, cdc, tmHeader.GetHeight())
-		if prevConsState != nil {
+		existingConsState, _ := GetConsensusState(clientStore, cdc, tmHeader.GetHeight())
+		if existingConsState != nil {
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
+			if reflect.DeepEqual(existingConsState, tmHeader.ConsensusState()) {
 				return false
 			}
 
@@ -271,4 +246,24 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binar
 	cs.FrozenHeight = FrozenHeight
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
+}
+
+// checkTrustedHeader checks that consensus state matches trusted fields of Header
+func checkTrustedHeader(header *Header, consState *ConsensusState) error {
+	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
+	if err != nil {
+		return sdkerrors.Wrap(err, "trusted validator set in not tendermint validator set type")
+	}
+
+	// assert that trustedVals is NextValidators of last trusted header
+	// to do this, we check that trustedVals.Hash() == consState.NextValidatorsHash
+	tvalHash := tmTrustedValidators.Hash()
+	if !bytes.Equal(consState.NextValidatorsHash, tvalHash) {
+		return sdkerrors.Wrapf(
+			ErrInvalidValidatorSet,
+			"trusted validators %s, does not hash to latest trusted validators. Expected: %X, got: %X",
+			header.TrustedValidators, consState.NextValidatorsHash, tvalHash,
+		)
+	}
+	return nil
 }
