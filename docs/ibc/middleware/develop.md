@@ -67,7 +67,7 @@ Middleware accomplishes this by formatting the version in a JSON-encoded string 
 {"<middleware_version_key>":"<middleware_version_value>","app_version":"<application_version_value>"}`
 ```
 
-The `<middleware_version_key>` key in the JSON struct is replaced by the actual name of the key for the corresponding middleware (e.g. `fee_version`).
+The `<middleware_version_key>` key in the JSON struct should be replaced by the actual name of the key for the corresponding middleware (e.g. `fee_version`).
 
 During the handshake callbacks, the middleware can unmarshall the version string and retrieved the middleware and application versions. It can do its negotiation logic on `<middleware_version_value>`, and pass the `<application_version_value>` to the underlying application.
 
