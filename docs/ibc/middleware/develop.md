@@ -61,8 +61,6 @@ The middleware must have access to the underlying application, and be called bef
 
 In the case where the IBC middleware expects to speak to a compatible IBC middleware on the counterparty chain, they must use the channel handshake to negotiate the middleware version without interfering in the version negotiation of the underlying application.
 
-Middleware accomplishes this by formatting the version in the following format: `{mw-version}:{app-version}`.
-
 Middleware accomplishes this by formatting the version in a JSON-encoded string containing the middleware version and the application version. The application version may as well be a JSON-encoded string, possibly including further middleware and app versions, if the application stack consists of multiple milddlewares wrapping a base application. The format of the version is specified in ICS-30 as the following:
 
 ```json
@@ -247,7 +245,7 @@ NOTE: Middleware that does not need to negotiate with a counterparty middleware 
 The packet callbacks just like the handshake callbacks wrap the application's packet callbacks. The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware.
 
 ```go
-OnRecvPacket(
+func OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -260,7 +258,7 @@ OnRecvPacket(
     return ack
 }
 
-OnAcknowledgementPacket(
+func OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -271,7 +269,7 @@ OnAcknowledgementPacket(
     return app.OnAcknowledgementPacket(ctx, packet, ack, relayer)
 }
 
-OnTimeoutPacket(
+func OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
