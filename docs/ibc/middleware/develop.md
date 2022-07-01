@@ -184,11 +184,11 @@ func OnChanOpenTry(
 }
 
 func OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyChannelID string,
-	counterpartyVersion string,
+    ctx sdk.Context,
+    portID,
+    channelID string,
+    counterpartyChannelID string,
+    counterpartyVersion string,
 ) error {
     // try to unmarshal JSON-encoded version string and pass 
     // the app-specific version to app callback.
@@ -300,8 +300,8 @@ func WriteAcknowledgement(
 
 func SendPacket(
     ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	app_packet exported.PacketI,
+    chanCap *capabilitytypes.Capability,
+    app_packet exported.PacketI,
 ) {
     // middleware may modify packet
     packet = doCustomLogic(app_packet)
@@ -312,8 +312,8 @@ func SendPacket(
 // middleware must return the underlying application version 
 func GetAppVersion(
     ctx sdk.Context,
-	portID,
-	channelID string,
+    portID,
+    channelID string,
 ) (string, bool) {
     version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
     if !found {
