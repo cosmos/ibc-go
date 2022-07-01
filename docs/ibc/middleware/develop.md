@@ -246,9 +246,9 @@ The packet callbacks just like the handshake callbacks wrap the application's pa
 
 ```go
 func OnRecvPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
     doCustomLogic(packet)
 
@@ -259,10 +259,10 @@ func OnRecvPacket(
 }
 
 func OnAcknowledgementPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    acknowledgement []byte,
+    relayer sdk.AccAddress,
 ) error {
     doCustomLogic(packet, ack)
 
@@ -270,9 +270,9 @@ func OnAcknowledgementPacket(
 }
 
 func OnTimeoutPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    relayer sdk.AccAddress,
 ) error {
     doCustomLogic(packet)
 
