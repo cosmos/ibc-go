@@ -17,9 +17,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/client/cli"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/client/cli"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )
 
 var (

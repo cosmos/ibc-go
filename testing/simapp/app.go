@@ -43,8 +43,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/cosmos/ibc-go/v3/testing/mock"
-	simappparams "github.com/cosmos/ibc-go/v3/testing/simapp/params"
 
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
@@ -82,27 +80,29 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ica "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts"
-	icacontroller "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller"
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
-	icacontrollertypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	icahost "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v3/modules/apps/29-fee"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
-	ibcfeetypes "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	transfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v3/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	ica "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts"
+	icacontroller "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/keeper"
+	icacontrollertypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
+	icahost "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host"
+	icahostkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/keeper"
+	icahosttypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	ibcfee "github.com/cosmos/ibc-go/v4/modules/apps/29-fee"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/keeper"
+	ibcfeetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	transfer "github.com/cosmos/ibc-go/v4/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v4/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v4/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v4/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v4/modules/core/keeper"
+	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
+	simappparams "github.com/cosmos/ibc-go/v4/testing/simapp/params"
 
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -116,7 +116,7 @@ const appName = "SimApp"
 
 // IBC application testing ports
 const (
-	MockFeePort string = mock.ModuleName + ibcfeetypes.ModuleName
+	MockFeePort string = ibcmock.ModuleName + ibcfeetypes.ModuleName
 )
 
 var (
@@ -146,7 +146,7 @@ var (
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
-		mock.AppModuleBasic{},
+		ibcmock.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		vesting.AppModuleBasic{},
@@ -164,7 +164,7 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
-		mock.ModuleName:                nil,
+		ibcmock.ModuleName:             nil,
 	}
 )
 
@@ -222,8 +222,8 @@ type SimApp struct {
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
-	ICAAuthModule mock.IBCModule
-	FeeMockModule mock.IBCModule
+	ICAAuthModule ibcmock.IBCModule
+	FeeMockModule ibcmock.IBCModule
 
 	// the module manager
 	mm *module.Manager
@@ -294,9 +294,9 @@ func NewSimApp(
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
-	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(mock.ModuleName)
+	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
-	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(mock.ModuleName + icacontrollertypes.SubModuleName)
+	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
 
 	// seal capability keeper after scoping modules
 	app.CapabilityKeeper.Seal()
@@ -398,11 +398,11 @@ func NewSimApp(
 	// Mock Module setup for testing IBC and also acts as the interchain accounts authentication module
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
-	mockModule := mock.NewAppModule(&app.IBCKeeper.PortKeeper)
+	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
 
 	// The mock module is used for testing IBC
-	mockIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.ModuleName, scopedIBCMockKeeper))
-	ibcRouter.AddRoute(mock.ModuleName, mockIBCModule)
+	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
+	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -429,8 +429,8 @@ func NewSimApp(
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
-	icaControllerStack = mock.NewIBCModule(&mockModule, mock.NewIBCApp("", scopedICAMockKeeper))
-	app.ICAAuthModule = icaControllerStack.(mock.IBCModule)
+	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
+	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
@@ -448,7 +448,7 @@ func NewSimApp(
 		// owns the channel capability.
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
+		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	// Create Mock IBC Fee module stack for testing
 	// SendPacket, since it is originating from the application to core IBC:
@@ -461,7 +461,7 @@ func NewSimApp(
 	// mockModule.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
 
 	// create fee wrapped mock module
-	feeMockModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
+	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
@@ -523,13 +523,13 @@ func NewSimApp(
 		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, feegrant.ModuleName,
-		paramstypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, mock.ModuleName,
+		paramstypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, feegrant.ModuleName, paramstypes.ModuleName,
-		upgradetypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, mock.ModuleName,
+		upgradetypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -541,7 +541,7 @@ func NewSimApp(
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibchost.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		icatypes.ModuleName, ibcfeetypes.ModuleName, mock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
+		icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -657,7 +657,7 @@ func (app *SimApp) ModuleAccountAddrs() map[string]bool {
 	for acc := range maccPerms {
 		// do not add mock module to blocked addresses
 		// this is only used for testing
-		if acc == mock.ModuleName {
+		if acc == ibcmock.ModuleName {
 			continue
 		}
 

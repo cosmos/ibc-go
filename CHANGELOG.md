@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#1525](https://github.com/cosmos/ibc-go/pull/1525) Bump SDK version to v0.45.5
+* [\#1627](https://github.com/cosmos/ibc-go/pull/1627) Bump Go version to 1.18
 
 ### API Breaking
 * (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatiblity with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
@@ -50,6 +51,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/29-fee)[\#1338](https://github.com/cosmos/ibc-go/pull/1338) Renaming `Result` field in `IncentivizedAcknowledgement` to `AppAcknowledgement`.
 * (modules/29-fee)[\#1343](https://github.com/cosmos/ibc-go/pull/1343) Renaming `KeyForwardRelayerAddress` to `KeyRelayerAddressForAsyncAck`, and `ParseKeyForwardRelayerAddress` to `ParseKeyRelayerAddressForAsyncAck`.
 * (apps/27-interchain-accounts)[\#1432](https://github.com/cosmos/ibc-go/pull/1432) Updating `RegisterInterchainAccount` to include an additional `version` argument, supporting ICS29 fee middleware functionality in ICS27 interchain accounts.
+* (apps/27-interchain-accounts)[\#1565](https://github.com/cosmos/ibc-go/pull/1565) Removing `NewErrorAcknowledgement` in favour of `channeltypes.NewErrorAcknowledgement`.
+* (transfer)[\#1565](https://github.com/cosmos/ibc-go/pull/1565) Removing `NewErrorAcknowledgement` in favour of `channeltypes.NewErrorAcknowledgement`.
+* (channel)[\#1565](https://github.com/cosmos/ibc-go/pull/1565) Updating `NewErrorAcknowledgement` to accept an error instead of a string and removing the possibility of non-deterministic writes to application state.
+* (core/04-channel)[\#1636](https://github.com/cosmos/ibc-go/pull/1636) Removing `SplitChannelVersion` and `MergeChannelVersions` functions since they are not used.
 
 ### State Machine Breaking
 
@@ -64,6 +69,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (app/29-fee) [\#1305](https://github.com/cosmos/ibc-go/pull/1305) Change version string for fee module to `ics29-1`
 * (app/29-fee) [\#1341](https://github.com/cosmos/ibc-go/pull/1341) Check if the fee module is locked and if the fee module is enabled before refunding all fees
 * (testing/simapp) [\#1397](https://github.com/cosmos/ibc-go/pull/1397) Adding mock module to maccperms and adding check to ensure mock module is not a blocked account address. 
+* (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal. 
 
 ### Features
 

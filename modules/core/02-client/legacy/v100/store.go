@@ -10,11 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	smtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	smtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/06-solomachine/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
 )
 
 // MigrateStore performs in-place store migrations from SDK v0.40 of the IBC module to v1.0.0 of ibc-go.
@@ -44,7 +44,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 	}
 
 	for _, clientID := range clients {
-		clientType, _, err := types.ParseClientIdentifier(clientID)
+		clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 		if err != nil {
 			return err
 		}
@@ -54,7 +54,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 		bz := clientStore.Get(host.ClientStateKey())
 		if bz == nil {
-			return types.ErrClientNotFound
+			return clienttypes.ErrClientNotFound
 		}
 
 		switch clientType {
@@ -71,7 +71,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 			updatedClientState := migrateSolomachine(clientState)
 
-			bz, err := types.MarshalClientState(cdc, updatedClientState)
+			bz, err := clienttypes.MarshalClientState(cdc, updatedClientState)
 			if err != nil {
 				return sdkerrors.Wrap(err, "failed to unmarshal client state bytes into solo machine client state")
 			}
@@ -89,7 +89,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 
 			tmClientState, ok := clientState.(*ibctmtypes.ClientState)
 			if !ok {
-				return sdkerrors.Wrap(types.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+				return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 			}
 
 			// add iteration keys so pruning will be successful
@@ -139,7 +139,7 @@ func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 		}
 
 		// collect consensus states to be pruned
-		heights = append(heights, types.MustParseHeight(keySplit[1]))
+		heights = append(heights, clienttypes.MustParseHeight(keySplit[1]))
 	}
 
 	// delete all consensus states
@@ -163,13 +163,13 @@ func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore) {
 			continue
 		}
 
-		heights = append(heights, types.MustParseHeight(keySplit[1]))
+		heights = append(heights, clienttypes.MustParseHeight(keySplit[1]))
 	}
 
 	for _, height := range heights {
 		// set the iteration key and processed height
 		// these keys were not included in the SDK v0.42.0 release
-		ibctmtypes.SetProcessedHeight(clientStore, height, types.GetSelfHeight(ctx))
+		ibctmtypes.SetProcessedHeight(clientStore, height, clienttypes.GetSelfHeight(ctx))
 		ibctmtypes.SetIterationKey(clientStore, height)
 	}
 }

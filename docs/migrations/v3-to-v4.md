@@ -26,11 +26,15 @@ This is an API breaking change and as such IBC application developers will have 
 The `OnChanOpenInit` application callback has been modified.
 The return signature now includes the application version as detailed in the latest IBC [spec changes](https://github.com/cosmos/ibc/pull/629).
 
+The `NewErrorAcknowledgement` method signature has changed.
+It now accepts an `error` rather than a `string`. This was done in order to prevent accidental state changes.
+All error acknowledgements now contain a deterministic ABCI code and error message. It is the responsibility of the application developer to emit error details in events.
+
 ### ICS27 - Interchain Accounts
 
 The `RegisterInterchainAccount` API has been modified to include an additional `version` argument. This change has been made in order to support ICS29 fee middleware, for relayer incentivization of ICS27 packets.
 Consumers of the `RegisterInterchainAccount` are now expected to build the appropriate JSON encoded version string themselves and pass it accordingly. 
-This should be constructed within the interchain accounts authentication module which leverages the APIs exposed via the interchain accounts `controllerKeeper`. 
+This should be constructed within the interchain accounts authentication module which leverages the APIs exposed via the interchain accounts `controllerKeeper`. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
 
 The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
 
