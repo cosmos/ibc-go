@@ -95,6 +95,33 @@ type ClientState interface {
 
 	// State verification functions
 
+	// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+	VerifyMembership(
+		ctx sdk.Context,
+		clientStore sdk.KVStore,
+		cdc codec.BinaryCodec,
+		height Height,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
+		proof []byte,
+		path []byte,
+		value []byte,
+	) error
+
+	// VerifyNonMembership is a generic proof verification method which verifies the absense of a given CommitmentPath at a specified height.
+	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+	VerifyNonMembership(
+		ctx sdk.Context,
+		clientStore sdk.KVStore,
+		cdc codec.BinaryCodec,
+		height Height,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
+		proof []byte,
+		path []byte,
+	) error
+
 	VerifyClientState(
 		store sdk.KVStore,
 		cdc codec.BinaryCodec,
