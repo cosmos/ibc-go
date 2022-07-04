@@ -213,7 +213,7 @@ jobs:
   determine-image-tag:
     runs-on: ubuntu-latest
     outputs:
-      simd-tag: ${{ steps.get-tag.outputs.matrix }}
+      simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
