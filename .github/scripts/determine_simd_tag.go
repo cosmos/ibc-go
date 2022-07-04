@@ -8,12 +8,13 @@ import (
 
 func main() {
 	args := os.Args
-	if len(args) != 3 {
-		fmt.Println("must specify exactly 2 args, ref and PR number")
+
+	if len(args) < 2 {
+		fmt.Printf("a ref or PR number is expected, provided: %+v\n", args)
 		os.Exit(1)
 	}
 
-	tag, err := determineSimdTag(args[1], args[2])
+	tag, err := determineSimdTag(args[1])
 	if err != nil {
 		fmt.Printf("failed to determine tag: %s", err)
 		os.Exit(1)
@@ -25,13 +26,17 @@ func main() {
 // when a ref is specified, this will usually be "main" which is the tag that should be
 // used once a branch has been merged to main. If a PR number is specified, then the format
 // of the tag will be "pr-1234".
-func determineSimdTag(ref, prNumber string) (string, error) {
-	if ref != "" {
-		return ref, nil
+func determineSimdTag(input string) (string, error) {
+	if input == "" {
+		return "", fmt.Errorf("empty input was provided")
 	}
-	prNumm, err := strconv.Atoi(prNumber)
-	if err != nil {
-		return "", err
+
+	// attempt to extract PR number
+	prNumm, err := strconv.Atoi(input)
+	if err == nil {
+		return fmt.Sprintf("pr-%d", prNumm), nil
 	}
-	return fmt.Sprintf("pr-%d", prNumm), nil
+
+	// a ref was provided instead, e.g. "main"
+	return input, nil
 }
