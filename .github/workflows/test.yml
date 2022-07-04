@@ -222,6 +222,7 @@ jobs:
       - id: get-tag
         run: |
           tag=$(go run .github/scripts/determine_simd_tag.go -ref "${{ github.event.push.ref }}" -pr "${{ github.event.pull_request.number }}" )
+          echo "Using tag $tag"
           echo "::set-output name=simd-tag::$tag"
 
 
