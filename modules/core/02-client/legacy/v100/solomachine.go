@@ -211,6 +211,35 @@ func (cs ClientState) VerifyNextSequenceRecv(
 	panic("legacy solo machine is deprecated!")
 }
 
+// VerifyMembership panics!
+func (cs *ClientState) VerifyMembership(
+	ctx sdk.Context,
+	clientStore sdk.KVStore,
+	cdc codec.BinaryCodec,
+	height exported.Height,
+	delayTimePeriod uint64,
+	delayBlockPeriod uint64,
+	proof []byte,
+	path []byte,
+	value []byte,
+) error {
+	panic("legacy solo machine is deprecated!")
+}
+
+// VerifyNonMembership panics!
+func (cs *ClientState) VerifyNonMembership(
+	ctx sdk.Context,
+	clientStore sdk.KVStore,
+	cdc codec.BinaryCodec,
+	height exported.Height,
+	delayTimePeriod uint64,
+	delayBlockPeriod uint64,
+	proof []byte,
+	path []byte,
+) error {
+	panic("legacy solo machine is deprecated")
+}
+
 // ClientType panics!
 func (ConsensusState) ClientType() string {
 	panic("legacy solo machine is deprecated!")
