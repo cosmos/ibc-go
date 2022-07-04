@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ibc-go-simd-e2e
