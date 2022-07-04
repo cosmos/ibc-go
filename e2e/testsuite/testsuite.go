@@ -14,7 +14,6 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/relayer"
 	"github.com/strangelove-ventures/ibctest/testreporter"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -44,6 +43,11 @@ type chainPair struct {
 type ChainOptions struct {
 	SrcChainConfig *ibc.ChainConfig
 	DstChainConfig *ibc.ChainConfig
+}
+
+func (s *E2ETestSuite) getExecReporter() *testreporter.RelayerExecReporter {
+	rep := testreporter.NewNopReporter()
+	return rep.RelayerExecReporter(s.T())
 }
 
 // GetChains returns a src and dst chain that can be used in a test. The pair returned
@@ -105,12 +109,8 @@ func (s *E2ETestSuite) CreateCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) ibc.Relayer {
 	srcChain, dstChain := s.GetChains()
-	rep := testreporter.NewNopReporter()
-	req := require.New(rep.TestifyT(s.T()))
-	eRep := rep.RelayerExecReporter(s.T())
-
 	home, err := ioutil.TempDir("", "")
-	req.NoError(err)
+	s.Require().NoError(err)
 
 	r := newRelayer(s.T(), s.logger, s.Client, s.network, home)
 
@@ -133,7 +133,8 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 		opt(&channelOptions)
 	}
 
-	req.NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
+	eRep := s.getExecReporter()
+	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
 		HomeDir:           home,
 		Client:            s.Client,
@@ -143,7 +144,7 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 
 	s.startRelayerFn = func(relayer ibc.Relayer) {
 		err := relayer.StartRelayer(ctx, eRep, pathName)
-		req.NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
+		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
 		s.T().Cleanup(func() {
 			if !s.T().Failed() {
 				if err := relayer.StopRelayer(ctx, eRep); err != nil {
