@@ -35,8 +35,6 @@ type E2ETestSuite struct {
 	Client         *dockerclient.Client
 	network        string
 	startRelayerFn func(relayer ibc.Relayer)
-	Rep            *testreporter.Reporter
-	Req            *require.Assertions
 }
 
 type chainPair struct {
@@ -48,13 +46,8 @@ type ChainOptions struct {
 	DstChainConfig *ibc.ChainConfig
 }
 
-func (s *E2ETestSuite) SetupTest() {
-	s.Rep = testreporter.NewNopReporter()
-	s.Req = require.New(s.Rep.TestifyT(s.T()))
-}
-
 // GetChains returns a src and dst chain that can be used in a test. The pair returned
-// is unique to the current test being run.
+// is unique to the current test being run. Note: this function does not create containers.
 func (s *E2ETestSuite) GetChains(chainOpts ...func(*ChainOptions)) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
 	if s.chainPairs == nil {
 		s.chainPairs = map[string]chainPair{}
@@ -106,53 +99,20 @@ func (s *E2ETestSuite) CreateCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 	return srcChain, dstChain
 }
 
-func defaultChainOptions() ChainOptions {
-	tc := testconfig.FromEnv()
-	srcChainCfg := NewSimappConfig(tc, "simapp-a", "chain-a", "atoma")
-	dstChainCfg := NewSimappConfig(tc, "simapp-b", "chain-b", "atomb")
-	return ChainOptions{
-		SrcChainConfig: &srcChainCfg,
-		DstChainConfig: &dstChainCfg,
-	}
-}
-
-func NewRelayer(t *testing.T, logger *zap.Logger, client *dockerclient.Client, network string, home string) ibc.Relayer {
-	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main")).Build(
-		t, client, network, home,
-	)
-}
-
-// NewSimappConfig creates an ibc configuration for simd.
-func NewSimappConfig(tc testconfig.TestConfig, name, chainId, denom string) ibc.ChainConfig {
-	return ibc.ChainConfig{
-		Type:    "cosmos",
-		Name:    name,
-		ChainID: chainId,
-		Images: []ibc.DockerImage{
-			{
-				Repository: tc.SimdImage,
-				Version:    tc.SimdTag,
-			},
-		},
-		Bin:            "simd",
-		Bech32Prefix:   "cosmos",
-		Denom:          denom,
-		GasPrices:      fmt.Sprintf("0.01%s", denom),
-		GasAdjustment:  1.3,
-		TrustingPeriod: "508h",
-		NoHostMount:    false,
-	}
-}
-
+// CreateChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
+// using the given channel options. The relayer returned by this function has not yet started. It should be started
+// with E2ETestSuite.StartRelayer if needed.
+// This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) ibc.Relayer {
 	srcChain, dstChain := s.GetChains()
-	req := s.Req
-	eRep := s.Rep.RelayerExecReporter(s.T())
+	rep := testreporter.NewNopReporter()
+	req := require.New(rep.TestifyT(s.T()))
+	eRep := rep.RelayerExecReporter(s.T())
 
 	home, err := ioutil.TempDir("", "")
 	req.NoError(err)
 
-	r := NewRelayer(s.T(), s.logger, s.Client, s.network, home)
+	r := newRelayer(s.T(), s.logger, s.Client, s.network, home)
 
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")
@@ -168,13 +128,7 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 			Path:    pathName,
 		})
 
-	channelOptions := ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          ibc.Unordered,
-		Version:        "ics20-1",
-	}
-
+	channelOptions := ibc.DefaultChannelOpts()
 	for _, opt := range channelOpts {
 		opt(&channelOptions)
 	}
@@ -184,7 +138,6 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 		HomeDir:           home,
 		Client:            s.Client,
 		NetworkID:         s.network,
-		SkipPathCreation:  true,
 		CreateChannelOpts: channelOptions,
 	}))
 
@@ -220,6 +173,7 @@ func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.RelayerWallet
 }
 
 // RecoverRelayerWallets adds the corresponding relayer address to the keychain of the chain.
+// This is useful if commands executed on the chains expect the relayer information to present in the keychain.
 func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Relayer) error {
 	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
 	if err != nil {
@@ -282,4 +236,45 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.U
 		return -1, err
 	}
 	return bal, nil
+}
+
+// defaultChainOptions returns the default configuration for the source and destination chains.
+// These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
+func defaultChainOptions() ChainOptions {
+	tc := testconfig.FromEnv()
+	srcChainCfg := newDefaultSimappConfig(tc, "simapp-a", "chain-a", "atoma")
+	dstChainCfg := newDefaultSimappConfig(tc, "simapp-b", "chain-b", "atomb")
+	return ChainOptions{
+		SrcChainConfig: &srcChainCfg,
+		DstChainConfig: &dstChainCfg,
+	}
+}
+
+// newRelayer returns an instance of the go relayer.
+func newRelayer(t *testing.T, logger *zap.Logger, client *dockerclient.Client, network string, home string) ibc.Relayer {
+	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main")).Build(
+		t, client, network, home,
+	)
+}
+
+// newDefaultSimappConfig creates an ibc configuration for simd.
+func newDefaultSimappConfig(tc testconfig.TestConfig, name, chainId, denom string) ibc.ChainConfig {
+	return ibc.ChainConfig{
+		Type:    "cosmos",
+		Name:    name,
+		ChainID: chainId,
+		Images: []ibc.DockerImage{
+			{
+				Repository: tc.SimdImage,
+				Version:    tc.SimdTag,
+			},
+		},
+		Bin:            "simd",
+		Bech32Prefix:   "cosmos",
+		Denom:          denom,
+		GasPrices:      fmt.Sprintf("0.01%s", denom),
+		GasAdjustment:  1.3,
+		TrustingPeriod: "508h",
+		NoHostMount:    false,
+	}
 }
