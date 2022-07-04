@@ -95,9 +95,9 @@ func (im IBCModule) OnChanOpenInit(
     // otherwise, pass version directly to app callback.
     metadata, err := Unmarshal(version)
     if err != nil {
-        // Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-        // pass the entire version string onto the underlying
-        // application.
+        // Since it is valid for fee version to not be specified, 
+        // the above middleware version may be for another middleware.
+        // Pass the entire version string onto the underlying application.
         return im.app.OnChanOpenInit(
             ctx,
             order,
