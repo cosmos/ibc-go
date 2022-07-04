@@ -64,12 +64,12 @@ In the case where the IBC middleware expects to speak to a compatible IBC middle
 Middleware accomplishes this by formatting the version in a JSON-encoded string containing the middleware version and the application version. The application version may as well be a JSON-encoded string, possibly including further middleware and app versions, if the application stack consists of multiple milddlewares wrapping a base application. The format of the version is specified in ICS-30 as the following:
 
 ```json
-{"<middleware_version_key>":"<middleware_version_value>","app_version":"<application_version_value>"}`
+{"<middleware_version_key>":"<middleware_version_value>","app_version":"<application_version_value>"}
 ```
 
 The `<middleware_version_key>` key in the JSON struct should be replaced by the actual name of the key for the corresponding middleware (e.g. `fee_version`).
 
-During the handshake callbacks, the middleware can unmarshall the version string and retrieved the middleware and application versions. It can do its negotiation logic on `<middleware_version_value>`, and pass the `<application_version_value>` to the underlying application.
+During the handshake callbacks, the middleware can unmarshal the version string and retrieve the middleware and application versions. It can do its negotiation logic on `<middleware_version_value>`, and pass the `<application_version_value>` to the underlying application.
 
 The middleware should simply pass the capability in the callback arguments along to the underlying application so that it may be claimed by the base application. The base application will then pass the capability up the stack in order to authenticate an outgoing packet/acknowledgement.
 
@@ -341,10 +341,10 @@ Middleware must also wrap ICS-4 so that any communication from the application t
 func SendPacket(
     ctx sdk.Context,
     chanCap *capabilitytypes.Capability,
-    app_packet exported.PacketI,
+    appPacket exported.PacketI,
 ) {
     // middleware may modify packet
-    packet = doCustomLogic(app_packet)
+    packet = doCustomLogic(appPacket)
 
     return ics4Keeper.SendPacket(ctx, chanCap, packet)
 }
