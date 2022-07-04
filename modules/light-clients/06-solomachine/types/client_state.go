@@ -428,6 +428,7 @@ func (cs *ClientState) VerifyMembership(
 	path []byte,
 	value []byte,
 ) error {
+	// TODO: Implement 06-solomachine VerifyMembership
 	return nil
 }
 
@@ -443,6 +444,7 @@ func (cs *ClientState) VerifyNonMembership(
 	proof []byte,
 	path []byte,
 ) error {
+	// TODO: Implement 06-solomachine VerifyNonMembership
 	return nil
 }
 
