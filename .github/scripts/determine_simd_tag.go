@@ -21,6 +21,10 @@ func main() {
 	fmt.Println(tag)
 }
 
+// determineSimdTag returns the tag which should be used for the E2E test image.
+// when a ref is specified, this will usually be "main" which is the tag that should be
+// used once a branch has been merged to main. If a PR number is specified, then the format
+// of the tag will be "pr-1234".
 func determineSimdTag(ref, prNumber string) (string, error) {
 	if ref != "" {
 		return ref, nil

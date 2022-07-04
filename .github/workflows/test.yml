@@ -213,7 +213,7 @@ jobs:
   determine-image-tag:
     runs-on: ubuntu-latest
     outputs:
-      simd-tag: ${{ steps.set-matrix.outputs.matrix }}
+      simd-tag: ${{ steps.get-tag.outputs.matrix }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -222,15 +222,6 @@ jobs:
       - id: get-tag
         run: echo "::set-output name=simd-tag::$(go run .github/scripts/determine_simd_tag.go ${{ github.event.push.ref}} ${{ github.event.pull_request.number }} )"
 
-#        # if the PR is not yet merged, the tag will look like "pr-1234"
-#      - if: github.event.pull_request.merged != 'true'
-#        run: echo "SIMD_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
-#        # the tag will be "main" when a PR is merged
-#      - if: github.event.pull_request.merged == 'true' >> $GITHUB_ENV
-#        run: echo "SIMD_TAG=main"
-
-
-#  ${{ github.event.push.ref}} || pr-${{ github.event.pull_request.number }}
 
   e2e:
     runs-on: ubuntu-latest
