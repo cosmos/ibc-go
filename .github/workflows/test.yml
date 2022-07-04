@@ -202,11 +202,11 @@ jobs:
 
   dump-github-context:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
     steps:
     - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+      run: echo "$GITHUB_CONTEXT"
 
   # the tag of the image will differ if this is a PR or the branch is being merged into main.
   # we store the tag as an environment variable and use it in the E2E tests to determine the tag.
