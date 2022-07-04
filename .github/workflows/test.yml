@@ -199,19 +199,23 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
 
+  - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
 
   # the tag of the image will differ if this is a PR or the branch is being merged into main.
   # we store the tag as an environment variable and use it in the E2E tests to determine the tag.
-  determine-image-tag:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        # if the PR is not yet merged, the tag will look like "pr-1234"
-      - if: github.event.pull_request.merged != 'true'
-        run: echo "SIMD_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
-        # the tag will be "main" when a PR is merged
-      - if: github.event.pull_request.merged == 'true' >> $GITHUB_ENV
-        run: echo "SIMD_TAG=main"
+#  determine-image-tag:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#        # if the PR is not yet merged, the tag will look like "pr-1234"
+#      - if: github.event.pull_request.merged != 'true'
+#        run: echo "SIMD_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
+#        # the tag will be "main" when a PR is merged
+#      - if: github.event.pull_request.merged == 'true' >> $GITHUB_ENV
+#        run: echo "SIMD_TAG=main"
 
   e2e:
     runs-on: ubuntu-latest
@@ -220,7 +224,7 @@ jobs:
       - determine-image-tag
       - docker-build
     env:
-      SIMD_TAG: ${{ env.SIMD_TAG }}
+      SIMD_TAG: ${{ github.event.pull_request.number || github.event.push.ref }}
       SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
     strategy:
       fail-fast: false
