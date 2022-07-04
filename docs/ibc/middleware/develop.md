@@ -121,7 +121,6 @@ func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
         counterparty,
         metadata.AppVersion, // note we only pass app version here
     )
-
     if err != nil {
         return "", err
     }
