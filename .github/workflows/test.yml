@@ -228,7 +228,7 @@ jobs:
 #      - determine-image-tag
       - docker-build
     env:
-      SIMD_TAG: ${{ github.event.pull_request.number || github.event.push.ref }}
+      SIMD_TAG: ${{ github.event.push.ref}} || pr-${{ github.event.pull_request.number }}
       SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
     strategy:
       fail-fast: false
