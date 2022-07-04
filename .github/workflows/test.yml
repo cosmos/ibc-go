@@ -220,7 +220,7 @@ jobs:
         with:
           go-version: 1.18
       - id: get-tag
-        run: echo "::set-output name=simd-tag::$(go run .github/scripts/determine_simd_tag.go ${{ github.event.push.ref}} ${{ github.event.pull_request.number }} )"
+        run: echo "::set-output name=simd-tag::$(go run .github/scripts/determine_simd_tag.go -ref ${{ github.event.push.ref}} -pr ${{ github.event.pull_request.number }} )"
 
 
   e2e:
