@@ -41,7 +41,15 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - release/v2.3.x           
+          - release/v2.3.x
+  - name: backport patches to v2.4.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v2.4.x
+    actions:
+      backport:
+        branches:
+          - release/v2.4.x
   - name: backport patches to v3.0.x branch
     conditions:
       - base=main
@@ -58,6 +66,14 @@ pull_request_rules:
       backport:
         branches:
           - release/v3.1.x
+  - name: backport patches to v3.2.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v3.2.x
+    actions:
+      backport:
+        branches:
+          - release/v3.2.x
   - name: backport patches to v4.0.x branch
     conditions:
       - base=main
