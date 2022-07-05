@@ -66,9 +66,9 @@ func (cs ClientState) GetTimestampAtHeight(
 	height exported.Height,
 ) (uint64, error) {
 	// get consensus state at height from clientStore to check for expiry
-	consState, err := GetConsensusState(clientStore, cdc, height)
-	if err != nil {
-		return 0, sdkerrors.Wrapf(err, "height (%s)", height)
+	consState, found := GetConsensusState(clientStore, cdc, height)
+	if !found {
+		return 0, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "height (%s)", height)
 	}
 	return consState.GetTimestamp(), nil
 }
