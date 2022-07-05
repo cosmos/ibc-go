@@ -13,16 +13,11 @@ import (
 // ClientUpdateProposal will retrieve the subject and substitute client.
 // A callback will occur to the subject client state with the client
 // prefixed store being provided for both the subject and the substitute client.
-// The localhost client is not allowed to be modified with a proposal. The IBC
-// client implementations are responsible for validating the parameters of the
+// The IBC client implementations are responsible for validating the parameters of the
 // subtitute (enusring they match the subject's parameters) as well as copying
 // the necessary consensus states from the subtitute to the subject client
 // store. The substitute must be Active and the subject must not be Active.
 func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdateProposal) error {
-	if p.SubjectClientId == exported.Localhost || p.SubstituteClientId == exported.Localhost {
-		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update localhost client with proposal")
-	}
-
 	subjectClientState, found := k.GetClientState(ctx, p.SubjectClientId)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "subject client with ID %s", p.SubjectClientId)
@@ -53,7 +48,6 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	if err != nil {
 		return err
 	}
-	k.SetClientState(ctx, p.SubjectClientId, clientState)
 
 	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId, "height", clientState.GetLatestHeight().String())
 

@@ -201,10 +201,6 @@ func (gs GenesisState) Validate() error {
 
 	}
 
-	if gs.CreateLocalhost && !gs.Params.IsAllowedClient(exported.Localhost) {
-		return fmt.Errorf("localhost client is not registered on the allowlist")
-	}
-
 	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {
 		return fmt.Errorf("next client identifier sequence %d must be greater than the maximum sequence used in the provided client identifiers %d", gs.NextClientSequence, maxSequence)
 	}

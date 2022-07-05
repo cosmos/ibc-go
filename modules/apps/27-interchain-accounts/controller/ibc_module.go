@@ -163,3 +163,8 @@ func (im IBCModule) OnTimeoutPacket(
 
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
+
+// GetAppVersion returns the interchain accounts metadata.
+func (im IBCModule) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}

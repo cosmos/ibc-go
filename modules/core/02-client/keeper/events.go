@@ -1,6 +1,10 @@
 package keeper
 
 import (
+	"encoding/hex"
+	"strings"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -24,14 +28,33 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 }
 
 // EmitUpdateClientEvent emits an update client event
-func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState, consensusHeight exported.Height, headerStr string) {
+func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
+
+	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
+	// This prevents the event value from containing invalid UTF-8 characters
+	// which may cause data to be lost when JSON encoding/decoding.
+	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(cdc, clientMsg))
+
+	var consensusHeightAttr string
+	if len(consensusHeights) != 0 {
+		consensusHeightAttr = consensusHeights[0].String()
+	}
+
+	var consensusHeightsAttr []string
+	for _, height := range consensusHeights {
+		consensusHeightsAttr = append(consensusHeightsAttr, height.String())
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			// Deprecated: AttributeKeyConsensusHeight is deprecated and will be removed in a future release.
+			// Please use AttributeKeyConsensusHeights instead.
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
+			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -75,19 +98,6 @@ func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState e
 			types.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-		),
-	)
-}
-
-// EmitSubmitMisbehaviourEventOnUpdate emits a client misbehaviour event on a client update event
-func EmitSubmitMisbehaviourEventOnUpdate(ctx sdk.Context, clientID string, clientState exported.ClientState, consensusHeight exported.Height, headerStr string) {
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeight.String()),
-			sdk.NewAttribute(types.AttributeKeyHeader, headerStr),
 		),
 	)
 }

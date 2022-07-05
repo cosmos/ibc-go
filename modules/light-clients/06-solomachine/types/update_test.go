@@ -4,182 +4,13 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
-
-func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
-	var (
-		clientState exported.ClientState
-		header      exported.ClientMessage
-	)
-
-	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-
-		testCases := []struct {
-			name    string
-			setup   func()
-			expPass bool
-		}{
-			{
-				"successful update",
-				func() {
-					clientState = solomachine.ClientState()
-					header = solomachine.CreateHeader()
-				},
-				true,
-			},
-			{
-				"wrong client state type",
-				func() {
-					clientState = &ibctmtypes.ClientState{}
-					header = solomachine.CreateHeader()
-				},
-				false,
-			},
-			{
-				"invalid header type",
-				func() {
-					clientState = solomachine.ClientState()
-					header = &ibctmtypes.Header{}
-				},
-				false,
-			},
-			{
-				"wrong sequence in header",
-				func() {
-					clientState = solomachine.ClientState()
-					// store in temp before assigning to interface type
-					h := solomachine.CreateHeader()
-					h.Sequence++
-					header = h
-				},
-				false,
-			},
-			{
-				"invalid header Signature",
-				func() {
-					clientState = solomachine.ClientState()
-					h := solomachine.CreateHeader()
-					h.Signature = suite.GetInvalidProof()
-					header = h
-				}, false,
-			},
-			{
-				"invalid timestamp in header",
-				func() {
-					clientState = solomachine.ClientState()
-					h := solomachine.CreateHeader()
-					h.Timestamp--
-					header = h
-				}, false,
-			},
-			{
-				"signature uses wrong sequence",
-				func() {
-					clientState = solomachine.ClientState()
-					solomachine.Sequence++
-					header = solomachine.CreateHeader()
-				},
-				false,
-			},
-			{
-				"signature uses new pubkey to sign",
-				func() {
-					// store in temp before assinging to interface type
-					cs := solomachine.ClientState()
-					h := solomachine.CreateHeader()
-
-					publicKey, err := codectypes.NewAnyWithValue(solomachine.PublicKey)
-					suite.NoError(err)
-
-					data := &types.HeaderData{
-						NewPubKey:      publicKey,
-						NewDiversifier: h.NewDiversifier,
-					}
-
-					dataBz, err := suite.chainA.Codec.Marshal(data)
-					suite.Require().NoError(err)
-
-					// generate invalid signature
-					signBytes := &types.SignBytes{
-						Sequence:    cs.Sequence,
-						Timestamp:   solomachine.Time,
-						Diversifier: solomachine.Diversifier,
-						DataType:    types.CLIENT,
-						Data:        dataBz,
-					}
-
-					signBz, err := suite.chainA.Codec.Marshal(signBytes)
-					suite.Require().NoError(err)
-
-					sig := solomachine.GenerateSignature(signBz)
-					suite.Require().NoError(err)
-					h.Signature = sig
-
-					clientState = cs
-					header = h
-
-				},
-				false,
-			},
-			{
-				"signature signs over old pubkey",
-				func() {
-					// store in temp before assinging to interface type
-					cs := solomachine.ClientState()
-					oldPubKey := solomachine.PublicKey
-					h := solomachine.CreateHeader()
-
-					// generate invalid signature
-					data := append(sdk.Uint64ToBigEndian(cs.Sequence), oldPubKey.Bytes()...)
-					sig := solomachine.GenerateSignature(data)
-					h.Signature = sig
-
-					clientState = cs
-					header = h
-				},
-				false,
-			},
-			{
-				"consensus state public key is nil",
-				func() {
-					cs := solomachine.ClientState()
-					cs.ConsensusState.PublicKey = nil
-					clientState = cs
-					header = solomachine.CreateHeader()
-				},
-				false,
-			},
-		}
-
-		for _, tc := range testCases {
-			tc := tc
-
-			suite.Run(tc.name, func() {
-				// setup test
-				tc.setup()
-
-				clientState, consensusState, err := clientState.CheckHeaderAndUpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, header)
-
-				if tc.expPass {
-					suite.Require().NoError(err)
-					suite.Require().Equal(header.(*types.Header).NewPublicKey, clientState.(*types.ClientState).ConsensusState.PublicKey)
-					suite.Require().Equal(false, clientState.(*types.ClientState).IsFrozen)
-					suite.Require().Equal(header.(*types.Header).Sequence+1, clientState.(*types.ClientState).Sequence)
-					suite.Require().Equal(consensusState, clientState.(*types.ClientState).ConsensusState)
-				} else {
-					suite.Require().Error(err)
-					suite.Require().Nil(clientState)
-					suite.Require().Nil(consensusState)
-				}
-			})
-		}
-	}
-}
 
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
@@ -594,30 +425,43 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				},
 				true,
 			},
+			{
+				"invalid type misbehaviour",
+				func() {
+					clientState = solomachine.ClientState()
+					clientMsg = solomachine.CreateMisbehaviour()
+				},
+				false,
+			},
 		}
 
 		for _, tc := range testCases {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-				// setup test
-				tc.setup()
+				tc.setup() // setup test
 
-				clientState, ok := clientState.(*types.ClientState)
-				if ok {
-					cs, consensusState, err := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				if tc.expPass {
+					consensusHeights := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 
-					if tc.expPass {
-						suite.Require().NoError(err)
-						suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, cs.(*types.ClientState).ConsensusState.PublicKey)
-						suite.Require().Equal(false, cs.(*types.ClientState).IsFrozen)
-						suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, cs.(*types.ClientState).Sequence)
-						suite.Require().Equal(consensusState, cs.(*types.ClientState).ConsensusState)
-					} else {
-						suite.Require().Error(err)
-						suite.Require().Nil(clientState)
-						suite.Require().Nil(consensusState)
-					}
+					clientStateBz := suite.store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(clientStateBz)
+
+					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					suite.Require().Len(consensusHeights, 1)
+					suite.Require().Equal(uint64(0), consensusHeights[0].GetRevisionNumber())
+					suite.Require().Equal(newClientState.(*types.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
+
+					suite.Require().False(newClientState.(*types.ClientState).IsFrozen)
+					suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, newClientState.(*types.ClientState).Sequence)
+					suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, newClientState.(*types.ClientState).ConsensusState.PublicKey)
+					suite.Require().Equal(clientMsg.(*types.Header).NewDiversifier, newClientState.(*types.ClientState).ConsensusState.Diversifier)
+					suite.Require().Equal(clientMsg.(*types.Header).Timestamp, newClientState.(*types.ClientState).ConsensusState.Timestamp)
+				} else {
+					suite.Require().Panics(func() {
+						clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+					})
 				}
 
 			})
@@ -697,10 +541,15 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 
 				tc.malleate()
 
-				cs, _, _ := clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store)
+				clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, nil)
 
 				if tc.expPass {
-					suite.Require().True(cs.IsFrozen)
+					clientStateBz := suite.store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(clientStateBz)
+
+					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					suite.Require().True(newClientState.(*types.ClientState).IsFrozen)
 				}
 			})
 		}

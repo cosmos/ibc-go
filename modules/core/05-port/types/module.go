@@ -113,6 +113,12 @@ type ICS4Wrapper interface {
 		packet exported.PacketI,
 		ack exported.Acknowledgement,
 	) error
+
+	GetAppVersion(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+	) (string, bool)
 }
 
 // Middleware must implement IBCModule to wrap communication from core IBC to underlying application

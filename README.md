@@ -1,4 +1,9 @@
-# ibc-go
+<div align="center">
+  <h1>ibc-go</h1>
+</div>
+
+![banner](docs/ibc-go-image.png)
+
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go/releases/latest">
     <img alt="Version" src="https://img.shields.io/github/tag/cosmos/ibc-go.svg" />
@@ -58,8 +63,6 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
     3.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
 
     3.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
-
-Note: The localhost client is currently non-functional. 
 
 ## Roadmap
 

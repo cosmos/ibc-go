@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
+	icacontroller "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -701,4 +702,24 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 			suite.Require().NotEqual(chainAChannelID, chainCChannelID)
 		})
 	}
+}
+
+func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	controllerModule := cbs.(icacontroller.IBCModule)
+
+	appVersion, found := controllerModule.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
 }

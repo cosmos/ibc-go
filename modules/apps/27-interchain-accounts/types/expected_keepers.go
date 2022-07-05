@@ -21,6 +21,7 @@ type AccountKeeper interface {
 // ICS4Wrapper defines the expected ICS4Wrapper for middleware
 type ICS4Wrapper interface {
 	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
+	GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool)
 }
 
 // ChannelKeeper defines the expected IBC channel keeper

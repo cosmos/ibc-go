@@ -19,10 +19,6 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
-	// Localhost is the client type for a localhost client. It is also used as the clientID
-	// for the localhost client.
-	Localhost string = "09-localhost"
-
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 
@@ -56,10 +52,24 @@ type ClientState interface {
 	// Genesis function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
-	// Update and Misbehaviour functions
+	// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
+	// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
+	// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
+	// if the ClientMessage fails to verify.
+	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) error
 
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, ConsensusState, error)
-	CheckMisbehaviourAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) (ClientState, error)
+	// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
+	// has already been verified.
+	CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg ClientMessage) bool
+
+	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
+	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage)
+
+	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
+	// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
+	UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
+
+	// Update and Misbehaviour functions
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
 
 	// Upgrade functions
@@ -84,6 +94,33 @@ type ClientState interface {
 	ZeroCustomFields() ClientState
 
 	// State verification functions
+
+	// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+	VerifyMembership(
+		ctx sdk.Context,
+		clientStore sdk.KVStore,
+		cdc codec.BinaryCodec,
+		height Height,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
+		proof []byte,
+		path []byte,
+		value []byte,
+	) error
+
+	// VerifyNonMembership is a generic proof verification method which verifies the absense of a given CommitmentPath at a specified height.
+	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+	VerifyNonMembership(
+		ctx sdk.Context,
+		clientStore sdk.KVStore,
+		cdc codec.BinaryCodec,
+		height Height,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
+		proof []byte,
+		path []byte,
+	) error
 
 	VerifyClientState(
 		store sdk.KVStore,
@@ -191,10 +228,6 @@ type ConsensusState interface {
 
 	ClientType() string // Consensus kind
 
-	// GetRoot returns the commitment root of the consensus state,
-	// which is used for key-value pair verification.
-	GetRoot() Root
-
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64
 
@@ -207,7 +240,6 @@ type ConsensusState interface {
 type ClientMessage interface {
 	proto.Message
 
-	GetHeight() Height
 	ClientType() string
 	ValidateBasic() error
 }

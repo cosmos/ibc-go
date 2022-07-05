@@ -65,9 +65,6 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	if err := clientState.Validate(); err != nil {
 		return err
 	}
-	if clientState.ClientType() == exported.Localhost {
-		return sdkerrors.Wrap(ErrInvalidClient, "localhost client can only be created on chain initialization")
-	}
 	consensusState, err := UnpackConsensusState(msg.ConsensusState)
 	if err != nil {
 		return err
@@ -104,16 +101,16 @@ func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 
 // NewMsgUpdateClient creates a new MsgUpdateClient instance
 //nolint:interfacer
-func NewMsgUpdateClient(id string, header exported.ClientMessage, signer string) (*MsgUpdateClient, error) {
-	anyHeader, err := PackClientMessage(header)
+func NewMsgUpdateClient(id string, clientMsg exported.ClientMessage, signer string) (*MsgUpdateClient, error) {
+	anyClientMsg, err := PackClientMessage(clientMsg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &MsgUpdateClient{
-		ClientId: id,
-		Header:   anyHeader,
-		Signer:   signer,
+		ClientId:      id,
+		ClientMessage: anyClientMsg,
+		Signer:        signer,
 	}, nil
 }
 
@@ -123,15 +120,12 @@ func (msg MsgUpdateClient) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	header, err := UnpackClientMessage(msg.Header)
+	clientMsg, err := UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return err
 	}
-	if err := header.ValidateBasic(); err != nil {
+	if err := clientMsg.ValidateBasic(); err != nil {
 		return err
-	}
-	if msg.ClientId == exported.Localhost {
-		return sdkerrors.Wrap(ErrInvalidClient, "localhost client is only updated on ABCI BeginBlock")
 	}
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
@@ -147,8 +141,8 @@ func (msg MsgUpdateClient) GetSigners() []sdk.AccAddress {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var header exported.ClientMessage
-	return unpacker.UnpackAny(msg.Header, &header)
+	var clientMsg exported.ClientMessage
+	return unpacker.UnpackAny(msg.ClientMessage, &clientMsg)
 }
 
 // NewMsgUpgradeClient creates a new MsgUpgradeClient instance

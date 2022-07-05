@@ -45,12 +45,12 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	header, err := clienttypes.UnpackClientMessage(msg.Header)
+	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, header); err != nil {
+	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, clientMsg); err != nil {
 		return nil, err
 	}
 
@@ -79,6 +79,8 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 }
 
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
+// Warning: DEPRECATED
+// This handler is redudant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
 func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -87,8 +89,8 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 		return nil, err
 	}
 
-	if err := k.ClientKeeper.CheckMisbehaviourAndUpdateState(ctx, msg.ClientId, misbehaviour); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to process misbehaviour for IBC client")
+	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, misbehaviour); err != nil {
+		return nil, err
 	}
 
 	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil
@@ -194,6 +196,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 
 	return &channeltypes.MsgChannelOpenInitResponse{
 		ChannelId: channelID,
+		Version:   msg.Channel.Version,
 	}, nil
 }
 
@@ -232,7 +235,9 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenTryChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
 
-	return &channeltypes.MsgChannelOpenTryResponse{}, nil
+	return &channeltypes.MsgChannelOpenTryResponse{
+		Version: version,
+	}, nil
 }
 
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.

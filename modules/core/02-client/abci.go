@@ -4,11 +4,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 )
 
-// BeginBlocker updates an existing localhost client with the latest block height.
+// BeginBlocker is used to perform IBC client upgrades
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	plan, found := k.GetUpgradePlan(ctx)
 	if found {
@@ -28,15 +27,5 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 			k.SetUpgradedConsensusState(ctx, plan.Height, bz)
 		}
-	}
-
-	_, found = k.GetClientState(ctx, exported.Localhost)
-	if !found {
-		return
-	}
-
-	// update the localhost client with the latest block height
-	if err := k.UpdateClient(ctx, exported.Localhost, nil); err != nil {
-		panic(err)
 	}
 }

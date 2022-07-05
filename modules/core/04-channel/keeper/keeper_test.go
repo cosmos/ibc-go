@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -60,6 +61,24 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	suite.Equal(types.INIT, storedChannel.State)
 	suite.Equal(types.ORDERED, storedChannel.Ordering)
 	suite.Equal(expectedCounterparty, storedChannel.Counterparty)
+}
+
+func (suite *KeeperTestSuite) TestGetAppVersion() {
+	// create client and connections on both chains
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+
+	version, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().False(found)
+	suite.Require().Empty(version)
+
+	// init channel
+	err := path.EndpointA.ChanOpenInit()
+	suite.NoError(err)
+
+	channelVersion, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(ibcmock.Version, channelVersion)
 }
 
 // TestGetAllChannels creates multiple channels on chain A through various connections

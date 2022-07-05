@@ -48,16 +48,6 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			}, true,
 		},
 		{
-			"cannot use localhost as subject", func() {
-				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, exported.Localhost, substitute)
-			}, false,
-		},
-		{
-			"cannot use localhost as substitute", func() {
-				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, exported.Localhost)
-			}, false,
-		},
-		{
 			"cannot use solomachine as substitute for tendermint client", func() {
 				solomachine := ibctesting.NewSolomachine(suite.T(), suite.cdc, "solo machine", "", 1)
 				solomachine.Sequence = subjectClientState.GetLatestHeight().GetRevisionHeight() + 1

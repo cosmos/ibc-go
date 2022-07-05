@@ -2,55 +2,12 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
-
-// CheckMisbehaviourAndUpdateState determines whether or not the currently registered
-// public key signed over two different messages with the same sequence. If this is true
-// the client state is updated to a frozen status.
-// NOTE: Misbehaviour is not tracked for previous public keys, a solo machine may update to
-// a new public key before the misbehaviour is processed. Therefore, misbehaviour is data
-// order processing dependent.
-func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	ctx sdk.Context,
-	cdc codec.BinaryCodec,
-	clientStore sdk.KVStore,
-	misbehaviour exported.ClientMessage,
-) (exported.ClientState, error) {
-
-	soloMisbehaviour, ok := misbehaviour.(*Misbehaviour)
-	if !ok {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidClientType,
-			"misbehaviour type %T, expected %T", misbehaviour, &Misbehaviour{},
-		)
-	}
-
-	// NOTE: a check that the misbehaviour message data are not equal is done by
-	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
-
-	// verify first signature
-	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureOne); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature one")
-	}
-
-	// verify second signature
-	if err := verifySignatureAndData(cdc, cs, soloMisbehaviour, soloMisbehaviour.SignatureTwo); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to verify signature two")
-	}
-
-	cs.IsFrozen = true
-	return &cs, nil
-}
 
 // verifySignatureAndData verifies that the currently registered public key has signed
 // over the provided data and that the data is valid. The data is valid if it can be
 // unmarshaled into the specified data type.
-func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misbehaviour *Misbehaviour, sigAndData *SignatureAndData) error {
+func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour *Misbehaviour, sigAndData *SignatureAndData) error {
 
 	// do not check misbehaviour timestamp since we want to allow processing of past misbehaviour
 
@@ -62,7 +19,7 @@ func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misb
 	data, err := MisbehaviourSignBytes(
 		cdc,
 		misbehaviour.Sequence, sigAndData.Timestamp,
-		clientState.ConsensusState.Diversifier,
+		cs.ConsensusState.Diversifier,
 		sigAndData.DataType,
 		sigAndData.Data,
 	)
@@ -75,7 +32,7 @@ func verifySignatureAndData(cdc codec.BinaryCodec, clientState ClientState, misb
 		return err
 	}
 
-	publicKey, err := clientState.ConsensusState.GetPubKey()
+	publicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
@@ -78,6 +80,10 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 					suite.Require().Equal(substituteClientState.(*types.ClientState).ConsensusState, updatedClient.(*types.ClientState).ConsensusState)
 					suite.Require().Equal(substituteClientState.(*types.ClientState).Sequence, updatedClient.(*types.ClientState).Sequence)
 					suite.Require().Equal(false, updatedClient.(*types.ClientState).IsFrozen)
+
+					// ensure updated client state is set in store
+					bz := subjectClientStore.Get(host.ClientStateKey())
+					suite.Require().Equal(clienttypes.MustMarshalClientState(suite.chainA.Codec, updatedClient), bz)
 				} else {
 					suite.Require().Error(err)
 					suite.Require().Nil(updatedClient)

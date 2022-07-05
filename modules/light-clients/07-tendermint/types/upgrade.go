@@ -67,9 +67,9 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
 	// This verifies that upgrade is intended for the provided revision, since committed client must exist
 	// at this consensus state
-	consState, err := GetConsensusState(clientStore, cdc, lastHeight)
-	if err != nil {
-		return sdkerrors.Wrap(err, "could not retrieve consensus state for lastHeight")
+	consState, found := GetConsensusState(clientStore, cdc, lastHeight)
+	if !found {
+		return sdkerrors.Wrap(clienttypes.ErrConsensusStateNotFound, "could not retrieve consensus state for lastHeight")
 	}
 
 	// Verify client proof
@@ -120,7 +120,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	)
 
 	setClientState(clientStore, cdc, newClientState)
-	SetConsensusState(clientStore, cdc, newConsState, newClientState.LatestHeight)
+	setConsensusState(clientStore, cdc, newConsState, newClientState.LatestHeight)
 	setConsensusMetadata(ctx, clientStore, tmUpgradeClient.LatestHeight)
 
 	return nil

@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -50,38 +49,23 @@ func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState 
 	clientStore.Set(key, val)
 }
 
-// SetConsensusState stores the consensus state at the given height.
-func SetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
+// setConsensusState stores the consensus state at the given height.
+func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
 	key := host.ConsensusStateKey(height)
 	val := clienttypes.MustMarshalConsensusState(cdc, consensusState)
 	clientStore.Set(key, val)
 }
 
-// GetConsensusState retrieves the consensus state from the client prefixed
-// store. An error is returned if the consensus state does not exist.
-func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
+// GetConsensusState retrieves the consensus state from the client prefixed store.
+// If the ConsensusState does not exist in state for the provided height a nil value and false boolean flag is returned
+func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
 	bz := store.Get(host.ConsensusStateKey(height))
 	if bz == nil {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrConsensusStateNotFound,
-			"consensus state does not exist for height %s", height,
-		)
+		return nil, false
 	}
 
-	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
-	}
-
-	consensusState, ok := consensusStateI.(*ConsensusState)
-	if !ok {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidConsensus,
-			"invalid consensus type %T, expected %T", consensusState, &ConsensusState{},
-		)
-	}
-
-	return consensusState, nil
+	consensusStateI := clienttypes.MustUnmarshalConsensusState(cdc, bz)
+	return consensusStateI.(*ConsensusState), true
 }
 
 // deleteConsensusState deletes the consensus state at the given height
@@ -299,9 +283,8 @@ func PruneAllExpiredConsensusStates(
 	var heights []exported.Height
 
 	pruneCb := func(height exported.Height) bool {
-		consState, err := GetConsensusState(clientStore, cdc, height)
-		// this error should never occur
-		if err != nil {
+		consState, found := GetConsensusState(clientStore, cdc, height)
+		if !found { // consensus state should always be found
 			return true
 		}
 
