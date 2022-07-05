@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -41,7 +42,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				proposal, err := govtypes.NewProposal(testProposal, govtypes.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour))
+				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
+				suite.Require().NoError(err)
+
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", time.Now(), time.Now().Add(time.Hour))
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -204,7 +208,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				proposal, err := govtypes.NewProposal(testProposal, govtypes.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour))
+				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
+				suite.Require().NoError(err)
+
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", time.Now(), time.Now().Add(time.Hour))
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
