@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -165,7 +166,7 @@ func AppStateRandomizedFn(
 		Rand:         r,
 		GenState:     genesisState,
 		Accounts:     accs,
-		InitialStake: initialStake,
+		InitialStake: math.NewInt(initialStake),
 		NumBonded:    numInitiallyBonded,
 		GenTimestamp: genesisTimestamp,
 	}
