@@ -38,15 +38,15 @@ func (im IBCModule) OnChanOpenInit(
     chanCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
     version string,
-) error {
+) (string, error) {
     // the authentication module *must* claim the channel capability on OnChanOpenInit
     if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-        return err
+        return version, err
     }
 
     // perform custom logic
 
-    return nil
+    return version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -150,11 +150,65 @@ func (im IBCModule) OnRecvPacket(
 The authentication module can begin registering interchain accounts by calling `RegisterInterchainAccount`:
 
 ```go
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String()); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String(), version); err != nil {
     return err
 }
 
 return nil
+```
+
+The `version` argument is used to support ICS29 fee middleware for relayer incentivization of ICS27 packets. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
+
+The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
+
+```go
+icaMetadata := icatypes.Metadata{
+    Version:                icatypes.Version,
+    ControllerConnectionId: controllerConnectionID,
+    HostConnectionId:       hostConnectionID,
+    Encoding:               icatypes.EncodingProtobuf,
+    TxType:                 icatypes.TxTypeSDKMultiMsg,
+}
+
+appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
+if err != nil {
+    return err
+}
+
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(appVersion)); err != nil {
+    return err
+}
+```
+
+Similarly, if the application stack is configured to route through ICS29 fee middleware and a fee enabled channel is desired, construct the appropriate ICS29 `Metadata` type:
+
+```go
+icaMetadata := icatypes.Metadata{
+    Version:                icatypes.Version,
+    ControllerConnectionId: controllerConnectionID,
+    HostConnectionId:       hostConnectionID,
+    Encoding:               icatypes.EncodingProtobuf,
+    TxType:                 icatypes.TxTypeSDKMultiMsg,
+}
+
+appVersion, err := icatypes.ModuleCdc.MarshalJSON(&icaMetadata)
+if err != nil {
+    return err
+}
+
+feeMetadata := feetypes.Metadata{
+    AppVersion: string(appVersion),
+    FeeVersion: feetypes.Version,
+}
+
+feeEnabledVersion, err := feetypes.ModuleCdc.MarshalJSON(&feeMetadata)
+if err != nil {
+    return err
+}
+
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(feeEnabledVersion)); err != nil {
+    return err
+}
 ```
 
 ## `SendTx`

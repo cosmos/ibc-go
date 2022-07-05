@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
@@ -16,11 +16,14 @@ message GenesisState {
   // list of fee enabled channels
   repeated FeeEnabledChannel fee_enabled_channels = 2
       [(gogoproto.moretags) = "yaml:\"fee_enabled_channels\"", (gogoproto.nullable) = false];
-  // list of registered relayer addresses
-  repeated RegisteredRelayerAddress registered_relayers = 3
-      [(gogoproto.moretags) = "yaml:\"registered_relayers\"", (gogoproto.nullable) = false];
+  // list of registered payees
+  repeated RegisteredPayee registered_payees = 3
+      [(gogoproto.moretags) = "yaml:\"registered_payees\"", (gogoproto.nullable) = false];
+  // list of registered counterparty payees
+  repeated RegisteredCounterpartyPayee registered_counterparty_payees = 4
+      [(gogoproto.moretags) = "yaml:\"registered_counterparty_payees\"", (gogoproto.nullable) = false];
   // list of forward relayer addresses
-  repeated ForwardRelayerAddress forward_relayers = 4
+  repeated ForwardRelayerAddress forward_relayers = 5
       [(gogoproto.moretags) = "yaml:\"forward_relayers\"", (gogoproto.nullable) = false];
 }
 
@@ -32,14 +35,25 @@ message FeeEnabledChannel {
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
-// RegisteredRelayerAddress contains the address and counterparty address for a specific relayer (for distributing fees)
-message RegisteredRelayerAddress {
-  // the relayer address
-  string address = 1;
-  // the counterparty relayer address
-  string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
+// RegisteredPayee contains the relayer address and payee address for a specific channel
+message RegisteredPayee {
   // unique channel identifier
-  string channel_id = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // the relayer address
+  string relayer = 2;
+  // the payee address
+  string payee = 3;
+}
+
+// RegisteredCounterpartyPayee contains the relayer address and counterparty payee address for a specific channel (used
+// for recv fee distribution)
+message RegisteredCounterpartyPayee {
+  // unique channel identifier
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // the relayer address
+  string relayer = 2;
+  // the counterparty payee address
+  string counterparty_payee = 3 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
 }
 
 // ForwardRelayerAddress contains the forward relayer address and PacketId used for async acknowledgements

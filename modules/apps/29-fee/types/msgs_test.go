@@ -4,16 +4,16 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
-func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
-	var msg *types.MsgRegisterCounterpartyAddress
+func TestMsgRegisterPayeeValidation(t *testing.T) {
+	var msg *types.MsgRegisterPayee
 
 	testCases := []struct {
 		name     string
@@ -26,23 +26,9 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 			true,
 		},
 		{
-			"validate with incorrect destination relayer address",
+			"invalid portID",
 			func() {
-				msg.Address = "invalid-address"
-			},
-			false,
-		},
-		{
-			"invalid counterparty address",
-			func() {
-				msg.CounterpartyAddress = ""
-			},
-			false,
-		},
-		{
-			"invalid counterparty address: whitespaced empty string",
-			func() {
-				msg.CounterpartyAddress = "  "
+				msg.PortId = ""
 			},
 			false,
 		},
@@ -54,16 +40,105 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 			false,
 		},
 		{
-			"invalid portID",
+			"invalid request relayer and payee are equal",
 			func() {
-				msg.PortId = ""
+				msg.Relayer = defaultAccAddress
+				msg.Payee = defaultAccAddress
+			},
+			false,
+		},
+		{
+			"invalid relayer address",
+			func() {
+				msg.Relayer = "invalid-address"
+			},
+			false,
+		},
+		{
+			"invalid payee address",
+			func() {
+				msg.Payee = "invalid-address"
 			},
 			false,
 		},
 	}
 
 	for i, tc := range testCases {
-		msg = types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
+		relayerAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+		payeeAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+		msg = types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, relayerAddr.String(), payeeAddr.String())
+
+		tc.malleate()
+
+		err := msg.ValidateBasic()
+
+		if tc.expPass {
+			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
+
+func TestRegisterPayeeGetSigners(t *testing.T) {
+	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
+	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
+}
+
+func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
+	var msg *types.MsgRegisterCounterpartyPayee
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid portID",
+			func() {
+				msg.PortId = ""
+			},
+			false,
+		},
+		{
+			"invalid channelID",
+			func() {
+				msg.ChannelId = ""
+			},
+			false,
+		},
+		{
+			"validate with incorrect destination relayer address",
+			func() {
+				msg.Relayer = "invalid-address"
+			},
+			false,
+		},
+		{
+			"invalid counterparty payee address",
+			func() {
+				msg.CounterpartyPayee = ""
+			},
+			false,
+		},
+		{
+			"invalid counterparty payee address: whitespaced empty string",
+			func() {
+				msg.CounterpartyPayee = "  "
+			},
+			false,
+		},
+	}
+
+	for i, tc := range testCases {
+		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
 
 		tc.malleate()
 
@@ -79,7 +154,7 @@ func TestMsgRegisterCountepartyAddressValidation(t *testing.T) {
 
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	msg := types.NewMsgRegisterCounterpartyAddress(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
+	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 	require.Equal(t, []sdk.AccAddress{sdk.AccAddress(accAddress)}, msg.GetSigners())
 }
 

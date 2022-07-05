@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
 )
 
 const (
@@ -25,6 +25,28 @@ func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, 
 		Encoding:               encoding,
 		TxType:                 txType,
 	}
+}
+
+// NewDefaultMetadata creates and returns a new ICS27 Metadata instance containing the default ICS27 Metadata values
+// with the provided controller and host connection identifiers
+func NewDefaultMetadata(controllerConnectionID, hostConnectionID string) Metadata {
+	metadata := Metadata{
+		ControllerConnectionId: controllerConnectionID,
+		HostConnectionId:       hostConnectionID,
+		Encoding:               EncodingProtobuf,
+		TxType:                 TxTypeSDKMultiMsg,
+		Version:                Version,
+	}
+
+	return metadata
+}
+
+// NewDefaultMetadataString creates and returns a new JSON encoded version string containing the default ICS27 Metadata values
+// with the provided controller and host connection identifiers
+func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) string {
+	metadata := NewDefaultMetadata(controllerConnectionID, hostConnectionID)
+
+	return string(ModuleCdc.MustMarshalJSON(&metadata))
 }
 
 // IsPreviousMetadataEqual compares a metadata to a previous version string set in a channel struct.
