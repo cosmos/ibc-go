@@ -25,7 +25,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 
 	t.Run("only test functions are picked up", func(t *testing.T) {
 		testingDir := t.TempDir()
-		createFileWithTestSuiteAndTests(t, "TestFeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
+		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
 		gh, err := getGithubActionMatrixForTests(testingDir)
 		assert.NoError(t, err)
@@ -47,8 +47,8 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 
 	t.Run("all files are picked up", func(t *testing.T) {
 		testingDir := t.TempDir()
-		createFileWithTestSuiteAndTests(t, "TestFeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
-		createFileWithTestSuiteAndTests(t, "TestTransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
+		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
+		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
 
 		gh, err := getGithubActionMatrixForTests(testingDir)
 		assert.NoError(t, err)
@@ -79,11 +79,34 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 
 	t.Run("non test files are not picked up", func(t *testing.T) {
 		testingDir := t.TempDir()
-		createFileWithTestSuiteAndTests(t, "TestFeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
+		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
 		gh, err := getGithubActionMatrixForTests(testingDir)
 		assert.NoError(t, err)
 		assert.Empty(t, gh.Include)
+	})
+
+	t.Run("fails when there are multiple suite runs", func(t *testing.T) {
+		testingDir := t.TempDir()
+		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
+
+		fileWithTwoSuites := `package foo
+func SuiteOne(t *testing.T) {
+	suite.Run(t, new(FeeMiddlewareTestSuite))
+}
+
+func SuiteTwo(t *testing.T) {
+	suite.Run(t, new(FeeMiddlewareTestSuite))
+}
+
+type FeeMiddlewareTestSuite struct {}
+`
+
+		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(777))
+		assert.NoError(t, err)
+
+		_, err = getGithubActionMatrixForTests(testingDir)
+		assert.Error(t, err)
 	})
 }
 
@@ -114,8 +137,8 @@ func goTestFileContents(suiteName, fnName1, fnName2 string) string {
 
 	replacedSuiteName := strings.ReplaceAll(`package foo
 
-func SuiteName(t *testing.T) {
-	suite.Run(t, new(FeeMiddlewareTestSuite))
+func TestSuiteName(t *testing.T) {
+	suite.Run(t, new(SuiteName))
 }
 
 type SuiteName struct {}
