@@ -16,10 +16,6 @@ type FeeMiddlewareTestSuite struct {
 }
 
 func (s *FeeMiddlewareTestSuite) TestPlaceholder() {
-	tag, ok := os.LookupEnv("SIMD_TAG")
-	s.Require().True(ok)
-	s.T().Logf("SIMD_TAG=%s", tag)
-
 	image, ok := os.LookupEnv("SIMD_IMAGE")
 	s.Require().True(ok)
 	s.T().Logf("SIMD_IMAGE=%s", image)

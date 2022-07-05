@@ -233,8 +233,7 @@ jobs:
       - determine-image-tag
       - docker-build
     env:
-      SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
-      SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
+      SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e:${{ needs.determine-image-tag.outputs.simd-tag }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
