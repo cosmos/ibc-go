@@ -3,7 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-  
+
 	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
@@ -11,9 +11,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
-	var (
-		msg *types.MsgRegisterPayee
-	)
+	var msg *types.MsgRegisterPayee
 
 	testCases := []struct {
 		name     string

@@ -223,9 +223,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 }
 
 func (suite *KeeperTestSuite) TestEscrowAddress() {
-	var (
-		req *types.QueryEscrowAddressRequest
-	)
+	var req *types.QueryEscrowAddressRequest
 
 	testCases := []struct {
 		msg      string

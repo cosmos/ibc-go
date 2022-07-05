@@ -215,7 +215,6 @@ func (q Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsens
 		consensusStateHeights = append(consensusStateHeights, height)
 		return true, nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

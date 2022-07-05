@@ -77,7 +77,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			customTMConfig := initTendermintConfig()
 
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
-
 		},
 	}
 
