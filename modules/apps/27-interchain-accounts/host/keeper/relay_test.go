@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"

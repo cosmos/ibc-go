@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 		},
 		{
 			"invalid trust level",
-			ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.Fraction{0, 1}, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
+			ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
 			false,
 		},
 		{

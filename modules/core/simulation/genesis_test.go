@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -25,13 +26,15 @@ func TestRandomizedGenState(t *testing.T) {
 	s := rand.NewSource(1)
 	r := rand.New(s)
 
+	initialStake := math.NewInt(1000)
+
 	simState := module.SimulationState{
 		AppParams:    make(simtypes.AppParams),
 		Cdc:          cdc,
 		Rand:         r,
 		NumBonded:    3,
 		Accounts:     simtypes.RandomAccounts(r, 3),
-		InitialStake: 1000,
+		InitialStake: initialStake,
 		GenState:     make(map[string]json.RawMessage),
 	}
 
