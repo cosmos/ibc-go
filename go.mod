@@ -5,6 +5,7 @@ module github.com/cosmos/ibc-go/v4
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 require (
+	cosmossdk.io/math v1.0.0-beta.2
 	github.com/armon/go-metrics v0.4.0
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-sdk v0.46.0-rc1.0.20220704192804-f68653f13648
@@ -23,7 +24,6 @@ require (
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
-	cosmossdk.io/math v1.0.0-beta.2
 	gopkg.in/yaml.v2 v2.4.0
 )
 
