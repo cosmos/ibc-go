@@ -145,9 +145,9 @@ module.exports = {
               path: "/apps",
               children: [
                 {
-                    title: "Overview",
-                    directory: false,
-                    path: "/apps/interchain-accounts/overview.html"
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/interchain-accounts/overview.html"
                 }, 
                 {
                   title: "Authentication Modules",
@@ -160,9 +160,9 @@ module.exports = {
                   path: "/apps/interchain-accounts/active-channels.html"
                 },
                 {
-                    title: "Integration",
-                    directory: false,
-                    path: "/apps/interchain-accounts/integration.html"
+                  title: "Integration",
+                  directory: false,
+                  path: "/apps/interchain-accounts/integration.html"
                 },
                 {
                   title: "Parameters",
@@ -176,22 +176,89 @@ module.exports = {
                 },
             ]
             },
+            {
+              title: "Transfer",
+              directory: true,
+              path: "/apps",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/transfer/overview.html"
+                }, 
+                {
+                  title: "State",
+                  directory: false,
+                  path: "/apps/transfer/state.html"
+                },
+                {
+                  title: "State Transitions",
+                  directory: false,
+                  path: "/apps/transfer/state-transitions.html"
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/transfer/messages.html"
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/apps/transfer/events.html"
+                },
+                {
+                  title: "Metrics",
+                  directory: false,
+                  path: "/apps/transfer/metrics.html"
+                },
+                {
+                  title: "Params",
+                  directory: false,
+                  path: "/apps/transfer/params.html"
+                },
+            ]
+            },
           ]
         },
         {
           title: "IBC Middleware Modules",
           children: [
             {
-              title: "ICS29 Fee Middleware",
+              title: "Fee Middleware",
               directory: true,
               path: "/middleware",
               children: [
                 {
-                    title: "Overview",
-                    directory: false,
-                    path: "/middleware/ics29-fee/overview.html"
+                  title: "Overview",
+                  directory: false,
+                  path: "/middleware/ics29-fee/overview.html"
                 }, 
-            ]
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/ics29-fee/integration.html"
+                },
+                {
+                  title: "End Users",
+                  directory: false,
+                  path: "/middleware/ics29-fee/end-users.html"
+                },
+                {
+                  title: "Fee Messages",
+                  directory: false,
+                  path: "/middleware/ics29-fee/msgs.html"
+                },
+                {
+                  title: "Fee Distribution",
+                  directory: false,
+                  path: "/middleware/ics29-fee/fee-distribution.html"
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/middleware/ics29-fee/events.html"
+                },
+              ]
             },
           ]
         },

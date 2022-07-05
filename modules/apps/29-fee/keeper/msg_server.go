@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -33,6 +33,8 @@ func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee
 
 	k.Logger(ctx).Info("registering payee address for relayer", "relayer", msg.Relayer, "payee", msg.Payee, "channel", msg.ChannelId)
 
+	EmitRegisterPayeeEvent(ctx, msg.Relayer, msg.Payee, msg.ChannelId)
+
 	return &types.MsgRegisterPayeeResponse{}, nil
 }
 
@@ -56,6 +58,8 @@ func (k Keeper) RegisterCounterpartyPayee(goCtx context.Context, msg *types.MsgR
 	k.SetCounterpartyPayeeAddress(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
 	k.Logger(ctx).Info("registering counterparty payee for relayer", "relayer", msg.Relayer, "counterparty payee", msg.CounterpartyPayee, "channel", msg.ChannelId)
+
+	EmitRegisterCounterpartyPayeeEvent(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
 	return &types.MsgRegisterCounterpartyPayeeResponse{}, nil
 }
