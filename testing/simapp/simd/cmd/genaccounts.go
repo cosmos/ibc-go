@@ -57,13 +57,16 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				if err != nil {
 					return err
 				}
-				
+
 				info, err := kb.Key(args[0])
 				if err != nil {
 					return fmt.Errorf("failed to get address from Keybase: %w", err)
 				}
 
 				addr, err = info.GetAddress()
+				if err != nil {
+					return err
+				}
 			}
 
 			coins, err := sdk.ParseCoinsNormalized(args[1])
