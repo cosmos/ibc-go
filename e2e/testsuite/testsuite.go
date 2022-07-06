@@ -36,23 +36,25 @@ type E2ETestSuite struct {
 	startRelayerFn func(relayer ibc.Relayer)
 }
 
+// chainPair is a pairing of two chains which will be used in a test.
 type chainPair struct {
 	srcChain, dstChain *cosmos.CosmosChain
 }
 
+// ChainOptions stores chain configurations for the chains that will be
+// created for the tests. They can be modified by passing ChainOptionConfiguration
+// to E2ETestSuite.GetChains.
 type ChainOptions struct {
 	SrcChainConfig *ibc.ChainConfig
 	DstChainConfig *ibc.ChainConfig
 }
 
-func (s *E2ETestSuite) getExecReporter() *testreporter.RelayerExecReporter {
-	rep := testreporter.NewNopReporter()
-	return rep.RelayerExecReporter(s.T())
-}
+// ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
+type ChainOptionConfiguration func(options *ChainOptions)
 
 // GetChains returns a src and dst chain that can be used in a test. The pair returned
 // is unique to the current test being run. Note: this function does not create containers.
-func (s *E2ETestSuite) GetChains(chainOpts ...func(*ChainOptions)) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
+func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
 	if s.chainPairs == nil {
 		s.chainPairs = map[string]chainPair{}
 	}
@@ -66,7 +68,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...func(*ChainOptions)) (*cosmos.Cosm
 		opt(&chainOptions)
 	}
 
-	srcChain, dstChain := s.CreateCosmosChains(chainOptions)
+	srcChain, dstChain := s.createCosmosChains(chainOptions)
 	cp = chainPair{
 		srcChain: srcChain,
 		dstChain: dstChain,
@@ -74,33 +76,6 @@ func (s *E2ETestSuite) GetChains(chainOpts ...func(*ChainOptions)) (*cosmos.Cosm
 	s.chainPairs[s.T().Name()] = cp
 
 	return cp.srcChain, cp.dstChain
-}
-
-// CreateCosmosChains creates two separate chains in docker containers.
-// test and can be retrieved with GetChains.
-func (s *E2ETestSuite) CreateCosmosChains(chainOptions ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
-	ctx := context.Background()
-	client, network := ibctest.DockerSetup(s.T())
-
-	s.logger = zap.NewExample()
-	s.Client = client
-	s.network = network
-
-	logger := zaptest.NewLogger(s.T())
-	srcChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.SrcChainConfig, 1, 0, logger)
-	dstChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.DstChainConfig, 1, 0, logger)
-
-	s.T().Cleanup(func() {
-		if !s.T().Failed() {
-			for _, c := range []*cosmos.CosmosChain{srcChain, dstChain} {
-				if err := c.Cleanup(ctx); err != nil {
-					s.T().Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
-				}
-			}
-		}
-	})
-
-	return srcChain, dstChain
 }
 
 // CreateChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
@@ -133,7 +108,7 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 		opt(&channelOptions)
 	}
 
-	eRep := s.getExecReporter()
+	eRep := s.getRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
 		HomeDir:           home,
@@ -206,12 +181,6 @@ func (s *E2ETestSuite) CreateUserOnSourceChain(ctx context.Context, amount int64
 	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, srcChain)[0]
 }
 
-// CreateUserOnSourceChainWithMnemonic creates a user with the given amount of funds on the source chain from the given mnemonic.
-func (s *E2ETestSuite) CreateUserOnSourceChainWithMnemonic(ctx context.Context, amount int64, mnemonic string) *ibctest.User {
-	srcChain, _ := s.GetChains()
-	return ibctest.GetAndFundTestUserWithMnemonic(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), mnemonic, amount, srcChain)
-}
-
 // CreateUserOnDestinationChain creates a user with the given amount of funds on the destination chain.
 func (s *E2ETestSuite) CreateUserOnDestinationChain(ctx context.Context, amount int64) *ibctest.User {
 	_, dstChain := s.GetChains()
@@ -228,6 +197,42 @@ func (s *E2ETestSuite) GetSourceChainNativeBalance(ctx context.Context, user *ib
 func (s *E2ETestSuite) GetDestinationChainNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
 	_, dstChain := s.GetChains()
 	return GetNativeChainBalance(ctx, dstChain, user)
+}
+
+// createCosmosChains creates two separate chains in docker containers.
+// test and can be retrieved with GetChains.
+func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
+	ctx := context.Background()
+	client, network := ibctest.DockerSetup(s.T())
+
+	s.logger = zap.NewExample()
+	s.Client = client
+	s.network = network
+
+	logger := zaptest.NewLogger(s.T())
+
+	// TODO(chatton): allow for controller over number of validators and full nodes.
+	srcChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.SrcChainConfig, 1, 0, logger)
+	dstChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.DstChainConfig, 1, 0, logger)
+
+	s.T().Cleanup(func() {
+		if !s.T().Failed() {
+			for _, c := range []*cosmos.CosmosChain{srcChain, dstChain} {
+				if err := c.Cleanup(ctx); err != nil {
+					s.T().Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
+				}
+			}
+		}
+	})
+
+	return srcChain, dstChain
+}
+
+// getRelayerExecReporter returns a testreporter.RelayerExecReporter instances
+// using the current test's testing.T.
+func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporter {
+	rep := testreporter.NewNopReporter()
+	return rep.RelayerExecReporter(s.T())
 }
 
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
