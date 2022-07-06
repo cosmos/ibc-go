@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -17,8 +18,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/v4/e2e/testconfig"
+	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )
 
 const (
@@ -29,11 +33,16 @@ const (
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
 type E2ETestSuite struct {
 	suite.Suite
+	clientSets     map[string]ClientSet
 	chainPairs     map[string]chainPair
 	logger         *zap.Logger
 	Client         *dockerclient.Client
 	network        string
 	startRelayerFn func(relayer ibc.Relayer)
+}
+
+type ClientSet struct {
+	FeeQueryClient feetypes.QueryClient
 }
 
 // chainPair is a pairing of two chains which will be used in a test.
@@ -131,7 +140,33 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 		time.Sleep(time.Second * 10)
 	}
 
+	s.initClientSet(srcChain)
+	s.initClientSet(dstChain)
+
 	return r
+}
+
+func (s *E2ETestSuite) GetChainClientSet(chain ibc.Chain) ClientSet {
+	cs, ok := s.clientSets[chain.Config().ChainID]
+	s.Require().True(ok, "chain %s does not have a clientset", chain.Config().ChainID)
+	return cs
+}
+
+func (s *E2ETestSuite) initClientSet(chain *cosmos.CosmosChain) {
+	// Create a connection to the gRPC server.
+	grpcConn, err := grpc.Dial(
+		chain.GetHostGRPCAddress(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	s.Require().NoError(err)
+
+	if s.clientSets == nil {
+		s.clientSets = map[string]ClientSet{}
+
+	}
+	s.clientSets[chain.Config().ChainID] = ClientSet{
+		FeeQueryClient: feetypes.NewQueryClient(grpcConn),
+	}
 }
 
 // GetRelayerWallets returns the relayer wallets associated with the source and destination chains.
@@ -226,6 +261,12 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 	})
 
 	return srcChain, dstChain
+}
+func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
+	s.Require().NotEqual(int64(0), resp.GasUsed)
+	s.Require().NotEqual(int64(0), resp.GasWanted)
+	s.Require().NotEmpty(resp.Events)
+	s.Require().NotEmpty(resp.Data)
 }
 
 // getRelayerExecReporter returns a testreporter.RelayerExecReporter instances

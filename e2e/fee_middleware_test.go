@@ -1,12 +1,18 @@
 package e2e
 
 import (
+	"context"
 	"testing"
+	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v4/e2e/testsuite"
+	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
@@ -17,41 +23,60 @@ type FeeMiddlewareTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain /*user  broadcast.User*/, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
+	_ = feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
+	return sdk.TxResponse{}, nil
+}
+
+func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
+	queryClient := s.GetChainClientSet(chain).FeeQueryClient
+	res, err := queryClient.CounterpartyPayee(ctx, &feetypes.QueryCounterpartyPayeeRequest{
+		ChannelId: channelID,
+		Relayer:   relayerAddress,
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.CounterpartyPayee, nil
+}
+
 func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
-	//t := s.T()
-	//ctx := context.TODO()
-	//
-	//relayer := s.CreateChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
-	//srcChain, dstChain := s.GetChains()
-	//
+	t := s.T()
+	ctx := context.TODO()
+
+	relayer := s.CreateChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+	srcChain, dstChain := s.GetChains()
+
 	//startingTokenAmount := int64(10_000_000)
-	//
+
 	//srcChainWallet := s.CreateUserOnSourceChain(ctx, startingTokenAmount)
 	//dstChainWallet := s.CreateUserOnDestinationChain(ctx, startingTokenAmount)
-	//
-	//t.Run("relayer wallets recovered", func(t *testing.T) {
-	//	s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
-	//})
-	//
-	//srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
-	//t.Run("relayer wallets fetched", func(t *testing.T) {
-	//	s.Require().NoError(err)
-	//})
-	//
-	//s.Require().NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
-	//
-	//t.Run("register counter party payee", func(t *testing.T) {
-	//	s.Require().NoError(e2efee.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChainChannelInfo.Counterparty.PortID, srcChainChannelInfo.Counterparty.ChannelID))
-	//	// give some time for update
-	//	time.Sleep(time.Second * 5)
-	//})
-	//
-	//t.Run("verify counter party payee", func(t *testing.T) {
-	//	address, err := e2efee.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcChainChannelInfo.Counterparty.ChannelID)
-	//	s.Require().NoError(err)
-	//	s.Require().Equal(srcRelayerWallet.Address, address)
-	//})
-	//
+
+	t.Run("relayer wallets recovered", func(t *testing.T) {
+		s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
+	})
+
+	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
+	t.Run("relayer wallets fetched", func(t *testing.T) {
+		s.Require().NoError(err)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
+
+	t.Run("register counter party payee", func(t *testing.T) {
+		tx, err := s.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, "transfer", "channel-0")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(tx)
+		// give some time for update
+		time.Sleep(time.Second * 5)
+	})
+
+	t.Run("verify counter party payee", func(t *testing.T) {
+		address, err := s.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, "channel-0")
+		s.Require().NoError(err)
+		s.Require().Equal(srcRelayerWallet.Address, address)
+	})
+
 	//chain1WalletToChain2WalletAmount := ibc.WalletAmount{
 	//	Address: dstChainWallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
 	//	Denom:   srcChain.Config().Denom,
