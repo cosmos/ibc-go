@@ -177,6 +177,23 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, disabledTimeoutHeight, timestamp)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
+		{"timeout timestamp passed with solomachine", func() {
+			suite.coordinator.Setup(path)
+			// swap client with solomachine
+			solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
+			path.EndpointA.ClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 10)
+			path.EndpointA.SetClientState(solomachine.ClientState())
+			connection := path.EndpointA.GetConnection()
+			connection.ClientId = path.EndpointA.ClientID
+			path.EndpointA.SetConnection(connection)
+
+			clientState := path.EndpointA.GetClientState()
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
+			suite.Require().NoError(err)
+
+			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, disabledTimeoutHeight, timestamp)
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		}, false},
 		{"next sequence send not found", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -210,6 +227,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
+			fmt.Println(path.EndpointA.ClientConfig.GetClientType())
 
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(), channelCap, packet)
 
