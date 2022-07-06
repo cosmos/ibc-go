@@ -262,6 +262,14 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 
 	return srcChain, dstChain
 }
+
+func (s *E2ETestSuite) GetChannel(ctx context.Context, chain ibc.Chain, r ibc.Relayer) ibc.ChannelOutput {
+	eRep := s.getRelayerExecReporter()
+	channels, err := r.GetChannels(ctx, eRep, chain.Config().ChainID)
+	s.Require().NoError(err)
+	return channels[len(channels)-1]
+}
+
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEqual(int64(0), resp.GasUsed)
 	s.Require().NotEqual(int64(0), resp.GasWanted)
