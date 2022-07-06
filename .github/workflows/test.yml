@@ -252,3 +252,18 @@ jobs:
       - name: Run e2e Test
         run: |
           make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
+
+
+  e2e-conformance:
+    runs-on: ubuntu-latest
+    needs:
+      - determine-image-tag
+      - docker-build
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ibc-go
+      - uses: actions/checkout@v3
+        with:
+          repository: strangelove-ventures/ibctest
+          path: ibctest
