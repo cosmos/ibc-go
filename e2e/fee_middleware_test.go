@@ -40,16 +40,19 @@ func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, cha
 	return res.CounterpartyPayee
 }
 
-// PayPacketFee(ctx context.Context, chain *cosmos.CosmosChain, fromAddress, portId, channelId string, sequenceNumber, recvFee, ackFee, timeoutFee int64) error {
 func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(ctx context.Context, chain ibc.Chain, packetID channeltypes.PacketId, packetFee feetypes.PacketFee) error {
 	_ = feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
 	return nil
 }
 
-// PayPacketFee(ctx context.Context, chain *cosmos.CosmosChain, fromAddress, portId, channelId string, sequenceNumber, recvFee, ackFee, timeoutFee int64) error {
-func (s *FeeMiddlewareTestSuite) QueryIncentivizedPackets(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) []feetypes.IdentifiedPacketFees {
+// QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
+func (s *FeeMiddlewareTestSuite) QueryIncentivizedPacketsForChannel(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) []*feetypes.IdentifiedPacketFees {
 	queryClient := s.GetChainClientSet(chain).FeeQueryClient
-	res, err := queryClient.IncentivizedPackets(ctx, &feetypes.QueryIncentivizedPacketsRequest{})
+	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
+		PortId:    portId,
+		ChannelId: channelId,
+	},
+	)
 	s.Require().NoError(err)
 	return res.IncentivizedPackets
 }
@@ -122,7 +125,7 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets := s.QueryIncentivizedPackets(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+			packets := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
 			s.Require().Empty(packets)
 		})
 
@@ -139,7 +142,7 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets := s.QueryIncentivizedPackets(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+			packets := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -166,7 +169,7 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets := s.QueryIncentivizedPackets(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+		packets := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
 		s.Require().Empty(packets)
 	})
 
