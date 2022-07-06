@@ -27,7 +27,7 @@ var (
 
 func (suite *SoloMachineTestSuite) TestStatus() {
 	clientState := suite.solomachine.ClientState()
-	// solo machine discards arguements
+	// solo machine discards arguments
 	status := clientState.Status(suite.chainA.GetContext(), nil, nil)
 	suite.Require().Equal(exported.Active, status)
 
@@ -843,5 +843,53 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 			}
 		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
+	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(tmPath)
+	// Single setup for all test cases.
+	suite.SetupTest()
+
+	testCases := []struct {
+		name        string
+		clientState *types.ClientState
+		height      exported.Height
+		expValue    uint64
+		expPass     bool
+	}{
+		{
+			name:        "get timestamp at height exists",
+			clientState: suite.solomachine.ClientState(),
+			height:      suite.solomachine.ClientState().GetLatestHeight(),
+			expValue:    suite.solomachine.ClientState().ConsensusState.Timestamp,
+			expPass:     true,
+		},
+		{
+			name:        "get timestamp at height not exists",
+			clientState: suite.solomachine.ClientState(),
+			height:      suite.solomachine.ClientState().GetLatestHeight().Increment(),
+		},
+	}
+
+	for i, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			ctx := suite.chainA.GetContext()
+
+			ts, err := tc.clientState.GetTimestampAtHeight(
+				ctx, suite.store, suite.chainA.Codec, tc.height,
+			)
+
+			suite.Require().Equal(tc.expValue, ts)
+
+			if tc.expPass {
+				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+			} else {
+				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
+			}
+		})
 	}
 }

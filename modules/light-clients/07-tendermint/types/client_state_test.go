@@ -1390,3 +1390,50 @@ func (suite *TendermintTestSuite) TestVerifyNextSeqRecv() {
 		})
 	}
 }
+
+func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
+	suite.SetupTest()
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetChannelOrdered()
+	suite.coordinator.Setup(path)
+
+	ctx := suite.chainA.GetContext()
+	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+	clientState := path.EndpointA.GetClientState()
+
+	testCases := []struct {
+		name     string
+		height   exported.Height
+		expValue uint64
+		expPass  bool
+	}{
+		{
+			name:     "get timestamp at height exists",
+			height:   clientState.GetLatestHeight(),
+			expValue: path.EndpointA.GetConsensusState(clientState.GetLatestHeight()).GetTimestamp(),
+			expPass:  true,
+		},
+		{
+			name:   "get timestamp at height not exists",
+			height: clientState.GetLatestHeight().Increment(),
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			ts, err := clientState.GetTimestampAtHeight(
+				ctx, clientStore, suite.chainA.Codec, tc.height,
+			)
+
+			suite.Require().Equal(tc.expValue, ts)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

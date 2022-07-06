@@ -121,6 +121,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (client) [\#888](https://github.com/cosmos/ibc-go/pull/888) Add `GetTimestampAtHeight` to `ClientState`
 * (interchain-accounts) [\#1037](https://github.com/cosmos/ibc-go/pull/1037) Add a function `InitModule` to the interchain accounts `AppModule`. This function should be called within the upgrade handler when adding the interchain accounts module to a chain. It should be called in place of InitGenesis (set the consensus version in the version map).
 * (testing) [\#1003](https://github.com/cosmos/ibc-go/pull/1003) Testing chain's `Signer` fields has changed from `[]tmtypes.PrivValidator` to `map[string]tmtypes.PrivValidator` to accomodate valset updates changing the order of the ValidatorSet.
 * (testing) [\#1003](https://github.com/cosmos/ibc-go/pull/1003) `SignAndDeliver` will now just deliver the transaction without creating and committing a block. Thus, it requires that `BeginBlock` MUST be called before `SignAndDeliver`
