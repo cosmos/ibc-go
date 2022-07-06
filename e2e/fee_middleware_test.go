@@ -30,14 +30,17 @@ func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, 
 	return nil
 }
 
-func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) string {
+func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
 	queryClient := s.GetChainClientSet(chain).FeeQueryClient
 	res, err := queryClient.CounterpartyPayee(ctx, &feetypes.QueryCounterpartyPayeeRequest{
 		ChannelId: channelID,
 		Relayer:   relayerAddress,
 	})
-	s.Require().NoError(err)
-	return res.CounterpartyPayee
+
+	if err != nil {
+		return "", err
+	}
+	return res.CounterpartyPayee, nil
 }
 
 func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(ctx context.Context, chain ibc.Chain, packetID channeltypes.PacketId, packetFee feetypes.PacketFee) error {
@@ -46,15 +49,17 @@ func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(ctx context.Context, chain ib
 }
 
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
-func (s *FeeMiddlewareTestSuite) QueryIncentivizedPacketsForChannel(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) []*feetypes.IdentifiedPacketFees {
+func (s *FeeMiddlewareTestSuite) QueryIncentivizedPacketsForChannel(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) ([]*feetypes.IdentifiedPacketFees, error) {
 	queryClient := s.GetChainClientSet(chain).FeeQueryClient
 	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
 		PortId:    portId,
 		ChannelId: channelId,
 	},
 	)
-	s.Require().NoError(err)
-	return res.IncentivizedPackets
+	if err != nil {
+		return nil, err
+	}
+	return res.IncentivizedPackets, err
 }
 
 func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
@@ -71,7 +76,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 	dstChainWallet := s.CreateUserOnDestinationChain(ctx, startingTokenAmount)
 
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
+		err := s.RecoverRelayerWallets(ctx, relayer)
+		s.Require().NoError(err)
 	})
 
 	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
@@ -90,7 +96,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 	})
 
 	t.Run("verify counter party payee", func(t *testing.T) {
-		address := s.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, "channel-0")
+		address, err := s.QueryCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, "channel-0")
+		s.Require().NoError(err)
 		s.Require().Equal(srcRelayerWallet.Address, address)
 	})
 
@@ -125,7 +132,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
 
@@ -142,7 +150,7 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -169,7 +177,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
 
