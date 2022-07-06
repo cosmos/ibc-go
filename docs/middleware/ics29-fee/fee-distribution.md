@@ -48,7 +48,7 @@ type MsgRegisterCounterpartyPayee struct {
 
 > This message is expected to fail if:
 >
-> - `PortId` is invalid (see [24-host naming requirements](https://github.>com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.>md#paths-identifiers-separators).
+> - `PortId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 > - `ChannelId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 > - `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/basics/accounts.md#Addresses)).
 > - `CounterpartyPayee` is empty.
