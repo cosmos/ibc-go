@@ -128,7 +128,7 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 			connection = path.EndpointA.GetConnection()
 			height = suite.chainB.LastHeader.GetHeight()
 		}, true},
-		{"client state not found", func() {}, true},
+		{"client state not found", func() {}, false},
 		{"consensus state not found", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
