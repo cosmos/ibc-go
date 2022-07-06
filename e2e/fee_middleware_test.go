@@ -149,34 +149,36 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 			s.Require().True(actualFee.TimeoutFee.IsEqual(fee.TimeoutFee))
 		})
 	})
-	//
-	//t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
-	//	// The balance should be lowered by the sum of the recv, ack and timeout fees.
-	//	actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-	//	s.Require().NoError(err)
-	//
-	//	expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - recvFee - ackFee - timeoutFee
-	//	s.Require().Equal(expected, actualBalance)
-	//})
-	//
-	//t.Run("start relayer", func(t *testing.T) {
-	//	s.StartRelayer(relayer)
-	//})
-	//
-	//s.Require().NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
-	//
-	//t.Run("packets are relayed", s.AssertEmptyPackets(ctx, srcChain, srcChainChannelInfo.PortID, srcChainChannelInfo.ChannelID))
-	//
-	//t.Run("timeout fee is refunded", func(t *testing.T) {
-	//
-	//	actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
-	//	s.Require().NoError(err)
-	//
-	//	gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
-	//	// once the relayer has relayed the packets, the timeout fee should be refunded.
-	//	expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - ackFee - recvFee
-	//	s.Require().Equal(expected, actualBalance)
-	//})
+
+	t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
+		// The balance should be lowered by the sum of the recv, ack and timeout fees.
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
+		s.Require().NoError(err)
+
+		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent) - fee.Total().AmountOf(srcDenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		packets := s.QueryIncentivizedPackets(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
+		s.Require().Empty(packets)
+	})
+
+	t.Run("timeout fee is refunded", func(t *testing.T) {
+		actualBalance, err := s.GetSourceChainNativeBalance(ctx, srcChainWallet)
+		s.Require().NoError(err)
+
+		gasFee := srcChain.GetGasFeesInNativeDenom(srcTx.GasSpent)
+		// once the relayer has relayed the packets, the timeout fee should be refunded.
+		expected := startingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFee - fee.AckFee.AmountOf(srcDenom).Int64() - fee.RecvFee.AmountOf(srcDenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
 }
 
 // feeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
