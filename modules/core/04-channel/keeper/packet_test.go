@@ -227,7 +227,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
-			fmt.Println(path.EndpointA.ClientConfig.GetClientType())
 
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(), channelCap, packet)
 
