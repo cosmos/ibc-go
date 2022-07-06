@@ -100,6 +100,9 @@ func extractSuiteAndTestNames(file *ast.File) (string, []string, error) {
 		if f, ok := d.(*ast.FuncDecl); ok {
 			functionName := f.Name.Name
 			if isTestSuiteMethod(f) {
+				if suiteNameForFile != "" {
+					return "", nil, fmt.Errorf("found a second test function: %s when %s was already found", f.Name.Name, suiteNameForFile)
+				}
 				suiteNameForFile = functionName
 				continue
 			}
@@ -121,7 +124,7 @@ func isTestSuiteMethod(f *ast.FuncDecl) bool {
 }
 
 // isTestFunction returns true if the function name starts with "Test" and has no parameters.
-// as test suite functions to not accept a testing.T.
+// as test suite functions do not accept a *testing.T.
 func isTestFunction(f *ast.FuncDecl) bool {
 	return strings.HasPrefix(f.Name.Name, testNamePrefix) && len(f.Type.Params.List) == 0
 }
