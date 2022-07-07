@@ -80,12 +80,11 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 // connection on chainA is INIT
 func (suite *KeeperTestSuite) TestConnOpenTry() {
 	var (
-		path                 *ibctesting.Path
-		delayPeriod          uint64
-		previousConnectionID string
-		versions             []exported.Version
-		consensusHeight      exported.Height
-		counterpartyClient   exported.ClientState
+		path               *ibctesting.Path
+		delayPeriod        uint64
+		versions           []exported.Version
+		consensusHeight    exported.Height
+		counterpartyClient exported.ClientState
 	)
 
 	testCases := []struct {
@@ -218,8 +217,6 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-
-			previousConnectionID = path.EndpointB.ConnectionID
 		}, false},
 		{"invalid previous connection has invalid versions", func() {
 			// open init chainA
@@ -244,8 +241,6 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-
-			previousConnectionID = path.EndpointB.ConnectionID
 		}, false},
 	}
 
@@ -256,7 +251,6 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			suite.SetupTest()                          // reset
 			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
 			versions = types.GetCompatibleVersions()   // must be explicitly changed in malleate
-			previousConnectionID = ""
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
