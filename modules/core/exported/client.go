@@ -214,6 +214,12 @@ type ClientState interface {
 		channelID string,
 		nextSequenceRecv uint64,
 	) error
+	GetTimestampAtHeight(
+		ctx sdk.Context,
+		clientStore sdk.KVStore,
+		cdc codec.BinaryCodec,
+		height Height,
+	) (uint64, error)
 }
 
 // ConsensusState is the state of the consensus process
