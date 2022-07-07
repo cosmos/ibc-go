@@ -2,11 +2,12 @@ package types
 
 import (
 	"fmt"
+	"reflect"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"reflect"
 
 	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
