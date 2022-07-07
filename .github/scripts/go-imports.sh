@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-formatted_files="$(goimports -l -local 'github.com/cosmos/ibc-go' /ibc-go)"
+formatted_files="$(goimports -l -local -w 'github.com/cosmos/ibc-go' .)"
 
 exit_code=0
 for f in $formatted_files
