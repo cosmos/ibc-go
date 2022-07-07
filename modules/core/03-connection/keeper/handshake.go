@@ -25,7 +25,7 @@ func (k Keeper) ConnOpenInit(
 ) (string, error) {
 	versions := types.GetCompatibleVersions()
 	if version != nil {
-		if !types.IsSupportedVersion(version) {
+		if !types.IsSupportedVersion(types.GetCompatibleVersions(), version) {
 			return "", sdkerrors.Wrap(types.ErrInvalidVersion, "version is not supported")
 		}
 
@@ -179,8 +179,7 @@ func (k Keeper) ConnOpenAck(
 		return sdkerrors.Wrap(types.ErrConnectionNotFound, connectionID)
 	}
 
-	// Verify the provided version against the previously set connection state
-	// connection on ChainA must be in INIT or TRYOPEN
+	// verify the previously set connection state
 	if connection.State != types.INIT {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidConnectionState,
@@ -188,10 +187,11 @@ func (k Keeper) ConnOpenAck(
 		)
 	}
 
-	if !types.IsSupportedVersion(version) {
+	// ensure selected version is supported
+	if !types.IsSupportedVersion(types.ProtoVersionsToExported(connection.Versions), version) {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidConnectionState,
-			"the provided version is not supported %s", version,
+			"the selected version is not supported %s", version,
 		)
 	}
 
