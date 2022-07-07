@@ -55,6 +55,21 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
 }
 
+// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
+func (cs ClientState) GetTimestampAtHeight(
+	ctx sdk.Context,
+	clientStore sdk.KVStore,
+	cdc codec.BinaryCodec,
+	height exported.Height,
+) (uint64, error) {
+	// get consensus state at height from clientStore to check for expiry
+	consState, found := GetConsensusState(clientStore, cdc, height)
+	if !found {
+		return 0, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "height (%s)", height)
+	}
+	return consState.GetTimestamp(), nil
+}
+
 // Status returns the status of the tendermint client.
 // The client may be:
 // - Active: FrozenHeight is zero and client is not expired
