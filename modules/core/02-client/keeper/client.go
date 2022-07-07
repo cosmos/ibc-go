@@ -59,7 +59,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
+		return sdkerrors.Wrapf(types.ErrClientStateNotFound, "cannot update client (%s) with status %s", clientID, status)
 	}
 
 	if err := clientState.VerifyClientMessage(ctx, k.cdc, clientStore, clientMsg); err != nil {
@@ -119,7 +119,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 	clientStore := k.ClientStore(ctx, clientID)
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
+		return sdkerrors.Wrapf(types.ErrClientStateNotFound, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
 	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
