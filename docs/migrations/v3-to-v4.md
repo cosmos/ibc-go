@@ -100,4 +100,4 @@ if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId,
 
 When using the `DenomTrace` gRPC, the full IBC denomination with the `ibc/` prefix may now be passed in.
 
-Crossing hello's are no longer supported by core IBC. The handshake should be completed in the logical 4 step process (INIT, TRY, ACK, CONFIRM).
+Crossing hellos are no longer supported by core IBC. The handshake should be completed in the logical 4 step process (INIT, TRY, ACK, CONFIRM).
