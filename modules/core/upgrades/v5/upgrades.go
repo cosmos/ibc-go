@@ -11,12 +11,12 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-const (
-	Localhost = "09-Localhost"
-)
+// Localhost is the client type for a localhost client. It is also used as the clientID
+// for the localhost client.
+const Localhost string = "09-localhost"
 
-// UpgradeLocalhostClients prunes the 09-Localhost client and associated consensus states from the ibc store
-func UpgradeLocalhostClients(ctx sdk.Context, clientKeeper clientkeeper.Keeper) error {
+// UpgradeToV5 prunes the 09-Localhost client and associated consensus states from the ibc store
+func UpgradeToV5(ctx sdk.Context, clientKeeper clientkeeper.Keeper) {
 	clientStore := clientKeeper.ClientStore(ctx, Localhost)
 
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
@@ -41,6 +41,4 @@ func UpgradeLocalhostClients(ctx sdk.Context, clientKeeper clientkeeper.Keeper) 
 
 	// delete the client state
 	clientStore.Delete(host.ClientStateKey())
-
-	return nil
 }
