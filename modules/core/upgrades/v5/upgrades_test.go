@@ -33,7 +33,7 @@ func TestIBCTestSuite(t *testing.T) {
 	suite.Run(t, new(UpgradeV5TestSuite))
 }
 
-func (suite *UpgradeV5TestSuite) TestUpgradeLocalhostClients() {
+func (suite *UpgradeV5TestSuite) TestUpgradeToV5() {
 	var clientStore sdk.KVStore
 
 	testCases := []struct {
