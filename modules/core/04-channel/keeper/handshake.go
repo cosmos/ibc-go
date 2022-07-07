@@ -188,18 +188,15 @@ func (k Keeper) WriteOpenTryChannel(
 	counterparty types.Counterparty,
 	version string,
 ) {
-	previousChannel, previousChannelFound := k.GetChannel(ctx, portID, channelID)
-	if !previousChannelFound {
-		k.SetNextSequenceSend(ctx, portID, channelID, 1)
-		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
-		k.SetNextSequenceAck(ctx, portID, channelID, 1)
-	}
+	k.SetNextSequenceSend(ctx, portID, channelID, 1)
+	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
+	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
 	channel := types.NewChannel(types.TRYOPEN, order, counterparty, connectionHops, version)
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousChannel.State.String(), "new-state", "TRYOPEN")
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
