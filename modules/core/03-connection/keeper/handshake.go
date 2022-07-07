@@ -191,7 +191,7 @@ func (k Keeper) ConnOpenAck(
 	if !types.IsSupportedVersion(types.ProtoVersionsToExported(connection.Versions), version) {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidConnectionState,
-			"the selected version is not supported %s", version,
+			"the counterparty selected version %s is not supported by versions selected on INIT", version,
 		)
 	}
 
