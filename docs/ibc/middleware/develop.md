@@ -168,7 +168,7 @@ func OnChanOpenTry(
         )
     }
 
-    // Call the underlying applications OnChanOpenTry callback.
+    // Call the underlying application's OnChanOpenTry callback.
     // The try callback must select the final app-specific version string and return it.
     appVersion, err := app.OnChanOpenTry(
         ctx,
@@ -217,7 +217,7 @@ func OnChanOpenAck(
     }
     doCustomLogic()
       
-    // call the underlying applications OnChanOpenTry callback
+    // call the underlying application's OnChanOpenTry callback
     return app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cpMetadata.AppVersion)
 }
 ```
