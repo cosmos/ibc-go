@@ -53,7 +53,7 @@ func (k Keeper) VerifyClientState(
 
 	if err := targetClient.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
-		0, 0,
+		0, 0, // skip delay period checks for non-packet processing verification
 		proof, path, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed client state verification for target client: %s", clientID)
@@ -102,7 +102,7 @@ func (k Keeper) VerifyClientConsensusState(
 
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
-		0, 0,
+		0, 0, // skip delay period checks for non-packet processing verification
 		proof, path, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed consensus state verification for client (%s)", clientID)
@@ -156,7 +156,7 @@ func (k Keeper) VerifyConnectionState(
 
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
-		0, 0,
+		0, 0, // skip delay period checks for non-packet processing verification
 		proof, path, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed connection state verification for client (%s)", clientID)
@@ -211,7 +211,7 @@ func (k Keeper) VerifyChannelState(
 
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, height,
-		0, 0,
+		0, 0, // skip delay period checks for non-packet processing verification
 		proof, path, bz,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed channel state verification for client (%s)", clientID)
