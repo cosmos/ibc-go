@@ -32,7 +32,7 @@ func (k Keeper) VerifyClientState(
 	}
 
 	if status := targetClient.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.GetCounterparty().GetClientID()))
@@ -81,7 +81,7 @@ func (k Keeper) VerifyClientConsensusState(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.GetCounterparty().GetClientID(), consensusHeight))
@@ -130,7 +130,7 @@ func (k Keeper) VerifyConnectionState(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
@@ -185,7 +185,7 @@ func (k Keeper) VerifyChannelState(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
@@ -241,7 +241,7 @@ func (k Keeper) VerifyPacketCommitment(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	// get time and block delays
@@ -291,7 +291,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	// get time and block delays
@@ -341,7 +341,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	// get time and block delays
@@ -390,7 +390,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	}
 
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return sdkerrors.Wrapf(clienttypes.ErrClientStateNotFound, "client (%s) status is %s", clientID, status)
 	}
 
 	// get time and block delays
