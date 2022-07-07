@@ -6,6 +6,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/strangelove-ventures/ibctest"
+	"github.com/strangelove-ventures/ibctest/broadcast"
+
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
@@ -24,7 +27,7 @@ type FeeMiddlewareTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain /*user  broadcast.User*/, portID, channelID, relayerAddr, counterpartyPayeeAddr string) error {
+func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) error {
 	_ = feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	//s.AssertValidTxResponse(tx)
 	return nil
@@ -88,7 +91,13 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
 
 	t.Run("register counter party payee", func(t *testing.T) {
-		err := s.RegisterCounterPartyPayee(ctx, dstChain, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChannel.Counterparty.PortID, srcChannel.Counterparty.ChannelID)
+
+		destinationRelayerUser := ibctest.User{
+			Address: []byte(dstRelayerWallet.Address),
+			KeyName: testsuite.DestinationRelayerName,
+		}
+
+		err := s.RegisterCounterPartyPayee(ctx, dstChain, &destinationRelayerUser, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChannel.Counterparty.PortID, srcChannel.Counterparty.ChannelID)
 		s.Require().NoError(err)
 
 		// give some time for update

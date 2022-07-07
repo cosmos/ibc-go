@@ -18,7 +18,7 @@ require (
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
-	github.com/strangelove-ventures/ibctest v0.0.0-20220701220145-b783e516bff0
+	github.com/strangelove-ventures/ibctest v0.0.0-20220707002812-5b38437257fc
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/tendermint v0.34.19
 	github.com/tendermint/tm-db v0.6.6
