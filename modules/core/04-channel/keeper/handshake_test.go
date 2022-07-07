@@ -322,7 +322,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"channel doesn't exist", func() {}, false},
-		{"channel state is not INIT or TRYOPEN", func() {
+		{"channel state is not INIT", func() {
 			// create fully open channels on both chains
 			suite.coordinator.Setup(path)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

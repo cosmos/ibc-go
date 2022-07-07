@@ -222,11 +222,8 @@ func (k Keeper) ChanOpenAck(
 		return sdkerrors.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !(channel.State == types.INIT || channel.State == types.TRYOPEN) {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state should be INIT or TRYOPEN (got %s)", channel.State.String(),
-		)
+	if channel.State != types.INIT {
+		return sdkerrors.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State.String())
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
