@@ -9,7 +9,7 @@ do
     continue
   fi
   exit_code=1
-  echo "docker run  -v "$(pwd)":/ibc-go --rm  -w "/ibc-go"  cytopia/goimports -local 'github.com/cosmos/ibc-go' -w /ibc-go/${f}"
+  echo "goimports -local 'github.com/cosmos/ibc-go' -w ${f}"
 done
 
 if [[ ${exit_code} == 1 ]]; then
