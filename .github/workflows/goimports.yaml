@@ -1,0 +1,10 @@
+name: Goimports
+on: [push, pull_request]
+jobs:
+  goimports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Go Imports"
+        run: |
+          docker run  -v "$(pwd)":/ibc-go --rm  -w "/ibc-go" --entrypoint="" cytopia/goimports  /ibc-go/.github/scripts/go-imports.sh
