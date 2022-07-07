@@ -345,12 +345,12 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 	testCases := []struct {
 		msg      string
-		malleate func(suite *KeeperTestSuite)
+		malleate func()
 		expPass  bool
 	}{
 		{
 			"successful timeout from sender as source chain",
-			func(suite *KeeperTestSuite) {
+			func() {
 				suite.coordinator.Setup(path)
 
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -362,7 +362,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"successful timeout from external chain",
-			func(suite *KeeperTestSuite) {
+			func() {
 				suite.coordinator.Setup(path)
 
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -374,7 +374,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"successful timeout when channel is not OPEN",
-			func(suite *KeeperTestSuite) {
+			func() {
 				// only do the channel INIT step so that we can timeout
 				// before channel is OPEN
 				suite.coordinator.SetupConnections(path)
@@ -390,7 +390,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"no balance for coin denom",
-			func(suite *KeeperTestSuite) {
+			func() {
 				suite.coordinator.Setup(path)
 
 				trace = types.ParseDenomTrace("bitcoin")
@@ -398,7 +398,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"unescrow failed",
-			func(suite *KeeperTestSuite) {
+			func() {
 				suite.coordinator.Setup(path)
 
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
@@ -406,7 +406,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"mint failed",
-			func(suite *KeeperTestSuite) {
+			func() {
 				suite.coordinator.Setup(path)
 
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
@@ -426,7 +426,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			amount = sdk.NewInt(100) // must be explicitly changed
 			sender = suite.chainA.SenderAccount.GetAddress().String()
 
-			tc.malleate(suite)
+			tc.malleate()
 
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), sender, suite.chainB.SenderAccount.GetAddress().String())
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
