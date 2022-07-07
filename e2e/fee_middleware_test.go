@@ -27,10 +27,13 @@ type FeeMiddlewareTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) error {
-	_ = feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	//s.AssertValidTxResponse(tx)
-	return nil
+func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) sdk.TxResponse {
+	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
+	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
+	tx, err := ibctest.BroadcastTx(ctx, broadcaster, user, msg)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(tx)
+	return tx
 }
 
 func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
@@ -46,9 +49,13 @@ func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, cha
 	return res.CounterpartyPayee, nil
 }
 
-func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(ctx context.Context, chain ibc.Chain, packetID channeltypes.PacketId, packetFee feetypes.PacketFee) error {
-	_ = feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
-	return nil
+func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, packetID channeltypes.PacketId, packetFee feetypes.PacketFee) sdk.TxResponse {
+	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
+	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
+	tx, err := ibctest.BroadcastTx(ctx, broadcaster, user, msg)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(tx)
+	return tx
 }
 
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
@@ -97,8 +104,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 			KeyName: testsuite.DestinationRelayerName,
 		}
 
-		err := s.RegisterCounterPartyPayee(ctx, dstChain, &destinationRelayerUser, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChannel.Counterparty.PortID, srcChannel.Counterparty.ChannelID)
-		s.Require().NoError(err)
+		txResp := s.RegisterCounterPartyPayee(ctx, dstChain, &destinationRelayerUser, dstRelayerWallet.Address, srcRelayerWallet.Address, srcChannel.Counterparty.PortID, srcChannel.Counterparty.ChannelID)
+		_ = txResp
 
 		// give some time for update
 		time.Sleep(time.Second * 5)
@@ -151,8 +158,8 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 
 		t.Run("should succeed", func(t *testing.T) {
 
-			err := s.PayPacketFeeAsync(ctx, srcChain, packetId, packetFee)
-			s.Require().NoError(err)
+			txResp := s.PayPacketFeeAsync(ctx, srcChain, srcChainWallet, packetId, packetFee)
+			_ = txResp
 
 			// wait so that incentivised packets will show up
 			time.Sleep(5 * time.Second)
