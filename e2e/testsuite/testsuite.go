@@ -91,7 +91,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos
 // using the given channel options. The relayer returned by this function has not yet started. It should be started
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
-func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) ibc.Relayer {
+func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	srcChain, dstChain := s.GetChains()
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
@@ -143,7 +143,9 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 	s.initClientSet(srcChain)
 	s.initClientSet(dstChain)
 
-	return r
+	srcChainChannels, err := r.GetChannels(ctx, eRep, srcChain.Config().ChainID)
+	s.Require().NoError(err)
+	return r, srcChainChannels[len(srcChainChannels)-1]
 }
 
 func (s *E2ETestSuite) GetChainClientSet(chain ibc.Chain) ClientSet {
@@ -270,11 +272,34 @@ func (s *E2ETestSuite) GetChannel(ctx context.Context, chain ibc.Chain, r ibc.Re
 	return channels[len(channels)-1]
 }
 
+// GetRelayerUsers returns two ibctest.User instances which can be used for the relayer users
+// on the source and destination chains.
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) (*ibctest.User, *ibctest.User) {
+	srcChain, dstChain := s.GetChains(chainOpts...)
+	srcAccountBytes, err := srcChain.GetAddress(ctx, SourceRelayerName)
+	s.Require().NoError(err)
+
+	dstAccountBytes, err := dstChain.GetAddress(ctx, DestinationRelayerName)
+	s.Require().NoError(err)
+
+	srcRelayerUser := ibctest.User{
+		Address: srcAccountBytes,
+		KeyName: SourceRelayerName,
+	}
+
+	dstRelayerUser := ibctest.User{
+		Address: dstAccountBytes,
+		KeyName: DestinationRelayerName,
+	}
+	return &srcRelayerUser, &dstRelayerUser
+}
+
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
-	s.Require().NotEqual(int64(0), resp.GasUsed)
-	s.Require().NotEqual(int64(0), resp.GasWanted)
-	s.Require().NotEmpty(resp.Events)
-	s.Require().NotEmpty(resp.Data)
+	respLogsMsg := resp.Logs.String()
+	s.Require().NotEqual(int64(0), resp.GasUsed, respLogsMsg)
+	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
+	s.Require().NotEmpty(resp.Events, respLogsMsg)
+	s.Require().NotEmpty(resp.Data, respLogsMsg)
 }
 
 // getRelayerExecReporter returns a testreporter.RelayerExecReporter instances
