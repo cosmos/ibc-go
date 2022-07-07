@@ -188,18 +188,15 @@ func (k Keeper) WriteOpenTryChannel(
 	counterparty types.Counterparty,
 	version string,
 ) {
-	previousChannel, previousChannelFound := k.GetChannel(ctx, portID, channelID)
-	if !previousChannelFound {
-		k.SetNextSequenceSend(ctx, portID, channelID, 1)
-		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
-		k.SetNextSequenceAck(ctx, portID, channelID, 1)
-	}
+	k.SetNextSequenceSend(ctx, portID, channelID, 1)
+	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
+	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
 	channel := types.NewChannel(types.TRYOPEN, order, counterparty, connectionHops, version)
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousChannel.State.String(), "new-state", "TRYOPEN")
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
@@ -225,11 +222,8 @@ func (k Keeper) ChanOpenAck(
 		return sdkerrors.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !(channel.State == types.INIT || channel.State == types.TRYOPEN) {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state should be INIT or TRYOPEN (got %s)", channel.State.String(),
-		)
+	if channel.State != types.INIT {
+		return sdkerrors.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State.String())
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {

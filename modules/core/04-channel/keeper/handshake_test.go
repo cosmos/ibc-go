@@ -157,20 +157,6 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			suite.chainB.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
 		}, true},
-		{"success with crossing hello", func() {
-			suite.coordinator.SetupConnections(path)
-			path.SetChannelOrdered()
-			err := suite.coordinator.ChanOpenInitOnBothChains(path)
-			suite.Require().NoError(err)
-
-			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
-		}, true},
-		{"previous channel with invalid state", func() {
-			suite.coordinator.SetupConnections(path)
-
-			// make previous channel have wrong ordering
-			path.EndpointA.ChanOpenInit()
-		}, false},
 		{"connection doesn't exist", func() {
 			path.EndpointA.ConnectionID = ibctesting.FirstConnectionID
 			path.EndpointB.ConnectionID = ibctesting.FirstConnectionID
@@ -336,7 +322,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"channel doesn't exist", func() {}, false},
-		{"channel state is not INIT or TRYOPEN", func() {
+		{"channel state is not INIT", func() {
 			// create fully open channels on both chains
 			suite.coordinator.Setup(path)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
