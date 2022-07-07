@@ -71,13 +71,13 @@ import (
 // ...
 
 app.UpgradeKeeper.SetUpgradeHandler(
-	upgradeName,
-	func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+    upgradeName,
+    func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
         // prune the 09-localhost client from the ibc client store
-		ibcv5.UpgradeToV5(ctx, app.IBCKeeper.ClientKeeper)
+        ibcv5.UpgradeToV5(ctx, app.IBCKeeper.ClientKeeper)
 
-		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-	},
+        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    },
 )
 ```
 
