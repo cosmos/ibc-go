@@ -4,21 +4,24 @@ order: 3
 
 # IBC Applications
 
-Learn how to configure your application to use IBC and send data packets to other chains. {synopsis}
+Learn how to build custom IBC application modules that enable packets to be sent to and received from other IBC-enabled chains. {synopsis}
 
-This document serves as a guide for developers who want to write their own Inter-blockchain
-Communication Protocol (IBC) applications for custom use cases.
+This document serves as a guide for developers who want to write their own Inter-blockchain Communication Protocol (IBC) applications for custom use cases.
 
-Due to the modular design of the IBC protocol, IBC
-application developers do not need to concern themselves with the low-level details of clients,
-connections, and proof verification. Nevertheless a brief explanation of the lower levels of the
-stack is given so that application developers may have a high-level understanding of the IBC
-protocol. Then the document goes into detail on the abstraction layer most relevant for application
-developers (channels and ports), and describes how to define your own custom packets, and
-`IBCModule` callbacks.
+Due to the modular design of the IBC protocol, IBC application developers do not need to concern themselves with the low-level details of clients, connections, and proof verification. Nevertheless, an overview of these low-level concepts can be found in [a previous section](./overview.md).
+The document goes into detail on the abstraction layer most relevant for application developers (channels and ports), and describes how to define your own custom packets, `IBCModule` callbacks and more to make an application module IBC ready.
 
-To have your module interact over IBC you must: bind to a port(s), define your own packet data and acknowledgement structs as well as how to encode/decode them, and implement the
-`IBCModule` interface. Below is a more detailed explanation of how to write an IBC application
+**To have your module interact over IBC you must:**
+
+- implement the `IBCModule` interface, i.e.:
+  - channel (opening) handshake callbacks
+  - channel closing handshake callbacks
+  - packet callbacks
+- bind to a port(s)
+- define your own packet data and acknowledgement structs as well as how to encode/decode them
+- add a route to the IBC router
+
+Below is a more detailed explanation of how to write an IBC application
 module correctly.
 
 ## Pre-requisites Readings
@@ -26,16 +29,18 @@ module correctly.
 - [IBC Overview](./overview.md)) {prereq}
 - [IBC default integration](./integration.md) {prereq}
 
-## Create a custom IBC application module
-
-### Implement `IBCModule` Interface and callbacks
+## Implement `IBCModule` interface and callbacks
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
-interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This
-interface contains all of the callbacks IBC expects modules to implement. This section will describe
-the callbacks that are called during channel handshake execution.
+interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This interface contains all of the callbacks IBC expects modules to implement. The include callbacks related to channel handshake, opening and closing and packet callbacks (`OnRecvPacket`, `OnAcknowledgementPacket` and `OnTimeoutPacket`).
+
+### Channel handshake callbacks
+
+This section will describe the callbacks that are called during channel handshake execution.
 
 Here are the channel handshake callbacks that modules are expected to implement:
+
+> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `checkArguments(args)` function.
 
 ```go
 // Called by IBC Handler on MsgOpenInit
@@ -63,7 +68,7 @@ func (k Keeper) OnChanOpenInit(ctx sdk.Context,
 }
 
 // Called by IBC Handler on MsgOpenTry
-OnChanOpenTry(
+func (k Keeper) OnChanOpenTry(
     ctx sdk.Context,
     order channeltypes.Order,
     connectionHops []string,
@@ -83,7 +88,7 @@ OnChanOpenTry(
             return err
         }
     }
-    
+
     // ... do custom initialization logic
 
     // Use above arguments to determine if we want to abort handshake
@@ -91,18 +96,18 @@ OnChanOpenTry(
         return err
     }
 
-    // Construct application version 
+    // Construct application version
     // IBC applications must return the appropriate application version
     // This can be a simple string or it can be a complex version constructed
-    // from the counterpartyVersion and other arguments. 
-    // The version returned will be the channel version used for both channel ends. 
+    // from the counterpartyVersion and other arguments.
+    // The version returned will be the channel version used for both channel ends.
     appVersion := negotiateAppVersion(counterpartyVersion, args)
-    
+
     return appVersion, nil
 }
 
 // Called by IBC Handler on MsgOpenAck
-OnChanOpenAck(
+func (k Keeper) OnChanOpenAck(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -116,7 +121,7 @@ OnChanOpenAck(
 }
 
 // Called by IBC Handler on MsgOpenConfirm
-OnChanOpenConfirm(
+func (k Keeper) OnChanOpenConfirm(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -129,13 +134,11 @@ OnChanOpenConfirm(
 }
 ```
 
-The channel closing handshake will also invoke module callbacks that can return errors to abort the
-closing handshake. Closing a channel is a 2-step handshake, the initiating chain calls
-`ChanCloseInit` and the finalizing chain calls `ChanCloseConfirm`.
+The channel closing handshake will also invoke module callbacks that can return errors to abort the closing handshake. Closing a channel is a 2-step handshake, the initiating chain calls `ChanCloseInit` and the finalizing chain calls `ChanCloseConfirm`.
 
 ```go
 // Called by IBC Handler on MsgCloseInit
-OnChanCloseInit(
+func (k Keeper) OnChanCloseInit(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -148,7 +151,7 @@ OnChanCloseInit(
 }
 
 // Called by IBC Handler on MsgCloseConfirm
-OnChanCloseConfirm(
+func (k Keeper) OnChanCloseConfirm(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -161,13 +164,13 @@ OnChanCloseConfirm(
 }
 ```
 
-#### Channel Handshake Version Negotiation
+#### Channel handshake version negotiation
 
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
-* `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
-* `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error. 
-* `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
+- `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
+- `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error.
+- `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
 
 IBC expects application modules to perform application version negotiation in `OnChanOpenTry`. The negotiated version
 must be returned to core IBC. If the version cannot be negotiated, an error should be returned.
@@ -186,7 +189,145 @@ encoded version into each handhshake call as necessary.
 
 ICS20 currently implements basic string matching with a single supported version.
 
-### Bind Ports
+### Packet callbacks
+
+Just as IBC expected modules to implement callbacks for channel handshakes, IBC also expects modules to implement callbacks for handling the packet flow through a channel, as defined in the `IBCModule` interface.
+
+Once a module A and module B are connected to each other, relayers can start relaying packets and acknowledgements back and forth on the channel.
+
+![IBC packet flow diagram](https://ibcprotocol.org/_nuxt/img/packet_flow.1d89ee0.png)
+
+Briefly, a successful packet flow works as follows:
+
+1. module A sends a packet through the IBC module
+2. the packet is received by module B
+3. if module B writes an acknowledgement of the packet then module A will process the
+   acknowledgement
+4. if the packet is not successfully received before the timeout, then module A processes the
+   packet's timeout.
+
+#### Sending packets
+
+Modules **do not send packets through callbacks**, since the modules initiate the action of sending packets to the IBC module, as opposed to other parts of the packet flow where msgs sent to the IBC
+module must trigger execution on the port-bound module through the use of callbacks. Thus, to send a packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
+
+> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `EncodePacketData(customPacketData)` function.
+
+```go
+// retrieve the dynamic capability for this channel
+channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
+// Sending custom application packet data
+data := EncodePacketData(customPacketData)
+packet.Data = data
+// Send packet to IBC, authenticating with channelCap
+IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
+```
+
+::: warning
+In order to prevent modules from sending packets on channels they do not own, IBC expects
+modules to pass in the correct channel capability for the packet's source channel.
+:::
+
+#### Receiving packets
+
+To handle receiving packets, the module must implement the `OnRecvPacket` callback. This gets
+invoked by the IBC module after the packet has been proved valid and correctly processed by the IBC
+keepers. Thus, the `OnRecvPacket` callback only needs to worry about making the appropriate state
+changes given the packet data without worrying about whether the packet is valid or not.
+
+Modules may return to the IBC handler an acknowledgement which implements the Acknowledgement interface.
+The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
+acknowledgement back to the sender module.
+
+The state changes that occurred during this callback will only be written if:
+
+- the acknowledgement was successful as indicated by the `Success()` function of the acknowledgement
+- if the acknowledgement returned is nil indicating that an asynchronous process is occurring
+
+NOTE: Applications which process asynchronous acknowledgements must handle reverting state changes
+when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written
+for asynchronous acknowledgements.
+
+> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodePacketData(packet.Data)` function.
+
+```go
+func (k Keeper) OnRecvPacket(
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+) ibcexported.Acknowledgement {
+    // Decode the packet data
+    packetData := DecodePacketData(packet.Data)
+
+    // do application state changes based on packet data and return the acknowledgement
+    // NOTE: The acknowledgement will indicate to the IBC handler if the application
+    // state changes should be written via the `Success()` function. Application state
+    // changes are only written if the acknowledgement is successful or the acknowledgement
+    // returned is nil indicating that an asynchronous acknowledgement will occur.
+    ack := processPacket(ctx, packet, packetData)
+
+    return ack
+}
+```
+
+Reminder, the Acknowledgement interface:
+
+```go
+// Acknowledgement defines the interface used to return
+// acknowledgements in the OnRecvPacket callback.
+type Acknowledgement interface {
+	Success() bool
+	Acknowledgement() []byte
+}
+```
+
+#### Acknowledging packets
+
+After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
+then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
+acknowledgement is entirely upto the modules on the channel (just like the packet data); however, it
+may often contain information on whether the packet was successfully processed along
+with some additional data that could be useful for remediation if the packet processing failed.
+
+Since the modules are responsible for agreeing on an encoding/decoding standard for packet data and
+acknowledgements, IBC will pass in the acknowledgements as `[]byte` to this callback. The callback
+is responsible for decoding the acknowledgement and processing it.
+
+> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodeAcknowledgement(acknowledgments)` and `processAck(ack)` functions.
+
+```go
+func (k Keeper) OnAcknowledgementPacket(
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+    acknowledgement []byte,
+) (*sdk.Result, error) {
+    // Decode acknowledgement
+    ack := DecodeAcknowledgement(acknowledgement)
+
+    // process ack
+    res, err := processAck(ack)
+    return res, err
+}
+```
+
+#### Timeout packets
+
+If the timeout for a packet is reached before the packet is successfully received or the
+counterparty channel end is closed before the packet is successfully received, then the receiving
+chain can no longer process it. Thus, the sending chain must process the timeout using
+`OnTimeoutPacket` to handle this situation. Again the IBC module will verify that the timeout is
+indeed valid, so our module only needs to implement the state machine logic for what to do once a
+timeout is reached and the packet can no longer be received.
+
+```go
+func (k Keeper) OnTimeoutPacket(
+    ctx sdk.Context,
+    packet channeltypes.Packet,
+) (*sdk.Result, error) {
+    // do custom timeout logic
+}
+```
+
+## Bind ports
 
 Currently, ports must be bound on app initialization. A module may bind to ports in `InitGenesis`
 like so:
@@ -214,7 +355,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState
 }
 ```
 
-### Custom Packets
+## Define packets and acks
+
+### Custom packets
 
 Modules connected by a channel must agree on what application data they are sending over the
 channel, as well as how they will encode/decode it. This process is not specified by IBC as it is up
@@ -259,102 +402,13 @@ packetData := DecodePacketData(packet.Data)
 // handle received custom packet data
 ```
 
-#### Packet Flow Handling
-
-Just as IBC expected modules to implement callbacks for channel handshakes, IBC also expects modules
-to implement callbacks for handling the packet flow through a channel.
-
-Once a module A and module B are connected to each other, relayers can start relaying packets and
-acknowledgements back and forth on the channel.
-
-![IBC packet flow diagram](https://media.githubusercontent.com/media/cosmos/ibc/old/spec/ics-004-channel-and-packet-semantics/channel-state-machine.png)
-
-Briefly, a successful packet flow works as follows:
-
-1. module A sends a packet through the IBC module
-2. the packet is received by module B
-3. if module B writes an acknowledgement of the packet then module A will process the
-   acknowledgement
-4. if the packet is not successfully received before the timeout, then module A processes the
-   packet's timeout.
-
-##### Sending Packets
-
-Modules do not send packets through callbacks, since the modules initiate the action of sending
-packets to the IBC module, as opposed to other parts of the packet flow where msgs sent to the IBC
-module must trigger execution on the port-bound module through the use of callbacks. Thus, to send a
-packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
-
-```go
-// retrieve the dynamic capability for this channel
-channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
-// Sending custom application packet data
-data := EncodePacketData(customPacketData)
-packet.Data = data
-// Send packet to IBC, authenticating with channelCap
-IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
-```
-
-::: warning
-In order to prevent modules from sending packets on channels they do not own, IBC expects
-modules to pass in the correct channel capability for the packet's source channel.
-:::
-
-##### Receiving Packets
-
-To handle receiving packets, the module must implement the `OnRecvPacket` callback. This gets
-invoked by the IBC module after the packet has been proved valid and correctly processed by the IBC
-keepers. Thus, the `OnRecvPacket` callback only needs to worry about making the appropriate state
-changes given the packet data without worrying about whether the packet is valid or not.
-
-Modules may return to the IBC handler an acknowledgement which implements the Acknowledgement interface.
-The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
-acknowledgement back to the sender module.
-
-The state changes that occurred during this callback will only be written if:
-- the acknowledgement was successful as indicated by the `Success()` function of the acknowledgement
-- if the acknowledgement returned is nil indicating that an asynchronous process is occurring
-
-NOTE: Applications which process asynchronous acknowledgements must handle reverting state changes
-when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written 
-for asynchronous acknowledgements. 
-
-```go
-OnRecvPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-) ibcexported.Acknowledgement {
-    // Decode the packet data
-    packetData := DecodePacketData(packet.Data)
-
-    // do application state changes based on packet data and return the acknowledgement
-    // NOTE: The acknowledgement will indicate to the IBC handler if the application 
-    // state changes should be written via the `Success()` function. Application state
-    // changes are only written if the acknowledgement is successful or the acknowledgement
-    // returned is nil indicating that an asynchronous acknowledgement will occur.
-    ack := processPacket(ctx, packet, packetData)
-
-    return ack
-}
-```
-
-The Acknowledgement interface:
-```go
-// Acknowledgement defines the interface used to return
-// acknowledgements in the OnRecvPacket callback.
-type Acknowledgement interface {
-	Success() bool
-	Acknowledgement() []byte
-}
-```
-
 ### Acknowledgements
 
 Modules may commit an acknowledgement upon receiving and processing a packet in the case of synchronous packet processing.
-In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement 
+In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement
 will be written once the packet has been processed by the application which may be well after the packet receipt.
 
-NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement 
+NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement
 for a packet as soon as it has been received from the IBC module.
 
 This acknowledgement can then be relayed back to the original sender chain, which can take action
@@ -371,7 +425,7 @@ specifies a recommended format for acknowledgements. This acknowledgement type c
 
 While modules may choose arbitrary acknowledgement structs, a default acknowledgement types is provided by IBC [here](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/channel/v1/channel.proto):
 
-```proto
+```protobuf
 // Acknowledgement is the recommended acknowledgement format to be used by
 // app-specific protocols.
 // NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
@@ -388,54 +442,9 @@ message Acknowledgement {
 }
 ```
 
-#### Acknowledging Packets
+## Routing
 
-After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
-then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
-acknowledgement is entirely upto the modules on the channel (just like the packet data); however, it
-may often contain information on whether the packet was successfully processed along
-with some additional data that could be useful for remediation if the packet processing failed.
-
-Since the modules are responsible for agreeing on an encoding/decoding standard for packet data and
-acknowledgements, IBC will pass in the acknowledgements as `[]byte` to this callback. The callback
-is responsible for decoding the acknowledgement and processing it.
-
-```go
-OnAcknowledgementPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-    acknowledgement []byte,
-) (*sdk.Result, error) {
-    // Decode acknowledgement
-    ack := DecodeAcknowledgement(acknowledgement)
-
-    // process ack
-    res, err := processAck(ack)
-    return res, err
-}
-```
-
-#### Timeout Packets
-
-If the timeout for a packet is reached before the packet is successfully received or the 
-counterparty channel end is closed before the packet is successfully received, then the receiving
-chain can no longer process it. Thus, the sending chain must process the timeout using
-`OnTimeoutPacket` to handle this situation. Again the IBC module will verify that the timeout is
-indeed valid, so our module only needs to implement the state machine logic for what to do once a
-timeout is reached and the packet can no longer be received.
-
-```go
-OnTimeoutPacket(
-    ctx sdk.Context,
-    packet channeltypes.Packet,
-) (*sdk.Result, error) {
-    // do custom timeout logic
-}
-```
-
-### Routing
-
-As mentioned above, modules must implement the IBC module interface (which contains both channel
+As mentioned above, modules must implement the `IBCModule` interface (which contains both channel
 handshake callbacks and packet handling callbacks). The concrete implementation of this interface
 must be registered with the module name as a route on the IBC `Router`.
 
@@ -454,9 +463,12 @@ ibcRouter.AddRoute(moduleName, moduleCallbacks)
 // Setting Router will finalize all routes by sealing router
 // No more routes can be added
 app.IBCKeeper.SetRouter(ibcRouter)
+
+// ...
+}
 ```
 
-## Working Example
+## Working example
 
 For a real working example of an IBC application, you can look through the `ibc-transfer` module
 which implements everything discussed above.
