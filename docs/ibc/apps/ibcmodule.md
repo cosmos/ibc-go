@@ -1,40 +1,15 @@
 <!--
-order: 3
+order: 2
 -->
 
-# IBC Applications
+# Implement `IBCModule` interface and callbacks
 
-Learn how to build custom IBC application modules that enable packets to be sent to and received from other IBC-enabled chains. {synopsis}
-
-This document serves as a guide for developers who want to write their own Inter-blockchain Communication Protocol (IBC) applications for custom use cases.
-
-Due to the modular design of the IBC protocol, IBC application developers do not need to concern themselves with the low-level details of clients, connections, and proof verification. Nevertheless, an overview of these low-level concepts can be found in [a previous section](./overview.md).
-The document goes into detail on the abstraction layer most relevant for application developers (channels and ports), and describes how to define your own custom packets, `IBCModule` callbacks and more to make an application module IBC ready.
-
-**To have your module interact over IBC you must:**
-
-- implement the `IBCModule` interface, i.e.:
-  - channel (opening) handshake callbacks
-  - channel closing handshake callbacks
-  - packet callbacks
-- bind to a port(s)
-- define your own packet data and acknowledgement structs as well as how to encode/decode them
-- add a route to the IBC router
-
-Below is a more detailed explanation of how to write an IBC application
-module correctly.
-
-## Pre-requisites Readings
-
-- [IBC Overview](./overview.md)) {prereq}
-- [IBC default integration](./integration.md) {prereq}
-
-## Implement `IBCModule` interface and callbacks
+Learn how to implement the `IBCModule` interface and all of the callbacks it requires. {synopsis}
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
 interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This interface contains all of the callbacks IBC expects modules to implement. The include callbacks related to channel handshake, opening and closing and packet callbacks (`OnRecvPacket`, `OnAcknowledgementPacket` and `OnTimeoutPacket`).
 
-### Channel handshake callbacks
+## Channel handshake callbacks
 
 This section will describe the callbacks that are called during channel handshake execution.
 
@@ -164,7 +139,7 @@ func (k Keeper) OnChanCloseConfirm(
 }
 ```
 
-#### Channel handshake version negotiation
+### Channel handshake version negotiation
 
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
@@ -189,7 +164,7 @@ encoded version into each handhshake call as necessary.
 
 ICS20 currently implements basic string matching with a single supported version.
 
-### Packet callbacks
+## Packet callbacks
 
 Just as IBC expected modules to implement callbacks for channel handshakes, IBC also expects modules to implement callbacks for handling the packet flow through a channel, as defined in the `IBCModule` interface.
 
@@ -206,7 +181,7 @@ Briefly, a successful packet flow works as follows:
 4. if the packet is not successfully received before the timeout, then module A processes the
    packet's timeout.
 
-#### Sending packets
+### Sending packets
 
 Modules **do not send packets through callbacks**, since the modules initiate the action of sending packets to the IBC module, as opposed to other parts of the packet flow where msgs sent to the IBC
 module must trigger execution on the port-bound module through the use of callbacks. Thus, to send a packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
@@ -228,7 +203,7 @@ In order to prevent modules from sending packets on channels they do not own, IB
 modules to pass in the correct channel capability for the packet's source channel.
 :::
 
-#### Receiving packets
+### Receiving packets
 
 To handle receiving packets, the module must implement the `OnRecvPacket` callback. This gets
 invoked by the IBC module after the packet has been proved valid and correctly processed by the IBC
@@ -280,7 +255,7 @@ type Acknowledgement interface {
 }
 ```
 
-#### Acknowledging packets
+### Acknowledging packets
 
 After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
 then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
@@ -309,7 +284,7 @@ func (k Keeper) OnAcknowledgementPacket(
 }
 ```
 
-#### Timeout packets
+### Timeout packets
 
 If the timeout for a packet is reached before the packet is successfully received or the
 counterparty channel end is closed before the packet is successfully received, then the receiving
@@ -326,231 +301,3 @@ func (k Keeper) OnTimeoutPacket(
     // do custom timeout logic
 }
 ```
-
-## Bind ports
-
-Currently, ports must be bound on app initialization. A module may bind to ports in `InitGenesis`
-like so:
-
-In order to bind modules to their respective ports on initialization, the following needs to be implemented:
-
-1. In the `module.go` file, add:
-
-   ```go
-   var (
-       _ module.AppModule      = AppModule{}
-       _ module.AppModuleBasic = AppModuleBasic{}
-       // Add this line
-       _ porttypes.IBCModule   = IBCModule{}
-   )
-   ```
-
-1. Add port ID to the `GenesisState` proto definition:
-
-   ```protobuf
-   message GenesisState {
-   string port_id = 1;
-   // other fields
-   }
-   ```
-
-1. Add port ID to `x/moduleName/types/genesis.go`:
-
-   ```go
-   // in x/moduleName/types/genesis.go
-
-   // DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
-   func DefaultGenesisState() *GenesisState {
-       return &GenesisState{
-           PortId:      PortID,
-           // additional k-v fields
-       }
-   }
-
-   // Validate performs basic genesis state validation returning an error upon any
-   // failure.
-   func (gs GenesisState) Validate() error {
-       if err := host.PortIdentifierValidator(gs.PortId); err != nil {
-           return err
-       }
-       //addtional validations
-
-       return gs.Params.Validate()
-   }
-   ```
-
-1. Bind to port(s) in `InitGenesis`:
-
-   ```go
-   // InitGenesis initializes the ibc-module state and binds to PortID.
-   func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
-       k.SetPort(ctx, state.PortId)
-
-       // ...
-
-       // Only try to bind to port if it is not already bound, since we may already own
-       // port capability from capability InitGenesis
-       if !k.IsBound(ctx, state.PortId) {
-           // transfer module binds to the transfer port on InitChain
-           // and claims the returned capability
-           err := k.BindPort(ctx, state.PortId)
-           if err != nil {
-               panic(fmt.Sprintf("could not claim port capability: %v", err))
-           }
-       }
-
-       // ...
-   }
-   ```
-
-   With:
-
-   ```go
-   // IsBound checks if the  module is already bound to the desired port
-   func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
-       _, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-       return ok
-   }
-
-   // BindPort defines a wrapper function for the port Keeper's function in
-   // order to expose it to module's InitGenesis function
-   func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-       cap := k.portKeeper.BindPort(ctx, portID)
-       return k.ClaimCapability(ctx, cap, host.PortPath(portID))
-   }
-   ```
-
-   The module binds to the desired port(s) and returns the capabilities.
-
-## Define packets and acks
-
-### Custom packets
-
-Modules connected by a channel must agree on what application data they are sending over the
-channel, as well as how they will encode/decode it. This process is not specified by IBC as it is up
-to each application module to determine how to implement this agreement. However, for most
-applications this will happen as a version negotiation during the channel handshake. While more
-complex version negotiation is possible to implement inside the channel opening handshake, a very
-simple version negotation is implemented in the [ibc-transfer module](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer/module.go).
-
-Thus, a module must define its a custom packet data structure, along with a well-defined way to
-encode and decode it to and from `[]byte`.
-
-```go
-// Custom packet data defined in application module
-type CustomPacketData struct {
-    // Custom fields ...
-}
-
-EncodePacketData(packetData CustomPacketData) []byte {
-    // encode packetData to bytes
-}
-
-DecodePacketData(encoded []byte) (CustomPacketData) {
-    // decode from bytes to packet data
-}
-```
-
-Then a module must encode its packet data before sending it through IBC.
-
-```go
-// Sending custom application packet data
-data := EncodePacketData(customPacketData)
-packet.Data = data
-IBCChannelKeeper.SendPacket(ctx, packet)
-```
-
-A module receiving a packet must decode the `PacketData` into a structure it expects so that it can
-act on it.
-
-```go
-// Receiving custom application packet data (in OnRecvPacket)
-packetData := DecodePacketData(packet.Data)
-// handle received custom packet data
-```
-
-### Acknowledgements
-
-Modules may commit an acknowledgement upon receiving and processing a packet in the case of synchronous packet processing.
-In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement
-will be written once the packet has been processed by the application which may be well after the packet receipt.
-
-NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement
-for a packet as soon as it has been received from the IBC module.
-
-This acknowledgement can then be relayed back to the original sender chain, which can take action
-depending on the contents of the acknowledgement.
-
-Just as packet data was opaque to IBC, acknowledgements are similarly opaque. Modules must pass and
-receive acknowledegments with the IBC modules as byte strings.
-
-Thus, modules must agree on how to encode/decode acknowledgements. The process of creating an
-acknowledgement struct along with encoding and decoding it, is very similar to the packet data
-example above. [ICS 04](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope)
-specifies a recommended format for acknowledgements. This acknowledgement type can be imported from
-[channel types](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel/types).
-
-While modules may choose arbitrary acknowledgement structs, a default acknowledgement types is provided by IBC [here](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/channel/v1/channel.proto):
-
-```protobuf
-// Acknowledgement is the recommended acknowledgement format to be used by
-// app-specific protocols.
-// NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
-// conflicts with other protobuf message formats used for acknowledgements.
-// The first byte of any message with this format will be the non-ASCII values
-// `0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
-// https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
-message Acknowledgement {
-  // response contains either a result or an error and must be non-empty
-  oneof response {
-    bytes  result = 21;
-    string error  = 22;
-  }
-}
-```
-
-## Routing
-
-As mentioned above, modules must implement the `IBCModule` interface (which contains both channel
-handshake callbacks and packet handling callbacks). The concrete implementation of this interface
-must be registered with the module name as a route on the IBC `Router`.
-
-```go
-// app.go
-func NewApp(...args) *App {
-// ...
-
-// Create static IBC router, add module routes, then set and seal it
-ibcRouter := port.NewRouter()
-
-ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
-// Note: moduleCallbacks must implement IBCModule interface
-ibcRouter.AddRoute(moduleName, moduleCallbacks)
-
-// Setting Router will finalize all routes by sealing router
-// No more routes can be added
-app.IBCKeeper.SetRouter(ibcRouter)
-
-// ...
-}
-```
-
-## Working example
-
-For a real working example of an IBC application, you can look through the `ibc-transfer` module
-which implements everything discussed above.
-
-Here are the useful parts of the module to look at:
-
-[Binding to transfer
-port](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper/genesis.go)
-
-[Sending transfer
-packets](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper/relay.go)
-
-[Implementing IBC
-callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/ibc_module.go)
-
-## Next {hide}
-
-Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/intro.md) {hide}
