@@ -8,7 +8,7 @@ Learn how to build custom IBC application modules that enable packets to be sent
 
 This document serves as a guide for developers who want to write their own Inter-blockchain Communication Protocol (IBC) applications for custom use cases.
 
-Due to the modular design of the IBC protocol, IBC application developers do not need to concern themselves with the low-level details of clients, connections, and proof verification. Nevertheless, an overview of these low-level concepts can be found in [a previous section](./overview.md).
+Due to the modular design of the IBC protocol, IBC application developers do not need to concern themselves with the low-level details of clients, connections, and proof verification. Nevertheless, an overview of these low-level concepts can be found in [a previous section](../overview.md).
 The document goes into detail on the abstraction layer most relevant for application developers (channels and ports), and describes how to define your own custom packets, `IBCModule` callbacks and more to make an application module IBC ready.
 
 **To have your module interact over IBC you must:**
@@ -27,8 +27,8 @@ module correctly corresponding to the listed steps.
 
 ## Pre-requisites Readings
 
-- [IBC Overview](./overview.md)) {prereq}
-- [IBC default integration](./integration.md) {prereq}
+- [IBC Overview](../overview.md)) {prereq}
+- [IBC default integration](../integration.md) {prereq}
 
 ## Working example
 

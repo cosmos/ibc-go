@@ -6,6 +6,11 @@ order: 3
 
 Learn what changes to make to bind modules to their ports on initialization. {synopsis}
 
+## Pre-requisites Readings
+
+- [IBC Overview](../overview.md)) {prereq}
+- [IBC default integration](../integration.md) {prereq}
+
 Currently, ports must be bound on app initialization. In order to bind modules to their respective ports on initialization, the following needs to be implemented:
 
 1. Add port ID to the `GenesisState` proto definition:

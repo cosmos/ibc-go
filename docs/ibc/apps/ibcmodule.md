@@ -27,6 +27,11 @@ var (
 )
 ```
 
+## Pre-requisites Readings
+
+- [IBC Overview](../overview.md)) {prereq}
+- [IBC default integration](../integration.md) {prereq}
+
 ## Channel handshake callbacks
 
 This section will describe the callbacks that are called during channel handshake execution.

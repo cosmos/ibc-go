@@ -6,6 +6,11 @@ order: 5
 
 Learn how to define custom packet and acknowledgement structs and how to encode and decode them. {synopsis}
 
+## Pre-requisites Readings
+
+- [IBC Overview](../overview.md)) {prereq}
+- [IBC default integration](../integration.md) {prereq}
+
 ## Custom packets
 
 Modules connected by a channel must agree on what application data they are sending over the

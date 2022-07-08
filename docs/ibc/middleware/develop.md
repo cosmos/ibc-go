@@ -16,7 +16,7 @@ Middleware allows developers to define the extensions as separate modules that c
 
 - [IBC Overview](../overview.md) {prereq}
 - [IBC Integration](../integration.md) {prereq}
-- [IBC Application Developer Guide](../apps.md) {prereq}
+- [IBC Application Developer Guide](../apps/apps.md) {prereq}
 
 ## Definitions
 
@@ -26,7 +26,7 @@ Middleware allows developers to define the extensions as separate modules that c
 
 `Base Application`: A base application is an IBC application that does not contain any middleware. It may be nested by 0 or multiple middleware to form an application stack.
 
-`Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) +  base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
+`Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) + base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
 
 ## Create a custom IBC Middleware
 
@@ -49,7 +49,7 @@ type Middleware interface {
 type ICS4Wrapper interface {
     SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet) error
     WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet, ack []byte) error
-    GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) 
+    GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool)
 }
 ```
 
@@ -125,7 +125,7 @@ func OnChanOpenTry(
     if err != nil {
         return err
     }
-    
+
     middlewareVersion := negotiateMiddlewareVersion(cpMiddlewareVersion)
     version := constructVersion(middlewareVersion, appVersion)
 
@@ -144,7 +144,7 @@ func OnChanOpenAck(
         return error
     }
     doCustomLogic()
-      
+
     // call the underlying applications OnChanOpenTry callback
     app.OnChanOpenAck(ctx, portID, channelID, appVersion)
 }
@@ -241,7 +241,7 @@ func SendPacket(appPacket channeltypes.Packet) {
     return ics4Keeper.SendPacket(packet)
 }
 
-// middleware must return the underlying application version 
+// middleware must return the underlying application version
 func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
     version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
     if !found {

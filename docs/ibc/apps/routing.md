@@ -4,6 +4,11 @@ order: 6
 
 # Routing
 
+## Pre-requisites Readings
+
+- [IBC Overview](../overview.md)) {prereq}
+- [IBC default integration](../integration.md) {prereq}
+
 Learn how to hook a route to the IBC router for the custom IBC module. {synopsis}
 
 As mentioned above, modules must implement the `IBCModule` interface (which contains both channel
