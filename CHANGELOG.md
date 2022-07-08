@@ -78,7 +78,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specifc channel did not follow the same format as the rest of queries.
-* (modules/core/02-client)[\#X](https://github.com/cosmos/ibc-go/pull/X) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents the proposal containing information governance is not actually voting on.
+* (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents the proposal containing information governance is not actually voting on.
 
 ## [v3.0.0](https://github.com/cosmos/ibc-go/releases/tag/v3.0.0) - 2022-03-15
 
