@@ -8,17 +8,6 @@ Learn what changes to make to bind modules to their ports on initialization. {sy
 
 Currently, ports must be bound on app initialization. In order to bind modules to their respective ports on initialization, the following needs to be implemented:
 
-1. In the `module.go` file, add:
-
-   ```go
-   var (
-       _ module.AppModule      = AppModule{}
-       _ module.AppModuleBasic = AppModuleBasic{}
-       // Add this line
-       _ porttypes.IBCModule   = IBCModule{}
-   )
-   ```
-
 1. Add port ID to the `GenesisState` proto definition:
 
    ```protobuf
@@ -26,6 +15,25 @@ Currently, ports must be bound on app initialization. In order to bind modules t
         string port_id = 1;
         // other fields
    }
+   ```
+
+1. Add port ID as a key to the module store:
+
+   ```go
+   // x/<moduleName>/types/keys.go
+   const (
+       // ModuleName defines the IBC Module name
+       ModuleName = "moduleName"
+
+       // Version defines the current version the IBC
+       // module supports
+       Version = "moduleVersion-1"
+
+       // PortID is the default port id that module binds to
+       PortID = "portID"
+
+       // ...
+   )
    ```
 
 1. Add port ID to `x/<moduleName>/types/genesis.go`:
@@ -53,7 +61,7 @@ Currently, ports must be bound on app initialization. In order to bind modules t
    }
    ```
 
-1. Bind to port(s) in `InitGenesis`:
+1. Bind to port(s) in the module keeper's `InitGenesis`:
 
    ```go
    // InitGenesis initializes the ibc-module state and binds to PortID.
@@ -95,3 +103,5 @@ Currently, ports must be bound on app initialization. In order to bind modules t
    ```
 
    The module binds to the desired port(s) and returns the capabilities.
+
+   > In the above we find reference to keeper methods that wrap other keeper functionality, in the next section the keeper methods that need to be implemented will be defined.

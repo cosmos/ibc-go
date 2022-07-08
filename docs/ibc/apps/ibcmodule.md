@@ -9,6 +9,24 @@ Learn how to implement the `IBCModule` interface and all of the callbacks it req
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
 interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This interface contains all of the callbacks IBC expects modules to implement. The include callbacks related to channel handshake, opening and closing and packet callbacks (`OnRecvPacket`, `OnAcknowledgementPacket` and `OnTimeoutPacket`).
 
+```go
+// IBCModule implements the ICS26 interface for transfer given the transfer keeper.
+type IBCModule struct {
+	keeper keeper.Keeper
+}
+```
+
+Additionally, in the `module.go` file, add the following line:
+
+```go
+var (
+    _ module.AppModule      = AppModule{}
+    _ module.AppModuleBasic = AppModuleBasic{}
+    // Add this line
+    _ porttypes.IBCModule   = IBCModule{}
+)
+```
+
 ## Channel handshake callbacks
 
 This section will describe the callbacks that are called during channel handshake execution.
@@ -19,7 +37,7 @@ Here are the channel handshake callbacks that modules are expected to implement:
 
 ```go
 // Called by IBC Handler on MsgOpenInit
-func (k Keeper) OnChanOpenInit(ctx sdk.Context,
+func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
     order channeltypes.Order,
     connectionHops []string,
     portID string,
@@ -29,7 +47,7 @@ func (k Keeper) OnChanOpenInit(ctx sdk.Context,
     version string,
 ) error {
     // OpenInit must claim the channelCapability that IBC passes into the callback
-    if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+    if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return err
 	}
 
@@ -43,7 +61,7 @@ func (k Keeper) OnChanOpenInit(ctx sdk.Context,
 }
 
 // Called by IBC Handler on MsgOpenTry
-func (k Keeper) OnChanOpenTry(
+func (im IBCModule) OnChanOpenTry(
     ctx sdk.Context,
     order channeltypes.Order,
     connectionHops []string,
@@ -57,9 +75,9 @@ func (k Keeper) OnChanOpenTry(
     // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
     // If the module can already authenticate the capability then the module already owns it so we don't need to claim
     // Otherwise, module does not have channel capability and we must claim it from IBC
-    if !k.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
+    if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
         // Only claim channel capability passed back by IBC module if we do not already own it
-        if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+        if err := im.keeper.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
             return err
         }
     }
@@ -82,7 +100,7 @@ func (k Keeper) OnChanOpenTry(
 }
 
 // Called by IBC Handler on MsgOpenAck
-func (k Keeper) OnChanOpenAck(
+func (im IBCModule) OnChanOpenAck(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -96,7 +114,7 @@ func (k Keeper) OnChanOpenAck(
 }
 
 // Called by IBC Handler on MsgOpenConfirm
-func (k Keeper) OnChanOpenConfirm(
+func (im IBCModule) OnChanOpenConfirm(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -113,7 +131,7 @@ The channel closing handshake will also invoke module callbacks that can return 
 
 ```go
 // Called by IBC Handler on MsgCloseInit
-func (k Keeper) OnChanCloseInit(
+func (im IBCModule) OnChanCloseInit(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -126,7 +144,7 @@ func (k Keeper) OnChanCloseInit(
 }
 
 // Called by IBC Handler on MsgCloseConfirm
-func (k Keeper) OnChanCloseConfirm(
+func (im IBCModule) OnChanCloseConfirm(
     ctx sdk.Context,
     portID,
     channelID string,
@@ -226,7 +244,7 @@ for asynchronous acknowledgements.
 > Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodePacketData(packet.Data)` function.
 
 ```go
-func (k Keeper) OnRecvPacket(
+func (im IBCModule) OnRecvPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
 ) ibcexported.Acknowledgement {
@@ -270,7 +288,7 @@ is responsible for decoding the acknowledgement and processing it.
 > Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `DecodeAcknowledgement(acknowledgments)` and `processAck(ack)` functions.
 
 ```go
-func (k Keeper) OnAcknowledgementPacket(
+func (im IBCModule) OnAcknowledgementPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     acknowledgement []byte,
@@ -294,7 +312,7 @@ indeed valid, so our module only needs to implement the state machine logic for 
 timeout is reached and the packet can no longer be received.
 
 ```go
-func (k Keeper) OnTimeoutPacket(
+func (im IBCModule) OnTimeoutPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
 ) (*sdk.Result, error) {

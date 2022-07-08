@@ -1,5 +1,5 @@
 <!--
-order: 4
+order: 5
 -->
 
 # Define packets and acks
@@ -32,6 +32,8 @@ DecodePacketData(encoded []byte) (CustomPacketData) {
     // decode from bytes to packet data
 }
 ```
+
+> Note that the `CustomPacketData` struct is defined in the proto definition and then compiled by the protobuf compiler.
 
 Then a module must encode its packet data before sending it through IBC.
 
