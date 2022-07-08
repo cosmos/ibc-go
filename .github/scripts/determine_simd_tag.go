@@ -12,9 +12,8 @@ func init() {
 	flag.Parse()
 }
 
-// in the context of a GithubAction workflow, the PR is the event number. So if the ref is not specified
-// but the event number is, that means we are running for a PR. If the ref is specified, this means
-// we have merged the PR, so we want to use the ref as a tag instead of the PR number.
+// in the context of a GithubAction workflow, the PR is non empty if it is a pr. When
+// code is merged to main, it will be empty. In this case we just use the "main" tag.
 func main() {
 	fmt.Printf(getSimdTag(prNum))
 }
