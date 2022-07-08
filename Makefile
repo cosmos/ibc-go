@@ -12,6 +12,7 @@ MOCKS_DIR = $(CURDIR)/tests/mocks
 HTTPS_GIT := https://github.com/cosmos/ibc-go.git
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.0.0-rc8
+TEST_CONTAINERS=$(shell docker ps --filter "label=ibc-test" -a -q)
 
 export GO111MODULE = on
 
@@ -203,6 +204,10 @@ build-docs:
 		cp ~/output/$${path_prefix}/index.html ~/output ; \
 	done < versions ;
 
+view-docs: 
+		@cd docs && \
+    npm install && npm run serve
+
 .PHONY: build-docs
 
 ###############################################################################
@@ -212,7 +217,7 @@ build-docs:
 test: test-unit
 test-all: test-unit test-ledger-mock test-race test-cover
 
-TEST_PACKAGES=./...
+TEST_PACKAGES=./... ./.github/scripts
 TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-race test-ledger test-race
 
 # Test runs-specific rules. To add a new test target, just add
@@ -319,6 +324,15 @@ test-rosetta:
 benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
+
+cleanup-ibc-test-containers:
+	for id in $(TEST_CONTAINERS) ; do \
+		$(DOCKER) stop $$id ; \
+		$(DOCKER) rm $$id ; \
+	done
+
+e2e-test: cleanup-ibc-test-containers
+	@go test -v ./e2e --run $(suite) -testify.m ^$(test)$$
 
 ###############################################################################
 ###                                Linting                                  ###

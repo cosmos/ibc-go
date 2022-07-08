@@ -5,14 +5,14 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
-func (suite *KeeperTestSuite) TestTrySendTx() {
+func (suite *KeeperTestSuite) TestSendTx() {
 	var (
 		path             *ibctesting.Path
 		packetData       icatypes.InterchainAccountPacketData
@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"success",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
 				msg := &banktypes.MsgSend{
@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"success with multiple sdk.Msg",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
 				msgsBankSend := []sdk.Msg{
@@ -96,7 +96,18 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"channel does not exist",
 			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, "channel-100")
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, "channel-100")
+			},
+			false,
+		},
+		{
+			"channel in INIT state - optimistic packet sends fail",
+			func() {
+				channel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+
+				channel.State = channeltypes.INIT
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 			},
 			false,
 		},
@@ -118,7 +129,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 		{
 			"timeout timestamp is not in the future",
 			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
 				msg := &banktypes.MsgSend{
@@ -160,7 +171,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 
 			tc.malleate() // malleate mutates test data
 
-			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.TrySendTx(suite.chainA.GetContext(), chanCap, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
+			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), chanCap, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -172,9 +183,7 @@ func (suite *KeeperTestSuite) TestTrySendTx() {
 }
 
 func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string

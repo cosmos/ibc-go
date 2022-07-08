@@ -6,10 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryConnection() {
@@ -30,13 +30,15 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 			},
 			false,
 		},
-		{"invalid connectionID",
+		{
+			"invalid connectionID",
 			func() {
 				req = &types.QueryConnectionRequest{}
 			},
 			false,
 		},
-		{"connection not found",
+		{
+			"connection not found",
 			func() {
 				req = &types.QueryConnectionRequest{
 					ConnectionId: ibctesting.InvalidID,
@@ -186,13 +188,15 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 			},
 			false,
 		},
-		{"invalid connectionID",
+		{
+			"invalid connectionID",
 			func() {
 				req = &types.QueryClientConnectionsRequest{}
 			},
 			false,
 		},
-		{"connection not found",
+		{
+			"connection not found",
 			func() {
 				req = &types.QueryClientConnectionsRequest{
 					ClientId: ibctesting.InvalidID,

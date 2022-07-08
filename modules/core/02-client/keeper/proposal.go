@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // ClientUpdateProposal will retrieve the subject and substitute client.
@@ -70,14 +70,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeUpdateClientProposal,
-			sdk.NewAttribute(types.AttributeKeySubjectClientID, p.SubjectClientId),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
-		),
-	)
+	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, clientState)
 
 	return nil
 }
@@ -105,5 +98,12 @@ func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal)
 
 	// sets the new upgraded client in last height committed on this chain is at plan.Height,
 	// since the chain will panic at plan.Height and new chain will resume at plan.Height
-	return k.upgradeKeeper.SetUpgradedClient(ctx, p.Plan.Height, bz)
+	if err = k.upgradeKeeper.SetUpgradedClient(ctx, p.Plan.Height, bz); err != nil {
+		return err
+	}
+
+	// emitting an event for handling client upgrade proposal
+	EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+
+	return nil
 }

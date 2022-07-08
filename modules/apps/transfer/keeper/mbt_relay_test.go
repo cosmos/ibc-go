@@ -15,10 +15,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 type TlaBalance struct {
@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		panic(fmt.Errorf("Failed to read model-based test files: %w", err))
 	}
 	for _, file_info := range files {
-		var tlaTestCases = []TlaOnRecvPacketTestCase{}
+		tlaTestCases := []TlaOnRecvPacketTestCase{}
 		if !strings.HasSuffix(file_info.Name(), ".json") {
 			continue
 		}
@@ -360,7 +360,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					registerDenom()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,
-						channeltypes.NewErrorAcknowledgement("MBT Error Acknowledgement"))
+						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)
 				}

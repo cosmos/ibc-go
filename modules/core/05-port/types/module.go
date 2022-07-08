@@ -4,17 +4,23 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // IBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
 type IBCModule interface {
-	// OnChanOpenInit will verify that the relayer-chosen parameters are
-	// valid and perform any custom INIT logic.It may return an error if
-	// the chosen parameters are invalid in which case the handshake is aborted.
-	// OnChanOpenInit should return an error if the provided version is invalid.
+	// OnChanOpenInit will verify that the relayer-chosen parameters
+	// are valid and perform any custom INIT logic.
+	// It may return an error if the chosen parameters are invalid
+	// in which case the handshake is aborted.
+	// If the provided version string is non-empty, OnChanOpenInit should return
+	// the version string if valid or an error if the provided version is invalid.
+	// If the version string is empty, OnChanOpenInit is expected to
+	// return a default version string representing the version(s) it supports.
+	// If there is no default version string for the application,
+	// it should return an error if provided version is empty string.
 	OnChanOpenInit(
 		ctx sdk.Context,
 		order channeltypes.Order,
@@ -24,7 +30,7 @@ type IBCModule interface {
 		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
-	) error
+	) (string, error)
 
 	// OnChanOpenTry will verify the relayer-chosen parameters along with the
 	// counterparty-chosen version string and perform custom TRY logic.
@@ -51,6 +57,7 @@ type IBCModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
+		counterpartyChannelID string,
 		counterpartyVersion string,
 	) error
 
@@ -98,7 +105,7 @@ type IBCModule interface {
 	) error
 }
 
-// ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknolwedgements.
+// ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
 	SendPacket(
 		ctx sdk.Context,
@@ -110,8 +117,14 @@ type ICS4Wrapper interface {
 		ctx sdk.Context,
 		chanCap *capabilitytypes.Capability,
 		packet exported.PacketI,
-		ack []byte,
+		ack exported.Acknowledgement,
 	) error
+
+	GetAppVersion(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+	) (string, bool)
 }
 
 // Middleware must implement IBCModule to wrap communication from core IBC to underlying application

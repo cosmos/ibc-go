@@ -3,10 +3,10 @@ package keeper_test
 import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *KeeperTestSuite) TestOnChanOpenTry() {
@@ -22,13 +22,42 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success",
 			func() {
 				path.EndpointB.SetChannel(*channel)
 			},
 			true,
+		},
+		{
+			"success - reopening closed active channel",
+			func() {
+				// create a new channel and set it in state
+				ch := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, ch)
+
+				// set the active channelID in state
+				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			}, true,
+		},
+		{
+			"invalid metadata - previous metadata is different",
+			func() {
+				// create a new channel and set it in state
+				ch := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, ch)
+
+				// set the active channelID in state
+				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				// modify metadata
+				metadata.Version = "ics27-2"
+
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
+			}, false,
 		},
 		{
 			"invalid order - UNORDERED",
@@ -63,6 +92,30 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			"invalid metadata bytestring",
 			func() {
 				path.EndpointA.ChannelConfig.Version = "invalid-metadata-bytestring"
+			},
+			false,
+		},
+		{
+			"unsupported encoding format",
+			func() {
+				metadata.Encoding = "invalid-encoding-format"
+
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
+			},
+			false,
+		},
+		{
+			"unsupported transaction type",
+			func() {
+				metadata.TxType = "invalid-tx-types"
+
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
 			},
 			false,
 		},
@@ -111,6 +164,17 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			},
 			false,
 		},
+		{
+			"active channel already set",
+			func() {
+				// create a new channel and set it in state
+				ch := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion)
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, ch)
+
+				// set the active channelID in state
+				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			}, false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -122,7 +186,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			// set the channel id on host
@@ -130,7 +194,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			path.EndpointB.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
 
 			// default values
-			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "")
+			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
@@ -163,18 +227,23 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 }
 
 func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
+		},
+		{
+			"channel not found",
+			func() {
+				path.EndpointB.ChannelID = "invalid-channel-id"
+				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
+			},
+			false,
 		},
 	}
 
@@ -187,7 +256,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := InitInterchainAccount(path.EndpointA, TestOwnerAddress)
+			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
@@ -199,29 +268,25 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			tc.malleate() // malleate mutates test data
 
 			err = suite.chainB.GetSimApp().ICAHostKeeper.OnChanOpenConfirm(suite.chainB.GetContext(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
 
 func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -247,7 +312,6 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }

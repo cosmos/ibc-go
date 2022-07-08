@@ -5,9 +5,9 @@ import (
 
 	tmprotocrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
 )
 
 func (suite *TendermintTestSuite) TestGetHeight() {
@@ -21,9 +21,7 @@ func (suite *TendermintTestSuite) TestGetTime() {
 }
 
 func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
-	var (
-		header *types.Header
-	)
+	var header *types.Header
 	testCases := []struct {
 		name     string
 		malleate func()

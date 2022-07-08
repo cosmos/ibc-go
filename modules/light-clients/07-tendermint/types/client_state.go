@@ -11,12 +11,12 @@ import (
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -78,7 +78,9 @@ func (cs ClientState) Status(
 	// get latest consensus state from clientStore to check for expiry
 	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
 	if err != nil {
-		return exported.Unknown
+		// if the client state does not have an associated consensus state for its latest height
+		// then it must be expired
+		return exported.Expired
 	}
 
 	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 )
 
 // Path contains two endpoints representing two chains connected over IBC
@@ -38,33 +38,50 @@ func (path *Path) SetChannelOrdered() {
 // RelayPacket attempts to relay the packet first on EndpointA and then on EndpointB
 // if EndpointA does not contain a packet commitment for that packet. An error is returned
 // if a relay step fails or the packet commitment does not exist on either endpoint.
-func (path *Path) RelayPacket(packet channeltypes.Packet, ack []byte) error {
+func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointA.Chain.App.AppCodec(), packet)) {
 
 		// packet found, relay from A to B
-		path.EndpointB.UpdateClient()
+		if err := path.EndpointB.UpdateClient(); err != nil {
+			return err
+		}
 
-		if err := path.EndpointB.RecvPacket(packet); err != nil {
+		res, err := path.EndpointB.RecvPacketWithResult(packet)
+		if err != nil {
+			return err
+		}
+
+		ack, err := ParseAckFromEvents(res.GetEvents())
+		if err != nil {
 			return err
 		}
 
 		if err := path.EndpointA.AcknowledgePacket(packet, ack); err != nil {
 			return err
 		}
-		return nil
 
+		return nil
 	}
 
 	pc = path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointB.Chain.App.AppCodec(), packet)) {
 
 		// packet found, relay B to A
-		path.EndpointA.UpdateClient()
-
-		if err := path.EndpointA.RecvPacket(packet); err != nil {
+		if err := path.EndpointA.UpdateClient(); err != nil {
 			return err
 		}
+
+		res, err := path.EndpointA.RecvPacketWithResult(packet)
+		if err != nil {
+			return err
+		}
+
+		ack, err := ParseAckFromEvents(res.GetEvents())
+		if err != nil {
+			return err
+		}
+
 		if err := path.EndpointB.AcknowledgePacket(packet, ack); err != nil {
 			return err
 		}

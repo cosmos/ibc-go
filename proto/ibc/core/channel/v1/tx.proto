@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.channel.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types";
+option go_package = "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
@@ -42,6 +42,18 @@ service Msg {
   rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
 }
 
+// ResponseResultType defines the possible outcomes of the execution of a message
+enum ResponseResultType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // Default zero value enumeration
+  RESPONSE_RESULT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "UNSPECIFIED"];
+  // The message did not call the IBC application callbacks (because, for example, the packet had already been relayed)
+  RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
+  // The message was executed successfully
+  RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
+}
+
 // MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
 // is called by a relayer on Chain A.
 message MsgChannelOpenInit {
@@ -54,7 +66,10 @@ message MsgChannelOpenInit {
 }
 
 // MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
-message MsgChannelOpenInitResponse {}
+message MsgChannelOpenInitResponse {
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string version    = 2;
+}
 
 // MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
 // on Chain B. The version field within the Channel field has been deprecated. Its
@@ -77,7 +92,9 @@ message MsgChannelOpenTry {
 }
 
 // MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
-message MsgChannelOpenTryResponse {}
+message MsgChannelOpenTryResponse {
+  string version = 1;
+}
 
 // MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 // the change of channel state to TRYOPEN on Chain B.
@@ -161,7 +178,11 @@ message MsgRecvPacket {
 }
 
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.
-message MsgRecvPacketResponse {}
+message MsgRecvPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}
 
 // MsgTimeout receives timed-out packet
 message MsgTimeout {
@@ -177,7 +198,11 @@ message MsgTimeout {
 }
 
 // MsgTimeoutResponse defines the Msg/Timeout response type.
-message MsgTimeoutResponse {}
+message MsgTimeoutResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}
 
 // MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 message MsgTimeoutOnClose {
@@ -194,7 +219,11 @@ message MsgTimeoutOnClose {
 }
 
 // MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
-message MsgTimeoutOnCloseResponse {}
+message MsgTimeoutOnCloseResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}
 
 // MsgAcknowledgement receives incoming IBC acknowledgement
 message MsgAcknowledgement {
@@ -210,4 +239,8 @@ message MsgAcknowledgement {
 }
 
 // MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
-message MsgAcknowledgementResponse {}
+message MsgAcknowledgementResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}

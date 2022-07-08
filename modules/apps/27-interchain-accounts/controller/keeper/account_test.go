@@ -1,12 +1,13 @@
 package keeper_test
 
 import (
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
-func (suite *KeeperTestSuite) TestInitInterchainAccount() {
+func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 	var (
 		owner string
 		path  *ibctesting.Path
@@ -22,9 +23,11 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 			"success", func() {}, true,
 		},
 		{
-			"port is already bound",
+			"port is already bound for owner but capability is claimed by another module",
 			func() {
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+				cap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), cap, host.PortPath(TestPortID))
+				suite.Require().NoError(err)
 			},
 			false,
 		},
@@ -41,7 +44,7 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, portID, path.EndpointA.ChannelID)
 
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channel := channeltypes.Channel{
@@ -56,7 +59,6 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 			false,
 		},
 	}
-
 	for _, tc := range testCases {
 		tc := tc
 
@@ -70,14 +72,49 @@ func (suite *KeeperTestSuite) TestInitInterchainAccount() {
 
 			tc.malleate() // malleate mutates test data
 
-			err = suite.chainA.GetSimApp().ICAControllerKeeper.InitInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner)
+			err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner, TestVersion)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
+	suite.SetupTest()
+
+	owner := TestOwnerAddress
+
+	pathAToB := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(pathAToB)
+
+	pathAToC := NewICAPath(suite.chainA, suite.chainC)
+	suite.coordinator.SetupConnections(pathAToC)
+
+	// build ICS27 metadata with connection identifiers for path A->B
+	metadata := &icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: pathAToB.EndpointA.ConnectionID,
+		HostConnectionId:       pathAToB.EndpointB.ConnectionID,
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}
+
+	err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToB.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)))
+	suite.Require().NoError(err)
+
+	// build ICS27 metadata with connection identifiers for path A->C
+	metadata = &icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: pathAToC.EndpointA.ConnectionID,
+		HostConnectionId:       pathAToC.EndpointB.ConnectionID,
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}
+
+	err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToC.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)))
+	suite.Require().NoError(err)
 }

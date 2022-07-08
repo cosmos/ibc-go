@@ -2,17 +2,18 @@ package keeper
 
 import (
 	"bytes"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // SendPacket is called by a module in order to send an IBC packet on a channel
@@ -129,7 +130,7 @@ func (k Keeper) SendPacket(
 
 	k.Logger(ctx).Info(
 		"packet sent",
-		"sequence", packet.GetSequence(),
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
 		"src_channel", packet.GetSourceChannel(),
 		"dst_port", packet.GetDestPort(),
@@ -284,7 +285,7 @@ func (k Keeper) RecvPacket(
 	// log that a packet has been received & executed
 	k.Logger(ctx).Info(
 		"packet received",
-		"sequence", packet.GetSequence(),
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
 		"src_channel", packet.GetSourceChannel(),
 		"dst_port", packet.GetDestPort(),
@@ -312,7 +313,7 @@ func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
-	acknowledgement []byte,
+	acknowledgement exported.Acknowledgement,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
@@ -342,27 +343,32 @@ func (k Keeper) WriteAcknowledgement(
 		return types.ErrAcknowledgementExists
 	}
 
-	if len(acknowledgement) == 0 {
+	if acknowledgement == nil {
+		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be nil")
+	}
+
+	bz := acknowledgement.Acknowledgement()
+	if len(bz) == 0 {
 		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
 		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
-		types.CommitAcknowledgement(acknowledgement),
+		types.CommitAcknowledgement(bz),
 	)
 
 	// log that a packet acknowledgement has been written
 	k.Logger(ctx).Info(
 		"acknowledgement written",
-		"sequence", packet.GetSequence,
+		"sequence", packet.GetSequence(),
 		"src_port", packet.GetSourcePort(),
 		"src_channel", packet.GetSourceChannel(),
 		"dst_port", packet.GetDestPort(),
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	EmitWriteAcknowledgementEvent(ctx, packet, channel, acknowledgement)
+	EmitWriteAcknowledgementEvent(ctx, packet, channel, bz)
 
 	return nil
 }
@@ -489,7 +495,7 @@ func (k Keeper) AcknowledgePacket(
 	// log that a packet has been acknowledged
 	k.Logger(ctx).Info(
 		"packet acknowledged",
-		"sequence", packet.GetSequence,
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
 		"src_channel", packet.GetSourceChannel(),
 		"dst_port", packet.GetDestPort(),

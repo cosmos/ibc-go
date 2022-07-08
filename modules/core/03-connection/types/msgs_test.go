@@ -12,12 +12,12 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tm-db"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v4/testing/simapp"
 )
 
 var (
@@ -41,8 +41,8 @@ type MsgTestSuite struct {
 func (suite *MsgTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
@@ -68,7 +68,6 @@ func (suite *MsgTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 
 	suite.proof = proof
-
 }
 
 func TestMsgTestSuite(t *testing.T) {
@@ -81,7 +80,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	// will be used in protocol.
 	var version *types.Version
 
-	var testCases = []struct {
+	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenInit
 		expPass bool
@@ -124,7 +123,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 		chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false,
 	)
 
-	var testCases = []struct {
+	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenTry
 		expPass bool
@@ -176,7 +175,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	)
 	connectionID := "connection-0"
 
-	var testCases = []struct {
+	testCases := []struct {
 		name    string
 		msg     *types.MsgConnectionOpenAck
 		expPass bool
@@ -215,7 +214,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 		types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, signer),
 	}
 
-	var testCases = []struct {
+	testCases := []struct {
 		msg     *types.MsgConnectionOpenConfirm
 		expPass bool
 		errMsg  string

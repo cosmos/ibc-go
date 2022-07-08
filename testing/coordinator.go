@@ -10,9 +10,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-const ChainIDPrefix = "testchain"
-
 var (
+	ChainIDPrefix   = "testchain"
 	globalStartTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	TimeIncrement   = time.Second * 5
 )
@@ -20,7 +19,7 @@ var (
 // Coordinator is a testing struct which contains N TestChain's. It handles keeping all chains
 // in sync with regards to time.
 type Coordinator struct {
-	t *testing.T
+	*testing.T
 
 	CurrentTime time.Time
 	Chains      map[string]*TestChain
@@ -30,11 +29,11 @@ type Coordinator struct {
 func NewCoordinator(t *testing.T, n int) *Coordinator {
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
-		t:           t,
+		T:           t,
 		CurrentTime: globalStartTime,
 	}
 
-	for i := 0; i < n; i++ {
+	for i := 1; i <= n; i++ {
 		chainID := GetChainID(i)
 		chains[chainID] = NewTestChain(t, coord, chainID)
 	}
@@ -56,7 +55,6 @@ func (coord *Coordinator) IncrementTime() {
 func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
 	coord.CurrentTime = coord.CurrentTime.Add(increment).UTC()
 	coord.UpdateTime()
-
 }
 
 // UpdateTime updates all clocks for the TestChains to the current global time.
@@ -86,10 +84,10 @@ func (coord *Coordinator) Setup(path *Path) {
 // caller does not anticipate any errors.
 func (coord *Coordinator) SetupClients(path *Path) {
 	err := path.EndpointA.CreateClient()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointB.CreateClient()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 }
 
 // SetupClientConnections is a helper function to create clients and the appropriate
@@ -106,21 +104,21 @@ func (coord *Coordinator) SetupConnections(path *Path) {
 // are returned within a TestConnection struct. The function expects the connections to be
 // successfully opened otherwise testing will fail.
 func (coord *Coordinator) CreateConnections(path *Path) {
-
 	err := path.EndpointA.ConnOpenInit()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointB.ConnOpenTry()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointA.ConnOpenAck()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointB.ConnOpenConfirm()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	// ensure counterparty is up to date
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	require.NoError(coord.T, err)
 }
 
 // CreateMockChannels constructs and executes channel handshake messages to create OPEN
@@ -149,26 +147,27 @@ func (coord *Coordinator) CreateTransferChannels(path *Path) {
 // opened otherwise testing will fail.
 func (coord *Coordinator) CreateChannels(path *Path) {
 	err := path.EndpointA.ChanOpenInit()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointB.ChanOpenTry()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointA.ChanOpenAck()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointB.ChanOpenConfirm()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	// ensure counterparty is up to date
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	require.NoError(coord.T, err)
 }
 
 // GetChain returns the TestChain using the given chainID and returns an error if it does
 // not exist.
 func (coord *Coordinator) GetChain(chainID string) *TestChain {
 	chain, found := coord.Chains[chainID]
-	require.True(coord.t, found, fmt.Sprintf("%s chain does not exist", chainID))
+	require.True(coord.T, found, fmt.Sprintf("%s chain does not exist", chainID))
 	return chain
 }
 
@@ -182,7 +181,6 @@ func GetChainID(index int) string {
 // CONTRACT: the passed in list of indexes must not contain duplicates
 func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 	for _, chain := range chains {
-		chain.App.Commit()
 		chain.NextBlock()
 	}
 	coord.IncrementTime()
@@ -192,7 +190,6 @@ func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 	for i := uint64(0); i < n; i++ {
 		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
-		chain.App.Commit()
 		chain.NextBlock()
 		coord.IncrementTime()
 	}
@@ -213,11 +210,7 @@ func (coord *Coordinator) ConnOpenInitOnBothChains(path *Path) error {
 		return err
 	}
 
-	if err := path.EndpointB.UpdateClient(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.UpdateClient()
 }
 
 // ChanOpenInitOnBothChains initializes a channel on the source chain and counterparty chain
@@ -238,9 +231,5 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(path *Path) error {
 		return err
 	}
 
-	if err := path.EndpointB.UpdateClient(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.UpdateClient()
 }

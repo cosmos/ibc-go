@@ -3,9 +3,9 @@ package types_test
 import (
 	"time"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
 )
 
 func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
@@ -14,49 +14,61 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		consensusState *types.ConsensusState
 		expectPass     bool
 	}{
-		{"success",
+		{
+			"success",
 			&types.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
 			},
-			true},
-		{"success with sentinel",
+			true,
+		},
+		{
+			"success with sentinel",
 			&types.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte(types.SentinelRoot)),
 				NextValidatorsHash: suite.valsHash,
 			},
-			true},
-		{"root is nil",
+			true,
+		},
+		{
+			"root is nil",
 			&types.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
 			},
-			false},
-		{"root is empty",
+			false,
+		},
+		{
+			"root is empty",
 			&types.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
 			},
-			false},
-		{"nextvalshash is invalid",
+			false,
+		},
+		{
+			"nextvalshash is invalid",
 			&types.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: []byte("hi"),
 			},
-			false},
+			false,
+		},
 
-		{"timestamp is zero",
+		{
+			"timestamp is zero",
 			&types.ConsensusState{
 				Timestamp:          time.Time{},
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
 			},
-			false},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {

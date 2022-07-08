@@ -20,6 +20,7 @@ module.exports = {
   themeConfig: {
     repo: "cosmos/ibc-go",
     docsRepo: "cosmos/ibc-go",
+    docsBranch: "main",
     docsDir: "docs",
     editLinks: true,
     label: "ibc",
@@ -43,9 +44,41 @@ module.exports = {
         "key": "v1.2.0"
       },
       {
+        "label": "v1.3.0",
+        "key": "v1.3.0"
+      },
+      {
+        "label": "v1.5.0",
+        "key": "v1.5.0"
+      },
+      {
+        "label": "v1.4.0",
+        "key": "v1.4.0"
+      },
+      {
         "label": "v2.0.0",
         "key": "v2.0.0"
-      }      
+      } ,
+      {
+        "label": "v2.1.0",
+        "key": "v2.1.0"
+      }, 
+      { 
+        "label": "v2.2.0",
+        "key": "v2.2.0"
+      },
+      { 
+        "label": "v2.3.0",
+        "key": "v2.3.0"
+      },
+      {
+        "label": "v3.0.0",
+        "key": "v3.0.0"
+      },
+      {
+        "label": "v3.1.0",
+        "key": "v3.1.0"
+      }
     ],
     topbar: {
       banner: true
@@ -109,30 +142,134 @@ module.exports = {
             {
               title: "Interchain Accounts",
               directory: true,
-              path: "/app_modules",
+              path: "/apps",
               children: [
                 {
-                    title: "Overview",
-                    directory: false,
-                    path: "/app_modules/interchain-accounts/overview.html"
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/interchain-accounts/overview.html"
                 }, 
                 {
-                    title: "Integration",
-                    directory: false,
-                    path: "/app_modules/interchain-accounts/integration.html"
+                  title: "Authentication Modules",
+                  directory: false,
+                  path: "/apps/interchain-accounts/auth-modules.html"
                 },
                 {
-                    title: "Authentication module development",
-                    directory: false,
-                    path: "/app_modules/interchain-accounts/ica_auth.html"
+                  title: "Active Channels",
+                  directory: false,
+                  path: "/apps/interchain-accounts/active-channels.html"
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/apps/interchain-accounts/integration.html"
+                },
+                {
+                  title: "Parameters",
+                  directory: false,
+                  path: "/apps/interchain-accounts/parameters.html"
+                },
+                {
+                  title: "Transactions",
+                  directory: false,
+                  path: "/apps/interchain-accounts/transactions.html"
+                },
+            ]
+            },
+            {
+              title: "Transfer",
+              directory: true,
+              path: "/apps",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/apps/transfer/overview.html"
+                }, 
+                {
+                  title: "State",
+                  directory: false,
+                  path: "/apps/transfer/state.html"
+                },
+                {
+                  title: "State Transitions",
+                  directory: false,
+                  path: "/apps/transfer/state-transitions.html"
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/transfer/messages.html"
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/apps/transfer/events.html"
+                },
+                {
+                  title: "Metrics",
+                  directory: false,
+                  path: "/apps/transfer/metrics.html"
+                },
+                {
+                  title: "Params",
+                  directory: false,
+                  path: "/apps/transfer/params.html"
                 },
             ]
             },
           ]
         },
         {
+          title: "IBC Middleware Modules",
+          children: [
+            {
+              title: "Fee Middleware",
+              directory: true,
+              path: "/middleware",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/middleware/ics29-fee/overview.html"
+                }, 
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/ics29-fee/integration.html"
+                },
+                {
+                  title: "End Users",
+                  directory: false,
+                  path: "/middleware/ics29-fee/end-users.html"
+                },
+                {
+                  title: "Fee Messages",
+                  directory: false,
+                  path: "/middleware/ics29-fee/msgs.html"
+                },
+                {
+                  title: "Fee Distribution",
+                  directory: false,
+                  path: "/middleware/ics29-fee/fee-distribution.html"
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/middleware/ics29-fee/events.html"
+                },
+              ]
+            },
+          ]
+        },
+        {
           title: "Migrations",
           children: [
+            {
+              title: "Support transfer of coins whose base denom contains slashes",
+              directory: false,
+              path: "/migrations/support-denoms-with-slashes.html"
+            },
             {
               title: "SDK v0.43 to IBC-Go v1",
               directory: false,
@@ -147,6 +284,11 @@ module.exports = {
               title: "IBC-Go v2 to v3",
               directory: false,
               path: "/migrations/v2-to-v3.html"
+            },
+            {
+              title: "IBC-Go v3 to v4",
+              directory: false,
+              path: "/migrations/v3-to-v4.html"
             },
           ]
         },

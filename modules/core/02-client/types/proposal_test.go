@@ -8,9 +8,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *TypesTestSuite) TestValidateBasic() {
@@ -117,7 +117,6 @@ func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 			"fails validate abstract - empty title", func() {
 				proposal, err = types.NewUpgradeProposal("", ibctesting.Description, plan, cs)
 				suite.Require().NoError(err)
-
 			}, false,
 		},
 		{
@@ -199,7 +198,6 @@ func (suite *TypesTestSuite) TestMarshalUpgradeProposal() {
 	// unpack client state
 	_, err = types.UnpackClientState(newUp.UpgradedClientState)
 	suite.Require().NoError(err)
-
 }
 
 func (suite *TypesTestSuite) TestUpgradeString() {

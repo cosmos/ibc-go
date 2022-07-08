@@ -7,9 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // CommitPacket returns the packet commitment bytes. The commitment consists of:
@@ -110,4 +110,26 @@ func (p Packet) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
 	}
 	return nil
+}
+
+// Validates a PacketId
+func (p PacketId) Validate() error {
+	if err := host.PortIdentifierValidator(p.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid source port ID")
+	}
+
+	if err := host.ChannelIdentifierValidator(p.ChannelId); err != nil {
+		return sdkerrors.Wrap(err, "invalid source channel ID")
+	}
+
+	if p.Sequence == 0 {
+		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
+	}
+
+	return nil
+}
+
+// NewPacketId returns a new instance of PacketId
+func NewPacketId(portId, channelId string, seq uint64) PacketId {
+	return PacketId{PortId: portId, ChannelId: channelId, Sequence: seq}
 }

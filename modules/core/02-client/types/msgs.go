@@ -5,8 +5,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // message types for the IBC client
@@ -34,7 +34,6 @@ var (
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
 ) (*MsgCreateClient, error) {
-
 	anyClientState, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err
@@ -154,7 +153,8 @@ func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 // NewMsgUpgradeClient creates a new MsgUpgradeClient instance
 // nolint: interfacer
 func NewMsgUpgradeClient(clientID string, clientState exported.ClientState, consState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte, signer string) (*MsgUpgradeClient, error) {
+	proofUpgradeClient, proofUpgradeConsState []byte, signer string,
+) (*MsgUpgradeClient, error) {
 	anyClient, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err

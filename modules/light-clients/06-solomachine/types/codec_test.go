@@ -1,11 +1,11 @@
 package types_test
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v4/modules/light-clients/06-solomachine/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
@@ -55,7 +55,6 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 					path := solomachine.GetConsensusStatePath(counterpartyClientIdentifier, clienttypes.NewHeight(0, 5))
 					data, err = types.ConsensusStateDataBytes(cdc, path, solomachine.ConsensusState())
 					suite.Require().NoError(err)
-
 				}, true,
 			},
 			{
@@ -73,7 +72,6 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 
 					data, err = types.ConnectionStateDataBytes(cdc, path, conn)
 					suite.Require().NoError(err)
-
 				}, true,
 			},
 			{
@@ -104,7 +102,6 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 
 					data, err = types.ConnectionStateDataBytes(cdc, path, conn)
 					suite.Require().NoError(err)
-
 				}, false,
 			},
 			{
@@ -186,5 +183,4 @@ func (suite SoloMachineTestSuite) TestUnmarshalDataByType() {
 			})
 		}
 	}
-
 }

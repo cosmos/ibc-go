@@ -9,14 +9,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
-	v100 "github.com/cosmos/ibc-go/v3/modules/core/02-client/legacy/v100"
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	ibcclient "github.com/cosmos/ibc-go/v4/modules/core/02-client"
+	v100 "github.com/cosmos/ibc-go/v4/modules/core/02-client/legacy/v100"
+	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v4/testing/simapp"
 )
 
 func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
@@ -254,7 +254,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(height, consensusState.Height)
 				}
 			}
-
 		}
 		for _, client := range migrated.ClientsMetadata {
 			if client.ClientId == path1.EndpointA.ClientID {
@@ -275,7 +274,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(height, consensusState.Height)
 				}
 			}
-
 		}
 		for _, client := range migrated.ClientsMetadata {
 			if client.ClientId == path2.EndpointA.ClientID {
@@ -285,7 +283,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(ibctmtypes.IterationKey(height), metadata.Key)
 				}
 			}
-
 		}
 	}
 	bz, err := clientCtx.JSONCodec.MarshalJSON(&expectedClientGenState)

@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // RegisterInterfaces register the ibc interfaces submodule implementations to protobuf
@@ -38,11 +38,9 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
-var (
-	// SubModuleCdc references the global x/ibc/core/03-connection module codec. Note, the codec should
-	// ONLY be used in certain instances of tests and for JSON encoding.
-	//
-	// The actual codec used for serialization should be provided to x/ibc/core/03-connection and
-	// defined at the application level.
-	SubModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-)
+// SubModuleCdc references the global x/ibc/core/03-connection module codec. Note, the codec should
+// ONLY be used in certain instances of tests and for JSON encoding.
+//
+// The actual codec used for serialization should be provided to x/ibc/core/03-connection and
+// defined at the application level.
+var SubModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())

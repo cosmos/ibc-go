@@ -9,15 +9,15 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
-	clientv100 "github.com/cosmos/ibc-go/v3/modules/core/02-client/legacy/v100"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/legacy/v100"
-	"github.com/cosmos/ibc-go/v3/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	ibcclient "github.com/cosmos/ibc-go/v4/modules/core/02-client"
+	clientv100 "github.com/cosmos/ibc-go/v4/modules/core/02-client/legacy/v100"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	v100 "github.com/cosmos/ibc-go/v4/modules/core/legacy/v100"
+	"github.com/cosmos/ibc-go/v4/modules/core/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v4/testing/simapp"
 )
 
 type LegacyTestSuite struct {
@@ -38,8 +38,8 @@ func TestLegacyTestSuite(t *testing.T) {
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *LegacyTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)

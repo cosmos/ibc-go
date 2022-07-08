@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
 )
 
 func (suite *MerkleTestSuite) TestVerifyMembership() {
@@ -72,7 +72,6 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 			}
 		})
 	}
-
 }
 
 func (suite *MerkleTestSuite) TestVerifyNonMembership() {
@@ -136,7 +135,6 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 			}
 		})
 	}
-
 }
 
 func TestApplyPrefix(t *testing.T) {

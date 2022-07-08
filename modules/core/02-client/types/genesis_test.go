@@ -5,14 +5,14 @@ import (
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	client "github.com/cosmos/ibc-go/v3/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v3/testing/mock"
+	client "github.com/cosmos/ibc-go/v4/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	localhosttypes "github.com/cosmos/ibc-go/v4/modules/light-clients/09-localhost/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v4/testing/mock"
 )
 
 const (
@@ -55,8 +55,11 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	val := tmtypes.NewValidator(pubKey, 10)
 	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{val})
 
+	signers := make(map[string]tmtypes.PrivValidator)
+	signers[val.Address.String()] = privVal
+
 	heightMinus1 := types.NewHeight(0, height-1)
-	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, []tmtypes.PrivValidator{privVal})
+	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, valSet, signers)
 
 	testCases := []struct {
 		name     string

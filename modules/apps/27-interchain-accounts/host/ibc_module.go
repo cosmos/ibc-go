@@ -5,11 +5,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // IBCModule implements the ICS26 interface for interchain accounts host chains
@@ -34,8 +34,8 @@ func (im IBCModule) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
-	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
+) (string, error) {
+	return "", sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -61,6 +61,7 @@ func (im IBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
+	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
 	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
@@ -105,14 +106,17 @@ func (im IBCModule) OnRecvPacket(
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	if !im.keeper.IsHostEnabled(ctx) {
-		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled.Error())
+		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-
-	if err := im.keeper.OnRecvPacket(ctx, packet); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(err.Error())
+	txResponse, err := im.keeper.OnRecvPacket(ctx, packet)
+	ack := channeltypes.NewResultAcknowledgement(txResponse)
+	if err != nil {
+		ack = channeltypes.NewErrorAcknowledgement(err)
 	}
+
+	// Emit an event indicating a successful or failed acknowledgement.
+	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack

@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 type KeeperTestSuite struct {
@@ -22,8 +22,8 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -45,7 +45,6 @@ func (suite *KeeperTestSuite) TestSetAndGetConnection() {
 }
 
 func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
-
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 

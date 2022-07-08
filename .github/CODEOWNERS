@@ -1,6 +1,6 @@
 # CODEOWNERS: https://help.github.com/articles/about-codeowners/
 
-*       @colin-axner @AdityaSripal @crodriguezvega @seantking @charleenfei @damiannolan
+*       @colin-axner @AdityaSripal @crodriguezvega @seantking @charleenfei @damiannolan @chatton
 
 # Order is important; the last matching pattern takes the most
 # precedence. When someone opens a pull request that only
@@ -14,19 +14,29 @@
 # CODEOWNERS for the core IBC module
 
 /modules/core/ @colin-axner @fedekunze @AdityaSripal 
-/proto/core/ @colin-axner @fedekunze @AdityaSripal 
+/proto/ibc/core/ @colin-axner @fedekunze @AdityaSripal 
+
+## CODEOWNERS for core/02-client
+
+/modules/core/02-client @seantking @damiannolan
+/proto/ibc/core/client @seantking @damiannolan
 
 # CODEOWNERS for the light-clients
 
-/modules/light-clients/ @colin-axner @fedekunze @AdityaSripal 
-/proto/lightclients/ @colin-axner @fedekunze @AdityaSripal 
+/modules/light-clients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
+/proto/ibc/lightclients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
 
 # CODEOWNERS for ICS 20
 
 /modules/apps/transfer/ @colin-axner @fedekunze @AdityaSripal 
-/proto/applications/transfer/ @colin-axner @fedekunze @AdityaSripal 
+/proto/ibc/applications/transfer/ @colin-axner @fedekunze @AdityaSripal 
 
 # CODEOWNERS for interchain-accounts module
 
 /modules/apps/27-interchain-accounts/ @seantking @colin-axner @AdityaSripal @damiannolan
-/proto/applications/interchain_accounts/ @seantking @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/applications/interchain_accounts/ @seantking @colin-axner @AdityaSripal @damiannolan
+
+# CODEOWNERS for fee module
+
+/modules/apps/29-fee/ @AdityaSripal @seantking @charleenfei @colin-axner @damiannolan 
+/proto/ibc/applications/fee/ @AdityaSripal @seantking @charleenfei @colin-axner @damiannolan

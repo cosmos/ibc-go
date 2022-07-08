@@ -8,18 +8,16 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/testing/simapp"
 )
 
 const (
 	height = 4
 )
 
-var (
-	clientHeight = clienttypes.NewHeight(0, 10)
-)
+var clientHeight = clienttypes.NewHeight(0, 10)
 
 type LocalhostTestSuite struct {
 	suite.Suite

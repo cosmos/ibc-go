@@ -9,10 +9,10 @@ const (
 	ModuleName = "interchainaccounts"
 
 	// PortID is the default port id that the interchain accounts host submodule binds to
-	PortID = "interchain-account"
+	PortID = "icahost"
 
 	// PortPrefix is the default port prefix that the interchain accounts controller submodule binds to
-	PortPrefix = "ics27-"
+	PortPrefix = "icacontroller-"
 
 	// Version defines the current version for interchain accounts
 	Version = "ics27-1"
@@ -39,13 +39,13 @@ var (
 )
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
-func KeyActiveChannel(portID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", ActiveChannelKeyPrefix, portID))
+func KeyActiveChannel(portID, connectionID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", ActiveChannelKeyPrefix, portID, connectionID))
 }
 
 // KeyOwnerAccount creates and returns a new key used for interchain account store operations
-func KeyOwnerAccount(portID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", OwnerKeyPrefix, portID))
+func KeyOwnerAccount(portID, connectionID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", OwnerKeyPrefix, portID, connectionID))
 }
 
 // KeyPort creates and returns a new key used for port store operations

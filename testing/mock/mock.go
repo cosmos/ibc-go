@@ -2,33 +2,34 @@ package mock
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 )
 
 const (
 	ModuleName = "mock"
 
+	PortID  = ModuleName
 	Version = "mock-version"
 )
 
 var (
 	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
-	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement("mock failed acknowledgement")
+	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("mock failed acknowledgement"))
 	MockPacketData                  = []byte("mock packet data")
 	MockFailPacketData              = []byte("mock failed packet data")
 	MockAsyncPacketData             = []byte("mock async packet data")
@@ -43,6 +44,7 @@ var _ porttypes.IBCModule = IBCModule{}
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+	IsBound(ctx sdk.Context, portID string) bool
 }
 
 // AppModuleBasic is the mock AppModuleBasic.
@@ -88,15 +90,14 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for the mock module.
 type AppModule struct {
 	AppModuleBasic
-	scopedKeeper capabilitykeeper.ScopedKeeper
-	portKeeper   PortKeeper
+	ibcApps    []*MockIBCApp
+	portKeeper PortKeeper
 }
 
 // NewAppModule returns a mock AppModule instance.
-func NewAppModule(sk capabilitykeeper.ScopedKeeper, pk PortKeeper) AppModule {
+func NewAppModule(pk PortKeeper) AppModule {
 	return AppModule{
-		scopedKeeper: sk,
-		portKeeper:   pk,
+		portKeeper: pk,
 	}
 }
 
@@ -123,9 +124,13 @@ func (am AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	// bind mock port ID
-	cap := am.portKeeper.BindPort(ctx, ModuleName)
-	am.scopedKeeper.ClaimCapability(ctx, cap, host.PortPath(ModuleName))
+	for _, ibcApp := range am.ibcApps {
+		if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
+			// bind mock portID
+			cap := am.portKeeper.BindPort(ctx, ibcApp.PortID)
+			ibcApp.ScopedKeeper.ClaimCapability(ctx, cap, host.PortPath(ibcApp.PortID))
+		}
+	}
 
 	return []abci.ValidatorUpdate{}
 }

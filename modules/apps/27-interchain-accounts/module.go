@@ -15,22 +15,21 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/client/cli"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller"
-	controllerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host"
-	hostkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/keeper"
-	hosttypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/client/cli"
+	controllerkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host"
+	hostkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 
-	_ porttypes.IBCModule = controller.IBCModule{}
 	_ porttypes.IBCModule = host.IBCModule{}
 )
 
@@ -98,6 +97,23 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	return AppModule{
 		controllerKeeper: controllerKeeper,
 		hostKeeper:       hostKeeper,
+	}
+}
+
+// InitModule will initialize the interchain accounts moudule. It should only be
+// called once and as an alternative to InitGenesis.
+func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
+	if am.controllerKeeper != nil {
+		am.controllerKeeper.SetParams(ctx, controllerParams)
+	}
+
+	if am.hostKeeper != nil {
+		am.hostKeeper.SetParams(ctx, hostParams)
+
+		cap := am.hostKeeper.BindPort(ctx, types.PortID)
+		if err := am.hostKeeper.ClaimCapability(ctx, cap, ibchost.PortPath(types.PortID)); err != nil {
+			panic(fmt.Sprintf("could not claim port capability: %v", err))
+		}
 	}
 }
 

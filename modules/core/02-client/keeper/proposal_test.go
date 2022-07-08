@@ -4,10 +4,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *KeeperTestSuite) TestClientUpdateProposal() {
@@ -154,7 +154,6 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			}
 		})
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
@@ -206,7 +205,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()  // reset
-			oldPlan.Height = 0 //reset
+			oldPlan.Height = 0 // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
@@ -276,5 +275,4 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 			}
 		})
 	}
-
 }

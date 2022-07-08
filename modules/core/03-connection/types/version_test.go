@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func TestValidateVersion(t *testing.T) {
@@ -141,7 +141,6 @@ func TestVerifyProposedVersion(t *testing.T) {
 			require.Error(t, err, "test case %d: %s", i, tc.name)
 		}
 	}
-
 }
 
 func TestVerifySupportedFeature(t *testing.T) {

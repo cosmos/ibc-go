@@ -3,14 +3,14 @@ package types_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	"github.com/cosmos/ibc-go/v4/modules/light-clients/09-localhost/types"
 )
 
 const (
@@ -150,7 +150,6 @@ func (suite *LocalhostTestSuite) TestVerifyClientState() {
 			}
 		})
 	}
-
 }
 
 func (suite *LocalhostTestSuite) TestVerifyClientConsensusState() {
@@ -291,7 +290,6 @@ func (suite *LocalhostTestSuite) TestVerifyChannelState() {
 			clientState: types.NewClientState("chainID", clientHeight),
 			malleate: func() {
 				suite.store.Set(host.ChannelKey(testPortID, testChannelID), []byte("channel"))
-
 			},
 			channel: ch1,
 			expPass: false,
@@ -303,7 +301,6 @@ func (suite *LocalhostTestSuite) TestVerifyChannelState() {
 				bz, err := suite.cdc.Marshal(&ch2)
 				suite.Require().NoError(err)
 				suite.store.Set(host.ChannelKey(testPortID, testChannelID), bz)
-
 			},
 			channel: ch1,
 			expPass: false,

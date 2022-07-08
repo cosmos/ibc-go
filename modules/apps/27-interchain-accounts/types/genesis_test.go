@@ -1,16 +1,14 @@
 package types_test
 
 import (
-	controllertypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	controllertypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *TypesTestSuite) TestValidateGenesisState() {
-	var (
-		genesisState types.GenesisState
-	)
+	var genesisState types.GenesisState
 
 	testCases := []struct {
 		name     string
@@ -63,9 +61,7 @@ func (suite *TypesTestSuite) TestValidateGenesisState() {
 }
 
 func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
-	var (
-		genesisState types.ControllerGenesisState
-	)
+	var genesisState types.ControllerGenesisState
 
 	testCases := []struct {
 		name     string
@@ -188,9 +184,7 @@ func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
 }
 
 func (suite *TypesTestSuite) TestValidateHostGenesisState() {
-	var (
-		genesisState types.HostGenesisState
-	)
+	var genesisState types.HostGenesisState
 
 	testCases := []struct {
 		name     string

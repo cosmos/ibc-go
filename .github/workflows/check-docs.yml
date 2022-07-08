@@ -3,7 +3,7 @@ name: Check docs build
 # This will check if the docs build successfully by running `npm run build`
 on:
   pull_request:
-  paths:
+    paths:
       - './docs'
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           persist-credentials: false
           fetch-depth: 0

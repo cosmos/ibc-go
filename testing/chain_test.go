@@ -4,44 +4,35 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	tmtypes "github.com/tendermint/tendermint/types"
 
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	"github.com/cosmos/ibc-go/v3/testing/mock"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
-func TestCreateSortedSignerArray(t *testing.T) {
-	privVal1 := mock.NewPV()
-	pubKey1, err := privVal1.GetPubKey()
-	require.NoError(t, err)
+func TestChangeValSet(t *testing.T) {
+	coord := ibctesting.NewCoordinator(t, 2)
+	chainA := coord.GetChain(ibctesting.GetChainID(1))
+	chainB := coord.GetChain(ibctesting.GetChainID(2))
 
-	privVal2 := mock.NewPV()
-	pubKey2, err := privVal2.GetPubKey()
-	require.NoError(t, err)
+	path := ibctesting.NewPath(chainA, chainB)
+	coord.Setup(path)
 
-	validator1 := tmtypes.NewValidator(pubKey1, 1)
-	validator2 := tmtypes.NewValidator(pubKey2, 2)
+	amount, ok := sdk.NewIntFromString("10000000000000000000")
+	require.True(t, ok)
+	amount2, ok := sdk.NewIntFromString("30000000000000000000")
+	require.True(t, ok)
 
-	expected := []tmtypes.PrivValidator{privVal2, privVal1}
+	val := chainA.App.GetStakingKeeper().GetValidators(chainA.GetContext(), 4)
 
-	actual := ibctesting.CreateSortedSignerArray(privVal1, privVal2, validator1, validator2)
-	require.Equal(t, expected, actual)
+	chainA.App.GetStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
+		amount, types.Unbonded, val[1], true)
+	chainA.App.GetStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
+		amount2, types.Unbonded, val[3], true)
 
-	// swap order
-	actual = ibctesting.CreateSortedSignerArray(privVal2, privVal1, validator2, validator1)
-	require.Equal(t, expected, actual)
+	coord.CommitBlock(chainA)
 
-	// smaller address
-	validator1.Address = []byte{1}
-	validator2.Address = []byte{2}
-	validator2.VotingPower = 1
-
-	expected = []tmtypes.PrivValidator{privVal1, privVal2}
-
-	actual = ibctesting.CreateSortedSignerArray(privVal1, privVal2, validator1, validator2)
-	require.Equal(t, expected, actual)
-
-	// swap order
-	actual = ibctesting.CreateSortedSignerArray(privVal2, privVal1, validator2, validator1)
-	require.Equal(t, expected, actual)
+	// verify that update clients works even after validator update goes into effect
+	path.EndpointB.UpdateClient()
+	path.EndpointB.UpdateClient()
 }

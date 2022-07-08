@@ -5,14 +5,14 @@ import (
 
 	ics23 "github.com/confio/ics23/go"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
 )
 
 const (
@@ -27,9 +27,7 @@ const (
 	fiftyOneCharChainID = "123456789012345678901234567890123456789012345678901"
 )
 
-var (
-	invalidProof = []byte("invalid proof")
-)
+var invalidProof = []byte("invalid proof")
 
 func (suite *TendermintTestSuite) TestStatus() {
 	var (
@@ -47,10 +45,10 @@ func (suite *TendermintTestSuite) TestStatus() {
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, exported.Frozen},
-		{"client status is unknown", func() {
+		{"client status without consensus state", func() {
 			clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
 			path.EndpointA.SetClientState(clientState)
-		}, exported.Unknown},
+		}, exported.Expired},
 		{"client status is expired", func() {
 			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
 		}, exported.Expired},
@@ -166,7 +164,6 @@ func (suite *TendermintTestSuite) TestValidate() {
 }
 
 func (suite *TendermintTestSuite) TestInitialize() {
-
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState

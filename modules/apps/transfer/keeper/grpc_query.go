@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -22,9 +23,9 @@ func (q Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	hash, err := types.ParseHexHash(req.Hash)
+	hash, err := types.ParseHexHash(strings.TrimPrefix(req.Hash, "ibc/"))
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash %s, %s", req.Hash, err))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash: %s, error: %s", hash.String(), err))
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -61,7 +62,6 @@ func (q Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 		traces = append(traces, result)
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -106,5 +106,18 @@ func (q Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 
 	return &types.QueryDenomHashResponse{
 		Hash: denomHash.String(),
+	}, nil
+}
+
+// EscrowAddress implements the EscrowAddress gRPC method
+func (q Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	addr := types.GetEscrowAddress(req.PortId, req.ChannelId)
+
+	return &types.QueryEscrowAddressResponse{
+		EscrowAddress: addr.String(),
 	}, nil
 }

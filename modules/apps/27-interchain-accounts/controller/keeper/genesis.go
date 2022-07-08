@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts controller application state from a provided genesis state
@@ -21,11 +21,11 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesi
 	}
 
 	for _, ch := range state.ActiveChannels {
-		keeper.SetActiveChannelID(ctx, ch.PortId, ch.ChannelId)
+		keeper.SetActiveChannelID(ctx, ch.ConnectionId, ch.PortId, ch.ChannelId)
 	}
 
 	for _, acc := range state.InterchainAccounts {
-		keeper.SetInterchainAccountAddress(ctx, acc.PortId, acc.AccountAddress)
+		keeper.SetInterchainAccountAddress(ctx, acc.ConnectionId, acc.PortId, acc.AccountAddress)
 	}
 
 	keeper.SetParams(ctx, state.Params)

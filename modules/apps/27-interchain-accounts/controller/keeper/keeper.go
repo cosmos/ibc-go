@@ -12,10 +12,10 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 )
 
 // Keeper defines the IBC interchain accounts controller keeper
@@ -39,7 +39,6 @@ func NewKeeper(
 	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
-
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -102,10 +101,15 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// GetActiveChannelID retrieves the active channelID from the store, keyed by the provided portID
-func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool) {
+// GetAppVersion calls the ICS4Wrapper GetAppVersion function.
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+}
+
+// GetActiveChannelID retrieves the active channelID from the store, keyed by the provided connectionID and portID
+func (k Keeper) GetActiveChannelID(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := icatypes.KeyActiveChannel(portID)
+	key := icatypes.KeyActiveChannel(portID, connectionID)
 
 	if !store.Has(key) {
 		return "", false
@@ -114,9 +118,9 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, portID string) (string, bool
 	return string(store.Get(key)), true
 }
 
-// GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided portID & checks if the channel in question is in state OPEN
-func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, portID string) (string, bool) {
-	channelID, found := k.GetActiveChannelID(ctx, portID)
+// GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided connectionID and portID & checks if the channel in question is in state OPEN
+func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool) {
+	channelID, found := k.GetActiveChannelID(ctx, connectionID, portID)
 	if !found {
 		return "", false
 	}
@@ -130,7 +134,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, portID string) (string, bo
 	return "", false
 }
 
-// GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated port identifiers
+// GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers
 func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []icatypes.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
@@ -141,8 +145,9 @@ func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []icatypes.ActiveChannel {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
 		ch := icatypes.ActiveChannel{
-			PortId:    keySplit[1],
-			ChannelId: string(iterator.Value()),
+			ConnectionId: keySplit[2],
+			PortId:       keySplit[1],
+			ChannelId:    string(iterator.Value()),
 		}
 
 		activeChannels = append(activeChannels, ch)
@@ -151,22 +156,22 @@ func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []icatypes.ActiveChannel {
 	return activeChannels
 }
 
-// SetActiveChannelID stores the active channelID, keyed by the provided portID
-func (k Keeper) SetActiveChannelID(ctx sdk.Context, portID, channelID string) {
+// SetActiveChannelID stores the active channelID, keyed by the provided connectionID and portID
+func (k Keeper) SetActiveChannelID(ctx sdk.Context, connectionID, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(icatypes.KeyActiveChannel(portID), []byte(channelID))
+	store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID))
 }
 
-// IsActiveChannel returns true if there exists an active channel for the provided portID, otherwise false
-func (k Keeper) IsActiveChannel(ctx sdk.Context, portID string) bool {
-	_, ok := k.GetActiveChannelID(ctx, portID)
+// IsActiveChannel returns true if there exists an active channel for the provided connectionID and portID, otherwise false
+func (k Keeper) IsActiveChannel(ctx sdk.Context, connectionID, portID string) bool {
+	_, ok := k.GetActiveChannelID(ctx, connectionID, portID)
 	return ok
 }
 
-// GetInterchainAccountAddress retrieves the InterchainAccount address from the store keyed by the provided portID
-func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (string, bool) {
+// GetInterchainAccountAddress retrieves the InterchainAccount address from the store associated with the provided connectionID and portID
+func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := icatypes.KeyOwnerAccount(portID)
+	key := icatypes.KeyOwnerAccount(portID, connectionID)
 
 	if !store.Has(key) {
 		return "", false
@@ -175,7 +180,7 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, portID string) (str
 	return string(store.Get(key)), true
 }
 
-// GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated controller port identifiers
+// GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated connection and controller port identifiers
 func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []icatypes.RegisteredInterchainAccount {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.OwnerKeyPrefix))
@@ -185,6 +190,7 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []icatypes.RegisteredI
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
 		acc := icatypes.RegisteredInterchainAccount{
+			ConnectionId:   keySplit[2],
 			PortId:         keySplit[1],
 			AccountAddress: string(iterator.Value()),
 		}
@@ -195,8 +201,8 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []icatypes.RegisteredI
 	return interchainAccounts
 }
 
-// SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated portID
-func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, portID string, address string) {
+// SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated connectionID and portID
+func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(icatypes.KeyOwnerAccount(portID), []byte(address))
+	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
 }
