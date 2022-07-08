@@ -45,19 +45,30 @@ func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
     channelCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
     version string,
-) error {
-    // OpenInit must claim the channelCapability that IBC passes into the callback
-    if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return err
-	}
-
+) (string,error) {
     // ... do custom initialization logic
 
     // Use above arguments to determine if we want to abort handshake
     // Examples: Abort if order == UNORDERED,
     // Abort if version is unsupported
-    err := checkArguments(args)
-    return err
+    if err := checkArguments(args); err != nil {
+        return "", err
+    }
+
+    if strings.TrimSpace(version) == "" {
+		version = types.Version
+	}
+
+	if version != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
+	}
+
+     // OpenInit must claim the channelCapability that IBC passes into the callback
+    if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return "", err
+	}
+
+    return version, nil
 }
 
 // Called by IBC Handler on MsgOpenTry
@@ -71,6 +82,17 @@ func (im IBCModule) OnChanOpenTry(
     counterparty channeltypes.Counterparty,
     counterpartyVersion string,
 ) (string, error) {
+    // ... do custom initialization logic
+
+    // Use above arguments to determine if we want to abort handshake
+    if err := checkArguments(args); err != nil {
+        return "", err
+    }
+
+    if counterpartyVersion != types.Version {
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
+	}
+
     // Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
     // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
     // If the module can already authenticate the capability then the module already owns it so we don't need to claim
@@ -78,25 +100,11 @@ func (im IBCModule) OnChanOpenTry(
     if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
         // Only claim channel capability passed back by IBC module if we do not already own it
         if err := im.keeper.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-            return err
+            return "", err
         }
     }
 
-    // ... do custom initialization logic
-
-    // Use above arguments to determine if we want to abort handshake
-    if err := checkArguments(args); err != nil {
-        return err
-    }
-
-    // Construct application version
-    // IBC applications must return the appropriate application version
-    // This can be a simple string or it can be a complex version constructed
-    // from the counterpartyVersion and other arguments.
-    // The version returned will be the channel version used for both channel ends.
-    appVersion := negotiateAppVersion(counterpartyVersion, args)
-
-    return appVersion, nil
+    return types.Version, nil
 }
 
 // Called by IBC Handler on MsgOpenAck
@@ -106,11 +114,13 @@ func (im IBCModule) OnChanOpenAck(
     channelID string,
     counterpartyVersion string,
 ) error {
-    // ... do custom initialization logic
+    if counterpartyVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+	}
 
-    // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+    // do custom logic
+
+    return nil
 }
 
 // Called by IBC Handler on MsgOpenConfirm
@@ -119,11 +129,9 @@ func (im IBCModule) OnChanOpenConfirm(
     portID,
     channelID string,
 ) error {
-    // ... do custom initialization logic
+    // do custom logic
 
-    // Use above arguments to determine if we want to abort handshake
-    err := checkArguments(args)
-    return err
+    return nil
 }
 ```
 
@@ -161,12 +169,28 @@ func (im IBCModule) OnChanCloseConfirm(
 
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
-- `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
-- `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error.
-- `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
-
-IBC expects application modules to perform application version negotiation in `OnChanOpenTry`. The negotiated version
-must be returned to core IBC. If the version cannot be negotiated, an error should be returned.
+- `onChanOpenInit` will verify that the relayer-chosen parameters
+  are valid and perform any custom `INIT` logic.
+  It may return an error if the chosen parameters are invalid
+  in which case the handshake is aborted.
+  If the provided version string is non-empty, `onChanOpenInit` should return
+  the version string if valid or an error if the provided version is invalid.
+  **If the version string is empty, `onChanOpenInit` is expected to
+  return a default version string representing the version(s)
+  it supports.**
+  If there is no default version string for the application,
+  it should return an error if provided version is empty string.
+- `onChanOpenTry` will verify the relayer-chosen parameters along with the
+  counterparty-chosen version string and perform custom `TRY` logic.
+  If the relayer-chosen parameters
+  are invalid, the callback must return an error to abort the handshake.
+  If the counterparty-chosen version is not compatible with this modules
+  supported versions, the callback must return an error to abort the handshake.
+  If the versions are compatible, the try callback must select the final version
+  string and return it to core IBC.
+  `onChanOpenTry` may also perform custom initialization logic
+- `onChanOpenAck` will error if the counterparty selected version string
+  is invalid to abort the handshake. It may also perform custom ACK logic.
 
 Versions must be strings but can implement any versioning structure. If your application plans to
 have linear releases then semantic versioning is recommended. If your application plans to release
