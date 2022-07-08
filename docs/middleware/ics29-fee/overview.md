@@ -24,11 +24,11 @@ ICS29 fee payments in this middleware design are built on the assumption that se
 
 - Registering of relayer addresses associated with each party involved in relaying the packet on the source chain. This registration process can be automated on start up of relayer infrastructure and happens only once, not every packet flow.
 
-  This is described in the [fee distribution section](../ics29-fee/fee-distribution.md).
+  This is described in the [Fee distribution section](../ics29-fee/fee-distribution.md).
 
 - Escrowing fees by any party which will be paid out to each rightful party on completion of the packet lifecycle.
 
-  This is described in the [fee messages section](../ics29-fee/msgs.md).
+  This is described in the [Fee messages section](../ics29-fee/msgs.md).
 
 We complete the introduction by giving a list of definitions of relevant terminolgy.
 

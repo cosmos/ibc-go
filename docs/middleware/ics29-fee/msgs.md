@@ -2,7 +2,7 @@
 order: 3
 -->
 
-# Fee Messages
+# Fee messages
 
 Learn about the different ways to pay for fees, how the fees are paid out and what happens when not enough escrowed fees are available for payout {synopsis}
 
@@ -74,14 +74,14 @@ Please see our [wiki](https://github.com/cosmos/ibc-go/wiki/Fee-enabled-fungible
 
 ## Paying out the escrowed fees
 
-Following diagram takes a look at the packet flow for an incentivized token transfer and investigates the several scenario's for paying out the escrowed fees. We assume that the relayers have registered their counterparty address, detailed in the [fee distribution section](../ics29-fee/fee-distribution.md).
+Following diagram takes a look at the packet flow for an incentivized token transfer and investigates the several scenario's for paying out the escrowed fees. We assume that the relayers have registered their counterparty address, detailed in the [Fee distribution section](../ics29-fee/fee-distribution.md).
 
 ![packet-flow-fee](../../assets/fee-mw/feeflow.png)
 
 - In the case of a successful transaction, `RecvFee` will be paid out to the designated counterparty payee address which has been registered on the receiver chain and sent back with the `MsgAcknowledgement`, `AckFee` will be paid out to the relayer address which has submitted the `MsgAcknowledgement` on the sending chain (or the registered payee in case one has been registered for the relayer address), and `TimeoutFee` will be reimbursed to the account which escrowed the fee.
 - In case of a timeout transaction, `RecvFee` and `AckFee` will be reimbursed. The `TimeoutFee` will be paid to the `Timeout Relayer` (who submits the timeout message to the source chain).
 
-> Please note that fee payments are built on the assumption that sender chains are the source of incentives — the chain that sends the packets is the same chain where fee payments will occur -- please see the [fee distribution section](../ics29-fee/fee-distribution.md) to understand the flow for registering payee and counterparty payee (fee receiving) addresses.
+> Please note that fee payments are built on the assumption that sender chains are the source of incentives — the chain that sends the packets is the same chain where fee payments will occur -- please see the [Fee distribution section](../ics29-fee/fee-distribution.md) to understand the flow for registering payee and counterparty payee (fee receiving) addresses.
 
 ## A locked fee middleware module
 

@@ -59,7 +59,7 @@ See below for an example CLI command:
 simd tx ibc-fee register-counterparty-payee transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh osmo1v5y0tz01llxzf4c2afml8s3awue0ymju22wxx2 --from cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh
 ```
 
-## Register an alternate payee address for reverse and timeout relaying
+## Register an alternative payee address for reverse and timeout relaying
 
 As mentioned in [ICS29 Concepts](../ics29-fee/overview.md#concepts), the reverse relayer describes the actor who performs the submission of `MsgAcknowledgement` on the source chain.
 Similarly the timeout relayer describes the actor who performs the submission of `MsgTimeout` (or `MsgTimeoutOnClose`) on the source chain.
@@ -68,7 +68,7 @@ Similarly the timeout relayer describes the actor who performs the submission of
 
 If a payee is not registered for the reverse or timeout relayer on the source chain, then fee distribution assumes the default behaviour, where fees are paid out to the relayer account which delivers `MsgAcknowledgement` or `MsgTimeout`/`MsgTimeoutOnClose`.
 
-### Relayer Operator Actions?
+### Relayer operator actions
 
 A transaction must be submitted **to the source chain** including a `Payee` address of an account on the source chain.
 The transaction must be signed by the `Relayer`.
