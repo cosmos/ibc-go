@@ -3,15 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 )
 
-var prNum int
-var ref string
+var prNum string
 
 func init() {
-	flag.IntVar(&prNum, "pr", 0, "the number of the pr")
-	flag.StringVar(&ref, "ref", "", "the github ref")
+	flag.StringVar(&prNum, "pr", "", "the number of the pr")
 	flag.Parse()
 }
 
@@ -19,16 +16,12 @@ func init() {
 // but the event number is, that means we are running for a PR. If the ref is specified, this means
 // we have merged the PR, so we want to use the ref as a tag instead of the PR number.
 func main() {
-	if prNum == 0 && ref == "" {
-		fmt.Printf("must specify one or bot of [pr, ref]")
-		os.Exit(1)
-	}
-	fmt.Printf(getSimdTag(prNum, ref))
+	fmt.Printf(getSimdTag(prNum))
 }
 
-func getSimdTag(prNum int, ref string) string {
-	if ref != "" {
-		return ref
+func getSimdTag(prNum string) string {
+	if prNum == "" {
+		return "main"
 	}
-	return fmt.Sprintf("pr-%d", prNum)
+	return fmt.Sprintf("pr-%s", prNum)
 }
