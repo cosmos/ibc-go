@@ -1,4 +1,4 @@
-package types_test
+package solomachine_test
 
 import (
 	"testing"
@@ -6,7 +6,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -14,7 +13,7 @@ import (
 
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -58,7 +57,7 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 }
 
 func (suite *SoloMachineTestSuite) GetInvalidProof() []byte {
-	invalidProof, err := suite.chainA.Codec.Marshal(&types.TimestampedSignatureData{Timestamp: suite.solomachine.Time})
+	invalidProof, err := suite.chainA.Codec.Marshal(&solomachine.TimestampedSignatureData{Timestamp: suite.solomachine.Time})
 	suite.Require().NoError(err)
 
 	return invalidProof
@@ -68,17 +67,17 @@ func TestUnpackInterfaces_Header(t *testing.T) {
 	registry := testdata.NewTestInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(registry)
 
-	pk := secp256k1.GenPrivKey().PubKey().(cryptotypes.PubKey)
+	pk := secp256k1.GenPrivKey().PubKey()
 	any, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
-	header := types.Header{
+	header := solomachine.Header{
 		NewPublicKey: any,
 	}
 	bz, err := header.Marshal()
 	require.NoError(t, err)
 
-	var header2 types.Header
+	var header2 solomachine.Header
 	err = header2.Unmarshal(bz)
 	require.NoError(t, err)
 
@@ -92,17 +91,17 @@ func TestUnpackInterfaces_HeaderData(t *testing.T) {
 	registry := testdata.NewTestInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(registry)
 
-	pk := secp256k1.GenPrivKey().PubKey().(cryptotypes.PubKey)
+	pk := secp256k1.GenPrivKey().PubKey()
 	any, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
-	hd := types.HeaderData{
+	hd := solomachine.HeaderData{
 		NewPubKey: any,
 	}
 	bz, err := hd.Marshal()
 	require.NoError(t, err)
 
-	var hd2 types.HeaderData
+	var hd2 solomachine.HeaderData
 	err = hd2.Unmarshal(bz)
 	require.NoError(t, err)
 

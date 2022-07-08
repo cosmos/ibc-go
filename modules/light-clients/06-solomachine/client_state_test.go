@@ -1,4 +1,4 @@
-package types_test
+package solomachine_test
 
 import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -6,7 +6,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
@@ -39,41 +39,41 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 
 func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			expPass     bool
 		}{
 			{
 				"valid client state",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				true,
 			},
 			{
 				"empty ClientState",
-				&types.ClientState{},
+				&solomachine.ClientState{},
 				false,
 			},
 			{
 				"sequence is zero",
-				types.NewClientState(0, &types.ConsensusState{solomachine.ConsensusState().PublicKey, solomachine.Diversifier, solomachine.Time}, false),
+				solomachine.NewClientState(0, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, sm.Time}, false),
 				false,
 			},
 			{
 				"timestamp is zero",
-				types.NewClientState(1, &types.ConsensusState{solomachine.ConsensusState().PublicKey, solomachine.Diversifier, 0}, false),
+				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, 0}, false),
 				false,
 			},
 			{
 				"diversifier is blank",
-				types.NewClientState(1, &types.ConsensusState{solomachine.ConsensusState().PublicKey, "  ", 1}, false),
+				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, "  ", 1}, false),
 				false,
 			},
 			{
 				"pubkey is empty",
-				types.NewClientState(1, &types.ConsensusState{nil, solomachine.Diversifier, solomachine.Time}, false),
+				solomachine.NewClientState(1, &solomachine.ConsensusState{nil, sm.Diversifier, sm.Time}, false),
 				false,
 			},
 		}
@@ -97,8 +97,8 @@ func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
 
 func (suite *SoloMachineTestSuite) TestInitialize() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-		malleatedConsensus := solomachine.ClientState().ConsensusState
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		malleatedConsensus := sm.ClientState().ConsensusState
 		malleatedConsensus.Timestamp = malleatedConsensus.Timestamp + 10
 
 		testCases := []struct {
@@ -108,7 +108,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		}{
 			{
 				"valid consensus state",
-				solomachine.ConsensusState(),
+				sm.ConsensusState(),
 				true,
 			},
 			{
@@ -129,7 +129,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		}
 
 		for _, tc := range testCases {
-			err := solomachine.ClientState().Initialize(
+			err := sm.ClientState().Initialize(
 				suite.chainA.GetContext(), suite.chainA.Codec,
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine"),
 				tc.consState,
@@ -152,16 +152,16 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 	path := suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		value, err := types.ClientStateSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path, clientState)
+		value, err := solomachine.ClientStateSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path, clientState)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
+		sig := sm.GenerateSignature(value)
 
-		signatureDoc := &types.TimestampedSignatureData{
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -169,38 +169,38 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				nil,
 				proof,
 				false,
 			},
 			{
 				"consensus state in client state is nil",
-				types.NewClientState(1, nil, false),
+				solomachine.NewClientState(1, nil, false),
 				prefix,
 				proof,
 				false,
 			},
 			{
 				"client state latest height is less than sequence",
-				types.NewClientState(solomachine.Sequence-1,
-					&types.ConsensusState{
-						Timestamp: solomachine.Time,
-						PublicKey: solomachine.ConsensusState().PublicKey,
+				solomachine.NewClientState(sm.Sequence-1,
+					&solomachine.ConsensusState{
+						Timestamp: sm.Time,
+						PublicKey: sm.ConsensusState().PublicKey,
 					}, false),
 				prefix,
 				proof,
@@ -208,10 +208,10 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 			},
 			{
 				"consensus state timestamp is greater than signature",
-				types.NewClientState(solomachine.Sequence,
-					&types.ConsensusState{
-						Timestamp: solomachine.Time + 1,
-						PublicKey: solomachine.ConsensusState().PublicKey,
+				solomachine.NewClientState(sm.Sequence,
+					&solomachine.ConsensusState{
+						Timestamp: sm.Time + 1,
+						PublicKey: sm.ConsensusState().PublicKey,
 					}, false),
 				prefix,
 				proof,
@@ -220,14 +220,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -245,7 +245,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientState() {
 				}
 
 				// NOTE: to replicate the ordering of connection handshake, we must decrement proof height by 1
-				height := clienttypes.NewHeight(solomachine.GetHeight().GetRevisionNumber(), solomachine.GetHeight().GetRevisionHeight()-1)
+				height := clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight()-1)
 
 				err := tc.clientState.VerifyClientState(
 					suite.store, suite.chainA.Codec, height, tc.prefix, counterpartyClientIdentifier, tc.proof, clientState,
@@ -274,15 +274,15 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 	path := suite.solomachine.GetConsensusStatePath(counterpartyClientIdentifier, consensusHeight)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		value, err := types.ConsensusStateSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path, consensusState)
+		value, err := solomachine.ConsensusStateSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path, consensusState)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
-		signatureDoc := &types.TimestampedSignatureData{
+		sig := sm.GenerateSignature(value)
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -290,38 +290,38 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				nil,
 				proof,
 				false,
 			},
 			{
 				"consensus state in client state is nil",
-				types.NewClientState(1, nil, false),
+				solomachine.NewClientState(1, nil, false),
 				prefix,
 				proof,
 				false,
 			},
 			{
 				"client state latest height is less than sequence",
-				types.NewClientState(solomachine.Sequence-1,
-					&types.ConsensusState{
-						Timestamp: solomachine.Time,
-						PublicKey: solomachine.ConsensusState().PublicKey,
+				solomachine.NewClientState(sm.Sequence-1,
+					&solomachine.ConsensusState{
+						Timestamp: sm.Time,
+						PublicKey: sm.ConsensusState().PublicKey,
 					}, false),
 				prefix,
 				proof,
@@ -329,10 +329,10 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 			},
 			{
 				"consensus state timestamp is greater than signature",
-				types.NewClientState(solomachine.Sequence,
-					&types.ConsensusState{
-						Timestamp: solomachine.Time + 1,
-						PublicKey: solomachine.ConsensusState().PublicKey,
+				solomachine.NewClientState(sm.Sequence,
+					&solomachine.ConsensusState{
+						Timestamp: sm.Time + 1,
+						PublicKey: sm.ConsensusState().PublicKey,
 					}, false),
 				prefix,
 				proof,
@@ -341,14 +341,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -366,7 +366,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientConsensusState() {
 				}
 
 				// NOTE: to replicate the ordering of connection handshake, we must decrement proof height by 1
-				height := clienttypes.NewHeight(solomachine.GetHeight().GetRevisionNumber(), solomachine.GetHeight().GetRevisionHeight()-2)
+				height := clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight()-2)
 
 				err := tc.clientState.VerifyClientConsensusState(
 					suite.store, suite.chainA.Codec, height, counterpartyClientIdentifier, consensusHeight, tc.prefix, tc.proof, consensusState,
@@ -391,15 +391,15 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 	path := suite.solomachine.GetConnectionStatePath(testConnectionID)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		value, err := types.ConnectionStateSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path, conn)
+		value, err := solomachine.ConnectionStateSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path, conn)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
-		signatureDoc := &types.TimestampedSignatureData{
+		sig := sm.GenerateSignature(value)
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -407,35 +407,35 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
 				proof,
 				false,
 			},
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -448,7 +448,7 @@ func (suite *SoloMachineTestSuite) TestVerifyConnectionState() {
 			expSeq := tc.clientState.Sequence + 1
 
 			err := tc.clientState.VerifyConnectionState(
-				suite.store, suite.chainA.Codec, solomachine.GetHeight(), tc.prefix, tc.proof, testConnectionID, conn,
+				suite.store, suite.chainA.Codec, sm.GetHeight(), tc.prefix, tc.proof, testConnectionID, conn,
 			)
 
 			if tc.expPass {
@@ -469,15 +469,15 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 	path := suite.solomachine.GetChannelStatePath(testPortID, testChannelID)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		value, err := types.ChannelStateSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path, ch)
+		value, err := solomachine.ChannelStateSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path, ch)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
-		signatureDoc := &types.TimestampedSignatureData{
+		sig := sm.GenerateSignature(value)
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -485,35 +485,35 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				nil,
 				proof,
 				false,
 			},
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -526,7 +526,7 @@ func (suite *SoloMachineTestSuite) TestVerifyChannelState() {
 			expSeq := tc.clientState.Sequence + 1
 
 			err := tc.clientState.VerifyChannelState(
-				suite.store, suite.chainA.Codec, solomachine.GetHeight(), tc.prefix, tc.proof, testPortID, testChannelID, ch,
+				suite.store, suite.chainA.Codec, sm.GetHeight(), tc.prefix, tc.proof, testPortID, testChannelID, ch,
 			)
 
 			if tc.expPass {
@@ -544,17 +544,17 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 	commitmentBytes := []byte("COMMITMENT BYTES")
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		path := solomachine.GetPacketCommitmentPath(testPortID, testChannelID)
+		path := sm.GetPacketCommitmentPath(testPortID, testChannelID)
 
-		value, err := types.PacketCommitmentSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path, commitmentBytes)
+		value, err := solomachine.PacketCommitmentSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path, commitmentBytes)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
-		signatureDoc := &types.TimestampedSignatureData{
+		sig := sm.GenerateSignature(value)
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -562,35 +562,35 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
 				proof,
 				false,
 			},
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -604,7 +604,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyPacketCommitment(
-				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence, commitmentBytes,
+				ctx, suite.store, suite.chainA.Codec, sm.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, sm.Sequence, commitmentBytes,
 			)
 
 			if tc.expPass {
@@ -620,17 +620,17 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketCommitment() {
 func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 	ack := []byte("ACK")
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		path := solomachine.GetPacketAcknowledgementPath(testPortID, testChannelID)
+		path := sm.GetPacketAcknowledgementPath(testPortID, testChannelID)
 
-		value, err := types.PacketAcknowledgementSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path, ack)
+		value, err := solomachine.PacketAcknowledgementSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path, ack)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
-		signatureDoc := &types.TimestampedSignatureData{
+		sig := sm.GenerateSignature(value)
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -638,35 +638,35 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
 				proof,
 				false,
 			},
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -680,7 +680,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyPacketAcknowledgement(
-				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence, ack,
+				ctx, suite.store, suite.chainA.Codec, sm.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, sm.Sequence, ack,
 			)
 
 			if tc.expPass {
@@ -695,18 +695,18 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketAcknowledgement() {
 
 func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		// absence uses receipt path as well
-		path := solomachine.GetPacketReceiptPath(testPortID, testChannelID)
+		path := sm.GetPacketReceiptPath(testPortID, testChannelID)
 
-		value, err := types.PacketReceiptAbsenceSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path)
+		value, err := solomachine.PacketReceiptAbsenceSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
-		signatureDoc := &types.TimestampedSignatureData{
+		sig := sm.GenerateSignature(value)
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -714,35 +714,35 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
 				proof,
 				false,
 			},
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -756,7 +756,7 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyPacketReceiptAbsence(
-				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, solomachine.Sequence,
+				ctx, suite.store, suite.chainA.Codec, sm.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, sm.Sequence,
 			)
 
 			if tc.expPass {
@@ -771,18 +771,18 @@ func (suite *SoloMachineTestSuite) TestVerifyPacketReceiptAbsence() {
 
 func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		nextSeqRecv := solomachine.Sequence + 1
-		path := solomachine.GetNextSequenceRecvPath(testPortID, testChannelID)
+		nextSeqRecv := sm.Sequence + 1
+		path := sm.GetNextSequenceRecvPath(testPortID, testChannelID)
 
-		value, err := types.NextSequenceRecvSignBytes(suite.chainA.Codec, solomachine.Sequence, solomachine.Time, solomachine.Diversifier, path, nextSeqRecv)
+		value, err := solomachine.NextSequenceRecvSignBytes(suite.chainA.Codec, sm.Sequence, sm.Time, sm.Diversifier, path, nextSeqRecv)
 		suite.Require().NoError(err)
 
-		sig := solomachine.GenerateSignature(value)
-		signatureDoc := &types.TimestampedSignatureData{
+		sig := sm.GenerateSignature(value)
+		signatureDoc := &solomachine.TimestampedSignatureData{
 			SignatureData: sig,
-			Timestamp:     solomachine.Time,
+			Timestamp:     sm.Time,
 		}
 
 		proof, err := suite.chainA.Codec.Marshal(signatureDoc)
@@ -790,35 +790,35 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 
 		testCases := []struct {
 			name        string
-			clientState *types.ClientState
+			clientState *solomachine.ClientState
 			prefix      exported.Prefix
 			proof       []byte
 			expPass     bool
 		}{
 			{
 				"successful verification",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				proof,
 				true,
 			},
 			{
 				"ApplyPrefix failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				commitmenttypes.NewMerklePrefix([]byte{}),
 				proof,
 				false,
 			},
 			{
 				"proof is nil",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				nil,
 				false,
 			},
 			{
 				"proof verification failed",
-				solomachine.ClientState(),
+				sm.ClientState(),
 				prefix,
 				suite.GetInvalidProof(),
 				false,
@@ -832,7 +832,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNextSeqRecv() {
 			ctx := suite.chainA.GetContext()
 
 			err := tc.clientState.VerifyNextSequenceRecv(
-				ctx, suite.store, suite.chainA.Codec, solomachine.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, nextSeqRecv,
+				ctx, suite.store, suite.chainA.Codec, sm.GetHeight(), 0, 0, tc.prefix, tc.proof, testPortID, testChannelID, nextSeqRecv,
 			)
 
 			if tc.expPass {
@@ -854,7 +854,7 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 
 	testCases := []struct {
 		name        string
-		clientState *types.ClientState
+		clientState *solomachine.ClientState
 		height      exported.Height
 		expValue    uint64
 		expPass     bool

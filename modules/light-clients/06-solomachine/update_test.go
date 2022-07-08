@@ -1,4 +1,4 @@
-package types_test
+package solomachine_test
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -7,7 +7,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
@@ -15,11 +15,11 @@ import (
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
 		clientMsg   exported.ClientMessage
-		clientState *types.ClientState
+		clientState *solomachine.ClientState
 	)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name    string
@@ -29,14 +29,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"successful header",
 				func() {
-					clientMsg = solomachine.CreateHeader()
+					clientMsg = sm.CreateHeader()
 				},
 				true,
 			},
 			{
 				"successful misbehaviour",
 				func() {
-					clientMsg = solomachine.CreateMisbehaviour()
+					clientMsg = sm.CreateMisbehaviour()
 				},
 				true,
 			},
@@ -51,7 +51,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"wrong sequence in header",
 				func() {
 					// store in temp before assigning to interface type
-					h := solomachine.CreateHeader()
+					h := sm.CreateHeader()
 					h.Sequence++
 					clientMsg = h
 				},
@@ -60,7 +60,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"invalid header Signature",
 				func() {
-					h := solomachine.CreateHeader()
+					h := sm.CreateHeader()
 					h.Signature = suite.GetInvalidProof()
 					clientMsg = h
 				}, false,
@@ -68,7 +68,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"invalid timestamp in header",
 				func() {
-					h := solomachine.CreateHeader()
+					h := sm.CreateHeader()
 					h.Timestamp--
 					clientMsg = h
 				}, false,
@@ -77,8 +77,8 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"signature uses wrong sequence",
 				func() {
 
-					solomachine.Sequence++
-					clientMsg = solomachine.CreateHeader()
+					sm.Sequence++
+					clientMsg = sm.CreateHeader()
 				},
 				false,
 			},
@@ -86,13 +86,13 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"signature uses new pubkey to sign",
 				func() {
 					// store in temp before assinging to interface type
-					cs := solomachine.ClientState()
-					h := solomachine.CreateHeader()
+					cs := sm.ClientState()
+					h := sm.CreateHeader()
 
-					publicKey, err := codectypes.NewAnyWithValue(solomachine.PublicKey)
+					publicKey, err := codectypes.NewAnyWithValue(sm.PublicKey)
 					suite.NoError(err)
 
-					data := &types.HeaderData{
+					data := &solomachine.HeaderData{
 						NewPubKey:      publicKey,
 						NewDiversifier: h.NewDiversifier,
 					}
@@ -101,18 +101,18 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					suite.Require().NoError(err)
 
 					// generate invalid signature
-					signBytes := &types.SignBytes{
+					signBytes := &solomachine.SignBytes{
 						Sequence:    cs.Sequence,
-						Timestamp:   solomachine.Time,
-						Diversifier: solomachine.Diversifier,
-						DataType:    types.CLIENT,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						DataType:    solomachine.CLIENT,
 						Data:        dataBz,
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
-					sig := solomachine.GenerateSignature(signBz)
+					sig := sm.GenerateSignature(signBz)
 					suite.Require().NoError(err)
 					h.Signature = sig
 
@@ -126,13 +126,13 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"signature signs over old pubkey",
 				func() {
 					// store in temp before assinging to interface type
-					cs := solomachine.ClientState()
-					oldPubKey := solomachine.PublicKey
-					h := solomachine.CreateHeader()
+					cs := sm.ClientState()
+					oldPubKey := sm.PublicKey
+					h := sm.CreateHeader()
 
 					// generate invalid signature
 					data := append(sdk.Uint64ToBigEndian(cs.Sequence), oldPubKey.Bytes()...)
-					sig := solomachine.GenerateSignature(data)
+					sig := sm.GenerateSignature(data)
 					h.Signature = sig
 
 					clientState = cs
@@ -144,7 +144,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"consensus state public key is nil - header",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
-					clientMsg = solomachine.CreateHeader()
+					clientMsg = sm.CreateHeader()
 				},
 				false,
 			},
@@ -154,7 +154,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-				clientState = solomachine.ClientState()
+				clientState = sm.ClientState()
 
 				// setup test
 				tc.setup()
@@ -174,11 +174,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 	var (
 		clientMsg   exported.ClientMessage
-		clientState *types.ClientState
+		clientState *solomachine.ClientState
 	)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name    string
@@ -188,16 +188,16 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"successful misbehaviour",
 				func() {
-					clientMsg = solomachine.CreateMisbehaviour()
+					clientMsg = sm.CreateMisbehaviour()
 				},
 				true,
 			},
 			{
 				"old misbehaviour is successful (timestamp is less than current consensus state)",
 				func() {
-					clientState = solomachine.ClientState()
-					solomachine.Time = solomachine.Time - 5
-					clientMsg = solomachine.CreateMisbehaviour()
+					clientState = sm.ClientState()
+					sm.Time = sm.Time - 5
+					clientMsg = sm.CreateMisbehaviour()
 				}, true,
 			},
 			{
@@ -211,14 +211,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				"consensus state pubkey is nil",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
-					clientMsg = solomachine.CreateMisbehaviour()
+					clientMsg = sm.CreateMisbehaviour()
 				},
 				false,
 			},
 			{
 				"invalid SignatureOne SignatureData",
 				func() {
-					m := solomachine.CreateMisbehaviour()
+					m := sm.CreateMisbehaviour()
 
 					m.SignatureOne.Signature = suite.GetInvalidProof()
 					clientMsg = m
@@ -227,7 +227,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"invalid SignatureTwo SignatureData",
 				func() {
-					m := solomachine.CreateMisbehaviour()
+					m := sm.CreateMisbehaviour()
 
 					m.SignatureTwo.Signature = suite.GetInvalidProof()
 					clientMsg = m
@@ -236,7 +236,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"invalid SignatureOne timestamp",
 				func() {
-					m := solomachine.CreateMisbehaviour()
+					m := sm.CreateMisbehaviour()
 
 					m.SignatureOne.Timestamp = 1000000000000
 					clientMsg = m
@@ -245,7 +245,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"invalid SignatureTwo timestamp",
 				func() {
-					m := solomachine.CreateMisbehaviour()
+					m := sm.CreateMisbehaviour()
 
 					m.SignatureTwo.Timestamp = 1000000000000
 					clientMsg = m
@@ -255,21 +255,21 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				"invalid first signature data",
 				func() {
 					// store in temp before assigning to interface type
-					m := solomachine.CreateMisbehaviour()
+					m := sm.CreateMisbehaviour()
 
 					msg := []byte("DATA ONE")
-					signBytes := &types.SignBytes{
-						Sequence:    solomachine.Sequence + 1,
-						Timestamp:   solomachine.Time,
-						Diversifier: solomachine.Diversifier,
-						DataType:    types.CLIENT,
+					signBytes := &solomachine.SignBytes{
+						Sequence:    sm.Sequence + 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						DataType:    solomachine.CLIENT,
 						Data:        msg,
 					}
 
 					data, err := suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
-					sig := solomachine.GenerateSignature(data)
+					sig := sm.GenerateSignature(data)
 
 					m.SignatureOne.Signature = sig
 					m.SignatureOne.Data = msg
@@ -281,21 +281,21 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				"invalid second signature data",
 				func() {
 					// store in temp before assigning to interface type
-					m := solomachine.CreateMisbehaviour()
+					m := sm.CreateMisbehaviour()
 
 					msg := []byte("DATA TWO")
-					signBytes := &types.SignBytes{
-						Sequence:    solomachine.Sequence + 1,
-						Timestamp:   solomachine.Time,
-						Diversifier: solomachine.Diversifier,
-						DataType:    types.CLIENT,
+					signBytes := &solomachine.SignBytes{
+						Sequence:    sm.Sequence + 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						DataType:    solomachine.CLIENT,
 						Data:        msg,
 					}
 
 					data, err := suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
-					sig := solomachine.GenerateSignature(data)
+					sig := sm.GenerateSignature(data)
 
 					m.SignatureTwo.Signature = sig
 					m.SignatureTwo.Data = msg
@@ -306,11 +306,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"wrong pubkey generates first signature",
 				func() {
-					badMisbehaviour := solomachine.CreateMisbehaviour()
+					badMisbehaviour := sm.CreateMisbehaviour()
 
 					// update public key to a new one
-					solomachine.CreateHeader()
-					m := solomachine.CreateMisbehaviour()
+					sm.CreateHeader()
+					m := sm.CreateMisbehaviour()
 
 					// set SignatureOne to use the wrong signature
 					m.SignatureOne = badMisbehaviour.SignatureOne
@@ -320,11 +320,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"wrong pubkey generates second signature",
 				func() {
-					badMisbehaviour := solomachine.CreateMisbehaviour()
+					badMisbehaviour := sm.CreateMisbehaviour()
 
 					// update public key to a new one
-					solomachine.CreateHeader()
-					m := solomachine.CreateMisbehaviour()
+					sm.CreateHeader()
+					m := sm.CreateMisbehaviour()
 
 					// set SignatureTwo to use the wrong signature
 					m.SignatureTwo = badMisbehaviour.SignatureTwo
@@ -336,23 +336,23 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				func() {
 
 					// store in temp before assigning to interface type
-					m := solomachine.CreateMisbehaviour()
+					m := sm.CreateMisbehaviour()
 
 					// Signature One
 					msg := []byte("DATA ONE")
 					// sequence used is plus 1
-					signBytes := &types.SignBytes{
-						Sequence:    solomachine.Sequence + 1,
-						Timestamp:   solomachine.Time,
-						Diversifier: solomachine.Diversifier,
-						DataType:    types.CLIENT,
+					signBytes := &solomachine.SignBytes{
+						Sequence:    sm.Sequence + 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						DataType:    solomachine.CLIENT,
 						Data:        msg,
 					}
 
 					data, err := suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
-					sig := solomachine.GenerateSignature(data)
+					sig := sm.GenerateSignature(data)
 
 					m.SignatureOne.Signature = sig
 					m.SignatureOne.Data = msg
@@ -361,17 +361,17 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					msg = []byte("DATA TWO")
 					// sequence used is minus 1
 
-					signBytes = &types.SignBytes{
-						Sequence:    solomachine.Sequence - 1,
-						Timestamp:   solomachine.Time,
-						Diversifier: solomachine.Diversifier,
-						DataType:    types.CLIENT,
+					signBytes = &solomachine.SignBytes{
+						Sequence:    sm.Sequence - 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						DataType:    solomachine.CLIENT,
 						Data:        msg,
 					}
 					data, err = suite.chainA.Codec.Marshal(signBytes)
 					suite.Require().NoError(err)
 
-					sig = solomachine.GenerateSignature(data)
+					sig = sm.GenerateSignature(data)
 
 					m.SignatureTwo.Signature = sig
 					m.SignatureTwo.Data = msg
@@ -386,7 +386,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-				clientState = solomachine.ClientState()
+				clientState = sm.ClientState()
 
 				// setup test
 				tc.setup()
@@ -410,7 +410,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 	)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name    string
@@ -420,16 +420,16 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 			{
 				"successful update",
 				func() {
-					clientState = solomachine.ClientState()
-					clientMsg = solomachine.CreateHeader()
+					clientState = sm.ClientState()
+					clientMsg = sm.CreateHeader()
 				},
 				true,
 			},
 			{
 				"invalid type misbehaviour",
 				func() {
-					clientState = solomachine.ClientState()
-					clientMsg = solomachine.CreateMisbehaviour()
+					clientState = sm.ClientState()
+					clientMsg = sm.CreateMisbehaviour()
 				},
 				false,
 			},
@@ -451,13 +451,13 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 
 					suite.Require().Len(consensusHeights, 1)
 					suite.Require().Equal(uint64(0), consensusHeights[0].GetRevisionNumber())
-					suite.Require().Equal(newClientState.(*types.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
+					suite.Require().Equal(newClientState.(*solomachine.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
 
-					suite.Require().False(newClientState.(*types.ClientState).IsFrozen)
-					suite.Require().Equal(clientMsg.(*types.Header).Sequence+1, newClientState.(*types.ClientState).Sequence)
-					suite.Require().Equal(clientMsg.(*types.Header).NewPublicKey, newClientState.(*types.ClientState).ConsensusState.PublicKey)
-					suite.Require().Equal(clientMsg.(*types.Header).NewDiversifier, newClientState.(*types.ClientState).ConsensusState.Diversifier)
-					suite.Require().Equal(clientMsg.(*types.Header).Timestamp, newClientState.(*types.ClientState).ConsensusState.Timestamp)
+					suite.Require().False(newClientState.(*solomachine.ClientState).IsFrozen)
+					suite.Require().Equal(clientMsg.(*solomachine.Header).Sequence+1, newClientState.(*solomachine.ClientState).Sequence)
+					suite.Require().Equal(clientMsg.(*solomachine.Header).NewPublicKey, newClientState.(*solomachine.ClientState).ConsensusState.PublicKey)
+					suite.Require().Equal(clientMsg.(*solomachine.Header).NewDiversifier, newClientState.(*solomachine.ClientState).ConsensusState.Diversifier)
+					suite.Require().Equal(clientMsg.(*solomachine.Header).Timestamp, newClientState.(*solomachine.ClientState).ConsensusState.Timestamp)
 				} else {
 					suite.Require().Panics(func() {
 						clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
@@ -475,7 +475,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 	)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 		testCases := []struct {
 			name     string
 			malleate func()
@@ -484,14 +484,14 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 			{
 				"success",
 				func() {
-					clientMsg = solomachine.CreateMisbehaviour()
+					clientMsg = sm.CreateMisbehaviour()
 				},
 				true,
 			},
 			{
 				"normal header returns false",
 				func() {
-					clientMsg = solomachine.CreateHeader()
+					clientMsg = sm.CreateHeader()
 				},
 				false,
 			},
@@ -501,7 +501,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-				clientState := solomachine.ClientState()
+				clientState := sm.ClientState()
 
 				tc.malleate()
 
@@ -520,7 +520,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 
 func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 		testCases := []struct {
 			name     string
 			malleate func()
@@ -537,7 +537,7 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-				clientState := solomachine.ClientState()
+				clientState := sm.ClientState()
 
 				tc.malleate()
 
@@ -549,7 +549,7 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 
 					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
 
-					suite.Require().True(newClientState.(*types.ClientState).IsFrozen)
+					suite.Require().True(newClientState.(*solomachine.ClientState).IsFrozen)
 				}
 			})
 		}

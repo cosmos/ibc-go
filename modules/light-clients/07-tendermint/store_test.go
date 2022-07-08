@@ -8,7 +8,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	tendermint "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
@@ -46,7 +46,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			"invalid consensus state (solomachine)", func() {
 				// marshal and set solomachine consensus state
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				consensusStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalConsensusState(&solomachinetypes.ConsensusState{})
+				consensusStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalConsensusState(&solomachine.ConsensusState{})
 				store.Set(host.ConsensusStateKey(height), consensusStateBz)
 			}, false, true,
 		},

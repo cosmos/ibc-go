@@ -1,8 +1,8 @@
-package types_test
+package solomachine_test
 
 import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -14,95 +14,95 @@ func (suite *SoloMachineTestSuite) TestMisbehaviour() {
 
 func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name                 string
-			malleateMisbehaviour func(misbehaviour *types.Misbehaviour)
+			malleateMisbehaviour func(misbehaviour *solomachine.Misbehaviour)
 			expPass              bool
 		}{
 			{
 				"valid misbehaviour",
-				func(*types.Misbehaviour) {},
+				func(*solomachine.Misbehaviour) {},
 				true,
 			},
 			{
 				"invalid client ID",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.ClientId = "(badclientid)"
 				},
 				false,
 			},
 			{
 				"sequence is zero",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.Sequence = 0
 				},
 				false,
 			},
 			{
 				"signature one sig is empty",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Signature = []byte{}
 				},
 				false,
 			},
 			{
 				"signature two sig is empty",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Signature = []byte{}
 				},
 				false,
 			},
 			{
 				"signature one data is empty",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Data = nil
 				},
 				false,
 			},
 			{
 				"signature two data is empty",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Data = []byte{}
 				},
 				false,
 			},
 			{
 				"signatures are identical",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Signature = misbehaviour.SignatureOne.Signature
 				},
 				false,
 			},
 			{
 				"data signed is identical",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
 				},
 				false,
 			},
 			{
 				"data type for SignatureOne is unspecified",
-				func(misbehaviour *types.Misbehaviour) {
-					misbehaviour.SignatureOne.DataType = types.UNSPECIFIED
+				func(misbehaviour *solomachine.Misbehaviour) {
+					misbehaviour.SignatureOne.DataType = solomachine.UNSPECIFIED
 				}, false,
 			},
 			{
 				"data type for SignatureTwo is unspecified",
-				func(misbehaviour *types.Misbehaviour) {
-					misbehaviour.SignatureTwo.DataType = types.UNSPECIFIED
+				func(misbehaviour *solomachine.Misbehaviour) {
+					misbehaviour.SignatureTwo.DataType = solomachine.UNSPECIFIED
 				}, false,
 			},
 			{
 				"timestamp for SignatureOne is zero",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Timestamp = 0
 				}, false,
 			},
 			{
 				"timestamp for SignatureTwo is zero",
-				func(misbehaviour *types.Misbehaviour) {
+				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Timestamp = 0
 				}, false,
 			},
@@ -113,7 +113,7 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 
 			suite.Run(tc.name, func() {
 
-				misbehaviour := solomachine.CreateMisbehaviour()
+				misbehaviour := sm.CreateMisbehaviour()
 				tc.malleateMisbehaviour(misbehaviour)
 
 				err := misbehaviour.ValidateBasic()

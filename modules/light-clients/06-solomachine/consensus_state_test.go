@@ -1,8 +1,8 @@
-package types_test
+package solomachine_test
 
 import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
@@ -15,41 +15,41 @@ func (suite *SoloMachineTestSuite) TestConsensusState() {
 
 func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name           string
-			consensusState *types.ConsensusState
+			consensusState *solomachine.ConsensusState
 			expPass        bool
 		}{
 			{
 				"valid consensus state",
-				solomachine.ConsensusState(),
+				sm.ConsensusState(),
 				true,
 			},
 			{
 				"timestamp is zero",
-				&types.ConsensusState{
-					PublicKey:   solomachine.ConsensusState().PublicKey,
+				&solomachine.ConsensusState{
+					PublicKey:   sm.ConsensusState().PublicKey,
 					Timestamp:   0,
-					Diversifier: solomachine.Diversifier,
+					Diversifier: sm.Diversifier,
 				},
 				false,
 			},
 			{
 				"diversifier is blank",
-				&types.ConsensusState{
-					PublicKey:   solomachine.ConsensusState().PublicKey,
-					Timestamp:   solomachine.Time,
+				&solomachine.ConsensusState{
+					PublicKey:   sm.ConsensusState().PublicKey,
+					Timestamp:   sm.Time,
 					Diversifier: " ",
 				},
 				false,
 			},
 			{
 				"pubkey is nil",
-				&types.ConsensusState{
-					Timestamp:   solomachine.Time,
-					Diversifier: solomachine.Diversifier,
+				&solomachine.ConsensusState{
+					Timestamp:   sm.Time,
+					Diversifier: sm.Diversifier,
 					PublicKey:   nil,
 				},
 				false,
