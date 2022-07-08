@@ -1,4 +1,4 @@
-package types_test
+package tendermint_test
 
 import (
 	"time"
@@ -7,7 +7,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	tendermint "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 )
 
 func (suite *TendermintTestSuite) TestGetHeight() {
@@ -22,7 +22,7 @@ func (suite *TendermintTestSuite) TestGetTime() {
 
 func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 	var (
-		header *types.Header
+		header *tendermint.Header
 	)
 	testCases := []struct {
 		name     string

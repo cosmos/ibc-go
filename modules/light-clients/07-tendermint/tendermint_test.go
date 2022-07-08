@@ -1,4 +1,4 @@
-package types_test
+package tendermint_test
 
 import (
 	"testing"
@@ -12,7 +12,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	tendermint "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v3/testing/mock"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
@@ -50,7 +50,7 @@ type TendermintTestSuite struct {
 	valSet     *tmtypes.ValidatorSet
 	signers    map[string]tmtypes.PrivValidator
 	valsHash   tmbytes.HexBytes
-	header     *ibctmtypes.Header
+	header     *tendermint.Header
 	now        time.Time
 	headerTime time.Time
 	clientTime time.Time

@@ -1,4 +1,4 @@
-package types
+package tendermint
 
 import (
 	tmmath "github.com/tendermint/tendermint/libs/math"
