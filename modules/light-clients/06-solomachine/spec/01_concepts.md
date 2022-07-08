@@ -56,7 +56,7 @@ data := &ClientStateData{
 dataBz, err := cdc.Marshal(data)
 ```
 
-The helper functions `...DataBytes()` in [proof.go](../types/proof.go) handle this
+The helper functions `...DataBytes()` in [proof.go](../proof.go) handle this
 functionality. 
 
 2. Construct the `SignBytes` and marshal it.
@@ -75,7 +75,7 @@ signBytes := &SignBytes{
 signBz, err := cdc.Marshal(signBytes)
 ```
 
-The helper functions `...SignBytes()` in [proof.go](../types/proof.go) handle this functionality.
+The helper functions `...SignBytes()` in [proof.go](../proof.go) handle this functionality.
 The `DataType` field is used to disambiguate what type of data was signed to prevent potential 
 proto encoding overlap.
 
@@ -100,7 +100,7 @@ as the proof parameter to the verification functions.
 For example:
 
 ```go
-timestampedSignatureData := &types.TimestampedSignatureData{
+timestampedSignatureData := &solomachine.TimestampedSignatureData{
   SignatureData: sigData,
   Timestamp: solomachine.Time,
 }
