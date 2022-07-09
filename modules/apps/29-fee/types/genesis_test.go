@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func TestValidateDefaultGenesis(t *testing.T) {
@@ -82,7 +82,7 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			"invalid registered payee: invalid relayer address",
 			func() {
-				genState.RegisteredPayees[0].RelayerAddress = ""
+				genState.RegisteredPayees[0].Relayer = ""
 			},
 			false,
 		},
@@ -101,16 +101,16 @@ func TestValidateGenesis(t *testing.T) {
 			false,
 		},
 		{
-			"invalid registered relayers: invalid sender",
+			"invalid registered counterparty payees: invalid relayer address",
 			func() {
-				genState.RegisteredRelayers[0].Address = ""
+				genState.RegisteredCounterpartyPayees[0].Relayer = ""
 			},
 			false,
 		},
 		{
-			"invalid registered relayers: invalid counterparty",
+			"invalid registered counterparty payees: invalid counterparty payee",
 			func() {
-				genState.RegisteredRelayers[0].CounterpartyAddress = ""
+				genState.RegisteredCounterpartyPayees[0].CounterpartyPayee = ""
 			},
 			false,
 		},
@@ -144,10 +144,11 @@ func TestValidateGenesis(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			},
-			RegisteredRelayers: []types.RegisteredRelayerAddress{
+			RegisteredCounterpartyPayees: []types.RegisteredCounterpartyPayee{
 				{
-					Address:             defaultAccAddress,
-					CounterpartyAddress: defaultAccAddress,
+					Relayer:           defaultAccAddress,
+					CounterpartyPayee: defaultAccAddress,
+					ChannelId:         ibctesting.FirstChannelID,
 				},
 			},
 			ForwardRelayers: []types.ForwardRelayerAddress{
@@ -158,9 +159,9 @@ func TestValidateGenesis(t *testing.T) {
 			},
 			RegisteredPayees: []types.RegisteredPayee{
 				{
-					RelayerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-					Payee:          sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-					ChannelId:      ibctesting.FirstChannelID,
+					Relayer:   sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					Payee:     sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					ChannelId: ibctesting.FirstChannelID,
 				},
 			},
 		}

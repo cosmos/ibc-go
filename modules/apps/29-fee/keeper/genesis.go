@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )
 
 // InitGenesis initializes the fee middleware application state from a provided genesis state
@@ -12,8 +12,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		k.SetFeesInEscrow(ctx, identifiedFees.PacketId, types.NewPacketFees(identifiedFees.PacketFees))
 	}
 
-	for _, relayer := range state.RegisteredRelayers {
-		k.SetCounterpartyAddress(ctx, relayer.Address, relayer.CounterpartyAddress, relayer.ChannelId)
+	for _, registeredPayee := range state.RegisteredPayees {
+		k.SetPayeeAddress(ctx, registeredPayee.Relayer, registeredPayee.Payee, registeredPayee.ChannelId)
+	}
+
+	for _, registeredCounterpartyPayee := range state.RegisteredCounterpartyPayees {
+		k.SetCounterpartyPayeeAddress(ctx, registeredCounterpartyPayee.Relayer, registeredCounterpartyPayee.CounterpartyPayee, registeredCounterpartyPayee.ChannelId)
 	}
 
 	for _, forwardAddr := range state.ForwardRelayers {
@@ -23,19 +27,15 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, enabledChan := range state.FeeEnabledChannels {
 		k.SetFeeEnabled(ctx, enabledChan.PortId, enabledChan.ChannelId)
 	}
-
-	for _, registeredPayee := range state.RegisteredPayees {
-		k.SetPayeeAddress(ctx, registeredPayee.RelayerAddress, registeredPayee.Payee, registeredPayee.ChannelId)
-	}
 }
 
 // ExportGenesis returns the fee middleware application exported genesis
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		IdentifiedFees:     k.GetAllIdentifiedPacketFees(ctx),
-		FeeEnabledChannels: k.GetAllFeeEnabledChannels(ctx),
-		RegisteredRelayers: k.GetAllRelayerAddresses(ctx),
-		ForwardRelayers:    k.GetAllForwardRelayerAddresses(ctx),
-		RegisteredPayees:   k.GetAllPayeeAddresses(ctx),
+		IdentifiedFees:               k.GetAllIdentifiedPacketFees(ctx),
+		FeeEnabledChannels:           k.GetAllFeeEnabledChannels(ctx),
+		RegisteredPayees:             k.GetAllPayees(ctx),
+		RegisteredCounterpartyPayees: k.GetAllCounterpartyPayees(ctx),
+		ForwardRelayers:              k.GetAllForwardRelayerAddresses(ctx),
 	}
 }

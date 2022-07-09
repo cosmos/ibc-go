@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -52,13 +52,12 @@ service Query {
 
   // Payee returns the registered payee address for a specific channel given the relayer address
   rpc Payee(QueryPayeeRequest) returns (QueryPayeeResponse) {
-    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/payee";
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/payee";
   }
 
-  // CounterpartyAddress returns the registered counterparty address for forward relaying
-  rpc CounterpartyAddress(QueryCounterpartyAddressRequest) returns (QueryCounterpartyAddressResponse) {
-    option (google.api.http).get =
-        "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer_address}/counterparty_address";
+  // CounterpartyPayee returns the registered counterparty payee for forward relaying
+  rpc CounterpartyPayee(QueryCounterpartyPayeeRequest) returns (QueryCounterpartyPayeeResponse) {
+    option (google.api.http).get = "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/counterparty_payee";
   }
 
   // FeeEnabledChannels returns a list of all fee enabled channels
@@ -170,7 +169,7 @@ message QueryPayeeRequest {
   // unique channel identifier
   string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address to which the distribution address is registered
-  string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  string relayer = 2;
 }
 
 // QueryPayeeResponse defines the response type for the Payee rpc
@@ -179,18 +178,18 @@ message QueryPayeeResponse {
   string payee_address = 1 [(gogoproto.moretags) = "yaml:\"payee_address\""];
 }
 
-// QueryCounterpartyAddressRequest defines the request type for the CounterpartyAddress rpc
-message QueryCounterpartyAddressRequest {
+// QueryCounterpartyPayeeRequest defines the request type for the CounterpartyPayee rpc
+message QueryCounterpartyPayeeRequest {
   // unique channel identifier
   string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address to which the counterparty is registered
-  string relayer_address = 2 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
+  string relayer = 2;
 }
 
-// QueryCounterpartyAddressResponse defines the response type for the CounterpartyAddress rpc
-message QueryCounterpartyAddressResponse {
-  // the counterparty address used to compensate forward relaying
-  string counterparty_address = 1 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
+// QueryCounterpartyPayeeResponse defines the response type for the CounterpartyPayee rpc
+message QueryCounterpartyPayeeResponse {
+  // the counterparty payee address used to compensate forward relaying
+  string counterparty_payee = 1 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
 }
 
 // QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc

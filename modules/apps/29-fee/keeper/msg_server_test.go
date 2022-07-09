@@ -2,11 +2,12 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+  
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
@@ -73,12 +74,10 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
+func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 	var (
-		sender       string
-		counterparty string
-		channelID    string
-		ctx          sdk.Context
+		msg                  *types.MsgRegisterCounterpartyPayee
+		expCounterpartyPayee string
 	)
 
 	testCases := []struct {
@@ -92,43 +91,57 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyAddress() {
 			func() {},
 		},
 		{
-			"counterparty is an arbitrary string",
+			"counterparty payee is an arbitrary string",
 			true,
-			func() { counterparty = "arbitrary-string" },
+			func() {
+				msg.CounterpartyPayee = "arbitrary-string"
+				expCounterpartyPayee = "arbitrary-string"
+			},
 		},
 		{
 			"channel does not exist",
 			false,
-			func() { channelID = "channel-22" },
+			func() {
+				msg.ChannelId = "channel-100"
+			},
 		},
 		{
 			"channel is not fee enabled",
 			false,
 			func() {
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(ctx, suite.path.EndpointA.ChannelConfig.PortID, channelID)
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		ctx = suite.chainA.GetContext()
 		suite.coordinator.Setup(suite.path) // setup channel
 
-		sender = suite.chainA.SenderAccount.GetAddress().String()
-		counterparty = suite.chainB.SenderAccount.GetAddress().String()
-		channelID = suite.path.EndpointA.ChannelID
+		expCounterpartyPayee = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String()
+		msg = types.NewMsgRegisterCounterpartyPayee(
+			suite.path.EndpointA.ChannelConfig.PortID,
+			suite.path.EndpointA.ChannelID,
+			suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+			expCounterpartyPayee,
+		)
 
 		tc.malleate()
 
-		msg := types.NewMsgRegisterCounterpartyAddress(suite.path.EndpointA.ChannelConfig.PortID, channelID, sender, counterparty)
-		_, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyAddress(sdk.WrapSDKContext(ctx), msg)
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 		if tc.expPass {
-			suite.Require().NoError(err) // message committed
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
 
-			counterpartyAddress, _ := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyAddress(ctx, suite.chainA.SenderAccount.GetAddress().String(), ibctesting.FirstChannelID)
-			suite.Require().Equal(counterparty, counterpartyAddress)
+			counterpartyPayee, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(
+				suite.chainA.GetContext(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				ibctesting.FirstChannelID,
+			)
+
+			suite.Require().True(found)
+			suite.Require().Equal(expCounterpartyPayee, counterpartyPayee)
 		} else {
 			suite.Require().Error(err)
 		}
@@ -140,6 +153,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		expEscrowBalance sdk.Coins
 		expFeesInEscrow  []types.PacketFee
 		msg              *types.MsgPayPacketFee
+		fee              types.Fee
 	)
 
 	testCases := []struct {
@@ -167,6 +181,15 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
 				expFeesInEscrow = append(expFeesInEscrow, packetFee)
+			},
+			true,
+		},
+		{
+			"refund account is module account",
+			func() {
+				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(disttypes.ModuleName).String()
+				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
+				expFeesInEscrow = []types.PacketFee{expPacketFee}
 			},
 			true,
 		},
@@ -229,7 +252,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
 
-			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			msg = types.NewMsgPayPacketFee(
 				fee,
 				suite.path.EndpointA.ChannelConfig.PortID,

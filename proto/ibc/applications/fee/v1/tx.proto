@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
@@ -12,17 +12,17 @@ import "ibc/core/channel/v1/channel.proto";
 service Msg {
   // RegisterPayee defines a rpc handler method for MsgRegisterPayee
   // RegisterPayee is called by the relayer on each channelEnd and allows them to set an optional
-  // payee to which escrowed packet fees will be paid out. The payee should be registered on the source chain from which
-  // packets originate as this is where fee distribution takes place. This function may be called more than once by a
-  // relayer, in which case, the latest payee is always used.
+  // payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on
+  // the source chain from which packets originate as this is where fee distribution takes place. This function may be
+  // called more than once by a relayer, in which case, the latest payee is always used.
   rpc RegisterPayee(MsgRegisterPayee) returns (MsgRegisterPayeeResponse);
 
-  // RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress
-  // RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their
-  // counterparty address before relaying. This ensures they will be properly compensated for forward relaying since
-  // destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function
-  // may be called more than once by a relayer, in which case, the latest counterparty address is always used.
-  rpc RegisterCounterpartyAddress(MsgRegisterCounterpartyAddress) returns (MsgRegisterCounterpartyAddressResponse);
+  // RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee
+  // RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty
+  // payee address before relaying. This ensures they will be properly compensated for forward relaying since
+  // the destination chain must include the registered counterparty payee address in the acknowledgement. This function
+  // may be called more than once by a relayer, in which case, the latest counterparty payee address is always used.
+  rpc RegisterCounterpartyPayee(MsgRegisterCounterpartyPayee) returns (MsgRegisterCounterpartyPayeeResponse);
 
   // PayPacketFee defines a rpc handler method for MsgPayPacketFee
   // PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
@@ -47,31 +47,31 @@ message MsgRegisterPayee {
   // unique channel identifier
   string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
   // the relayer address
-  string relayer_address = 3 [(gogoproto.moretags) = "yaml:\"relayer_address\""];
-  // the fee payee address
+  string relayer = 3;
+  // the payee address
   string payee = 4;
 }
 
 // MsgRegisterPayeeResponse defines the response type for the RegisterPayee rpc
 message MsgRegisterPayeeResponse {}
 
-// MsgRegisterCounterpartyAddress defines the request type for the RegisterCounterpartyAddress rpc
-message MsgRegisterCounterpartyAddress {
+// MsgRegisterCounterpartyPayee defines the request type for the RegisterCounterpartyPayee rpc
+message MsgRegisterCounterpartyPayee {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // the relayer address
-  string address = 1;
-  // the counterparty relayer address
-  string counterparty_address = 2 [(gogoproto.moretags) = "yaml:\"counterparty_address\""];
   // unique port identifier
-  string port_id = 3 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string port_id = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
   // unique channel identifier
-  string channel_id = 4 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  string channel_id = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  // the relayer address
+  string relayer = 3;
+  // the counterparty payee address
+  string counterparty_payee = 4 [(gogoproto.moretags) = "yaml:\"counterparty_payee\""];
 }
 
-// MsgRegisterCounterpartyAddressResponse defines the response type for the RegisterCounterpartyAddress rpc
-message MsgRegisterCounterpartyAddressResponse {}
+// MsgRegisterCounterpartyPayeeResponse defines the response type for the RegisterCounterpartyPayee rpc
+message MsgRegisterCounterpartyPayeeResponse {}
 
 // MsgPayPacketFee defines the request type for the PayPacketFee rpc
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
