@@ -6,8 +6,10 @@ import (
 	"os"
 )
 
-var prNum int
-var ref string
+var (
+	prNum int
+	ref   string
+)
 
 func init() {
 	flag.IntVar(&prNum, "pr", 0, "the number of the pr")
