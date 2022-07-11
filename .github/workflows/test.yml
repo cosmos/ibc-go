@@ -233,8 +233,6 @@ jobs:
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: e2e
       - uses: actions/setup-go@v3
         with:
           go-version: 1.18
@@ -246,4 +244,5 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run e2e Test
         run: |
+          cd e2e
           make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
