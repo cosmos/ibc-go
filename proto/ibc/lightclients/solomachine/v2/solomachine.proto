@@ -78,6 +78,19 @@ message TimestampedSignatureData {
   uint64 timestamp                   = 2;
 }
 
+// SignBytesV2 defines the signed bytes used for signature verification.
+message SignBytesV2 {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence    = 1;
+  uint64 timestamp   = 2;
+  string diversifier = 3;
+  // the standardised data path
+  bytes path = 4;
+  // marshaled data
+  bytes data = 5;
+}
+
 // SignBytes defines the signed bytes used for signature verification.
 message SignBytes {
   option (gogoproto.goproto_getters) = false;

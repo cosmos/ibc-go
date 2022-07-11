@@ -321,6 +321,7 @@
     - [PacketCommitmentData](#ibc.lightclients.solomachine.v2.PacketCommitmentData)
     - [PacketReceiptAbsenceData](#ibc.lightclients.solomachine.v2.PacketReceiptAbsenceData)
     - [SignBytes](#ibc.lightclients.solomachine.v2.SignBytes)
+    - [SignBytesV2](#ibc.lightclients.solomachine.v2.SignBytesV2)
     - [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData)
     - [TimestampedSignatureData](#ibc.lightclients.solomachine.v2.TimestampedSignatureData)
   
@@ -4730,6 +4731,25 @@ SignBytes defines the signed bytes used for signature verification.
 | `timestamp` | [uint64](#uint64) |  |  |
 | `diversifier` | [string](#string) |  |  |
 | `data_type` | [DataType](#ibc.lightclients.solomachine.v2.DataType) |  | type of the data used |
+| `data` | [bytes](#bytes) |  | marshaled data |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v2.SignBytesV2"></a>
+
+### SignBytesV2
+SignBytesV2 defines the signed bytes used for signature verification.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  |  |
+| `timestamp` | [uint64](#uint64) |  |  |
+| `diversifier` | [string](#string) |  |  |
+| `path` | [bytes](#bytes) |  | the data path |
 | `data` | [bytes](#bytes) |  | marshaled data |
 
 
