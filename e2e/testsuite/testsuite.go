@@ -96,7 +96,7 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
 
-	r := newRelayer(s.T(), s.logger, s.Client, s.network, home)
+	r := newRelayer(s.T(), s.logger, s.Client, s.network)
 
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")
@@ -331,9 +331,9 @@ func defaultChainOptions() ChainOptions {
 }
 
 // newRelayer returns an instance of the go relayer.
-func newRelayer(t *testing.T, logger *zap.Logger, client *dockerclient.Client, network string, home string) ibc.Relayer {
+func newRelayer(t *testing.T, logger *zap.Logger, client *dockerclient.Client, network string) ibc.Relayer {
 	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main")).Build(
-		t, client, network, home,
+		t, client, network,
 	)
 }
 
