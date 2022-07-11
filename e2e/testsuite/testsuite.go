@@ -11,9 +11,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
+	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/relayer"
+	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/testreporter"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -33,15 +35,15 @@ const (
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
 type E2ETestSuite struct {
 	suite.Suite
-	clientSets     map[string]ClientSet
+	clientSets     map[string]GRPCClientSet
 	chainPairs     map[string]chainPair
 	logger         *zap.Logger
-	Client         *dockerclient.Client
+	DockerClient   *dockerclient.Client
 	network        string
 	startRelayerFn func(relayer ibc.Relayer)
 }
 
-type ClientSet struct {
+type GRPCClientSet struct {
 	FeeQueryClient feetypes.QueryClient
 }
 
@@ -96,7 +98,7 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
 
-	r := newRelayer(s.T(), s.logger, s.Client, s.network)
+	r := newRelayer(s.T(), s.logger, s.DockerClient, s.network)
 
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")
@@ -121,7 +123,7 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
 		HomeDir:           home,
-		Client:            s.Client,
+		Client:            s.DockerClient,
 		NetworkID:         s.network,
 		CreateChannelOpts: channelOptions,
 	}))
@@ -148,7 +150,7 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 	return r, srcChainChannels[len(srcChainChannels)-1]
 }
 
-func (s *E2ETestSuite) GetChainClientSet(chain ibc.Chain) ClientSet {
+func (s *E2ETestSuite) GetChainGRCPClientSet(chain ibc.Chain) GRPCClientSet {
 	cs, ok := s.clientSets[chain.Config().ChainID]
 	s.Require().True(ok, "chain %s does not have a clientset", chain.Config().ChainID)
 	return cs
@@ -163,10 +165,10 @@ func (s *E2ETestSuite) initClientSet(chain *cosmos.CosmosChain) {
 	s.Require().NoError(err)
 
 	if s.clientSets == nil {
-		s.clientSets = map[string]ClientSet{}
+		s.clientSets = map[string]GRPCClientSet{}
 
 	}
-	s.clientSets[chain.Config().ChainID] = ClientSet{
+	s.clientSets[chain.Config().ChainID] = GRPCClientSet{
 		FeeQueryClient: feetypes.NewQueryClient(grpcConn),
 	}
 }
@@ -202,6 +204,19 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Re
 		return fmt.Errorf("could not recover relayer wallet on destination chain: %s", err)
 	}
 	return nil
+}
+
+// BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
+	resp, err := ibctest.BroadcastTx(ctx, broadcaster, user, msgs...)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	srcChain, dstChain := s.GetChains()
+	err = test.WaitForBlocks(ctx, 2, srcChain, dstChain)
+	return resp, err
 }
 
 // StartRelayer starts the given relayer.
@@ -243,7 +258,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 	client, network := ibctest.DockerSetup(s.T())
 
 	s.logger = zap.NewExample()
-	s.Client = client
+	s.DockerClient = client
 	s.network = network
 
 	logger := zaptest.NewLogger(s.T())

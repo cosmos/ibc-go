@@ -6,7 +6,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
@@ -29,13 +28,12 @@ type FeeMiddlewareTestSuite struct {
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
-	return ibctest.BroadcastTx(ctx, broadcaster, user, msg)
+	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
 func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
-	queryClient := s.GetChainClientSet(chain).FeeQueryClient
+	queryClient := s.GetChainGRCPClientSet(chain).FeeQueryClient
 	res, err := queryClient.CounterpartyPayee(ctx, &feetypes.QueryCounterpartyPayeeRequest{
 		ChannelId: channelID,
 		Relayer:   relayerAddress,
@@ -50,13 +48,12 @@ func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, cha
 // PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
 func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, packetID channeltypes.PacketId, packetFee feetypes.PacketFee) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
-	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
-	return ibctest.BroadcastTx(ctx, broadcaster, user, msg)
+	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
 func (s *FeeMiddlewareTestSuite) QueryIncentivizedPacketsForChannel(ctx context.Context, chain *cosmos.CosmosChain, portId, channelId string) ([]*feetypes.IdentifiedPacketFees, error) {
-	queryClient := s.GetChainClientSet(chain).FeeQueryClient
+	queryClient := s.GetChainGRCPClientSet(chain).FeeQueryClient
 	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
 		PortId:    portId,
 		ChannelId: channelId,
@@ -96,7 +93,7 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 		s.Require().NoError(err)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, srcChain, dstChain), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, srcChain, dstChain), "failed to wait for blocks")
 
 	_, dstRelayerUser := s.GetRelayerUsers(ctx)
 
@@ -156,6 +153,7 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 			s.Require().NoError(err)
 			s.AssertValidTxResponse(payPacketFeeTxResp)
 			// wait so that incentivised packets will show up
+			// wait 2 blocks
 			time.Sleep(5 * time.Second)
 		})
 
@@ -186,7 +184,7 @@ func (s *FeeMiddlewareTestSuite) TestAsyncSingleSender() {
 		s.StartRelayer(relayer)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, srcChain, dstChain), "failed to wait for blocks")
+	// wait for packets.
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, srcChain, srcChannel.PortID, srcChannel.ChannelID)
