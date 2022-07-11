@@ -22,6 +22,11 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## IBC Apps
 
+### ICS03 - Connection
+
+Crossing hellos have been removed from 03-connection handshake negotiation. 
+`PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated and is no longer used by core IBC.
+
 ### ICS04 - Channel 
 
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
@@ -33,9 +38,6 @@ The return signature now includes the application version as detailed in the lat
 The `NewErrorAcknowledgement` method signature has changed.
 It now accepts an `error` rather than a `string`. This was done in order to prevent accidental state changes.
 All error acknowledgements now contain a deterministic ABCI code and error message. It is the responsibility of the application developer to emit error details in events.
-
-Crossing hellos have been removed from 03-connection handshake negotiation. 
-`PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated and is no longer used by core IBC.
 
 Crossing hellos have been removed from 04-channel handshake negotiation. 
 IBC Applications no longer need to account from already claimed capabilities in the `OnChanOpenTry` callback. The capability provided by core IBC must be able to be claimed with error. 
