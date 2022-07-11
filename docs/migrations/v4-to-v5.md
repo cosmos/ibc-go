@@ -81,6 +81,16 @@ app.UpgradeKeeper.SetUpgradeHandler(
 )
 ```
 
+Please note the above upgrade handler is optional and should only be run if chains have an existing `09-localhost` client stored in state.
+A simple query can be performed to check for a `09-localhost` client on chain.
+
+For example:
+
+```
+simd query ibc client states | grep 09-localhost
+```
+
+
 ### Client Keeper
 
 Keeper function `CheckMisbehaviourAndUpdateState` has been removed since function `UpdateClient` can now handle updating `ClientState` on `ClientMessage` type which can be any `Misbehaviour` implementations.  
