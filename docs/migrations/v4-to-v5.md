@@ -99,4 +99,4 @@ Keeper function `CheckMisbehaviourAndUpdateState` has been removed since functio
 
 `MsgSubmitMisbehaviour` is deprecated since `MsgUpdateClient` can now submit a `ClientMessage` type which can be any `Misbehaviour` implementations.
 
-The field `header` in `MsgUpdateClient` has been renamed to `client message`.
+The field `header` in `MsgUpdateClient` has been renamed to `client_message`.
