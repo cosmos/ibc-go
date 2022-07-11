@@ -349,12 +349,15 @@ var xxx_messageInfo_TimestampedSignatureData proto.InternalMessageInfo
 
 // SignBytesV2 defines the signed bytes used for signature verification.
 type SignBytesV2 struct {
-	Sequence    uint64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	Timestamp   uint64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// the sequence number
+	Sequence uint64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	// the proof timestamp
+	Timestamp uint64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// the public key diversifier
 	Diversifier string `protobuf:"bytes,3,opt,name=diversifier,proto3" json:"diversifier,omitempty"`
-	// the data path
+	// the standardised path bytes
 	Path []byte `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
-	// marshaled data
+	// the marshaled data bytes
 	Data []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
 }
 

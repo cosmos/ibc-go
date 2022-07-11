@@ -82,12 +82,15 @@ message TimestampedSignatureData {
 message SignBytesV2 {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 sequence    = 1;
-  uint64 timestamp   = 2;
+  // the sequence number
+  uint64 sequence = 1;
+  // the proof timestamp
+  uint64 timestamp = 2;
+  // the public key diversifier
   string diversifier = 3;
-  // the standardised data path
+  // the standardised path bytes
   bytes path = 4;
-  // marshaled data
+  // the marshaled data bytes
   bytes data = 5;
 }
 

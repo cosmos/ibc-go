@@ -4746,11 +4746,11 @@ SignBytesV2 defines the signed bytes used for signature verification.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `sequence` | [uint64](#uint64) |  |  |
-| `timestamp` | [uint64](#uint64) |  |  |
-| `diversifier` | [string](#string) |  |  |
-| `path` | [bytes](#bytes) |  | the data path |
-| `data` | [bytes](#bytes) |  | marshaled data |
+| `sequence` | [uint64](#uint64) |  | the sequence number |
+| `timestamp` | [uint64](#uint64) |  | the proof timestamp |
+| `diversifier` | [string](#string) |  | the public key diversifier |
+| `path` | [bytes](#bytes) |  | the standardised path bytes |
+| `data` | [bytes](#bytes) |  | the marshaled data bytes |
 
 
 
