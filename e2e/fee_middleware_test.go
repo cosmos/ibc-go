@@ -108,14 +108,14 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 		s.Require().Equal(chainARelayerWallet.Address, address)
 	})
 
-	chainAWalletToChainBWalletAmount := ibc.WalletAmount{
+	walletAmount := ibc.WalletAmount{
 		Address: chainAWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
 		Denom:   chainADenom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainAWalletToChainBWalletAmount, nil)
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, nil)
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "chain-a ibc transfer tx is invalid")
 	})
@@ -124,7 +124,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - chainAWalletToChainBWalletAmount.Amount - chainA.GetGasFeesInNativeDenom(chainATx.GasSpent)
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount - chainA.GetGasFeesInNativeDenom(chainATx.GasSpent)
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -167,7 +167,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 			s.Require().NoError(err)
 
 			gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
-			expected := testvalues.StartingTokenAmount - chainAWalletToChainBWalletAmount.Amount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 
@@ -176,8 +176,6 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
-
-	// wait for packets.
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
@@ -191,7 +189,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 
 		gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := testvalues.StartingTokenAmount - chainAWalletToChainBWalletAmount.Amount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 }
