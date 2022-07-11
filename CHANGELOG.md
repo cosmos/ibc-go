@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
+* (07-tendermint) [\#1677](https://github.com/cosmos/ibc-go/pull/1677) Remove `types` sub-package from `07-tendermint` lightclient directory. 
 
 ### State Machine Breaking
 
