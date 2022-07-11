@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	SourceRelayerName      = "srcRly"
-	DestinationRelayerName = "dstRly"
+	ChainARelayerName = "rlyA"
+	ChainBRelayerName = "rlyB"
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
@@ -49,21 +49,21 @@ type GRPCClientSet struct {
 
 // chainPair is a pairing of two chains which will be used in a test.
 type chainPair struct {
-	srcChain, dstChain *cosmos.CosmosChain
+	chainA, chainB *cosmos.CosmosChain
 }
 
 // ChainOptions stores chain configurations for the chains that will be
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	SrcChainConfig *ibc.ChainConfig
-	DstChainConfig *ibc.ChainConfig
+	ChainAConfig *ibc.ChainConfig
+	ChainBConfig *ibc.ChainConfig
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
 type ChainOptionConfiguration func(options *ChainOptions)
 
-// GetChains returns a src and dst chain that can be used in a test. The pair returned
+// GetChains returns a chain a and b that can be used in a test. The pair returned
 // is unique to the current test being run. Note: this function does not create containers.
 func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
 	if s.chainPairs == nil {
@@ -71,7 +71,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos
 	}
 	cp, ok := s.chainPairs[s.T().Name()]
 	if ok {
-		return cp.srcChain, cp.dstChain
+		return cp.chainA, cp.chainB
 	}
 
 	chainOptions := defaultChainOptions()
@@ -79,14 +79,14 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos
 		opt(&chainOptions)
 	}
 
-	srcChain, dstChain := s.createCosmosChains(chainOptions)
+	chainA, chainB := s.createCosmosChains(chainOptions)
 	cp = chainPair{
-		srcChain: srcChain,
-		dstChain: dstChain,
+		chainA: chainA,
+		chainB: chainB,
 	}
 	s.chainPairs[s.T().Name()] = cp
 
-	return cp.srcChain, cp.dstChain
+	return cp.chainA, cp.chainB
 }
 
 // CreateChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
@@ -94,7 +94,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
-	srcChain, dstChain := s.GetChains()
+	chainA, chainB := s.GetChains()
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
 
@@ -104,12 +104,12 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 	pathName = strings.ReplaceAll(pathName, "/", "-")
 
 	ic := ibctest.NewInterchain().
-		AddChain(srcChain).
-		AddChain(dstChain).
+		AddChain(chainA).
+		AddChain(chainB).
 		AddRelayer(r, "r").
 		AddLink(ibctest.InterchainLink{
-			Chain1:  srcChain,
-			Chain2:  dstChain,
+			Chain1:  chainA,
+			Chain2:  chainB,
 			Relayer: r,
 			Path:    pathName,
 		})
@@ -142,12 +142,12 @@ func (s *E2ETestSuite) CreateChainsRelayerAndChannel(ctx context.Context, channe
 		time.Sleep(time.Second * 10)
 	}
 
-	s.initClientSet(srcChain)
-	s.initClientSet(dstChain)
+	s.initClientSet(chainA)
+	s.initClientSet(chainB)
 
-	srcChainChannels, err := r.GetChannels(ctx, eRep, srcChain.Config().ChainID)
+	chainAChannels, err := r.GetChannels(ctx, eRep, chainA.Config().ChainID)
 	s.Require().NoError(err)
-	return r, srcChainChannels[len(srcChainChannels)-1]
+	return r, chainAChannels[len(chainAChannels)-1]
 }
 
 func (s *E2ETestSuite) GetChainGRCPClientSet(chain ibc.Chain) GRPCClientSet {
@@ -173,35 +173,35 @@ func (s *E2ETestSuite) initClientSet(chain *cosmos.CosmosChain) {
 	}
 }
 
-// GetRelayerWallets returns the relayer wallets associated with the source and destination chains.
+// GetRelayerWallets returns the relayer wallets associated with the test chains.
 func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.RelayerWallet, ibc.RelayerWallet, error) {
-	srcChain, dstChain := s.GetChains()
-	srcRelayWallet, ok := relayer.GetWallet(srcChain.Config().ChainID)
+	chainA, chainB := s.GetChains()
+	chainARelayWallet, ok := relayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
-		return ibc.RelayerWallet{}, ibc.RelayerWallet{}, fmt.Errorf("unable to find source chain relayer wallet")
+		return ibc.RelayerWallet{}, ibc.RelayerWallet{}, fmt.Errorf("unable to find chain-a relayer wallet")
 	}
-	dstRelayWallet, ok := relayer.GetWallet(dstChain.Config().ChainID)
+	chainBRelayWallet, ok := relayer.GetWallet(chainB.Config().ChainID)
 	if !ok {
-		return ibc.RelayerWallet{}, ibc.RelayerWallet{}, fmt.Errorf("unable to find destination chain relayer wallet")
+		return ibc.RelayerWallet{}, ibc.RelayerWallet{}, fmt.Errorf("unable to find chain-b relayer wallet")
 	}
-	return srcRelayWallet, dstRelayWallet, nil
+	return chainARelayWallet, chainBRelayWallet, nil
 }
 
 // RecoverRelayerWallets adds the corresponding relayer address to the keychain of the chain.
 // This is useful if commands executed on the chains expect the relayer information to present in the keychain.
 func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Relayer) error {
-	srcRelayerWallet, dstRelayerWallet, err := s.GetRelayerWallets(relayer)
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
 	if err != nil {
 		return err
 	}
 
-	srcChain, dstChain := s.GetChains()
+	chainA, chainB := s.GetChains()
 
-	if err := srcChain.RecoverKey(ctx, SourceRelayerName, srcRelayerWallet.Mnemonic); err != nil {
-		return fmt.Errorf("could not recover relayer wallet on source chain: %s", err)
+	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic); err != nil {
+		return fmt.Errorf("could not recover relayer wallet on chain-a: %s", err)
 	}
-	if err := dstChain.RecoverKey(ctx, DestinationRelayerName, dstRelayerWallet.Mnemonic); err != nil {
-		return fmt.Errorf("could not recover relayer wallet on destination chain: %s", err)
+	if err := chainB.RecoverKey(ctx, ChainBRelayerName, chainBRelayerWallet.Mnemonic); err != nil {
+		return fmt.Errorf("could not recover relayer wallet on chain-b: %s", err)
 	}
 	return nil
 }
@@ -214,8 +214,8 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return sdk.TxResponse{}, err
 	}
 
-	srcChain, dstChain := s.GetChains()
-	err = test.WaitForBlocks(ctx, 2, srcChain, dstChain)
+	chainA, chainB := s.GetChains()
+	err = test.WaitForBlocks(ctx, 2, chainA, chainB)
 	return resp, err
 }
 
@@ -227,28 +227,28 @@ func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 	s.startRelayerFn(relayer)
 }
 
-// CreateUserOnSourceChain creates a user with the given amount of funds on the source chain.
-func (s *E2ETestSuite) CreateUserOnSourceChain(ctx context.Context, amount int64) *ibctest.User {
-	srcChain, _ := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, srcChain)[0]
+// CreateUserOnChainA creates a user with the given amount of funds on chain-a.
+func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) *ibctest.User {
+	chainA, _ := s.GetChains()
+	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
-// CreateUserOnDestinationChain creates a user with the given amount of funds on the destination chain.
-func (s *E2ETestSuite) CreateUserOnDestinationChain(ctx context.Context, amount int64) *ibctest.User {
-	_, dstChain := s.GetChains()
-	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, dstChain)[0]
+// CreateUserOnChainB creates a user with the given amount of funds on chain-b.
+func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) *ibctest.User {
+	_, chainB := s.GetChains()
+	return ibctest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
-// GetSourceChainNativeBalance gets the balance of a given user on the source chain.
-func (s *E2ETestSuite) GetSourceChainNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
-	srcChain, _ := s.GetChains()
-	return GetNativeChainBalance(ctx, srcChain, user)
+// GetChainANativeBalance gets the balance of a given user on chain-a.
+func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
+	chainA, _ := s.GetChains()
+	return GetNativeChainBalance(ctx, chainA, user)
 }
 
-// GetDestinationChainNativeBalance gets the balance of a given user on the destination chain.
-func (s *E2ETestSuite) GetDestinationChainNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
-	_, dstChain := s.GetChains()
-	return GetNativeChainBalance(ctx, dstChain, user)
+// GetChainBNativeBalance gets the balance of a given user on chain-b.
+func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
+	_, chainB := s.GetChains()
+	return GetNativeChainBalance(ctx, chainB, user)
 }
 
 // createCosmosChains creates two separate chains in docker containers.
@@ -264,12 +264,12 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 	logger := zaptest.NewLogger(s.T())
 
 	// TODO(chatton): allow for controller over number of validators and full nodes.
-	srcChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.SrcChainConfig, 1, 0, logger)
-	dstChain := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.DstChainConfig, 1, 0, logger)
+	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 1, 0, logger)
+	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 1, 0, logger)
 
 	s.T().Cleanup(func() {
 		if !s.T().Failed() {
-			for _, c := range []*cosmos.CosmosChain{srcChain, dstChain} {
+			for _, c := range []*cosmos.CosmosChain{chainA, chainB} {
 				if err := c.Cleanup(ctx); err != nil {
 					s.T().Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
 				}
@@ -277,7 +277,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 		}
 	})
 
-	return srcChain, dstChain
+	return chainA, chainB
 }
 
 func (s *E2ETestSuite) GetChannel(ctx context.Context, chain ibc.Chain, r ibc.Relayer) ibc.ChannelOutput {
@@ -288,25 +288,25 @@ func (s *E2ETestSuite) GetChannel(ctx context.Context, chain ibc.Chain, r ibc.Re
 }
 
 // GetRelayerUsers returns two ibctest.User instances which can be used for the relayer users
-// on the source and destination chains.
+// on the two chains.
 func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) (*ibctest.User, *ibctest.User) {
-	srcChain, dstChain := s.GetChains(chainOpts...)
-	srcAccountBytes, err := srcChain.GetAddress(ctx, SourceRelayerName)
+	chainA, chainB := s.GetChains(chainOpts...)
+	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
 	s.Require().NoError(err)
 
-	dstAccountBytes, err := dstChain.GetAddress(ctx, DestinationRelayerName)
+	chainBAccountBytes, err := chainB.GetAddress(ctx, ChainBRelayerName)
 	s.Require().NoError(err)
 
-	srcRelayerUser := ibctest.User{
-		Address: srcAccountBytes,
-		KeyName: SourceRelayerName,
+	chainARelayerUser := ibctest.User{
+		Address: chainAAccountBytes,
+		KeyName: ChainARelayerName,
 	}
 
-	dstRelayerUser := ibctest.User{
-		Address: dstAccountBytes,
-		KeyName: DestinationRelayerName,
+	chainBRelayerUser := ibctest.User{
+		Address: chainBAccountBytes,
+		KeyName: ChainBRelayerName,
 	}
-	return &srcRelayerUser, &dstRelayerUser
+	return &chainARelayerUser, &chainBRelayerUser
 }
 
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
@@ -333,15 +333,15 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.U
 	return bal, nil
 }
 
-// defaultChainOptions returns the default configuration for the source and destination chains.
+// defaultChainOptions returns the default configuration for the chains.
 // These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func defaultChainOptions() ChainOptions {
 	tc := testconfig.FromEnv()
-	srcChainCfg := newDefaultSimappConfig(tc, "simapp-a", "chain-a", "atoma")
-	dstChainCfg := newDefaultSimappConfig(tc, "simapp-b", "chain-b", "atomb")
+	chainACfg := newDefaultSimappConfig(tc, "simapp-a", "chain-a", "atoma")
+	chainBCfg := newDefaultSimappConfig(tc, "simapp-b", "chain-b", "atomb")
 	return ChainOptions{
-		SrcChainConfig: &srcChainCfg,
-		DstChainConfig: &dstChainCfg,
+		ChainAConfig: &chainACfg,
+		ChainBConfig: &chainBCfg,
 	}
 }
 
