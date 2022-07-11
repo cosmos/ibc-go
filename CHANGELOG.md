@@ -55,7 +55,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/light-clients/07-tendermint) [\#1118](https://github.com/cosmos/ibc-go/pull/1118) Deprecating `AllowUpdateAfterExpiry and AllowUpdateAfterMisbehaviour`. See ADR-026 for context.
 * (modules/core/02-client) [\#1188](https://github.com/cosmos/ibc-go/pull/1188/files) Routing `MsgSubmitMisbehaviour` to `UpdateClient` keeper function. Deprecating `SubmitMisbehaviour` endpoint.
 * (modules/core/02-client) [\#1208](https://github.com/cosmos/ibc-go/pull/1208) Replace `CheckHeaderAndUpdateState` usage in 02-client with calls to `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour` and `UpdateState`. 
-* (modules/light-clients/09-localhost) [\#1187](https://github.com/cosmos/ibc-go/pull/1187/) Removing localhost light client implementation as it is not functional. 
+* (modules/light-clients/09-localhost) [\#1187](https://github.com/cosmos/ibc-go/pull/1187/) Removing localhost light client implementation as it is not functional. An upgrade handler been provided in `modules/upgrades/v5` to prune `09-localhost` clients and consensus states from the store.
 * [\#1186](https://github.com/cosmos/ibc-go/pull/1186/files) Removing `GetRoot` function from ConsensusState interface in `02-client`. `GetRoot` is unused by core IBC. 
 * (modules/core/02-client) [\#1196](https://github.com/cosmos/ibc-go/pull/1196) Adding VerifyClientMessage to ClientState interface. 
 * (modules/core/02-client) [\#1198](https://github.com/cosmos/ibc-go/pull/1198) Adding UpdateStateOnMisbehaviour to ClientState interface. 
