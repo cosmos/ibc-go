@@ -65,7 +65,7 @@ Add the following to the application upgrade handler in `app/app.go`, calling `U
 ```go
 import (
     // ...
-    ibcv5 "github.com/cosmos/ibc-go/v5/modules/core/upgrades/v5"
+    ibcv5 "github.com/cosmos/ibc-go/v5/modules/core/migrations/v5"
 )
 
 // ...
@@ -89,7 +89,6 @@ For example:
 ```
 simd query ibc client states | grep 09-localhost
 ```
-
 
 ### Client Keeper
 

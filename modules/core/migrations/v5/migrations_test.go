@@ -9,7 +9,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	v5 "github.com/cosmos/ibc-go/v3/modules/core/upgrades/v5"
+	v5 "github.com/cosmos/ibc-go/v3/modules/core/migrations/v5"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
