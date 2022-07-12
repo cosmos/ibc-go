@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-modified_files="$(git diff --name-only | grep .go$ | grep -v pb.go)"
+modified_files="$(git diff origin/main..HEAD  --name-only | grep .go$ | grep -v pb.go)"
 if [ "${modified_files// /}" ]; then
   echo "No go files changed"
   exit 0
