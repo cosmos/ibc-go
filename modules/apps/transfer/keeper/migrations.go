@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 )
 
@@ -16,6 +17,7 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // Migrate1to2 migrates from version 1 to 2.
+// This migration will update the denom
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	var iterErr error
 
@@ -36,7 +38,6 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 			if !equalTraces(newTrace, dt) {
 				newTraces = append(newTraces, newTrace)
 			}
-			iterErr = err
 			return false
 		})
 
