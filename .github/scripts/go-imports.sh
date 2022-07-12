@@ -1,19 +1,19 @@
 #!/usr/bin/env sh
-formatted_files="$(goimports -l -local 'github.com/cosmos/ibc-go' .)"
 
-exit_code=0
-for f in $formatted_files
-do
-  # we don't care about formatting in pb.go files.
-  if [ "${f: -5}" == "pb.go" ]; then
-    continue
-  fi
-  exit_code=1
-  echo "goimports -local 'github.com/cosmos/ibc-go' -w ${f}"
-done
-
-if [[ ${exit_code} == 1 ]]; then
-  echo "Files were not formatted correctly, run the above commands to format them."
+modified_files="$(git diff --name-only | grep .go$ | grep -v pb.go)"
+if [ "${modified_files// /}" ]; then
+  echo "No go files changed"
+  exit 0
 fi
 
-exit $exit_code
+formatted_files="$(docker run -v "$(pwd)":/ibc-go --rm -w "/ibc-go" cytopia/goimports -l -local 'github.com/cosmos/ibc-go' $modified_files)"
+echo $formatted_files
+
+if [[ ${formatted_files} ]]; then
+  echo "Files were not formatted correctly to format them run the following command to format them:"
+  echo "make goimports"
+  exit 1
+fi
+
+echo "All files correctly formatted!"
+exit 0
