@@ -18,6 +18,10 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
+- No relevant changes were made in this release.
+
+## IBC Apps
+
 ### ICS04 - Channel 
 
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
@@ -29,6 +33,10 @@ The return signature now includes the application version as detailed in the lat
 The `NewErrorAcknowledgement` method signature has changed.
 It now accepts an `error` rather than a `string`. This was done in order to prevent accidental state changes.
 All error acknowledgements now contain a deterministic ABCI code and error message. It is the responsibility of the application developer to emit error details in events.
+
+Crossing hellos have been removed from 04-channel handshake negotiation. 
+IBC Applications no longer need to account from already claimed capabilities in the `OnChanOpenTry` callback. The capability provided by core IBC must be able to be claimed with error. 
+`PreviousChannelId` in `MsgChannelOpenTry` has been deprecated and is no longer used by core IBC.
 
 ### ICS27 - Interchain Accounts
 
@@ -91,3 +99,5 @@ if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId,
 ## Relayers
 
 When using the `DenomTrace` gRPC, the full IBC denomination with the `ibc/` prefix may now be passed in.
+
+Crossing hellos are no longer supported by core IBC. The handshake should be completed in the logical 4 step process (INIT, TRY, ACK, CONFIRM).
