@@ -399,9 +399,6 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 		tc.setup()
 
-		// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
-		upgradedClient = upgradedClient.ZeroCustomFields()
-
 		err = suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradeClient(suite.chainA.GetContext(), path.EndpointA.ClientID, upgradedClient, upgradedConsState, proofUpgradedClient, proofUpgradedConsState)
 
 		if tc.expPass {
