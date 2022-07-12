@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (modules/core/04-channel) [\#1317](https://github.com/cosmos/ibc-go/pull/1317) Remove crossing hellos from channel handshakes. The `PreviousChannelId` in `MsgChannelOpenTry` has been deprecated.  
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
 * (channel) [\#1283](https://github.com/cosmos/ibc-go/pull/1283) The `OnChanOpenInit` application callback now returns a version string in line with the latest [spec changes](https://github.com/cosmos/ibc/pull/629).  
 * (modules/29-fee)[\#1338](https://github.com/cosmos/ibc-go/pull/1338) Renaming `Result` field in `IncentivizedAcknowledgement` to `AppAcknowledgement`.
@@ -62,6 +63,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/04-channel) [\#1232](https://github.com/cosmos/ibc-go/pull/1232) Updating params on `NewPacketId` and moving to bottom of file.
 * (app/29-fee) [\#1305](https://github.com/cosmos/ibc-go/pull/1305) Change version string for fee module to `ics29-1`
 * (app/29-fee) [\#1341](https://github.com/cosmos/ibc-go/pull/1341) Check if the fee module is locked and if the fee module is enabled before refunding all fees
+* (transfer) [\#1414](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnRecvPacket` and `OnAcknowledgementPacket`.
 * (testing/simapp) [\#1397](https://github.com/cosmos/ibc-go/pull/1397) Adding mock module to maccperms and adding check to ensure mock module is not a blocked account address. 
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal. 
 
