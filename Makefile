@@ -3,6 +3,7 @@
 PACKAGES_NOSIMULATION=$(shell go list ./... | grep -v '/simulation')
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 CHANGED_GO_FILES := $(shell git diff --name-only | grep .go$$ | grep -v pb.go)
+ALL_GO_FILES := $(shell find . -regex ".*\.go$$" | grep -v pb.go)
 VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
@@ -354,6 +355,9 @@ format:
 
 goimports:
 	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(CHANGED_GO_FILES)" &>2 || echo "No changed go files to format"
+
+goimports-all:
+	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(ALL_GO_FILES)" &>2
 
 ###############################################################################
 ###                                 Devdoc                                  ###
