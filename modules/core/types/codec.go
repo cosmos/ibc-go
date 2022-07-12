@@ -7,7 +7,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	solomachinetypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachinetypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 )
 

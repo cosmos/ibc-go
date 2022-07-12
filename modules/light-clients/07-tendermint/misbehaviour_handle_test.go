@@ -9,7 +9,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	smtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	smtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	tendermint "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v3/testing/mock"

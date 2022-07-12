@@ -14,7 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	smtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	smtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 )
 

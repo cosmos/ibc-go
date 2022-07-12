@@ -1,22 +1,22 @@
-package types_test
+package solomachine_test
 
 import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 	var (
-		subjectClientState    *types.ClientState
+		subjectClientState    *solomachine.ClientState
 		substituteClientState exported.ClientState
 	)
 
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name     string
@@ -46,12 +46,12 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			{
 				"substitute public key is nil", func() {
-					substituteClientState.(*types.ClientState).ConsensusState.PublicKey = nil
+					substituteClientState.(*solomachine.ClientState).ConsensusState.PublicKey = nil
 				}, false,
 			},
 			{
 				"subject and substitute use the same public key", func() {
-					substituteClientState.(*types.ClientState).ConsensusState.PublicKey = subjectClientState.ConsensusState.PublicKey
+					substituteClientState.(*solomachine.ClientState).ConsensusState.PublicKey = subjectClientState.ConsensusState.PublicKey
 				}, false,
 			},
 		}
@@ -62,14 +62,14 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 
-				subjectClientState = solomachine.ClientState()
+				subjectClientState = sm.ClientState()
 				subjectClientState.AllowUpdateAfterProposal = true
 				substitute := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "substitute", "testing", 5)
 				substituteClientState = substitute.ClientState()
 
 				tc.malleate()
 
-				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), solomachine.ClientID)
+				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
 				substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute.ClientID)
 
 				updatedClient, err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
@@ -77,9 +77,9 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 				if tc.expPass {
 					suite.Require().NoError(err)
 
-					suite.Require().Equal(substituteClientState.(*types.ClientState).ConsensusState, updatedClient.(*types.ClientState).ConsensusState)
-					suite.Require().Equal(substituteClientState.(*types.ClientState).Sequence, updatedClient.(*types.ClientState).Sequence)
-					suite.Require().Equal(false, updatedClient.(*types.ClientState).IsFrozen)
+					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).ConsensusState, updatedClient.(*solomachine.ClientState).ConsensusState)
+					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).Sequence, updatedClient.(*solomachine.ClientState).Sequence)
+					suite.Require().Equal(false, updatedClient.(*solomachine.ClientState).IsFrozen)
 
 					// ensure updated client state is set in store
 					bz := subjectClientStore.Get(host.ClientStateKey())

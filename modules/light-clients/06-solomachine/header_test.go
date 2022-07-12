@@ -1,20 +1,20 @@
-package types_test
+package solomachine_test
 
 import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine/types"
+	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, solomachine := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
-		header := solomachine.CreateHeader()
+		header := sm.CreateHeader()
 
 		cases := []struct {
 			name    string
-			header  *types.Header
+			header  *solomachine.Header
 			expPass bool
 		}{
 			{
@@ -24,7 +24,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			},
 			{
 				"sequence is zero",
-				&types.Header{
+				&solomachine.Header{
 					Sequence:       0,
 					Timestamp:      header.Timestamp,
 					Signature:      header.Signature,
@@ -35,7 +35,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			},
 			{
 				"timestamp is zero",
-				&types.Header{
+				&solomachine.Header{
 					Sequence:       header.Sequence,
 					Timestamp:      0,
 					Signature:      header.Signature,
@@ -46,7 +46,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			},
 			{
 				"signature is empty",
-				&types.Header{
+				&solomachine.Header{
 					Sequence:       header.Sequence,
 					Timestamp:      header.Timestamp,
 					Signature:      []byte{},
@@ -57,7 +57,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			},
 			{
 				"diversifier contains only spaces",
-				&types.Header{
+				&solomachine.Header{
 					Sequence:       header.Sequence,
 					Timestamp:      header.Timestamp,
 					Signature:      header.Signature,
@@ -68,7 +68,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			},
 			{
 				"public key is nil",
-				&types.Header{
+				&solomachine.Header{
 					Sequence:       header.Sequence,
 					Timestamp:      header.Timestamp,
 					Signature:      header.Signature,
