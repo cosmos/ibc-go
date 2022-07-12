@@ -194,6 +194,7 @@ func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 		coord.IncrementTime()
 	}
 }
+<<<<<<< HEAD
 
 // ConnOpenInitOnBothChains initializes a connection on both endpoints with the state INIT
 // using the OpenInit handshake call.
@@ -233,3 +234,5 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(path *Path) error {
 
 	return path.EndpointB.UpdateClient()
 }
+=======
+>>>>>>> 9aab42d (refactor: remove crossing hellos from 03-connection (#1672))

@@ -18,6 +18,18 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
+<<<<<<< HEAD
+=======
+- No relevant changes were made in this release.
+
+## IBC Apps
+
+### ICS03 - Connection
+
+Crossing hellos have been removed from 03-connection handshake negotiation. 
+`PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated and is no longer used by core IBC.
+
+>>>>>>> 9aab42d (refactor: remove crossing hellos from 03-connection (#1672))
 ### ICS04 - Channel 
 
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
@@ -91,3 +103,8 @@ if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId,
 ## Relayers
 
 When using the `DenomTrace` gRPC, the full IBC denomination with the `ibc/` prefix may now be passed in.
+<<<<<<< HEAD
+=======
+
+Crossing hellos are no longer supported by core IBC for 03-connection and 04-channel. The handshake should be completed in the logical 4 step process (INIT, TRY, ACK, CONFIRM).
+>>>>>>> 9aab42d (refactor: remove crossing hellos from 03-connection (#1672))

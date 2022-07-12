@@ -4244,7 +4244,7 @@ connection on Chain B.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  |  |
-| `previous_connection_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the connection identifier of the previous connection in state INIT |
+| `previous_connection_id` | [string](#string) |  | **Deprecated.** Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC. |
 | `client_state` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `counterparty` | [Counterparty](#ibc.core.connection.v1.Counterparty) |  |  |
 | `delay_period` | [uint64](#uint64) |  |  |

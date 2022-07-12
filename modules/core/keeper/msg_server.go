@@ -117,7 +117,7 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 	}
 
 	if _, err := k.ConnectionKeeper.ConnOpenTry(
-		ctx, msg.PreviousConnectionId, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
+		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
 		connectiontypes.ProtoVersionsToExported(msg.CounterpartyVersions), msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
 		msg.ProofHeight, msg.ConsensusHeight,
 	); err != nil {
