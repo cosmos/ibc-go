@@ -60,7 +60,7 @@ The `GetRoot` function has been removed from consensus state interface since it 
 The `09-localhost` light client implementation has been removed because it is currently non-functional.
 
 An upgrade handler has been added to supply chain developers with the logic needed to prune the ibc client store and successfully complete the removal of `09-localhost`.
-Add the following to the application upgrade handler in `app/app.go`, calling `UpgradeToV5` to perform store migration logic.
+Add the following to the application upgrade handler in `app/app.go`, calling `MigrateToV5` to perform store migration logic.
 
 ```go
 import (
@@ -74,7 +74,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
     upgradeName,
     func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
         // prune the 09-localhost client from the ibc client store
-        ibcv5.UpgradeToV5(ctx, app.IBCKeeper.ClientKeeper)
+        ibcv5.MigrateToV5(ctx, app.IBCKeeper.ClientKeeper)
 
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     },

@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-type UpgradeV5TestSuite struct {
+type MigrationsV5TestSuite struct {
 	suite.Suite
 
 	coordinator *ibctesting.Coordinator
@@ -22,7 +22,7 @@ type UpgradeV5TestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *UpgradeV5TestSuite) SetupTest() {
+func (suite *MigrationsV5TestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -30,10 +30,10 @@ func (suite *UpgradeV5TestSuite) SetupTest() {
 }
 
 func TestIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(UpgradeV5TestSuite))
+	suite.Run(t, new(MigrationsV5TestSuite))
 }
 
-func (suite *UpgradeV5TestSuite) TestUpgradeToV5() {
+func (suite *MigrationsV5TestSuite) TestMigrateToV5() {
 	var clientStore sdk.KVStore
 
 	testCases := []struct {
@@ -96,7 +96,7 @@ func (suite *UpgradeV5TestSuite) TestUpgradeToV5() {
 
 			tc.malleate()
 
-			v5.UpgradeToV5(ctx, suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			v5.MigrateToV5(ctx, suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 
 			if tc.expPass {
 				suite.Require().False(clientStore.Has(host.ClientStateKey()))
