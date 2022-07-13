@@ -57,7 +57,7 @@ func TestIsSupportedVersion(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expPass, types.IsSupportedVersion(tc.version))
+		require.Equal(t, tc.expPass, types.IsSupportedVersion(types.GetCompatibleVersions(), tc.version))
 	}
 }
 
