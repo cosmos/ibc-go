@@ -2949,7 +2949,7 @@ value will be ignored by core IBC.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `port_id` | [string](#string) |  |  |
-| `previous_channel_id` | [string](#string) |  | in the case of crossing hello's, when both chains call OpenInit, we need the channel identifier of the previous channel in state INIT |
+| `previous_channel_id` | [string](#string) |  | **Deprecated.** Deprecated: this field is unused. Crossing hello's are no longer supported in core IBC. |
 | `channel` | [Channel](#ibc.core.channel.v1.Channel) |  | NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC. |
 | `counterparty_version` | [string](#string) |  |  |
 | `proof_init` | [bytes](#bytes) |  |  |

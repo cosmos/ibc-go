@@ -39,6 +39,10 @@ The `NewErrorAcknowledgement` method signature has changed.
 It now accepts an `error` rather than a `string`. This was done in order to prevent accidental state changes.
 All error acknowledgements now contain a deterministic ABCI code and error message. It is the responsibility of the application developer to emit error details in events.
 
+Crossing hellos have been removed from 04-channel handshake negotiation. 
+IBC Applications no longer need to account from already claimed capabilities in the `OnChanOpenTry` callback. The capability provided by core IBC must be able to be claimed with error. 
+`PreviousChannelId` in `MsgChannelOpenTry` has been deprecated and is no longer used by core IBC.
+
 ### ICS27 - Interchain Accounts
 
 The `RegisterInterchainAccount` API has been modified to include an additional `version` argument. This change has been made in order to support ICS29 fee middleware, for relayer incentivization of ICS27 packets.
@@ -101,7 +105,12 @@ if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId,
 
 When using the `DenomTrace` gRPC, the full IBC denomination with the `ibc/` prefix may now be passed in.
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 Crossing hellos are no longer supported by core IBC for 03-connection and 04-channel. The handshake should be completed in the logical 4 step process (INIT, TRY, ACK, CONFIRM).
 >>>>>>> 9aab42d (refactor: remove crossing hellos from 03-connection (#1672))
+=======
+
+Crossing hellos are no longer supported by core IBC. The handshake should be completed in the logical 4 step process (INIT, TRY, ACK, CONFIRM).
+>>>>>>> 7351002a3be635fd7188a62863a591d9e2df4d87
