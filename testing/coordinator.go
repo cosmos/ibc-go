@@ -194,21 +194,3 @@ func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 		coord.IncrementTime()
 	}
 }
-
-// ConnOpenInitOnBothChains initializes a connection on both endpoints with the state INIT
-// using the OpenInit handshake call.
-func (coord *Coordinator) ConnOpenInitOnBothChains(path *Path) error {
-	if err := path.EndpointA.ConnOpenInit(); err != nil {
-		return err
-	}
-
-	if err := path.EndpointB.ConnOpenInit(); err != nil {
-		return err
-	}
-
-	if err := path.EndpointA.UpdateClient(); err != nil {
-		return err
-	}
-
-	return path.EndpointB.UpdateClient()
-}
