@@ -18,8 +18,6 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
-<<<<<<< HEAD
-=======
 - No relevant changes were made in this release.
 
 ## IBC Apps
@@ -29,7 +27,6 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 Crossing hellos have been removed from 03-connection handshake negotiation. 
 `PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated and is no longer used by core IBC.
 
->>>>>>> 9aab42d (refactor: remove crossing hellos from 03-connection (#1672))
 ### ICS04 - Channel 
 
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
