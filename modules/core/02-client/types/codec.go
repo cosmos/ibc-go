@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	gov1b1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -35,7 +35,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*exported.Misbehaviour)(nil),
 	)
 	registry.RegisterImplementations(
-		(*govtypes.Content)(nil),
+		(*gov1b1.Content)(nil),
 		&ClientUpdateProposal{},
 		&UpgradeProposal{},
 	)

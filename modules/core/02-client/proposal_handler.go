@@ -3,15 +3,15 @@ package client
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	gov1b1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 )
 
 // NewClientProposalHandler defines the 02-client proposal handler
-func NewClientProposalHandler(k keeper.Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) error {
+func NewClientProposalHandler(k keeper.Keeper) gov1b1.Handler {
+	return func(ctx sdk.Context, content gov1b1.Content) error {
 		switch c := content.(type) {
 		case *types.ClientUpdateProposal:
 			return k.ClientUpdateProposal(ctx, c)

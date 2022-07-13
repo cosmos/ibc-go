@@ -5,7 +5,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	gov1b1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -18,18 +18,18 @@ const (
 )
 
 var (
-	_ govtypes.Content                   = &ClientUpdateProposal{}
-	_ govtypes.Content                   = &UpgradeProposal{}
+	_ gov1b1.Content                     = &ClientUpdateProposal{}
+	_ gov1b1.Content                     = &UpgradeProposal{}
 	_ codectypes.UnpackInterfacesMessage = &UpgradeProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeClientUpdate)
-	govtypes.RegisterProposalType(ProposalTypeUpgrade)
+	gov1b1.RegisterProposalType(ProposalTypeClientUpdate)
+	gov1b1.RegisterProposalType(ProposalTypeUpgrade)
 }
 
 // NewClientUpdateProposal creates a new client update proposal.
-func NewClientUpdateProposal(title, description, subjectClientID, substituteClientID string) govtypes.Content {
+func NewClientUpdateProposal(title, description, subjectClientID, substituteClientID string) gov1b1.Content {
 	return &ClientUpdateProposal{
 		Title:              title,
 		Description:        description,
@@ -52,7 +52,7 @@ func (cup *ClientUpdateProposal) ProposalType() string { return ProposalTypeClie
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *ClientUpdateProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(cup)
+	err := gov1b1.ValidateAbstract(cup)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (cup *ClientUpdateProposal) ValidateBasic() error {
 }
 
 // NewUpgradeProposal creates a new IBC breaking upgrade proposal.
-func NewUpgradeProposal(title, description string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (govtypes.Content, error) {
+func NewUpgradeProposal(title, description string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (gov1b1.Content, error) {
 	any, err := PackClientState(upgradedClientState)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (up *UpgradeProposal) ProposalType() string { return ProposalTypeUpgrade }
 
 // ValidateBasic runs basic stateless validity checks
 func (up *UpgradeProposal) ValidateBasic() error {
-	if err := govtypes.ValidateAbstract(up); err != nil {
+	if err := gov1b1.ValidateAbstract(up); err != nil {
 		return err
 	}
 
