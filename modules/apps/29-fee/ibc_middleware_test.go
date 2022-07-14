@@ -6,14 +6,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	fee "github.com/cosmos/ibc-go/v3/modules/apps/29-fee"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	ibcmock "github.com/cosmos/ibc-go/v3/testing/mock"
+	fee "github.com/cosmos/ibc-go/v4/modules/apps/29-fee"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
 )
 
 var (
@@ -141,37 +141,26 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	testCases := []struct {
 		name      string
 		cpVersion string
-		crossing  bool
 		expPass   bool
 	}{
 		{
 			"success - valid fee middleware version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
-			false,
 			true,
 		},
 		{
 			"success - valid mock version",
 			ibcmock.Version,
-			false,
-			true,
-		},
-		{
-			"success - crossing hellos: valid fee middleware",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
-			true,
 			true,
 		},
 		{
 			"invalid fee middleware version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
 			false,
-			false,
 		},
 		{
 			"invalid mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
-			false,
 			false,
 		},
 	}
@@ -201,14 +190,9 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				ok      bool
 				err     error
 			)
-			if tc.crossing {
-				suite.path.EndpointA.ChanOpenInit()
-				chanCap, ok = suite.chainA.GetSimApp().ScopedFeeMockKeeper.GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().True(ok)
-			} else {
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-			}
+
+			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
+			suite.Require().NoError(err)
 
 			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 

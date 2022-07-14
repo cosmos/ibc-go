@@ -4,55 +4,46 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: March 31, 2022_
+_Lastest update: July 7, 2022_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans.
 
-## Q2 - 2022
+## Q3 - 2022
 
 At a high level we will focus on:
 
-- Finishing the implementation of [relayer incentivisation](https://github.com/orgs/cosmos/projects/7/views/8).
-- Finishing the [refactoring of 02-client](https://github.com/cosmos/ibc-go/milestone/16).
-- Finishing the upgrade to Cosmos SDK v0.46 and Tendermint v0.35.
-- Implementing and testing the changes needed to support the [transtion to SMT storage](https://github.com/cosmos/ibc-go/milestone/21) in the Cosmos SDK.
-- Desiging the implementation and scoping the engineering work for [channel upgradability](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics/UPGRADES.md).
-- Improving the project's documentation and writing guides for [light client](https://github.com/cosmos/ibc-go/issues/59) and middleware implementation.
-- Working on [core backlog issues](https://github.com/cosmos/ibc-go/milestone/8).
-- Spending time on expanding and deepening our knowledge of IBC, but also other parts of the Cosmos stack.
-- And last, but not least, onboarding new members to the team.
+- Releasing [v4.0.0](https://github.com/cosmos/ibc-go/milestone/26), which includes the ICS-29 Fee Middleware module.
+- Finishing and releasing the [refactoring of 02-client](https://github.com/cosmos/ibc-go/milestone/16). This refactor will make the development of light clients easier.
+- Finishing and releasing the upgrade to Cosmos SDK v0.46.
+- Starting the implementation of channel upgradability (see [epic](https://github.com/cosmos/ibc-go/issues/1599) and [alpha milestone](https://github.com/cosmos/ibc-go/milestone/29)) with the goal of cutting an alpha1 pre-release by the end of the quarter. Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel.
+- Implementing the new [`ORDERED_ALLOW_TIMEOUT` channel type](https://github.com/cosmos/ibc-go/milestone/31) and hopefully releasing it as well. This new channel type will allow packets on an ordered channel to timeout without causing the closure of the channel.
+- Adding [automated e2e tests](https://github.com/cosmos/ibc-go/milestone/32) to the repo's CI.
+- Writing the [light client implementation guide](https://github.com/cosmos/ibc-go/issues/59).
+- Working on [core backlog issues](https://github.com/cosmos/ibc-go/milestone/28).
+- Depending on the timeline of the Cosmos SDK, implementing and testing the changes needed to support the [transtion to SMT storage](https://github.com/cosmos/ibc-go/milestone/21).
+
+We have also received a lot of feedback to improve Interchain Accounts and we might also work on a few things, but will depend on priorities and availability.
 
 For a detail view of each iteration's planned work, please check out our [project board](https://github.com/orgs/cosmos/projects/7).
 
 ### Release schedule
 
-#### **April**
+#### **July**
 
-In the first half of the month we will probably cut:
+We will probably cut at least one more release candidate of v4.0.0 before the final release, which should happen around the end of the month. 
 
-- Alpha/beta pre-releases with the upgrade to SDK 0.46 and Tendermint v0.35.
-- [Alpha](https://github.com/cosmos/ibc-go/milestone/5) pre-release with the implementation of relayer incentivisation.
+For the Rho upgrade of the Cosmos Hub we will also release a new minor version of v3 with SDK 0.46.
 
-In the second half, and depending on the date of the final release of Cosmos SDK 0.46, we will probably cut the final release with the upgrade to SDK 0.46 and Tendermint v0.35, and also a [beta](https://github.com/cosmos/ibc-go/milestone/23) pre-release with the implementation of relayer incentivisation.
+#### **August**
 
-In the second half of the month we also plan to do a second internal audit of the implementation of relayer incentivisation, and issues will most likely will be created from the audit. Depending on the nature and type of the issues we create, those would be released in a second beta pre-release or in a [release candidate](https://github.com/cosmos/ibc-go/milestone/24).
+In the first half we will probably start cutting release candidates for the 02-client refactor. Final release would most likely come out at the end of the month or beginning of September.
 
-#### **May**
+#### **September**
 
-In the first half we will probably start cutting release candidates with relayer incentivisation and the 02-client refactor. Final release would most likely come out at the end of the month or beginning of June.
+We might cut some pre-releases for the new channel type, and by the end of the month we expect to cut the first alpha pre-release for channel upgradability.
 
-#### **June**
+## Q4 - 2022
 
-We will probably cut at the end of the month or beginning of Q3 patch or minor releases on all the supported release lines with the [small features and core improvements](https://github.com/cosmos/ibc-go/milestone/8) that we work on during the quarter.
-
-## Q3 - 2022
-
-We will most likely start the implementation of [channel upgradability](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics/UPGRADES.md). At the end of Q2 or maybe beginning of Q3 we might also work on designing the implementation and scoping the engineering work to add support for [ordered channels that can timeout](https://github.com/cosmos/ibc/pull/636), and we could potentially work on this feature also in Q3.
-
-We will also probably do an audit of the implementation of the [CCV application](https://github.com/cosmos/interchain-security/tree/main/x/ccv) for Interchain Security.
-
-### Release schedule
-
-In this quarter we will make the final release to support the migration to SMT storage.
+We will continue the implementation and cut the final release of [channel upgradability](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics/UPGRADES.md). At the end of Q3 or maybe beginning of Q4 we might also work on designing the implementation and scoping the engineering work to add support for [multihop channels](https://github.com/cosmos/ibc/pull/741/files), so that we could start the implementation of this feature during Q4 (but this is still be decided).
