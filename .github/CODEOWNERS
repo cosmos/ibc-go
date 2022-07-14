@@ -18,8 +18,8 @@
 
 ## CODEOWNERS for core/02-client
 
-/modules/core/02-client @seantking @damiannolan
-/proto/ibc/core/client @seantking @damiannolan
+/modules/core/02-client @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
+/proto/ibc/core/client @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
 
 # CODEOWNERS for the light-clients
 
