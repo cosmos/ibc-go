@@ -20,4 +20,5 @@ FROM ubuntu:20.04
 
 COPY --from=builder /go/build/simd /bin/simd
 
-ENTRYPOINT ["simd"]
+# TODO(chatton): uncomment once https://github.com/strangelove-ventures/ibctest/issues/183 is resolved.
+#ENTRYPOINT ["simd"]

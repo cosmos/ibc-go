@@ -61,11 +61,11 @@ func DefaultChainOptions() ChainOptions {
 }
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
-func newDefaultSimappConfig(tc TestConfig, name, chainId, denom string) ibc.ChainConfig {
+func newDefaultSimappConfig(tc TestConfig, name, chainID, denom string) ibc.ChainConfig {
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
-		ChainID: chainId,
+		ChainID: chainID,
 		Images: []ibc.DockerImage{
 			{
 				Repository: tc.SimdImage,
