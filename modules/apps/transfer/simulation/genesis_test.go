@@ -36,7 +36,7 @@ func TestRandomizedGenState(t *testing.T) {
 	}
 
 	simulation.RandomizedGenState(&simState)
-
+	
 	var ibcTransferGenesis types.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], &ibcTransferGenesis)
 
