@@ -26,7 +26,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			}
 			bz := k.MustMarshalConsensusState(upgradedConsState)
 
-			k.SetUpgradedConsensusState(ctx, plan.Height, bz) //nolint:errcheck // this could make the chain halt if we checked the error.
+			k.SetUpgradedConsensusState(ctx, plan.Height, bz) //nolint:errcheck 
 
 		}
 	}
