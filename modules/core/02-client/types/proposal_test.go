@@ -5,7 +5,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -24,7 +25,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 
 	testCases := []struct {
 		name     string
-		proposal govtypes.Content
+		proposal govv1beta1.Content
 		expPass  bool
 	}{
 		{
@@ -74,7 +75,7 @@ func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 	// create codec
 	ir := codectypes.NewInterfaceRegistry()
 	types.RegisterInterfaces(ir)
-	govtypes.RegisterInterfaces(ir)
+	govv1.RegisterInterfaces(ir)
 	cdc := codec.NewProtoCodec(ir)
 
 	// marshal message
@@ -90,7 +91,7 @@ func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 
 func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 	var (
-		proposal govtypes.Content
+		proposal govv1beta1.Content
 		err      error
 	)
 
@@ -183,7 +184,7 @@ func (suite *TypesTestSuite) TestMarshalUpgradeProposal() {
 	// create codec
 	ir := codectypes.NewInterfaceRegistry()
 	types.RegisterInterfaces(ir)
-	govtypes.RegisterInterfaces(ir)
+	govv1.RegisterInterfaces(ir)
 	ibctmtypes.RegisterInterfaces(ir)
 	cdc := codec.NewProtoCodec(ir)
 

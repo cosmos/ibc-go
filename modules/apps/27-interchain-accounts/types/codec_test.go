@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
@@ -84,7 +84,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					ToAddress:   TestOwnerAddress,
 					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
 				},
-				&govtypes.MsgSubmitProposal{
+				&govv1beta1.MsgSubmitProposal{
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
 					Proposer:       TestOwnerAddress,
 				},
@@ -112,14 +112,14 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testCasesAny := []caseRawBytes{}
 
 	for _, tc := range testCases {
-		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.msgs)
+		bz, err := types.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, tc.msgs)
 		suite.Require().NoError(err, tc.name)
 
 		testCasesAny = append(testCasesAny, caseRawBytes{tc.name, bz, tc.expPass})
 	}
 
 	for i, tc := range testCasesAny {
-		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, tc.bz)
+		msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, tc.bz)
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 			suite.Require().Equal(testCases[i].msgs, msgs, tc.name)
@@ -129,7 +129,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	}
 
 	// test deserializing unknown bytes
-	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []byte("invalid"))
+	msgs, err := types.DeserializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []byte("invalid"))
 	suite.Require().Error(err)
 	suite.Require().Empty(msgs)
 }

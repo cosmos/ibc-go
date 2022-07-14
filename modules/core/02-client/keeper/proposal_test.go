@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
@@ -14,7 +14,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 	var (
 		subject, substitute                       string
 		subjectClientState, substituteClientState exported.ClientState
-		content                                   govtypes.Content
+		content                                   govv1beta1.Content
 		err                                       error
 	)
 
@@ -161,7 +161,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 	var (
 		upgradedClientState *ibctmtypes.ClientState
 		oldPlan, plan       upgradetypes.Plan
-		content             govtypes.Content
+		content             govv1beta1.Content
 		err                 error
 	)
 
