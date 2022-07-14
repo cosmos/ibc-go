@@ -15,8 +15,8 @@ const (
 )
 
 // newCosmosRelayer returns an instance of the go relayer.
-func newCosmosRelayer(t *testing.T, logger *zap.Logger, dockerClient *dockerclient.Client, network string, home string) ibc.Relayer {
+func newCosmosRelayer(t *testing.T, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
 	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage(cosmosRelayerRepository, "main")).Build(
-		t, dockerClient, network, home,
+		t, dockerClient, network,
 	)
 }

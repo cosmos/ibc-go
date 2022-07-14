@@ -7,7 +7,7 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v4/e2e/testsuite"
+	"e2e/testsuite"
 )
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
