@@ -2,14 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
-	"testing"
 
 	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	"github.com/stretchr/testify/require"
 )
 
-func (suite *KeeperTestSuite) TestMigrator_Migrate1to2(t *testing.T) {
+func (suite *KeeperTestSuite) TestMigrator_Migrate1to2() {
 
 	testCases := []struct {
 		msg         string
@@ -72,8 +70,9 @@ func (suite *KeeperTestSuite) TestMigrator_Migrate1to2(t *testing.T) {
 			suite.SetupTest() // reset
 
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			err := migrator.Migrate1to2(suite.chainA.GetContext())
 			if tc.doMigration {
-				require.NoError(t, migrator.Migrate1to2(suite.chainA.GetContext()))
+				suite.Require().Equal(nil, err)
 			}
 		})
 	}
