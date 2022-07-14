@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 )
 
@@ -25,7 +24,6 @@ func (suite *KeeperTestSuite) TestMigrator_Migrate1to2() {
 					transfertypes.DenomTrace{
 						BaseDenom: "uatom/", Path: "transfer/channelToA",
 					})
-
 				// single '/' in base denom
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
@@ -50,10 +48,6 @@ func (suite *KeeperTestSuite) TestMigrator_Migrate1to2() {
 					transfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channelToA/transfer/channelToB",
 					})
-
-				genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
-				fmt.Println(genesis)
-
 			},
 			true,
 		},
@@ -68,11 +62,18 @@ func (suite *KeeperTestSuite) TestMigrator_Migrate1to2() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			err := migrator.Migrate1to2(suite.chainA.GetContext())
+			tc.malleate()     // explicitly set up denom traces
+			// migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			// err := migrator.Migrate1to2(suite.chainA.GetContext())
 			if tc.doMigration {
-				suite.Require().Equal(nil, err)
+				// suite.Require().NoError(err)
+				traces := suite.chainA.GetSimApp().TransferKeeper.GetAllDenomTraces(suite.chainA.GetContext())
+				for _, t := range traces {
+					err := t.Validate()
+					suite.Require().NoError(err)
+				}
+			} else {
+				// suite.Require().Error(err)
 			}
 		})
 	}
