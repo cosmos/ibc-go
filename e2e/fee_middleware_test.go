@@ -20,7 +20,7 @@ type FeeMiddlewareTestSuite struct {
 
 func (s *FeeMiddlewareTestSuite) TestPlaceholder() {
 	ctx := context.Background()
-	r := s.CreateChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+	r := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
 	s.T().Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(r)
 	})

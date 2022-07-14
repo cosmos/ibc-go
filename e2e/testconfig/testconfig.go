@@ -3,6 +3,8 @@ package testconfig
 import (
 	"fmt"
 	"os"
+
+	"github.com/strangelove-ventures/ibctest/ibc"
 )
 
 const (
@@ -32,5 +34,50 @@ func FromEnv() TestConfig {
 	return TestConfig{
 		SimdImage: simdImage,
 		SimdTag:   simdTag,
+	}
+}
+
+// ChainOptions stores chain configurations for the chains that will be
+// created for the tests. They can be modified by passing ChainOptionConfiguration
+// to E2ETestSuite.GetChains.
+type ChainOptions struct {
+	ChainAConfig *ibc.ChainConfig
+	ChainBConfig *ibc.ChainConfig
+}
+
+// ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
+type ChainOptionConfiguration func(options *ChainOptions)
+
+// DefaultChainOptions returns the default configuration for the chains.
+// These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
+func DefaultChainOptions() ChainOptions {
+	tc := FromEnv()
+	chainACfg := newDefaultSimappConfig(tc, "simapp-a", "chain-a", "atoma")
+	chainBCfg := newDefaultSimappConfig(tc, "simapp-b", "chain-b", "atomb")
+	return ChainOptions{
+		ChainAConfig: &chainACfg,
+		ChainBConfig: &chainBCfg,
+	}
+}
+
+// newDefaultSimappConfig creates an ibc configuration for simd.
+func newDefaultSimappConfig(tc TestConfig, name, chainId, denom string) ibc.ChainConfig {
+	return ibc.ChainConfig{
+		Type:    "cosmos",
+		Name:    name,
+		ChainID: chainId,
+		Images: []ibc.DockerImage{
+			{
+				Repository: tc.SimdImage,
+				Version:    tc.SimdTag,
+			},
+		},
+		Bin:            "simd",
+		Bech32Prefix:   "cosmos",
+		Denom:          denom,
+		GasPrices:      fmt.Sprintf("0.01%s", denom),
+		GasAdjustment:  1.3,
+		TrustingPeriod: "508h",
+		NoHostMount:    false,
 	}
 }
