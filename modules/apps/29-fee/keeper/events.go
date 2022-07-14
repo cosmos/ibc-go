@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 )
 
 // EmitIncentivizedPacketEvent emits an event containing information on the total amount of fees incentivizing
@@ -27,7 +27,7 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 		}
 	}
 
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIncentivizedPacket,
 			sdk.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
@@ -37,7 +37,11 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 			sdk.NewAttribute(types.AttributeKeyAckFee, totalAckFees.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutFee, totalTimeoutFees.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 }
 
 // EmitRegisterPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel

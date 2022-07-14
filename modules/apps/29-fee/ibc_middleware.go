@@ -7,12 +7,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -225,7 +225,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 
-	// incase of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
+	// in case of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
 		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketId(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
 		return nil
