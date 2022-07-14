@@ -22,15 +22,15 @@ import (
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
 	channelCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	srcPort string,
+	srcChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
 ) error {
-	if err := packet.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
-	}
-
-	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+	channel, found := k.GetChannel(ctx, srcPort, srcChannel)
 	if !found {
-		return sdkerrors.Wrap(types.ErrChannelNotFound, packet.GetSourceChannel())
+		return sdkerrors.Wrap(types.ErrChannelNotFound, srcChannel)
 	}
 
 	if channel.State == types.CLOSED {
@@ -40,22 +40,24 @@ func (k Keeper) SendPacket(
 		)
 	}
 
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
+	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(srcPort, srcChannel)) {
+		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", srcPort, srcChannel)
 	}
 
-	if packet.GetDestPort() != channel.Counterparty.PortId {
+	sequence, found := k.GetNextSequenceSend(ctx, srcPort, srcChannel)
+	if !found {
 		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet destination port doesn't match the counterparty's port (%s ≠ %s)", packet.GetDestPort(), channel.Counterparty.PortId,
+			types.ErrSequenceSendNotFound,
+			"source port: %s, source channel: %s", srcPort, srcChannel,
 		)
 	}
 
-	if packet.GetDestChannel() != channel.Counterparty.ChannelId {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestChannel(), channel.Counterparty.ChannelId,
-		)
+	// construct packet from given fields and channel state
+	packet := types.NewPacket(data, sequence, srcPort, srcChannel,
+		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeoutHeight, timeoutTimestamp)
+
+	if err := packet.ValidateBasic(); err != nil {
+		return sdkerrors.Wrap(err, "constructed packet failed basic validation")
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -76,7 +78,6 @@ func (k Keeper) SendPacket(
 
 	// check if packet is timed out on the receiving chain
 	latestHeight := clientState.GetLatestHeight()
-	timeoutHeight := packet.GetTimeoutHeight()
 	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
 		return sdkerrors.Wrapf(
 			types.ErrPacketTimeout,
@@ -105,34 +106,19 @@ func (k Keeper) SendPacket(
 		}
 	}
 
-	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrSequenceSendNotFound,
-			"source port: %s, source channel: %s", packet.GetSourcePort(), packet.GetSourceChannel(),
-		)
-	}
-
-	if packet.GetSequence() != nextSequenceSend {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence ≠ next send sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceSend,
-		)
-	}
-
 	commitment := types.CommitPacket(k.cdc, packet)
 
-	nextSequenceSend++
-	k.SetNextSequenceSend(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), nextSequenceSend)
-	k.SetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment)
+	sequence++
+	k.SetNextSequenceSend(ctx, srcPort, srcChannel, sequence)
+	k.SetPacketCommitment(ctx, srcPort, srcChannel, packet.GetSequence(), commitment)
 
 	EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
+		"src_port", srcPort,
+		"src_channel", srcChannel,
 		"dst_port", packet.GetDestPort(),
 		"dst_channel", packet.GetDestChannel(),
 	)

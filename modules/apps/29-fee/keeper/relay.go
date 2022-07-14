@@ -8,13 +8,22 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (k Keeper) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
-	return k.ics4Wrapper.SendPacket(ctx, chanCap, packet)
+func (k Keeper) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	srcPort string,
+	srcChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+) error {
+	return k.ics4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function

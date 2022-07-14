@@ -9,6 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -337,9 +338,13 @@ func (im IBCMiddleware) OnTimeoutPacket(
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	srcPort string,
+	srcChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
 ) error {
-	return im.keeper.SendPacket(ctx, chanCap, packet)
+	return im.keeper.SendPacket(ctx, chanCap, srcPort, srcChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface

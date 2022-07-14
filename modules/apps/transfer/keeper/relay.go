@@ -62,24 +62,6 @@ func (k Keeper) SendTransfer(
 		return types.ErrSendDisabled
 	}
 
-	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
-	if !found {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
-	}
-
-	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
-	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
-
-	// get the next sequence
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
-	if !found {
-		return sdkerrors.Wrapf(
-			channeltypes.ErrSequenceSendNotFound,
-			"source port: %s, source channel: %s", sourcePort, sourceChannel,
-		)
-	}
-
-	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {
@@ -100,10 +82,7 @@ func (k Keeper) SendTransfer(
 		}
 	}
 
-	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
-	}
+	labels := []metrics.Label{}
 
 	// NOTE: SendTransfer simply sends the denomination as it exists on its own
 	// chain inside the packet data. The receiving chain will perform denom
@@ -113,15 +92,8 @@ func (k Keeper) SendTransfer(
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 
 		// create the escrow address for the tokens
-		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
 
 		// escrow source tokens. It fails if balance insufficient.
-		if err := k.bankKeeper.SendCoins(
-			ctx, sender, escrowAddress, sdk.NewCoins(token),
-		); err != nil {
-			return err
-		}
-
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -146,18 +118,7 @@ func (k Keeper) SendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver,
 	)
 
-	packet := channeltypes.NewPacket(
-		packetData.GetBytes(),
-		sequence,
-		sourcePort,
-		sourceChannel,
-		destinationPort,
-		destinationChannel,
-		timeoutHeight,
-		timeoutTimestamp,
-	)
-
-	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
+	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes()); err != nil {
 		return err
 	}
 

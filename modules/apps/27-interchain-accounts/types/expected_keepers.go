@@ -5,6 +5,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
@@ -20,7 +21,7 @@ type AccountKeeper interface {
 
 // ICS4Wrapper defines the expected ICS4Wrapper for middleware
 type ICS4Wrapper interface {
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
+	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, srcPort, srcChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) error
 	GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool)
 }
 

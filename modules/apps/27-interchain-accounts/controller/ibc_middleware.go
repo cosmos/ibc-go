@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -177,7 +178,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet ibcexported.PacketI,
+	srcPort string,
+	srcChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
 ) error {
 	panic("SendPacket not supported for ICA controller module. Please use SendTx")
 }
