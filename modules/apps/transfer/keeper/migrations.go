@@ -16,9 +16,8 @@ func NewMigrator(keeper Keeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 
-// Migrate1to2 migrates from version 1 to 2.
 // This migration will update the denom
-func (m Migrator) Migrate1to2(ctx sdk.Context) error {
+func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	var iterErr error
 
 	// list of traces that must replace the old traces in store

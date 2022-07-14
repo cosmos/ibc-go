@@ -18,7 +18,27 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
-- No relevant changes were made in this release.
+# Migrating from not supporing base denoms with slashes to supporting base denoms with slashes
+
+This is necessary when chains are upgrading from a version that does not support base denoms with slashes (e.g. v3.0.0) to a version that does (e.g. v3.1.0). All versions of ibc-go smaller than v1.5.0 for the v1.x release line, v2.3.0 for the v2.x release line, and v3.1.0 for the v3.x release line do *NOT** support IBC token transfers of coins whose base denoms contain slashes. Therefore the in-place of genesis migration described in this document are required when upgrading.
+
+If a chain receives coins of a base denom with slashes before it upgrades to supporting it, the receive may pass however the trace information will be incorrect.
+
+E.g. If a base denom of `testcoin/testcoin/testcoin` is sent to a chain that does not support slashes in the base denom, the receive will be successful. However, the trace information stored on the receiving chain will be: `Trace: "transfer/{channel-id}/testcoin/testcoin", BaseDenom: "testcoin"`.
+
+This incorrect trace information must be corrected when the chain does upgrade to fully supporting denominations with slashes.
+
+If the chain will migrate to supporting base denoms with slashes, it must set the appropriate params during the execution of the upgrade handler in `app.go`: 
+```go
+app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
+    func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+        // bump the consensus version of the IBC transfer module 
+        fromVM[ibctransfertypes.ModuleName] = ibctransfermodule.ConsensusVersion()
+
+        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    })
+
+```
 
 ## IBC Apps
 

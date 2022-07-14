@@ -3,59 +3,93 @@ package keeper_test
 import (
 	"fmt"
 
+	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 )
 
-func (suite *KeeperTestSuite) TestMigrator_Migrate1to2() {
+func (suite *KeeperTestSuite) TestMigrator_MigrateTraces() {
 
 	testCases := []struct {
-		msg         string
-		malleate    func()
-		doMigration bool
+		msg            string
+		malleate       func()
+		expectedTraces transfertypes.Traces
 	}{
 
 		{
-			"success: denom traces updated",
+			"success: two slashes in base denom",
 			func() {
-				//set a multitude of different types of denom traces
-				// base denom ending in '/'
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
 					transfertypes.DenomTrace{
-						BaseDenom: "uatom/", Path: "transfer/channelToA",
-					})
-				// single '/' in base denom
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
-						BaseDenom: "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channelToA",
-					})
-				// multiple '/'s in base denom
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
-						BaseDenom: "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channelToA",
-					})
-				// multiple double '/'s in base denom
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
-						BaseDenom: "gamm//pool//1", Path: "transfer/channelToA",
-					})
-				// multiple port/channel pairs
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
-						BaseDenom: "uatom", Path: "transfer/channelToA/transfer/channelToB",
+						BaseDenom: "1", Path: "transfer/channel-0/gamm/pool",
 					})
 			},
-			true,
+			transfertypes.Traces{
+				{
+					BaseDenom: "gamm/pool/1", Path: "transfer/channel-0",
+				},
+			},
 		},
 		{
-			"failure",
+			"success: one slash in base denom",
 			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "", Path: "transfer/channel-149/erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA",
+					})
 			},
-			false,
+			transfertypes.Traces{
+				{
+					BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA/", Path: "transfer/channel-149",
+				},
+			},
+		},
+		{
+			"success: multiple slashes in a row in base denom",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "1", Path: "transfer/channel-5/gamm//pool",
+					})
+			},
+			transfertypes.Traces{
+				{
+					BaseDenom: "gamm//pool/1", Path: "transfer/channel-5",
+				},
+			},
+		},
+		{
+			"success: multihop base denom",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "transfer/channel-1/uatom", Path: "transfer/channel-0",
+					})
+			},
+			transfertypes.Traces{
+				{
+					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1",
+				},
+			},
+		},
+		{
+			// the expected value will change with the implementation of the fix for #1698
+			"no change: non-standard port",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "customport/channel-7/uatom", Path: "transfer/channel-0/transfer/channel-1",
+					})
+			},
+			transfertypes.Traces{
+				{
+					BaseDenom: "customport/channel-7/uatom", Path: "transfer/channel-0/transfer/channel-1",
+				},
+			},
 		},
 	}
 
@@ -63,18 +97,12 @@ func (suite *KeeperTestSuite) TestMigrator_Migrate1to2() {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			tc.malleate()     // explicitly set up denom traces
-			// migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			// err := migrator.Migrate1to2(suite.chainA.GetContext())
-			if tc.doMigration {
-				// suite.Require().NoError(err)
-				traces := suite.chainA.GetSimApp().TransferKeeper.GetAllDenomTraces(suite.chainA.GetContext())
-				for _, t := range traces {
-					err := t.Validate()
-					suite.Require().NoError(err)
-				}
-			} else {
-				// suite.Require().Error(err)
-			}
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			err := migrator.MigrateTraces(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+
+			traces := suite.chainA.GetSimApp().TransferKeeper.GetAllDenomTraces(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedTraces, traces)
 		})
 	}
 }
