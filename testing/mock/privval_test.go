@@ -14,17 +14,17 @@ const chainID = "testChain"
 
 func TestGetPubKey(t *testing.T) {
 	pv := mock.NewPV()
-	pk, err := pv.GetPubKey(nil)
+	pk, err := pv.GetPubKey()
 	require.NoError(t, err)
 	require.Equal(t, "ed25519", pk.Type())
 }
 
 func TestSignVote(t *testing.T) {
 	pv := mock.NewPV()
-	pk, _ := pv.GetPubKey(nil)
+	pk, _ := pv.GetPubKey()
 
 	vote := &tmproto.Vote{Height: 2}
-	pv.SignVote(nil, chainID, vote)
+	pv.SignVote(chainID, vote)
 
 	msg := tmtypes.VoteSignBytes(chainID, vote)
 	ok := pk.VerifySignature(msg, vote.Signature)
@@ -33,10 +33,10 @@ func TestSignVote(t *testing.T) {
 
 func TestSignProposal(t *testing.T) {
 	pv := mock.NewPV()
-	pk, _ := pv.GetPubKey(nil)
+	pk, _ := pv.GetPubKey()
 
 	proposal := &tmproto.Proposal{Round: 2}
-	pv.SignProposal(nil, chainID, proposal)
+	pv.SignProposal(chainID, proposal)
 
 	msg := tmtypes.ProposalSignBytes(chainID, proposal)
 	ok := pk.VerifySignature(msg, proposal.Signature)

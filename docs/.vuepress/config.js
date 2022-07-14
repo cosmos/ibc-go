@@ -20,6 +20,7 @@ module.exports = {
   themeConfig: {
     repo: "cosmos/ibc-go",
     docsRepo: "cosmos/ibc-go",
+    docsBranch: "main",
     docsDir: "docs",
     editLinks: true,
     label: "ibc",
@@ -51,6 +52,10 @@ module.exports = {
         "key": "v1.4.0"
       },
       {
+        "label": "v1.5.0",
+        "key": "v1.5.0"
+      },
+      {
         "label": "v2.0.0",
         "key": "v2.0.0"
       } ,
@@ -62,9 +67,17 @@ module.exports = {
         "label": "v2.2.0",
         "key": "v2.2.0"
       },
+      { 
+        "label": "v2.3.0",
+        "key": "v2.3.0"
+      },
       {
         "label": "v3.0.0",
         "key": "v3.0.0"
+      },
+      {
+        "label": "v3.1.0",
+        "key": "v3.1.0"
       }
     ],
     topbar: {
@@ -168,6 +181,11 @@ module.exports = {
         {
           title: "Migrations",
           children: [
+            {
+              title: "Support transfer of coins whose base denom contains slashes",
+              directory: false,
+              path: "/migrations/support-denoms-with-slashes.html"
+            },
             {
               title: "SDK v0.43 to IBC-Go v1",
               directory: false,

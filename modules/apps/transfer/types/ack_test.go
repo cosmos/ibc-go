@@ -1,113 +1,41 @@
-//go:build norace
-// +build norace
-
 package types_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
-	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/cosmos/cosmos-sdk/testutil"
-	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/ibc-go/v3/testing/simapp/params"
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
-	dbm "github.com/tendermint/tm-db"
+	tmstate "github.com/tendermint/tendermint/state"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	ibcclientcli "github.com/cosmos/ibc-go/v3/modules/core/02-client/client/cli"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
 )
 
-type IntegrationTestSuite struct {
+const (
+	gasUsed   = uint64(100)
+	gasWanted = uint64(100)
+)
+
+type TypesTestSuite struct {
 	suite.Suite
 
-	cfg     network.Config
-	network *network.Network
+	coordinator *ibctesting.Coordinator
+
+	chainA *ibctesting.TestChain
+	chainB *ibctesting.TestChain
 }
 
-func (s *IntegrationTestSuite) SetupSuite() {
-	s.T().Log("setting up integration test suite")
+func (suite *TypesTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	cfg := DefaultConfig()
-	cfg.NumValidators = 1
-	s.cfg = cfg
-
-	var err error
-	s.network, err = network.New(s.T(), s.T().TempDir(), cfg)
-	s.Require().NoError(err)
-
-	_, err = s.network.WaitForHeight(1)
-	s.Require().NoError(err)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
-func (s *IntegrationTestSuite) TearDownSuite() {
-	s.T().Log("tearing down integration test suite")
-
-	// This is important and must be called to ensure other tests can create
-	// a network!
-	s.network.Cleanup()
-}
-
-// DefaultConfig returns a sane default configuration suitable for nearly all
-// testing requirements.
-func DefaultConfig() network.Config {
-	encCfg := simapp.MakeTestEncodingConfig()
-
-	return network.Config{
-		Codec:             encCfg.Marshaler,
-		TxConfig:          encCfg.TxConfig,
-		LegacyAmino:       encCfg.Amino,
-		InterfaceRegistry: encCfg.InterfaceRegistry,
-		AccountRetriever:  authtypes.AccountRetriever{},
-		AppConstructor:    NewAppConstructor(encCfg),
-		GenesisState:      simapp.ModuleBasics.DefaultGenesis(encCfg.Marshaler),
-		TimeoutCommit:     2 * time.Second,
-		ChainID:           "chain-" + "1",
-		NumValidators:     4,
-		BondDenom:         sdk.DefaultBondDenom,
-		MinGasPrices:      fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
-		AccountTokens:     sdk.TokensFromConsensusPower(1000, sdk.DefaultPowerReduction),
-		StakingTokens:     sdk.TokensFromConsensusPower(500, sdk.DefaultPowerReduction),
-		BondedTokens:      sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),
-		PruningStrategy:   storetypes.PruningOptionNothing,
-		CleanupDir:        true,
-		SigningAlgo:       string(hd.Secp256k1Type),
-		KeyringOptions:    []keyring.Option{},
-	}
-}
-
-// NewAppConstructor returns a new simapp AppConstructor
-func NewAppConstructor(encodingCfg params.EncodingConfig) network.AppConstructor {
-	return func(val network.Validator) servertypes.Application {
-		return simapp.NewSimApp(
-			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
-			encodingCfg,
-			simapp.EmptyAppOptions{},
-			baseapp.SetPruning(storetypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
-			baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
-		)
-	}
-}
-
-func TestIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+func TestTypesTestSuite(t *testing.T) {
+	suite.Run(t, new(TypesTestSuite))
 }
 
 // The safety of including ABCI error codes in the acknowledgement rests
@@ -116,96 +44,41 @@ func TestIntegrationTestSuite(t *testing.T) {
 // in the packet acknowledgement.
 //
 // This test acts as an indicator that the ABCI error codes may no longer be deterministic.
-func (suite *IntegrationTestSuite) TestABCICodeDeterminism() {
-	val := suite.network.Validators[0]
+func (suite *TypesTestSuite) TestABCICodeDeterminism() {
+	// same ABCI error code used
+	err := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 1")
+	errSameABCICode := sdkerrors.Wrap(sdkerrors.ErrOutOfGas, "error string 2")
 
-	// the diversifier does not match the consensus diversifier
-	badClientStateJSON := testutil.WriteToNewTempFile(
-		suite.T(),
-		`{"@type":"/ibc.lightclients.solomachine.v2.ClientState","sequence":"1","is_frozen":false,"consensus_state":{"public_key":{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AtK50+5pJOoaa04qqAqrnyAqsYrwrR/INnA6UPIaYZlp"},"diversifier":"DIFFERENT","timestamp":"10"},"allow_update_after_proposal":false}`,
-	)
+	// different ABCI error code used
+	errDifferentABCICode := sdkerrors.ErrNotFound
 
-	// Write consensus json to temp file, used for an IBC message.
-	// Generated by printing the result of cdc.MarshalIntefaceJSON on
-	// a solo machine consensus state
-	consensusJSON := testutil.WriteToNewTempFile(
-		suite.T(),
-		`{"@type":"/ibc.lightclients.solomachine.v2.ConsensusState","public_key":{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AtK50+5pJOoaa04qqAqrnyAqsYrwrR/INnA6UPIaYZlp"},"diversifier":"testing","timestamp":"10"}`,
-	)
-
-	testCases := []struct {
-		desc         string
-		cmd          *cobra.Command
-		args         []string
-		code         uint32
-		expDifferent bool
-	}{
-		{
-			"failing IBC message",
-			ibcclientcli.NewCreateClientCmd(),
-			[]string{
-				badClientStateJSON.Name(), // path to client state json
-				consensusJSON.Name(),      // path to consensus json,
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(suite.cfg.BondDenom, sdk.NewInt(10))).String()),
-				fmt.Sprintf("--gas=%d", flags.DefaultGasLimit),
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
-				fmt.Sprintf("--%s=foobar", flags.FlagNote),
-			},
-			uint32(8),
-			true, // this transaction is expected to create a different ResultHash
+	deliverTx := sdkerrors.ResponseDeliverTx(err, gasUsed, gasWanted, false)
+	responses := tmprotostate.ABCIResponses{
+		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+			&deliverTx,
 		},
 	}
 
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.desc), func() {
-			out, err := clitestutil.ExecTestCLICmd(val.ClientCtx, tc.cmd, tc.args)
-			suite.Require().NoError(err)
-
-			suite.Require().NoError(suite.network.WaitForNextBlock())
-
-			var txRes sdk.TxResponse
-			suite.Require().NoError(val.ClientCtx.Codec.UnmarshalJSON(out.Bytes(), &txRes))
-			suite.Require().Equal(tc.code, txRes.Code)
-
-			deliverTxABCICode := abci.ResponseDeliverTx{
-				Codespace: txRes.Codespace,
-				Code:      txRes.Code,
-				Log:       txRes.RawLog,
-				GasWanted: txRes.GasWanted,
-				GasUsed:   txRes.GasUsed,
-			}
-
-			responses := tmprotostate.ABCIResponses{
-				DeliverTxs: []*abcitypes.ResponseDeliverTx{
-					&deliverTxABCICode,
-				},
-			}
-
-			expHash := ibctesting.ABCIResponsesResultsHash(&responses)
-
-			res, err := suite.network.Validators[0].RPCClient.BlockchainInfo(context.Background(), txRes.Height+1, txRes.Height+1)
-			suite.Require().NoError(err)
-
-			suite.Require().Equal(expHash, res.BlockMetas[0].Header.LastResultsHash.Bytes())
-
-			// modify the code to ensure a different hash is produced
-			responses.DeliverTxs[0].Code = 0
-			expHash = ibctesting.ABCIResponsesResultsHash(&responses)
-			suite.Require().NotEqual(expHash, res.BlockMetas[0].Header.LastResultsHash.Bytes())
-
-			suite.Require().NoError(suite.network.WaitForNextBlock())
-		})
+	deliverTxSameABCICode := sdkerrors.ResponseDeliverTx(errSameABCICode, gasUsed, gasWanted, false)
+	responsesSameABCICode := tmprotostate.ABCIResponses{
+		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+			&deliverTxSameABCICode,
+		},
 	}
-}
 
-type TypesTestSuite struct {
-	suite.Suite
-}
+	deliverTxDifferentABCICode := sdkerrors.ResponseDeliverTx(errDifferentABCICode, gasUsed, gasWanted, false)
+	responsesDifferentABCICode := tmprotostate.ABCIResponses{
+		DeliverTxs: []*abcitypes.ResponseDeliverTx{
+			&deliverTxDifferentABCICode,
+		},
+	}
 
-func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
+	hash := tmstate.ABCIResponsesResultsHash(&responses)
+	hashSameABCICode := tmstate.ABCIResponsesResultsHash(&responsesSameABCICode)
+	hashDifferentABCICode := tmstate.ABCIResponsesResultsHash(&responsesDifferentABCICode)
+
+	suite.Require().Equal(hash, hashSameABCICode)
+	suite.Require().NotEqual(hash, hashDifferentABCICode)
 }
 
 // TestAcknowledgementError will verify that only a constant string and

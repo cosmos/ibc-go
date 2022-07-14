@@ -37,7 +37,7 @@ func ABCIResponsesResultsHash(ar *tmprotostate.ABCIResponses) []byte {
 func MakeCommit(ctx context.Context, blockID tmtypes.BlockID, height int64, round int32, voteSet *tmtypes.VoteSet, validators []tmtypes.PrivValidator, now time.Time) (*tmtypes.Commit, error) {
 	// all sign
 	for i := 0; i < len(validators); i++ {
-		pubKey, err := validators[i].GetPubKey(ctx)
+		pubKey, err := validators[i].GetPubKey()
 		if err != nil {
 			return nil, err
 		}

@@ -1,8 +1,6 @@
 package mock
 
 import (
-	"context"
-
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -24,12 +22,12 @@ func NewPV() PV {
 }
 
 // GetPubKey implements PrivValidator interface
-func (pv PV) GetPubKey(_ context.Context) (crypto.PubKey, error) {
+func (pv PV) GetPubKey() (crypto.PubKey, error) {
 	return cryptocodec.ToTmPubKeyInterface(pv.PrivKey.PubKey())
 }
 
 // SignVote implements PrivValidator interface
-func (pv PV) SignVote(_ context.Context, chainID string, vote *tmproto.Vote) error {
+func (pv PV) SignVote(chainID string, vote *tmproto.Vote) error {
 	signBytes := tmtypes.VoteSignBytes(chainID, vote)
 	sig, err := pv.PrivKey.Sign(signBytes)
 	if err != nil {
@@ -40,7 +38,7 @@ func (pv PV) SignVote(_ context.Context, chainID string, vote *tmproto.Vote) err
 }
 
 // SignProposal implements PrivValidator interface
-func (pv PV) SignProposal(_ context.Context, chainID string, proposal *tmproto.Proposal) error {
+func (pv PV) SignProposal(chainID string, proposal *tmproto.Proposal) error {
 	signBytes := tmtypes.ProposalSignBytes(chainID, proposal)
 	sig, err := pv.PrivKey.Sign(signBytes)
 	if err != nil {
