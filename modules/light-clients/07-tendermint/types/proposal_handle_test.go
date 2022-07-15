@@ -191,9 +191,9 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(expectedProcessedTime, subjectProcessedTime)
 				suite.Require().Equal(expectedProcessedHeight, subjectProcessedHeight)
 				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
-				
+
 				suite.Require().Equal(newChainID, updatedClient.(*types.ClientState).ChainId)
-				suite.Require().Equal(time.Hour * 24 * 7, updatedClient.(*types.ClientState).TrustingPeriod)
+				suite.Require().Equal(time.Hour*24*7, updatedClient.(*types.ClientState).TrustingPeriod)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(updatedClient)
