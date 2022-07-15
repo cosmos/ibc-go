@@ -189,6 +189,7 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	eventAttributes := []sdk.Attribute{
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
