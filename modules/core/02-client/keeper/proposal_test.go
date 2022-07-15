@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -154,7 +154,6 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			}
 		})
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
@@ -206,7 +205,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()  // reset
-			oldPlan.Height = 0 //reset
+			oldPlan.Height = 0 // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
@@ -276,5 +275,4 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 			}
 		})
 	}
-
 }

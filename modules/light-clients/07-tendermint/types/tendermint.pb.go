@@ -5,6 +5,11 @@ package types
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+	time "time"
+
 	_go "github.com/confio/ics23/go"
 	types "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	types1 "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
@@ -15,10 +20,6 @@ import (
 	types2 "github.com/tendermint/tendermint/proto/tendermint/types"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
