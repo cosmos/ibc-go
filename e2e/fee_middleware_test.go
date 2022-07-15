@@ -3,7 +3,6 @@ package e2e
 import (
 	"context"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
@@ -70,15 +69,15 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
 
-	var (
-		chainATx           ibc.Tx
-		payPacketFeeTxResp sdk.TxResponse
-	)
-
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
+	var (
+		chainADenom        = chainA.Config().Denom
+		testFee            = testvalues.DefaultFee(chainADenom)
+		chainATx           ibc.Tx
+		payPacketFeeTxResp sdk.TxResponse
+	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -128,10 +127,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	testFee := testvalues.DefaultFee(chainADenom)
-
 	t.Run("pay packet fee", func(t *testing.T) {
-
 		t.Run("no incentivized packets", func(t *testing.T) {
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
@@ -145,9 +141,6 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
 			s.Require().NoError(err)
 			s.AssertValidTxResponse(payPacketFeeTxResp)
-			// wait so that incentivised packets will show up
-			// wait 2 blocks
-			time.Sleep(5 * time.Second)
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
@@ -170,7 +163,6 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 			expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
-
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
