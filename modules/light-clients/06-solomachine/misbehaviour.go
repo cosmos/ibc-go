@@ -71,6 +71,24 @@ func (sd SignatureAndData) ValidateBasic() error {
 	return nil
 }
 
+// ValidateBasic ensures that the signature and data fields are non-empty.
+func (sd SignatureAndDataV2) ValidateBasic() error {
+	if len(sd.Signature) == 0 {
+		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "signature cannot be empty")
+	}
+	if len(sd.Data) == 0 {
+		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "data for signature cannot be empty")
+	}
+	if len(sd.Path) == 0 {
+		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "path for signature cannot be empty")
+	}
+	if sd.Timestamp == 0 {
+		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "timestamp cannot be 0")
+	}
+
+	return nil
+}
+
 // TODO: Remove GetHeight()
 // GetHeight implements the curret exported.Header interface, to be updated
 func (misbehaviour Misbehaviour) GetHeight() exported.Height {
