@@ -73,7 +73,7 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 
 			tc.malleate()
 
-			proposalHandler := client.NewClientProposalHandler(suite.chainA.App.GetIBCKeeper().ClientKeeper)
+			proposalHandler := client.UpdateClientProposalHandler.CLIHandler()
 
 			err = proposalHandler(suite.chainA.GetContext(), content)
 
