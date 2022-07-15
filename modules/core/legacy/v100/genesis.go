@@ -25,7 +25,7 @@ func MigrateGenesis(appState genutiltypes.AppMap, clientCtx client.Context, genD
 
 		// unmarshal relative source genesis application state
 		ibcGenState := &types.GenesisState{}
-		clientCtx.Codec.MustUnmarshalJSON(appState[host.ModuleName], ibcGenState)
+		clientCtx.JSONCodec.MustUnmarshalJSON(appState[host.ModuleName], ibcGenState)
 
 		clientGenState, err := clientv100.MigrateGenesis(codec.NewProtoCodec(clientCtx.InterfaceRegistry), &ibcGenState.ClientGenesis, genDoc.GenesisTime, clienttypes.NewHeight(clienttypes.ParseChainID(genDoc.ChainID), uint64(genDoc.InitialHeight)))
 		if err != nil {
@@ -48,7 +48,7 @@ func MigrateGenesis(appState genutiltypes.AppMap, clientCtx client.Context, genD
 		delete(appState, host.ModuleName)
 
 		// set new ibc genesis state
-		appState[host.ModuleName] = clientCtx.Codec.MustMarshalJSON(ibcGenState)
+		appState[host.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(ibcGenState)
 	}
 	return appState, nil
 }
