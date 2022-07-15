@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto"
@@ -86,7 +87,7 @@ type Balance struct {
 	Id      string
 	Address string
 	Denom   string
-	Amount  sdk.Int
+	Amount  math.Int
 }
 
 func AddressFromString(address string) string {
@@ -163,12 +164,12 @@ func OnRecvPacketTestCaseFromTla(tc TlaOnRecvPacketTestCase) OnRecvPacketTestCas
 var addressMap = make(map[string]string)
 
 type Bank struct {
-	balances map[OwnedCoin]sdk.Int
+	balances map[OwnedCoin]math.Int
 }
 
 // Make an empty bank
 func MakeBank() Bank {
-	return Bank{balances: make(map[OwnedCoin]sdk.Int)}
+	return Bank{balances: make(map[OwnedCoin]math.Int)}
 }
 
 // Subtract other bank from this bank
@@ -191,7 +192,7 @@ func (bank *Bank) Sub(other *Bank) Bank {
 }
 
 // Set specific bank balance
-func (bank *Bank) SetBalance(address string, denom string, amount sdk.Int) {
+func (bank *Bank) SetBalance(address string, denom string, amount math.Int) {
 	bank.balances[OwnedCoin{address, denom}] = amount
 }
 
@@ -280,7 +281,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		panic(fmt.Errorf("Failed to read model-based test files: %w", err))
 	}
 	for _, file_info := range files {
-		var tlaTestCases = []TlaOnRecvPacketTestCase{}
+		tlaTestCases := []TlaOnRecvPacketTestCase{}
 		if !strings.HasSuffix(file_info.Name(), ".json") {
 			continue
 		}
