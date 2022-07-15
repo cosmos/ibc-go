@@ -59,8 +59,7 @@ func (s *FeeMiddlewareTestSuite) QueryIncentivizedPacketsForChannel(ctx context.
 	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
 		PortId:    portId,
 		ChannelId: channelId,
-	},
-	)
+	})
 	if err != nil {
 		return nil, err
 	}
