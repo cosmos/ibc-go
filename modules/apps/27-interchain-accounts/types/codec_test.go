@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
@@ -84,7 +84,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					ToAddress:   TestOwnerAddress,
 					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
 				},
-				&govtypes.MsgSubmitProposal{
+				&govv1.MsgSubmitProposal{
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin("bananas", sdk.NewInt(100))),
 					Proposer:       TestOwnerAddress,
 				},
@@ -148,5 +148,4 @@ func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
 	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0})
 	suite.Require().Error(err)
 	suite.Require().Empty(bz)
-
 }
