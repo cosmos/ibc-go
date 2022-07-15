@@ -122,6 +122,7 @@ func (suite *SoloMachineTestSuite) TestCheckHeaderAndUpdateState() {
 
 					clientState = cs
 					header = h
+
 				},
 				false,
 			},

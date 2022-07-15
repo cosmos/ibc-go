@@ -69,6 +69,7 @@ func (q Keeper) Channels(c context.Context, req *types.QueryChannelsRequest) (*t
 		channels = append(channels, &identifiedChannel)
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +118,7 @@ func (q Keeper) ConnectionChannels(c context.Context, req *types.QueryConnection
 		channels = append(channels, &identifiedChannel)
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -250,6 +252,7 @@ func (q Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 		commitments = append(commitments, &commitment)
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -358,6 +361,7 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +401,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	unreceivedSequences := []uint64{}
+	var unreceivedSequences = []uint64{}
 
 	for i, seq := range req.PacketCommitmentSequences {
 		if seq == 0 {
@@ -446,7 +450,7 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	unreceivedSequences := []uint64{}
+	var unreceivedSequences = []uint64{}
 
 	for i, seq := range req.PacketAckSequences {
 		if seq == 0 {

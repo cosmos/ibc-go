@@ -22,6 +22,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
+
 		{
 			"success",
 			func() {
@@ -227,13 +228,16 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 }
 
 func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
-	var path *ibctesting.Path
+	var (
+		path *ibctesting.Path
+	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
+
 		{
 			"success", func() {}, true,
 		},
@@ -275,18 +279,22 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
+
 		})
 	}
 }
 
 func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
-	var path *ibctesting.Path
+	var (
+		path *ibctesting.Path
+	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
+
 		{
 			"success", func() {}, true,
 		},
@@ -312,6 +320,7 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
+
 		})
 	}
 }

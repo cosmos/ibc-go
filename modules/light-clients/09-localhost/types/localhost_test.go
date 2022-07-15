@@ -17,7 +17,9 @@ const (
 	height = 4
 )
 
-var clientHeight = clienttypes.NewHeight(0, 10)
+var (
+	clientHeight = clienttypes.NewHeight(0, 10)
+)
 
 type LocalhostTestSuite struct {
 	suite.Suite

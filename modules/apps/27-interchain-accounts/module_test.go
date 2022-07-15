@@ -125,6 +125,8 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 
 				suite.Require().True(app.IBCKeeper.PortKeeper.IsBound(ctx, types.PortID))
 			}
+
 		})
 	}
+
 }

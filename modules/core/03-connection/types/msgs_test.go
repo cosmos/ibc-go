@@ -70,6 +70,7 @@ func (suite *MsgTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 
 	suite.proof = proof
+
 }
 
 func TestMsgTestSuite(t *testing.T) {
@@ -82,7 +83,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	// will be used in protocol.
 	var version *types.Version
 
-	testCases := []struct {
+	var testCases = []struct {
 		name    string
 		msg     *types.MsgConnectionOpenInit
 		expPass bool
@@ -125,7 +126,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 		chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false,
 	)
 
-	testCases := []struct {
+	var testCases = []struct {
 		name    string
 		msg     *types.MsgConnectionOpenTry
 		expPass bool
@@ -177,7 +178,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	)
 	connectionID := "connection-0"
 
-	testCases := []struct {
+	var testCases = []struct {
 		name    string
 		msg     *types.MsgConnectionOpenAck
 		expPass bool
@@ -216,7 +217,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 		types.NewMsgConnectionOpenConfirm(connectionID, suite.proof, clientHeight, signer),
 	}
 
-	testCases := []struct {
+	var testCases = []struct {
 		msg     *types.MsgConnectionOpenConfirm
 		expPass bool
 		errMsg  string

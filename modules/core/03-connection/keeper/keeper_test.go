@@ -45,6 +45,7 @@ func (suite *KeeperTestSuite) TestSetAndGetConnection() {
 }
 
 func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
+
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 

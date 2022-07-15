@@ -105,6 +105,7 @@ func queryClientConnectionsABCI(clientCtx client.Context, clientID string) (*typ
 func QueryConnectionClientState(
 	clientCtx client.Context, connectionID string, prove bool,
 ) (*types.QueryConnectionClientStateResponse, error) {
+
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryConnectionClientStateRequest{
 		ConnectionId: connectionID,
@@ -139,6 +140,7 @@ func QueryConnectionClientState(
 func QueryConnectionConsensusState(
 	clientCtx client.Context, connectionID string, height clienttypes.Height, prove bool,
 ) (*types.QueryConnectionConsensusStateResponse, error) {
+
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryConnectionConsensusStateRequest{
 		ConnectionId:   connectionID,

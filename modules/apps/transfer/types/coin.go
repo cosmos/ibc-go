@@ -27,6 +27,7 @@ func ReceiverChainIsSource(sourcePort, sourceChannel, denom string) bool {
 
 	voucherPrefix := GetDenomPrefix(sourcePort, sourceChannel)
 	return strings.HasPrefix(denom, voucherPrefix)
+
 }
 
 // GetDenomPrefix returns the receiving denomination prefix

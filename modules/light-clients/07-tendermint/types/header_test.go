@@ -21,7 +21,9 @@ func (suite *TendermintTestSuite) TestGetTime() {
 }
 
 func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
-	var header *types.Header
+	var (
+		header *types.Header
+	)
 	testCases := []struct {
 		name     string
 		malleate func()

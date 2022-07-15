@@ -11,6 +11,7 @@ import (
 )
 
 func TestValidateGenesis(t *testing.T) {
+
 	testCases := []struct {
 		name     string
 		genState types.GenesisState

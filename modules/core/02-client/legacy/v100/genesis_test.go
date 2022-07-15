@@ -254,6 +254,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(height, consensusState.Height)
 				}
 			}
+
 		}
 		for _, client := range migrated.ClientsMetadata {
 			if client.ClientId == path1.EndpointA.ClientID {
@@ -274,6 +275,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(height, consensusState.Height)
 				}
 			}
+
 		}
 		for _, client := range migrated.ClientsMetadata {
 			if client.ClientId == path2.EndpointA.ClientID {
@@ -283,6 +285,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(ibctmtypes.IterationKey(height), metadata.Key)
 				}
 			}
+
 		}
 	}
 	bz, err := clientCtx.Codec.MarshalJSON(&expectedClientGenState)

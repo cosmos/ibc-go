@@ -58,6 +58,7 @@ func (k Keeper) SendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) error {
+
 	if !k.GetSendEnabled(ctx) {
 		return types.ErrSendDisabled
 	}

@@ -61,6 +61,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
+
 				err := tc.consensusState.ValidateBasic()
 
 				if tc.expPass {

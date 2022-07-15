@@ -64,6 +64,7 @@ func queryChannelABCI(clientCtx client.Context, portID, channelID string) (*type
 func QueryChannelClientState(
 	clientCtx client.Context, portID, channelID string, prove bool,
 ) (*types.QueryChannelClientStateResponse, error) {
+
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryChannelClientStateRequest{
 		PortId:    portID,
@@ -98,6 +99,7 @@ func QueryChannelClientState(
 func QueryChannelConsensusState(
 	clientCtx client.Context, portID, channelID string, height clienttypes.Height, prove bool,
 ) (*types.QueryChannelConsensusStateResponse, error) {
+
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryChannelConsensusStateRequest{
 		PortId:         portID,

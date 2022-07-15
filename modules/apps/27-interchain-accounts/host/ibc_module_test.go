@@ -148,6 +148,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
+
 		{
 			"success", func() {}, true,
 		},
@@ -165,6 +166,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				) (string, error) {
 					return "", fmt.Errorf("mock ica auth fails")
 				}
+
 			}, true,
 		},
 		{
@@ -221,8 +223,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
 			}
+
 		})
 	}
+
 }
 
 // Test initiating a ChanOpenAck using the host chain instead of the controller chain
@@ -266,6 +270,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		malleate func()
 		expPass  bool
 	}{
+
 		{
 			"success", func() {}, true,
 		},
@@ -282,6 +287,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
+
 			}, true,
 		},
 	}
@@ -318,8 +324,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
+
 		})
 	}
+
 }
 
 // OnChanCloseInit on host (chainB)
@@ -344,13 +352,16 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
-	var path *ibctesting.Path
+	var (
+		path *ibctesting.Path
+	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
+
 		{
 			"success", func() {}, true,
 		},
@@ -381,12 +392,15 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
+
 		})
 	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
-	var packetData []byte
+	var (
+		packetData []byte
+	)
 	testCases := []struct {
 		name          string
 		malleate      func()
@@ -490,11 +504,14 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			} else {
 				suite.Require().False(ack.Success())
 			}
+
 		})
 	}
+
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -548,6 +565,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
+
 	testCases := []struct {
 		name     string
 		malleate func()
