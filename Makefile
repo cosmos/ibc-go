@@ -2,6 +2,8 @@
 
 PACKAGES_NOSIMULATION=$(shell go list ./... | grep -v '/simulation')
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
+CHANGED_GO_FILES := $(shell git diff --name-only | grep .go$$ | grep -v pb.go)
+ALL_GO_FILES := $(shell find . -regex ".*\.go$$" | grep -v pb.go)
 VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
@@ -12,6 +14,7 @@ MOCKS_DIR = $(CURDIR)/tests/mocks
 HTTPS_GIT := https://github.com/cosmos/ibc-go.git
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.0.0-rc8
+TEST_CONTAINERS=$(shell docker ps --filter "label=ibc-test" -a -q)
 
 export GO111MODULE = on
 
@@ -216,7 +219,7 @@ view-docs:
 test: test-unit
 test-all: test-unit test-ledger-mock test-race test-cover
 
-TEST_PACKAGES=./...
+TEST_PACKAGES=./... ./.github/scripts
 TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-race test-ledger test-race
 
 # Test runs-specific rules. To add a new test target, just add
@@ -324,6 +327,15 @@ benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
 
+cleanup-ibc-test-containers:
+	for id in $(TEST_CONTAINERS) ; do \
+		$(DOCKER) stop $$id ; \
+		$(DOCKER) rm $$id ; \
+	done
+
+e2e-test: cleanup-ibc-test-containers
+	@go test -v ./e2e --run $(suite) -testify.m ^$(test)$$
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################
@@ -340,6 +352,12 @@ format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs misspell -w
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs goimports -w -local github.com/cosmos/cosmos-sdk
 .PHONY: format
+
+goimports:
+	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(CHANGED_GO_FILES)" &> /dev/null || echo "No changed go files to format"
+
+goimports-all:
+	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(ALL_GO_FILES)"
 
 ###############################################################################
 ###                                 Devdoc                                  ###

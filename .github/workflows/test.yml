@@ -6,6 +6,11 @@ on:
   push:
     branches:
       - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ibc-go-simd-e2e
+
 jobs:
   cleanup-runs:
     runs-on: ubuntu-latest
@@ -51,19 +56,12 @@ jobs:
       - name: Build
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
 
-  docker-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Docker Build
-        run: docker build . --no-cache
-
   split-test-files:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Create a file with all the pkgs
-        run: go list ./... > pkgs.txt
+        run: go list ./... ./.github/scripts > pkgs.txt
       - name: Split pkgs into 4 files
         run: split -d -n l/4 pkgs.txt pkgs.txt.part.
       # cache multiple
@@ -108,7 +106,7 @@ jobs:
         if: env.GIT_DIFF
       - name: test & coverage report creation
         run: |
-          cat pkgs.txt.part.${{ matrix.part }} | xargs go test -race -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
+          cat pkgs.txt.part.${{ matrix.part }} | xargs go test $(go list ./... | grep -v e2e) -race -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
         if: env.GIT_DIFF
       - uses: actions/upload-artifact@v3
         with:
@@ -161,3 +159,89 @@ jobs:
         with:
           file: ./coverage.txt
         if: env.GIT_DIFF
+
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Log in to the Container registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a
+        with:
+          images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+
+  # dynamically build a matrix of test/test suite pairs to run
+  build-test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
+
+
+  # the tag of the image will differ if this is a PR or the branch is being merged into main.
+  # we store the tag as an environment variable and use it in the E2E tests to determine the tag.
+  determine-image-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - id: get-tag
+        run: |
+          tag=$(go run .github/scripts/determine_simd_tag.go -pr "${{ github.event.pull_request.number }}" )
+          echo "Using tag $tag"
+          echo "::set-output name=simd-tag::$tag"
+
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs:
+      - build-test-matrix
+      - determine-image-tag
+      - docker-build
+    env:
+      SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
+      SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Log in to the Container registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run e2e Test
+        run: |
+          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
