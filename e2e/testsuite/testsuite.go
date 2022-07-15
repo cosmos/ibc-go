@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	"e2e/testconfig"
+	"github.com/cosmos/ibc-go/v4/e2e/testconfig"
 )
 
 const (
