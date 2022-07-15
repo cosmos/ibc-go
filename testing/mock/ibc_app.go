@@ -87,7 +87,7 @@ type IBCApp struct {
 	) error
 }
 
-// NewMockIBCApp returns a MockIBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
+// NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
 func NewIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *IBCApp {
 	return &IBCApp{
 		PortID:       portID,

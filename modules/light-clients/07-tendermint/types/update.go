@@ -130,7 +130,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	}
 	err = IterateConsensusStateAscending(clientStore, pruneCb)
 	if err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 	if pruneError != nil {
 		return nil, nil, pruneError
