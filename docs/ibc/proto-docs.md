@@ -323,6 +323,7 @@
     - [SignBytes](#ibc.lightclients.solomachine.v2.SignBytes)
     - [SignBytesV2](#ibc.lightclients.solomachine.v2.SignBytesV2)
     - [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData)
+    - [SignatureAndDataV2](#ibc.lightclients.solomachine.v2.SignatureAndDataV2)
     - [TimestampedSignatureData](#ibc.lightclients.solomachine.v2.TimestampedSignatureData)
   
     - [DataType](#ibc.lightclients.solomachine.v2.DataType)
@@ -4644,8 +4645,8 @@ of a sequence and two signatures over different messages at that sequence.
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `sequence` | [uint64](#uint64) |  |  |
-| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
-| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
+| `signature_one` | [SignatureAndDataV2](#ibc.lightclients.solomachine.v2.SignatureAndDataV2) |  |  |
+| `signature_two` | [SignatureAndDataV2](#ibc.lightclients.solomachine.v2.SignatureAndDataV2) |  |  |
 
 
 
@@ -4768,6 +4769,25 @@ signature.
 | ----- | ---- | ----- | ----------- |
 | `signature` | [bytes](#bytes) |  |  |
 | `data_type` | [DataType](#ibc.lightclients.solomachine.v2.DataType) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `timestamp` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v2.SignatureAndDataV2"></a>
+
+### SignatureAndDataV2
+SignatureAndDataV2 contains a signature and the data signed over to create that
+signature.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signature` | [bytes](#bytes) |  |  |
+| `path` | [bytes](#bytes) |  |  |
 | `data` | [bytes](#bytes) |  |  |
 | `timestamp` | [uint64](#uint64) |  |  |
 

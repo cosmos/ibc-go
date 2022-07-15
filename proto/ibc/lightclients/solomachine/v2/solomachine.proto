@@ -54,10 +54,10 @@ message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
   // ClientID is deprecated
-  string           client_id     = 1 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_id\""];
-  uint64           sequence      = 2;
-  SignatureAndData signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  SignatureAndData signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+  string             client_id     = 1 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_id\""];
+  uint64             sequence      = 2;
+  SignatureAndDataV2 signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
+  SignatureAndDataV2 signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
 }
 
 // SignatureAndData contains a signature and the data signed over to create that
@@ -68,6 +68,16 @@ message SignatureAndData {
   DataType data_type                 = 2 [(gogoproto.moretags) = "yaml:\"data_type\""];
   bytes    data                      = 3;
   uint64   timestamp                 = 4;
+}
+
+// SignatureAndDataV2 contains a signature and the data signed over to create that
+// signature.
+message SignatureAndDataV2 {
+  option (gogoproto.goproto_getters) = false;
+  bytes  signature                   = 1;
+  bytes  path                        = 2;
+  bytes  data                        = 3;
+  uint64 timestamp                   = 4;
 }
 
 // TimestampedSignatureData contains the signature data and the timestamp of the
