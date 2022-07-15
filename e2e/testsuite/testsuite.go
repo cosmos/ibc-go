@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/cosmos/ibc-go/v4/e2e/testconfig"
+	"e2e/testconfig"
 )
 
 const (
@@ -58,7 +58,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
 
-	r := newCosmosRelayer(s.T(), s.logger, s.DockerClient, s.network, home)
+	r := newCosmosRelayer(s.T(), s.logger, s.DockerClient, s.network)
 
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")
