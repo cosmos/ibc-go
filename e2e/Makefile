@@ -9,3 +9,5 @@ cleanup-ibc-test-containers:
 
 e2e-test: cleanup-ibc-test-containers
 	@go test -v ./ --run $(suite) -testify.m ^$(test)$$
+
+.PHONY: cleanup-ibc-test-containers e2e-test
