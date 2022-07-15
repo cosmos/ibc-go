@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -14,7 +14,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 	var (
 		subject, substitute                       string
 		subjectClientState, substituteClientState exported.ClientState
-		content                                   govtypes.Content
+		content                                   govv1beta1.Content
 		err                                       error
 	)
 
@@ -154,14 +154,13 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			}
 		})
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 	var (
 		upgradedClientState *ibctmtypes.ClientState
 		oldPlan, plan       upgradetypes.Plan
-		content             govtypes.Content
+		content             govv1beta1.Content
 		err                 error
 	)
 
@@ -206,7 +205,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()  // reset
-			oldPlan.Height = 0 //reset
+			oldPlan.Height = 0 // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
@@ -276,5 +275,4 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 			}
 		})
 	}
-
 }
