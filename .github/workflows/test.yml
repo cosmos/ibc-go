@@ -214,7 +214,7 @@ jobs:
           go-version: 1.18
       - id: get-tag
         run: |
-          tag=$(go run .github/scripts/determine_simd_tag.go -ref "${{ github.event.push.ref }}" -pr "${{ github.event.pull_request.number }}" )
+          tag=$(go run .github/scripts/determine_simd_tag.go -pr "${{ github.event.pull_request.number }}" )
           echo "Using tag $tag"
           echo "::set-output name=simd-tag::$tag"
 
@@ -233,6 +233,9 @@ jobs:
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
       - name: Log in to the Container registry
         uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
         with:
@@ -241,4 +244,5 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run e2e Test
         run: |
+          cd e2e
           make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
