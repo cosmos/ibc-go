@@ -831,8 +831,8 @@ github.com/spf13/viper v1.7.1/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5q
 github.com/spf13/viper v1.10.1/go.mod h1:IGlFPqhNAPKRxohIzWpI5QEy4kuI7tcl5WvR+8qy1rU=
 github.com/spf13/viper v1.12.0 h1:CZ7eSOd3kZoaYDLbXnmzgQI5RlciuXBMA+18HwHRfZQ=
 github.com/spf13/viper v1.12.0/go.mod h1:b6COn30jlNxbm/V2IqWiNWkJ+vZNiMNksliPCiuKtSI=
-github.com/strangelove-ventures/ibctest v0.0.0-20220708204853-50f4be39c3e9 h1:waDZgkN+i3WSeUmDwdMvrNOh3iemGlevWqnznE/PQ0k=
-github.com/strangelove-ventures/ibctest v0.0.0-20220708204853-50f4be39c3e9/go.mod h1:aWBeEKU4lGfvJ9qO543zJbQGtB2fK2ffrJh6jbtowEM=
+github.com/strangelove-ventures/ibctest v0.0.0-20220713213153-930886d8db30 h1:pMhrxU1tY220nxDu6t/gb0H30NG+WYiSJFS5OrcxLFs=
+github.com/strangelove-ventures/ibctest v0.0.0-20220713213153-930886d8db30/go.mod h1:aWBeEKU4lGfvJ9qO543zJbQGtB2fK2ffrJh6jbtowEM=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v1.0.0/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=

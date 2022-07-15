@@ -12,8 +12,9 @@ import (
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v4/e2e/testsuite"
-	"github.com/cosmos/ibc-go/v4/e2e/testvalues"
+	"e2e/testsuite"
+	"e2e/testvalues"
+
 	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 )
@@ -75,7 +76,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 		payPacketFeeTxResp sdk.TxResponse
 	)
 
-	relayer, channelA := s.CreateChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
