@@ -20,6 +20,10 @@ through the appropriate channels won't receive any bounty.
 
 <!-- Concisely describe the issue -->
 
+## Expected Behaviour
+
+<!-- What is the expected behaviour? -->
+
 ## Version
 
 <!-- git commit hash or release version -->
