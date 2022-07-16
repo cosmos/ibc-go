@@ -24,7 +24,6 @@ func (s *FeeMiddlewareTestSuite) TestPlaceholder() {
 	s.T().Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(r)
 	})
-
 }
 
 // feeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
