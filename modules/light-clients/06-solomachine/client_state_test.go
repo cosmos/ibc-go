@@ -498,6 +498,13 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				false,
 			},
 			{
+				"proof is nil",
+				func() {
+					proof = nil
+				},
+				false,
+			},
+			{
 				"proof verification failed",
 				func() {
 					signBytes.Data = []byte("invalid membership data value")
@@ -703,6 +710,13 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
+				},
+				false,
+			},
+			{
+				"proof is nil",
+				func() {
+					proof = nil
 				},
 				false,
 			},

@@ -441,53 +441,14 @@ func (cs *ClientState) VerifyMembership(
 	path []byte,
 	value []byte,
 ) error {
-	// TODO: Attempt to refactor code to smaller function
-	if revision := height.GetRevisionNumber(); revision != 0 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "revision must be 0 for solomachine, got revision-number: %d", revision)
-	}
-
-	// sequence is encoded in the revision height of height struct
-	sequence := height.GetRevisionHeight()
-	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
-	if latestSequence != sequence {
-		return sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"client state sequence != proof sequence (%d != %d)", latestSequence, sequence,
-		)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgss(cdc, cs, height, proof)
+	if err != nil {
+		return err
 	}
 
 	var merklePath commitmenttypes.MerklePath
 	if err := cdc.Unmarshal(path, &merklePath); err != nil {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
-	}
-
-	var timestampedSigData TimestampedSignatureData
-	if err := cdc.Unmarshal(proof, &timestampedSigData); err != nil {
-		return sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
-	}
-
-	timestamp := timestampedSigData.Timestamp
-
-	if len(timestampedSigData.SignatureData) == 0 {
-		return sdkerrors.Wrap(ErrInvalidProof, "signature data cannot be empty")
-	}
-
-	sigData, err := UnmarshalSignatureData(cdc, timestampedSigData.SignatureData)
-	if err != nil {
-		return err
-	}
-
-	if cs.ConsensusState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
-	}
-
-	if cs.ConsensusState.GetTimestamp() > timestamp {
-		return sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
-	}
-
-	publicKey, err := cs.ConsensusState.GetPubKey()
-	if err != nil {
-		return err
 	}
 
 	signBytes := &SignBytesV2{
@@ -526,52 +487,14 @@ func (cs *ClientState) VerifyNonMembership(
 	proof []byte,
 	path []byte,
 ) error {
-	if revision := height.GetRevisionNumber(); revision != 0 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "revision must be 0 for solomachine, got revision-number: %d", revision)
-	}
-
-	// sequence is encoded in the revision height of height struct
-	sequence := height.GetRevisionHeight()
-	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
-	if latestSequence != sequence {
-		return sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"client state sequence != proof sequence (%d != %d)", latestSequence, sequence,
-		)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgss(cdc, cs, height, proof)
+	if err != nil {
+		return err
 	}
 
 	var merklePath commitmenttypes.MerklePath
 	if err := cdc.Unmarshal(path, &merklePath); err != nil {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
-	}
-
-	var timestampedSigData TimestampedSignatureData
-	if err := cdc.Unmarshal(proof, &timestampedSigData); err != nil {
-		return sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
-	}
-
-	timestamp := timestampedSigData.Timestamp
-
-	if len(timestampedSigData.SignatureData) == 0 {
-		return sdkerrors.Wrap(ErrInvalidProof, "signature data cannot be empty")
-	}
-
-	sigData, err := UnmarshalSignatureData(cdc, timestampedSigData.SignatureData)
-	if err != nil {
-		return err
-	}
-
-	if cs.ConsensusState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
-	}
-
-	if cs.ConsensusState.GetTimestamp() > timestamp {
-		return sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
-	}
-
-	publicKey, err := cs.ConsensusState.GetPubKey()
-	if err != nil {
-		return err
 	}
 
 	signBytes := &SignBytesV2{
@@ -596,6 +519,65 @@ func (cs *ClientState) VerifyNonMembership(
 	setClientState(clientStore, cdc, cs)
 
 	return nil
+}
+
+// produceVerificationArgs perfoms the basic checks on the arguments that are
+// shared between the verification functions and returns the public key of the
+// consensus state, the unmarshalled proof representing the signature and timestamp
+// along with the solo-machine sequence encoded in the proofHeight.
+func produceVerificationArgss(
+	cdc codec.BinaryCodec,
+	cs *ClientState,
+	height exported.Height,
+	proof []byte,
+) (cryptotypes.PubKey, signing.SignatureData, uint64, uint64, error) {
+	if revision := height.GetRevisionNumber(); revision != 0 {
+		return nil, nil, 0, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "revision must be 0 for solomachine, got revision-number: %d", revision)
+	}
+
+	if proof == nil {
+		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "proof cannot be empty")
+	}
+
+	var timestampedSigData TimestampedSignatureData
+	if err := cdc.Unmarshal(proof, &timestampedSigData); err != nil {
+		return nil, nil, 0, 0, sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
+	}
+
+	timestamp := timestampedSigData.Timestamp
+	if len(timestampedSigData.SignatureData) == 0 {
+		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "signature data cannot be empty")
+	}
+
+	sigData, err := UnmarshalSignatureData(cdc, timestampedSigData.SignatureData)
+	if err != nil {
+		return nil, nil, 0, 0, err
+	}
+
+	if cs.ConsensusState == nil {
+		return nil, nil, 0, 0, sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
+	}
+
+	// sequence is encoded in the revision height of height struct
+	sequence := height.GetRevisionHeight()
+	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
+	if latestSequence != sequence {
+		return nil, nil, 0, 0, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"client state sequence != proof sequence (%d != %d)", latestSequence, sequence,
+		)
+	}
+
+	if cs.ConsensusState.GetTimestamp() > timestamp {
+		return nil, nil, 0, 0, sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
+	}
+
+	publicKey, err := cs.ConsensusState.GetPubKey()
+	if err != nil {
+		return nil, nil, 0, 0, err
+	}
+
+	return publicKey, sigData, timestamp, sequence, nil
 }
 
 // produceVerificationArgs perfoms the basic checks on the arguments that are
