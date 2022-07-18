@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestMigrator_MigrateTraces() {
 			},
 			transfertypes.Traces{
 				{
-					BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA/", Path: "transfer/channel-149",
+					BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149",
 				},
 			},
 		},
