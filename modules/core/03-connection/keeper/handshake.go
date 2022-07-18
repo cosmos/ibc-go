@@ -144,6 +144,9 @@ func (k Keeper) ConnOpenTry(
 	k.SetConnection(ctx, connectionID, connection)
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
+	// set generatedConnectionID for the given counterparty so that future TRY attempts for the same handshake fail
+	k.SetGeneratedConnectionID(ctx, clientID, counterparty.ConnectionId, connectionID)
+
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "connection", "open-try")
 	}()
