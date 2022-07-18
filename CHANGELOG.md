@@ -57,6 +57,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* [\#1723](https://github.com/cosmos/ibc-go/pull/1723) Removed ability for multiple TRY messages to succeed for a single INIT message in connection handshake. The first successful TRY message will generate the connectionID for a given counterparty's INIT attempt and all subsequent TRY messages with the same counterparty will fail.
+
 ### Improvements
 
 * (cleanup) [\#1335](https://github.com/cosmos/ibc-go/pull/1335/) `gofumpt -w -l .` to standardize the code layout more strictly than `go fmt ./...`
