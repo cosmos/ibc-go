@@ -557,7 +557,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 				generatedID := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(
 					suite.chainA.GetContext(), path.EndpointA.ClientID, path.EndpointB.ConnectionID,
 				)
-				suite.Require().Equal("", generatedID, "generatedConnectionID mapping not deleted after handshake complete")
+				suite.Require().Empty(generatedID, "generatedConnectionID mapping not deleted after handshake complete")
 			} else {
 				suite.Require().Error(err)
 			}
@@ -628,7 +628,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 				generatedID := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(
 					suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointA.ConnectionID,
 				)
-				suite.Require().Equal("", generatedID, "generatedConnectionID mapping not deleted after handshake complete")
+				suite.Require().Empty(generatedID, "generatedConnectionID mapping not deleted after handshake complete")
 			} else {
 				suite.Require().Error(err)
 			}
