@@ -16,4 +16,5 @@ var (
 	ErrInvalidVersion                = sdkerrors.Register(SubModuleName, 9, "invalid connection version")
 	ErrVersionNegotiationFailed      = sdkerrors.Register(SubModuleName, 10, "connection version negotiation failed")
 	ErrInvalidConnectionIdentifier   = sdkerrors.Register(SubModuleName, 11, "invalid connection identifier")
+	ErrRedundantHandshake            = sdkerrors.Register(SubModuleName, 12, "redundant handshake attempt")
 )

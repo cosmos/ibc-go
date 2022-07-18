@@ -58,6 +58,19 @@ func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
 	suite.EqualValues(connections, paths)
 }
 
+func (suite *KeeperTestSuite) TestSetGetAndDeleteGeneratedConnectionID() {
+	connID := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+	suite.Require().Equal("", connID, "connectionID is not empty before set")
+
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1", "connection-3")
+	connID = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+	suite.Require().Equal("connection-3", connID, "connectionID is not same as set value")
+
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.DeleteGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+	connID = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+	suite.Require().Equal("", connID, "connectionID is not empty after delete")
+}
+
 // create 2 connections: A0 - B0, A1 - B1
 func (suite KeeperTestSuite) TestGetAllConnections() {
 	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)

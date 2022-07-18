@@ -71,6 +71,11 @@ func (k Keeper) ConnOpenTry(
 	proofHeight exported.Height, // height at which relayer constructs proof of A storing connectionEnd in state
 	consensusHeight exported.Height, // latest height of chain B which chain A has stored in its chain B client
 ) (string, error) {
+	// verify that this is the first attempt to establish a connection with the proposed counterparty
+	// if a previous attempt was successful then abort this transaction and return the generated connectionID of this chain in the error
+	if connectionID := k.GetGeneratedConnectionID(ctx, clientID, counterparty.ConnectionId); connectionID != "" {
+		return "", sdkerrors.Wrapf(types.ErrRedundantHandshake, "connectionID: %s was already established for the given counterparty", connectionID)
+	}
 
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
@@ -242,6 +247,10 @@ func (k Keeper) ConnOpenAck(
 	connection.Counterparty.ConnectionId = counterpartyConnectionID
 	k.SetConnection(ctx, connectionID, connection)
 
+	// delete generatedConnectionID mapping now that handshake attempt is successful
+	// we no longer need to store it for redundancy protection
+	k.DeleteGeneratedConnectionID(ctx, connection.ClientId, counterpartyConnectionID)
+
 	EmitConnectionOpenAckEvent(ctx, connectionID, connection)
 
 	return nil
@@ -291,6 +300,10 @@ func (k Keeper) ConnOpenConfirm(
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 	}()
+
+	// delete generatedConnectionID mapping now that handshake attempt is successful
+	// we no longer need to store it for redundancy protection
+	k.DeleteGeneratedConnectionID(ctx, connection.ClientId, connection.Counterparty.ConnectionId)
 
 	EmitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 
