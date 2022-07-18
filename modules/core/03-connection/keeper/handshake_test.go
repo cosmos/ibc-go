@@ -210,8 +210,9 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 		suite.Run(tc.msg, func() {
 			suite.SetupTest()                          // reset
-			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
-			versions = types.GetCompatibleVersions()   // must be explicitly changed in malleate
+			consensusHeight = clienttypes.ZeroHeight() // may be changed in malleate
+			versions = types.GetCompatibleVersions()   // may be changed in malleate
+			delayPeriod = 0                            // may be changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
