@@ -21,6 +21,9 @@ jobs:
         run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
 
   e2e:
+    env:
+      SIMD_TAG: latest
+      SIMD_IMAGE: ibc-go-simd-e2e
     if: ${{ github.event.pull_request.head.repo.fork }}
     needs:
       - build-test-matrix
@@ -30,20 +33,13 @@ jobs:
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
-#      - name: Setup Local Container Registry
-#        run: docker run -d -p 5000:5000 --name registry-test registry:2
-      - name: Docker Build & Push
-        run: |
-          docker build . -t ibc-go-simd-e2e:latest
-#          docker push localhost:5000/ibc-go-simd-e2e:latest
+      - name: Docker Build
+        run: docker build . -t "${SIMD_IMAGE}:${SIMD_TAG}"
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.18
       - name: Run e2e Test
-        env:
-          SIMD_TAG: latest
-          SIMD_IMAGE: ibc-go-simd-e2e
         run: |
           cd e2e
           make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
