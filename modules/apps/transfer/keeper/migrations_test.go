@@ -7,7 +7,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 )
 
-func (suite *KeeperTestSuite) TestMigrator_MigrateTraces() {
+func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 
 	testCases := []struct {
 		msg            string
@@ -96,7 +96,9 @@ func (suite *KeeperTestSuite) TestMigrator_MigrateTraces() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			tc.malleate()     // explicitly set up denom traces
+
+			tc.malleate() // explicitly set up denom traces
+
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateTraces(suite.chainA.GetContext())
 			suite.Require().NoError(err)

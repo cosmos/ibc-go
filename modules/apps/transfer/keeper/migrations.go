@@ -16,7 +16,7 @@ func NewMigrator(keeper Keeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 
-// This migration will update the denom
+// MigrateTraces migrates the DenomTraces to the correct format, accounting for slashes in the BaseDenom.
 func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	var iterErr error
 
