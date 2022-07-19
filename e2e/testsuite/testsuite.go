@@ -2,12 +2,11 @@ package testsuite
 
 import (
 	"context"
+	"e2e/testconfig"
 	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
-
-	"e2e/testconfig"
 
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
@@ -24,7 +23,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 )
 
 const (

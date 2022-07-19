@@ -9,7 +9,7 @@ import (
 	math "math"
 	math_bits "math/bits"
 
-	types "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	types "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 )

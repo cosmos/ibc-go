@@ -11,7 +11,7 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain

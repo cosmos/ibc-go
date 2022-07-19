@@ -12,7 +12,7 @@ import (
 
 	types1 "github.com/cosmos/cosmos-sdk/codec/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
-	types "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	types "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"

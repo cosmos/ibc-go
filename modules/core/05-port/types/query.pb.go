@@ -10,7 +10,7 @@ import (
 	math "math"
 	math_bits "math/bits"
 
-	types "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	types "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"

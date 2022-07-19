@@ -8,10 +8,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/simulation"
-	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/testing/simapp"
+	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/simulation"
+	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {

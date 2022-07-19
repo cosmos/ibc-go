@@ -9,8 +9,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/05-port/keeper"
-	"github.com/cosmos/ibc-go/v4/testing/simapp"
+	"github.com/cosmos/ibc-go/v5/modules/core/05-port/keeper"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
 var (

@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/cosmos/ibc-go/v4/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

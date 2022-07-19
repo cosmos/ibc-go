@@ -13,10 +13,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	"github.com/cosmos/ibc-go/v4/modules/light-clients/06-solomachine/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type SoloMachineTestSuite struct {
