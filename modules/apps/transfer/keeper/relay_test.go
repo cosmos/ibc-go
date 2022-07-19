@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
@@ -151,7 +152,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
 		trace    types.DenomTrace
-		amount   sdk.Int
+		amount   math.Int
 		receiver string
 	)
 
@@ -257,7 +258,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		successAck = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 		failedAck  = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
 		trace      types.DenomTrace
-		amount     sdk.Int
+		amount     math.Int
 		path       *ibctesting.Path
 	)
 
@@ -339,7 +340,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	var (
 		trace  types.DenomTrace
 		path   *ibctesting.Path
-		amount sdk.Int
+		amount math.Int
 		sender string
 	)
 

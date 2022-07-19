@@ -40,7 +40,7 @@ func NewFungibleTokenPacketData(
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	amount, ok := sdk.NewIntFromString(ftpd.Amount)
 	if !ok {
-		return sdkerrors.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", ftpd.Amount)
+		return sdkerrors.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", ftpd.Amount)
 	}
 	if !amount.IsPositive() {
 		return sdkerrors.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
