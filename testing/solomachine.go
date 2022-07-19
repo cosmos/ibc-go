@@ -122,11 +122,11 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 	dataBz, err := solo.cdc.Marshal(data)
 	require.NoError(solo.t, err)
 
-	signBytes := &solomachinetypes.SignBytes{
+	signBytes := &solomachinetypes.SignBytesV2{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		DataType:    solomachinetypes.HEADER,
+		Path:        []byte{},
 		Data:        dataBz,
 	}
 
@@ -155,52 +155,58 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 // CreateMisbehaviour constructs testing misbehaviour for the solo machine client
 // by signing over two different data bytes at the same sequence.
 func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
-	path := solo.GetClientStatePath("counterparty")
-	dataOne, err := solomachinetypes.ClientStateDataBytes(solo.cdc, path, solo.ClientState())
+	merklePath := solo.GetClientStatePath("counterparty")
+	path, err := solo.cdc.Marshal(&merklePath)
 	require.NoError(solo.t, err)
 
-	path = solo.GetConsensusStatePath("counterparty", clienttypes.NewHeight(0, 1))
-	dataTwo, err := solomachinetypes.ConsensusStateDataBytes(solo.cdc, path, solo.ConsensusState())
+	data, err := solo.cdc.Marshal(solo.ClientState())
 	require.NoError(solo.t, err)
 
-	signBytes := &solomachinetypes.SignBytes{
+	signBytes := &solomachinetypes.SignBytesV2{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		DataType:    solomachinetypes.CLIENT,
-		Data:        dataOne,
+		Path:        path,
+		Data:        data,
 	}
 
 	bz, err := solo.cdc.Marshal(signBytes)
 	require.NoError(solo.t, err)
 
 	sig := solo.GenerateSignature(bz)
-	signatureOne := solomachinetypes.SignatureAndData{
+	signatureOne := solomachinetypes.SignatureAndDataV2{
 		Signature: sig,
-		DataType:  solomachinetypes.CLIENT,
-		Data:      dataOne,
+		Path:      path,
+		Data:      data,
 		Timestamp: solo.Time,
 	}
 
 	// misbehaviour signaturess can have different timestamps
 	solo.Time++
 
-	signBytes = &solomachinetypes.SignBytes{
+	merklePath = solo.GetConsensusStatePath("counterparty", clienttypes.NewHeight(0, 1))
+	path, err = solo.cdc.Marshal(&merklePath)
+	require.NoError(solo.t, err)
+
+	data, err = solo.cdc.Marshal(solo.ConsensusState())
+	require.NoError(solo.t, err)
+
+	signBytes = &solomachinetypes.SignBytesV2{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		DataType:    solomachinetypes.CONSENSUS,
-		Data:        dataTwo,
+		Path:        path,
+		Data:        data,
 	}
 
 	bz, err = solo.cdc.Marshal(signBytes)
 	require.NoError(solo.t, err)
 
 	sig = solo.GenerateSignature(bz)
-	signatureTwo := solomachinetypes.SignatureAndData{
+	signatureTwo := solomachinetypes.SignatureAndDataV2{
 		Signature: sig,
-		DataType:  solomachinetypes.CONSENSUS,
-		Data:      dataTwo,
+		Path:      path,
+		Data:      data,
 		Timestamp: solo.Time,
 	}
 
