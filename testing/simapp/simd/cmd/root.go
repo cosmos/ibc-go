@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	tmcfg "github.com/tendermint/tendermint/config"
-
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
@@ -33,6 +31,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	tmcfg "github.com/tendermint/tendermint/config"
 
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 	"github.com/cosmos/ibc-go/v5/testing/simapp/params"
