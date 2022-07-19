@@ -14,12 +14,20 @@ This roadmap should be read as a high-level guide, rather than a commitment to s
 
 At a high level we will focus on:
 
+### Features
+
 - Releasing [v4.0.0](https://github.com/cosmos/ibc-go/milestone/26), which includes the ICS-29 Fee Middleware module.
 - Finishing and releasing the [refactoring of 02-client](https://github.com/cosmos/ibc-go/milestone/16). This refactor will make the development of light clients easier.
-- Finishing and releasing the upgrade to Cosmos SDK v0.46.
 - Starting the implementation of channel upgradability (see [epic](https://github.com/cosmos/ibc-go/issues/1599) and [alpha milestone](https://github.com/cosmos/ibc-go/milestone/29)) with the goal of cutting an alpha1 pre-release by the end of the quarter. Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel.
 - Implementing the new [`ORDERED_ALLOW_TIMEOUT` channel type](https://github.com/cosmos/ibc-go/milestone/31) and hopefully releasing it as well. This new channel type will allow packets on an ordered channel to timeout without causing the closure of the channel.
+
+### Testing and infrastructure
+
 - Adding [automated e2e tests](https://github.com/cosmos/ibc-go/milestone/32) to the repo's CI.
+
+### Documentation and backlog
+
+- Finishing and releasing the upgrade to Cosmos SDK v0.46.
 - Writing the [light client implementation guide](https://github.com/cosmos/ibc-go/issues/59).
 - Working on [core backlog issues](https://github.com/cosmos/ibc-go/milestone/28).
 - Depending on the timeline of the Cosmos SDK, implementing and testing the changes needed to support the [transtion to SMT storage](https://github.com/cosmos/ibc-go/milestone/21).
