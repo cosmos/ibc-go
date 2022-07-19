@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package ibc.application.ibc_query.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types";
+
+import "google/api/annotations.proto";
+
+service Query {
+  rpc CrossChainQuery(QueryCrossChainQuery) returns (QueryCrossChainQueryResponse) {
+    option (google.api.http).get = "/ibc/apps/ibc-query/v1/{id}";
+  }
+}
+
+message QueryCrossChainQuery {
+  string id = 1;
+}
+
+message QueryCrossChainQueryResponse {
+
+}

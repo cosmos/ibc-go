@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package ibc.application.ibc_query.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types";
+
+service Msg {
+  rpc SubmitCrossChainQuery(MsgCrossChainQuery) returns (MsgCrossChainQueryResponse);
+
+  rpc SubmitCrossChainQueryResult(MsgCrossChainQueryResult) returns (MsgCrossChainQueryResultResponse);
+}
+
+message MsgCrossChainQuery {
+  string id = 1;
+  string path = 2;
+  uint64 localTimeoutHeight = 3;
+  uint64 localTimeoutStamp = 4;
+  uint64 queryHeight = 5;
+  string clientId = 6;
+}
+
+message MsgCrossChainQueryResponse {}
+
+enum QueryResult {
+  SUCCESS = 0;
+  FAILURE = 1;
+  TIMEOUT = 2;
+}
+
+message MsgCrossChainQueryResult {
+  string id = 1;
+  QueryResult result = 2;
+  bytes data = 3;
+}
+
+message MsgCrossChainQueryResultResponse {}

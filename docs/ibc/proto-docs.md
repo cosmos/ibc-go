@@ -80,6 +80,26 @@
   
     - [Msg](#ibc.applications.fee.v1.Msg)
   
+- [ibc/applications/ibc_query/v1/genesis.proto](#ibc/applications/ibc_query/v1/genesis.proto)
+    - [CrossChainQuery](#ibc.application.ibc_query.v1.CrossChainQuery)
+    - [GenesisState](#ibc.application.ibc_query.v1.GenesisState)
+  
+- [ibc/applications/ibc_query/v1/query.proto](#ibc/applications/ibc_query/v1/query.proto)
+    - [QueryCrossChainQuery](#ibc.application.ibc_query.v1.QueryCrossChainQuery)
+    - [QueryCrossChainQueryResponse](#ibc.application.ibc_query.v1.QueryCrossChainQueryResponse)
+  
+    - [Query](#ibc.application.ibc_query.v1.Query)
+  
+- [ibc/applications/ibc_query/v1/tx.proto](#ibc/applications/ibc_query/v1/tx.proto)
+    - [MsgCrossChainQuery](#ibc.application.ibc_query.v1.MsgCrossChainQuery)
+    - [MsgCrossChainQueryResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResponse)
+    - [MsgCrossChainQueryResult](#ibc.application.ibc_query.v1.MsgCrossChainQueryResult)
+    - [MsgCrossChainQueryResultResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResultResponse)
+  
+    - [QueryResult](#ibc.application.ibc_query.v1.QueryResult)
+  
+    - [Msg](#ibc.application.ibc_query.v1.Msg)
+  
 - [ibc/applications/interchain_accounts/controller/v1/controller.proto](#ibc/applications/interchain_accounts/controller/v1/controller.proto)
     - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
   
@@ -1416,6 +1436,205 @@ Msg defines the ICS29 Msg service.
 | `RegisterCounterpartyPayee` | [MsgRegisterCounterpartyPayee](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayee) | [MsgRegisterCounterpartyPayeeResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyPayeeResponse) | RegisterCounterpartyPayee defines a rpc handler method for MsgRegisterCounterpartyPayee RegisterCounterpartyPayee is called by the relayer on each channelEnd and allows them to specify the counterparty payee address before relaying. This ensures they will be properly compensated for forward relaying since the destination chain must include the registered counterparty payee address in the acknowledgement. This function may be called more than once by a relayer, in which case, the latest counterparty payee address is always used. | |
 | `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
 | `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/ibc_query/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/ibc_query/v1/genesis.proto
+
+
+
+<a name="ibc.application.ibc_query.v1.CrossChainQuery"></a>
+
+### CrossChainQuery
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+| `path` | [string](#string) |  |  |
+| `localTimeoutHeight` | [uint64](#uint64) |  |  |
+| `localTimeoutTimestamp` | [uint64](#uint64) |  |  |
+| `queryHeight` | [uint64](#uint64) |  |  |
+| `clientId` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.application.ibc_query.v1.GenesisState"></a>
+
+### GenesisState
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `queries` | [CrossChainQuery](#ibc.application.ibc_query.v1.CrossChainQuery) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/ibc_query/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/ibc_query/v1/query.proto
+
+
+
+<a name="ibc.application.ibc_query.v1.QueryCrossChainQuery"></a>
+
+### QueryCrossChainQuery
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.application.ibc_query.v1.QueryCrossChainQueryResponse"></a>
+
+### QueryCrossChainQueryResponse
+
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.application.ibc_query.v1.Query"></a>
+
+### Query
+
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `CrossChainQuery` | [QueryCrossChainQuery](#ibc.application.ibc_query.v1.QueryCrossChainQuery) | [QueryCrossChainQueryResponse](#ibc.application.ibc_query.v1.QueryCrossChainQueryResponse) |  | GET|/ibc/apps/ibc-query/v1/{id}|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/ibc_query/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/ibc_query/v1/tx.proto
+
+
+
+<a name="ibc.application.ibc_query.v1.MsgCrossChainQuery"></a>
+
+### MsgCrossChainQuery
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+| `path` | [string](#string) |  |  |
+| `localTimeoutHeight` | [uint64](#uint64) |  |  |
+| `localTimeoutStamp` | [uint64](#uint64) |  |  |
+| `queryHeight` | [uint64](#uint64) |  |  |
+| `clientId` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.application.ibc_query.v1.MsgCrossChainQueryResponse"></a>
+
+### MsgCrossChainQueryResponse
+
+
+
+
+
+
+
+<a name="ibc.application.ibc_query.v1.MsgCrossChainQueryResult"></a>
+
+### MsgCrossChainQueryResult
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+| `result` | [QueryResult](#ibc.application.ibc_query.v1.QueryResult) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.application.ibc_query.v1.MsgCrossChainQueryResultResponse"></a>
+
+### MsgCrossChainQueryResultResponse
+
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.application.ibc_query.v1.QueryResult"></a>
+
+### QueryResult
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| SUCCESS | 0 |  |
+| FAILURE | 1 |  |
+| TIMEOUT | 2 |  |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.application.ibc_query.v1.Msg"></a>
+
+### Msg
+
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `SubmitCrossChainQuery` | [MsgCrossChainQuery](#ibc.application.ibc_query.v1.MsgCrossChainQuery) | [MsgCrossChainQueryResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResponse) |  | |
+| `SubmitCrossChainQueryResult` | [MsgCrossChainQueryResult](#ibc.application.ibc_query.v1.MsgCrossChainQueryResult) | [MsgCrossChainQueryResultResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResultResponse) |  | |
 
  <!-- end services -->
 

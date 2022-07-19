@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package ibc.application.ibc_query.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types";
+
+message GenesisState {
+  repeated CrossChainQuery queries = 1;
+}
+
+message CrossChainQuery {
+  string id = 1;
+  string path = 2;
+  uint64 localTimeoutHeight = 3;
+  uint64 localTimeoutTimestamp = 4;
+  uint64 queryHeight = 5;
+  string clientId = 6;
+}
