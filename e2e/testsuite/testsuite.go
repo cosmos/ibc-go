@@ -7,16 +7,23 @@ import (
 	"strings"
 	"time"
 
+	"e2e/testconfig"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
+	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/testreporter"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
-	"e2e/testconfig"
+	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )
 
 const (
@@ -29,11 +36,20 @@ const (
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
 type E2ETestSuite struct {
 	suite.Suite
+
+	grpcClients    map[string]GRPCClients
 	paths          map[string]path
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
 	startRelayerFn func(relayer ibc.Relayer)
+}
+
+// GRPCClients holds a reference to any GRPC clients that are needed by the tests.
+// These should typically be used for query clients only. If we need to make changes, we should
+// use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
+type GRPCClients struct {
+	FeeQueryClient feetypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -58,7 +74,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
 
-	r := newCosmosRelayer(s.T(), s.logger, s.DockerClient, s.network)
+	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")
@@ -102,6 +118,9 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		time.Sleep(time.Second * 10)
 	}
 
+	s.initGRPCClients(chainA)
+	s.initGRPCClients(chainB)
+
 	return r
 }
 
@@ -127,6 +146,20 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 	s.paths[s.T().Name()] = path
 
 	return path.chainA, path.chainB
+}
+
+// BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
+// Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
+	resp, err := ibctest.BroadcastTx(ctx, broadcaster, user, msgs...)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	chainA, chainB := s.GetChains()
+	err = test.WaitForBlocks(ctx, 2, chainA, chainB)
+	return resp, err
 }
 
 // GetRelayerWallets returns the relayer wallets associated with the chains.
@@ -194,6 +227,37 @@ func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user *ibctest
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user *ibctest.User) (int64, error) {
 	_, chainB := s.GetChains()
 	return GetNativeChainBalance(ctx, chainB, user)
+}
+
+// GetChainGRCPClients gets the GRPC clients associated with the given chain.
+func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
+	cs, ok := s.grpcClients[chain.Config().ChainID]
+	s.Require().True(ok, "chain %s does not have GRPC clients", chain.Config().ChainID)
+	return cs
+}
+
+// initGRPCClients establishes GRPC clients with the given chain.
+// The created GRPCClients can be retrieved with GetChainGRCPClients.
+func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
+	// Create a connection to the gRPC server.
+	grpcConn, err := grpc.Dial(
+		chain.GetHostGRPCAddress(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	s.Require().NoError(err)
+	s.T().Cleanup(func() {
+		if err := grpcConn.Close(); err != nil {
+			s.T().Logf("failed closing GRPC connection to chain %s: %s", chain.Config().ChainID, err)
+		}
+	})
+
+	if s.grpcClients == nil {
+		s.grpcClients = make(map[string]GRPCClients)
+	}
+
+	s.grpcClients[chain.Config().ChainID] = GRPCClients{
+		FeeQueryClient: feetypes.NewQueryClient(grpcConn),
+	}
 }
 
 // createCosmosChains creates two separate chains in docker containers.

@@ -1,0 +1,104 @@
+name: Tests / E2E
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - docs/**
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ibc-go-simd-e2e
+
+jobs:
+  docker-build:
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Log in to the Container registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a
+        with:
+          images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # dynamically build a matrix of test/test suite pairs to run
+  build-test-matrix:
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
+
+
+  # the tag of the image will differ if this is a PR or the branch is being merged into main.
+  # we store the tag as an environment variable and use it in the E2E tests to determine the tag.
+  determine-image-tag:
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-latest
+    outputs:
+      simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - id: get-tag
+        run: |
+          tag=$(go run .github/scripts/determine_simd_tag.go -pr "${{ github.event.pull_request.number }}" )
+          echo "Using tag $tag"
+          echo "::set-output name=simd-tag::$tag"
+
+
+  e2e:
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-latest
+    needs:
+      - build-test-matrix
+      - determine-image-tag
+      - docker-build
+    env:
+      SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
+      SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
+      # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
+      RLY_TAG: "v2.0.0-rc2"
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Log in to the Container registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run e2e Test
+        run: |
+          cd e2e
+          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}

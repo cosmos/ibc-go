@@ -11,12 +11,16 @@ const (
 	DefaultSimdImage = "ghcr.io/cosmos/ibc-go-simd-e2e"
 	SimdImageEnv     = "SIMD_IMAGE"
 	SimdTagEnv       = "SIMD_TAG"
+	GoRelayerTag     = "RLY_TAG"
+
+	defaultRlyTag = "main"
 )
 
 // TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
 	SimdImage string
 	SimdTag   string
+	RlyTag    string
 }
 
 // FromEnv returns a TestConfig constructed from environment variables.
@@ -31,9 +35,15 @@ func FromEnv() TestConfig {
 		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", SimdTagEnv))
 	}
 
+	rlyTag, ok := os.LookupEnv(GoRelayerTag)
+	if !ok {
+		rlyTag = defaultRlyTag
+	}
+
 	return TestConfig{
 		SimdImage: simdImage,
 		SimdTag:   simdTag,
+		RlyTag:    rlyTag,
 	}
 }
 
