@@ -13,6 +13,8 @@ Learn what changes to make to bind modules to their ports on initialization. {sy
 
 Currently, ports must be bound on app initialization. In order to bind modules to their respective ports on initialization, the following needs to be implemented:
 
+> Note that `portID` does not refer to a certain numerical ID, like `localhost:8080` with a `portID` 8080. Rather it refers to the application module the port binds. For IBC Modules built with the Cosmos SDK, it defaults to the module's name and for Cosmwasm contracts it defaults to the contract address.
+
 1. Add port ID to the `GenesisState` proto definition:
 
    ```protobuf
@@ -109,4 +111,4 @@ Currently, ports must be bound on app initialization. In order to bind modules t
 
    The module binds to the desired port(s) and returns the capabilities.
 
-   > In the above we find reference to keeper methods that wrap other keeper functionality, in the next section the keeper methods that need to be implemented will be defined.
+   In the above we find reference to keeper methods that wrap other keeper functionality, in the next section the keeper methods that need to be implemented will be defined.

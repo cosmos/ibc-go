@@ -7,10 +7,12 @@ order: 2
 Learn how to implement the `IBCModule` interface and all of the callbacks it requires. {synopsis}
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
-interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This interface contains all of the callbacks IBC expects modules to implement. The include callbacks related to channel handshake, opening and closing and packet callbacks (`OnRecvPacket`, `OnAcknowledgementPacket` and `OnTimeoutPacket`).
+interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This interface contains all of the callbacks IBC expects modules to implement. They include callbacks related to channel handshake, closing and packet callbacks (`OnRecvPacket`, `OnAcknowledgementPacket` and `OnTimeoutPacket`).
 
 ```go
-// IBCModule implements the ICS26 interface for transfer given the transfer keeper.
+// IBCModule implements the ICS26 interface for given the keeper.
+// The implementation of the IBCModule interface could for example be in a file called ibc_module.go,
+// but ultimately file structure is up to the developer
 type IBCModule struct {
 	keeper keeper.Keeper
 }
@@ -34,11 +36,11 @@ var (
 
 ## Channel handshake callbacks
 
-This section will describe the callbacks that are called during channel handshake execution.
+This section will describe the callbacks that are called during channel handshake execution. Among other things, it will claim channel capabilities passed on from core IBC. For a refresher on capabilities, check [the Overview section](../overview.md#capabilities).
 
 Here are the channel handshake callbacks that modules are expected to implement:
 
-> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `checkArguments(args)` function.
+> Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `checkArguments` and `negotiateAppVersion` functions.
 
 ```go
 // Called by IBC Handler on MsgOpenInit
@@ -50,23 +52,16 @@ func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
     channelCap *capabilitytypes.Capability,
     counterparty channeltypes.Counterparty,
     version string,
-) (string,error) {
+) (string, error) {
     // ... do custom initialization logic
 
     // Use above arguments to determine if we want to abort handshake
-    // Examples: Abort if order == UNORDERED,
-    // Abort if version is unsupported
+    // Examples:
+    // - Abort if order == UNORDERED,
+    // - Abort if version is unsupported
     if err := checkArguments(args); err != nil {
         return "", err
     }
-
-    if strings.TrimSpace(version) == "" {
-		version = types.Version
-	}
-
-	if version != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
-	}
 
      // OpenInit must claim the channelCapability that IBC passes into the callback
     if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
@@ -94,22 +89,19 @@ func (im IBCModule) OnChanOpenTry(
         return "", err
     }
 
-    if counterpartyVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
-	}
-
-    // Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-    // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-    // If the module can already authenticate the capability then the module already owns it so we don't need to claim
-    // Otherwise, module does not have channel capability and we must claim it from IBC
-    if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-        // Only claim channel capability passed back by IBC module if we do not already own it
-        if err := im.keeper.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-            return "", err
-        }
+    // OpenTry must claim the channelCapability that IBC passes into the callback
+    if err := im.keeper.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+        return err
     }
 
-    return types.Version, nil
+    // Construct application version
+    // IBC applications must return the appropriate application version
+    // This can be a simple string or it can be a complex version constructed
+    // from the counterpartyVersion and other arguments.
+    // The version returned will be the channel version used for both channel ends.
+    appVersion := negotiateAppVersion(counterpartyVersion, args)
+
+    return appVersion, nil
 }
 
 // Called by IBC Handler on MsgOpenAck
@@ -174,36 +166,36 @@ func (im IBCModule) OnChanCloseConfirm(
 
 Application modules are expected to verify versioning used during the channel handshake procedure.
 
-- `onChanOpenInit` will verify that the relayer-chosen parameters
+- `OnChanOpenInit` will verify that the relayer-chosen parameters
   are valid and perform any custom `INIT` logic.
   It may return an error if the chosen parameters are invalid
   in which case the handshake is aborted.
-  If the provided version string is non-empty, `onChanOpenInit` should return
+  If the provided version string is non-empty, `OnChanOpenInit` should return
   the version string if valid or an error if the provided version is invalid.
-  **If the version string is empty, `onChanOpenInit` is expected to
+  **If the version string is empty, `OnChanOpenInit` is expected to
   return a default version string representing the version(s)
   it supports.**
   If there is no default version string for the application,
-  it should return an error if provided version is empty string.
-- `onChanOpenTry` will verify the relayer-chosen parameters along with the
+  it should return an error if the provided version is an empty string.
+- `OnChanOpenTry` will verify the relayer-chosen parameters along with the
   counterparty-chosen version string and perform custom `TRY` logic.
   If the relayer-chosen parameters
   are invalid, the callback must return an error to abort the handshake.
-  If the counterparty-chosen version is not compatible with this modules
+  If the counterparty-chosen version is not compatible with this module's
   supported versions, the callback must return an error to abort the handshake.
   If the versions are compatible, the try callback must select the final version
   string and return it to core IBC.
-  `onChanOpenTry` may also perform custom initialization logic
-- `onChanOpenAck` will error if the counterparty selected version string
-  is invalid to abort the handshake. It may also perform custom ACK logic.
+  `OnChanOpenTry` may also perform custom initialization logic.
+- `OnChanOpenAck` will error if the counterparty selected version string
+  is invalid and abort the handshake. It may also perform custom ACK logic.
 
 Versions must be strings but can implement any versioning structure. If your application plans to
 have linear releases then semantic versioning is recommended. If your application plans to release
 various features in between major releases then it is advised to use the same versioning scheme
 as IBC. This versioning scheme specifies a version identifier and compatible feature set with
 that identifier. Valid version selection includes selecting a compatible version identifier with
-a subset of features supported by your application for that version. The struct is used for this
-scheme can be found in `03-connection/types`.
+a subset of features supported by your application for that version. The struct used for this
+scheme can be found in [03-connection/types](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection/types/version.go#L16).
 
 Since the version type is a string, applications have the ability to do simple version verification
 via string matching or they can use the already impelemented versioning system and pass the proto
@@ -213,7 +205,7 @@ ICS20 currently implements basic string matching with a single supported version
 
 ## Packet callbacks
 
-Just as IBC expected modules to implement callbacks for channel handshakes, IBC also expects modules to implement callbacks for handling the packet flow through a channel, as defined in the `IBCModule` interface.
+Just as IBC expects modules to implement callbacks for channel handshakes, it also expects modules to implement callbacks for handling the packet flow through a channel, as defined in the `IBCModule` interface.
 
 Once a module A and module B are connected to each other, relayers can start relaying packets and acknowledgements back and forth on the channel.
 
@@ -230,7 +222,7 @@ Briefly, a successful packet flow works as follows:
 
 ### Sending packets
 
-Modules **do not send packets through callbacks**, since the modules initiate the action of sending packets to the IBC module, as opposed to other parts of the packet flow where msgs sent to the IBC
+Modules **do not send packets through callbacks**, since the modules initiate the action of sending packets to the IBC module, as opposed to other parts of the packet flow where messages sent to the IBC
 module must trigger execution on the port-bound module through the use of callbacks. Thus, to send a packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
 
 > Note that some of the code below is _pseudo code_, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `EncodePacketData(customPacketData)` function.
@@ -257,7 +249,7 @@ invoked by the IBC module after the packet has been proved valid and correctly p
 keepers. Thus, the `OnRecvPacket` callback only needs to worry about making the appropriate state
 changes given the packet data without worrying about whether the packet is valid or not.
 
-Modules may return to the IBC handler an acknowledgement which implements the Acknowledgement interface.
+Modules may return to the IBC handler an acknowledgement which implements the `Acknowledgement` interface.
 The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
 acknowledgement back to the sender module.
 
@@ -291,7 +283,7 @@ func (im IBCModule) OnRecvPacket(
 }
 ```
 
-Reminder, the Acknowledgement interface:
+Reminder, the `Acknowledgement` interface:
 
 ```go
 // Acknowledgement defines the interface used to return
@@ -306,7 +298,7 @@ type Acknowledgement interface {
 
 After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
 then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
-acknowledgement is entirely upto the modules on the channel (just like the packet data); however, it
+acknowledgement is entirely up to the modules on the channel (just like the packet data); however, it
 may often contain information on whether the packet was successfully processed along
 with some additional data that could be useful for remediation if the packet processing failed.
 

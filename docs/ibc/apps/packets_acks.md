@@ -20,7 +20,7 @@ applications this will happen as a version negotiation during the channel handsh
 complex version negotiation is possible to implement inside the channel opening handshake, a very
 simple version negotation is implemented in the [ibc-transfer module](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer/module.go).
 
-Thus, a module must define its a custom packet data structure, along with a well-defined way to
+Thus, a module must define its custom packet data structure, along with a well-defined way to
 encode and decode it to and from `[]byte`.
 
 ```go
