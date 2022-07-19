@@ -36,7 +36,8 @@ const (
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
 type E2ETestSuite struct {
 	suite.Suite
-	grpcClientSets map[string]GRPCClientSet
+
+	grpcClients    map[string]GRPCClients
 	paths          map[string]path
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
@@ -44,7 +45,10 @@ type E2ETestSuite struct {
 	startRelayerFn func(relayer ibc.Relayer)
 }
 
-type GRPCClientSet struct {
+// GRPCClients holds a reference to any GRPC clients that are needed by the tests.
+// These should typically be used for query clients only. If we need to make changes, we should
+// use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
+type GRPCClients struct {
 	FeeQueryClient feetypes.QueryClient
 }
 
@@ -114,8 +118,8 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		time.Sleep(time.Second * 10)
 	}
 
-	s.initClientSet(chainA)
-	s.initClientSet(chainB)
+	s.initGRPCClients(chainA)
+	s.initGRPCClients(chainB)
 
 	return r
 }
@@ -225,16 +229,16 @@ func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user *ibctest
 	return GetNativeChainBalance(ctx, chainB, user)
 }
 
-// GetChainGRCPClientSet gets the GRPC clientset associated with the given chain.
-func (s *E2ETestSuite) GetChainGRCPClientSet(chain ibc.Chain) GRPCClientSet {
-	cs, ok := s.grpcClientSets[chain.Config().ChainID]
-	s.Require().True(ok, "chain %s does not have a GRPC clientset", chain.Config().ChainID)
+// GetChainGRCPClients gets the GRPC clients associated with the given chain.
+func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
+	cs, ok := s.grpcClients[chain.Config().ChainID]
+	s.Require().True(ok, "chain %s does not have GRPC clients", chain.Config().ChainID)
 	return cs
 }
 
-// initClientSet establishes GRPC clients with the given chain.
-// The created GRPCClientSet can be retreived with GetChainGRCPClientSet.
-func (s *E2ETestSuite) initClientSet(chain *cosmos.CosmosChain) {
+// initGRPCClients establishes GRPC clients with the given chain.
+// The created GRPCClients can be retrieved with GetChainGRCPClients.
+func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
 		chain.GetHostGRPCAddress(),
@@ -247,11 +251,11 @@ func (s *E2ETestSuite) initClientSet(chain *cosmos.CosmosChain) {
 		}
 	})
 
-	if s.grpcClientSets == nil {
-		s.grpcClientSets = map[string]GRPCClientSet{}
+	if s.grpcClients == nil {
+		s.grpcClients = make(map[string]GRPCClients)
 	}
 
-	s.grpcClientSets[chain.Config().ChainID] = GRPCClientSet{
+	s.grpcClients[chain.Config().ChainID] = GRPCClients{
 		FeeQueryClient: feetypes.NewQueryClient(grpcConn),
 	}
 }
