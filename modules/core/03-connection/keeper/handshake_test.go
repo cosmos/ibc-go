@@ -80,12 +80,11 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 // connection on chainA is INIT
 func (suite *KeeperTestSuite) TestConnOpenTry() {
 	var (
-		path                 *ibctesting.Path
-		delayPeriod          uint64
-		previousConnectionID string
-		versions             []exported.Version
-		consensusHeight      exported.Height
-		counterpartyClient   exported.ClientState
+		path               *ibctesting.Path
+		delayPeriod        uint64
+		versions           []exported.Version
+		consensusHeight    exported.Height
+		counterpartyClient exported.ClientState
 	)
 
 	testCases := []struct {
@@ -99,15 +98,6 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-		}, true},
-		{"success with crossing hellos", func() {
-			err := suite.coordinator.ConnOpenInitOnBothChains(path)
-			suite.Require().NoError(err)
-
-			// retrieve client state of chainA to pass as counterpartyClient
-			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-
-			previousConnectionID = path.EndpointB.ConnectionID
 		}, true},
 		{"success with delay period", func() {
 			err := path.EndpointA.ConnOpenInit()
@@ -213,49 +203,6 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 		}, false},
-		{"invalid previous connection is in TRYOPEN", func() {
-			// open init chainA
-			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
-
-			// open try chainB
-			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
-
-			// retrieve client state of chainA to pass as counterpartyClient
-			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-
-			previousConnectionID = path.EndpointB.ConnectionID
-		}, false},
-		{"invalid previous connection has invalid versions", func() {
-			// open init chainA
-			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
-
-			// open try chainB
-			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
-
-			// modify connB to be in INIT with incorrect versions
-			connection, found := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID)
-			suite.Require().True(found)
-
-			connection.State = types.INIT
-			connection.Versions = []*types.Version{{}}
-
-			suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
-
-			err = path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
-
-			// retrieve client state of chainA to pass as counterpartyClient
-			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-
-			previousConnectionID = path.EndpointB.ConnectionID
-		}, false},
 	}
 
 	for _, tc := range testCases {
@@ -263,9 +210,9 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 		suite.Run(tc.msg, func() {
 			suite.SetupTest()                          // reset
-			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
-			versions = types.GetCompatibleVersions()   // must be explicitly changed in malleate
-			previousConnectionID = ""
+			consensusHeight = clienttypes.ZeroHeight() // may be changed in malleate
+			versions = types.GetCompatibleVersions()   // may be changed in malleate
+			delayPeriod = 0                            // may be changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
@@ -292,7 +239,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			proofClient, _ := suite.chainA.QueryProof(clientKey)
 
 			connectionID, err := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenTry(
-				suite.chainB.GetContext(), previousConnectionID, counterparty, delayPeriod, path.EndpointB.ClientID, counterpartyClient,
+				suite.chainB.GetContext(), counterparty, delayPeriod, path.EndpointB.ClientID, counterpartyClient,
 				versions, proofInit, proofClient, proofConsensus,
 				proofHeight, consensusHeight,
 			)
@@ -329,27 +276,6 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)
-
-			// retrieve client state of chainB to pass as counterpartyClient
-			counterpartyClient = suite.chainB.GetClientState(path.EndpointB.ClientID)
-		}, true},
-		{"success from tryopen", func() {
-			// chainA is in TRYOPEN, chainB is in TRYOPEN
-			err := path.EndpointB.ConnOpenInit()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.ConnOpenTry()
-			suite.Require().NoError(err)
-
-			// set chainB to TRYOPEN
-			connection := path.EndpointB.GetConnection()
-			connection.State = types.TRYOPEN
-			connection.Counterparty.ConnectionId = path.EndpointA.ConnectionID
-			suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
-			// update path.EndpointB.ClientID so state change is committed
-			path.EndpointB.UpdateClient()
-
-			path.EndpointA.UpdateClient()
 
 			// retrieve client state of chainB to pass as counterpartyClient
 			counterpartyClient = suite.chainB.GetClientState(path.EndpointB.ClientID)
@@ -437,28 +363,6 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)
-
-			version = types.NewVersion("2.0", nil)
-		}, false},
-		{"connection is in TRYOPEN but the set version in the connection is invalid", func() {
-			// chainA is in TRYOPEN, chainB is in TRYOPEN
-			err := path.EndpointB.ConnOpenInit()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.ConnOpenTry()
-			suite.Require().NoError(err)
-
-			// set chainB to TRYOPEN
-			connection := path.EndpointB.GetConnection()
-			connection.State = types.TRYOPEN
-			suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
-
-			// update path.EndpointB.ClientID so state change is committed
-			path.EndpointB.UpdateClient()
-			path.EndpointA.UpdateClient()
-
-			// retrieve client state of chainB to pass as counterpartyClient
-			counterpartyClient = suite.chainB.GetClientState(path.EndpointB.ClientID)
 
 			version = types.NewVersion("2.0", nil)
 		}, false},

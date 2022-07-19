@@ -130,8 +130,8 @@ module.exports = {
             },
             {
               title: "Applications",
-              directory: false,
-              path: "/ibc/apps.html",
+              directory: true,
+              path: "/ibc/apps",
             },
             {
               title: "Middleware",
@@ -266,6 +266,14 @@ module.exports = {
                   title: "Integration",
                   directory: false,
                   path: "/middleware/ics29-fee/integration.html",
+<<<<<<< HEAD
+=======
+                },
+                {
+                  title: "End Users",
+                  directory: false,
+                  path: "/middleware/ics29-fee/end-users.html",
+>>>>>>> main
                 },
                 {
                   title: "Fee Messages",
@@ -282,11 +290,14 @@ module.exports = {
                   directory: false,
                   path: "/middleware/ics29-fee/events.html",
                 },
+<<<<<<< HEAD
                 {
                   title: "End Users",
                   directory: false,
                   path: "/middleware/ics29-fee/end-users.html",
                 },
+=======
+>>>>>>> main
               ],
             },
           ],

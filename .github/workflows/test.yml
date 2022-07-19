@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+
 jobs:
   cleanup-runs:
     runs-on: ubuntu-latest
@@ -51,19 +52,12 @@ jobs:
       - name: Build
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
 
-  docker-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Docker Build
-        run: docker build . --no-cache
-
   split-test-files:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Create a file with all the pkgs
-        run: go list ./... > pkgs.txt
+        run: go list ./... ./.github/scripts > pkgs.txt
       - name: Split pkgs into 4 files
         run: split -d -n l/4 pkgs.txt pkgs.txt.part.
       # cache multiple
@@ -108,7 +102,7 @@ jobs:
         if: env.GIT_DIFF
       - name: test & coverage report creation
         run: |
-          cat pkgs.txt.part.${{ matrix.part }} | xargs go test -race -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
+          cat pkgs.txt.part.${{ matrix.part }} | xargs go test $(go list ./... | grep -v e2e) -race -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
         if: env.GIT_DIFF
       - uses: actions/upload-artifact@v3
         with:
