@@ -90,7 +90,7 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 	for i := 0; i < length; i = i + 2 {
 		// The IBC specification does not guarentee the expected format of the
 		// destination port or destination channel identifier. A short term solution
-		// to determine base denomination is to expect the channel idenitifer to be the
+		// to determine base denomination is to expect the channel identifier to be the
 		// one ibc-go specifies. A longer term solution is to separate the path and base
 		// denomination in the ICS20 packet. If an intermediate hop prefixes the full denom
 		// with a channel identifier format different from our own, the base denomination
