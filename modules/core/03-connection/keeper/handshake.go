@@ -71,7 +71,6 @@ func (k Keeper) ConnOpenTry(
 	proofHeight exported.Height, // height at which relayer constructs proof of A storing connectionEnd in state
 	consensusHeight exported.Height, // latest height of chain B which chain A has stored in its chain B client
 ) (string, error) {
-
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 
