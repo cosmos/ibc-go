@@ -111,7 +111,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	// IBCDenom() previously would return "customport/channel-0/uatom", but now should return ibc/{hash}
 	corruptedDenomTrace := transfertypes.DenomTrace{
-		BaseDenom: "customport/channel-0/uatom", Path: "",
+		BaseDenom: "customport/channel-0/uatom",
+		Path:      "",
 	}
 	suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), corruptedDenomTrace)
 
