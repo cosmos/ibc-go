@@ -124,10 +124,10 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}, false,
 		},
 		{
-			"capability already claimed in INIT should pass", func() {
+			"capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, true,
+			}, false,
 		},
 		{
 			"invalid order - ORDERED", func() {

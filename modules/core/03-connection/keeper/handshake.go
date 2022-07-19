@@ -1,12 +1,9 @@
 package keeper
 
 import (
-	"bytes"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/gogo/protobuf/proto"
 
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
@@ -28,7 +25,7 @@ func (k Keeper) ConnOpenInit(
 ) (string, error) {
 	versions := types.GetCompatibleVersions()
 	if version != nil {
-		if !types.IsSupportedVersion(version) {
+		if !types.IsSupportedVersion(types.GetCompatibleVersions(), version) {
 			return "", sdkerrors.Wrap(types.ErrInvalidVersion, "version is not supported")
 		}
 
@@ -63,7 +60,6 @@ func (k Keeper) ConnOpenInit(
 //  - Identifiers are checked on msg validation
 func (k Keeper) ConnOpenTry(
 	ctx sdk.Context,
-	previousConnectionID string, // previousIdentifier
 	counterparty types.Counterparty, // counterpartyConnectionIdentifier, counterpartyPrefix and counterpartyClientIdentifier
 	delayPeriod uint64,
 	clientID string, // clientID of chainA
@@ -75,44 +71,9 @@ func (k Keeper) ConnOpenTry(
 	proofHeight exported.Height, // height at which relayer constructs proof of A storing connectionEnd in state
 	consensusHeight exported.Height, // latest height of chain B which chain A has stored in its chain B client
 ) (string, error) {
-	var (
-		connectionID       string
-		previousConnection types.ConnectionEnd
-		found              bool
-	)
 
-	// empty connection identifier indicates continuing a previous connection handshake
-	if previousConnectionID != "" {
-		// ensure that the previous connection exists
-		previousConnection, found = k.GetConnection(ctx, previousConnectionID)
-		if !found {
-			return "", sdkerrors.Wrapf(types.ErrConnectionNotFound, "previous connection does not exist for supplied previous connectionID %s", previousConnectionID)
-		}
-
-		// ensure that the existing connection's
-		// counterparty is chainA and connection is on INIT stage.
-		// Check that existing connection versions for initialized connection is equal to compatible
-		// versions for this chain.
-		// ensure that existing connection's delay period is the same as desired delay period.
-		if !(previousConnection.Counterparty.ConnectionId == "" &&
-			bytes.Equal(previousConnection.Counterparty.Prefix.Bytes(), counterparty.Prefix.Bytes()) &&
-			previousConnection.ClientId == clientID &&
-			previousConnection.Counterparty.ClientId == counterparty.ClientId &&
-			previousConnection.DelayPeriod == delayPeriod) {
-			return "", sdkerrors.Wrap(types.ErrInvalidConnection, "connection fields mismatch previous connection fields")
-		}
-
-		if !(previousConnection.State == types.INIT) {
-			return "", sdkerrors.Wrapf(types.ErrInvalidConnectionState, "previous connection state is in state %s, expected INIT", previousConnection.State)
-		}
-
-		// continue with previous connection
-		connectionID = previousConnectionID
-
-	} else {
-		// generate a new connection
-		connectionID = k.GenerateConnectionIdentifier(ctx)
-	}
+	// generate a new connection
+	connectionID := k.GenerateConnectionIdentifier(ctx)
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	if consensusHeight.GTE(selfHeight) {
@@ -139,15 +100,10 @@ func (k Keeper) ConnOpenTry(
 	expectedCounterparty := types.NewCounterparty(clientID, "", commitmenttypes.NewMerklePrefix(prefix.Bytes()))
 	expectedConnection := types.NewConnectionEnd(types.INIT, counterparty.ClientId, expectedCounterparty, types.ExportedVersionsToProto(counterpartyVersions), delayPeriod)
 
-	supportedVersions := types.GetCompatibleVersions()
-	if len(previousConnection.Versions) != 0 {
-		supportedVersions = previousConnection.GetVersions()
-	}
-
 	// chain B picks a version from Chain A's available versions that is compatible
 	// with Chain B's supported IBC versions. PickVersion will select the intersection
 	// of the supported versions and the counterparty versions.
-	version, err := types.PickVersion(supportedVersions, counterpartyVersions)
+	version, err := types.PickVersion(types.GetCompatibleVersions(), counterpartyVersions)
 	if err != nil {
 		return "", err
 	}
@@ -181,7 +137,7 @@ func (k Keeper) ConnOpenTry(
 	}
 
 	k.SetConnection(ctx, connectionID, connection)
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", previousConnection.State.String(), "new-state", "TRYOPEN")
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "connection", "open-try")
@@ -223,28 +179,19 @@ func (k Keeper) ConnOpenAck(
 		return sdkerrors.Wrap(types.ErrConnectionNotFound, connectionID)
 	}
 
-	// Verify the provided version against the previously set connection state
-	switch {
-	// connection on ChainA must be in INIT or TRYOPEN
-	case connection.State != types.INIT && connection.State != types.TRYOPEN:
+	// verify the previously set connection state
+	if connection.State != types.INIT {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidConnectionState,
-			"connection state is not INIT or TRYOPEN (got %s)", connection.State.String(),
+			"connection state is not INIT (got %s)", connection.State.String(),
 		)
+	}
 
-	// if the connection is INIT then the provided version must be supproted
-	case connection.State == types.INIT && !types.IsSupportedVersion(version):
+	// ensure selected version is supported
+	if !types.IsSupportedVersion(types.ProtoVersionsToExported(connection.Versions), version) {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidConnectionState,
-			"connection state is in INIT but the provided version is not supported %s", version,
-		)
-
-	// if the connection is in TRYOPEN then the version must be the only set version in the
-	// retreived connection state.
-	case connection.State == types.TRYOPEN && (len(connection.Versions) != 1 || !proto.Equal(connection.Versions[0], version)):
-		return sdkerrors.Wrapf(
-			types.ErrInvalidConnectionState,
-			"connection state is in TRYOPEN but the provided version (%s) is not set in the previous connection versions %s", version, connection.Versions,
+			"the counterparty selected version %s is not supported by versions selected on INIT", version,
 		)
 	}
 
@@ -283,7 +230,7 @@ func (k Keeper) ConnOpenAck(
 		return err
 	}
 
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", connection.State.String(), "new-state", "OPEN")
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "INIT", "new-state", "OPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "connection", "open-ack")
