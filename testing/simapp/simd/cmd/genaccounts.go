@@ -65,7 +65,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 
 				addr, err = info.GetAddress()
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to get address of the record: %w", err)
 				}
 			}
 
