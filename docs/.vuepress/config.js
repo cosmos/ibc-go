@@ -268,11 +268,6 @@ module.exports = {
                   path: "/middleware/ics29-fee/integration.html",
                 },
                 {
-                  title: "End Users",
-                  directory: false,
-                  path: "/middleware/ics29-fee/end-users.html",
-                },
-                {
                   title: "Fee Messages",
                   directory: false,
                   path: "/middleware/ics29-fee/msgs.html",
@@ -286,6 +281,11 @@ module.exports = {
                   title: "Events",
                   directory: false,
                   path: "/middleware/ics29-fee/events.html",
+                },
+                {
+                  title: "End Users",
+                  directory: false,
+                  path: "/middleware/ics29-fee/end-users.html",
                 },
               ],
             },
