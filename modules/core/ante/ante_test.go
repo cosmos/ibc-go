@@ -3,9 +3,10 @@ package ante_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
@@ -430,7 +431,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				msg := suite.createRecvPacketMessage(uint64(1), false)
 
 				// We want to be able to run check tx with the non-redundant message without
-				// commiting it to a block, so that the when check tx runs with the redundant
+				// committing it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
 				k := suite.chainB.App.GetIBCKeeper()
 				decorator := ante.NewRedundancyDecorator(k)

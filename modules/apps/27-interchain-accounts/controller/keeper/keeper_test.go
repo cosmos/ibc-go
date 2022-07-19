@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
@@ -16,16 +17,16 @@ var (
 	// TODO: Cosmos-SDK ADR-28: Update crypto.AddressHash() when sdk uses address.Module()
 	// https://github.com/cosmos/cosmos-sdk/issues/10225
 	//
-	// TestAccAddress defines a resuable bech32 address for testing purposes
+	// TestAccAddress defines a reusable bech32 address for testing purposes
 	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), ibctesting.FirstConnectionID, TestPortID)
 
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-	// TestPortID defines a resuable port identifier for testing purposes
+	// TestPortID defines a reusable port identifier for testing purposes
 	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
 
-	// TestVersion defines a resuable interchainaccounts version string for testing purposes
+	// TestVersion defines a reusable interchainaccounts version string for testing purposes
 	TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
 		Version:                icatypes.Version,
 		ControllerConnectionId: ibctesting.FirstConnectionID,

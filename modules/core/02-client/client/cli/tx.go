@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -14,7 +16,6 @@ import (
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v4/modules/core/exported"

@@ -50,7 +50,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 			seq = 1
 		}
 
-		// generate old client state proto defintion
+		// generate old client state proto definition
 		legacyClientState := &v100.ClientState{
 			Sequence:       clientState.Sequence,
 			FrozenSequence: seq,

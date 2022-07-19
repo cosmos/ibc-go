@@ -5,6 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/suite"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
+	dbm "github.com/tendermint/tm-db"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -22,10 +27,6 @@ import (
 	authcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/suite"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	dbm "github.com/tendermint/tm-db"
 
 	ibcclientcli "github.com/cosmos/ibc-go/v4/modules/core/02-client/client/cli"
 	"github.com/cosmos/ibc-go/v4/testing/simapp"
