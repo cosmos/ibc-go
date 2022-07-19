@@ -118,7 +118,7 @@ func (cs *ClientState) VerifyMembership(
 	path []byte,
 	value []byte,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgss(cdc, cs, height, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, proof)
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func (cs *ClientState) VerifyNonMembership(
 	proof []byte,
 	path []byte,
 ) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgss(cdc, cs, height, proof)
+	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, height, proof)
 	if err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func (cs *ClientState) VerifyNonMembership(
 // shared between the verification functions and returns the public key of the
 // consensus state, the unmarshalled proof representing the signature and timestamp
 // along with the solo-machine sequence encoded in the proofHeight.
-func produceVerificationArgss(
+func produceVerificationArgs(
 	cdc codec.BinaryCodec,
 	cs *ClientState,
 	height exported.Height,
@@ -237,76 +237,6 @@ func produceVerificationArgss(
 
 	// sequence is encoded in the revision height of height struct
 	sequence := height.GetRevisionHeight()
-	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
-	if latestSequence != sequence {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"client state sequence != proof sequence (%d != %d)", latestSequence, sequence,
-		)
-	}
-
-	if cs.ConsensusState.GetTimestamp() > timestamp {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
-	}
-
-	publicKey, err := cs.ConsensusState.GetPubKey()
-	if err != nil {
-		return nil, nil, 0, 0, err
-	}
-
-	return publicKey, sigData, timestamp, sequence, nil
-}
-
-// TODO: Remove function as no longer used
-// produceVerificationArgs perfoms the basic checks on the arguments that are
-// shared between the verification functions and returns the public key of the
-// consensus state, the unmarshalled proof representing the signature and timestamp
-// along with the solo-machine sequence encoded in the proofHeight.
-func produceVerificationArgs(
-	cdc codec.BinaryCodec,
-	cs *ClientState,
-	height exported.Height,
-	prefix exported.Prefix,
-	proof []byte,
-) (cryptotypes.PubKey, signing.SignatureData, uint64, uint64, error) {
-	if revision := height.GetRevisionNumber(); revision != 0 {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "revision must be 0 for solomachine, got revision-number: %d", revision)
-	}
-	// sequence is encoded in the revision height of height struct
-	sequence := height.GetRevisionHeight()
-	if prefix == nil {
-		return nil, nil, 0, 0, sdkerrors.Wrap(commitmenttypes.ErrInvalidPrefix, "prefix cannot be empty")
-	}
-
-	_, ok := prefix.(*commitmenttypes.MerklePrefix)
-	if !ok {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(commitmenttypes.ErrInvalidPrefix, "invalid prefix type %T, expected MerklePrefix", prefix)
-	}
-
-	if proof == nil {
-		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "proof cannot be empty")
-	}
-
-	timestampedSigData := &TimestampedSignatureData{}
-	if err := cdc.Unmarshal(proof, timestampedSigData); err != nil {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
-	}
-
-	timestamp := timestampedSigData.Timestamp
-
-	if len(timestampedSigData.SignatureData) == 0 {
-		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "signature data cannot be empty")
-	}
-
-	sigData, err := UnmarshalSignatureData(cdc, timestampedSigData.SignatureData)
-	if err != nil {
-		return nil, nil, 0, 0, err
-	}
-
-	if cs.ConsensusState == nil {
-		return nil, nil, 0, 0, sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
-	}
-
 	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
 	if latestSequence != sequence {
 		return nil, nil, 0, 0, sdkerrors.Wrapf(
