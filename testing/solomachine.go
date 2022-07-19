@@ -122,11 +122,11 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 	dataBz, err := solo.cdc.Marshal(data)
 	require.NoError(solo.t, err)
 
-	signBytes := &solomachinetypes.SignBytes{
+	signBytes := &solomachinetypes.SignBytesV2{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		DataType:    solomachinetypes.HEADER,
+		Path:        []byte{},
 		Data:        dataBz,
 	}
 

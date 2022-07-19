@@ -54,24 +54,6 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 }
 
 // ValidateBasic ensures that the signature and data fields are non-empty.
-func (sd SignatureAndData) ValidateBasic() error {
-	if len(sd.Signature) == 0 {
-		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "signature cannot be empty")
-	}
-	if len(sd.Data) == 0 {
-		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "data for signature cannot be empty")
-	}
-	if sd.DataType == UNSPECIFIED {
-		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "data type cannot be UNSPECIFIED")
-	}
-	if sd.Timestamp == 0 {
-		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "timestamp cannot be 0")
-	}
-
-	return nil
-}
-
-// ValidateBasic ensures that the signature and data fields are non-empty.
 func (sd SignatureAndDataV2) ValidateBasic() error {
 	if len(sd.Signature) == 0 {
 		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "signature cannot be empty")

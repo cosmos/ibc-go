@@ -44,7 +44,25 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 	}
 
 	// assert currently registered public key signed over the new public key with correct sequence
-	data, err := HeaderSignBytes(cdc, header)
+	headerData := &HeaderData{
+		NewPubKey:      header.NewPublicKey,
+		NewDiversifier: header.NewDiversifier,
+	}
+
+	dataBz, err := cdc.Marshal(headerData)
+	if err != nil {
+		return err
+	}
+
+	signBytes := &SignBytesV2{
+		Sequence:    header.Sequence,
+		Timestamp:   header.Timestamp,
+		Diversifier: header.NewDiversifier,
+		Path:        []byte{},
+		Data:        dataBz,
+	}
+
+	data, err := cdc.Marshal(signBytes)
 	if err != nil {
 		return err
 	}

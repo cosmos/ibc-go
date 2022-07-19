@@ -101,11 +101,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					suite.Require().NoError(err)
 
 					// generate invalid signature
-					signBytes := &solomachine.SignBytes{
+					signBytes := &solomachine.SignBytesV2{
 						Sequence:    cs.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
-						DataType:    solomachine.CLIENT,
+						Path:        []byte("invalid signature data"),
 						Data:        dataBz,
 					}
 
@@ -258,11 +258,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					m := sm.CreateMisbehaviour()
 
 					msg := []byte("DATA ONE")
-					signBytes := &solomachine.SignBytes{
+					signBytes := &solomachine.SignBytesV2{
 						Sequence:    sm.Sequence + 1,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
-						DataType:    solomachine.CLIENT,
+						Path:        []byte("invalid signature data"),
 						Data:        msg,
 					}
 
@@ -284,11 +284,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					m := sm.CreateMisbehaviour()
 
 					msg := []byte("DATA TWO")
-					signBytes := &solomachine.SignBytes{
+					signBytes := &solomachine.SignBytesV2{
 						Sequence:    sm.Sequence + 1,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
-						DataType:    solomachine.CLIENT,
+						Path:        []byte("invalid signature data"),
 						Data:        msg,
 					}
 
@@ -341,11 +341,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					// Signature One
 					msg := []byte("DATA ONE")
 					// sequence used is plus 1
-					signBytes := &solomachine.SignBytes{
+					signBytes := &solomachine.SignBytesV2{
 						Sequence:    sm.Sequence + 1,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
-						DataType:    solomachine.CLIENT,
+						Path:        []byte("invalid signature data"),
 						Data:        msg,
 					}
 
@@ -361,11 +361,11 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					msg = []byte("DATA TWO")
 					// sequence used is minus 1
 
-					signBytes = &solomachine.SignBytes{
+					signBytes = &solomachine.SignBytesV2{
 						Sequence:    sm.Sequence - 1,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
-						DataType:    solomachine.CLIENT,
+						Path:        []byte("invalid signature data"),
 						Data:        msg,
 					}
 					data, err = suite.chainA.Codec.Marshal(signBytes)
