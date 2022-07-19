@@ -48,11 +48,7 @@ type Middleware interface {
 // which will call the next middleware until it reaches the core IBC handler.
 type ICS4Wrapper interface {
     SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet) error
-<<<<<<< HEAD
-    WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet, ack []byte) error
-=======
     WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.Packet, ack exported.Acknowledgement) error
->>>>>>> new-changes
     GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool)
 }
 ```
@@ -68,7 +64,10 @@ In the case where the IBC middleware expects to speak to a compatible IBC middle
 Middleware accomplishes this by formatting the version in a JSON-encoded string containing the middleware version and the application version. The application version may as well be a JSON-encoded string, possibly including further middleware and app versions, if the application stack consists of multiple milddlewares wrapping a base application. The format of the version is specified in ICS-30 as the following:
 
 ```json
-{"<middleware_version_key>":"<middleware_version_value>","app_version":"<application_version_value>"}
+{
+  "<middleware_version_key>": "<middleware_version_value>",
+  "app_version": "<application_version_value>"
+}
 ```
 
 The `<middleware_version_key>` key in the JSON struct should be replaced by the actual name of the key for the corresponding middleware (e.g. `fee_version`).
@@ -94,12 +93,12 @@ func (im IBCModule) OnChanOpenInit(
     counterparty channeltypes.Counterparty,
     version string,
 ) (string, error) {
-    // try to unmarshal JSON-encoded version string and pass 
+    // try to unmarshal JSON-encoded version string and pass
     // the app-specific version to app callback.
     // otherwise, pass version directly to app callback.
     metadata, err := Unmarshal(version)
     if err != nil {
-        // Since it is valid for fee version to not be specified, 
+        // Since it is valid for fee version to not be specified,
         // the above middleware version may be for another middleware.
         // Pass the entire version string onto the underlying application.
         return im.app.OnChanOpenInit(
@@ -155,7 +154,7 @@ func OnChanOpenTry(
 ) (string, error) {
     doCustomLogic()
 
-    // try to unmarshal JSON-encoded version string and pass 
+    // try to unmarshal JSON-encoded version string and pass
     // the app-specific version to app callback.
     // otherwise, pass version directly to app callback.
     cpMetadata, err := Unmarshal(counterpartyVersion)
@@ -187,14 +186,9 @@ func OnChanOpenTry(
     if err != nil {
         return "", err
     }
-<<<<<<< HEAD
 
-    middlewareVersion := negotiateMiddlewareVersion(cpMiddlewareVersion)
-=======
-    
     // negotiate final middleware version
     middlewareVersion := negotiateMiddlewareVersion(cpMetadata.MiddlewareVersion)
->>>>>>> new-changes
     version := constructVersion(middlewareVersion, appVersion)
 
     return version, nil
@@ -213,7 +207,7 @@ func OnChanOpenAck(
     counterpartyChannelID string,
     counterpartyVersion string,
 ) error {
-    // try to unmarshal JSON-encoded version string and pass 
+    // try to unmarshal JSON-encoded version string and pass
     // the app-specific version to app callback.
     // otherwise, pass version directly to app callback.
     cpMetadata, err = UnmarshalJSON(counterpartyVersion)
@@ -225,15 +219,9 @@ func OnChanOpenAck(
         return error
     }
     doCustomLogic()
-<<<<<<< HEAD
 
-    // call the underlying applications OnChanOpenTry callback
-    app.OnChanOpenAck(ctx, portID, channelID, appVersion)
-=======
-      
     // call the underlying application's OnChanOpenTry callback
     return app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cpMetadata.AppVersion)
->>>>>>> new-changes
 }
 ```
 
@@ -387,18 +375,13 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 
 #### `GetAppVersion`
 
-<<<<<<< HEAD
-// middleware must return the underlying application version
-func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-=======
 ```go
-// middleware must return the underlying application version 
+// middleware must return the underlying application version
 func GetAppVersion(
     ctx sdk.Context,
     portID,
     channelID string,
 ) (string, bool) {
->>>>>>> new-changes
     version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
     if !found {
         return "", false
