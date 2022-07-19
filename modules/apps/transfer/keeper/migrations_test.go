@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 			},
 			transfertypes.Traces{
 				{
-					BaseDenom: "customport/channel-7/uatom", Path: "transfer/channel-0/transfer/channel-1",
+					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1/customport/channel-7",
 				},
 			},
 		},
