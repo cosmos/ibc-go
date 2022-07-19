@@ -587,10 +587,10 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				generatedID := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(
+				existingID := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(
 					suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointA.ConnectionID,
 				)
-				suite.Require().Empty(generatedID, "existingConnectionID mapping not deleted after handshake complete")
+				suite.Require().Empty(existingID, "existingConnectionID mapping not deleted after handshake complete")
 			} else {
 				suite.Require().Error(err)
 			}
