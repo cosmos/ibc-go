@@ -49,7 +49,6 @@ func (suite *KeeperTestSuite) TestAppVersion() {
 		{
 			"version negotiation failure",
 			func() {
-
 				expVersion = mock.Version
 
 				req = &types.QueryAppVersionRequest{
@@ -66,7 +65,6 @@ func (suite *KeeperTestSuite) TestAppVersion() {
 		{
 			"success",
 			func() {
-
 				expVersion = mock.Version
 
 				req = &types.QueryAppVersionRequest{
