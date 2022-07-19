@@ -6,7 +6,6 @@ run:
 linters:
   disable-all: true
   enable:
-    - bodyclose
     - deadcode
     - depguard
     - dogsled
@@ -17,7 +16,6 @@ linters:
     - gofmt
     - gofumpt
     - goimports
-    - golint
     - gosec
     - gosimple
     - govet
@@ -26,13 +24,11 @@ linters:
     - nakedret
     - prealloc
     - staticcheck
-    - structcheck
     - stylecheck
     - revive
     - typecheck
     - unconvert
     - unused
-    - unparam
     - misspell
     - nolintlint
 
