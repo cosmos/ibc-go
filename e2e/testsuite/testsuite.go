@@ -9,7 +9,6 @@ import (
 
 	"e2e/testconfig"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/broadcast"
@@ -22,6 +21,8 @@ import (
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )

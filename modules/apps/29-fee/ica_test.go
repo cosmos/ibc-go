@@ -17,10 +17,10 @@ var (
 	// defaultOwnerAddress defines a reusable bech32 address for testing purposes
 	defaultOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-	// defaultPortID defines a resuable port identifier for testing purposes
+	// defaultPortID defines a reusable port identifier for testing purposes
 	defaultPortID, _ = icatypes.NewControllerPortID(defaultOwnerAddress)
 
-	// defaultICAVersion defines a resuable interchainaccounts version string for testing purposes
+	// defaultICAVersion defines a reusable interchainaccounts version string for testing purposes
 	defaultICAVersion = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 )
 

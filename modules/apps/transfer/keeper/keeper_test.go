@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
 
 	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v4/testing"

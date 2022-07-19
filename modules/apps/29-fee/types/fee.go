@@ -9,7 +9,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 )
 
-// NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund addres and relayers
+// NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund address and relayers
 func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
 	return PacketFee{
 		Fee:           fee,
