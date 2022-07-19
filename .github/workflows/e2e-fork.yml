@@ -1,0 +1,48 @@
+name: Tests / E2E Fork
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - docs/**
+jobs:
+  # dynamically build a matrix of test/test suite pairs to run
+  build-test-matrix:
+    if: ${{ github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
+
+  e2e:
+    env:
+      SIMD_TAG: latest
+      SIMD_IMAGE: ibc-go-simd-e2e
+    if: ${{ github.event.pull_request.head.repo.fork }}
+    needs:
+      - build-test-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker Build
+        run: docker build . -t "${SIMD_IMAGE}:${SIMD_TAG}"
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Run e2e Test
+        env:
+          # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
+          RLY_TAG: "v2.0.0-rc2"
+        run: |
+          cd e2e
+          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
