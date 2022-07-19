@@ -10,7 +10,6 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
 
-
 	"e2e/testsuite"
 
 	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
