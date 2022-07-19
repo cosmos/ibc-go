@@ -261,10 +261,10 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 
-				generatedID := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(
+				existingID := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(
 					suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointA.ConnectionID,
 				)
-				suite.Require().Equal(connectionID, generatedID, "connectionID generated in ConnOpenTry was not stored in generatedConnectionID mapping")
+				suite.Require().Equal(connectionID, existingID, "connectionID generated in ConnOpenTry was not stored in existingConnectionID mapping")
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", connectionID)
@@ -516,10 +516,10 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				generatedID := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(
+				existingID := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(
 					suite.chainA.GetContext(), path.EndpointA.ClientID, path.EndpointB.ConnectionID,
 				)
-				suite.Require().Empty(generatedID, "generatedConnectionID mapping not deleted after handshake complete")
+				suite.Require().Empty(existingID, "existingConnectionID mapping not deleted after handshake complete")
 			} else {
 				suite.Require().Error(err)
 			}
@@ -587,10 +587,10 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				generatedID := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(
+				generatedID := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(
 					suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointA.ConnectionID,
 				)
-				suite.Require().Empty(generatedID, "generatedConnectionID mapping not deleted after handshake complete")
+				suite.Require().Empty(generatedID, "existingConnectionID mapping not deleted after handshake complete")
 			} else {
 				suite.Require().Error(err)
 			}

@@ -73,7 +73,7 @@ func (k Keeper) ConnOpenTry(
 ) (string, error) {
 	// verify that this is the first attempt to establish a connection with the proposed counterparty
 	// if a previous attempt was successful then abort this transaction and return the generated connectionID of this chain in the error
-	if connectionID := k.GetGeneratedConnectionID(ctx, clientID, counterparty.ConnectionId); connectionID != "" {
+	if connectionID := k.GetExistingConnectionID(ctx, clientID, counterparty.ConnectionId); connectionID != "" {
 		return "", sdkerrors.Wrapf(types.ErrRedundantHandshake, "connectionID: %s was already established for the given counterparty", connectionID)
 	}
 
@@ -144,8 +144,8 @@ func (k Keeper) ConnOpenTry(
 	k.SetConnection(ctx, connectionID, connection)
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
-	// set generatedConnectionID for the given counterparty so that future TRY attempts for the same handshake fail
-	k.SetGeneratedConnectionID(ctx, clientID, counterparty.ConnectionId, connectionID)
+	// set existingConnectionID for the given counterparty so that future TRY attempts for the same handshake fail
+	k.SetExistingConnectionID(ctx, clientID, counterparty.ConnectionId, connectionID)
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "connection", "open-try")
@@ -250,9 +250,9 @@ func (k Keeper) ConnOpenAck(
 	connection.Counterparty.ConnectionId = counterpartyConnectionID
 	k.SetConnection(ctx, connectionID, connection)
 
-	// delete generatedConnectionID mapping now that handshake attempt is successful
+	// delete existingConnectionID mapping now that handshake attempt is successful
 	// we no longer need to store it for redundancy protection
-	k.DeleteGeneratedConnectionID(ctx, connection.ClientId, counterpartyConnectionID)
+	k.DeleteExistingConnectionID(ctx, connection.ClientId, counterpartyConnectionID)
 
 	EmitConnectionOpenAckEvent(ctx, connectionID, connection)
 
@@ -304,9 +304,9 @@ func (k Keeper) ConnOpenConfirm(
 		telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 	}()
 
-	// delete generatedConnectionID mapping now that handshake attempt is successful
+	// delete existingConnectionID mapping now that handshake attempt is successful
 	// we no longer need to store it for redundancy protection
-	k.DeleteGeneratedConnectionID(ctx, connection.ClientId, connection.Counterparty.ConnectionId)
+	k.DeleteExistingConnectionID(ctx, connection.ClientId, connection.Counterparty.ConnectionId)
 
 	EmitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 

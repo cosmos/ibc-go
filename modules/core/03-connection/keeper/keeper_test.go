@@ -58,16 +58,16 @@ func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
 	suite.EqualValues(connections, paths)
 }
 
-func (suite *KeeperTestSuite) TestSetGetAndDeleteGeneratedConnectionID() {
-	connID := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+func (suite *KeeperTestSuite) TestSetGetAndDeleteExistingConnectionID() {
+	connID := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
 	suite.Require().Empty(connID, "connectionID is not empty before set")
 
-	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1", "connection-3")
-	connID = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetExistingConnectionID(suite.chainA.GetContext(), "client-0", "connection-1", "connection-3")
+	connID = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
 	suite.Require().Equal("connection-3", connID, "connectionID is not same as set value")
 
-	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.DeleteGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
-	connID = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetGeneratedConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.DeleteExistingConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
+	connID = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetExistingConnectionID(suite.chainA.GetContext(), "client-0", "connection-1")
 	suite.Require().Empty(connID, "connectionID is not empty after delete")
 }
 

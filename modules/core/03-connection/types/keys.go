@@ -29,8 +29,8 @@ const (
 	// ConnectionPrefix is the prefix used when creating a connection identifier
 	ConnectionPrefix = "connection-"
 
-	// GeneratedConnectionIDKeyPrefix is the key prefix for the generated connectionID key
-	GeneratedConnectionIDKeyPrefix = "generatedConnectionID"
+	// ExistingConnectionIDKeyPrefix is the key prefix for the generated connectionID key
+	ExistingConnectionIDKeyPrefix = "existingConnectionID"
 )
 
 // FormatConnectionIdentifier returns the connection identifier with the sequence appended.
@@ -64,6 +64,6 @@ func ParseConnectionSequence(connectionID string) (uint64, error) {
 	return sequence, nil
 }
 
-func GeneratedConnectionIDKey(clientID, counterpartyConnectionID string) string {
-	return fmt.Sprintf("%s/%s/%s", GeneratedConnectionIDKeyPrefix, clientID, counterpartyConnectionID)
+func ExistingConnectionIDKey(clientID, counterpartyConnectionID string) string {
+	return fmt.Sprintf("%s/%s/%s", ExistingConnectionIDKeyPrefix, clientID, counterpartyConnectionID)
 }

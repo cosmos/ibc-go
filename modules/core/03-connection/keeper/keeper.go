@@ -140,24 +140,24 @@ func (k Keeper) SetNextConnectionSequence(ctx sdk.Context, sequence uint64) {
 	store.Set([]byte(types.KeyNextConnectionSequence), bz)
 }
 
-// SetGeneratedConnectionID sets the generated connectionID from the first successful ConnOpenTry from
+// SetExistingConnectionID sets the generated connectionID from the first successful ConnOpenTry from
 // a given clientID and counterparty connectionID. This prevents multiple ConnOpenTrys from
 // succeeding for the same INIT attempt.
-func (k Keeper) SetGeneratedConnectionID(ctx sdk.Context, clientID, counterpartyConnectionID, connectionID string) {
+func (k Keeper) SetExistingConnectionID(ctx sdk.Context, clientID, counterpartyConnectionID, connectionID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set([]byte(types.GeneratedConnectionIDKey(clientID, counterpartyConnectionID)), []byte(connectionID))
+	store.Set([]byte(types.ExistingConnectionIDKey(clientID, counterpartyConnectionID)), []byte(connectionID))
 }
 
-// GetGeneratedConnectionID returns the generated connectionID for a given clientID and counterparty connectionID
-func (k Keeper) GetGeneratedConnectionID(ctx sdk.Context, clientID, counterpartyConnectionID string) string {
+// GetExistingConnectionID returns the generated connectionID for a given clientID and counterparty connectionID
+func (k Keeper) GetExistingConnectionID(ctx sdk.Context, clientID, counterpartyConnectionID string) string {
 	store := ctx.KVStore(k.storeKey)
-	return string(store.Get([]byte(types.GeneratedConnectionIDKey(clientID, counterpartyConnectionID))))
+	return string(store.Get([]byte(types.ExistingConnectionIDKey(clientID, counterpartyConnectionID))))
 }
 
-// DeleteGeneratedConnectionID removes the generatedConnectionID mapping from the store
-func (k Keeper) DeleteGeneratedConnectionID(ctx sdk.Context, clientID, counterpartyConnectionID string) {
+// DeleteExistingConnectionID removes the ExistingConnectionID mapping from the store
+func (k Keeper) DeleteExistingConnectionID(ctx sdk.Context, clientID, counterpartyConnectionID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete([]byte(types.GeneratedConnectionIDKey(clientID, counterpartyConnectionID)))
+	store.Delete([]byte(types.ExistingConnectionIDKey(clientID, counterpartyConnectionID)))
 }
 
 // GetAllClientConnectionPaths returns all stored clients connection id paths. It
