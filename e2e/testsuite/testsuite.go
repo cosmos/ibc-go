@@ -96,7 +96,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
 
-	r := newCosmosRelayer(s.T(), s.logger, s.DockerClient, s.network)
+	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")

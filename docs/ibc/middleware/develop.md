@@ -16,7 +16,7 @@ Middleware allows developers to define the extensions as separate modules that c
 
 - [IBC Overview](../overview.md) {prereq}
 - [IBC Integration](../integration.md) {prereq}
-- [IBC Application Developer Guide](../apps.md) {prereq}
+- [IBC Application Developer Guide](../apps/apps.md) {prereq}
 
 ## Definitions
 
@@ -26,7 +26,7 @@ Middleware allows developers to define the extensions as separate modules that c
 
 `Base Application`: A base application is an IBC application that does not contain any middleware. It may be nested by 0 or multiple middleware to form an application stack.
 
-`Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) +  base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
+`Application Stack (or stack)`: A stack is the complete set of application logic (middleware(s) + base application) that gets connected to core IBC. A stack may be just a base application, or it may be a series of middlewares that nest a base application.
 
 ## Create a custom IBC middleware
 
@@ -64,7 +64,10 @@ In the case where the IBC middleware expects to speak to a compatible IBC middle
 Middleware accomplishes this by formatting the version in a JSON-encoded string containing the middleware version and the application version. The application version may as well be a JSON-encoded string, possibly including further middleware and app versions, if the application stack consists of multiple milddlewares wrapping a base application. The format of the version is specified in ICS-30 as the following:
 
 ```json
-{"<middleware_version_key>":"<middleware_version_value>","app_version":"<application_version_value>"}
+{
+  "<middleware_version_key>": "<middleware_version_value>",
+  "app_version": "<application_version_value>"
+}
 ```
 
 The `<middleware_version_key>` key in the JSON struct should be replaced by the actual name of the key for the corresponding middleware (e.g. `fee_version`).
@@ -90,12 +93,12 @@ func (im IBCModule) OnChanOpenInit(
     counterparty channeltypes.Counterparty,
     version string,
 ) (string, error) {
-    // try to unmarshal JSON-encoded version string and pass 
+    // try to unmarshal JSON-encoded version string and pass
     // the app-specific version to app callback.
     // otherwise, pass version directly to app callback.
     metadata, err := Unmarshal(version)
     if err != nil {
-        // Since it is valid for fee version to not be specified, 
+        // Since it is valid for fee version to not be specified,
         // the above middleware version may be for another middleware.
         // Pass the entire version string onto the underlying application.
         return im.app.OnChanOpenInit(
@@ -151,7 +154,7 @@ func OnChanOpenTry(
 ) (string, error) {
     doCustomLogic()
 
-    // try to unmarshal JSON-encoded version string and pass 
+    // try to unmarshal JSON-encoded version string and pass
     // the app-specific version to app callback.
     // otherwise, pass version directly to app callback.
     cpMetadata, err := Unmarshal(counterpartyVersion)
@@ -183,7 +186,7 @@ func OnChanOpenTry(
     if err != nil {
         return "", err
     }
-    
+
     // negotiate final middleware version
     middlewareVersion := negotiateMiddlewareVersion(cpMetadata.MiddlewareVersion)
     version := constructVersion(middlewareVersion, appVersion)
@@ -204,7 +207,7 @@ func OnChanOpenAck(
     counterpartyChannelID string,
     counterpartyVersion string,
 ) error {
-    // try to unmarshal JSON-encoded version string and pass 
+    // try to unmarshal JSON-encoded version string and pass
     // the app-specific version to app callback.
     // otherwise, pass version directly to app callback.
     cpMetadata, err = UnmarshalJSON(counterpartyVersion)
@@ -216,7 +219,7 @@ func OnChanOpenAck(
         return error
     }
     doCustomLogic()
-      
+
     // call the underlying application's OnChanOpenTry callback
     return app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cpMetadata.AppVersion)
 }
@@ -373,7 +376,7 @@ See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f5
 #### `GetAppVersion`
 
 ```go
-// middleware must return the underlying application version 
+// middleware must return the underlying application version
 func GetAppVersion(
     ctx sdk.Context,
     portID,

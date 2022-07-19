@@ -3,6 +3,8 @@ package testsuite
 import (
 	"testing"
 
+	"e2e/testconfig"
+
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/ibc"
@@ -15,8 +17,8 @@ const (
 )
 
 // newCosmosRelayer returns an instance of the go relayer.
-func newCosmosRelayer(t *testing.T, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
-	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage(cosmosRelayerRepository, "main")).Build(
+func newCosmosRelayer(t *testing.T, tc testconfig.TestConfig, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
+	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage(cosmosRelayerRepository, tc.RlyTag)).Build(
 		t, dockerClient, network,
 	)
 }
