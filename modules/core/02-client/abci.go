@@ -26,10 +26,8 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			}
 			bz := k.MustMarshalConsensusState(upgradedConsState)
 
-			err := k.SetUpgradedConsensusState(ctx, plan.Height, bz)
-			if err != nil {
-				return
-			}
+			// SetUpgradedConsensusState always returns nil, hence the blank here.
+			_ = k.SetUpgradedConsensusState(ctx, plan.Height, bz)
 
 		}
 	}
