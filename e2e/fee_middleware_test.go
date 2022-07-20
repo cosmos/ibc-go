@@ -219,12 +219,12 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 		s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, dstChain), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, dstChain), "failed to wait for blocks")
 
 	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
 		Denom:   chainA.Config().Denom,
-		Amount:  10000,
+		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	var srcTx ibc.Tx
@@ -252,7 +252,7 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 
 		t.Run("should succeed", func(t *testing.T) {
 			packetId := channeltypes.NewPacketId(channelA.ChannelID, channelA.ChannelID, 1)
-			packetFee := feetypes.NewPacketFee(testFee, chainAWallet.KeyName, nil)
+			packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 			var err error
 			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
 			s.Require().NoError(err)
