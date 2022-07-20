@@ -13,7 +13,7 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/client"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
 )
 
 // QueryClientState returns a client state. If prove is true, it performs an ABCI store query
