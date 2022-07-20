@@ -35,9 +35,9 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *channeltypes.MsgAcknowledgement:
 				response, err := ad.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
@@ -45,9 +45,9 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *channeltypes.MsgTimeout:
 				response, err := ad.k.Timeout(sdk.WrapSDKContext(ctx), msg)
@@ -55,9 +55,9 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *channeltypes.MsgTimeoutOnClose:
 				response, err := ad.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg)
@@ -65,9 +65,9 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 					return ctx, err
 				}
 				if response.Result == channeltypes.NOOP {
-					redundancies += 1
+					redundancies++
 				}
-				packetMsgs += 1
+				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
 				_, err := ad.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)

@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
@@ -46,7 +45,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 	}
 
 	for _, clientID := range clients {
-		clientType, _, err := types.ParseClientIdentifier(clientID)
+		clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 		if err != nil {
 			return err
 		}
@@ -91,7 +90,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 
 			tmClientState, ok := clientState.(*ibctmtypes.ClientState)
 			if !ok {
-				return sdkerrors.Wrap(types.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+				return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 			}
 
 			// add iteration keys so pruning will be successful
@@ -143,7 +142,7 @@ func pruneSolomachineConsensusStates(clientStore sdk.KVStore) {
 		}
 
 		// collect consensus states to be pruned
-		heights = append(heights, types.MustParseHeight(keySplit[1]))
+		heights = append(heights, clienttypes.MustParseHeight(keySplit[1]))
 	}
 
 	// delete all consensus states
@@ -167,7 +166,7 @@ func addConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.Bi
 			continue
 		}
 
-		heights = append(heights, types.MustParseHeight(keySplit[1]))
+		heights = append(heights, clienttypes.MustParseHeight(keySplit[1]))
 	}
 
 	for _, height := range heights {

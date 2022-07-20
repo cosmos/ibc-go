@@ -67,15 +67,15 @@ func (f Fee) Total() sdk.Coins {
 }
 
 // Validate asserts that each Fee is valid and all three Fees are not empty or zero
-func (fee Fee) Validate() error {
+func (f Fee) Validate() error {
 	var errFees []string
-	if !fee.AckFee.IsValid() {
+	if !f.AckFee.IsValid() {
 		errFees = append(errFees, "ack fee invalid")
 	}
-	if !fee.RecvFee.IsValid() {
+	if !f.RecvFee.IsValid() {
 		errFees = append(errFees, "recv fee invalid")
 	}
-	if !fee.TimeoutFee.IsValid() {
+	if !f.TimeoutFee.IsValid() {
 		errFees = append(errFees, "timeout fee invalid")
 	}
 
@@ -84,7 +84,7 @@ func (fee Fee) Validate() error {
 	}
 
 	// if all three fee's are zero or empty return an error
-	if fee.AckFee.IsZero() && fee.RecvFee.IsZero() && fee.TimeoutFee.IsZero() {
+	if f.AckFee.IsZero() && f.RecvFee.IsZero() && f.TimeoutFee.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "all fees are zero")
 	}
 
