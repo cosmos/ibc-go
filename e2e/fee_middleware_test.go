@@ -198,7 +198,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestAsyncSingleSenderNoCounterPartyAddress() {
+func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterPartyAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
