@@ -8,7 +8,7 @@ on:
 jobs:
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
-    if: ${{ github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -24,7 +24,7 @@ jobs:
     env:
       SIMD_TAG: latest
       SIMD_IMAGE: ibc-go-simd-e2e
-    if: ${{ github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' }}
     needs:
       - build-test-matrix
     runs-on: ubuntu-latest
