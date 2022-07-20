@@ -21,7 +21,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
 					transfertypes.DenomTrace{
-						BaseDenom: "1", Path: "transfer/channel-0/gamm/pool",
+						BaseDenom: "pool/1", Path: "transfer/channel-0/gamm",
 					})
 			},
 			transfertypes.Traces{
@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
 					transfertypes.DenomTrace{
-						BaseDenom: "", Path: "transfer/channel-149/erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA",
+						BaseDenom: "0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149/erc",
 					})
 			},
 			transfertypes.Traces{

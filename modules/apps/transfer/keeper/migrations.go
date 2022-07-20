@@ -31,8 +31,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 			newTrace := types.ParseDenomTrace(dt.GetFullDenomPath())
 			err := newTrace.Validate()
 			if err != nil {
-				iterErr = err
-				return true
+				panic(err)
 			}
 			if !equalTraces(newTrace, dt) {
 				newTraces = append(newTraces, newTrace)

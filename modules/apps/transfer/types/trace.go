@@ -71,9 +71,6 @@ func (dt DenomTrace) GetFullDenomPath() string {
 	if dt.Path == "" {
 		return dt.BaseDenom
 	}
-	if dt.BaseDenom == "" {
-		return dt.Path
-	}
 	return dt.GetPrefix() + dt.BaseDenom
 }
 
