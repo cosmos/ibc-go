@@ -64,7 +64,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#1195](https://github.com/cosmos/ibc-go/pull/1210) Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations. 
 * (modules/core/02-client) [\#1189](https://github.com/cosmos/ibc-go/pull/1212) Removing `CheckMisbehaviourAndUpdateState` from `ClientState` interface & associated light client implementations.
 * (modules/core/exported) [\#1206](https://github.com/cosmos/ibc-go/pull/1206) Adding new method `UpdateState` to `ClientState` interface.
-* (testing) [\#1302](https://github.com/cosmos/ibc-go/pull/1302) Change testchain default behaviour to use a chainID in the revision format. Set `ChainIDSuffix` to an empty string to disable this functionality. 
+* (testing) [\#1302](https://github.com/cosmos/ibc-go/pull/1302) Change testchain default behaviour to use a chainID in the revision format. Set `ChainIDSuffix` to an empty string to disable this functionality.
+* (modules/core/02-client) [\#1741](https://github.com/cosmos/ibc-go/pull/1741) Emitting a new `upgrade_chain` event upon setting upgrade consensus state.
 
 ### Features
 
