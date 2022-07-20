@@ -214,35 +214,15 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("relayer wallets recovered", func(t *testing.T) {
 		s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
 	})
 
-	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
-
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
-		s.Require().NoError(err)
-	})
-
-	t.Run("register counter party payee", func(t *testing.T) {
-		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(resp)
-	})
-
-	t.Run("verify counter party payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
-		s.Require().NoError(err)
-		s.Require().Equal(chainARelayerWallet.Address, address)
-	})
-
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	walletAmount := ibc.WalletAmount{
-		Address: chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
+		Address: chainAWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
 		Denom:   chainA.Config().Denom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
