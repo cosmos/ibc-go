@@ -21,9 +21,9 @@ import (
 //
 // Examples:
 //
-// - "transfer/channelidone/uatom" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "uatom"}
-// - "transfer/channelidone/transfer/channelidtwo/uatom" => DenomTrace{Path: "transfer/channelidone/transfer/channelidtwo", BaseDenom: "uatom"}
-// - "transfer/channelidone/gamm/pool/1" => DenomTrace{Path: "transfer/channelidone", BaseDenom: "gamm/pool/1"}
+// - "portidone/channel-0/uatom" => DenomTrace{Path: "portidone/channel-0", BaseDenom: "uatom"}
+// - "portidone/channel-0/portidtwo/channel-1/uatom" => DenomTrace{Path: "portidone/channel-0/portidtwo/channel-1", BaseDenom: "uatom"}
+// - "portidone/channel-0/gamm/pool/1" => DenomTrace{Path: "portidone/channel-0", BaseDenom: "gamm/pool/1"}
 // - "gamm/pool/1" => DenomTrace{Path: "", BaseDenom: "gamm/pool/1"}
 // - "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
@@ -181,7 +181,7 @@ func (t Traces) Sort() Traces {
 // ValidatePrefixedDenom checks that the denomination for an IBC fungible token packet denom is correctly prefixed.
 // The function will return no error if the given string follows one of the two formats:
 //
-//  - Prefixed denomination: 'transfer/{channelIDN}/.../transfer/{channelID0}/baseDenom'
+//  - Prefixed denomination: '{portIDN}/{channelIDN}/.../{portID0}/{channelID0}/baseDenom'
 //  - Unprefixed denomination: 'baseDenom'
 //
 // 'baseDenom' may or may not contain '/'s
