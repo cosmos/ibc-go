@@ -3,7 +3,6 @@ package e2e
 import (
 	"context"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
@@ -216,30 +215,30 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
+		err := s.RecoverRelayerWallets(ctx, relayer)
+		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	walletAmount := ibc.WalletAmount{
 		Address: chainAWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
-		Denom:   chainA.Config().Denom,
+		Denom:   chainADenom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
-	var srcTx ibc.Tx
 	t.Run("send IBC transfer", func(t *testing.T) {
 		var err error
-		srcTx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, nil)
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, nil)
 		s.Require().NoError(err)
-		s.Require().NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
+		s.Require().NoError(chainATx.Validate(), "source ibc transfer tx is invalid")
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount - chainA.GetGasFeesInNativeDenom(srcTx.GasSpent)
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount - chainA.GetGasFeesInNativeDenom(chainATx.GasSpent)
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -250,7 +249,7 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 			s.Require().Empty(packets)
 		})
 
-		packetId := channeltypes.NewPacketId(channelA.ChannelID, channelA.ChannelID, 1)
+		packetId := channeltypes.NewPacketId(channelA.PortID, channelA.ChannelID, 1)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
@@ -258,7 +257,6 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
 			s.Require().NoError(err)
 			s.AssertValidTxResponse(payPacketFeeTxResp)
-			time.Sleep(5 * time.Second)
 		})
 
 		t.Run("should be incentivized packets", func(t *testing.T) {
