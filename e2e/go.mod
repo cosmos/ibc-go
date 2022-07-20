@@ -1,4 +1,4 @@
-module e2e
+module github.com/cosmos/ibc-go/v4/e2e
 
 go 1.18
 

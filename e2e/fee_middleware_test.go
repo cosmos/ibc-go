@@ -2,18 +2,18 @@ package e2e
 
 import (
 	"context"
-	"e2e/testsuite"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"e2e/testsuite"
 
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 )
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
@@ -26,8 +26,7 @@ type FeeMiddlewareTestSuite struct {
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user broadcast.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) (sdk.TxResponse, error) {
+	user broadcast.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -39,6 +38,7 @@ func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, cha
 		ChannelId: channelID,
 		Relayer:   relayerAddress,
 	})
+
 	if err != nil {
 		return "", err
 	}
