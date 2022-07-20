@@ -82,6 +82,8 @@ jobs:
     env:
       SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
       SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
+      # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
+      RLY_TAG: "v2.0.0-rc2"
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
