@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
@@ -33,6 +35,14 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 			if err != nil {
 				panic(err)
 			}
+
+			if dt.IBCDenom() != newTrace.IBCDenom() {
+				// The new form of parsing will result in a token denomination change.
+				// A bank migration is required. A panic should occur to prevent the
+				// chain from using corrupted state.
+				panic(fmt.Sprintf("migration will result in corrupted state. Previous IBC token (%s) requires a bank migration. Expected denom trace (%s)", dt, newTrace))
+			}
+
 			if !equalTraces(newTrace, dt) {
 				newTraces = append(newTraces, newTrace)
 			}

@@ -76,8 +76,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 			},
 		},
 		{
-			// the expected value will change with the implementation of the fix for #1698
-			"no change: non-standard port",
+			"success: non-standard port",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
@@ -87,7 +86,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 			},
 			transfertypes.Traces{
 				{
-					BaseDenom: "customport/channel-7/uatom", Path: "transfer/channel-0/transfer/channel-1",
+					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1/customport/channel-7",
 				},
 			},
 		},
@@ -107,4 +106,18 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 			suite.Require().Equal(tc.expectedTraces, traces)
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
+	// IBCDenom() previously would return "customport/channel-0/uatom", but now should return ibc/{hash}
+	corruptedDenomTrace := transfertypes.DenomTrace{
+		BaseDenom: "customport/channel-0/uatom",
+		Path:      "",
+	}
+	suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), corruptedDenomTrace)
+
+	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+	suite.Panics(func() {
+		migrator.MigrateTraces(suite.chainA.GetContext())
+	})
 }
