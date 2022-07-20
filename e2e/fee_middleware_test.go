@@ -198,6 +198,112 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 	})
 }
 
+func (s *FeeMiddlewareTestSuite) TestAsyncSingleSenderNoCounterPartyAddress() {
+	t := s.T()
+	ctx := context.TODO()
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+	chainA, dstChain := s.GetChains()
+
+	var (
+		chainADenom        = chainA.Config().Denom
+		testFee            = testvalues.DefaultFee(chainADenom)
+		chainATx           ibc.Tx
+		payPacketFeeTxResp sdk.TxResponse
+	)
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	t.Run("relayer wallets recovered", func(t *testing.T) {
+		s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, dstChain), "failed to wait for blocks")
+
+	chain1WalletToChain2WalletAmount := ibc.WalletAmount{
+		Address: chainBWallet.Bech32Address(dstChain.Config().Bech32Prefix), // destination address
+		Denom:   chainA.Config().Denom,
+		Amount:  10000,
+	}
+
+	var srcTx ibc.Tx
+	t.Run("send IBC transfer", func(t *testing.T) {
+		var err error
+		srcTx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chain1WalletToChain2WalletAmount, nil)
+		s.Require().NoError(err)
+		s.Require().NoError(srcTx.Validate(), "source ibc transfer tx is invalid")
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - chain1WalletToChain2WalletAmount.Amount - chainA.GetGasFeesInNativeDenom(srcTx.GasSpent)
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("pay packet fee", func(t *testing.T) {
+		t.Run("no incentivized packets", func(t *testing.T) {
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			s.Require().NoError(err)
+			s.Require().Empty(packets)
+		})
+
+		t.Run("should succeed", func(t *testing.T) {
+			packetId := channeltypes.NewPacketId(channelA.ChannelID, channelA.ChannelID, 1)
+			packetFee := feetypes.NewPacketFee(testFee, chainAWallet.KeyName, nil)
+			var err error
+			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(payPacketFeeTxResp)
+		})
+
+		t.Run("should be incentivized packets", func(t *testing.T) {
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			s.Require().NoError(err)
+			s.Require().Len(packets, 1)
+			actualFee := packets[0].PacketFees[0].Fee
+
+			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+		})
+	})
+
+	t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
+		// The balance should be lowered by the sum of the recv, ack and timeout fees.
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
+		expected := testvalues.StartingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("with no counter party address", func(t *testing.T) {
+		t.Run("packets are relayed", func(t *testing.T) {
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			s.Require().NoError(err)
+			s.Require().Empty(packets)
+		})
+
+		t.Run("timeout and recv fee are refunded", func(t *testing.T) {
+			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+			s.Require().NoError(err)
+
+			gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
+			// once the relayer has relayed the packets, the timeout and recv fee should be refunded.
+			expected := testvalues.StartingTokenAmount - chain1WalletToChain2WalletAmount.Amount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64()
+			s.Require().Equal(expected, actualBalance)
+		})
+	})
+}
+
 // feeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
 func feeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
