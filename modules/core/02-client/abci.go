@@ -8,7 +8,7 @@ import (
 )
 
 // BeginBlocker is used to perform IBC client upgrades
-func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
+func BeginBlocker(ctx sdk.Context, k keeper.Keeper, cbs ...func(sdk.Events)) {
 	plan, found := k.GetUpgradePlan(ctx)
 	if found {
 		// Once we are at the last block this chain will commit, set the upgraded consensus state
@@ -26,7 +26,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			bz := k.MustMarshalConsensusState(upgradedConsState)
 
 			k.SetUpgradedConsensusState(ctx, plan.Height, bz)
-			keeper.EmitUpgradeChainEvent(ctx, plan.Height)
+			keeper.EmitUpgradeChainEvent(ctx, plan.Height, cbs...)
 		}
 	}
 }
