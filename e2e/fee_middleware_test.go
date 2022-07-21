@@ -137,7 +137,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount - chainA.GetGasFeesInNativeDenom(chainATx.GasSpent)
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -173,8 +173,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
 
-			gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
-			expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
@@ -193,9 +192,8 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 }
@@ -280,8 +278,7 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		gasFees := chainA.GetGasFeesInNativeDenom(multiMsgTxResponse.GasWanted)
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - testFee.Total().AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -299,9 +296,8 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		gasFees := chainA.GetGasFeesInNativeDenom(multiMsgTxResponse.GasWanted)
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
