@@ -51,7 +51,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	for _, nt := range newTraces {
 		m.keeper.SetDenomTrace(ctx, nt)
 	}
-	return nil 
+	return nil
 }
 
 func equalTraces(dtA, dtB types.DenomTrace) bool {
