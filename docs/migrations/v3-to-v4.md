@@ -18,7 +18,27 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
-- No relevant changes were made in this release.
+### Migration to fix support for base denoms with slashes
+
+As part of [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0), [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) and [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) some [migration handler code sample was documented](https://github.com/cosmos/ibc-go/blob/main/docs/migrations/support-denoms-with-slashes.md#upgrade-proposal) that needs to run in order to correct the trace information of coins transferred using ICS20 whose base denom contains slashes.
+
+Based on feedback from the community we add now an improved solution to run the same migration that does not require copying a large piece of code over from the migration document, but instead requires only adding a one-line upgrade handler.
+
+If the chain will migrate to supporting base denoms with slashes, it must set the appropriate params during the execution of the upgrade handler in `app.go`: 
+```go
+app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
+    func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+        // transfer module consensus version has been bumped to 2
+        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    })
+
+```
+
+If a chain receives coins of a base denom with slashes before it upgrades to supporting it, the receive may pass however the trace information will be incorrect.
+
+E.g. If a base denom of `testcoin/testcoin/testcoin` is sent to a chain that does not support slashes in the base denom, the receive will be successful. However, the trace information stored on the receiving chain will be: `Trace: "transfer/{channel-id}/testcoin/testcoin", BaseDenom: "testcoin"`.
+
+This incorrect trace information must be corrected when the chain does upgrade to fully supporting denominations with slashes.
 
 ## IBC Apps
 
