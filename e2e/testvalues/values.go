@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	StartingTokenAmount int64 = 10_000_000
-	IBCTransferAmount   int64 = 10_000
+	StartingTokenAmount int64  = 10_000_000
+	IBCTransferAmount   int64  = 10_000
+	ImmediatelyTimeout  uint64 = 1
 )
 
 func DefaultFee(denom string) feetypes.Fee {
