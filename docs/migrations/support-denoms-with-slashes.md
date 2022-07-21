@@ -9,7 +9,7 @@ There are four sections based on the four potential user groups of this document
 - Relayers
 - IBC Light Clients
 
-This document is necessary when chains are upgrading from a version that does not support base denoms with slashes (e.g. v3.0.0) to a version that does (e.g. v3.1.0). All versions of ibc-go smaller than v1.5.0 for the v1.x release line, v2.3.0 for the v2.x release line, and v3.1.0 for the v3.x release line do *NOT** support IBC token transfers of coins whose base denoms contain slashes. Therefore the in-place of genesis migration described in this document are required when upgrading.
+This document is necessary when chains are upgrading from a version that does not support base denoms with slashes (e.g. v3.0.0) to a version that does (e.g. v3.2.0). All versions of ibc-go smaller than v1.5.0 for the v1.x release line, v2.3.0 for the v2.x release line, and v3.1.0 for the v3.x release line do **NOT** support IBC token transfers of coins whose base denoms contain slashes. Therefore the in-place of genesis migration described in this document are required when upgrading.
 
 If a chain receives coins of a base denom with slashes before it upgrades to supporting it, the receive may pass however the trace information will be incorrect.
 
@@ -28,9 +28,9 @@ The transfer module will now support slashes in base denoms, so we must iterate 
 ### Upgrade Proposal
 
 ```go
-// Here the upgrade name is the upgrade name set by the chain
-app.UpgradeKeeper.SetUpgradeHandler("supportSlashedDenomsUpgrade",
+app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
     func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+<<<<<<< HEAD
         // list of traces that must replace the old traces in store
         var newTraces []ibctransfertypes.DenomTrace
         app.TransferKeeper.IterateDenomTraces(ctx,
@@ -54,11 +54,17 @@ app.UpgradeKeeper.SetUpgradeHandler("supportSlashedDenomsUpgrade",
 
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     })
+=======
+        // transfer module consensus version has been bumped to 2
+        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+    })
+
+>>>>>>> be5ccf3 (chore: denom traces migration handler (#1680))
 ```
 
 This is only necessary if there are denom traces in the store with incorrect trace information from previously received coins that had a slash in the base denom. However, it is recommended that any chain upgrading to support base denominations with slashes runs this code for safety.
 
-For a more detailed sample, please check out the code changes in [this pull request](https://github.com/cosmos/ibc-go/pull/1527).
+For a more detailed sample, please check out the code changes in [this pull request](https://github.com/cosmos/ibc-go/pull/1680).
 
 ### Genesis Migration
 
