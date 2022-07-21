@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
@@ -232,7 +233,11 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx)
+
+	relayerAStartingBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
+	s.Require().NoError(err)
+	t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
 
 	t.Run("register counter party payee", func(t *testing.T) {
 		multiMsgTxResponse, err = s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
@@ -284,6 +289,7 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
+		time.Sleep(10 * time.Second)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -300,6 +306,20 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("relayerA is paid ack fee", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
+		s.Require().NoError(err)
+		expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("relayerB is paid recv fee", func(t *testing.T) {
+		//actualBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
+		//s.Require().NoError(err)
+		//expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64()
+		//s.Require().Equal(expected, actualBalance)
 	})
 }
 
