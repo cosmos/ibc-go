@@ -305,14 +305,12 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	// TODO: we cannot correctly assert the balance of the relayer user on chain A yet as gas fees have been
-	// paid and we do not know how much has been spent.
-	//t.Run("relayerA is paid ack and recv fee", func(t *testing.T) {
-	//	actualBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
-	//	s.Require().NoError(err)
-	//	expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64() + testFee.RecvFee.AmountOf(chainADenom).Int64()
-	//	s.Require().Equal(expected, actualBalance)
-	//})
+	t.Run("relayerA is paid ack and recv fee", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
+		s.Require().NoError(err)
+		expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64() + testFee.RecvFee.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
 }
 
 // feeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
