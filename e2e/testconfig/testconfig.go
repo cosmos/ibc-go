@@ -85,7 +85,7 @@ func newDefaultSimappConfig(tc TestConfig, name, chainID, denom string) ibc.Chai
 		Bin:            "simd",
 		Bech32Prefix:   "cosmos",
 		Denom:          denom,
-		GasPrices:      fmt.Sprintf("0.01%s", denom),
+		GasPrices:      fmt.Sprintf("0.00%s", denom),
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
