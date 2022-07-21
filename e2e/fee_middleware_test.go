@@ -80,7 +80,7 @@ func (s *FeeMiddlewareTestSuite) QueryIncentivizedPacketsForChannel(
 	return res.IncentivizedPackets, err
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
+func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -310,7 +310,7 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSenderTimesOut() {
+func (s *FeeMiddlewareTestSuite) TestMsgPayPacket_FeeSingleSender_TimesOut() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -372,7 +372,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSenderTimesOut() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount - chainA.GetGasFeesInNativeDenom(chainATx.GasSpent)
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -409,8 +409,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSenderTimesOut() {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
 
-			gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
-			expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 
@@ -430,8 +429,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSenderTimesOut() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
-		expected := testvalues.StartingTokenAmount - gasFees - testFee.TimeoutFee.AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - testFee.TimeoutFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 }
