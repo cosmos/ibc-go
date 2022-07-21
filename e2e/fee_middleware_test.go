@@ -309,7 +309,7 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterPartyAddress() {
+func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -349,7 +349,7 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount - chainA.GetGasFeesInNativeDenom(chainATx.GasSpent)
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -387,8 +387,7 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -407,9 +406,8 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsyncSingleSenderNoCounterParty
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
 
-			gasFees := chainA.GetGasFeesInNativeDenom(chainATx.GasSpent) + chainA.GetGasFeesInNativeDenom(payPacketFeeTxResp.GasWanted)
 			// once the relayer has relayed the packets, the timeout and recv fee should be refunded.
-			expected := testvalues.StartingTokenAmount - walletAmount.Amount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.AckFee.AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
