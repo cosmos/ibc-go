@@ -41,7 +41,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
 
 - [ ] Bump [go package version](https://github.com/cosmos/ibc-go/blob/main/go.mod#L3).
 - [ ] Change all imports starting with `github.com/cosmos/ibc-go/v{x}` to ``github.com/cosmos/ibc-go/v{x+1}`.
-- [ ] Branch off main to create release branch in the form  of `release/vx.y.z.`.
+- [ ] Branch off main to create release branch in the form  of `release/vx.y.z`.
 - [ ] Add branch protection rules to new release branch.
 - [ ] Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml)
 - [ ] Upgrade ibc-go version in [ibctest](https://github.com/strangelove-ventures/ibctest).
