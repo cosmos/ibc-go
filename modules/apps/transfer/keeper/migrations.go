@@ -20,14 +20,12 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // MigrateTraces migrates the DenomTraces to the correct format, accounting for slashes in the BaseDenom.
 func (m Migrator) MigrateTraces(ctx sdk.Context) error {
-	var iterErr error
 
 	// list of traces that must replace the old traces in store
 	var newTraces []types.DenomTrace
 	m.keeper.IterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
 			// check if the new way of splitting FullDenom
-			// into Trace and BaseDenom passes validation and
 			// is the same as the current DenomTrace.
 			// If it isn't then store the new DenomTrace in the list of new traces.
 			newTrace := types.ParseDenomTrace(dt.GetFullDenomPath())
@@ -53,7 +51,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	for _, nt := range newTraces {
 		m.keeper.SetDenomTrace(ctx, nt)
 	}
-	return iterErr
+	return nil 
 }
 
 func equalTraces(dtA, dtB types.DenomTrace) bool {
