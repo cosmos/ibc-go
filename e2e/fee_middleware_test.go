@@ -200,7 +200,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeAsyncSingleSender() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSender() {
+func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -208,6 +208,12 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSender() {
 	_ = relayer
 
 	chainA, chainB := s.GetChains()
+
+	var (
+		chainADenom        = chainA.Config().Denom
+		testFee            = testvalues.DefaultFee(chainADenom)
+		multiMsgTxResponse sdk.TxResponse
+	)
 
 	transferAmount := testvalues.DefaultTransferAmount(chainA.Config().Denom)
 
@@ -229,9 +235,9 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSender() {
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
 	t.Run("register counter party payee", func(t *testing.T) {
-		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+		multiMsgTxResponse, err = s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
 		s.Require().NoError(err)
-		s.AssertValidTxResponse(resp)
+		s.AssertValidTxResponse(multiMsgTxResponse)
 	})
 
 	t.Run("verify counter party payee", func(t *testing.T) {
@@ -246,7 +252,6 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSender() {
 		s.Require().Empty(packets)
 	})
 
-	testFee := testvalues.DefaultFee(chainA.Config().Denom)
 	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 	transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
 	resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
@@ -265,6 +270,36 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFeeSingleSender() {
 		s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
 		s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
 		s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+	})
+
+	t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
+		// The balance should be lowered by the sum of the recv, ack and timeout fees.
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		gasFees := chainA.GetGasFeesInNativeDenom(multiMsgTxResponse.GasWanted)
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - gasFees - testFee.Total().AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Empty(packets)
+	})
+
+	t.Run("timeout fee is refunded", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		gasFees := chainA.GetGasFeesInNativeDenom(multiMsgTxResponse.GasWanted)
+		// once the relayer has relayed the packets, the timeout fee should be refunded.
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - gasFees - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
 	})
 }
 
