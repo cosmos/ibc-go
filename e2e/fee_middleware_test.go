@@ -3,7 +3,6 @@ package e2e
 import (
 	"context"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
@@ -254,8 +253,7 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	})
 
 	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-	oneHourFromNow := uint64(time.Now().Add(time.Hour * 1).Nanosecond())
-	transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.ZeroHeight(), oneHourFromNow)
+	transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
 	resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
 
 	t.Run("transfer successful", func(t *testing.T) {
