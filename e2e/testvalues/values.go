@@ -19,3 +19,7 @@ func DefaultFee(denom string) feetypes.Fee {
 		TimeoutFee: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(10))),
 	}
 }
+
+func DefaultTransferAmount(denom string) sdk.Coin {
+	return sdk.Coin{Denom: denom, Amount: sdk.NewInt(IBCTransferAmount)}
+}
