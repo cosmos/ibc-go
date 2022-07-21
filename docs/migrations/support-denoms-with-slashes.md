@@ -30,36 +30,9 @@ The transfer module will now support slashes in base denoms, so we must iterate 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
     func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-<<<<<<< HEAD
-        // list of traces that must replace the old traces in store
-        var newTraces []ibctransfertypes.DenomTrace
-        app.TransferKeeper.IterateDenomTraces(ctx,
-            func(dt ibctransfertypes.DenomTrace) bool {
-                // check if the new way of splitting FullDenom
-                // into Trace and BaseDenom passes validation and
-                // is the same as the current DenomTrace.
-                // If it isn't then store the new DenomTrace in the list of new traces.
-                newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
-                if err := newTrace.Validate(); err == nil && !reflect.DeepEqual(newTrace, dt) {
-                    newTraces = append(newTraces, newTrace)
-                }
-
-                return false
-            })
-
-        // replace the outdated traces with the new trace information
-        for _, nt := range newTraces {
-            app.TransferKeeper.SetDenomTrace(ctx, nt)
-        }
-
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    })
-=======
         // transfer module consensus version has been bumped to 2
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     })
-
->>>>>>> be5ccf3 (chore: denom traces migration handler (#1680))
 ```
 
 This is only necessary if there are denom traces in the store with incorrect trace information from previously received coins that had a slash in the base denom. However, it is recommended that any chain upgrading to support base denominations with slashes runs this code for safety.
