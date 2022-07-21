@@ -13,23 +13,23 @@
 
 # CODEOWNERS for the core IBC module
 
-/modules/core/ @colin-axner @fedekunze @AdityaSripal 
-/proto/ibc/core/ @colin-axner @fedekunze @AdityaSripal 
+/modules/core/ @colin-axner @AdityaSripal 
+/proto/ibc/core/ @colin-axner @AdityaSripal 
 
 ## CODEOWNERS for core/02-client
 
-/modules/core/02-client @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
-/proto/ibc/core/client @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
+/modules/core/02-client @colin-axner @AdityaSripal @seantking @damiannolan
+/proto/ibc/core/client @colin-axner @AdityaSripal @seantking @damiannolan
 
 # CODEOWNERS for the light-clients
 
-/modules/light-clients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
-/proto/ibc/lightclients/ @colin-axner @fedekunze @AdityaSripal @seantking @damiannolan
+/modules/light-clients/ @colin-axner @AdityaSripal @seantking @damiannolan
+/proto/ibc/lightclients/ @colin-axner @AdityaSripal @seantking @damiannolan
 
 # CODEOWNERS for ICS 20
 
-/modules/apps/transfer/ @colin-axner @fedekunze @AdityaSripal 
-/proto/ibc/applications/transfer/ @colin-axner @fedekunze @AdityaSripal 
+/modules/apps/transfer/ @colin-axner @AdityaSripal 
+/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal 
 
 # CODEOWNERS for interchain-accounts module
 
