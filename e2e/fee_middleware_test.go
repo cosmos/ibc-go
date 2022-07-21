@@ -310,7 +310,7 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacket_FeeSingleSender_TimesOut() {
+func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	t := s.T()
 	ctx := context.TODO()
 
