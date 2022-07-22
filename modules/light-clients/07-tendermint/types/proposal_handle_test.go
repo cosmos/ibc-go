@@ -70,40 +70,12 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 // this is to prevent headers from failing when attempting to update later.
 func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
-		name         string
-		FreezeClient bool
-		ExpireClient bool
-		expPass      bool
+		name    string
+		expPass bool
 	}{
 		{
-			name:         "PASS: update checks are deprecated, client is frozen and expired",
-			FreezeClient: true,
-			ExpireClient: true,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, not frozen or expired",
-			FreezeClient: false,
-			ExpireClient: false,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, not frozen or expired",
-			FreezeClient: false,
-			ExpireClient: false,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, client is frozen",
-			FreezeClient: true,
-			ExpireClient: false,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, client is expired",
-			FreezeClient: false,
-			ExpireClient: true,
-			expPass:      true,
+			name:    "PASS: update checks are deprecated, client is frozen and expired",
+			expPass: true,
 		},
 	}
 
@@ -121,16 +93,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(subjectPath)
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
-
-			// apply freezing or expiry as determined by the test case
-			if tc.FreezeClient {
-				subjectClientState.FrozenHeight = frozenHeight
-			}
-			if tc.ExpireClient {
-				// expire subject client
-				suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
-				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
-			}
 
 			// construct the substitute to match the subject client
 			// NOTE: the substitute is explicitly created after the freezing or expiry occurs,
