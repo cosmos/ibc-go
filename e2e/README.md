@@ -210,7 +210,7 @@ In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain l
 
 ### How tests are run
 
-The tests use the [matrix](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs) feature of Github Actions. The matrix is
+The tests use the `matrix` feature of Github Actions. The matrix is
 dynamically generated using [this script](https://github.com/cosmos/ibc-go/blob/main/.github/scripts/build_test_matrix.go).
 
 > Note: there is currently a limitation that all tests belonging to a test suite must be in the same file.
