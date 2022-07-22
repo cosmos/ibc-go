@@ -2,12 +2,11 @@ package testsuite
 
 import (
 	"context"
+	"e2e/testconfig"
 	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
-
-	"e2e/testconfig"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
