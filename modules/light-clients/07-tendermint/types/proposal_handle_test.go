@@ -66,15 +66,13 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 	}
 }
 
-// to expire clients, time needs to be fast forwarded on both chainA and chainB.
-// this is to prevent headers from failing when attempting to update later.
 func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
 		name    string
 		expPass bool
 	}{
 		{
-			name:    "PASS: update checks are deprecated, client is frozen and expired",
+			name:    "PASS: update checks are deprecated",
 			expPass: true,
 		},
 	}
@@ -82,11 +80,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	for _, tc := range testCases {
 		tc := tc
 
-		// for each test case a header used for unexpiring clients and unfreezing
-		// a client are each tested to ensure that unexpiry headers cannot update
-		// a client when a unfreezing header is required.
 		suite.Run(tc.name, func() {
-			// start by testing unexpiring the client
 			suite.SetupTest() // reset
 
 			// construct subject using test case parameters
@@ -95,10 +89,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
 
 			// construct the substitute to match the subject client
-			// NOTE: the substitute is explicitly created after the freezing or expiry occurs,
-			// primarily to prevent the substitute from becoming frozen. It also should be
-			// the natural flow of events in practice. The subject will become frozen/expired
-			// and a substitute will be created along with a governance proposal as a response
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
