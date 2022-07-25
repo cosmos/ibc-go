@@ -97,28 +97,35 @@ func (suite *ClientTestSuite) TestBeginBlockerWithUpgradePlan_EmitsUpgradeChainE
 	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
 	suite.Require().NoError(err)
 
-	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper, suite.requireContainsEvent(types.EventTypeUpgradeChain, true))
+	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
+
+	client.BeginBlocker(cacheCtx, suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	writeCache()
+
+	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
 }
 
 func (suite *ClientTestSuite) TestBeginBlockerWithoutUpgradePlan_DoesNotEmitUpgradeChainEvent() {
-	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper, suite.requireContainsEvent(types.EventTypeUpgradeChain, false))
+	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
+	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	writeCache()
+	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
 }
 
 // requireContainsEvent returns a callback function which can be used to verify an event of a specific type was emitted.
-func (suite *ClientTestSuite) requireContainsEvent(eventType string, shouldContain bool) func(events sdk.Events) {
-	return func(events sdk.Events) {
-		found := false
-		var eventTypes []string
-		for _, e := range events {
-			eventTypes = append(eventTypes, e.Type)
-			if e.Type == eventType {
-				found = true
-			}
+func (suite *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType string, shouldContain bool) {
+	found := false
+	var eventTypes []string
+	for _, e := range events {
+		eventTypes = append(eventTypes, e.Type)
+		if e.Type == eventType {
+			found = true
+			break
 		}
-		if shouldContain {
-			suite.Require().True(found, "event type %s was not found in %s", eventType, strings.Join(eventTypes, ","))
-		} else {
-			suite.Require().False(found, "event type %s was found in %s", eventType, strings.Join(eventTypes, ","))
-		}
+	}
+	if shouldContain {
+		suite.Require().True(found, "event type %s was not found in %s", eventType, strings.Join(eventTypes, ","))
+	} else {
+		suite.Require().False(found, "event type %s was found in %s", eventType, strings.Join(eventTypes, ","))
 	}
 }

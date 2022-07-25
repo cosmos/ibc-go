@@ -105,16 +105,12 @@ func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState e
 }
 
 // EmitUpgradeChainEvent emits an upgrade chain event.
-func EmitUpgradeChainEvent(ctx sdk.Context, height int64, cbs ...func(sdk.Events)) {
-	events := sdk.Events{
+func EmitUpgradeChainEvent(ctx sdk.Context, height int64) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpgradeChain,
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.Itoa(int(height))),
 			sdk.NewAttribute(types.AttributeKeyUpgradeStore, upgradetypes.StoreKey), // which store to query proof of consensus state from
 		),
-	}
-	ctx.EventManager().EmitEvents(events)
-	for _, fn := range cbs {
-		fn(events)
-	}
+	})
 }
