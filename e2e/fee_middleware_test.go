@@ -336,8 +336,6 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 		s.Require().NoError(err)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
 	t.Run("register counter party payee", func(t *testing.T) {
@@ -352,15 +350,14 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 		s.Require().Equal(chainARelayerWallet.Address, address)
 	})
 
-	walletAmount := ibc.WalletAmount{
+	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
 		Denom:   chainA.Config().Denom,
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
 	t.Run("Send IBC transfer", func(t *testing.T) {
-		var err error
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, &ibc.IBCTimeout{
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, &ibc.IBCTimeout{
 			NanoSeconds: testvalues.ImmediatelyTimeout,
 		})
 		s.Require().NoError(err)
@@ -372,7 +369,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount
+		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -409,7 +406,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 

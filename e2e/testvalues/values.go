@@ -7,9 +7,11 @@ import (
 )
 
 const (
-	StartingTokenAmount int64  = 10_000_000
-	IBCTransferAmount   int64  = 10_000
-	ImmediatelyTimeout  uint64 = 1
+	StartingTokenAmount int64 = 10_000_000
+	IBCTransferAmount   int64 = 10_000
+	// ImmediatelyTimeout can be used as the value for timeout in nano seconds when we want
+	// something to timeout immediately.
+	ImmediatelyTimeout uint64 = 1
 )
 
 func DefaultFee(denom string) feetypes.Fee {
