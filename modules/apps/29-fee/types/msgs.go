@@ -133,9 +133,9 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
-	// enforce relayer is nil
-	if msg.Relayers != nil {
-		return ErrRelayersNotNil
+	// enforce relayer is not set
+	if len(msg.Relayers) != 0 {
+		return ErrRelayersNotEmpty
 	}
 
 	if err := msg.Fee.Validate(); err != nil {
