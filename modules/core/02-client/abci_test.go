@@ -112,7 +112,7 @@ func (suite *ClientTestSuite) TestBeginBlockerWithoutUpgradePlan_DoesNotEmitUpgr
 	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
 }
 
-// requireContainsEvent returns a callback function which can be used to verify an event of a specific type was emitted.
+// requireContainsEvent verifies if an event of a specific type was emitted.
 func (suite *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType string, shouldContain bool) {
 	found := false
 	var eventTypes []string
