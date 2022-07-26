@@ -4,17 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gorilla/mux"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
