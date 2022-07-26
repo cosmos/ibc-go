@@ -6,10 +6,11 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"io/fs"
 )
 
 const (
@@ -69,7 +70,6 @@ func getGithubActionMatrixForTests(e2eRootDirectory string) (GithubActionTestMat
 
 		return nil
 	})
-
 	if err != nil {
 		return GithubActionTestMatrix{}, err
 	}

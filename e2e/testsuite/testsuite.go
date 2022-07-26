@@ -2,12 +2,11 @@ package testsuite
 
 import (
 	"context"
+	"e2e/testconfig"
 	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
-
-	"e2e/testconfig"
 
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
