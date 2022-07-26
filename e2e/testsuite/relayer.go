@@ -1,9 +1,9 @@
 package testsuite
 
 import (
+	"e2e/testconfig"
 	"testing"
 
-	"e2e/testconfig"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/ibc"

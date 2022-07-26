@@ -2,10 +2,10 @@ package e2e
 
 import (
 	"context"
-	"testing"
-
 	"e2e/testsuite"
 	"e2e/testvalues"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
