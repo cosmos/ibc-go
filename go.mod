@@ -122,7 +122,6 @@ require (
 )
 
 require (
-	github.com/cosmos/ibc-go/v4 v4.0.0-rc1
 	github.com/gin-gonic/gin v1.7.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/rs/zerolog v1.27.0 // indirect
