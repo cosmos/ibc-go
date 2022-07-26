@@ -22,8 +22,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"e2e/testconfig"
-
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )
 
