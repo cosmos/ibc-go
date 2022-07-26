@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
+
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
