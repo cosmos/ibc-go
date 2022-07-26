@@ -109,7 +109,7 @@ func EmitUpgradeChainEvent(ctx sdk.Context, height int64) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpgradeChain,
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.Itoa(int(height))),
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.FormatInt(height, 10)),
 			sdk.NewAttribute(types.AttributeKeyUpgradeStore, upgradetypes.StoreKey), // which store to query proof of consensus state from
 		),
 	})
