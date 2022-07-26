@@ -93,7 +93,7 @@ ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
-all: tools build lint test
+all: build lint test
 
 # The below include contains the tools and runsim targets.
 #include contrib/devtools/Makefile
@@ -156,7 +156,7 @@ mocks: $(MOCKS_DIR)
 $(MOCKS_DIR):
 	mkdir -p $(MOCKS_DIR)
 
-distclean: clean tools-clean
+distclean: clean 
 clean:
 	rm -rf \
     $(BUILDDIR)/ \
@@ -337,10 +337,9 @@ lint-fix:
 	golangci-lint run --fix --out-format=tab --issues-exit-code=0
 .PHONY: lint lint-fix
 
-format:
+format: goimports
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs gofmt -w -s
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs goimports -w -local github.com/cosmos/cosmos-sdk
 .PHONY: format
 
 goimports:
