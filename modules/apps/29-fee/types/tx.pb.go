@@ -6,7 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	types "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
