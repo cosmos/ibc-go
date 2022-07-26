@@ -357,9 +357,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	}
 
 	t.Run("Send IBC transfer", func(t *testing.T) {
-		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, &ibc.IBCTimeout{
-			NanoSeconds: testvalues.ImmediatelyTimeout,
-		})
+		chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, testvalues.ImmediatelyTimeout())
 		s.Require().NoError(err)
 		s.Require().NoError(chainATx.Validate(), "source ibc transfer tx is invalid")
 		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately

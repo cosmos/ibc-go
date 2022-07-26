@@ -2,6 +2,7 @@ package testvalues
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/strangelove-ventures/ibctest/ibc"
 
 	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 )
@@ -9,10 +10,14 @@ import (
 const (
 	StartingTokenAmount int64 = 10_000_000
 	IBCTransferAmount   int64 = 10_000
-	// ImmediatelyTimeout can be used as the value for timeout in nano seconds when we want
-	// something to timeout immediately.
-	ImmediatelyTimeout uint64 = 1
 )
+
+// ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immeidately.
+func ImmediatelyTimeout() *ibc.IBCTimeout {
+	return &ibc.IBCTimeout{
+		NanoSeconds: 1,
+	}
+}
 
 func DefaultFee(denom string) feetypes.Fee {
 	return feetypes.Fee{
