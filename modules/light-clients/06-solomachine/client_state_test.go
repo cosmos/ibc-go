@@ -1,7 +1,10 @@
 package solomachine_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
@@ -145,6 +148,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			height      clienttypes.Height
 			path        []byte
 			proof       []byte
+			testingPath *ibctesting.Path
 			signBytes   solomachine.SignBytesV2
 		)
 
@@ -161,13 +165,17 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: client state verification",
 				func() {
+					clientState = sm.ClientState()
+					clientStateBz, err := suite.chainA.Codec.Marshal(clientState)
+					suite.Require().NoError(err)
+
 					merklePath := suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
 					signBytes = solomachine.SignBytesV2{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.ClientState"),
+						Data:        clientStateBz,
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -192,13 +200,18 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: consensus state verification",
 				func() {
+					clientState = sm.ClientState()
+					consensusState := clientState.ConsensusState
+					consensusStateBz, err := suite.chainA.Codec.Marshal(consensusState)
+					suite.Require().NoError(err)
+
 					merklePath := sm.GetConsensusStatePath(counterpartyClientIdentifier, height)
 					signBytes = solomachine.SignBytesV2{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.ConsensusState"),
+						Data:        consensusStateBz,
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -222,13 +235,21 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: connection state verification",
 				func() {
+					suite.coordinator.SetupConnections(testingPath)
+
+					connectionEnd, found := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetConnection(suite.chainA.GetContext(), ibctesting.FirstConnectionID)
+					suite.Require().True(found)
+
+					connectionEndBz, err := suite.chainA.Codec.Marshal(&connectionEnd)
+					suite.Require().NoError(err)
+
 					merklePath := sm.GetConnectionStatePath(ibctesting.FirstConnectionID)
 					signBytes = solomachine.SignBytesV2{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.ConnectionState"),
+						Data:        connectionEndBz,
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -252,13 +273,22 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: channel state verification",
 				func() {
+					suite.coordinator.SetupConnections(testingPath)
+					suite.coordinator.CreateMockChannels(testingPath)
+
+					channelEnd, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
+					suite.Require().True(found)
+
+					channelEndBz, err := suite.chainA.Codec.Marshal(&channelEnd)
+					suite.Require().NoError(err)
+
 					merklePath := sm.GetChannelStatePath(ibctesting.MockPort, ibctesting.FirstChannelID)
 					signBytes = solomachine.SignBytesV2{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.ChannelState"),
+						Data:        channelEndBz,
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -282,13 +312,19 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: next sequence recv verification",
 				func() {
+					suite.coordinator.SetupConnections(testingPath)
+					suite.coordinator.CreateMockChannels(testingPath)
+
+					nextSeqRecv, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
+					suite.Require().True(found)
+
 					merklePath := sm.GetNextSequenceRecvPath(ibctesting.MockPort, ibctesting.FirstChannelID)
 					signBytes = solomachine.SignBytesV2{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.NextSequenceRecv"),
+						Data:        sdk.Uint64ToBigEndian(nextSeqRecv),
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -312,13 +348,25 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: packet commitment verification",
 				func() {
+					packet := channeltypes.NewPacket(
+						ibctesting.MockPacketData,
+						1,
+						ibctesting.MockPort,
+						ibctesting.FirstChannelID,
+						ibctesting.MockPort,
+						ibctesting.FirstChannelID,
+						clienttypes.NewHeight(0, 10),
+						0,
+					)
+
+					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
 					merklePath := sm.GetPacketCommitmentPath(ibctesting.MockPort, ibctesting.FirstChannelID)
 					signBytes = solomachine.SignBytesV2{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.PacketCommitment"),
+						Data:        commitmentBz,
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -348,7 +396,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.PacketAcknowledgement"),
+						Data:        ibctesting.MockAcknowledgement,
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -378,7 +426,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
 						Path:        []byte(merklePath.String()),
-						Data:        []byte("solomachine.PacketReceipt"),
+						Data:        []byte{byte(1)}, // packet receipt is stored as a single byte
 					}
 
 					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
@@ -501,6 +549,9 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
+				suite.SetupTest()
+				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
+
 				clientState = sm.ClientState()
 				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
 
