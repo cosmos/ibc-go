@@ -51,6 +51,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
 
 - [ ] Update [`CHANGELOG.md`](https://github.com/cosmos/ibc-go/blob/main/CHANGELOG.md)
 - [ ] Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md).
+- [ ] Update [version matrix](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#version-matrix) in `RELEASES.md`.
 - [ ] Update docs site:
   - [ ] Add new release branch to [`docs/versions`](https://github.com/cosmos/ibc-go/blob/main/docs/versions) file.
   - [ ] Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L33).
