@@ -2,17 +2,16 @@ package e2e
 
 import (
 	"context"
-	"e2e/testsuite"
-	"e2e/testvalues"
 	"testing"
 
+	"e2e/testsuite"
+	"e2e/testvalues"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"

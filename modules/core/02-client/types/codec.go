@@ -1,13 +1,12 @@
 package types
 
 import (
-	proto "github.com/gogo/protobuf/proto"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	proto "github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )

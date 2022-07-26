@@ -3,10 +3,9 @@ package ibctesting_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
 
 	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )

@@ -1,9 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"

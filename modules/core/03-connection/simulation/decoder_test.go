@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/cosmos-sdk/types/kv"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/simulation"
 	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
