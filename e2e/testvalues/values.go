@@ -12,7 +12,7 @@ const (
 	IBCTransferAmount   int64 = 10_000
 )
 
-// ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immeidately.
+// ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
 func ImmediatelyTimeout() *ibc.IBCTimeout {
 	return &ibc.IBCTimeout{
 		NanoSeconds: 1,
