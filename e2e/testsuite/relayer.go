@@ -3,7 +3,7 @@ package testsuite
 import (
 	"testing"
 
-	"e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/ibc"
