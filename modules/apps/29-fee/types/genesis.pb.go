@@ -5,7 +5,7 @@ package types
 
 import (
 	fmt "fmt"
-	types "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	types "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"

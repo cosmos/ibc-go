@@ -14,10 +14,10 @@ import (
 	"e2e/testsuite"
 	"e2e/testvalues"
 
-	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
-	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
+	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
