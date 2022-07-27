@@ -149,7 +149,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			path        []byte
 			proof       []byte
 			testingPath *ibctesting.Path
-			signBytes   solomachine.SignBytesV2
+			signBytes   solomachine.SignBytes
 		)
 
 		testCases := []struct {
@@ -170,7 +170,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					merklePath := suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -206,7 +206,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					merklePath := sm.GetConsensusStatePath(counterpartyClientIdentifier, height)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -244,7 +244,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					merklePath := sm.GetConnectionStatePath(ibctesting.FirstConnectionID)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -283,7 +283,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					merklePath := sm.GetChannelStatePath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -319,7 +319,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().True(found)
 
 					merklePath := sm.GetNextSequenceRecvPath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -361,7 +361,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
 					merklePath := sm.GetPacketCommitmentPath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -391,7 +391,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				"success: packet acknowledgement verification",
 				func() {
 					merklePath := sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -421,7 +421,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				"success: packet receipt verification",
 				func() {
 					merklePath := sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -563,7 +563,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
 
 				merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
-				signBytes = solomachine.SignBytesV2{
+				signBytes = solomachine.SignBytes{
 					Sequence:    sm.GetHeight().GetRevisionHeight(),
 					Timestamp:   sm.Time,
 					Diversifier: sm.Diversifier,
@@ -622,7 +622,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			height      clienttypes.Height
 			path        []byte
 			proof       []byte
-			signBytes   solomachine.SignBytesV2
+			signBytes   solomachine.SignBytes
 		)
 
 		testCases := []struct {
@@ -639,7 +639,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				"success: packet receipt absence verification",
 				func() {
 					merklePath := suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					signBytes = solomachine.SignBytesV2{
+					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
 						Timestamp:   sm.Time,
 						Diversifier: sm.Diversifier,
@@ -791,7 +791,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
 
 				merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
-				signBytes = solomachine.SignBytesV2{
+				signBytes = solomachine.SignBytes{
 					Sequence:    sm.GetHeight().GetRevisionHeight(),
 					Timestamp:   sm.Time,
 					Diversifier: sm.Diversifier,

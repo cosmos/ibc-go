@@ -122,7 +122,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 	dataBz, err := solo.cdc.Marshal(data)
 	require.NoError(solo.t, err)
 
-	signBytes := &solomachinetypes.SignBytesV2{
+	signBytes := &solomachinetypes.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
@@ -162,7 +162,7 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
 	data, err := solo.cdc.Marshal(solo.ClientState())
 	require.NoError(solo.t, err)
 
-	signBytes := &solomachinetypes.SignBytesV2{
+	signBytes := &solomachinetypes.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
@@ -174,7 +174,7 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
 	require.NoError(solo.t, err)
 
 	sig := solo.GenerateSignature(bz)
-	signatureOne := solomachinetypes.SignatureAndDataV2{
+	signatureOne := solomachinetypes.SignatureAndData{
 		Signature: sig,
 		Path:      path,
 		Data:      data,
@@ -191,7 +191,7 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
 	data, err = solo.cdc.Marshal(solo.ConsensusState())
 	require.NoError(solo.t, err)
 
-	signBytes = &solomachinetypes.SignBytesV2{
+	signBytes = &solomachinetypes.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
@@ -203,7 +203,7 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
 	require.NoError(solo.t, err)
 
 	sig = solo.GenerateSignature(bz)
-	signatureTwo := solomachinetypes.SignatureAndDataV2{
+	signatureTwo := solomachinetypes.SignatureAndData{
 		Signature: sig,
 		Path:      path,
 		Data:      data,

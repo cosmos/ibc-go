@@ -52,15 +52,15 @@ message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
 
   // ClientID is deprecated
-  string             client_id     = 1 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_id\""];
-  uint64             sequence      = 2;
-  SignatureAndDataV2 signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  SignatureAndDataV2 signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+  string           client_id     = 1 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_id\""];
+  uint64           sequence      = 2;
+  SignatureAndData signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
+  SignatureAndData signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
 }
 
-// SignatureAndDataV2 contains a signature and the data signed over to create that
+// SignatureAndData contains a signature and the data signed over to create that
 // signature.
-message SignatureAndDataV2 {
+message SignatureAndData {
   option (gogoproto.goproto_getters) = false;
   bytes  signature                   = 1;
   bytes  path                        = 2;
@@ -76,8 +76,8 @@ message TimestampedSignatureData {
   uint64 timestamp                   = 2;
 }
 
-// SignBytesV2 defines the signed bytes used for signature verification.
-message SignBytesV2 {
+// SignBytes defines the signed bytes used for signature verification.
+message SignBytes {
   option (gogoproto.goproto_getters) = false;
 
   // the sequence number

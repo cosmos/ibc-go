@@ -54,7 +54,7 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 		return err
 	}
 
-	signBytes := &SignBytesV2{
+	signBytes := &SignBytes{
 		Sequence:    header.Sequence,
 		Timestamp:   header.Timestamp,
 		Diversifier: header.NewDiversifier,

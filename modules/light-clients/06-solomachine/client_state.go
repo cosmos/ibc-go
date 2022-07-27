@@ -128,7 +128,7 @@ func (cs *ClientState) VerifyMembership(
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
 	}
 
-	signBytes := &SignBytesV2{
+	signBytes := &SignBytes{
 		Sequence:    sequence,
 		Timestamp:   timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
@@ -174,7 +174,7 @@ func (cs *ClientState) VerifyNonMembership(
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal path into ICS 23 commitment merkle path")
 	}
 
-	signBytes := &SignBytesV2{
+	signBytes := &SignBytes{
 		Sequence:    sequence,
 		Timestamp:   timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,

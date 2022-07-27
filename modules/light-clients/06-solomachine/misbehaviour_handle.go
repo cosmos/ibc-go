@@ -9,13 +9,13 @@ import (
 // verifySignatureAndData verifies that the currently registered public key has signed
 // over the provided data and that the data is valid. The data is valid if it can be
 // unmarshaled into the specified data type.
-func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour *Misbehaviour, sigAndData *SignatureAndDataV2) error {
+func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour *Misbehaviour, sigAndData *SignatureAndData) error {
 	// do not check misbehaviour timestamp since we want to allow processing of past misbehaviour
 	if err := cdc.Unmarshal(sigAndData.Path, new(commitmenttypes.MerklePath)); err != nil {
 		return err
 	}
 
-	signBytes := SignBytesV2{
+	signBytes := SignBytes{
 		Sequence:    misbehaviour.Sequence,
 		Timestamp:   sigAndData.Timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,

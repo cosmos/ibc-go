@@ -54,7 +54,7 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 }
 
 // ValidateBasic ensures that the signature and data fields are non-empty.
-func (sd SignatureAndDataV2) ValidateBasic() error {
+func (sd SignatureAndData) ValidateBasic() error {
 	if len(sd.Signature) == 0 {
 		return sdkerrors.Wrap(ErrInvalidSignatureAndData, "signature cannot be empty")
 	}

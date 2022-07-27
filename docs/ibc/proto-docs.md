@@ -312,8 +312,8 @@
     - [Header](#ibc.lightclients.solomachine.v2.Header)
     - [HeaderData](#ibc.lightclients.solomachine.v2.HeaderData)
     - [Misbehaviour](#ibc.lightclients.solomachine.v2.Misbehaviour)
-    - [SignBytesV2](#ibc.lightclients.solomachine.v2.SignBytesV2)
-    - [SignatureAndDataV2](#ibc.lightclients.solomachine.v2.SignatureAndDataV2)
+    - [SignBytes](#ibc.lightclients.solomachine.v2.SignBytes)
+    - [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData)
     - [TimestampedSignatureData](#ibc.lightclients.solomachine.v2.TimestampedSignatureData)
   
 - [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
@@ -4566,18 +4566,18 @@ of a sequence and two signatures over different messages at that sequence.
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `sequence` | [uint64](#uint64) |  |  |
-| `signature_one` | [SignatureAndDataV2](#ibc.lightclients.solomachine.v2.SignatureAndDataV2) |  |  |
-| `signature_two` | [SignatureAndDataV2](#ibc.lightclients.solomachine.v2.SignatureAndDataV2) |  |  |
+| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
+| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v2.SignatureAndData) |  |  |
 
 
 
 
 
 
-<a name="ibc.lightclients.solomachine.v2.SignBytesV2"></a>
+<a name="ibc.lightclients.solomachine.v2.SignBytes"></a>
 
-### SignBytesV2
-SignBytesV2 defines the signed bytes used for signature verification.
+### SignBytes
+SignBytes defines the signed bytes used for signature verification.
 
 
 | Field | Type | Label | Description |
@@ -4593,10 +4593,10 @@ SignBytesV2 defines the signed bytes used for signature verification.
 
 
 
-<a name="ibc.lightclients.solomachine.v2.SignatureAndDataV2"></a>
+<a name="ibc.lightclients.solomachine.v2.SignatureAndData"></a>
 
-### SignatureAndDataV2
-SignatureAndDataV2 contains a signature and the data signed over to create that
+### SignatureAndData
+SignatureAndData contains a signature and the data signed over to create that
 signature.
 
 
