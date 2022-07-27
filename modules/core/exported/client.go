@@ -19,13 +19,6 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
-	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
-	Beefy string = "11-beefy"
-
-	// Localhost is the client type for a localhost client. It is also used as the clientID
-	// for the localhost client.
-	Localhost string = "09-localhost"
-
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 
@@ -142,31 +135,20 @@ type ConsensusState interface {
 
 	ClientType() string // Consensus kind
 
-	// GetRoot returns the commitment root of the consensus state,
-	// which is used for key-value pair verification.
-	GetRoot() Root
-
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64
 
 	ValidateBasic() error
 }
 
-// Misbehaviour defines counterparty misbehaviour for a specific consensus type
-type Misbehaviour interface {
+// ClientMessage is an interface used to update an IBC client.
+// The update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces
+// a change to state of the IBC client
+type ClientMessage interface {
 	proto.Message
 
-	ClientType() string
-	GetClientID() string
-	ValidateBasic() error
-}
-
-// Header is the consensus state update information
-type Header interface {
-	proto.Message
-
-	ClientType() string
 	GetHeight() Height
+	ClientType() string
 	ValidateBasic() error
 }
 
