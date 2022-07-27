@@ -173,6 +173,13 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 			true,
 		},
 		{
+			"success with empty relayers",
+			func() {
+				msg.Relayers = []string{}
+			},
+			true,
+		},
+		{
 			"invalid channelID",
 			func() {
 				msg.SourceChannelId = ""
@@ -211,9 +218,9 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		err := msg.ValidateBasic()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }
@@ -256,6 +263,13 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"success with empty relayers",
+			func() {
+				msg.PacketFee.Relayers = []string{}
+			},
 			true,
 		},
 		{
@@ -355,9 +369,9 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		err := msg.ValidateBasic()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }
