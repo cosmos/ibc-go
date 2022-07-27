@@ -537,6 +537,13 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				false,
 			},
 			{
+				"proof is nil",
+				func() {
+					proof = nil
+				},
+				false,
+			},
+			{
 				"proof verification failed",
 				func() {
 					signBytes.Data = []byte("invalid membership data value")
@@ -591,6 +598,234 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
 					height, 0, 0, // solomachine does not check delay periods
 					proof, path, signBytes.Data,
+				)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+					suite.Require().Equal(expSeq, clientState.Sequence)
+					suite.Require().Equal(expSeq, suite.GetSequenceFromStore(), "sequence not updated in the store (%d) on valid test case %s", suite.GetSequenceFromStore(), tc.name)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+
+		var (
+			clientState *solomachine.ClientState
+			err         error
+			height      clienttypes.Height
+			path        []byte
+			proof       []byte
+			signBytes   solomachine.SignBytesV2
+		)
+
+		testCases := []struct {
+			name     string
+			malleate func()
+			expPass  bool
+		}{
+			{
+				"success",
+				func() {},
+				true,
+			},
+			{
+				"success: packet receipt absence verification",
+				func() {
+					merklePath := suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID)
+					signBytes = solomachine.SignBytesV2{
+						Sequence:    sm.GetHeight().GetRevisionHeight(),
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						Path:        []byte(merklePath.String()),
+						Data:        nil,
+					}
+
+					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
+					suite.Require().NoError(err)
+
+					sig := sm.GenerateSignature(signBz)
+
+					signatureDoc := &solomachine.TimestampedSignatureData{
+						SignatureData: sig,
+						Timestamp:     sm.Time,
+					}
+
+					path, err = suite.chainA.Codec.Marshal(&merklePath)
+					suite.Require().NoError(err)
+
+					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
+					suite.Require().NoError(err)
+				},
+				true,
+			},
+			{
+				"consensus state in client state is nil",
+				func() {
+					clientState = solomachine.NewClientState(1, nil, false)
+				},
+				false,
+			},
+			{
+				"client state latest height is less than sequence",
+				func() {
+					consensusState := &solomachine.ConsensusState{
+						Timestamp: sm.Time,
+						PublicKey: sm.ConsensusState().PublicKey,
+					}
+
+					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState, false)
+				},
+				false,
+			},
+			{
+				"height revision number is not zero",
+				func() {
+					height = clienttypes.NewHeight(1, sm.GetHeight().GetRevisionHeight())
+				},
+				false,
+			},
+			{
+				"malformed merkle path fails to unmarshal",
+				func() {
+					path = []byte("invalid path")
+				},
+				false,
+			},
+			{
+				"malformed proof fails to unmarshal",
+				func() {
+					merklePath := suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path, err = suite.chainA.Codec.Marshal(&merklePath)
+					suite.Require().NoError(err)
+
+					proof = []byte("invalid proof")
+				},
+				false,
+			},
+			{
+				"consensus state timestamp is greater than signature",
+				func() {
+					consensusState := &solomachine.ConsensusState{
+						Timestamp: sm.Time + 1,
+						PublicKey: sm.ConsensusState().PublicKey,
+					}
+
+					clientState = solomachine.NewClientState(sm.Sequence, consensusState, false)
+				},
+				false,
+			},
+			{
+				"signature data is nil",
+				func() {
+					signatureDoc := &solomachine.TimestampedSignatureData{
+						SignatureData: nil,
+						Timestamp:     sm.Time,
+					}
+
+					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
+					suite.Require().NoError(err)
+				},
+				false,
+			},
+			{
+				"consensus state public key is nil",
+				func() {
+					clientState.ConsensusState.PublicKey = nil
+				},
+				false,
+			},
+			{
+				"malformed signature data fails to unmarshal",
+				func() {
+					signatureDoc := &solomachine.TimestampedSignatureData{
+						SignatureData: []byte("invalid signature data"),
+						Timestamp:     sm.Time,
+					}
+
+					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
+					suite.Require().NoError(err)
+				},
+				false,
+			},
+			{
+				"proof is nil",
+				func() {
+					proof = nil
+				},
+				false,
+			},
+			{
+				"proof verification failed",
+				func() {
+					signBytes.Data = []byte("invalid non-membership data value")
+
+					signBz, err := suite.chainA.Codec.Marshal(&signBytes)
+					suite.Require().NoError(err)
+
+					sig := sm.GenerateSignature(signBz)
+
+					signatureDoc := &solomachine.TimestampedSignatureData{
+						SignatureData: sig,
+						Timestamp:     sm.Time,
+					}
+
+					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
+					suite.Require().NoError(err)
+				},
+				false,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				clientState = sm.ClientState()
+				height = clienttypes.NewHeight(sm.GetHeight().GetRevisionNumber(), sm.GetHeight().GetRevisionHeight())
+
+				merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
+				signBytes = solomachine.SignBytesV2{
+					Sequence:    sm.GetHeight().GetRevisionHeight(),
+					Timestamp:   sm.Time,
+					Diversifier: sm.Diversifier,
+					Path:        []byte(merklePath.String()),
+					Data:        nil,
+				}
+
+				signBz, err := suite.chainA.Codec.Marshal(&signBytes)
+				suite.Require().NoError(err)
+
+				sig := sm.GenerateSignature(signBz)
+
+				signatureDoc := &solomachine.TimestampedSignatureData{
+					SignatureData: sig,
+					Timestamp:     sm.Time,
+				}
+
+				path, err = suite.chainA.Codec.Marshal(&merklePath)
+				suite.Require().NoError(err)
+
+				proof, err = suite.chainA.Codec.Marshal(signatureDoc)
+				suite.Require().NoError(err)
+
+				tc.malleate()
+
+				var expSeq uint64
+				if clientState.ConsensusState != nil {
+					expSeq = clientState.Sequence + 1
+				}
+
+				err = clientState.VerifyNonMembership(
+					suite.chainA.GetContext(), suite.store, suite.chainA.Codec,
+					height, 0, 0, // solomachine does not check delay periods
+					proof, path,
 				)
 
 				if tc.expPass {
