@@ -5,7 +5,7 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 var (
@@ -117,8 +117,8 @@ func GetCompatibleVersions() []exported.Version {
 // IsSupportedVersion returns true if the proposed version has a matching version
 // identifier and its entire feature set is supported or the version identifier
 // supports an empty feature set.
-func IsSupportedVersion(proposedVersion *Version) bool {
-	supportedVersion, found := FindSupportedVersion(proposedVersion, GetCompatibleVersions())
+func IsSupportedVersion(supportedVersions []exported.Version, proposedVersion *Version) bool {
+	supportedVersion, found := FindSupportedVersion(proposedVersion, supportedVersions)
 	if !found {
 		return false
 	}

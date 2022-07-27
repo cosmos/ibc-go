@@ -2,6 +2,8 @@
 
 PACKAGES_NOSIMULATION=$(shell go list ./... | grep -v '/simulation')
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
+CHANGED_GO_FILES := $(shell git diff --name-only | grep .go$$ | grep -v pb.go)
+ALL_GO_FILES := $(shell find . -regex ".*\.go$$" | grep -v pb.go)
 VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
@@ -91,7 +93,7 @@ ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
-all: tools build lint test
+all: build lint test
 
 # The below include contains the tools and runsim targets.
 #include contrib/devtools/Makefile
@@ -154,7 +156,7 @@ mocks: $(MOCKS_DIR)
 $(MOCKS_DIR):
 	mkdir -p $(MOCKS_DIR)
 
-distclean: clean tools-clean
+distclean: clean 
 clean:
 	rm -rf \
     $(BUILDDIR)/ \
@@ -335,11 +337,16 @@ lint-fix:
 	golangci-lint run --fix --out-format=tab --issues-exit-code=0
 .PHONY: lint lint-fix
 
-format:
+format: goimports
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs gofmt -w -s
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' | xargs goimports -w -local github.com/cosmos/cosmos-sdk
 .PHONY: format
+
+goimports:
+	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(CHANGED_GO_FILES)" &> /dev/null || echo "No changed go files to format"
+
+goimports-all:
+	$(DOCKER) run  -v $(CURDIR):/ibc-go --rm  -w "/ibc-go" cytopia/goimports -w -local 'github.com/cosmos/ibc-go' "$(ALL_GO_FILES)"
 
 ###############################################################################
 ###                                 Devdoc                                  ###
