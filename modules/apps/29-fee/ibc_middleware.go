@@ -247,9 +247,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-
-	var ack = &types.IncentivizedAcknowledgement{}
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, ack); err != nil {
+	var ack types.IncentivizedAcknowledgement
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
