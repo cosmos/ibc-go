@@ -33,7 +33,6 @@ var (
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
 ) (*MsgCreateClient, error) {
-
 	anyClientState, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err
@@ -153,7 +152,8 @@ func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 // NewMsgUpgradeClient creates a new MsgUpgradeClient instance
 // nolint: interfacer
 func NewMsgUpgradeClient(clientID string, clientState exported.ClientState, consState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte, signer string) (*MsgUpgradeClient, error) {
+	proofUpgradeClient, proofUpgradeConsState []byte, signer string,
+) (*MsgUpgradeClient, error) {
 	anyClient, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err

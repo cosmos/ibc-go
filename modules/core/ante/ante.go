@@ -60,7 +60,6 @@ func (ad AnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 				// even if they get batched with redundant packet messages.
 				return next(ctx, tx, simulate)
 			}
-
 		}
 
 		// only return error if all packet messages are redundant
