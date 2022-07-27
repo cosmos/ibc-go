@@ -450,8 +450,6 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPar
 		s.Require().NoError(err)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainAWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
 		Denom:   chainADenom,
