@@ -9,14 +9,14 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	clientkeeper "github.com/cosmos/ibc-go/v4/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v4/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v4/modules/core/04-channel/keeper"
-	portkeeper "github.com/cosmos/ibc-go/v4/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/types"
+	clientkeeper "github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v5/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v5/modules/core/04-channel/keeper"
+	portkeeper "github.com/cosmos/ibc-go/v5/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
