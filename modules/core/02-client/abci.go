@@ -26,6 +26,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			bz := k.MustMarshalConsensusState(upgradedConsState)
 
 			k.SetUpgradedConsensusState(ctx, plan.Height, bz)
+			keeper.EmitUpgradeChainEvent(ctx, plan.Height)
 		}
 	}
 }
