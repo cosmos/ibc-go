@@ -9,8 +9,8 @@ import (
 	math "math"
 	math_bits "math/bits"
 
-	types "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
-	types1 "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
+	types "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	types1 "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 )

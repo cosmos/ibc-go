@@ -9,9 +9,9 @@ import (
 	math "math"
 	math_bits "math/bits"
 
-	types "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	types1 "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	types2 "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	types "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	types1 "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	types2 "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 )
