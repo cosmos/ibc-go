@@ -5,11 +5,10 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	client "github.com/cosmos/ibc-go/v3/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -78,7 +77,7 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	suite.Require().Equal(bz, consState)
 }
 
-func (suite *ClientTestSuite) TestBeginBlockerWithUpgradePlan_EmitsUpgradeChainEvent() {
+func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 	plan := &upgradetypes.Plan{
 		Name:   "test",
 		Height: suite.chainA.GetContext().BlockHeight() + 1,
@@ -105,7 +104,7 @@ func (suite *ClientTestSuite) TestBeginBlockerWithUpgradePlan_EmitsUpgradeChainE
 	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
 }
 
-func (suite *ClientTestSuite) TestBeginBlockerWithoutUpgradePlan_DoesNotEmitUpgradeChainEvent() {
+func (suite *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
 	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
 	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
