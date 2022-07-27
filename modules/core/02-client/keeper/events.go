@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"encoding/hex"
+	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -100,4 +102,15 @@ func EmitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState e
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 		),
 	)
+}
+
+// EmitUpgradeChainEvent emits an upgrade chain event.
+func EmitUpgradeChainEvent(ctx sdk.Context, height int64) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpgradeChain,
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.FormatInt(height, 10)),
+			sdk.NewAttribute(types.AttributeKeyUpgradeStore, upgradetypes.StoreKey), // which store to query proof of consensus state from
+		),
+	})
 }
