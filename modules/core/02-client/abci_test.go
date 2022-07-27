@@ -3,11 +3,10 @@ package client_test
 import (
 	"testing"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	client "github.com/cosmos/ibc-go/v5/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"

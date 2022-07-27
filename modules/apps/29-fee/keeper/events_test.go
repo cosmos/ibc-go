@@ -1,9 +1,8 @@
 package keeper_test
 
 import (
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 )

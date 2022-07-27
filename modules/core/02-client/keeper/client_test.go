@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
