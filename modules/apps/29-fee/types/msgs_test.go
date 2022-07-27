@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -173,6 +173,13 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 			true,
 		},
 		{
+			"success with empty relayers",
+			func() {
+				msg.Relayers = []string{}
+			},
+			true,
+		},
+		{
 			"invalid channelID",
 			func() {
 				msg.SourceChannelId = ""
@@ -211,9 +218,9 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		err := msg.ValidateBasic()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }
@@ -256,6 +263,13 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"success with empty relayers",
+			func() {
+				msg.PacketFee.Relayers = []string{}
+			},
 			true,
 		},
 		{
@@ -355,9 +369,9 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		err := msg.ValidateBasic()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }

@@ -69,7 +69,6 @@ func getGithubActionMatrixForTests(e2eRootDirectory string) (GithubActionTestMat
 
 		return nil
 	})
-
 	if err != nil {
 		return GithubActionTestMatrix{}, err
 	}

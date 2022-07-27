@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 // NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund addres and relayers
@@ -25,9 +25,9 @@ func (p PacketFee) Validate() error {
 		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
 	}
 
-	// enforce relayer is nil
-	if p.Relayers != nil {
-		return ErrRelayersNotNil
+	// enforce relayers are not set
+	if len(p.Relayers) != 0 {
+		return ErrRelayersNotEmpty
 	}
 
 	if err := p.Fee.Validate(); err != nil {

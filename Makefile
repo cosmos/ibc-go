@@ -218,7 +218,7 @@ view-docs:
 test: test-unit
 test-all: test-unit test-ledger-mock test-race test-cover
 
-TEST_PACKAGES=./... ./.github/scripts
+TEST_PACKAGES=./...
 TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-race test-ledger test-race
 
 # Test runs-specific rules. To add a new test target, just add
@@ -407,10 +407,10 @@ proto-lint:
 proto-check-breaking:
 	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
 
-TM_URL              = https://raw.githubusercontent.com/tendermint/tendermint/v0.34.0-rc6/proto/tendermint
+TM_URL              = https://raw.githubusercontent.com/tendermint/tendermint/v0.34.19/proto/tendermint
 GOGO_PROTO_URL      = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
 CONFIO_URL          = https://raw.githubusercontent.com/confio/ics23/v0.6.3
-SDK_PROTO_URL 		= https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.41.0/proto/cosmos
+SDK_PROTO_URL 	    = https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.45.6/proto/cosmos
 
 TM_CRYPTO_TYPES     = third_party/proto/tendermint/crypto
 TM_ABCI_TYPES       = third_party/proto/tendermint/abci
