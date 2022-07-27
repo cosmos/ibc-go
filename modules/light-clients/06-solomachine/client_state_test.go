@@ -611,7 +611,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
-
 				},
 				true,
 			},
