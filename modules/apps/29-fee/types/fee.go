@@ -25,9 +25,9 @@ func (p PacketFee) Validate() error {
 		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
 	}
 
-	// enforce relayer is nil
-	if p.Relayers != nil {
-		return ErrRelayersNotNil
+	// enforce relayers are not set
+	if len(p.Relayers) != 0 {
+		return ErrRelayersNotEmpty
 	}
 
 	if err := p.Fee.Validate(); err != nil {
