@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // MustUnmarshalClientState attempts to decode and return an ClientState object from
