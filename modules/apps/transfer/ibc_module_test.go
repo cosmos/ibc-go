@@ -5,11 +5,11 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v4/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
@@ -124,10 +124,10 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}, false,
 		},
 		{
-			"capability already claimed in INIT should pass", func() {
+			"capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, true,
+			}, false,
 		},
 		{
 			"invalid order - ORDERED", func() {
