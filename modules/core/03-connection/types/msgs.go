@@ -74,8 +74,8 @@ func (msg MsgConnectionOpenInit) GetSigners() []sdk.AccAddress {
 // NewMsgConnectionOpenTry creates a new MsgConnectionOpenTry instance
 //nolint:interfacer
 func NewMsgConnectionOpenTry(
-	previousConnectionID, clientID, counterpartyConnectionID,
-	counterpartyClientID string, counterpartyClient exported.ClientState,
+	clientID, counterpartyConnectionID, counterpartyClientID string,
+	counterpartyClient exported.ClientState,
 	counterpartyPrefix commitmenttypes.MerklePrefix,
 	counterpartyVersions []*Version, delayPeriod uint64,
 	proofInit, proofClient, proofConsensus []byte,
@@ -84,7 +84,6 @@ func NewMsgConnectionOpenTry(
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
 	csAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenTry{
-		PreviousConnectionId: previousConnectionID,
 		ClientId:             clientID,
 		ClientState:          csAny,
 		Counterparty:         counterparty,
@@ -101,11 +100,8 @@ func NewMsgConnectionOpenTry(
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgConnectionOpenTry) ValidateBasic() error {
-	// an empty connection identifier indicates that a connection identifier should be generated
 	if msg.PreviousConnectionId != "" {
-		if !IsValidConnectionID(msg.PreviousConnectionId) {
-			return sdkerrors.Wrap(ErrInvalidConnectionIdentifier, "invalid previous connection ID")
-		}
+		return sdkerrors.Wrap(ErrInvalidConnectionIdentifier, "previous connection identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return sdkerrors.Wrap(err, "invalid client ID")
