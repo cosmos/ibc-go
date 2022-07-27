@@ -714,7 +714,7 @@ Order defines if a channel is ORDERED or UNORDERED
 
 ### State
 State defines if a channel is in one of the following states:
-CLOSED, INIT, TRYOPEN, OPEN, UPGRADE_INIT, UPGRADE_TRY or UNINITIALIZED.
+CLOSED, INIT, TRYOPEN, OPEN, UPGRADEINIT, UPGRADETRY or UNINITIALIZED.
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
@@ -723,8 +723,8 @@ CLOSED, INIT, TRYOPEN, OPEN, UPGRADE_INIT, UPGRADE_TRY or UNINITIALIZED.
 | STATE_TRYOPEN | 2 | A channel has acknowledged the handshake step on the counterparty chain. |
 | STATE_OPEN | 3 | A channel has completed the handshake. Open channels are ready to send and receive packets. |
 | STATE_CLOSED | 4 | A channel has been closed and can no longer be used to send or receive packets. |
-| STATE_UPGRADE_INIT | 5 | A channel has just started the channel upgrade handshake. The chain that is proposing the upgrade should set the channel state from OPEN to UPGRADE_INIT. |
-| STATE_UPGRADE_TRY | 6 | A channel has acknowledged the upgrade handshake step on the counterparty chain. The counterparty chain that accepts the upgrade should set the channel state from OPEN to UPGRADE_TRY. |
+| STATE_UPGRADEINIT | 5 | A channel has just started the channel upgrade handshake. The chain that is proposing the upgrade should set the channel state from OPEN to UPGRADEINIT. |
+| STATE_UPGRADETRY | 6 | A channel has acknowledged the upgrade handshake step on the counterparty chain. The counterparty chain that accepts the upgrade should set the channel state from OPEN to UPGRADETRY. |
 
 
  <!-- end enums -->
