@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (core/04-channel) [\#1792](https://github.com/cosmos/ibc-go/pull/1792) Remove `PreviousChannelID` from `NewMsgChanOpenTry` arguments. `MsgChanOpenTry.ValidateBasic()` returns error if the deprecated `PreviousChannelID` is not empty. 
 * (modules/core/03-connection) [\#1672](https://github.com/cosmos/ibc-go/pull/1672) Remove crossing hellos from connection handshakes. The `PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated.
 * (modules/core/04-channel) [\#1317](https://github.com/cosmos/ibc-go/pull/1317) Remove crossing hellos from channel handshakes. The `PreviousChannelId` in `MsgChannelOpenTry` has been deprecated.  
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
@@ -97,7 +98,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (core/04-channel) [\#1792](https://github.com/cosmos/ibc-go/pull/1792) Remove `PreviousChannelID` from `NewMsgChanOpenTry` arguments. `MsgChanOpenTry.ValidateBasic()` returns error if the deprecated `PreviousChannelID` is not empty. 
 * (transfer) [\#1342](https://github.com/cosmos/ibc-go/pull/1342) `DenomTrace` grpc now takes in either an `ibc denom` or a `hash` instead of only accepting a `hash`.
 * (modules/core/04-channel) [\#1160](https://github.com/cosmos/ibc-go/pull/1160) Improve `uint64 -> string` performance in `Logger`.
 * (modules/core/04-channel) [\#1279](https://github.com/cosmos/ibc-go/pull/1279) Add selected channel version to MsgChanOpenInitResponse and MsgChanOpenTryResponse. Emit channel version during OpenInit/OpenTry
