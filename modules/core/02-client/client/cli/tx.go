@@ -248,12 +248,12 @@ func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 				return err
 			}
 
-			title, err := cmd.Flags().GetString(govcli.FlagTitle)
+			title, err := cmd.Flags().GetString(govcli.FlagTitle) //nolint:staticcheck // need this till full govv1 conversion.
 			if err != nil {
 				return err
 			}
 
-			description, err := cmd.Flags().GetString(govcli.FlagDescription)
+			description, err := cmd.Flags().GetString(govcli.FlagDescription) //nolint:staticcheck // need this till full govv1 conversion.
 			if err != nil {
 				return err
 			}
@@ -287,8 +287,8 @@ func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")
-	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")             //nolint:staticcheck // need this till full govv1 conversion.
+	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal") //nolint:staticcheck // need this till full govv1 conversion.
 	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
 
 	return cmd
@@ -319,12 +319,12 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 			}
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-			title, err := cmd.Flags().GetString(govcli.FlagTitle)
+			title, err := cmd.Flags().GetString(govcli.FlagTitle) //nolint:staticcheck // need this till full govv1 conversion.
 			if err != nil {
 				return err
 			}
 
-			description, err := cmd.Flags().GetString(govcli.FlagDescription)
+			description, err := cmd.Flags().GetString(govcli.FlagDescription) //nolint:staticcheck // need this till full govv1 conversion.
 			if err != nil {
 				return err
 			}
@@ -386,8 +386,8 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")
-	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")             //nolint:staticcheck // need this till full govv1 conversion.
+	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal") //nolint:staticcheck // need this till full govv1 conversion.
 	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
 
 	return cmd
