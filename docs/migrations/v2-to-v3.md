@@ -102,7 +102,7 @@ The migration code required may look like:
     icaGenesisState := icatypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
     // set new ics27 genesis state
-    appState[icatypes.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(icaGenesisState)
+    appState[icatypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(icaGenesisState)
 ```
 
 ### Ante decorator

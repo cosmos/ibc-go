@@ -129,7 +129,7 @@ func (p PacketId) Validate() error {
 	return nil
 }
 
-// NewPacketId returns a new instance of PacketId
-func NewPacketId(portId, channelId string, seq uint64) PacketId {
-	return PacketId{PortId: portId, ChannelId: channelId, Sequence: seq}
+// NewPacketID returns a new instance of PacketId
+func NewPacketID(portID, channelID string, seq uint64) PacketId {
+	return PacketId{PortId: portID, ChannelId: channelID, Sequence: seq}
 }

@@ -17,11 +17,11 @@ import (
 // IBCModule implements the ICS26 callbacks for testing/mock.
 type IBCModule struct {
 	appModule *AppModule
-	IBCApp    *MockIBCApp // base application of an IBC middleware stack
+	IBCApp    *IBCApp // base application of an IBC middleware stack
 }
 
 // NewIBCModule creates a new IBCModule given the underlying mock IBC application and scopedKeeper.
-func NewIBCModule(appModule *AppModule, app *MockIBCApp) IBCModule {
+func NewIBCModule(appModule *AppModule, app *IBCApp) IBCModule {
 	appModule.ibcApps = append(appModule.ibcApps, app)
 	return IBCModule{
 		appModule: appModule,
