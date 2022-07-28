@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
@@ -53,7 +54,7 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 	}
 
 	txMsgData := &sdk.TxMsgData{
-		Data: make([]*sdk.MsgData, len(msgs)),
+		MsgResponses: make([]*codectypes.Any, len(msgs)),
 	}
 
 	// CacheContext returns a new context with the multi-store branched into a cached storage object
@@ -69,11 +70,10 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 			return nil, err
 		}
 
-		txMsgData.Data[i] = &sdk.MsgData{
-			MsgType: sdk.MsgTypeURL(msg),
-			Data:    msgResponse,
+		txMsgData.MsgResponses[i] = &codectypes.Any{
+			TypeUrl: sdk.MsgTypeURL(msg),
+			Value:   msgResponse,
 		}
-
 	}
 
 	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
