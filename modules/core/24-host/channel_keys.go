@@ -9,6 +9,7 @@ const (
 	KeyChannelRestorePrefix  = "restore"
 	KeyUpgradeTimeoutPrefix  = "upgradeTimeout"
 	KeyUpgradeSequencePrefix = "upgradeSequence"
+	KeyUpgradeErrorPrefix    = "upgradeError"
 )
 
 // ICS04
@@ -38,6 +39,16 @@ func ChannelUpgradeTimeoutPath(portID, channelID string) string {
 // ChannelUpgradeTimeoutKey returns the store key for a particular channel upgrade timeout
 func ChannelUpgradeTimeoutKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradeTimeoutPath(portID, channelID))
+}
+
+// ChannelUpgradeErrorPath defines the path under which the ErrorReceipt is stored in the case that a chain does not accept the proposed upgrade
+func ChannelUpgradeErrorPath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeErrorPrefix, channelPath(portID, channelID))
+}
+
+// ChannelUpgradeErrorKey returns the store key for a particular channelEnd used to stor the ErrorReceipt in the case that a chain does not accept the proposed upgrade
+func ChannelUpgradeErrorKey(portID, channelID string) []byte {
+	return []byte(ChannelUpgradeErrorPath(portID, channelID))
 }
 
 // ChannelRestorePath defines the path under which channel ends are stored for restoration in the event of upgrade handshake failure
