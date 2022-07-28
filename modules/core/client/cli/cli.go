@@ -5,10 +5,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	ibcclient "github.com/cosmos/ibc-go/v4/modules/core/02-client"
-	connection "github.com/cosmos/ibc-go/v4/modules/core/03-connection"
-	channel "github.com/cosmos/ibc-go/v4/modules/core/04-channel"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
+	connection "github.com/cosmos/ibc-go/v5/modules/core/03-connection"
+	channel "github.com/cosmos/ibc-go/v5/modules/core/04-channel"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
 // GetTxCmd returns the transaction commands for this module

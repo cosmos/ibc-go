@@ -134,7 +134,6 @@ func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubAc
 }
 
 func goTestFileContents(suiteName, fnName1, fnName2 string) string {
-
 	replacedSuiteName := strings.ReplaceAll(`package foo
 
 func TestSuiteName(t *testing.T) {
