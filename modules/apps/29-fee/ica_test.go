@@ -17,10 +17,10 @@ var (
 	// defaultOwnerAddress defines a reusable bech32 address for testing purposes
 	defaultOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-	// defaultPortID defines a resuable port identifier for testing purposes
+	// defaultPortID defines a reusable port identifier for testing purposes
 	defaultPortID, _ = icatypes.NewControllerPortID(defaultOwnerAddress)
 
-	// defaultICAVersion defines a resuable interchainaccounts version string for testing purposes
+	// defaultICAVersion defines a reusable interchainaccounts version string for testing purposes
 	defaultICAVersion = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 )
 
@@ -118,7 +118,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	postEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	suite.Require().Equal(postEscrowBalance.AddAmount(expectedFee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
 
-	packetID := channeltypes.NewPacketId(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
+	packetID := channeltypes.NewPacketID(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
 	packetFees, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
 	suite.Require().True(found)
 	suite.Require().Equal(expectedFee, packetFees.PacketFees[0].Fee)
