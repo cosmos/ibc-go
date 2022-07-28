@@ -11,7 +11,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-var validPacketID = channeltypes.NewPacketId(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
+var validPacketID = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 
 func TestKeyPayee(t *testing.T) {
 	key := types.KeyPayee("relayer-address", ibctesting.FirstChannelID)

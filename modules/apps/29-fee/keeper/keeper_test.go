@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) TestFeesInEscrow() {
 	suite.coordinator.Setup(suite.path)
 
 	// escrow five fees for packet sequence 1
-	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+	packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
@@ -147,9 +147,9 @@ func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetID1 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-	packetID2 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 2)
-	packetID5 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 51)
+	packetID1 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+	packetID2 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 2)
+	packetID5 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 51)
 
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
@@ -161,9 +161,9 @@ func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 
 	// set fees in escrow for packetIDs on different channel
 	diffChannel := "channel-1"
-	diffPacketID1 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 1)
-	diffPacketID2 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 2)
-	diffPacketID5 := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 5)
+	diffPacketID1 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 1)
+	diffPacketID2 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 2)
+	diffPacketID5 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 5)
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), diffPacketID1, types.NewPacketFees([]types.PacketFee{packetFee}))
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), diffPacketID2, types.NewPacketFees([]types.PacketFee{packetFee}))
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), diffPacketID5, types.NewPacketFees([]types.PacketFee{packetFee}))
@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
-	packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+	packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	// escrow the packet fee
