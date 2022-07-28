@@ -3,10 +3,10 @@ package types_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	"github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 var frozenHeight = clienttypes.NewHeight(0, 1)
@@ -66,55 +66,21 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 	}
 }
 
-// to expire clients, time needs to be fast forwarded on both chainA and chainB.
-// this is to prevent headers from failing when attempting to update later.
 func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
-		name         string
-		FreezeClient bool
-		ExpireClient bool
-		expPass      bool
+		name    string
+		expPass bool
 	}{
 		{
-			name:         "PASS: update checks are deprecated, client is frozen and expired",
-			FreezeClient: true,
-			ExpireClient: true,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, not frozen or expired",
-			FreezeClient: false,
-			ExpireClient: false,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, not frozen or expired",
-			FreezeClient: false,
-			ExpireClient: false,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, client is frozen",
-			FreezeClient: true,
-			ExpireClient: false,
-			expPass:      true,
-		},
-		{
-			name:         "PASS: update checks are deprecated, client is expired",
-			FreezeClient: false,
-			ExpireClient: true,
-			expPass:      true,
+			name:    "PASS: update checks are deprecated",
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		// for each test case a header used for unexpiring clients and unfreezing
-		// a client are each tested to ensure that unexpiry headers cannot update
-		// a client when a unfreezing header is required.
 		suite.Run(tc.name, func() {
-			// start by testing unexpiring the client
 			suite.SetupTest() // reset
 
 			// construct subject using test case parameters
@@ -122,21 +88,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			suite.coordinator.SetupClients(subjectPath)
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
 
-			// apply freezing or expiry as determined by the test case
-			if tc.FreezeClient {
-				subjectClientState.FrozenHeight = frozenHeight
-			}
-			if tc.ExpireClient {
-				// expire subject client
-				suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
-				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
-			}
-
 			// construct the substitute to match the subject client
-			// NOTE: the substitute is explicitly created after the freezing or expiry occurs,
-			// primarily to prevent the substitute from becoming frozen. It also should be
-			// the natural flow of events in practice. The subject will become frozen/expired
-			// and a substitute will be created along with a governance proposal as a response
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
