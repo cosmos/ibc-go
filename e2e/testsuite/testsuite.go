@@ -2,7 +2,6 @@ package testsuite
 
 import (
 	"context"
-	"e2e/testconfig"
 	"fmt"
 	"io/ioutil"
 
