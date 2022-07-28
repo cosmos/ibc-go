@@ -6,7 +6,8 @@ const (
 	KeyChannelEndPrefix     = "channelEnds"
 	KeyChannelPrefix        = "channels"
 	KeyChannelUpgradePrefix = "channelUpgrades"
-	KeyUpgradeTimeoutSuffix = "upgradeTimeout"
+	KeyChannelRestorePrefix = "restore"
+	KeyUpgradeTimeoutPrefix = "upgradeTimeout"
 )
 
 // ICS04
@@ -28,10 +29,9 @@ func ChannelCapabilityPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, channelPath(portID, channelID))
 }
 
-// ChannelUpgradeTimeoutPath defines the path set by the upgrade initiator to determine when the UPGRADETRY step
-// should timeout
+// ChannelUpgradeTimeoutPath defines the path set by the upgrade initiator to determine when the UPGRADETRY step should timeout
 func ChannelUpgradeTimeoutPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", channelUpgradePath(portID, channelID), KeyUpgradeTimeoutSuffix)
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeTimeoutPrefix, channelPath(portID, channelID))
 }
 
 // ChannelUpgradeTimeoutKey returns the store key for a particular channel upgrade timeout
@@ -39,10 +39,16 @@ func ChannelUpgradeTimeoutKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradeTimeoutPath(portID, channelID))
 }
 
-func channelPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, portID, KeyChannelPrefix, channelID)
+// ChannelRestorePath defines the path under which channel ends are stored for restoration in the event of upgrade handshake failure
+func ChannelRestorePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyChannelRestorePrefix, channelPath(portID, channelID))
 }
 
-func channelUpgradePath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelID))
+// ChannelRestoreKey returns the store key for a particular channel end used for restoration in the event of upgrade handshake failure
+func ChannelRestoreKey(portID, channelID string) []byte {
+	return []byte(ChannelRestorePath(portID, channelID))
+}
+
+func channelPath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, portID, KeyChannelPrefix, channelID)
 }
