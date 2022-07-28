@@ -23,13 +23,13 @@ We ensure all major releases are supported by relayers ([hermes](https://github.
 
 ## Release cycle
 
-IBC-Go follows a traditional release cycle involving an alpha, beta, and rc (release candidate) releases before finalizing a new version. As ibc-go works in a non-traditional area, we apply our own interpretation to each release type. We reserve the right to make both go API breaking changes and state machine breaking changes throughout the entire release cycle. The stable release guarentees do not go into affect until a final release is performed. 
+IBC-Go follows a traditional release cycle involving an alpha, beta, and rc (release candidate) releases before finalizing a new version. As ibc-go works in a non-traditional area, we apply our own interpretation to each release type. We reserve the right to make both go API breaking changes and state machine breaking changes throughout the entire release cycle. The stable release guarantees do not go into affect until a final release is performed. 
 
 It is never advisable to use a non-final release in production. 
 
 ### Alpha
 
-Alpha releases are intended to make available new features as soon as they are functional. No correctness guarentees are made and alpha releases **may** contain serious security vulnerabilities, bugs, and lack of user tooling, so long as they don't affect the core functionality. 
+Alpha releases are intended to make available new features as soon as they are functional. No correctness guarantees are made and alpha releases **may** contain serious security vulnerabilities, bugs, and lack of user tooling, so long as they don't affect the core functionality. 
 
 Initial users of alpha releases are expected to be advanced, patient, and capable of handling unusual errors. Very basic integration testing will be performed by the ibc-go development team before alpha releases.  
 

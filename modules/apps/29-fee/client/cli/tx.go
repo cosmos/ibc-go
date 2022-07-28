@@ -95,7 +95,7 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(args[0], args[1], seq)
+			packetID := channeltypes.NewPacketID(args[0], args[1], seq)
 
 			recvFeeStr, err := cmd.Flags().GetString(flagRecvFee)
 			if err != nil {
