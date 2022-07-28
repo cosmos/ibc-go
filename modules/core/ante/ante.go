@@ -8,20 +8,20 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
 )
 
-type RedundancyDecorator struct {
+type RedundancyRelayDecorator struct {
 	k *keeper.Keeper
 }
 
-func NewRedundancyDecorator(k *keeper.Keeper) RedundancyDecorator {
-	return RedundancyDecorator{k: k}
+func NewRedundancyRelayDecorator(k *keeper.Keeper) RedundancyRelayDecorator {
+	return RedundancyRelayDecorator{k: k}
 }
 
-// RedundancyDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages
+// RedundancyRelayDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages
 // and all packet messages are redundant. If the transaction is just a single UpdateClient message, or the multimsg transaction
 // contains some other message type, then the antedecorator returns no error and continues processing to ensure these transactions
 // are included. This will ensure that relayers do not waste fees on multiMsg transactions when another relayer has already submitted
 // all packets, by rejecting the tx at the mempool layer.
-func (rd RedundancyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+func (rd RedundancyRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	// do not run redundancy check on DeliverTx or simulate
 	if (ctx.IsCheckTx() || ctx.IsReCheckTx()) && !simulate {
 		// keep track of total packet messages and number of redundancies across `RecvPacket`, `AcknowledgePacket`, and `TimeoutPacket/OnClose`
