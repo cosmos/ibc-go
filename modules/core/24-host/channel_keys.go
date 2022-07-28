@@ -7,6 +7,7 @@ const (
 	KeyChannelPrefix        = "channels"
 	KeyChannelUpgradePrefix = "channelUpgrades"
 	KeyChannelRestorePrefix = "restore"
+	KeyUpgradeError         = "upgradeError"
 )
 
 // ICS04
@@ -40,4 +41,9 @@ func ChannelRestoreKey(portID, channelID string) []byte {
 
 func channelPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, portID, KeyChannelPrefix, channelID)
+}
+
+// ErrorPath stores the ErrorReceipt in the case that a chain does not accept the proposed upgrade
+func ErrorPath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s/%s/%s/%s", KeyChannelUpgradePrefix, KeyPortPrefix, portID, KeyChannelPrefix, channelID, KeyUpgradeError)
 }
