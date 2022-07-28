@@ -7,7 +7,7 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 const (
@@ -126,7 +126,7 @@ func ParseKeyRelayerAddressForAsyncAck(key string) (channeltypes.PacketId, error
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
+	packetID := channeltypes.NewPacketID(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 
@@ -149,7 +149,7 @@ func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
+	packetID := channeltypes.NewPacketID(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 

@@ -15,13 +15,13 @@ v                     without deliberation
 
 <!-- Links to alpha, beta, RC or final milestones -->
 
-### IBC spec compatibility
+## IBC spec compatibility
 
 <!-- Version of the IBC spec that this release is compatible with -->
 
-### QA
+## QA
 
-#### Backwards compatibility
+### Backwards compatibility
 
 <!-- List of tests that need be performed with previous
 versions of ibc-go to guarantee that no regression is introduced -->
@@ -31,7 +31,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
 - [ ] Interchain Accounts over a non-incentivised channel works with a counterparty chain running each previous major version that supports ICS-27 Interchain Accounts over non-incentivised channels.
 - [ ] Interchain Accounts over an incentivised channel works with a counterparty chain running each previous major version that supports ICS-27 Interchain Accounts over incentivised channels.
 
-### Migration 
+## Migration 
 
 <!-- Link to migration document -->
 

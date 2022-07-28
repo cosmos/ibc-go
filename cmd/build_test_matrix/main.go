@@ -50,6 +50,10 @@ func getGithubActionMatrixForTests(e2eRootDirectory string) (GithubActionTestMat
 	testSuiteMapping := map[string][]string{}
 	fset := token.NewFileSet()
 	err := filepath.Walk(e2eRootDirectory, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("error walking e2e directory: %s", err)
+		}
+
 		// only look at test files
 		if !strings.HasSuffix(path, testFileNameSuffix) {
 			return nil
@@ -69,7 +73,6 @@ func getGithubActionMatrixForTests(e2eRootDirectory string) (GithubActionTestMat
 
 		return nil
 	})
-
 	if err != nil {
 		return GithubActionTestMatrix{}, err
 	}

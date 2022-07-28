@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	"github.com/cosmos/ibc-go/v4/testing/simapp"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
 const (
