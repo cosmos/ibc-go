@@ -30,8 +30,8 @@ func ChannelCapabilityPath(portID, channelID string) string {
 
 // ChannelUpgradeTimeoutPath defines the path set by the upgrade initiator to determine when the UPGRADETRY step
 // should timeout.
-func ChannelUpgradeTimeoutPath(portID, channelId string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelId), KeyUpgradeTimeout)
+func ChannelUpgradeTimeoutPath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelID), KeyUpgradeTimeout)
 }
 
 func channelPath(portID, channelID string) string {
