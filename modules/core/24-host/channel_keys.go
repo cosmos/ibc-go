@@ -3,13 +3,13 @@ package host
 import "fmt"
 
 const (
-	KeyChannelEndPrefix     = "channelEnds"
-	KeyChannelPrefix        = "channels"
-	KeyChannelUpgradePrefix = "channelUpgrades"
-	KeyChannelRestorePrefix = "restore"
-	KeyUpgradeTimeoutPrefix = "upgradeTimeout"
-
-	KeyUpgradeErrorPrefix = "upgradeError"
+	KeyChannelEndPrefix      = "channelEnds"
+	KeyChannelPrefix         = "channels"
+	KeyChannelUpgradePrefix  = "channelUpgrades"
+	KeyChannelRestorePrefix  = "restore"
+	KeyUpgradeTimeoutPrefix  = "upgradeTimeout"
+	KeyUpgradeSequencePrefix = "upgradeSequence"
+	KeyUpgradeErrorPrefix    = "upgradeError"
 )
 
 // ICS04
@@ -59,6 +59,16 @@ func ChannelRestorePath(portID, channelID string) string {
 // ChannelRestoreKey returns the store key for a particular channel end used for restoration in the event of upgrade handshake failure
 func ChannelRestoreKey(portID, channelID string) []byte {
 	return []byte(ChannelRestorePath(portID, channelID))
+}
+
+// ChannelUpgradeSequencePath defines the path under which the current channel upgrade sequence attempt is stored
+func ChannelUpgradeSequencePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeSequencePrefix, channelPath(portID, channelID))
+}
+
+// ChannelUpgradeSequenceKey returns the store key for the current channel upgrade sequence attempt
+func ChannelUpgradeSequenceKey(portID, channelID string) []byte {
+	return []byte(ChannelUpgradeSequencePath(portID, channelID))
 }
 
 func channelPath(portID, channelID string) string {
