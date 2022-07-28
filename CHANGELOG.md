@@ -57,7 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer)[\#1565](https://github.com/cosmos/ibc-go/pull/1565) Removing `NewErrorAcknowledgement` in favour of `channeltypes.NewErrorAcknowledgement`.
 * (channel)[\#1565](https://github.com/cosmos/ibc-go/pull/1565) Updating `NewErrorAcknowledgement` to accept an error instead of a string and removing the possibility of non-deterministic writes to application state.
 * (core/04-channel)[\#1636](https://github.com/cosmos/ibc-go/pull/1636) Removing `SplitChannelVersion` and `MergeChannelVersions` functions since they are not used.
-* (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768/files) Removed `AllowUpdateAfter...` booleans as they are deprecated (see ADR026)
+* (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768/files) Removed `AllowUpdateAfterExpiry`, `AllowUpdateAfterMisbehaviour` booleans as they are deprecated (see ADR026)
 
 ### State Machine Breaking
 
