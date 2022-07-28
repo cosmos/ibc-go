@@ -63,6 +63,8 @@ Crossing hellos have been removed from 04-channel handshake negotiation.
 IBC Applications no longer need to account from already claimed capabilities in the `OnChanOpenTry` callback. The capability provided by core IBC must be able to be claimed with error. 
 `PreviousChannelId` in `MsgChannelOpenTry` has been deprecated and is no longer used by core IBC.
 
+`NewMsgChannelOpenTry` no longer takes in the `PreviousChannelId` as crossing hellos are no longer supported. A non-empty `PreviousChannelId` will fail basic validation for this message. 
+
 ### ICS27 - Interchain Accounts
 
 The `RegisterInterchainAccount` API has been modified to include an additional `version` argument. This change has been made in order to support ICS29 fee middleware, for relayer incentivization of ICS27 packets.
