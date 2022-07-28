@@ -7,6 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types";
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "ibc/core/channel/v1/upgrade.proto";
 
 // Msg defines the ibc/channel Msg service.
 service Msg {
@@ -311,6 +312,14 @@ message MsgChannelUpgradeTimeoutResponse {}
 message MsgChannelUpgradeCancel {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
+
+  string       port_id       = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string       channel_id    = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  ErrorReceipt error_receipt = 3 [(gogoproto.moretags) = "yaml:\"error_receipt\"", (gogoproto.nullable) = false];
+  bytes        proof_cancel  = 4 [(gogoproto.moretags) = "yaml:\"proof_cancel\""];
+  ibc.core.client.v1.Height proof_height = 5
+      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
+  string signer = 6;
 }
 
 // MsgChannelUpgradeCancelResponse defines the MsgChannelUpgradeCancel response type
