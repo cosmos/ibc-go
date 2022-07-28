@@ -6,7 +6,7 @@ const (
 	KeyChannelEndPrefix     = "channelEnds"
 	KeyChannelPrefix        = "channels"
 	KeyChannelUpgradePrefix = "channelUpgrades"
-	KeyUpgradeTimeout       = "upgradeTimeout"
+	KeyUpgradeTimeoutSuffix = "upgradeTimeout"
 )
 
 // ICS04
@@ -29,11 +29,20 @@ func ChannelCapabilityPath(portID, channelID string) string {
 }
 
 // ChannelUpgradeTimeoutPath defines the path set by the upgrade initiator to determine when the UPGRADETRY step
-// should timeout.
+// should timeout
 func ChannelUpgradeTimeoutPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelID), KeyUpgradeTimeout)
+	return fmt.Sprintf("%s/%s", channelUpgradePath(portID, channelID), KeyUpgradeTimeoutSuffix)
+}
+
+// ChannelUpgradeTimeoutKey returns the store key for a particular channel upgrade timeout
+func ChannelUpgradeTimeoutKey(portID, channelID string) []byte {
+	return []byte(ChannelUpgradeTimeoutPath(portID, channelID))
 }
 
 func channelPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, portID, KeyChannelPrefix, channelID)
+}
+
+func channelUpgradePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyChannelUpgradePrefix, channelPath(portID, channelID))
 }
