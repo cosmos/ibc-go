@@ -46,6 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#1792](https://github.com/cosmos/ibc-go/pull/1792) Remove `PreviousChannelID` from `NewMsgChannelOpenTry` arguments. `MsgChannelOpenTry.ValidateBasic()` returns error if the deprecated `PreviousChannelID` is not empty. 
 * (core/04-channel) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `NewPacketId` has been renamed to `NewPacketID` to comply with go linting rules.
 * (core/ante) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `AnteDecorator` has been renamed to `RedundancyDecorator` to comply with go linting rules and to give more clarity to the purpose of the Decorator.
+* (core/ante) [\#1820](https://github.com/cosmos/ibc-go/pull/1418) `RedundancyDecorator` has been renamed to `RedundantRelayDecorator` to make the name for explicit.
 * (testing) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `MockIBCApp` has been renamed to `IBCApp` and `MockEmptyAcknowledgement` has been renamed to `EmptyAcknowledgement` to comply with go linting rules
 * (modules/core/03-connection) [\#1672](https://github.com/cosmos/ibc-go/pull/1672) Remove crossing hellos from connection handshakes. The `PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated.
 * (modules/core/04-channel) [\#1317](https://github.com/cosmos/ibc-go/pull/1317) Remove crossing hellos from channel handshakes. The `PreviousChannelId` in `MsgChannelOpenTry` has been deprecated.  
