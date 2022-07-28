@@ -1,20 +1,20 @@
 
 ## Table of Contents
 1. [How To Write Tests](#how-to-write-tests)
-   a. [Adding A New Test](#adding-a-new-test)
-   b. [Running Tests Locally](#running-tests-locally)
-   b. [Code Samples](#code-samples)
-    - [Setup](#setup)
-    - [Creating Test Users](#creating-test-users)
-    - [Waiting](#waiting)
-    - [Query Wallet Balances](#query-wallet-balances)
-    - [Broadcasting Messages](#broadcasting-messages)
-    - [Starting the Relayer](#starting-the-relayer)
-    - [Arbitrary Commands](#arbitrary-commands)
-    - [IBC Transfer](#ibc-transfer)
+   - a. [Adding A New Test](#adding-a-new-test)
+   - b. [Running Tests Locally](#running-tests-locally)
+   - b. [Code Samples](#code-samples)
+     - [Setup](#setup)
+     - [Creating Test Users](#creating-test-users)
+     - [Waiting](#waiting)
+     - [Query Wallet Balances](#query-wallet-balances)
+     - [Broadcasting Messages](#broadcasting-messages)
+     - [Starting the Relayer](#starting-the-relayer)
+     - [Arbitrary Commands](#arbitrary-commands)
+     - [IBC Transfer](#ibc-transfer)
 2. [Test Design](#test-design)
-   a. [ibctest](#ibctest)
-   b. [CI Configuration](#ci-configuration)
+   - a. [ibctest](#ibctest)
+   - b. [CI Configuration](#ci-configuration)
 3. [Troubleshooting](#troubleshooting)
 
 
@@ -24,6 +24,7 @@
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
 to an existing test suite **_in the same file_**, or create a new test suite in a new file and add test functions there.
+New test files should follow the convention of `module_name_test.go`.
 
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will
 be quite common in most tests.
@@ -164,7 +165,7 @@ stdout, stderr, err := chainA.Exec(ctx, []string{"tx", "..."}, nil)
 
 It is possible to send an IBC transfer in two ways.
 
-Use the ibctest Chain interface (this ultimately does a docker exec)
+Use the ibctest `Chain` interface (this ultimately does a docker exec)
 
 ```go
 t.Run("send IBC transfer", func(t *testing.T) {
@@ -211,7 +212,7 @@ In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain l
 ### How tests are run
 
 The tests use the `matrix` feature of Github Actions. The matrix is
-dynamically generated using [this script](https://github.com/cosmos/ibc-go/blob/main/.github/scripts/build_test_matrix.go).
+dynamically generated using [this command](https://github.com/cosmos/ibc-go/blob/main/cmd/build_test_matrix/main.go).
 
 > Note: there is currently a limitation that all tests belonging to a test suite must be in the same file.
 In order to support test functions spread in different files, we would either need to manually maintain a matrix
