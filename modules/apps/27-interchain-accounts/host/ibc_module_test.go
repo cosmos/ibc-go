@@ -447,16 +447,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			packetData = icaPacketData.GetBytes()
 
 			// build expected ack
-			msgResponseBz, err := proto.Marshal(&banktypes.MsgSendResponse{})
+			any, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
 			suite.Require().NoError(err)
 
-			msgData := &codectypes.Any{
-				TypeUrl: sdk.MsgTypeURL(msg),
-				Value:   msgResponseBz,
-			}
-
 			expectedTxResponse, err := proto.Marshal(&sdk.TxMsgData{
-				MsgResponses: []*codectypes.Any{msgData},
+				MsgResponses: []*codectypes.Any{any},
 			})
 			suite.Require().NoError(err)
 
