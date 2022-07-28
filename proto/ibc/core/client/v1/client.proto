@@ -42,7 +42,7 @@ message ClientConsensusStates {
 // handler may fail if the subject and the substitute do not match in client and
 // chain parameters (with exception to latest height, frozen height, and chain-id).
 message ClientUpdateProposal {
-  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_getters)         = false;
   option (cosmos_proto.implements_interface) = "cosmos.gov.v1beta1.Content";
   // the title of the update proposal
   string title = 1;
@@ -58,11 +58,11 @@ message ClientUpdateProposal {
 // UpgradeProposal is a gov Content type for initiating an IBC breaking
 // upgrade.
 message UpgradeProposal {
-  option (gogoproto.goproto_getters)  = false;
-  option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_getters)         = false;
+  option (gogoproto.goproto_stringer)        = false;
+  option (gogoproto.equal)                   = true;
   option (cosmos_proto.implements_interface) = "cosmos.gov.v1beta1.Content";
-  
+
   string                      title       = 1;
   string                      description = 2;
   cosmos.upgrade.v1beta1.Plan plan        = 3 [(gogoproto.nullable) = false];
