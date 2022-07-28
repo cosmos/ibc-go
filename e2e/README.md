@@ -1,26 +1,26 @@
 
 ## Table of Contents
-1. [How To Write Tests](#how-to-write-tests)
-   - a. [Adding A New Test](#adding-a-new-test)
-   - b. [Running Tests Locally](#running-tests-locally)
-   - b. [Code Samples](#code-samples)
+1. [How to write tests](#how-to-write-tests)
+   - a. [Adding a new test](#adding-a-new-test)
+   - b. [Running tests locally](#running-tests-locally)
+   - b. [Code samples](#code-samples)
      - [Setup](#setup)
-     - [Creating Test Users](#creating-test-users)
+     - [Creating test users](#creating-test-users)
      - [Waiting](#waiting)
-     - [Query Wallet Balances](#query-wallet-balances)
-     - [Broadcasting Messages](#broadcasting-messages)
-     - [Starting the Relayer](#starting-the-relayer)
-     - [Arbitrary Commands](#arbitrary-commands)
-     - [IBC Transfer](#ibc-transfer)
-2. [Test Design](#test-design)
+     - [Query wallet balances](#query-wallet-balances)
+     - [Broadcasting messages](#broadcasting-messages)
+     - [Starting the relayer](#starting-the-relayer)
+     - [Arbitrary commands](#arbitrary-commands)
+     - [IBC transfer](#ibc-transfer)
+2. [Test design](#test-design)
    - a. [ibctest](#ibctest)
-   - b. [CI Configuration](#ci-configuration)
+   - b. [CI configuration](#ci-configuration)
 3. [Troubleshooting](#troubleshooting)
 
 
-## How To Write Tests
+## How to write tests
 
-### Adding A New Test
+### Adding a new test
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
 to an existing test suite **_in the same file_**, or create a new test suite in a new file and add test functions there.
@@ -32,7 +32,7 @@ be quite common in most tests.
 > Note: see [here](#how-tests-are-run) for details about these requirements.
 
 
-### Running Tests Locally
+### Running tests locally
 
 Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
@@ -71,7 +71,7 @@ e2e/go.mod
 
 Or point it to any local checkout you have.
 
-### Code Samples
+### Code samples
 
 #### Setup
 
@@ -88,7 +88,7 @@ relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOpt
 chainA, chainB := s.GetChains()
 ```
 
-#### Creating Test Users
+#### Creating test users
 
 There are helper functions to easily create users on both chains.
 
@@ -107,7 +107,7 @@ err := test.WaitForBlocks(ctx, 1, chainA, chainB)
 s.Require().NoError(err)
 ```
 
-#### Query Wallet Balances
+#### Query wallet balances
 
 We can fetch balances of wallets on specific chains.
 
@@ -116,7 +116,7 @@ chainABalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 s.Require().NoError(err)
 ```
 
-#### Broadcasting Messages
+#### Broadcasting messages
 
 We can broadcast arbitrary messages which are signed on behalf of users created in the test.
 
@@ -139,7 +139,7 @@ t.Run("broadcast multi message transaction", func(t *testing.T){
 })
 ```
 
-#### Starting the Relayer
+#### Starting the relayer
 
 The relayer can be started with the following.
 
@@ -149,7 +149,7 @@ t.Run("start relayer", func(t *testing.T) {
 })
 ```
 
-#### Arbitrary Commands
+#### Arbitrary commands
 
 Arbitrary commands can be executed on a given chain.
 
@@ -161,7 +161,7 @@ However, it is preferable to [broadcast messages](#broadcasting-messages) or use
 stdout, stderr, err := chainA.Exec(ctx, []string{"tx", "..."}, nil)
 ```
 
-#### IBC Transfer
+#### IBC transfer
 
 It is possible to send an IBC transfer in two ways.
 
@@ -186,7 +186,7 @@ t.Run("send IBC transfer", func(t *testing.T){
 })
 ```
 
-## Test Design
+## Test design
 
 
 #### ibctest
@@ -195,7 +195,7 @@ These E2E tests use the [ibctest framework](https://github.com/strangelove-ventu
 as well as allowing us to broadcast arbitrary messages which are signed on behalf of a user created in the test.
 
 
-#### CI Configuration
+#### CI configuration
 
 There are two main github actions for e2e tests.
 
