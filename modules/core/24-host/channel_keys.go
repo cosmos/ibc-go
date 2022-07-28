@@ -7,7 +7,9 @@ const (
 	KeyChannelPrefix        = "channels"
 	KeyChannelUpgradePrefix = "channelUpgrades"
 	KeyChannelRestorePrefix = "restore"
-	KeyUpgradeError         = "upgradeError"
+	KeyUpgradeTimeoutPrefix = "upgradeTimeout"
+
+	KeyUpgradeError = "upgradeError"
 )
 
 // ICS04
@@ -27,6 +29,16 @@ func ChannelKey(portID, channelID string) []byte {
 // with a channel are stored
 func ChannelCapabilityPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, channelPath(portID, channelID))
+}
+
+// ChannelUpgradeTimeoutPath defines the path set by the upgrade initiator to determine when the TRYUPGRADE step should timeout
+func ChannelUpgradeTimeoutPath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeTimeoutPrefix, channelPath(portID, channelID))
+}
+
+// ChannelUpgradeTimeoutKey returns the store key for a particular channel upgrade timeout
+func ChannelUpgradeTimeoutKey(portID, channelID string) []byte {
+	return []byte(ChannelUpgradeTimeoutPath(portID, channelID))
 }
 
 // ChannelRestorePath defines the path under which channel ends are stored for restoration in the event of upgrade handshake failure
