@@ -27,7 +27,7 @@ var (
 
 func (suite *SoloMachineTestSuite) TestStatus() {
 	clientState := suite.solomachine.ClientState()
-	// solo machine discards arguements
+	// solo machine discards arguments
 	status := clientState.Status(suite.chainA.GetContext(), nil, nil)
 	suite.Require().Equal(exported.Active, status)
 
