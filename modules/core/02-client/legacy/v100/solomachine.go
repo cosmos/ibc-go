@@ -2,7 +2,6 @@ package v100
 
 import (
 	ics23 "github.com/confio/ics23/go"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"

@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"time"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -45,7 +43,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
 				suite.Require().NoError(err)
 
-				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", time.Now(), time.Now().Add(time.Hour))
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime())
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -211,7 +209,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
 				suite.Require().NoError(err)
 
-				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", time.Now(), time.Now().Add(time.Hour))
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime())
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
