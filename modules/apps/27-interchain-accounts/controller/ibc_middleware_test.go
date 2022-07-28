@@ -244,7 +244,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	proofInit, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenTry
-	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, proofInit, proofHeight, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, proofInit, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
