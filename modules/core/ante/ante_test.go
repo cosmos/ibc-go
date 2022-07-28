@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/ante"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/ante"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type AnteTestSuite struct {
@@ -430,10 +430,10 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				msg := suite.createRecvPacketMessage(uint64(1), false)
 
 				// We want to be able to run check tx with the non-redundant message without
-				// commiting it to a block, so that the when check tx runs with the redundant
+				// committing it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
 				k := suite.chainB.App.GetIBCKeeper()
-				decorator := ante.NewAnteDecorator(k)
+				decorator := ante.NewRedundancyDecorator(k)
 				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
 				next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
 				txBuilder := suite.chainB.TxConfig.NewTxBuilder()
@@ -458,7 +458,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			suite.SetupTest()
 
 			k := suite.chainB.App.GetIBCKeeper()
-			decorator := ante.NewAnteDecorator(k)
+			decorator := ante.NewRedundancyDecorator(k)
 
 			msgs := tc.malleate(suite)
 
