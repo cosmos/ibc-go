@@ -1,7 +1,6 @@
 package testsuite
 
 import (
-	"e2e/testconfig"
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
@@ -9,6 +8,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/relayer"
 	"go.uber.org/zap"
+
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 )
 
 const (

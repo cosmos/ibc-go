@@ -328,7 +328,10 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
-	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	err = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	if err != nil {
+		return nil, err
+	}
 
 	chain.Coordinator.IncrementTime()
 
@@ -475,8 +478,8 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	// MakeCommit expects a signer array in the same order as the validator array.
 	// Thus we iterate over the ordered validator set and construct a signer array
 	// from the signer map in the same order.
-	var signerArr []tmtypes.PrivValidator
-	for _, v := range tmValSet.Validators {
+	var signerArr []tmtypes.PrivValidator   //nolint:prealloc // using prealloc here would be needlessly complex
+	for _, v := range tmValSet.Validators { //nolint:staticcheck // need to check for nil validator set
 		signerArr = append(signerArr, signers[v.Address.String()])
 	}
 
@@ -488,7 +491,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		Commit: commit.ToProto(),
 	}
 
-	if tmValSet != nil {
+	if tmValSet != nil { //nolint:staticcheck
 		valSet, err = tmValSet.ToProto()
 		require.NoError(chain.T, err)
 	}

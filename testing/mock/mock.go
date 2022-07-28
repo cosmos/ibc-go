@@ -87,7 +87,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for the mock module.
 type AppModule struct {
 	AppModuleBasic
-	ibcApps    []*MockIBCApp
+	ibcApps    []*IBCApp
 	portKeeper PortKeeper
 }
 
@@ -125,7 +125,10 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 		if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
 			// bind mock portID
 			cap := am.portKeeper.BindPort(ctx, ibcApp.PortID)
-			ibcApp.ScopedKeeper.ClaimCapability(ctx, cap, host.PortPath(ibcApp.PortID))
+			err := ibcApp.ScopedKeeper.ClaimCapability(ctx, cap, host.PortPath(ibcApp.PortID))
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 

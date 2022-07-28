@@ -3,8 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 
-	"github.com/armon/go-metrics"
-
+	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

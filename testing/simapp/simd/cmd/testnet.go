@@ -178,7 +178,7 @@ func InitTestnet(
 			return err
 		}
 
-		addr, secret, err := testutil.GenerateSaveCoinKey(kb, nodeDirName, "", true, algo)
+		addr, secret, err := testutil.GenerateSaveCoinKey(kb, nodeDirName, "test", true, algo)
 		if err != nil {
 			_ = os.RemoveAll(outputDir)
 			return err
