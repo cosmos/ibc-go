@@ -15,7 +15,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 	"github.com/cosmos/ibc-go/v4/testing/simapp"
 )
 
@@ -55,9 +55,7 @@ var (
 	packet        = types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	invalidPacket = types.NewPacket(unknownPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 
-	emptyProof     = []byte{}
-	invalidProofs1 = exported.Proof(nil)
-	invalidProofs2 = emptyProof
+	emptyProof = []byte{}
 
 	addr      = sdk.AccAddress("testaddr111111111111").String()
 	emptyAddr string
@@ -437,4 +435,85 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
+	var msg *types.MsgChannelUpgradeCancel
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid port identifier",
+			func() {
+				msg.PortId = invalidPort
+			},
+			false,
+		},
+		{
+			"invalid channel identifier",
+			func() {
+				msg.ChannelId = invalidChannel
+			},
+			false,
+		},
+		{
+			"cannot submit an empty proof",
+			func() {
+				msg.ProofCancel = emptyProof
+			},
+			false,
+		},
+		{
+			"proof height must be > 0",
+			func() {
+				msg.ProofHeight = clienttypes.ZeroHeight()
+			},
+			false,
+		},
+		{
+			"invalid error receipt sequence",
+			func() {
+				msg.ErrorReceipt.Sequence = 0
+			},
+			false,
+		},
+		{
+			"missing signer address",
+			func() {
+				msg.Signer = emptyAddr
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			msg = types.NewMsgChannelUpgradeCancel(ibctesting.MockPort, ibctesting.FirstChannelID, types.ErrorReceipt{Sequence: 1}, suite.proof, height, addr)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+
+	msg := types.NewMsgChannelUpgradeCancel(ibctesting.MockPort, ibctesting.FirstChannelID, types.ErrorReceipt{Sequence: 1}, suite.proof, height, addr)
+	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
 }
