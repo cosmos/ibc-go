@@ -158,6 +158,31 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	return nil
 }
 
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))

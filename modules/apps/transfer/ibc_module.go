@@ -291,3 +291,23 @@ func (im IBCModule) OnTimeoutPacket(
 
 	return nil
 }
+
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	return "", sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	return "", sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	return sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	return sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	return sdkerrors.ErrNotSupported
+}

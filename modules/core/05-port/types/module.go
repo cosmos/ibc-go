@@ -11,6 +11,8 @@ import (
 // IBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
 type IBCModule interface {
+	IBCChannelUpgrades
+
 	// OnChanOpenInit will verify that the relayer-chosen parameters
 	// are valid and perform any custom INIT logic.
 	// It may return an error if the chosen parameters are invalid
@@ -102,6 +104,52 @@ type IBCModule interface {
 		ctx sdk.Context,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
+	) error
+}
+
+// IBCChannelUpgrades contains all the IBC Application callbacks
+// required to enable channel upgradability.
+type IBCChannelUpgrades interface {
+	OnChanUpgradeInit(
+		ctx sdk.Context,
+		order channeltypes.Order,
+		connectionHops []string,
+		portID,
+		channelID string,
+		sequence uint64,
+		counterparty channeltypes.Counterparty,
+		version string,
+	) (string, error)
+
+	OnChanUpgradeTry(
+		ctx sdk.Context,
+		order channeltypes.Order,
+		connectionHops []string,
+		portID,
+		channelID string,
+		sequence uint64,
+		counterparty channeltypes.Counterparty,
+		version string,
+	) (string, error)
+
+	OnChanUpgradeAck(
+		ctx sdk.Context,
+		portID,
+		channelID,
+		counterpartyChannelID,
+		counterpartyVersion string,
+	) error
+
+	OnChanUpgradeConfirm(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+	) error
+
+	OnChanUpgradeRestore(
+		ctx sdk.Context,
+		portID,
+		channelID string,
 	) error
 }
 

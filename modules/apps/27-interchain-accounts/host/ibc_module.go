@@ -140,3 +140,23 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }
+
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	return "", sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	return "", sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	return sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	return sdkerrors.ErrNotSupported
+}
+
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	return sdkerrors.ErrNotSupported
+}
