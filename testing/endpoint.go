@@ -181,8 +181,7 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 	counterpartyClient, proofClient, proofConsensus, consensusHeight, proofInit, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenTry(
-		"", endpoint.ClientID, // does not support handshake continuation
-		endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
+		endpoint.ClientID, endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
 		counterpartyClient, endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, endpoint.ConnectionConfig.DelayPeriod,
 		proofInit, proofClient, proofConsensus,
 		proofHeight, consensusHeight,
