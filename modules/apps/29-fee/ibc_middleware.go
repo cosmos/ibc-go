@@ -333,6 +333,31 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
+// OnChanUpgradeInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
+	return im.app.OnChanUpgradeInit(ctx, order, connectionHops, portID, channelID, sequence, counterparty, version, previousVersion)
+}
+
+// OnChanUpgradeTry implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, counterpartyVersion, previousCounterpartyVersion string) (string, error) {
+	return im.app.OnChanUpgradeTry(ctx, order, connectionHops, portID, channelID, sequence, counterparty, counterpartyVersion, previousCounterpartyVersion)
+}
+
+// OnChanUpgradeAck implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+}
+
+// OnChanUpgradeConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	return im.app.OnChanUpgradeConfirm(ctx, portID, channelID)
+}
+
+// OnChanUpgradeRestore implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	return im.app.OnChanUpgradeRestore(ctx, portID, channelID)
+}
+
 // SendPacket implements the ICS4 Wrapper interface
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
@@ -340,31 +365,6 @@ func (im IBCMiddleware) SendPacket(
 	packet exported.PacketI,
 ) error {
 	return im.keeper.SendPacket(ctx, chanCap, packet)
-}
-
-func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (im IBCMiddleware) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
-	//TODO implement me
-	panic("implement me")
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface

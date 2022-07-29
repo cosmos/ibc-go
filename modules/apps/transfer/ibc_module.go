@@ -292,22 +292,27 @@ func (im IBCModule) OnTimeoutPacket(
 	return nil
 }
 
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
-	return "", sdkerrors.ErrNotSupported
+// OnChanUpgradeInit implements the IBCMiddleware interface
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
+	return "", nil
 }
 
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
-	return "", sdkerrors.ErrNotSupported
+// OnChanUpgradeTry implements the IBCMiddleware interface
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, counterpartyVersion, previousCounterpartyVersion string) (string, error) {
+	return "", nil
 }
 
+// OnChanUpgradeAck implements the IBCMiddleware interface
 func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
-	return sdkerrors.ErrNotSupported
+	return nil
 }
 
+// OnChanUpgradeConfirm implements the IBCMiddleware interface
 func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
-	return sdkerrors.ErrNotSupported
+	return nil
 }
 
+// OnChanUpgradeRestore implements the IBCMiddleware interface
 func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
-	return sdkerrors.ErrNotSupported
+	return nil
 }

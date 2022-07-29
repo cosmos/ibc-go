@@ -158,29 +158,29 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	return nil
 }
 
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
-	//TODO implement me
-	panic("implement me")
+// OnChanUpgradeInit implements the IBCMiddleware interface
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
+	return "", nil
 }
 
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
-	//TODO implement me
-	panic("implement me")
+// OnChanUpgradeTry implements the IBCMiddleware interface
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, counterpartyVersion, previousCounterpartyVersion string) (string, error) {
+	return "", nil
 }
 
+// OnChanUpgradeAck implements the IBCMiddleware interface
 func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
+// OnChanUpgradeConfirm implements the IBCMiddleware interface
 func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
+// OnChanUpgradeRestore implements the IBCMiddleware interface
 func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
