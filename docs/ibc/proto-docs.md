@@ -3110,6 +3110,7 @@ MsgChannelUpgradeConfirm defines the request type for the ChannelUpgradeConfirm 
 | `proof_upgrade_error` | [bytes](#bytes) |  |  |
 | `proof_upgrade_sequence` | [bytes](#bytes) |  |  |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `signer` | [string](#string) |  |  |
 
 
 

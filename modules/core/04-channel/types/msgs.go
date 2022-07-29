@@ -553,18 +553,64 @@ var _ sdk.Msg = &MsgChannelUpgradeConfirm{}
 
 // NewMsgChannelUpgradeConfirm constructs a new MsgChannelUpgradeConfirm
 // nolint:interfacer
-func NewMsgChannelUpgradeConfirm() *MsgChannelUpgradeConfirm {
-	return &MsgChannelUpgradeConfirm{}
+func NewMsgChannelUpgradeConfirm(portID, channelID string, counterpartyChannel Channel, proofChannel, proofUpgradeError, proofUpgradeSequence []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeConfirm {
+	return &MsgChannelUpgradeConfirm{
+		PortId:               portID,
+		ChannelId:            channelID,
+		CounterpartyChannel:  counterpartyChannel,
+		ProofChannel:         proofChannel,
+		ProofUpgradeError:    proofUpgradeError,
+		ProofUpgradeSequence: proofUpgradeSequence,
+		ProofHeight:          proofHeight,
+		Signer:               signer,
+	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
-	return errors.New("error method not implemented")
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid port ID")
+	}
+
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+
+	if len(msg.ProofChannel) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
+	}
+
+	if len(msg.ProofUpgradeError) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade error proof")
+	}
+
+	if len(msg.ProofUpgradeSequence) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
+	}
+
+	if msg.ProofHeight.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
+	}
+
+	if msg.CounterpartyChannel.State != OPEN {
+		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
 }
 
 // GetSigners implements sdk.Msg
 func (msg MsgChannelUpgradeConfirm) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
