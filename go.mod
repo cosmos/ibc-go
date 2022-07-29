@@ -31,5 +31,6 @@ require (
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/regen-network/cosmos-proto v0.3.1
 	gopkg.in/ini.v1 v1.63.2 // indirect
 )
