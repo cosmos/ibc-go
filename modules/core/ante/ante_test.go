@@ -433,7 +433,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				// committing it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
 				k := suite.chainB.App.GetIBCKeeper()
-				decorator := ante.NewRedundancyDecorator(k)
+				decorator := ante.NewRedundantRelayDecorator(k)
 				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
 				next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
 				txBuilder := suite.chainB.TxConfig.NewTxBuilder()
@@ -458,7 +458,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			suite.SetupTest()
 
 			k := suite.chainB.App.GetIBCKeeper()
-			decorator := ante.NewRedundancyDecorator(k)
+			decorator := ante.NewRedundantRelayDecorator(k)
 
 			msgs := tc.malleate(suite)
 

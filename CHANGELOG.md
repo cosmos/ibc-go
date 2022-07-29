@@ -43,8 +43,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (core/03-connection) [\#1797](https://github.com/cosmos/ibc-go/pull/1797) Remove `PreviousConnectionID` from `NewMsgConnectionOpenTry` arguments. `MsgConnectionOpenTry.ValidateBasic()` returns error if the deprecated `PreviousConnectionID` is not empty.
+* (core/04-channel) [\#1792](https://github.com/cosmos/ibc-go/pull/1792) Remove `PreviousChannelID` from `NewMsgChannelOpenTry` arguments. `MsgChannelOpenTry.ValidateBasic()` returns error if the deprecated `PreviousChannelID` is not empty. 
 * (core/04-channel) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `NewPacketId` has been renamed to `NewPacketID` to comply with go linting rules.
 * (core/ante) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `AnteDecorator` has been renamed to `RedundancyDecorator` to comply with go linting rules and to give more clarity to the purpose of the Decorator.
+* (core/ante) [\#1820](https://github.com/cosmos/ibc-go/pull/1418) `RedundancyDecorator` has been renamed to `RedundantRelayDecorator` to make the name for explicit.
 * (testing) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `MockIBCApp` has been renamed to `IBCApp` and `MockEmptyAcknowledgement` has been renamed to `EmptyAcknowledgement` to comply with go linting rules
 * (modules/core/03-connection) [\#1672](https://github.com/cosmos/ibc-go/pull/1672) Remove crossing hellos from connection handshakes. The `PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated.
 * (modules/core/04-channel) [\#1317](https://github.com/cosmos/ibc-go/pull/1317) Remove crossing hellos from channel handshakes. The `PreviousChannelId` in `MsgChannelOpenTry` has been deprecated.  
@@ -57,7 +60,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer)[\#1565](https://github.com/cosmos/ibc-go/pull/1565) Removing `NewErrorAcknowledgement` in favour of `channeltypes.NewErrorAcknowledgement`.
 * (channel)[\#1565](https://github.com/cosmos/ibc-go/pull/1565) Updating `NewErrorAcknowledgement` to accept an error instead of a string and removing the possibility of non-deterministic writes to application state.
 * (core/04-channel)[\#1636](https://github.com/cosmos/ibc-go/pull/1636) Removing `SplitChannelVersion` and `MergeChannelVersions` functions since they are not used.
-* (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768/files) Removed `AllowUpdateAfterExpiry`, `AllowUpdateAfterMisbehaviour` booleans as they are deprecated (see ADR026)
 
 ### State Machine Breaking
 

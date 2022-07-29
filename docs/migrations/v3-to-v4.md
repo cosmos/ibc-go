@@ -47,6 +47,8 @@ This incorrect trace information must be corrected when the chain does upgrade t
 Crossing hellos have been removed from 03-connection handshake negotiation. 
 `PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated and is no longer used by core IBC.
 
+`NewMsgConnectionOpenTry` no longer takes in the `PreviousConnectionId` as crossing hellos are no longer supported. A non-empty `PreviousConnectionId` will fail basic validation for this message.
+
 ### ICS04 - Channel 
 
 The `WriteAcknowledgement` API now takes the `exported.Acknowledgement` type instead of passing in the acknowledgement byte array directly. 
@@ -62,6 +64,8 @@ All error acknowledgements now contain a deterministic ABCI code and error messa
 Crossing hellos have been removed from 04-channel handshake negotiation. 
 IBC Applications no longer need to account from already claimed capabilities in the `OnChanOpenTry` callback. The capability provided by core IBC must be able to be claimed with error. 
 `PreviousChannelId` in `MsgChannelOpenTry` has been deprecated and is no longer used by core IBC.
+
+`NewMsgChannelOpenTry` no longer takes in the `PreviousChannelId` as crossing hellos are no longer supported. A non-empty `PreviousChannelId` will fail basic validation for this message. 
 
 ### ICS27 - Interchain Accounts
 
