@@ -3076,7 +3076,7 @@ MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rp
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
 | `error_receipt` | [ErrorReceipt](#ibc.core.channel.v1.ErrorReceipt) |  |  |
-| `proof_cancel` | [bytes](#bytes) |  |  |
+| `proof_error_receipt` | [bytes](#bytes) |  |  |
 | `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `signer` | [string](#string) |  |  |
 

@@ -592,17 +592,17 @@ var _ sdk.Msg = &MsgChannelUpgradeCancel{}
 func NewMsgChannelUpgradeCancel(
 	portID, channelID string,
 	errorReceipt ErrorReceipt,
-	proofCancel []byte,
+	proofErrReceipt []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeCancel {
 	return &MsgChannelUpgradeCancel{
-		PortId:       portID,
-		ChannelId:    channelID,
-		ErrorReceipt: errorReceipt,
-		ProofCancel:  proofCancel,
-		ProofHeight:  proofHeight,
-		Signer:       signer,
+		PortId:            portID,
+		ChannelId:         channelID,
+		ErrorReceipt:      errorReceipt,
+		ProofErrorReceipt: proofErrReceipt,
+		ProofHeight:       proofHeight,
+		Signer:            signer,
 	}
 }
 
@@ -616,7 +616,7 @@ func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 
-	if len(msg.ProofCancel) == 0 {
+	if len(msg.ProofErrorReceipt) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 

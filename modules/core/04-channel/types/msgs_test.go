@@ -467,7 +467,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 		{
 			"cannot submit an empty proof",
 			func() {
-				msg.ProofCancel = emptyProof
+				msg.ProofErrorReceipt = emptyProof
 			},
 			false,
 		},
@@ -489,7 +489,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 			"missing signer address",
 			func() {
 				msg.Signer = emptyAddr
-			}, false,
+			},
+			false,
 		},
 	}
 
