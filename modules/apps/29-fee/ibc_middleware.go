@@ -342,6 +342,31 @@ func (im IBCMiddleware) SendPacket(
 	return im.keeper.SendPacket(ctx, chanCap, packet)
 }
 
+func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version string) (string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCMiddleware) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
