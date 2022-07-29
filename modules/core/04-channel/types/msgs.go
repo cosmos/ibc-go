@@ -589,16 +589,59 @@ var _ sdk.Msg = &MsgChannelUpgradeCancel{}
 
 // NewMsgChannelUpgradeCancel constructs a new MsgChannelUpgradeCancel
 // nolint:interfacer
-func NewMsgChannelUpgradeCancel() *MsgChannelUpgradeCancel {
-	return &MsgChannelUpgradeCancel{}
+func NewMsgChannelUpgradeCancel(
+	portID, channelID string,
+	errorReceipt ErrorReceipt,
+	proofErrReceipt []byte,
+	proofHeight clienttypes.Height,
+	signer string,
+) *MsgChannelUpgradeCancel {
+	return &MsgChannelUpgradeCancel{
+		PortId:            portID,
+		ChannelId:         channelID,
+		ErrorReceipt:      errorReceipt,
+		ProofErrorReceipt: proofErrReceipt,
+		ProofHeight:       proofHeight,
+		Signer:            signer,
+	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
-	return errors.New("error method not implemented")
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid port ID")
+	}
+
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+
+	if len(msg.ProofErrorReceipt) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
+	}
+
+	if msg.ProofHeight.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
+	}
+
+	if msg.ErrorReceipt.Sequence == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidSequence, "upgrade sequence cannot be 0")
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
 }
 
 // GetSigners implements sdk.Msg
 func (msg MsgChannelUpgradeCancel) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{signer}
 }
