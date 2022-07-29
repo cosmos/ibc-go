@@ -571,18 +571,64 @@ var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
 
 // NewMsgChannelUpgradeTimeout constructs a new MsgChannelUpgradeTimeout
 // nolint:interfacer
-func NewMsgChannelUpgradeTimeout() *MsgChannelUpgradeTimeout {
-	return &MsgChannelUpgradeTimeout{}
+func NewMsgChannelUpgradeTimeout(
+	portID, channelID string,
+	counterpartyChannel Channel,
+	errorReceipt ErrorReceipt,
+	proofChannel, proofErrorReceipt []byte,
+	proofHeight clienttypes.Height,
+	signer string,
+) *MsgChannelUpgradeTimeout {
+	return &MsgChannelUpgradeTimeout{
+		PortId:               portID,
+		ChannelId:            channelID,
+		CounterpartyChannel:  counterpartyChannel,
+		PreviousErrorReceipt: errorReceipt,
+		ProofChannel:         proofChannel,
+		ProofErrorReceipt:    proofErrorReceipt,
+		ProofHeight:          proofHeight,
+		Signer:               signer,
+	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
-	return errors.New("error method not implemented")
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid port ID")
+	}
+
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+
+	if len(msg.ProofChannel) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
+	}
+
+	if msg.ProofHeight.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
+	}
+
+	if msg.CounterpartyChannel.State != OPEN {
+		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
 }
 
 // GetSigners implements sdk.Msg
 func (msg MsgChannelUpgradeTimeout) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{signer}
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeCancel{}
