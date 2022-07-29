@@ -66,7 +66,7 @@ var _ sdk.Msg = &MsgChannelOpenTry{}
 // It is left as an argument for go API backwards compatibility.
 // nolint:interfacer
 func NewMsgChannelOpenTry(
-	portID, previousChannelID, version string, channelOrder Order, connectionHops []string,
+	portID, version string, channelOrder Order, connectionHops []string,
 	counterpartyPortID, counterpartyChannelID, counterpartyVersion string,
 	proofInit []byte, proofHeight clienttypes.Height, signer string,
 ) *MsgChannelOpenTry {
@@ -74,7 +74,6 @@ func NewMsgChannelOpenTry(
 	channel := NewChannel(TRYOPEN, channelOrder, counterparty, connectionHops, version)
 	return &MsgChannelOpenTry{
 		PortId:              portID,
-		PreviousChannelId:   previousChannelID,
 		Channel:             channel,
 		CounterpartyVersion: counterpartyVersion,
 		ProofInit:           proofInit,
@@ -89,9 +88,7 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "invalid port ID")
 	}
 	if msg.PreviousChannelId != "" {
-		if !IsValidChannelID(msg.PreviousChannelId) {
-			return sdkerrors.Wrap(ErrInvalidChannelIdentifier, "invalid previous channel ID")
-		}
+		return sdkerrors.Wrap(ErrInvalidChannelIdentifier, "previous channel identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
 	if len(msg.ProofInit) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")

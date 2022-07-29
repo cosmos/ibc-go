@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (core/04-channel) [\#1792](https://github.com/cosmos/ibc-go/pull/1792) Remove `PreviousChannelID` from `NewMsgChannelOpenTry` arguments. `MsgChannelOpenTry.ValidateBasic()` returns error if the deprecated `PreviousChannelID` is not empty. 
 * (modules/core/03-connection) [\#1672](https://github.com/cosmos/ibc-go/pull/1672) Remove crossing hellos from connection handshakes. The `PreviousConnectionId` in `MsgConnectionOpenTry` has been deprecated.
 * (modules/core/04-channel) [\#1317](https://github.com/cosmos/ibc-go/pull/1317) Remove crossing hellos from channel handshakes. The `PreviousChannelId` in `MsgChannelOpenTry` has been deprecated.  
 * (transfer) [\#1250](https://github.com/cosmos/ibc-go/pull/1250) Deprecate `GetTransferAccount` since the `transfer` module account is never used.
