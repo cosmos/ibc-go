@@ -570,7 +570,7 @@ func (msg MsgChannelUpgradeAck) ValidateBasic() error {
 	}
 
 	if msg.CounterpartyChannel.State != TRYUPGRADE {
-		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
+		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", "TRYUPGRADE", msg.CounterpartyChannel.State)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)

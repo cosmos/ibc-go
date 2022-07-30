@@ -570,7 +570,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				msg.CounterpartyChannel.State = types.CLOSED
+				msg.CounterpartyChannel.State = types.INITUPGRADE
 			},
 			false,
 		},
@@ -588,7 +588,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgChannelUpgradeAck(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.Channel{State: types.INITUPGRADE},
+				types.Channel{State: types.TRYUPGRADE},
 				suite.proof, suite.proof,
 				height, addr,
 			)
