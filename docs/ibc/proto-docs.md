@@ -75,6 +75,18 @@
   
     - [Msg](#ibc.applications.fee.v1.Msg)
   
+- [ibc/applications/icq/v1/icq.proto](#ibc/applications/icq/v1/icq.proto)
+    - [Params](#ibc.applications.icq.v1.Params)
+  
+- [ibc/applications/icq/v1/genesis.proto](#ibc/applications/icq/v1/genesis.proto)
+    - [GenesisState](#ibc.applications.icq.v1.GenesisState)
+  
+- [ibc/applications/icq/v1/packet.proto](#ibc/applications/icq/v1/packet.proto)
+    - [CosmosQuery](#ibc.applications.icq.v1.CosmosQuery)
+    - [CosmosResponse](#ibc.applications.icq.v1.CosmosResponse)
+    - [InterchainQueryPacketAck](#ibc.applications.icq.v1.InterchainQueryPacketAck)
+    - [InterchainQueryPacketData](#ibc.applications.icq.v1.InterchainQueryPacketData)
+  
 - [ibc/applications/interchain_accounts/controller/v1/controller.proto](#ibc/applications/interchain_accounts/controller/v1/controller.proto)
     - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
   
@@ -1327,6 +1339,146 @@ Msg defines the ICS29 Msg service.
 | `RegisterCounterpartyAddress` | [MsgRegisterCounterpartyAddress](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddress) | [MsgRegisterCounterpartyAddressResponse](#ibc.applications.fee.v1.MsgRegisterCounterpartyAddressResponse) | RegisterCounterpartyAddress defines a rpc handler method for MsgRegisterCounterpartyAddress RegisterCounterpartyAddress is called by the relayer on each channelEnd and allows them to specify their counterparty address before relaying. This ensures they will be properly compensated for forward relaying since destination chain must send back relayer's source address (counterparty address) in acknowledgement. This function may be called more than once by a relayer, in which case, latest counterparty address is always used. | |
 | `PayPacketFee` | [MsgPayPacketFee](#ibc.applications.fee.v1.MsgPayPacketFee) | [MsgPayPacketFeeResponse](#ibc.applications.fee.v1.MsgPayPacketFeeResponse) | PayPacketFee defines a rpc handler method for MsgPayPacketFee PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of the packet at the next sequence NOTE: This method is intended to be used within a multi msg transaction, where the subsequent msg that follows initiates the lifecycle of the incentivized packet | |
 | `PayPacketFeeAsync` | [MsgPayPacketFeeAsync](#ibc.applications.fee.v1.MsgPayPacketFeeAsync) | [MsgPayPacketFeeAsyncResponse](#ibc.applications.fee.v1.MsgPayPacketFeeAsyncResponse) | PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to incentivize the relaying of a known packet (i.e. at a particular sequence) | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/icq/v1/icq.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/icq/v1/icq.proto
+
+
+
+<a name="ibc.applications.icq.v1.Params"></a>
+
+### Params
+Params defines the set of on-chain interchain query parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `host_enabled` | [bool](#bool) |  | host_enabled enables or disables the host submodule. |
+| `allow_queries` | [string](#string) | repeated | allow_queries defines a list of query paths allowed to be queried on a host chain. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/icq/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/icq/v1/genesis.proto
+
+
+
+<a name="ibc.applications.icq.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain query genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `host_port` | [string](#string) |  |  |
+| `params` | [Params](#ibc.applications.icq.v1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/icq/v1/packet.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/icq/v1/packet.proto
+
+
+
+<a name="ibc.applications.icq.v1.CosmosQuery"></a>
+
+### CosmosQuery
+CosmosQuery contains a list of tendermint ABCI query requests. It should be used when sending queries to an SDK host chain.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `requests` | [tendermint.abci.RequestQuery](#tendermint.abci.RequestQuery) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.icq.v1.CosmosResponse"></a>
+
+### CosmosResponse
+CosmosResponse contains a list of tendermint ABCI query responses. It should be used when receiving responses from an SDK host chain.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `responses` | [tendermint.abci.ResponseQuery](#tendermint.abci.ResponseQuery) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.icq.v1.InterchainQueryPacketAck"></a>
+
+### InterchainQueryPacketAck
+InterchainQueryPacketAck is comprised of an ABCI query response with non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.icq.v1.InterchainQueryPacketData"></a>
+
+### InterchainQueryPacketData
+InterchainQueryPacketData is comprised of raw query.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
