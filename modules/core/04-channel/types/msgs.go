@@ -517,18 +517,97 @@ var _ sdk.Msg = &MsgChannelUpgradeTry{}
 
 // NewMsgChannelUpgradeTry constructs a new MsgChannelUpgradeTry
 // nolint:interfacer
-func NewMsgChannelUpgradeTry() *MsgChannelUpgradeTry {
-	return &MsgChannelUpgradeTry{}
+func NewMsgChannelUpgradeTry(
+	portID, channelID string,
+	counterpartyChannel Channel,
+	counterpartySequence uint64,
+	proposedUpgradeChannel Channel,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	proofChannel []byte,
+	proofUpgradeTimeout []byte,
+	proofUpgradeSequence []byte,
+	proofHeight clienttypes.Height,
+	signer string,
+) *MsgChannelUpgradeTry {
+	return &MsgChannelUpgradeTry{
+		PortId:                 portID,
+		ChannelId:              channelID,
+		CounterpartyChannel:    counterpartyChannel,
+		CounterpartySequence:   counterpartySequence,
+		ProposedUpgradeChannel: proposedUpgradeChannel,
+		TimeoutHeight:          timeoutHeight,
+		TimeoutTimestamp:       timeoutTimestamp,
+		ProofChannel:           proofChannel,
+		ProofUpgradeTimeout:    proofUpgradeTimeout,
+		ProofUpgradeSequence:   proofUpgradeSequence,
+		ProofHeight:            proofHeight,
+		Signer:                 signer,
+	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgChannelUpgradeTry) ValidateBasic() error {
-	return errors.New("error method not implemented")
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid port ID")
+	}
+
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+
+	if msg.CounterpartyChannel.State != INITUPGRADE {
+		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.CounterpartyChannel.State)
+	}
+
+	if msg.CounterpartySequence == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
+	}
+
+	if msg.ProposedUpgradeChannel.State != TRYUPGRADE {
+		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", TRYUPGRADE, msg.CounterpartyChannel.State)
+	}
+
+	if msg.TimeoutHeight.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "timeout height must be non-zero")
+	}
+
+	if msg.TimeoutTimestamp == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "timeout timestamp must be non-zero")
+	}
+
+	if len(msg.ProofChannel) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
+	}
+
+	if len(msg.ProofUpgradeTimeout) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade timeout proof")
+	}
+
+	if len(msg.ProofUpgradeSequence) == 0 {
+		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
+	}
+
+	if msg.ProofHeight.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
 }
 
 // GetSigners implements sdk.Msg
 func (msg MsgChannelUpgradeTry) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{signer}
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeAck{}
