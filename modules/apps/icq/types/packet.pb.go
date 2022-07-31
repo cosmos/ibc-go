@@ -24,9 +24,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// InterchainQueryPacketData is comprised of an ABCI query request and type of query.
+// InterchainQueryPacketData is comprised of raw query.
 type InterchainQueryPacketData struct {
-	Requests []types.RequestQuery `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests"`
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (m *InterchainQueryPacketData) Reset()         { *m = InterchainQueryPacketData{} }
@@ -62,16 +62,16 @@ func (m *InterchainQueryPacketData) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_InterchainQueryPacketData proto.InternalMessageInfo
 
-func (m *InterchainQueryPacketData) GetRequests() []types.RequestQuery {
+func (m *InterchainQueryPacketData) GetData() []byte {
 	if m != nil {
-		return m.Requests
+		return m.Data
 	}
 	return nil
 }
 
 // InterchainQueryPacketAck is comprised of an ABCI query response with non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
 type InterchainQueryPacketAck struct {
-	Responses []types.ResponseQuery `protobuf:"bytes,1,rep,name=responses,proto3" json:"responses"`
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (m *InterchainQueryPacketAck) Reset()         { *m = InterchainQueryPacketAck{} }
@@ -107,7 +107,97 @@ func (m *InterchainQueryPacketAck) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_InterchainQueryPacketAck proto.InternalMessageInfo
 
-func (m *InterchainQueryPacketAck) GetResponses() []types.ResponseQuery {
+func (m *InterchainQueryPacketAck) GetData() []byte {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// CosmosQuery contains a list of tendermint ABCI query requests. It should be used when sending queries to an SDK host chain.
+type CosmosQuery struct {
+	Requests []types.RequestQuery `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests"`
+}
+
+func (m *CosmosQuery) Reset()         { *m = CosmosQuery{} }
+func (m *CosmosQuery) String() string { return proto.CompactTextString(m) }
+func (*CosmosQuery) ProtoMessage()    {}
+func (*CosmosQuery) Descriptor() ([]byte, []int) {
+	return fileDescriptor_841c9ad988725ce1, []int{2}
+}
+func (m *CosmosQuery) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CosmosQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CosmosQuery.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CosmosQuery) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CosmosQuery.Merge(m, src)
+}
+func (m *CosmosQuery) XXX_Size() int {
+	return m.Size()
+}
+func (m *CosmosQuery) XXX_DiscardUnknown() {
+	xxx_messageInfo_CosmosQuery.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CosmosQuery proto.InternalMessageInfo
+
+func (m *CosmosQuery) GetRequests() []types.RequestQuery {
+	if m != nil {
+		return m.Requests
+	}
+	return nil
+}
+
+// CosmosResponse contains a list of tendermint ABCI query responses. It should be used when receiving responses from an SDK host chain.
+type CosmosResponse struct {
+	Responses []types.ResponseQuery `protobuf:"bytes,1,rep,name=responses,proto3" json:"responses"`
+}
+
+func (m *CosmosResponse) Reset()         { *m = CosmosResponse{} }
+func (m *CosmosResponse) String() string { return proto.CompactTextString(m) }
+func (*CosmosResponse) ProtoMessage()    {}
+func (*CosmosResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_841c9ad988725ce1, []int{3}
+}
+func (m *CosmosResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CosmosResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CosmosResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CosmosResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CosmosResponse.Merge(m, src)
+}
+func (m *CosmosResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CosmosResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CosmosResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CosmosResponse proto.InternalMessageInfo
+
+func (m *CosmosResponse) GetResponses() []types.ResponseQuery {
 	if m != nil {
 		return m.Responses
 	}
@@ -117,6 +207,8 @@ func (m *InterchainQueryPacketAck) GetResponses() []types.ResponseQuery {
 func init() {
 	proto.RegisterType((*InterchainQueryPacketData)(nil), "ibc.applications.icq.v1.InterchainQueryPacketData")
 	proto.RegisterType((*InterchainQueryPacketAck)(nil), "ibc.applications.icq.v1.InterchainQueryPacketAck")
+	proto.RegisterType((*CosmosQuery)(nil), "ibc.applications.icq.v1.CosmosQuery")
+	proto.RegisterType((*CosmosResponse)(nil), "ibc.applications.icq.v1.CosmosResponse")
 }
 
 func init() {
@@ -124,25 +216,27 @@ func init() {
 }
 
 var fileDescriptor_841c9ad988725ce1 = []byte{
-	// 283 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x90, 0xc1, 0x4a, 0xc3, 0x30,
-	0x18, 0xc7, 0x5b, 0x14, 0xd1, 0x7a, 0x2b, 0x82, 0x73, 0x62, 0x94, 0xe1, 0xc1, 0x8b, 0x09, 0xdb,
-	0x1e, 0x40, 0x2c, 0x5e, 0x04, 0x0f, 0xba, 0xa3, 0x88, 0x90, 0x7c, 0x0b, 0x5d, 0xd8, 0x9a, 0x2f,
-	0x4d, 0xd2, 0xc2, 0xde, 0xc2, 0xc7, 0xda, 0x71, 0x47, 0x4f, 0x22, 0xed, 0x8b, 0x48, 0x5b, 0xdc,
-	0x76, 0xd8, 0x2d, 0x90, 0xdf, 0xff, 0xf7, 0xc1, 0x2f, 0xba, 0x55, 0x02, 0x18, 0x37, 0x66, 0xa1,
-	0x80, 0x7b, 0x85, 0xda, 0x31, 0x05, 0x39, 0x2b, 0x87, 0xcc, 0x70, 0x98, 0x4b, 0x4f, 0x8d, 0x45,
-	0x8f, 0xf1, 0xb9, 0x12, 0x40, 0x77, 0x29, 0xaa, 0x20, 0xa7, 0xe5, 0xb0, 0x7f, 0x96, 0x62, 0x8a,
-	0x2d, 0xc3, 0x9a, 0x57, 0x87, 0xf7, 0x2f, 0xbd, 0xd4, 0x53, 0x69, 0x33, 0xa5, 0x3d, 0xe3, 0x02,
-	0x14, 0xf3, 0x4b, 0x23, 0x5d, 0xf7, 0x39, 0xf8, 0x88, 0x2e, 0x9e, 0xb5, 0x97, 0x16, 0x66, 0x5c,
-	0xe9, 0xb7, 0x42, 0xda, 0xe5, 0x6b, 0x7b, 0xea, 0x89, 0x7b, 0x1e, 0x3f, 0x44, 0xc7, 0x56, 0xe6,
-	0x85, 0x74, 0xde, 0xf5, 0xc2, 0x9b, 0x83, 0xbb, 0xd3, 0xd1, 0x15, 0xdd, 0xca, 0x68, 0x23, 0xa3,
-	0x93, 0x0e, 0x68, 0xa7, 0xc9, 0xe1, 0xea, 0xe7, 0x3a, 0x98, 0x6c, 0x46, 0x83, 0xcf, 0xa8, 0xb7,
-	0xd7, 0xfe, 0x08, 0xf3, 0x38, 0x89, 0x4e, 0xac, 0x74, 0x06, 0xb5, 0x93, 0xff, 0x76, 0xb2, 0xc7,
-	0xde, 0x11, 0xbb, 0xfa, 0xed, 0x2c, 0x79, 0x59, 0x55, 0x24, 0x5c, 0x57, 0x24, 0xfc, 0xad, 0x48,
-	0xf8, 0x55, 0x93, 0x60, 0x5d, 0x93, 0xe0, 0xbb, 0x26, 0xc1, 0xfb, 0x28, 0x55, 0x7e, 0x56, 0x08,
-	0x0a, 0x98, 0x31, 0x40, 0x97, 0xa1, 0x63, 0x4a, 0xc0, 0x7d, 0x8a, 0xac, 0x1c, 0xb3, 0x0c, 0xa7,
-	0xc5, 0x42, 0xba, 0xa6, 0x74, 0x57, 0xb8, 0x2d, 0x22, 0x8e, 0xda, 0x24, 0xe3, 0xbf, 0x00, 0x00,
-	0x00, 0xff, 0xff, 0xcf, 0x68, 0x77, 0x4c, 0x86, 0x01, 0x00, 0x00,
+	// 317 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x91, 0xc1, 0x4a, 0x33, 0x31,
+	0x14, 0x85, 0x67, 0xf8, 0xcb, 0x8f, 0xa6, 0xe2, 0x62, 0x10, 0xac, 0x15, 0x63, 0x29, 0x2e, 0xba,
+	0x31, 0x97, 0xb6, 0x0f, 0x20, 0x56, 0x37, 0x82, 0x88, 0x0e, 0xae, 0xdc, 0x65, 0x6e, 0xc3, 0x34,
+	0xb4, 0x33, 0x49, 0x93, 0x4c, 0xa1, 0x6f, 0xe1, 0x63, 0x75, 0xd9, 0xa5, 0x2b, 0x91, 0xf6, 0x45,
+	0xa4, 0x89, 0xda, 0x2e, 0xba, 0x3b, 0x70, 0xbf, 0x73, 0xee, 0xe5, 0x1e, 0x72, 0x25, 0x33, 0x04,
+	0xae, 0xf5, 0x44, 0x22, 0x77, 0x52, 0x95, 0x16, 0x24, 0x4e, 0x61, 0xd6, 0x05, 0xcd, 0x71, 0x2c,
+	0x1c, 0xd3, 0x46, 0x39, 0x95, 0x9c, 0xca, 0x0c, 0xd9, 0x2e, 0xc5, 0x24, 0x4e, 0xd9, 0xac, 0xdb,
+	0x3c, 0xc9, 0x55, 0xae, 0x3c, 0x03, 0x1b, 0x15, 0xf0, 0xe6, 0xb9, 0x13, 0xe5, 0x50, 0x98, 0x42,
+	0x96, 0x0e, 0x78, 0x86, 0x12, 0xdc, 0x5c, 0x0b, 0x1b, 0x86, 0x6d, 0x20, 0x67, 0x0f, 0xa5, 0x13,
+	0x06, 0x47, 0x5c, 0x96, 0x2f, 0x95, 0x30, 0xf3, 0x67, 0xbf, 0xea, 0x9e, 0x3b, 0x9e, 0x24, 0xa4,
+	0x36, 0xe4, 0x8e, 0x37, 0xe2, 0x56, 0xdc, 0x39, 0x4a, 0xbd, 0x6e, 0x33, 0xd2, 0xd8, 0x6b, 0xb8,
+	0xc5, 0xf1, 0x5e, 0xfe, 0x89, 0xd4, 0xef, 0x94, 0x2d, 0x94, 0xf5, 0x6c, 0x72, 0x43, 0x0e, 0x8c,
+	0x98, 0x56, 0xc2, 0x3a, 0xdb, 0x88, 0x5b, 0xff, 0x3a, 0xf5, 0xde, 0x05, 0xdb, 0xde, 0xc7, 0x36,
+	0xf7, 0xb1, 0x34, 0x00, 0xde, 0x30, 0xa8, 0x2d, 0x3e, 0x2f, 0xa3, 0xf4, 0xcf, 0xd4, 0x7e, 0x25,
+	0xc7, 0x21, 0x2f, 0x15, 0x56, 0xab, 0xd2, 0x8a, 0x64, 0x40, 0x0e, 0xcd, 0x8f, 0xfe, 0xcd, 0xa4,
+	0x7b, 0x32, 0x03, 0xb1, 0x1b, 0xba, 0xb5, 0x0d, 0x1e, 0x17, 0x2b, 0x1a, 0x2f, 0x57, 0x34, 0xfe,
+	0x5a, 0xd1, 0xf8, 0x7d, 0x4d, 0xa3, 0xe5, 0x9a, 0x46, 0x1f, 0x6b, 0x1a, 0xbd, 0xf5, 0x72, 0xe9,
+	0x46, 0x55, 0xc6, 0x50, 0x15, 0x80, 0x7e, 0x31, 0xc8, 0x0c, 0xaf, 0x73, 0x05, 0xb3, 0x3e, 0x14,
+	0x6a, 0x58, 0x4d, 0x84, 0xdd, 0x54, 0x16, 0xaa, 0xf2, 0xaf, 0xcd, 0xfe, 0xfb, 0xdf, 0xf6, 0xbf,
+	0x03, 0x00, 0x00, 0xff, 0xff, 0x4e, 0x6c, 0xf1, 0xa9, 0xcf, 0x01, 0x00, 0x00,
 }
 
 func (m *InterchainQueryPacketData) Marshal() (dAtA []byte, err error) {
@@ -165,19 +259,12 @@ func (m *InterchainQueryPacketData) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	_ = i
 	var l int
 	_ = l
-	if len(m.Requests) > 0 {
-		for iNdEx := len(m.Requests) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Requests[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPacket(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintPacket(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -198,6 +285,73 @@ func (m *InterchainQueryPacketAck) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *InterchainQueryPacketAck) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintPacket(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CosmosQuery) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CosmosQuery) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CosmosQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Requests) > 0 {
+		for iNdEx := len(m.Requests) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Requests[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintPacket(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CosmosResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CosmosResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CosmosResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -236,6 +390,32 @@ func (m *InterchainQueryPacketData) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovPacket(uint64(l))
+	}
+	return n
+}
+
+func (m *InterchainQueryPacketAck) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovPacket(uint64(l))
+	}
+	return n
+}
+
+func (m *CosmosQuery) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	if len(m.Requests) > 0 {
 		for _, e := range m.Requests {
 			l = e.Size()
@@ -245,7 +425,7 @@ func (m *InterchainQueryPacketData) Size() (n int) {
 	return n
 }
 
-func (m *InterchainQueryPacketAck) Size() (n int) {
+func (m *CosmosResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -293,6 +473,174 @@ func (m *InterchainQueryPacketData) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: InterchainQueryPacketData: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPacket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthPacket
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPacket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPacket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthPacket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *InterchainQueryPacketAck) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPacket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: InterchainQueryPacketAck: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: InterchainQueryPacketAck: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPacket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthPacket
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPacket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPacket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthPacket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CosmosQuery) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPacket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CosmosQuery: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CosmosQuery: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -350,7 +698,7 @@ func (m *InterchainQueryPacketData) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *InterchainQueryPacketAck) Unmarshal(dAtA []byte) error {
+func (m *CosmosResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -373,10 +721,10 @@ func (m *InterchainQueryPacketAck) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: InterchainQueryPacketAck: wiretype end group for non-group")
+			return fmt.Errorf("proto: CosmosResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: InterchainQueryPacketAck: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CosmosResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

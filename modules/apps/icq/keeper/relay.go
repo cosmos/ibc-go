@@ -29,8 +29,12 @@ func (k Keeper) SendQuery(
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
+	bz, err := types.SerializeCosmosQuery(reqs)
+	if err != nil {
+		return 0, err
+	}
 	icqPacketData := types.InterchainQueryPacketData{
-		Requests: reqs,
+		Data: bz,
 	}
 
 	return k.createOutgoingPacket(ctx, sourcePort, sourceChannel, destinationPort, destinationChannel, chanCap, icqPacketData, timeoutTimestamp)
@@ -84,7 +88,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byt
 		return nil, sdkerrors.Wrapf(icqtypes.ErrUnknownDataType, "cannot unmarshal ICQ packet data")
 	}
 
-	response, err := k.executeQuery(ctx, data.Requests)
+	reqs, err := types.DeserializeCosmosQuery(data.GetData())
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := k.executeQuery(ctx, reqs)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +118,12 @@ func (k Keeper) executeQuery(ctx sdk.Context, reqs []abci.RequestQuery) ([]byte,
 		}
 	}
 
+	bz, err := types.SerializeCosmosResponse(resps)
+	if err != nil {
+		return nil, err
+	}
 	ack := icqtypes.InterchainQueryPacketAck{
-		Responses: resps,
+		Data: bz,
 	}
 	data, err := icqtypes.ModuleCdc.MarshalJSON(&ack)
 	if err != nil {

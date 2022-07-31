@@ -7,12 +7,22 @@ option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/icq/types";
 import "gogoproto/gogo.proto";
 import "tendermint/abci/types.proto";
 
-// InterchainQueryPacketData is comprised of an ABCI query request and type of query.
+// InterchainQueryPacketData is comprised of raw query.
 message InterchainQueryPacketData {
-  repeated tendermint.abci.RequestQuery requests = 1 [(gogoproto.nullable) = false];
+  bytes data = 1;
 }
 
 // InterchainQueryPacketAck is comprised of an ABCI query response with non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
 message InterchainQueryPacketAck {
+  bytes data = 1;
+}
+
+// CosmosQuery contains a list of tendermint ABCI query requests. It should be used when sending queries to an SDK host chain.
+message CosmosQuery {
+  repeated tendermint.abci.RequestQuery requests = 1 [(gogoproto.nullable) = false];
+}
+
+// CosmosResponse contains a list of tendermint ABCI query responses. It should be used when receiving responses from an SDK host chain.
+message CosmosResponse {
   repeated tendermint.abci.ResponseQuery responses = 1 [(gogoproto.nullable) = false];
 }
