@@ -10,6 +10,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	log "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -46,7 +47,8 @@ func (suite *MsgTestSuite) SetupTest() {
 
 	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
-	store := rootmulti.NewStore(db)
+	dblog := log.TestingLogger()
+	store := rootmulti.NewStore(db, dblog)
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)

@@ -52,7 +52,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	clientCtx := client.Context{}.
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
-		WithJSONCodec(encodingConfig.Marshaler)
+		WithCodec(encodingConfig.Marshaler)
 
 	// create multiple legacy solo machine clients
 	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)

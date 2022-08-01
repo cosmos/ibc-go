@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -446,16 +447,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			packetData = icaPacketData.GetBytes()
 
 			// build expected ack
-			msgResponseBz, err := proto.Marshal(&banktypes.MsgSendResponse{})
+			any, err := codectypes.NewAnyWithValue(&banktypes.MsgSendResponse{})
 			suite.Require().NoError(err)
 
-			msgData := &sdk.MsgData{
-				MsgType: sdk.MsgTypeURL(msg),
-				Data:    msgResponseBz,
-			}
-
 			expectedTxResponse, err := proto.Marshal(&sdk.TxMsgData{
-				Data: []*sdk.MsgData{msgData},
+				MsgResponses: []*codectypes.Any{any},
 			})
 			suite.Require().NoError(err)
 
