@@ -124,8 +124,8 @@ type IBCModule interface {
 		channelID string,
 		sequence uint64,
 		counterparty channeltypes.Counterparty,
-		counterpartyVersion,
-		previousCounterpartyVersion string,
+		previousVersion,
+		counterpartyVersion string,
 	) (string, error)
 
 	OnChanUpgradeAck(

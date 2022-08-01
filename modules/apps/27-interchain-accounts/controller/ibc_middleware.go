@@ -177,27 +177,57 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
-	return "", nil
+func (im IBCMiddleware) OnChanUpgradeInit(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID, channelID string,
+	sequence uint64,
+	counterparty channeltypes.Counterparty,
+	version, previousVersion string,
+) (string, error) {
+	return version, nil
 }
 
 // OnChanUpgradeTry implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, counterpartyVersion, previousCounterpartyVersion string) (string, error) {
+func (im IBCMiddleware) OnChanUpgradeTry(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID, channelID string,
+	sequence uint64,
+	counterparty channeltypes.Counterparty,
+	previousVersion, counterpartyVersion string,
+) (string, error) {
 	return "", sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel upgrade handshake must be initiated by controller chain")
 }
 
 // OnChanUpgradeAck implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+func (im IBCMiddleware) OnChanUpgradeAck(
+	ctx sdk.Context,
+	portID,
+	channelID,
+	counterpartyChannelID,
+	counterpartyVersion string,
+) error {
 	return nil
 }
 
 // OnChanUpgradeConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
+func (im IBCMiddleware) OnChanUpgradeConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
 	return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel upgrade handshake must be initiated by controller chain")
 }
 
 // OnChanUpgradeRestore implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
+func (im IBCMiddleware) OnChanUpgradeRestore(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
 	return nil
 }
 
