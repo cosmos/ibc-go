@@ -8,20 +8,20 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
 )
 
-type RedundancyDecorator struct {
+type RedundantRelayDecorator struct {
 	k *keeper.Keeper
 }
 
-func NewRedundancyDecorator(k *keeper.Keeper) RedundancyDecorator {
-	return RedundancyDecorator{k: k}
+func NewRedundantRelayDecorator(k *keeper.Keeper) RedundantRelayDecorator {
+	return RedundantRelayDecorator{k: k}
 }
 
-// RedundancyDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages
+// RedundantRelayDecorator returns an error if a multiMsg tx only contains packet messages (Recv, Ack, Timeout) and additional update messages
 // and all packet messages are redundant. If the transaction is just a single UpdateClient message, or the multimsg transaction
 // contains some other message type, then the antedecorator returns no error and continues processing to ensure these transactions
 // are included. This will ensure that relayers do not waste fees on multiMsg transactions when another relayer has already submitted
 // all packets, by rejecting the tx at the mempool layer.
-func (rd RedundancyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	// do not run redundancy check on DeliverTx or simulate
 	if (ctx.IsCheckTx() || ctx.IsReCheckTx()) && !simulate {
 		// keep track of total packet messages and number of redundancies across `RecvPacket`, `AcknowledgePacket`, and `TimeoutPacket/OnClose`
@@ -30,7 +30,7 @@ func (rd RedundancyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		for _, m := range tx.GetMsgs() {
 			switch msg := m.(type) {
 			case *channeltypes.MsgRecvPacket:
-				response, err := rd.k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
+				response, err := rrd.k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
@@ -40,7 +40,7 @@ func (rd RedundancyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				packetMsgs++
 
 			case *channeltypes.MsgAcknowledgement:
-				response, err := rd.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
+				response, err := rrd.k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
@@ -50,7 +50,7 @@ func (rd RedundancyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				packetMsgs++
 
 			case *channeltypes.MsgTimeout:
-				response, err := rd.k.Timeout(sdk.WrapSDKContext(ctx), msg)
+				response, err := rrd.k.Timeout(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
@@ -60,7 +60,7 @@ func (rd RedundancyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				packetMsgs++
 
 			case *channeltypes.MsgTimeoutOnClose:
-				response, err := rd.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg)
+				response, err := rrd.k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}
@@ -70,7 +70,7 @@ func (rd RedundancyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
-				_, err := rd.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
+				_, err := rrd.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
 				if err != nil {
 					return ctx, err
 				}

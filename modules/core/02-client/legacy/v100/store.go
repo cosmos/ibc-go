@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -24,7 +25,7 @@ import (
 // - Pruning all solo machine consensus states
 // - Pruning expired tendermint consensus states
 // - Adds ProcessedHeight and Iteration keys for unexpired tendermint consensus states
-func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) (err error) {
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) (err error) {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 

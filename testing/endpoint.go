@@ -180,8 +180,7 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 	counterpartyClient, proofClient, proofConsensus, consensusHeight, proofInit, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenTry(
-		"", endpoint.ClientID, // does not support handshake continuation
-		endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
+		endpoint.ClientID, endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
 		counterpartyClient, endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, endpoint.ConnectionConfig.DelayPeriod,
 		proofInit, proofClient, proofConsensus,
 		proofHeight, consensusHeight,
@@ -294,7 +293,7 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
-		endpoint.ChannelConfig.PortID, "", // does not support handshake continuation
+		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
 		endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
 		proof, height,
