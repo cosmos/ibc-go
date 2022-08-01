@@ -3,13 +3,13 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"log"
 	"time"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
 	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	ics02 "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
@@ -18,11 +18,23 @@ var _ exported.Header = &Header{}
 
 const revisionNumber = 0
 
+type Head []byte
+
+type HeadData struct {
+	Head
+}
+
 // DecodeParachainHeader decodes an encoded substrate header to a concrete Header type. It takes encoded bytes
 // as an argument and returns a concrete substrate Header type.
 func DecodeParachainHeader(hb []byte) (substrate.Header, error) {
-	h := substrate.Header{}
-	err := substrate.DecodeFromBytes(hb, &h)
+	var headData HeadData
+	err := substrate.DecodeFromBytes(hb, &headData)
+	if err != nil {
+		return substrate.Header{}, err
+	}
+
+	var h substrate.Header
+	err = substrate.DecodeFromBytes(headData.Head, &h)
 	if err != nil {
 		return substrate.Header{}, err
 	}
@@ -92,12 +104,12 @@ func (h Header) ValidateBasic() error {
 
 		key := make([]byte, 4)
 		binary.LittleEndian.PutUint32(key, 0)
-		trie := trie.NewEmptyTrie()
-		if err := trie.LoadFromProof(extrinsicsProof, rootHash); err != nil {
+		t := trie.NewEmptyTrie()
+		if err := t.LoadFromProof(extrinsicsProof, rootHash); err != nil {
 			return err
 		}
 
-		if ext := trie.Get(key); len(ext) == 0 {
+		if ext := t.Get(key); len(ext) == 0 {
 			// todo: error
 		}
 

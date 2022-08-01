@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"reflect"
 
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/log15"
 	"github.com/ComposableFi/go-merkle-trees/hasher"
-	"github.com/ComposableFi/go-merkle-trees/merkle"
+	merkletypes "github.com/ComposableFi/go-merkle-trees/types"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -75,7 +76,7 @@ func (cs *ClientState) verifyHeader(
 	commitmentHash := crypto.Keccak256(commitmentBytes)
 
 	// array of leaves in the authority merkle root.
-	var authorityLeaves []merkle.Leaf
+	var authorityLeaves []merkletypes.Leaf
 
 	for i := 0; i < len(signedCommitment.Signatures); i++ {
 		signature := signedCommitment.Signatures[i]
@@ -87,9 +88,9 @@ func (cs *ClientState) verifyHeader(
 
 		// convert public key to ethereum address.
 		address := crypto.PubkeyToAddress(*pubkey)
-		authorityLeaf := merkle.Leaf{
+		authorityLeaf := merkletypes.Leaf{
 			Hash:  crypto.Keccak256(address[:]),
-			Index: signature.AuthorityIndex,
+			Index: uint64(signature.AuthorityIndex),
 		}
 		authorityLeaves = append(authorityLeaves, authorityLeaf)
 	}
@@ -103,7 +104,7 @@ func (cs *ClientState) verifyHeader(
 	case cs.Authority.Id:
 		// here we construct a merkle proof, and verify that the public keys which produced this signature
 		// are part of the current round.
-		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.Authority.Len, hasher.Keccak256Hasher{})
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, uint64(cs.Authority.Len), hasher.Keccak256Hasher{})
 		valid, err := authoritiesProof.Verify(cs.Authority.AuthorityRoot[:])
 		if err != nil || !valid {
 			return sdkerrors.Wrap(err, ErrAuthoritySetUnknown.Error())
@@ -111,7 +112,7 @@ func (cs *ClientState) verifyHeader(
 
 	// new authority set has kicked in
 	case cs.NextAuthoritySet.Id:
-		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, cs.NextAuthoritySet.Len, hasher.Keccak256Hasher{})
+		authoritiesProof := merkle.NewProof(authorityLeaves, authoritiesProof, uint64(cs.NextAuthoritySet.Len), hasher.Keccak256Hasher{})
 		valid, err := authoritiesProof.Verify(cs.NextAuthoritySet.AuthorityRoot[:])
 		if err != nil || !valid {
 			return sdkerrors.Wrap(err, ErrAuthoritySetUnknown.Error())
@@ -134,7 +135,7 @@ func (cs *ClientState) verifyHeader(
 				}
 				// we treat this leaf as the latest leaf in the mmr
 				mmrSize := mmr.LeafIndexToMMRSize(mmrUpdateProof.MmrLeafIndex)
-				mmrLeaves := []mmr.Leaf{
+				mmrLeaves := []merkletypes.Leaf{
 					{
 						Hash:  crypto.Keccak256(mmrLeafBytes),
 						Index: mmrUpdateProof.MmrLeafIndex,
@@ -181,7 +182,7 @@ func (cs *ClientState) verifyHeader(
 }
 
 func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Proof, error) {
-	var mmrLeaves = make([]mmr.Leaf, len(beefyHeader.ParachainHeaders))
+	var mmrLeaves = make([]merkletypes.Leaf, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
 	for i := 0; i < len(beefyHeader.ParachainHeaders); i++ {
@@ -192,13 +193,13 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 		binary.LittleEndian.PutUint32(paraIdScale[:], parachainHeader.ParaId)
 		// scale encode to get parachain heads leaf bytes
 		headsLeafBytes := append(paraIdScale, parachainHeader.ParachainHeader...)
-		headsLeaf := []merkle.Leaf{
+		headsLeaf := []merkletypes.Leaf{
 			{
 				Hash:  crypto.Keccak256(headsLeafBytes),
-				Index: parachainHeader.HeadsLeafIndex,
+				Index: uint64(parachainHeader.HeadsLeafIndex),
 			},
 		}
-		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, parachainHeader.HeadsTotalCount, hasher.Keccak256Hasher{})
+		parachainHeadsProof := merkle.NewProof(headsLeaf, parachainHeader.ParachainHeadsProof, uint64(parachainHeader.HeadsTotalCount), hasher.Keccak256Hasher{})
 		// todo: merkle.Proof.Root() should return fixed bytes
 		parachainHeadsRoot, err := parachainHeadsProof.Root()
 		// TODO: verify extrinsic root here once trie lib is fixed.
@@ -207,7 +208,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 		}
 
 		// not a fan of this but its golang
-		var parachainHeads = [32]byte{}
+		var parachainHeads SizedByte32
 		copy(parachainHeads[:], parachainHeadsRoot)
 
 		mmrLeaf := BeefyMmrLeaf{
@@ -228,7 +229,7 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 			return nil, sdkerrors.Wrap(err, ErrInvalidMMRLeaf.Error())
 		}
 
-		mmrLeaves[i] = mmr.Leaf{
+		mmrLeaves[i] = merkletypes.Leaf{
 			Hash: crypto.Keccak256(mmrLeafBytes),
 			// based on our knowledge of the beefy protocol, and the structure of MMRs
 			// we are be able to reconstruct the leaf index of this mmr leaf
