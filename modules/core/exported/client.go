@@ -19,6 +19,9 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
+	// Beefy is used to indicate that the client uses the Beefy Consensus Algorithm.
+	Beefy string = "11-beefy"
+
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 

@@ -2,14 +2,16 @@ package types_test
 
 import (
 	"encoding/hex"
+	"testing"
+
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ComposableFi/go-merkle-trees/hasher"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
+	merkletypes "github.com/ComposableFi/go-merkle-trees/types"
 	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestTrieProof(t *testing.T) {
@@ -52,10 +54,10 @@ func TestMultiLeafMmrProofs(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	var leaves []mmr.Leaf
+	var leaves []merkletypes.Leaf
 
 	for _, leaf := range opaqueLeaves {
-		leaves = append(leaves, mmr.Leaf{
+		leaves = append(leaves, merkletypes.Leaf{
 			Index: leaf.Index,
 			Hash:  crypto.Keccak256(leaf.Leaf),
 		})

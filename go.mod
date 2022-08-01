@@ -6,7 +6,8 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 
 require (
 	//github.com/ComposableFi/go-merkle-trees v0.0.0-20211222084341-b74bcc23b75a
-	github.com/ComposableFi/go-merkle-trees v0.0.0-20220119155315-3ce250c9ec59
+	//github.com/ComposableFi/go-merkle-trees v0.0.0-20220119155315-3ce250c9ec59
+	github.com/ComposableFi/go-merkle-trees v0.0.0-20220505132313-e976260288cc
 	github.com/armon/go-metrics v0.3.10
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-sdk v0.45.1

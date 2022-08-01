@@ -11,7 +11,7 @@ import (
 
 var (
 	// DefaultAllowedClients are "06-solomachine" and "07-tendermint"
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint}
+	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Beefy}
 
 	// KeyAllowedClients is store's key for AllowedClients Params
 	KeyAllowedClients = []byte("AllowedClients")

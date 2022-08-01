@@ -492,3 +492,11 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.Bin
 func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient exported.ClientState) (exported.ClientState, error) {
 	panic("implement me")
 }
+
+func (cs *ClientState) CheckHeaderAndUpdateState(context sdk.Context, codec codec.BinaryCodec, store sdk.KVStore, message exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
+	panic("implement me")
+}
+
+func (cs *ClientState) CheckMisbehaviourAndUpdateState(context sdk.Context, codec codec.BinaryCodec, store sdk.KVStore, message exported.ClientMessage) (exported.ClientState, error) {
+	panic("implement me")
+}
