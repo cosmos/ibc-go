@@ -6,13 +6,10 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-<<<<<<< HEAD
-=======
 	io "io"
 	math "math"
 	math_bits "math/bits"
 
->>>>>>> 59693049dfbad0a30c626827ce079fd5d6b0d576
 	types "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
