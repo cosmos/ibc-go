@@ -14,5 +14,4 @@ var (
 	ErrInvalidSignatureAndData     = sdkerrors.Register(SubModuleName, 4, "invalid signature and data")
 	ErrSignatureVerificationFailed = sdkerrors.Register(SubModuleName, 5, "signature verification failed")
 	ErrInvalidProof                = sdkerrors.Register(SubModuleName, 6, "invalid solo machine proof")
-	ErrInvalidDataType             = sdkerrors.Register(SubModuleName, 7, "invalid data type")
 )

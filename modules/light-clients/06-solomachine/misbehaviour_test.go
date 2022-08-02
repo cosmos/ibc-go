@@ -83,15 +83,15 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 				false,
 			},
 			{
-				"data type for SignatureOne is unspecified",
+				"data path for SignatureOne is unspecified",
 				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureOne.DataType = solomachine.UNSPECIFIED
+					misbehaviour.SignatureOne.Path = []byte{}
 				}, false,
 			},
 			{
-				"data type for SignatureTwo is unspecified",
+				"data path for SignatureTwo is unspecified",
 				func(misbehaviour *solomachine.Misbehaviour) {
-					misbehaviour.SignatureTwo.DataType = solomachine.UNSPECIFIED
+					misbehaviour.SignatureTwo.Path = []byte{}
 				}, false,
 			},
 			{

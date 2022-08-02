@@ -3,8 +3,6 @@ package solomachine
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // Interface implementation checks.
@@ -31,14 +29,4 @@ func (h Header) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
 func (hd HeaderData) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(hd.NewPubKey, new(cryptotypes.PubKey))
-}
-
-// UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (csd ClientStateData) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return unpacker.UnpackAny(csd.ClientState, new(exported.ClientState))
-}
-
-// UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (csd ConsensusStateData) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return unpacker.UnpackAny(csd.ConsensusState, new(exported.ConsensusState))
 }

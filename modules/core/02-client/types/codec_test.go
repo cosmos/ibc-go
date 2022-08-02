@@ -118,7 +118,7 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	}{
 		{
 			"solo machine header",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateHeader(),
+			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateHeader("solomachine"),
 			true,
 		},
 		{

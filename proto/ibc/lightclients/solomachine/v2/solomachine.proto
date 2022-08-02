@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.lightclients.solomachine.v2;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine;solomachine";
+option go_package = "github.com/cosmos/ibc-go/v3/modules/core/02-client/migrations/v6";
 
 import "ibc/core/connection/v1/connection.proto";
 import "ibc/core/channel/v1/channel.proto";
@@ -52,12 +52,10 @@ message Header {
 // of a sequence and two signatures over different messages at that sequence.
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
-
-  // ClientID is deprecated
-  string           client_id     = 1 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_id\""];
-  uint64           sequence      = 2;
-  SignatureAndData signature_one = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
-  SignatureAndData signature_two = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
+  string           client_id         = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
+  uint64           sequence          = 2;
+  SignatureAndData signature_one     = 3 [(gogoproto.moretags) = "yaml:\"signature_one\""];
+  SignatureAndData signature_two     = 4 [(gogoproto.moretags) = "yaml:\"signature_two\""];
 }
 
 // SignatureAndData contains a signature and the data signed over to create that

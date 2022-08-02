@@ -5,7 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestVerifySignature() {
@@ -64,39 +63,5 @@ func (suite *SoloMachineTestSuite) TestVerifySignature() {
 				suite.Require().Error(err)
 			}
 		})
-	}
-}
-
-func (suite *SoloMachineTestSuite) TestClientStateSignBytes() {
-	cdc := suite.chainA.App.AppCodec()
-
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-		// success
-		path := sm.GetClientStatePath(counterpartyClientIdentifier)
-		bz, err := solomachine.ClientStateSignBytes(cdc, sm.Sequence, sm.Time, sm.Diversifier, path, sm.ClientState())
-		suite.Require().NoError(err)
-		suite.Require().NotNil(bz)
-
-		// nil client state
-		bz, err = solomachine.ClientStateSignBytes(cdc, sm.Sequence, sm.Time, sm.Diversifier, path, nil)
-		suite.Require().Error(err)
-		suite.Require().Nil(bz)
-	}
-}
-
-func (suite *SoloMachineTestSuite) TestConsensusStateSignBytes() {
-	cdc := suite.chainA.App.AppCodec()
-
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-		// success
-		path := sm.GetConsensusStatePath(counterpartyClientIdentifier, consensusHeight)
-		bz, err := solomachine.ConsensusStateSignBytes(cdc, sm.Sequence, sm.Time, sm.Diversifier, path, sm.ConsensusState())
-		suite.Require().NoError(err)
-		suite.Require().NotNil(bz)
-
-		// nil consensus state
-		bz, err = solomachine.ConsensusStateSignBytes(cdc, sm.Sequence, sm.Time, sm.Diversifier, path, nil)
-		suite.Require().Error(err)
-		suite.Require().Nil(bz)
 	}
 }
