@@ -9,8 +9,8 @@ import (
 	"sort"
 	"testing"
 
-	types2 "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
+	// types2 "github.com/cosmos/cosmos-sdk/x/params/types"
+	// "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 
 	"github.com/stretchr/testify/require"
 
@@ -42,9 +42,9 @@ func bytes32(bytes []byte) types.SizedByte32 {
 const PARA_ID = 2000
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
-	if BEEFY_TEST_MODE != "true" {
-		t.Skip("skipping test in short mode")
-	}
+	// if BEEFY_TEST_MODE != "true" {
+	// 	t.Skip("skipping test in short mode")
+	// }
 	if RPC_CLIENT_ADDRESS == "" {
 		t.Log("==== RPC_CLIENT_ADDRESS not set, will use default ==== ")
 		RPC_CLIENT_ADDRESS = "ws://127.0.0.1:9944"
@@ -371,16 +371,16 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			}
 			t.Log("====== successfully processed justification! ======")
 
-			if UPDATE_STATE_MODE == "true" {
-				paramSpace := types2.NewSubspace(nil, nil, nil, nil, "test")
-				//paramSpace = paramSpace.WithKeyTable(clientypes.ParamKeyTable())
+			// if UPDATE_STATE_MODE == "true" {
+			// 	paramSpace := types2.NewSubspace(nil, nil, nil, nil, "test")
+			// 	//paramSpace = paramSpace.WithKeyTable(clientypes.ParamKeyTable())
 
-				k := keeper.NewKeeper(nil, nil, paramSpace, nil, nil)
-				ctx := sdk.Context{}
-				store := k.ClientStore(ctx, "1234")
+			// 	k := keeper.NewKeeper(nil, nil, paramSpace, nil, nil)
+			// 	ctx := sdk.Context{}
+			// 	store := k.ClientStore(ctx, "1234")
 
-				clientState.UpdateState(sdk.Context{}, nil, store, &header)
-			}
+			// 	clientState.UpdateState(sdk.Context{}, nil, store, &header)
+			// }
 
 			// TODO: assert that the consensus states were actually persisted
 			// TODO: tests against invalid proofs and consensus states
