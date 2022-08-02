@@ -6,8 +6,8 @@ package v100
 import (
 	fmt "fmt"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
-	types1 "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	types2 "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	types1 "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	types2 "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"

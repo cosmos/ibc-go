@@ -11,7 +11,7 @@ There are four sections based on the four potential user groups of this document
 
 **Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated to bump the version number on major releases.
 ```go
-github.com/cosmos/ibc-go/v2 -> github.com/cosmos/ibc-go/v3
+github.com/cosmos/ibc-go/v2 -> github.com/cosmos/ibc-go/v5
 ```
 
 No genesis or in-place migrations are required when upgrading from v1 or v2 of ibc-go.

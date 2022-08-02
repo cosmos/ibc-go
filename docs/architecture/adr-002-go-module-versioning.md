@@ -23,7 +23,7 @@ v1.0.0 was decided to be used instead of v0.1.0 primarily for the following reas
 
 When a Go module is released under v1.0.0, all following releases must follow Go semantic versioning.
 Thus when the go API is broken, the Go module major version **must** be incremented. 
-For example, changing the go package version from `v2` to `v3` bumps the import from `github.com/cosmos/ibc-go/v2` to `github.com/cosmos/ibc-go/v3`.
+For example, changing the go package version from `v2` to `v3` bumps the import from `github.com/cosmos/ibc-go/v2` to `github.com/cosmos/ibc-go/v5`.
 
 If the Go module version is not incremented then attempting to go get a module @v3.0.0 without the suffix results in:
 `invalid version: module contains a go.mod file, so major version must be compatible: should be v0 or v1, not v3`
@@ -33,7 +33,7 @@ Not including a go.mod in our release is not a viable option.
 
 #### Attempting to import multiple go module versions for ibc-go
 
-Attempting to import two versions of ibc-go, such as `github.com/cosmos/ibc-go/v2` and `github.com/cosmos/ibc-go/v3`, will result in multiple issues. 
+Attempting to import two versions of ibc-go, such as `github.com/cosmos/ibc-go/v2` and `github.com/cosmos/ibc-go/v5`, will result in multiple issues. 
 
 The Cosmos SDK does global registration of error and governance proposal types. 
 The errors and proposals used in ibc-go would need to now register their naming based on the go module version.
@@ -76,7 +76,7 @@ For example, lets say this solution is implmented in v3. Then
 
 `github.com/cosmos/ibc-go/v2` cannot be imported with any other ibc-go version
 
-`github.com/cosmos/ibc-go/v3` cannot be imported with any previous ibc-go versions
+`github.com/cosmos/ibc-go/v5` cannot be imported with any previous ibc-go versions
 
 `github.com/cosmos/ibc-go/v4` may be imported with ibc-go versions v3+
 

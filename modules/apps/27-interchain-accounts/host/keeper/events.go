@@ -3,8 +3,8 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 )
 
 // EmitWriteErrorAcknowledgementEvent emits an event signalling an error acknowledgement and including the error details
