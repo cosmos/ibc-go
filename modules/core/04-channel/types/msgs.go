@@ -551,47 +551,36 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return sdkerrors.Wrap(err, "invalid port ID")
 	}
-
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
-
 	if msg.CounterpartyChannel.State != INITUPGRADE {
 		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.CounterpartyChannel.State)
 	}
-
 	if msg.CounterpartySequence == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidSequence, "counterparty sequence cannot be 0")
 	}
-
 	if msg.ProposedUpgradeChannel.State != TRYUPGRADE {
 		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", TRYUPGRADE, msg.CounterpartyChannel.State)
 	}
-
 	if msg.TimeoutHeight.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "timeout height must be non-zero")
 	}
-
-	if msg.TimeoutTimestamp == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "timeout timestamp must be non-zero")
+	if msg.TimeoutTimestamp == 0 && msg.TimeoutHeight.IsZero() {
+		return sdkerrors.Wrap(ErrInvalidUpgradeTimeout, "invalid upgrade timeout timestamp or timeout height")
 	}
-
 	if len(msg.ProofChannel) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
-
 	if len(msg.ProofUpgradeTimeout) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade timeout proof")
 	}
-
 	if len(msg.ProofUpgradeSequence) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
 	}
-
 	if msg.ProofHeight.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidHeight, "proof height must be non-zero")
 	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
