@@ -16,7 +16,7 @@ What was missed is that the uniqueness is not provided by the proto definition, 
 The path provided by core IBC will be unique and is already encoded into the signature data.
 Thus two different paths with the same data values will encode differently which provides signatuer uniqueness. 
 
-Furthermore,  the current construction does not support the proposed changes in the spec repo to support [Generic Verification functions](https://github.com/cosmos/ibc/issues/684).
+Furthermore, the current construction does not support the proposed changes in the spec repo to support [Generic Verification functions](https://github.com/cosmos/ibc/issues/684).
 This is because in order to verify a new path, a new `DataType` must be added for that path. 
 
 ## Decision
