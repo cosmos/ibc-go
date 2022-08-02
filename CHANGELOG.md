@@ -34,22 +34,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v2.3.1](https://github.com/cosmos/ibc-go/releases/tag/v2.3.1) - 2022-08-02
 
 ### Dependencies
 
 * [\#1525](https://github.com/cosmos/ibc-go/pull/1525) Bump SDK version to v0.45.5
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
 * (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
-
-### Features
 
 ### Bug Fixes
 
@@ -79,7 +73,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 * (apps/transfer) [\#1451](https://github.com/cosmos/ibc-go/pull/1451) Fixing the support for base denoms that contain slashes.
 
-## [v2.2.1](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - 2022-04-16
+## [v2.2.2](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - 2022-08-02
+
+### Improvements
+
+* (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
+* (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
+
+## [v2.2.1](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - 2022-06-14
 
 ### Improvements
 
@@ -99,7 +100,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
 
-## [v2.1.1](https://github.com/cosmos/ibc-go/releases/tag/v2.1.1) - 2022-04-16
+## [v2.1.2](https://github.com/cosmos/ibc-go/releases/tag/v2.1.2) - 2022-08-02
+
+### Improvements
+
+* (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
+* (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
+
+## [v2.1.1](https://github.com/cosmos/ibc-go/releases/tag/v2.1.1) - 2022-06-14
 
 ### Dependencies
 
