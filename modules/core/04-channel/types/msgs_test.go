@@ -474,8 +474,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 		{
 			"timeout height is zero && timeout timestamp is zero",
 			func() {
-				msg.CounterpartyTimeoutHeight = clienttypes.ZeroHeight()
-				msg.CounterpartyTimeoutTimestamp = 0
+				msg.TimeoutHeight = clienttypes.ZeroHeight()
+				msg.TimeoutTimestamp = 0
 			},
 			false,
 		},

@@ -528,7 +528,7 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	if msg.ProposedUpgradeChannel.State != INITUPGRADE {
 		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.ProposedUpgradeChannel.State)
 	}
-	if msg.CounterpartyTimeoutHeight.IsZero() && msg.CounterpartyTimeoutTimestamp == 0 {
+	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
 		return sdkerrors.Wrap(ErrInvalidPacket, "timeout height and timeout timestamp cannot both be 0")
 	}
 
