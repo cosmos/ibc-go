@@ -521,7 +521,6 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return sdkerrors.Wrap(err, "invalid port ID")
 	}
-
 	if !IsValidChannelID(msg.ChannelId) {
 		return ErrInvalidChannelIdentifier
 	}
@@ -531,11 +530,11 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
 		return sdkerrors.Wrap(ErrInvalidPacket, "timeout height and timeout timestamp cannot both be 0")
 	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
+
 	return nil
 }
 
