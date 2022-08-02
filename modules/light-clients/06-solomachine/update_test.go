@@ -29,7 +29,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"successful header",
 				func() {
-					clientMsg = sm.CreateHeader()
+					clientMsg = sm.CreateHeader(sm.Diversifier)
+				},
+				true,
+			},
+			{
+				"successful header with new diversifier",
+				func() {
+					clientMsg = sm.CreateHeader(sm.Diversifier + "0")
 				},
 				true,
 			},
@@ -51,7 +58,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"wrong sequence in header",
 				func() {
 					// store in temp before assigning to interface type
-					h := sm.CreateHeader()
+					h := sm.CreateHeader(sm.Diversifier)
 					h.Sequence++
 					clientMsg = h
 				},
@@ -60,7 +67,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"invalid header Signature",
 				func() {
-					h := sm.CreateHeader()
+					h := sm.CreateHeader(sm.Diversifier)
 					h.Signature = suite.GetInvalidProof()
 					clientMsg = h
 				}, false,
@@ -68,7 +75,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"invalid timestamp in header",
 				func() {
-					h := sm.CreateHeader()
+					h := sm.CreateHeader(sm.Diversifier)
 					h.Timestamp--
 					clientMsg = h
 				}, false,
@@ -78,7 +85,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				func() {
 
 					sm.Sequence++
-					clientMsg = sm.CreateHeader()
+					clientMsg = sm.CreateHeader(sm.Diversifier)
 				},
 				false,
 			},
@@ -87,7 +94,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				func() {
 					// store in temp before assinging to interface type
 					cs := sm.ClientState()
-					h := sm.CreateHeader()
+					h := sm.CreateHeader(sm.Diversifier)
 
 					publicKey, err := codectypes.NewAnyWithValue(sm.PublicKey)
 					suite.NoError(err)
@@ -128,7 +135,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					// store in temp before assinging to interface type
 					cs := sm.ClientState()
 					oldPubKey := sm.PublicKey
-					h := sm.CreateHeader()
+					h := sm.CreateHeader(sm.Diversifier)
 
 					// generate invalid signature
 					data := append(sdk.Uint64ToBigEndian(cs.Sequence), oldPubKey.Bytes()...)
@@ -144,7 +151,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				"consensus state public key is nil - header",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
-					clientMsg = sm.CreateHeader()
+					clientMsg = sm.CreateHeader(sm.Diversifier)
 				},
 				false,
 			},
@@ -309,7 +316,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					badMisbehaviour := sm.CreateMisbehaviour()
 
 					// update public key to a new one
-					sm.CreateHeader()
+					sm.CreateHeader(sm.Diversifier)
 					m := sm.CreateMisbehaviour()
 
 					// set SignatureOne to use the wrong signature
@@ -323,7 +330,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 					badMisbehaviour := sm.CreateMisbehaviour()
 
 					// update public key to a new one
-					sm.CreateHeader()
+					sm.CreateHeader(sm.Diversifier)
 					m := sm.CreateMisbehaviour()
 
 					// set SignatureTwo to use the wrong signature
@@ -421,7 +428,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				"successful update",
 				func() {
 					clientState = sm.ClientState()
-					clientMsg = sm.CreateHeader()
+					clientMsg = sm.CreateHeader(sm.Diversifier)
 				},
 				true,
 			},
@@ -491,7 +498,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 			{
 				"normal header returns false",
 				func() {
-					clientMsg = sm.CreateHeader()
+					clientMsg = sm.CreateHeader(sm.Diversifier)
 				},
 				false,
 			},
