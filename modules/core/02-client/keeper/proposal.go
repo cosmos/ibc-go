@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/armon/go-metrics"
+	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -92,5 +92,12 @@ func (k Keeper) HandleUpgradeProposal(ctx sdk.Context, p *types.UpgradeProposal)
 
 	// sets the new upgraded client in last height committed on this chain is at plan.Height,
 	// since the chain will panic at plan.Height and new chain will resume at plan.Height
-	return k.upgradeKeeper.SetUpgradedClient(ctx, p.Plan.Height, bz)
+	if err = k.upgradeKeeper.SetUpgradedClient(ctx, p.Plan.Height, bz); err != nil {
+		return err
+	}
+
+	// emitting an event for handling client upgrade proposal
+	EmitUpgradeClientProposalEvent(ctx, p.Title, p.Plan.Height)
+
+	return nil
 }

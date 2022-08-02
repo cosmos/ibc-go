@@ -8,32 +8,17 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-var (
-	addr1       = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	addr2       = sdk.AccAddress("testaddr2").String()
-	validCoins  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	validCoins2 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	validCoins3 = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-)
+func TestValidateDefaultGenesis(t *testing.T) {
+	err := types.DefaultGenesisState().Validate()
+	require.NoError(t, err)
+}
 
 func TestValidateGenesis(t *testing.T) {
-	var (
-		packetID        channeltypes.PacketId
-		fee             types.Fee
-		refundAcc       string
-		sender          string
-		forwardAddr     string
-		counterparty    string
-		portID          string
-		channelID       string
-		packetChannelID string
-		seq             uint64
-	)
+	var genState *types.GenesisState
 
 	testCases := []struct {
 		name     string
@@ -41,175 +26,154 @@ func TestValidateGenesis(t *testing.T) {
 		expPass  bool
 	}{
 		{
-			"valid genesis",
+			"success - valid genesis",
 			func() {},
 			true,
 		},
 		{
-			"invalid packetID: invalid channel",
+			"invalid packetID: invalid port ID",
 			func() {
-				packetID = channeltypes.NewPacketId(
-					portID,
-					"",
-					seq,
-				)
+				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketID("", ibctesting.FirstChannelID, 1)
 			},
 			false,
 		},
 		{
-			"invalid packetID: invalid port",
+			"invalid packetID: invalid channel ID",
 			func() {
-				packetID = channeltypes.NewPacketId(
-					"",
-					channelID,
-					seq,
-				)
+				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, "", 1)
 			},
 			false,
 		},
 		{
 			"invalid packetID: invalid sequence",
 			func() {
-				packetID = channeltypes.NewPacketId(
-					portID,
-					channelID,
-					0,
-				)
+				genState.IdentifiedFees[0].PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 0)
 			},
 			false,
 		},
 		{
-			"invalid packetID: invalid fee",
+			"invalid packet fee: invalid fee",
 			func() {
-				fee = types.Fee{
-					sdk.Coins{},
-					sdk.Coins{},
-					sdk.Coins{},
-				}
+				genState.IdentifiedFees[0].PacketFees[0].Fee = types.NewFee(sdk.Coins{}, sdk.Coins{}, sdk.Coins{})
 			},
 			false,
 		},
 		{
-			"invalid packetID: invalid refundAcc",
+			"invalid packet fee: invalid refund address",
 			func() {
-				refundAcc = ""
+				genState.IdentifiedFees[0].PacketFees[0].RefundAddress = ""
 			},
 			false,
 		},
 		{
-			"invalid FeeEnabledChannel: invalid ChannelID",
+			"invalid fee enabled channel: invalid port ID",
 			func() {
-				channelID = ""
+				genState.FeeEnabledChannels[0].PortId = ""
 			},
 			false,
 		},
 		{
-			"invalid FeeEnabledChannel: invalid PortID",
+			"invalid fee enabled channel: invalid channel ID",
 			func() {
-				portID = ""
+				genState.FeeEnabledChannels[0].ChannelId = ""
 			},
 			false,
 		},
 		{
-			"invalid RegisteredRelayers: invalid sender",
+			"invalid registered payee: invalid relayer address",
 			func() {
-				sender = ""
+				genState.RegisteredPayees[0].Relayer = ""
 			},
 			false,
 		},
 		{
-			"invalid RegisteredRelayers: invalid counterparty",
+			"invalid registered payee: invalid payee address",
 			func() {
-				counterparty = " "
+				genState.RegisteredPayees[0].Payee = ""
 			},
 			false,
 		},
 		{
-			"invalid ForwardRelayerAddress: invalid forwardAddr",
+			"invalid registered payee: invalid channel ID",
 			func() {
-				forwardAddr = ""
+				genState.RegisteredPayees[0].ChannelId = ""
 			},
 			false,
 		},
 		{
-			"invalid ForwardRelayerAddress: invalid packet",
+			"invalid registered counterparty payees: invalid relayer address",
 			func() {
-				packetChannelID = "1"
+				genState.RegisteredCounterpartyPayees[0].Relayer = ""
+			},
+			false,
+		},
+		{
+			"invalid registered counterparty payees: invalid counterparty payee",
+			func() {
+				genState.RegisteredCounterpartyPayees[0].CounterpartyPayee = ""
+			},
+			false,
+		},
+		{
+			"invalid forward relayer address: invalid forward address",
+			func() {
+				genState.ForwardRelayers[0].Address = ""
+			},
+			false,
+		},
+		{
+			"invalid forward relayer address: invalid packet",
+			func() {
+				genState.ForwardRelayers[0].PacketId = channeltypes.PacketId{}
 			},
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		portID = transfertypes.PortID
-		channelID = ibctesting.FirstChannelID
-		packetChannelID = ibctesting.FirstChannelID
-		seq = uint64(1)
-
-		// build PacketId & Fee
-		packetID = channeltypes.NewPacketId(
-			portID,
-			channelID,
-			seq,
-		)
-		fee = types.Fee{
-			validCoins,
-			validCoins2,
-			validCoins3,
-		}
-
-		refundAcc = addr1
-
-		// relayer addresses
-		sender = addr1
-		counterparty = addr2
-		forwardAddr = addr2
-
-		tc.malleate()
-
-		genState := types.GenesisState{
+		genState = &types.GenesisState{
 			IdentifiedFees: []types.IdentifiedPacketFees{
 				{
-					PacketId: packetID,
-					PacketFees: []types.PacketFee{
-						{
-							Fee:           fee,
-							RefundAddress: refundAcc,
-							Relayers:      nil,
-						},
-					},
+					PacketId:   channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1),
+					PacketFees: []types.PacketFee{types.NewPacketFee(types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee), defaultAccAddress, nil)},
 				},
 			},
 			FeeEnabledChannels: []types.FeeEnabledChannel{
 				{
-					PortId:    portID,
-					ChannelId: channelID,
+					PortId:    ibctesting.MockFeePort,
+					ChannelId: ibctesting.FirstChannelID,
 				},
 			},
-			RegisteredRelayers: []types.RegisteredRelayerAddress{
+			RegisteredCounterpartyPayees: []types.RegisteredCounterpartyPayee{
 				{
-					Address:             sender,
-					CounterpartyAddress: counterparty,
+					Relayer:           defaultAccAddress,
+					CounterpartyPayee: defaultAccAddress,
+					ChannelId:         ibctesting.FirstChannelID,
 				},
 			},
 			ForwardRelayers: []types.ForwardRelayerAddress{
 				{
-					Address:  forwardAddr,
-					PacketId: channeltypes.NewPacketId(portID, packetChannelID, 1),
+					Address:  defaultAccAddress,
+					PacketId: channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1),
+				},
+			},
+			RegisteredPayees: []types.RegisteredPayee{
+				{
+					Relayer:   sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					Payee:     sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					ChannelId: ibctesting.FirstChannelID,
 				},
 			},
 		}
 
+		tc.malleate()
+
 		err := genState.Validate()
+
 		if tc.expPass {
 			require.NoError(t, err, tc.name)
 		} else {
 			require.Error(t, err, tc.name)
 		}
 	}
-}
-
-func TestValidateDefaultGenesis(t *testing.T) {
-	err := types.DefaultGenesisState().Validate()
-	require.NoError(t, err)
 }

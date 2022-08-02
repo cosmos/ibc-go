@@ -2,7 +2,7 @@ package mock_test
 
 import (
 	"testing"
-	
+
 	"github.com/stretchr/testify/require"
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"

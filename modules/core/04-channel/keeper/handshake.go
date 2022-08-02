@@ -98,51 +98,20 @@ func (k Keeper) ChanOpenTry(
 	ctx sdk.Context,
 	order types.Order,
 	connectionHops []string,
-	portID,
-	previousChannelID string,
+	portID string,
 	portCap *capabilitytypes.Capability,
 	counterparty types.Counterparty,
 	counterpartyVersion string,
 	proofInit []byte,
 	proofHeight exported.Height,
 ) (string, *capabilitytypes.Capability, error) {
-	var (
-		previousChannel      types.Channel
-		previousChannelFound bool
-	)
-
-	channelID := previousChannelID
-
 	// connection hops only supports a single connection
 	if len(connectionHops) != 1 {
 		return "", nil, sdkerrors.Wrapf(types.ErrTooManyConnectionHops, "expected 1, got %d", len(connectionHops))
 	}
 
-	// empty channel identifier indicates continuing a previous channel handshake
-	if previousChannelID != "" {
-		// channel identifier and connection hop length checked on msg.ValidateBasic()
-		// ensure that the previous channel exists
-		previousChannel, previousChannelFound = k.GetChannel(ctx, portID, previousChannelID)
-		if !previousChannelFound {
-			return "", nil, sdkerrors.Wrapf(types.ErrInvalidChannel, "previous channel does not exist for supplied previous channelID %s", previousChannelID)
-		}
-		// previous channel must use the same fields
-		if !(previousChannel.Ordering == order &&
-			previousChannel.Counterparty.PortId == counterparty.PortId &&
-			previousChannel.Counterparty.ChannelId == "" &&
-			previousChannel.ConnectionHops[0] == connectionHops[0] && // ChanOpenInit will only set a single connection hop
-			previousChannel.Version == counterpartyVersion) {
-			return "", nil, sdkerrors.Wrap(types.ErrInvalidChannel, "channel fields mismatch previous channel fields")
-		}
-
-		if previousChannel.State != types.INIT {
-			return "", nil, sdkerrors.Wrapf(types.ErrInvalidChannelState, "previous channel state is in %s, expected INIT", previousChannel.State)
-		}
-
-	} else {
-		// generate a new channel
-		channelID = k.GenerateChannelIdentifier(ctx)
-	}
+	// generate a new channel
+	channelID := k.GenerateChannelIdentifier(ctx)
 
 	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
 		return "", nil, sdkerrors.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
@@ -199,20 +168,9 @@ func (k Keeper) ChanOpenTry(
 		err    error
 	)
 
-	if !previousChannelFound {
-		capKey, err = k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
-		if err != nil {
-			return "", nil, sdkerrors.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
-		}
-
-	} else {
-		// capability initialized in ChanOpenInit
-		capKey, found = k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
-		if !found {
-			return "", nil, sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound,
-				"capability not found for existing channel, portID (%s) channelID (%s)", portID, channelID,
-			)
-		}
+	capKey, err = k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+	if err != nil {
+		return "", nil, sdkerrors.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
 	}
 
 	return channelID, capKey, nil
@@ -230,18 +188,15 @@ func (k Keeper) WriteOpenTryChannel(
 	counterparty types.Counterparty,
 	version string,
 ) {
-	previousChannel, previousChannelFound := k.GetChannel(ctx, portID, channelID)
-	if !previousChannelFound {
-		k.SetNextSequenceSend(ctx, portID, channelID, 1)
-		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
-		k.SetNextSequenceAck(ctx, portID, channelID, 1)
-	}
+	k.SetNextSequenceSend(ctx, portID, channelID, 1)
+	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
+	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
 	channel := types.NewChannel(types.TRYOPEN, order, counterparty, connectionHops, version)
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousChannel.State.String(), "new-state", "TRYOPEN")
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", "NONE", "new-state", "TRYOPEN")
 
 	defer func() {
 		telemetry.IncrCounter(1, "ibc", "channel", "open-try")
@@ -267,11 +222,8 @@ func (k Keeper) ChanOpenAck(
 		return sdkerrors.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !(channel.State == types.INIT || channel.State == types.TRYOPEN) {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state should be INIT or TRYOPEN (got %s)", channel.State.String(),
-		)
+	if channel.State != types.INIT {
+		return sdkerrors.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State.String())
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {

@@ -25,7 +25,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	clientCtx := client.Context{}.
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
-		WithJSONCodec(encodingConfig.Marshaler)
+		WithCodec(encodingConfig.Marshaler)
 
 	// create multiple legacy solo machine clients
 	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
@@ -50,7 +50,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 			seq = 1
 		}
 
-		// generate old client state proto defintion
+		// generate old client state proto definition
 		legacyClientState := &v100.ClientState{
 			Sequence:       clientState.Sequence,
 			FrozenSequence: seq,
@@ -147,7 +147,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 		}
 	}
 
-	bz, err := clientCtx.JSONCodec.MarshalJSON(&expectedClientGenState)
+	bz, err := clientCtx.Codec.MarshalJSON(&expectedClientGenState)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
@@ -157,7 +157,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
 	suite.Require().NoError(err)
 
-	bz, err = clientCtx.JSONCodec.MarshalJSON(migrated)
+	bz, err = clientCtx.Codec.MarshalJSON(migrated)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
@@ -177,7 +177,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	clientCtx := client.Context{}.
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
-		WithJSONCodec(encodingConfig.Marshaler)
+		WithCodec(encodingConfig.Marshaler)
 
 	suite.coordinator.SetupClients(path1)
 	suite.coordinator.SetupClients(path2)
@@ -254,7 +254,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(height, consensusState.Height)
 				}
 			}
-
 		}
 		for _, client := range migrated.ClientsMetadata {
 			if client.ClientId == path1.EndpointA.ClientID {
@@ -275,7 +274,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(height, consensusState.Height)
 				}
 			}
-
 		}
 		for _, client := range migrated.ClientsMetadata {
 			if client.ClientId == path2.EndpointA.ClientID {
@@ -285,10 +283,9 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 					suite.Require().NotEqual(ibctmtypes.IterationKey(height), metadata.Key)
 				}
 			}
-
 		}
 	}
-	bz, err := clientCtx.JSONCodec.MarshalJSON(&expectedClientGenState)
+	bz, err := clientCtx.Codec.MarshalJSON(&expectedClientGenState)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
@@ -298,7 +295,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisTendermint() {
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
 	suite.Require().NoError(err)
 
-	bz, err = clientCtx.JSONCodec.MarshalJSON(migrated)
+	bz, err = clientCtx.Codec.MarshalJSON(migrated)
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.

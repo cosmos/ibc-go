@@ -110,7 +110,7 @@ func (gs GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
 	// the next sequence used in creating client identifers.
-	var maxSequence uint64 = 0
+	var maxSequence uint64
 
 	if err := gs.Params.Validate(); err != nil {
 		return err
@@ -196,7 +196,6 @@ func (gs GenesisState) Validate() error {
 			if err := gm.Validate(); err != nil {
 				return fmt.Errorf("invalid client metadata %v clientID %s index %d: %w", gm, clientMetadata.ClientId, i, err)
 			}
-
 		}
 
 	}

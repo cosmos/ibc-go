@@ -30,7 +30,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 
 	msgs := []sdk.Msg{
 		types.NewMsgPayPacketFee(fee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil),
-		transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0),
+		transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0),
 	}
 	res, err := suite.chainA.SendMsgs(msgs...)
 	suite.Require().NoError(err) // message committed
@@ -46,7 +46,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
 	relayerAddress := suite.chainB.SenderAccount.GetAddress()
 
-	msgRegister := types.NewMsgRegisterCounterpartyAddress(suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(), ibctesting.FirstChannelID)
+	msgRegister := types.NewMsgRegisterCounterpartyPayee(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String())
 	_, err = suite.chainB.SendMsgs(msgRegister)
 	suite.Require().NoError(err) // message committed
 
@@ -66,7 +66,5 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 
 	suite.Require().Equal(
 		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
-		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance),
-	)
-
+		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
 }

@@ -143,10 +143,9 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 // ChanOpenTry can succeed.
 func (suite *KeeperTestSuite) TestChanOpenTry() {
 	var (
-		path              *ibctesting.Path
-		previousChannelID string
-		portCap           *capabilitytypes.Capability
-		heightDiff        uint64
+		path       *ibctesting.Path
+		portCap    *capabilitytypes.Capability
+		heightDiff uint64
 	)
 
 	testCases := []testCase{
@@ -158,34 +157,6 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			suite.chainB.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
 		}, true},
-		{"success with crossing hello", func() {
-			suite.coordinator.SetupConnections(path)
-			path.SetChannelOrdered()
-			err := suite.coordinator.ChanOpenInitOnBothChains(path)
-			suite.Require().NoError(err)
-
-			previousChannelID = path.EndpointB.ChannelID
-			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
-		}, true},
-		{"previous channel with invalid version, crossing hello", func() {
-			suite.coordinator.SetupConnections(path)
-			path.SetChannelOrdered()
-
-			// modify channel version
-			path.EndpointA.ChannelConfig.Version = "invalid version"
-
-			err := suite.coordinator.ChanOpenInitOnBothChains(path)
-			suite.Require().NoError(err)
-
-			previousChannelID = path.EndpointB.ChannelID
-			portCap = suite.chainB.GetPortCapability(ibctesting.MockPort)
-		}, false},
-		{"previous channel with invalid state", func() {
-			suite.coordinator.SetupConnections(path)
-
-			// make previous channel have wrong ordering
-			path.EndpointA.ChanOpenInit()
-		}, false},
 		{"connection doesn't exist", func() {
 			path.EndpointA.ConnectionID = ibctesting.FirstConnectionID
 			path.EndpointB.ConnectionID = ibctesting.FirstConnectionID
@@ -268,7 +239,6 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must be explicitly changed in malleate
-			previousChannelID = ""
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -286,7 +256,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 
 			channelID, cap, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
-				path.EndpointB.ChannelConfig.PortID, previousChannelID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
+				path.EndpointB.ChannelConfig.PortID, portCap, counterparty, path.EndpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
@@ -352,7 +322,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"channel doesn't exist", func() {}, false},
-		{"channel state is not INIT or TRYOPEN", func() {
+		{"channel state is not INIT", func() {
 			// create fully open channels on both chains
 			suite.coordinator.Setup(path)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

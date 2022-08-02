@@ -48,7 +48,8 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: []byte("hi"),
 			},
-			false},
+			false,
+		},
 
 		{"timestamp is zero",
 			&tendermint.ConsensusState{
@@ -56,7 +57,8 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
 			},
-			false},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {

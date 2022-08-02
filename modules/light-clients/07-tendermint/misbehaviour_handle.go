@@ -40,12 +40,10 @@ func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore sdk.KVSto
 			return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers block hashes are equal")
 		}
 
-	} else {
+	} else if misbehaviour.Header1.SignedHeader.Header.Time.After(misbehaviour.Header2.SignedHeader.Header.Time) {
 		// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
 		// Header2 time in order to be valid misbehaviour (violation of monotonic time).
-		if misbehaviour.Header1.SignedHeader.Header.Time.After(misbehaviour.Header2.SignedHeader.Header.Time) {
-			return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
-		}
+		return sdkerrors.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers are not at same height and are monotonically increasing")
 	}
 
 	// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client

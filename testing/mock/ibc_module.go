@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -16,11 +17,11 @@ import (
 // IBCModule implements the ICS26 callbacks for testing/mock.
 type IBCModule struct {
 	appModule *AppModule
-	IBCApp    *MockIBCApp // base application of an IBC middleware stack
+	IBCApp    *IBCApp // base application of an IBC middleware stack
 }
 
 // NewIBCModule creates a new IBCModule given the underlying mock IBC application and scopedKeeper.
-func NewIBCModule(appModule *AppModule, app *MockIBCApp) IBCModule {
+func NewIBCModule(appModule *AppModule, app *IBCApp) IBCModule {
 	appModule.ibcApps = append(appModule.ibcApps, app)
 	return IBCModule{
 		appModule: appModule,
@@ -32,18 +33,21 @@ func NewIBCModule(appModule *AppModule, app *MockIBCApp) IBCModule {
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
-) error {
+) (string, error) {
+	if strings.TrimSpace(version) == "" {
+		version = Version
+	}
+
 	if im.IBCApp.OnChanOpenInit != nil {
 		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
-
 	}
 
 	// Claim channel capability passed back by IBC module
 	if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.

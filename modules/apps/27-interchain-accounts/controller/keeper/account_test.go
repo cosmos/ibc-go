@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 
 			tc.malleate() // malleate mutates test data
 
-			err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner)
+			err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner, TestVersion)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -88,15 +88,33 @@ func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 
 	owner := TestOwnerAddress
 
-	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	pathAToB := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(pathAToB)
 
-	path2 := NewICAPath(suite.chainA, suite.chainC)
-	suite.coordinator.SetupConnections(path2)
+	pathAToC := NewICAPath(suite.chainA, suite.chainC)
+	suite.coordinator.SetupConnections(pathAToC)
 
-	err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner)
+	// build ICS27 metadata with connection identifiers for path A->B
+	metadata := &icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: pathAToB.EndpointA.ConnectionID,
+		HostConnectionId:       pathAToB.EndpointB.ConnectionID,
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}
+
+	err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToB.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)))
 	suite.Require().NoError(err)
 
-	err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path2.EndpointA.ConnectionID, owner)
+	// build ICS27 metadata with connection identifiers for path A->C
+	metadata = &icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: pathAToC.EndpointA.ConnectionID,
+		HostConnectionId:       pathAToC.EndpointB.ConnectionID,
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}
+
+	err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToC.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)))
 	suite.Require().NoError(err)
 }

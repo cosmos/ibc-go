@@ -72,7 +72,7 @@ This prevents the Go module version from being incremented with breaking changes
 It also requires all extended functions to live in the same Go module, disrupting the existing code structure.
 
 The version that implements this change will still be incompatible with previous versions, but future versions could be imported together without namespace collisions.
-For example, lets say this solution is implmented in v3. Then
+For example, lets say this solution is implemented in v3. Then
 
 `github.com/cosmos/ibc-go/v2` cannot be imported with any other ibc-go version
 

@@ -87,7 +87,6 @@ func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) 
 		if len(keySplit) != 3 {
 			// ignore all consensus state keys
 			continue
-
 		}
 
 		if keySplit[2] != "processedTime" && keySplit[2] != "processedHeight" {
@@ -295,7 +294,7 @@ func PruneAllExpiredConsensusStates(
 		return false
 	}
 
-	IterateConsensusStateAscending(clientStore, pruneCb)
+	err = IterateConsensusStateAscending(clientStore, pruneCb)
 	if err != nil {
 		return err
 	}
