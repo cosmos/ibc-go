@@ -107,7 +107,8 @@ func (solo *Solomachine) GetHeight() exported.Height {
 
 // CreateHeader generates a new private/public key pair and creates the
 // necessary signature to construct a valid solo machine header.
-func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
+// A new diversifier will be used as well
+func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachinetypes.Header {
 	// generate new private keys and signature for header
 	newPrivKeys, newPubKeys, newPubKey := GenerateKeys(solo.t, uint64(len(solo.PrivateKeys)))
 
@@ -116,7 +117,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 
 	data := &solomachinetypes.HeaderData{
 		NewPubKey:      publicKey,
-		NewDiversifier: solo.Diversifier,
+		NewDiversifier: newDiversifier,
 	}
 
 	dataBz, err := solo.cdc.Marshal(data)
@@ -140,7 +141,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 		Timestamp:      solo.Time,
 		Signature:      sig,
 		NewPublicKey:   publicKey,
-		NewDiversifier: solo.Diversifier,
+		NewDiversifier: newDiversifier,
 	}
 
 	// assumes successful header update
@@ -148,6 +149,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 	solo.PrivateKeys = newPrivKeys
 	solo.PublicKeys = newPubKeys
 	solo.PublicKey = newPubKey
+	solo.Diversifier = newDiversifier
 
 	return header
 }
