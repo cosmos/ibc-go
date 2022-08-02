@@ -34,14 +34,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v2.2.2](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - 2022-08-02
+## [v2.2.2](https://github.com/cosmos/ibc-go/releases/tag/v2.2.2) - 2022-08-02
 
 ### Improvements
 
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
 * (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
 
-## [v2.2.1](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - 2022-04-16
+## [v2.2.1](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - 2022-06-14
 
 ### Improvements
 
