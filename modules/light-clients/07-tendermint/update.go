@@ -186,7 +186,9 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 		return true
 	}
 
-	IterateConsensusStateAscending(clientStore, pruneCb)
+	if err := IterateConsensusStateAscending(clientStore, pruneCb); err != nil {
+		panic(err)
+	}
 
 	// if pruneHeight is set, delete consensus state and metadata
 	if pruneHeight != nil {
@@ -209,7 +211,7 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 		if existingConsState != nil {
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(existingConsState, tmHeader.ConsensusState()) {
+			if reflect.DeepEqual(existingConsState, tmHeader.ConsensusState()) { //nolint:gosimple
 				return false
 			}
 

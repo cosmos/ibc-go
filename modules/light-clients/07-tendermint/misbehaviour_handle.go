@@ -21,7 +21,6 @@ import (
 // to misbehaviour.Header2
 // Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
 func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
-
 	// if heights are equal check that this is valid misbehaviour of a fork
 	// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
 	if misbehaviour.Header1.GetHeight().EQ(misbehaviour.Header2.GetHeight()) {

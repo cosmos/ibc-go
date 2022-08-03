@@ -43,5 +43,4 @@ func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour
 	}
 
 	return nil
-
 }
