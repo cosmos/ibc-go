@@ -302,6 +302,15 @@ message MsgChannelUpgradeTryResponse {}
 message MsgChannelUpgradeAck {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
+  string  port_id                    = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string  channel_id                 = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  Channel counterparty_channel       = 3
+      [(gogoproto.moretags) = "yaml:\"counterparty_channel\"", (gogoproto.nullable) = false];
+  bytes                     proof_channel          = 4 [(gogoproto.moretags) = "yaml:\"proof_channel\""];
+  bytes                     proof_upgrade_sequence = 5 [(gogoproto.moretags) = "yaml:\"proof_upgrade_sequence\""];
+  ibc.core.client.v1.Height proof_height           = 6
+      [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
+  string signer = 7;
 }
 
 // MsgChannelUpgradeAckResponse defines MsgChannelUpgradeAck response type
