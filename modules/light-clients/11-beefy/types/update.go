@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	// "encoding/binary"
 	"fmt"
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"reflect"
