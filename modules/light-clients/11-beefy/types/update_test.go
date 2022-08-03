@@ -9,8 +9,6 @@ import (
 	"sort"
 	"testing"
 
-	// types2 "github.com/cosmos/cosmos-sdk/x/params/types"
-	// "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
 
 	"github.com/stretchr/testify/require"
 
