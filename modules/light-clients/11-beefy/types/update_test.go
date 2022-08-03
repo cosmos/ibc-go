@@ -195,14 +195,10 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 				var heads = make(map[uint32][]byte)
 
-				for _, keyValue := range changes.Changes {
-					if keyValue.HasStorageData {
-						var paraId uint32
-						err := types.DecodeFromBytes(keyValue.StorageKey[40:], &paraId)
-						require.NoError(t, err)
-
-						heads[paraId] = keyValue.StorageData
-					}
+				for _, paraId := range paraIds {
+					header, err := fetchParachainHeader(relayApi, paraId, changes.Block)
+					require.NoError(t, err)
+					heads[paraId] = header
 				}
 
 				// check if heads has target id, else skip
@@ -430,6 +426,36 @@ func BeefyAuthorities(blockNumber uint32, conn *client.SubstrateAPI, method stri
 	}
 
 	return authorityEthereumAddresses, nil
+}
+
+func fetchParachainHeader(conn *client.SubstrateAPI, paraId uint32, blockHash clientTypes.Hash) ([]byte, error) {
+	// Fetch metadata
+	meta, err := conn.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return nil, err
+	}
+
+	paraIdEncoded := make([]byte, 4)
+	binary.LittleEndian.PutUint32(paraIdEncoded, paraId)
+
+	storageKey, err := clientTypes.CreateStorageKey(meta, "Paras", "Heads", paraIdEncoded)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	var parachainHeaders []byte
+
+	ok, err := conn.RPC.State.GetStorage(storageKey, &parachainHeaders, blockHash)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, fmt.Errorf("parachain header not found")
+	}
+
+	return parachainHeaders, nil
 }
 
 func fetchParaIDs(conn *client.SubstrateAPI, blockHash clientTypes.Hash) ([]uint32, error) {
