@@ -209,8 +209,6 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			var parachainHeaders []*types.ParachainHeader
 
-			var paraHeads = make([][]byte, len(mmrBatchProof.Leaves))
-
 			for i := 0; i < len(mmrBatchProof.Leaves); i++ {
 				type LeafWithIndex struct {
 					Leaf  clientTypes.MmrLeaf
@@ -218,7 +216,6 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 				}
 
 				v := LeafWithIndex{Leaf: mmrBatchProof.Leaves[i], Index: uint64(mmrBatchProof.Proof.LeafIndex[i])}
-				paraHeads[i] = v.Leaf.ParachainHeads[:]
 				var leafBlockNumber = clientState.GetBlockNumberForLeaf(uint32(v.Index))
 				paraHeaders := finalizedBlocks[leafBlockNumber]
 
@@ -238,12 +235,16 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					return sortedParaIds[i] < sortedParaIds[j]
 				})
 
+				type ParaIdAndHeader struct {
+					ParaId uint32
+					Header []byte
+				}
+
 				for _, paraId := range sortedParaIds {
-					paraIdScale := make([]byte, 4)
-					// scale encode para_id
-					binary.LittleEndian.PutUint32(paraIdScale[:], paraId)
-					leaf := append(paraIdScale, paraHeaders[paraId]...)
-					paraHeadsLeaves = append(paraHeadsLeaves, crypto.Keccak256(leaf))
+					bytes, err := types.Encode(ParaIdAndHeader{ParaId: paraId, Header: paraHeaders[paraId]})
+					require.NoError(t, err)
+					leafHash := crypto.Keccak256(bytes)
+					paraHeadsLeaves = append(paraHeadsLeaves, leafHash)
 					if paraId == PARA_ID {
 						// note index of paraId
 						index = uint32(count)

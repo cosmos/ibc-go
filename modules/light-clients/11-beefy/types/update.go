@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"encoding/binary"
+	// "encoding/binary"
 	"fmt"
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"reflect"
@@ -10,8 +10,8 @@ import (
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/log15"
 	"github.com/ComposableFi/go-merkle-trees/hasher"
-	merkletypes "github.com/ComposableFi/go-merkle-trees/types"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
+	merkletypes "github.com/ComposableFi/go-merkle-trees/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -180,6 +180,10 @@ func (cs *ClientState) verifyHeader(
 
 	return nil
 }
+type ParaIdAndHeader struct {
+	ParaId uint32
+	Header []byte
+}
 
 func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Proof, error) {
 	var mmrLeaves = make([]merkletypes.Leaf, len(beefyHeader.ParachainHeaders))
@@ -188,11 +192,11 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 	for i := 0; i < len(beefyHeader.ParachainHeaders); i++ {
 		// first we need to reconstruct the mmr leaf for this header
 		parachainHeader := beefyHeader.ParachainHeaders[i]
-		paraIdScale := make([]byte, 4)
-		// scale encode para_id
-		binary.LittleEndian.PutUint32(paraIdScale[:], parachainHeader.ParaId)
-		// scale encode to get parachain heads leaf bytes
-		headsLeafBytes := append(paraIdScale, parachainHeader.ParachainHeader...)
+
+		headsLeafBytes, err := Encode(ParaIdAndHeader{ParaId: parachainHeader.ParaId, Header: parachainHeader.ParachainHeader})
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, ErrInvalivParachainHeadsProof.Error())
+		}
 		headsLeaf := []merkletypes.Leaf{
 			{
 				Hash:  crypto.Keccak256(headsLeafBytes),
