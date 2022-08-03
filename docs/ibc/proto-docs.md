@@ -3172,6 +3172,22 @@ MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response t
 MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+| `counterparty_channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
+| `counterparty_sequence` | [uint64](#uint64) |  |  |
+| `proposed_upgrade_channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `timeout_timestamp` | [uint64](#uint64) |  |  |
+| `proof_channel` | [bytes](#bytes) |  |  |
+| `proof_upgrade_timeout` | [bytes](#bytes) |  |  |
+| `proof_upgrade_sequence` | [bytes](#bytes) |  |  |
+| `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `signer` | [string](#string) |  |  |
+
+
 
 
 
