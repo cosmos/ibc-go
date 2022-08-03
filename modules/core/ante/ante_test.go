@@ -430,7 +430,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				msg := suite.createRecvPacketMessage(uint64(1), false)
 
 				// We want to be able to run check tx with the non-redundant message without
-				// commiting it to a block, so that the when check tx runs with the redundant
+				// committing it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
 				k := suite.chainB.App.GetIBCKeeper()
 				decorator := ante.NewRedundantRelayDecorator(k)

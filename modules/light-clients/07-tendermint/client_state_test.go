@@ -411,7 +411,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		},
 		{
 			"proof verification failed", func() {
-				// change the value being prooved
+				// change the value being proved
 				value = []byte("invalid value")
 			}, false,
 		},
@@ -638,7 +638,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		},
 		{
 			"verify non membership fails as path exists", func() {
-				// change the value being prooved
+				// change the value being proved
 				key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)

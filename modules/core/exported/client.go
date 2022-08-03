@@ -109,7 +109,7 @@ type ClientState interface {
 		value []byte,
 	) error
 
-	// VerifyNonMembership is a generic proof verification method which verifies the absense of a given CommitmentPath at a specified height.
+	// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 	VerifyNonMembership(
 		ctx sdk.Context,
