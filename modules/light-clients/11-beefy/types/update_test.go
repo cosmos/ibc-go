@@ -39,7 +39,7 @@ func bytes32(bytes []byte) types.SizedByte32 {
 	return buffer
 }
 
-const PARA_ID = 2000
+const PARA_ID uint32 = 2000
 
 func TestCheckHeaderAndUpdateState(t *testing.T) {
 	// if BEEFY_TEST_MODE != "true" {
@@ -151,7 +151,6 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 			t.Logf("Recieved Commitment #%d", count)
 
 			// first get all paraIds
-
 			// fetch all registered parachainIds, this method doesn't account for
 			// if the parachains whose header was included in the batch of finalized blocks have now
 			// lost their parachain slot at this height
@@ -160,19 +159,17 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 
 			var paraHeaderKeys []clientTypes.StorageKey
 
-			// create full storage key for each known paraId.
+			// create full storage key for our own paraId
 			keyPrefix := clientTypes.CreateStorageKeyPrefix("Paras", "Heads")
 			// so we can query all blocks from lastfinalized to latestBeefyHeight
-			for _, paraId := range paraIds {
-				encodedParaID, err := types.Encode(paraId)
-				require.NoError(t, err)
+			encodedParaID, err := types.Encode(PARA_ID)
+			require.NoError(t, err)
 
-				twoXHash := xxhash.New64(encodedParaID).Sum(nil)
-				// full key path in the storage source: https://www.shawntabrizi.com/assets/presentations/substrate-storage-deep-dive.pdf
-				// xx128("Paras") + xx128("Heads") + xx64(Encode(paraId)) + Encode(paraId)
-				fullKey := append(append(keyPrefix, twoXHash[:]...), encodedParaID...)
-				paraHeaderKeys = append(paraHeaderKeys, fullKey)
-			}
+			twoXHash := xxhash.New64(encodedParaID).Sum(nil)
+			// full key path in the storage source: https://www.shawntabrizi.com/assets/presentations/substrate-storage-deep-dive.pdf
+			// xx128("Paras") + xx128("Heads") + xx64(Encode(paraId)) + Encode(paraId)
+			fullKey := append(append(keyPrefix, twoXHash[:]...), encodedParaID...)
+			paraHeaderKeys = append(paraHeaderKeys, fullKey)
 
 			previousFinalizedHash, err := relayApi.RPC.Chain.GetBlockHash(uint64(clientState.LatestBeefyHeight + 1))
 			require.NoError(t, err)
@@ -199,11 +196,6 @@ func TestCheckHeaderAndUpdateState(t *testing.T) {
 					header, err := fetchParachainHeader(relayApi, paraId, changes.Block)
 					require.NoError(t, err)
 					heads[paraId] = header
-				}
-
-				// check if heads has target id, else skip
-				if heads[PARA_ID] == nil {
-					continue
 				}
 
 				finalizedBlocks[uint32(header.Number)] = heads
@@ -439,7 +431,7 @@ func fetchParachainHeader(conn *client.SubstrateAPI, paraId uint32, blockHash cl
 	binary.LittleEndian.PutUint32(paraIdEncoded, paraId)
 
 	storageKey, err := clientTypes.CreateStorageKey(meta, "Paras", "Heads", paraIdEncoded)
-	
+
 	if err != nil {
 		return nil, err
 	}
