@@ -3,10 +3,10 @@ package keeper_test
 import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *KeeperTestSuite) TestOnChanOpenTry() {
@@ -22,7 +22,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success",
 			func() {
@@ -228,16 +227,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 }
 
 func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -279,22 +275,18 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
 
 func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -320,7 +312,6 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }

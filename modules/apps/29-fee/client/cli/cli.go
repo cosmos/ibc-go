@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/cosmos-sdk/client"
 )
 
 // GetQueryCmd returns the query commands for 29-fee
@@ -21,7 +22,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdTotalAckFees(),
 		GetCmdTotalTimeoutFees(),
 		GetCmdIncentivizedPacketsForChannel(),
-		GetCmdCounterpartyAddress(),
+		GetCmdPayee(),
+		GetCmdCounterpartyPayee(),
 		GetCmdFeeEnabledChannel(),
 		GetCmdFeeEnabledChannels(),
 	)
@@ -40,8 +42,9 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
+		NewRegisterPayeeCmd(),
+		NewRegisterCounterpartyPayeeCmd(),
 		NewPayPacketFeeAsyncTxCmd(),
-		NewRegisterCounterpartyAddress(),
 	)
 
 	return txCmd

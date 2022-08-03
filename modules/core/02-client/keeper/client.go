@@ -1,13 +1,13 @@
 package keeper
 
 import (
-	"github.com/armon/go-metrics"
+	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // CreateClient creates a new client state and populates it with a given consensus
@@ -110,7 +110,8 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 // UpgradeClient upgrades the client to a new client state if this new client was committed to
 // by the old client at the specified upgrade height
 func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte) error {
+	proofUpgradeClient, proofUpgradeConsState []byte,
+) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)

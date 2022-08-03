@@ -11,9 +11,9 @@ import (
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -248,7 +248,7 @@ func (cs ClientState) VerifyMembership(
 	return nil
 }
 
-// VerifyNonMembership is a generic proof verification method which verifies the absense of a given CommitmentPath at a specified height.
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs ClientState) VerifyNonMembership(
 	ctx sdk.Context,

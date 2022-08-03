@@ -4,13 +4,13 @@ import (
 	"math"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
-	tendermint "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
+	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *TendermintTestSuite) TestGetConsensusState() {

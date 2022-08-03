@@ -1,9 +1,9 @@
 package solomachine_test
 
 import (
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestConsensusState() {
@@ -60,7 +60,6 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-
 				err := tc.consensusState.ValidateBasic()
 
 				if tc.expPass {

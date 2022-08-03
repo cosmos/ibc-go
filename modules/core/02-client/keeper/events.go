@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -9,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // EmitCreateClientEvent emits a create client event
@@ -31,7 +32,6 @@ func EmitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 
 // EmitUpdateClientEvent emits an update client event
 func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
-
 	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
 	// This prevents the event value from containing invalid UTF-8 characters
 	// which may cause data to be lost when JSON encoding/decoding.
@@ -42,9 +42,9 @@ func EmitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 		consensusHeightAttr = consensusHeights[0].String()
 	}
 
-	var consensusHeightsAttr []string
-	for _, height := range consensusHeights {
-		consensusHeightsAttr = append(consensusHeightsAttr, height.String())
+	consensusHeightsAttr := make([]string, len(consensusHeights))
+	for i, height := range consensusHeights {
+		consensusHeightsAttr[i] = height.String()
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -89,6 +89,17 @@ func EmitUpdateClientProposalEvent(ctx sdk.Context, clientID string, clientState
 			sdk.NewAttribute(types.AttributeKeySubjectClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+		),
+	)
+}
+
+// EmitUpgradeClientProposalEvent emits an upgrade client proposal event
+func EmitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUpgradeClientProposal,
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
 		),
 	)
 }

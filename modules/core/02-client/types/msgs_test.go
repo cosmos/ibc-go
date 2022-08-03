@@ -7,11 +7,11 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	solomachinetypes "github.com/cosmos/ibc-go/v3/modules/light-clients/06-solomachine"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
+	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type TypesTestSuite struct {
@@ -212,7 +212,6 @@ func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
 			"tendermint client", func() {
 				msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
-
 			},
 		},
 	}
@@ -490,7 +489,6 @@ func (suite *TypesTestSuite) TestMarshalMsgSubmitMisbehaviour() {
 				misbehaviour := ibctmtypes.NewMisbehaviour("tendermint", header1, header2)
 				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", misbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
-
 			},
 		},
 	}

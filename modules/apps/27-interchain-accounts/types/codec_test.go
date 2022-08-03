@@ -4,10 +4,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
 // caseRawBytes defines a helper struct, used for testing codec operations
@@ -148,5 +148,4 @@ func (suite *TypesTestSuite) TestDeserializeAndSerializeCosmosTxWithAmino() {
 	bz, err := types.DeserializeCosmosTx(marshaler, []byte{0x10, 0})
 	suite.Require().Error(err)
 	suite.Require().Empty(bz)
-
 }

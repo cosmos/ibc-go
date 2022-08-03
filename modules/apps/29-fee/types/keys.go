@@ -7,7 +7,7 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 const (
@@ -23,13 +23,16 @@ const (
 	// QuerierRoute is the querier route for IBC fee module
 	QuerierRoute = ModuleName
 
-	Version = "fee29-1"
+	Version = "ics29-1"
 
 	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
 
-	// CounterpartyRelayerAddressKeyPrefix is the key prefix for relayer address mapping
-	CounterpartyRelayerAddressKeyPrefix = "relayerAddress"
+	// PayeeKeyPrefix is the key prefix for the fee payee address stored in state
+	PayeeKeyPrefix = "payee"
+
+	// CounterpartyPayeeKeyPrefix is the key prefix for the counterparty payee address mapping
+	CounterpartyPayeeKeyPrefix = "counterpartyPayee"
 
 	// FeesInEscrowPrefix is the key prefix for fee in escrow mapping
 	FeesInEscrowPrefix = "feesInEscrow"
@@ -70,13 +73,13 @@ func ParseKeyFeeEnabled(key string) (portID, channelID string, err error) {
 	return portID, channelID, nil
 }
 
-// KeyCounterpartyRelayer returns the key for relayer address -> counterparty address mapping
-func KeyCounterpartyRelayer(address, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyRelayerAddressKeyPrefix, address, channelID))
+// KeyPayee returns the key for relayer address -> payee address mapping
+func KeyPayee(relayerAddr, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", PayeeKeyPrefix, relayerAddr, channelID))
 }
 
-// ParseKeyCounterpartyRelayer returns the registered relayer address and channelID used to store the counterpartyrelayer address
-func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, error error) {
+// ParseKeyPayeeAddress returns the registered relayer addresss and channelID used to the store the fee payee address
+func ParseKeyPayeeAddress(key string) (relayerAddr, channelID string, err error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {
 		return "", "", sdkerrors.Wrapf(
@@ -87,13 +90,30 @@ func ParseKeyCounterpartyRelayer(key string) (address string, channelID string, 
 	return keySplit[1], keySplit[2], nil
 }
 
-// KeyForwardRelayerAddress returns the key for packetID -> forwardAddress mapping
-func KeyForwardRelayerAddress(packetID channeltypes.PacketId) []byte {
+// KeyCounterpartyPayee returns the key for relayer address -> counterparty payee address mapping
+func KeyCounterpartyPayee(address, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", CounterpartyPayeeKeyPrefix, address, channelID))
+}
+
+// ParseKeyCounterpartyPayee returns the registered relayer address and channelID used to store the counterparty payee address
+func ParseKeyCounterpartyPayee(key string) (address string, channelID string, error error) {
+	keySplit := strings.Split(key, "/")
+	if len(keySplit) != 3 {
+		return "", "", sdkerrors.Wrapf(
+			sdkerrors.ErrLogic, "key provided is incorrect: the key split has incorrect length, expected %d, got %d", 3, len(keySplit),
+		)
+	}
+
+	return keySplit[1], keySplit[2], nil
+}
+
+// KeyRelayerAddressForAsyncAck returns the key for packetID -> forwardAddress mapping
+func KeyRelayerAddressForAsyncAck(packetID channeltypes.PacketId) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s/%d", ForwardRelayerPrefix, packetID.PortId, packetID.ChannelId, packetID.Sequence))
 }
 
-// ParseKeyForwardRelayerAddress parses the key used to store the forward relayer address and returns the packetID
-func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
+// ParseKeyRelayerAddressForAsyncAck parses the key used to store the forward relayer address and returns the packetID
+func ParseKeyRelayerAddressForAsyncAck(key string) (channeltypes.PacketId, error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 4 {
 		return channeltypes.PacketId{}, sdkerrors.Wrapf(
@@ -106,7 +126,7 @@ func ParseKeyForwardRelayerAddress(key string) (channeltypes.PacketId, error) {
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
+	packetID := channeltypes.NewPacketID(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 
@@ -129,7 +149,7 @@ func ParseKeyFeesInEscrow(key string) (channeltypes.PacketId, error) {
 		return channeltypes.PacketId{}, err
 	}
 
-	packetID := channeltypes.NewPacketId(keySplit[1], keySplit[2], seq)
+	packetID := channeltypes.NewPacketID(keySplit[1], keySplit[2], seq)
 	return packetID, nil
 }
 

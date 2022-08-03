@@ -10,13 +10,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clientutils "github.com/cosmos/ibc-go/v3/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/client"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clientutils "github.com/cosmos/ibc-go/v5/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/client"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // QueryConnection returns a connection end.
@@ -105,7 +105,6 @@ func queryClientConnectionsABCI(clientCtx client.Context, clientID string) (*typ
 func QueryConnectionClientState(
 	clientCtx client.Context, connectionID string, prove bool,
 ) (*types.QueryConnectionClientStateResponse, error) {
-
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryConnectionClientStateRequest{
 		ConnectionId: connectionID,
@@ -140,7 +139,6 @@ func QueryConnectionClientState(
 func QueryConnectionConsensusState(
 	clientCtx client.Context, connectionID string, height clienttypes.Height, prove bool,
 ) (*types.QueryConnectionConsensusStateResponse, error) {
-
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryConnectionConsensusStateRequest{
 		ConnectionId:   connectionID,

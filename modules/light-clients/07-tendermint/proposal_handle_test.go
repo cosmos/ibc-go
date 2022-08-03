@@ -3,16 +3,13 @@ package tendermint_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	tendermint "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-var (
-	frozenHeight = clienttypes.NewHeight(0, 1)
-)
+var frozenHeight = clienttypes.NewHeight(0, 1)
 
 func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 	var (
@@ -31,10 +28,12 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		{
 			"non-matching substitute", func() {
 				suite.coordinator.SetupClients(substitutePath)
-				substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*tendermint.ClientState)
-				tmClientState, ok := substituteClientState.(*tendermint.ClientState)
+				substituteClientState, ok := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*tendermint.ClientState)
 				suite.Require().True(ok)
+				// change trusting period so that test should fail
+				substituteClientState.TrustingPeriod = time.Hour * 24 * 7
 
+				tmClientState := substituteClientState
 				tmClientState.ChainId = tmClientState.ChainId + "different chain"
 			},
 		},
@@ -44,15 +43,12 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-
 			suite.SetupTest() // reset
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			suite.coordinator.SetupClients(subjectPath)
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*tendermint.ClientState)
-			subjectClientState.AllowUpdateAfterMisbehaviour = true
-			subjectClientState.AllowUpdateAfterExpiry = true
 
 			// expire subject client
 			suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
@@ -74,52 +70,40 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 // this is to prevent headers from failing when attempting to update later.
 func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
-		name                         string
-		AllowUpdateAfterExpiry       bool
-		AllowUpdateAfterMisbehaviour bool
-		FreezeClient                 bool
-		ExpireClient                 bool
-		expPass                      bool
+		name         string
+		FreezeClient bool
+		ExpireClient bool
+		expPass      bool
 	}{
 		{
-			name:                         "PASS: update checks are deprecated, client is frozen and expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 true,
-			ExpireClient:                 true,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, client is frozen and expired",
+			FreezeClient: true,
+			ExpireClient: true,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, not frozen or expired",
-			AllowUpdateAfterExpiry:       false,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, not frozen or expired",
+			FreezeClient: false,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, not frozen or expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: false,
-			FreezeClient:                 false,
-			ExpireClient:                 false,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, not frozen or expired",
+			FreezeClient: false,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, client is frozen",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 true,
-			ExpireClient:                 false,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, client is frozen",
+			FreezeClient: true,
+			ExpireClient: false,
+			expPass:      true,
 		},
 		{
-			name:                         "PASS: update checks are deprecated, client is expired",
-			AllowUpdateAfterExpiry:       true,
-			AllowUpdateAfterMisbehaviour: true,
-			FreezeClient:                 false,
-			ExpireClient:                 true,
-			expPass:                      true,
+			name:         "PASS: update checks are deprecated, client is expired",
+			FreezeClient: false,
+			ExpireClient: true,
+			expPass:      true,
 		},
 	}
 
@@ -130,7 +114,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 		// a client are each tested to ensure that unexpiry headers cannot update
 		// a client when a unfreezing header is required.
 		suite.Run(tc.name, func() {
-
 			// start by testing unexpiring the client
 			suite.SetupTest() // reset
 
@@ -138,8 +121,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(subjectPath)
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*tendermint.ClientState)
-			subjectClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
-			subjectClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
 
 			// apply freezing or expiry as determined by the test case
 			if tc.FreezeClient {
@@ -160,8 +141,8 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
 			substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*tendermint.ClientState)
-			substituteClientState.AllowUpdateAfterExpiry = tc.AllowUpdateAfterExpiry
-			substituteClientState.AllowUpdateAfterMisbehaviour = tc.AllowUpdateAfterMisbehaviour
+			// update trusting period of substitute client state
+			substituteClientState.TrustingPeriod = time.Hour * 24 * 7
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, substituteClientState)
 
 			// update substitute a few times
@@ -212,15 +193,11 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
 
 				suite.Require().Equal(newChainID, updatedClient.(*tendermint.ClientState).ChainId)
-
-				// ensure updated client state is set in store
-				bz := subjectClientStore.Get(host.ClientStateKey())
-				suite.Require().Equal(clienttypes.MustMarshalClientState(suite.chainA.Codec, updatedClient), bz)
+				suite.Require().Equal(time.Hour*24*7, updatedClient.(*tendermint.ClientState).TrustingPeriod)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(updatedClient)
 			}
-
 		})
 	}
 }
@@ -261,9 +238,15 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 			}, true,
 		},
 		{
-			"not matching, trusting period is different", func() {
+			"matching, trusting period is different", func() {
 				subjectClientState.TrustingPeriod = time.Duration(time.Hour * 10)
 				substituteClientState.TrustingPeriod = time.Duration(time.Hour * 1)
+			}, true,
+		},
+		{
+			"not matching, trust level is different", func() {
+				subjectClientState.TrustLevel = tendermint.Fraction{2, 3}
+				substituteClientState.TrustLevel = tendermint.Fraction{1, 3}
 			}, false,
 		},
 	}
@@ -282,7 +265,6 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 			tc.malleate()
 
 			suite.Require().Equal(tc.expPass, tendermint.IsMatchingClientState(*subjectClientState, *substituteClientState))
-
 		})
 	}
 }

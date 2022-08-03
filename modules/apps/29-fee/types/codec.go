@@ -10,9 +10,10 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/ibc 29-fee interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgRegisterCounterpartyAddress{}, "cosmos-sdk/MsgRegisterCounterpartyAddress", nil)
 	cdc.RegisterConcrete(&MsgPayPacketFee{}, "cosmos-sdk/MsgPayPacketFee", nil)
 	cdc.RegisterConcrete(&MsgPayPacketFeeAsync{}, "cosmos-sdk/MsgPayPacketFeeAsync", nil)
+	cdc.RegisterConcrete(&MsgRegisterPayee{}, "cosmos-sdk/MsgRegisterPayee", nil)
+	cdc.RegisterConcrete(&MsgRegisterCounterpartyPayee{}, "cosmos-sdk/MsgRegisterCounterpartyPayee", nil)
 }
 
 // RegisterInterfaces register the 29-fee module interfaces to protobuf
@@ -20,9 +21,10 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgRegisterCounterpartyAddress{},
 		&MsgPayPacketFee{},
 		&MsgPayPacketFeeAsync{},
+		&MsgRegisterPayee{},
+		&MsgRegisterCounterpartyPayee{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

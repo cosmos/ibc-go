@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 /*
@@ -87,7 +87,6 @@ func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) 
 		if len(keySplit) != 3 {
 			// ignore all consensus state keys
 			continue
-
 		}
 
 		if keySplit[2] != "processedTime" && keySplit[2] != "processedHeight" {
@@ -295,7 +294,7 @@ func PruneAllExpiredConsensusStates(
 		return false
 	}
 
-	IterateConsensusStateAscending(clientStore, pruneCb)
+	err = IterateConsensusStateAscending(clientStore, pruneCb)
 	if err != nil {
 		return err
 	}

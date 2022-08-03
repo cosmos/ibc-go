@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 )
 
 func TestZeroHeight(t *testing.T) {
@@ -126,7 +126,6 @@ func TestParseChainID(t *testing.T) {
 		revision := types.ParseChainID(tc.chainID)
 		require.Equal(t, tc.revision, revision, "chainID %s returns incorrect revision", tc.chainID)
 	}
-
 }
 
 func TestSetRevisionNumber(t *testing.T) {

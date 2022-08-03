@@ -7,7 +7,7 @@ import (
 // NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
 func NewIncentivizedAcknowledgement(relayer string, ack []byte, success bool) IncentivizedAcknowledgement {
 	return IncentivizedAcknowledgement{
-		Result:                ack,
+		AppAcknowledgement:    ack,
 		ForwardRelayerAddress: relayer,
 		UnderlyingAppSuccess:  success,
 	}

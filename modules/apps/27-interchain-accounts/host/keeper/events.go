@@ -1,20 +1,31 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-// EmitWriteErrorAcknowledgementEvent emits an event signalling an error acknowledgement and including the error details
-func EmitWriteErrorAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, err error) {
+// EmitAcknowledgementEvent emits an event signalling a successful or failed acknowledgement and including the error
+// details if any.
+func EmitAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, ack exported.Acknowledgement, err error) {
+	attributes := []sdk.Attribute{
+		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+		sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
+		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+	}
+
+	if err != nil {
+		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			icatypes.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
-			sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()),
-			sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
+			attributes...,
 		),
 	)
 }

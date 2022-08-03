@@ -3,9 +3,9 @@ package tendermint_test
 import (
 	"time"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	tendermint "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 )
 
 func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
@@ -48,7 +48,8 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: []byte("hi"),
 			},
-			false},
+			false,
+		},
 
 		{"timestamp is zero",
 			&tendermint.ConsensusState{
@@ -56,7 +57,8 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
 			},
-			false},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {

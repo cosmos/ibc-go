@@ -10,10 +10,10 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	client "github.com/cosmos/ibc-go/v3/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	client "github.com/cosmos/ibc-go/v5/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type ClientTestSuite struct {

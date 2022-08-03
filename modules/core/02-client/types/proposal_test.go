@@ -5,12 +5,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *TypesTestSuite) TestValidateBasic() {
@@ -128,7 +128,6 @@ func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 					},
 				})
 				suite.Require().NoError(err)
-
 			}, false,
 		},
 		{
@@ -210,7 +209,6 @@ func (suite *TypesTestSuite) TestMarshalUpgradeProposal() {
 	// unpack client state
 	_, err = types.UnpackClientState(newUp.UpgradedClientState)
 	suite.Require().NoError(err)
-
 }
 
 func (suite *TypesTestSuite) TestUpgradeString() {

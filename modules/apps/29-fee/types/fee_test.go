@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 )
 
 var (
@@ -35,9 +35,7 @@ func TestFeeTotal(t *testing.T) {
 }
 
 func TestPacketFeeValidation(t *testing.T) {
-	var (
-		packetFee types.PacketFee
-	)
+	var packetFee types.PacketFee
 
 	testCases := []struct {
 		name     string
@@ -47,6 +45,13 @@ func TestPacketFeeValidation(t *testing.T) {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"success with empty slice for Relayers",
+			func() {
+				packetFee.Relayers = []string{}
+			},
 			true,
 		},
 		{
@@ -104,6 +109,13 @@ func TestPacketFeeValidation(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"should fail with non empty Relayers",
+			func() {
+				packetFee.Relayers = []string{"relayer"}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -115,9 +127,9 @@ func TestPacketFeeValidation(t *testing.T) {
 		err := packetFee.Validate()
 
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.name)
 		}
 	}
 }

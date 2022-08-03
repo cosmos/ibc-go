@@ -7,9 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // CommitPacket returns the packet commitment bytes. The commitment consists of:
@@ -129,7 +129,7 @@ func (p PacketId) Validate() error {
 	return nil
 }
 
-// NewPacketId returns a new instance of PacketId
-func NewPacketId(portId, channelId string, seq uint64) PacketId {
-	return PacketId{PortId: portId, ChannelId: channelId, Sequence: seq}
+// NewPacketID returns a new instance of PacketId
+func NewPacketID(portID, channelID string, seq uint64) PacketId {
+	return PacketId{PortId: portID, ChannelId: channelID, Sequence: seq}
 }

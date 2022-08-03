@@ -3,10 +3,10 @@ package fee_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 // Integration test to ensure ics29 works with ics20
@@ -46,7 +46,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
 	relayerAddress := suite.chainB.SenderAccount.GetAddress()
 
-	msgRegister := types.NewMsgRegisterCounterpartyAddress(suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(), ibctesting.FirstChannelID)
+	msgRegister := types.NewMsgRegisterCounterpartyPayee(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String())
 	_, err = suite.chainB.SendMsgs(msgRegister)
 	suite.Require().NoError(err) // message committed
 
@@ -66,7 +66,5 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 
 	suite.Require().Equal(
 		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
-		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance),
-	)
-
+		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
 }
