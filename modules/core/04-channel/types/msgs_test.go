@@ -437,6 +437,125 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
+	var msg *types.MsgChannelUpgradeTry
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid port identifier",
+			func() {
+				msg.PortId = invalidPort
+			},
+			false,
+		},
+		{
+			"invalid channel identifier",
+			func() {
+				msg.ChannelId = invalidChannel
+			},
+			false,
+		},
+		{
+			"invalid counterparty channel state",
+			func() {
+				msg.CounterpartyChannel.State = types.TRYUPGRADE
+			},
+			false,
+		},
+		{
+			"counterparty sequence cannot be zero",
+			func() {
+				msg.CounterpartySequence = 0
+			},
+			false,
+		},
+		{
+			"invalid proposed upgrade channel state",
+			func() {
+				msg.ProposedUpgradeChannel.State = types.INITUPGRADE
+			},
+			false,
+		},
+		{
+			"timeout height is zero && timeout timestamp is zero",
+			func() {
+				msg.TimeoutHeight = clienttypes.ZeroHeight()
+				msg.TimeoutTimestamp = 0
+			},
+			false,
+		},
+		{
+			"cannot submit an empty channel proof",
+			func() {
+				msg.ProofChannel = emptyProof
+			},
+			false,
+		},
+		{
+			"cannot submit an empty upgrade timeout proof",
+			func() {
+				msg.ProofUpgradeTimeout = emptyProof
+			},
+			false,
+		},
+		{
+			"cannot submit an empty upgrade sequence proof",
+			func() {
+				msg.ProofUpgradeSequence = emptyProof
+			},
+			false,
+		},
+		{
+			"proof height must be > 0",
+			func() {
+				msg.ProofHeight = clienttypes.ZeroHeight()
+			},
+			false,
+		},
+		{
+			"missing signer address",
+			func() {
+				msg.Signer = emptyAddr
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			msg = types.NewMsgChannelUpgradeTry(
+				ibctesting.MockPort, ibctesting.FirstChannelID,
+				types.Channel{State: types.INITUPGRADE},
+				1,
+				types.Channel{State: types.TRYUPGRADE},
+				clienttypes.NewHeight(0, 10000),
+				0,
+				suite.proof, suite.proof, suite.proof,
+				height, addr,
+			)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 	var msg *types.MsgChannelUpgradeCancel
 
