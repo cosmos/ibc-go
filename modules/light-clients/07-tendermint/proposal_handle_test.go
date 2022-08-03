@@ -4,7 +4,6 @@ import (
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
@@ -29,8 +28,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		{
 			"non-matching substitute", func() {
 				suite.coordinator.SetupClients(substitutePath)
-				substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*tendermint.ClientState)
-				tmClientState, ok := substituteClientState.(*tendermint.ClientState)
+				substituteClientState, ok := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*tendermint.ClientState)
 				suite.Require().True(ok)
 				// change trusting period so that test should fail
 				substituteClientState.TrustingPeriod = time.Hour * 24 * 7
@@ -247,8 +245,8 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 		},
 		{
 			"not matching, trust level is different", func() {
-				subjectClientState.TrustLevel = types.Fraction{2, 3}
-				substituteClientState.TrustLevel = types.Fraction{1, 3}
+				subjectClientState.TrustLevel = tendermint.Fraction{2, 3}
+				substituteClientState.TrustLevel = tendermint.Fraction{1, 3}
 			}, false,
 		},
 	}

@@ -68,8 +68,6 @@ type KeeperTestSuite struct {
 
 	signers map[string]tmtypes.PrivValidator
 
-	signers map[string]tmtypes.PrivValidator
-
 	// TODO: deprecate
 	queryClient types.QueryClient
 }
