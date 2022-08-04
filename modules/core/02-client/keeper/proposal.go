@@ -48,7 +48,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 		return err
 	}
 
-	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId, "height")
+	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId)
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
