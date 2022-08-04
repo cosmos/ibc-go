@@ -12,7 +12,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
@@ -50,7 +50,7 @@ type TendermintTestSuite struct {
 	valSet     *tmtypes.ValidatorSet
 	signers    map[string]tmtypes.PrivValidator
 	valsHash   tmbytes.HexBytes
-	header     *tendermint.Header
+	header     *ibctm.Header
 	now        time.Time
 	headerTime time.Time
 	clientTime time.Time

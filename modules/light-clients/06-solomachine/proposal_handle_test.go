@@ -5,7 +5,7 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -35,7 +35,7 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 			},
 			{
 				"substitute is not the solo machine", func() {
-					substituteClientState = &ibctmtypes.ClientState{}
+					substituteClientState = &ibctm.ClientState{}
 				}, false,
 			},
 			{

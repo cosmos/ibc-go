@@ -10,7 +10,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
 )
@@ -18,7 +18,7 @@ import (
 func (suite *TendermintTestSuite) TestVerifyHeader() {
 	var (
 		path   *ibctesting.Path
-		header *tendermint.Header
+		header *ibctm.Header
 	)
 
 	// Setup different validators and signers for testing different types of updates
@@ -322,12 +322,12 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 	}{
 		{
 			"success with height later than latest height", func() {
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(tmHeader.GetHeight()))
 			},
 			func() {
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
 				clientState := path.EndpointA.GetClientState()
@@ -343,7 +343,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(tmHeader.GetHeight()))
 
@@ -365,7 +365,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), tmHeader.GetHeight())
 
@@ -377,7 +377,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().Equal(clientState, prevClientState)
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 				suite.Require().Equal(path.EndpointA.GetConsensusState(tmHeader.GetHeight()), prevConsensusState)
 			}, true,
@@ -408,7 +408,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 			},
 			func() {
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
 				clientState := path.EndpointA.GetClientState()
@@ -422,7 +422,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 		},
 		{
 			"invalid ClientMessage type", func() {
-				clientMessage = &tendermint.Misbehaviour{}
+				clientMessage = &ibctm.Misbehaviour{}
 			},
 			func() {},
 			false,
@@ -451,8 +451,8 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 			if tc.expPass {
 				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 
-				header := clientMessage.(*tendermint.Header)
-				expConsensusState := &tendermint.ConsensusState{
+				header := clientMessage.(*ibctm.Header)
+				expConsensusState := &ibctm.ConsensusState{
 					Timestamp:          header.GetTime(),
 					Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
 					NextValidatorsHash: header.Header.NextValidatorsHash,
@@ -488,7 +488,7 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	}
 	ctx := path.EndpointA.Chain.GetContext()
 	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
-	err := tendermint.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
+	err := ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
 	suite.Require().Nil(err)
 
 	// this height will be expired but not pruned
@@ -500,11 +500,11 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	suite.Require().True(ok)
 	ctx = path.EndpointA.Chain.GetContext()
 	clientStore = path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
-	expectedProcessTime, ok := tendermint.GetProcessedTime(clientStore, expiredHeight)
+	expectedProcessTime, ok := ibctm.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().True(ok)
-	expectedProcessHeight, ok := tendermint.GetProcessedHeight(clientStore, expiredHeight)
+	expectedProcessHeight, ok := ibctm.GetProcessedHeight(clientStore, expiredHeight)
 	suite.Require().True(ok)
-	expectedConsKey := tendermint.GetIterationKey(clientStore, expiredHeight)
+	expectedConsKey := ibctm.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().NotNil(expectedConsKey)
 
 	// Increment the time by a week
@@ -526,15 +526,15 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	suite.Require().Nil(consState, "expired consensus state not pruned")
 	suite.Require().False(ok)
 	// check processed time metadata is pruned
-	processTime, ok := tendermint.GetProcessedTime(clientStore, pruneHeight)
+	processTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
 	suite.Require().Equal(uint64(0), processTime, "processed time metadata not pruned")
 	suite.Require().False(ok)
-	processHeight, ok := tendermint.GetProcessedHeight(clientStore, pruneHeight)
+	processHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
 	suite.Require().Nil(processHeight, "processed height metadata not pruned")
 	suite.Require().False(ok)
 
 	// check iteration key metadata is pruned
-	consKey := tendermint.GetIterationKey(clientStore, pruneHeight)
+	consKey := ibctm.GetIterationKey(clientStore, pruneHeight)
 	suite.Require().Nil(consKey, "iteration key not pruned")
 
 	// check that second expired consensus state doesn't get deleted
@@ -543,17 +543,17 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	suite.Require().Equal(expectedConsState, consState, "consensus state incorrectly pruned")
 	suite.Require().True(ok)
 	// check processed time metadata is not pruned
-	processTime, ok = tendermint.GetProcessedTime(clientStore, expiredHeight)
+	processTime, ok = ibctm.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().Equal(expectedProcessTime, processTime, "processed time metadata incorrectly pruned")
 	suite.Require().True(ok)
 
 	// check processed height metadata is not pruned
-	processHeight, ok = tendermint.GetProcessedHeight(clientStore, expiredHeight)
+	processHeight, ok = ibctm.GetProcessedHeight(clientStore, expiredHeight)
 	suite.Require().Equal(expectedProcessHeight, processHeight, "processed height metadata incorrectly pruned")
 	suite.Require().True(ok)
 
 	// check iteration key metadata is not pruned
-	consKey = tendermint.GetIterationKey(clientStore, expiredHeight)
+	consKey = ibctm.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }
 
@@ -576,16 +576,16 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		{
 			"consensus state already exists, already updated",
 			func() {
-				header, ok := clientMessage.(*tendermint.Header)
+				header, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
-				consensusState := &tendermint.ConsensusState{
+				consensusState := &ibctm.ConsensusState{
 					Timestamp:          header.GetTime(),
 					Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
 					NextValidatorsHash: header.Header.NextValidatorsHash,
 				}
 
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmHeader.GetHeight(), consensusState)
 			},
@@ -594,16 +594,16 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		{
 			"consensus state already exists, app hash mismatch",
 			func() {
-				header, ok := clientMessage.(*tendermint.Header)
+				header, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
-				consensusState := &tendermint.ConsensusState{
+				consensusState := &ibctm.ConsensusState{
 					Timestamp:          header.GetTime(),
 					Root:               commitmenttypes.NewMerkleRoot([]byte{}), // empty bytes
 					NextValidatorsHash: header.Header.NextValidatorsHash,
 				}
 
-				tmHeader, ok := clientMessage.(*tendermint.Header)
+				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmHeader.GetHeight(), consensusState)
 			},
@@ -612,7 +612,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		{
 			"previous consensus state exists and header time is before previous consensus state time",
 			func() {
-				header, ok := clientMessage.(*tendermint.Header)
+				header, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
 				// offset header timestamp before previous consensus state timestamp
@@ -623,7 +623,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		{
 			"next consensus state exists and header time is after next consensus state time",
 			func() {
-				header, ok := clientMessage.(*tendermint.Header)
+				header, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
 				// commit block and update client, adding a new consensus state
@@ -653,7 +653,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				// assign the same height, each header will have a different commit hash
 				header1.Header.Height = header2.Header.Height
 
-				clientMessage = &tendermint.Misbehaviour{
+				clientMessage = &ibctm.Misbehaviour{
 					Header1:  header1,
 					Header2:  header2,
 					ClientId: path.EndpointA.ClientID,
@@ -739,7 +739,7 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 				suite.Require().NotEmpty(clientStateBz)
 
 				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-				suite.Require().Equal(frozenHeight, newClientState.(*tendermint.ClientState).FrozenHeight)
+				suite.Require().Equal(frozenHeight, newClientState.(*ibctm.ClientState).FrozenHeight)
 			}
 		})
 	}

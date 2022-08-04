@@ -1,4 +1,4 @@
-# Migrating from ibc-go v4 to v5
+# Migrating from ibc-go v5 to v6
 
 This document is intended to highlight significant changes which may require more information than presented in the CHANGELOG.
 Any changes that must be done by a user of ibc-go should be documented here.
@@ -60,12 +60,12 @@ The `GetRoot` function has been removed from consensus state interface since it 
 The `09-localhost` light client implementation has been removed because it is currently non-functional.
 
 An upgrade handler has been added to supply chain developers with the logic needed to prune the ibc client store and successfully complete the removal of `09-localhost`.
-Add the following to the application upgrade handler in `app/app.go`, calling `MigrateToV5` to perform store migration logic.
+Add the following to the application upgrade handler in `app/app.go`, calling `MigrateToV6` to perform store migration logic.
 
 ```go
 import (
     // ...
-    ibcv5 "github.com/cosmos/ibc-go/v5/modules/core/migrations/v5"
+    ibcv6 "github.com/cosmos/ibc-go/v6/modules/core/migrations/v6"
 )
 
 // ...
@@ -74,7 +74,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
     upgradeName,
     func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
         // prune the 09-localhost client from the ibc client store
-        ibcv5.MigrateToV5(ctx, app.IBCKeeper.ClientKeeper)
+        ibcv6.MigrateToV6(ctx, app.IBCKeeper.ClientKeeper)
 
         return app.mm.RunMigrations(ctx, app.configurator, fromVM)
     },

@@ -12,7 +12,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v5/testing/mock"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
@@ -47,7 +47,7 @@ var (
 	DefaultOpenInitVersion *connectiontypes.Version
 
 	// DefaultTrustLevel sets params variables used to create a TM client
-	DefaultTrustLevel = ibctmtypes.DefaultTrustLevel
+	DefaultTrustLevel = ibctm.DefaultTrustLevel
 	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}

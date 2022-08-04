@@ -9,7 +9,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -122,7 +122,7 @@ func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 		},
 		{
 			"non zeroed fields", func() {
-				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, &ibctmtypes.ClientState{
+				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, &ibctm.ClientState{
 					FrozenHeight: types.Height{
 						RevisionHeight: 10,
 					},
@@ -149,7 +149,7 @@ func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 		},
 		{
 			"failed to unpack client state", func() {
-				any, err := types.PackConsensusState(&ibctmtypes.ConsensusState{})
+				any, err := types.PackConsensusState(&ibctm.ConsensusState{})
 				suite.Require().NoError(err)
 
 				proposal = &types.UpgradeProposal{
@@ -184,7 +184,7 @@ func (suite *TypesTestSuite) TestMarshalUpgradeProposal() {
 		Name:   "upgrade ibc",
 		Height: 1000,
 	}
-	content, err := types.NewUpgradeProposal("title", "description", plan, &ibctmtypes.ClientState{})
+	content, err := types.NewUpgradeProposal("title", "description", plan, &ibctm.ClientState{})
 	suite.Require().NoError(err)
 
 	up, ok := content.(*types.UpgradeProposal)
@@ -194,7 +194,7 @@ func (suite *TypesTestSuite) TestMarshalUpgradeProposal() {
 	ir := codectypes.NewInterfaceRegistry()
 	types.RegisterInterfaces(ir)
 	govtypes.RegisterInterfaces(ir)
-	ibctmtypes.RegisterInterfaces(ir)
+	ibctm.RegisterInterfaces(ir)
 	cdc := codec.NewProtoCodec(ir)
 
 	// marshal message
@@ -218,10 +218,10 @@ func (suite *TypesTestSuite) TestUpgradeString() {
 		Height: 1000,
 	}
 
-	proposal, err := types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, &ibctmtypes.ClientState{})
+	proposal, err := types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, &ibctm.ClientState{})
 	suite.Require().NoError(err)
 
-	expect := fmt.Sprintf("IBC Upgrade Proposal\n  Title: title\n  Description: description\n  Upgrade Plan\n  Name: ibc upgrade\n  height: 1000\n  Info: https://foo.bar/baz.\n  Upgraded IBC Client: %s", &ibctmtypes.ClientState{})
+	expect := fmt.Sprintf("IBC Upgrade Proposal\n  Title: title\n  Description: description\n  Upgrade Plan\n  Name: ibc upgrade\n  height: 1000\n  Info: https://foo.bar/baz.\n  Upgraded IBC Client: %s", &ibctm.ClientState{})
 
 	suite.Require().Equal(expect, proposal.String())
 }

@@ -14,7 +14,7 @@ This roadmap should be read as a high-level guide, rather than a commitment to s
 
 At a high level we will focus on:
 
-At a high level we will focus on:
+### Features
 
 - Releasing [v4.0.0](https://github.com/cosmos/ibc-go/milestone/26), which includes the ICS-29 Fee Middleware module.
 - Finishing and releasing the [refactoring of 02-client](https://github.com/cosmos/ibc-go/milestone/16). This refactor will make the development of light clients easier.
