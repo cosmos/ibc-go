@@ -27,16 +27,14 @@ import (
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
-) (exported.ClientState, error) {
+) error {
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidClient, "expected type %T, got %T", &ClientState{}, substituteClient,
-		)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "expected type %T, got %T", &ClientState{}, substituteClient)
 	}
 
 	if !IsMatchingClientState(cs, *substituteClientState) {
-		return nil, sdkerrors.Wrap(clienttypes.ErrInvalidSubstitute, "subject client state does not match substitute client state")
+		return sdkerrors.Wrap(clienttypes.ErrInvalidSubstitute, "subject client state does not match substitute client state")
 	}
 
 	if cs.Status(ctx, subjectClientStore, cdc) == exported.Frozen {
@@ -50,7 +48,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	consensusState, found := GetConsensusState(substituteClientStore, cdc, height)
 	if !found {
-		return nil, sdkerrors.Wrap(clienttypes.ErrConsensusStateNotFound, "unable to retrieve latest consensus state for substitute client")
+		return sdkerrors.Wrap(clienttypes.ErrConsensusStateNotFound, "unable to retrieve latest consensus state for substitute client")
 	}
 
 	setConsensusState(subjectClientStore, cdc, consensusState, height)
@@ -58,12 +56,12 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	// set metadata stored for the substitute consensus state
 	processedHeight, found := GetProcessedHeight(substituteClientStore, height)
 	if !found {
-		return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "unable to retrieve processed height for substitute client latest height")
+		return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "unable to retrieve processed height for substitute client latest height")
 	}
 
 	processedTime, found := GetProcessedTime(substituteClientStore, height)
 	if !found {
-		return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "unable to retrieve processed time for substitute client latest height")
+		return sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "unable to retrieve processed time for substitute client latest height")
 	}
 
 	setConsensusMetadataWithValues(subjectClientStore, height, processedHeight, processedTime)
@@ -78,7 +76,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	// in 02-client.
 	setClientState(subjectClientStore, cdc, &cs)
 
-	return &cs, nil
+	return nil
 }
 
 // IsMatchingClientState returns true if all the client state parameters match

@@ -21,45 +21,36 @@ import (
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	_ sdk.KVStore, substituteClient exported.ClientState,
-) (exported.ClientState, error) {
+) error {
 	if !cs.AllowUpdateAfterProposal {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrUpdateClientFailed,
-			"solo machine client is not allowed to updated with a proposal",
-		)
+		return sdkerrors.Wrapf(clienttypes.ErrUpdateClientFailed, "solo machine client is not allowed to updated with a proposal")
 	}
 
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidClientType, "substitute client state type %T, expected  %T", substituteClient, &ClientState{},
-		)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "substitute client state type %T, expected  %T", substituteClient, &ClientState{})
 	}
 
 	subjectPublicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to get consensus public key")
+		return sdkerrors.Wrap(err, "failed to get consensus public key")
 	}
 
 	substitutePublicKey, err := substituteClientState.ConsensusState.GetPubKey()
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to get substitute client public key")
+		return sdkerrors.Wrap(err, "failed to get substitute client public key")
 	}
 
 	if reflect.DeepEqual(subjectPublicKey, substitutePublicKey) {
-		return nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "subject and substitute have the same public key",
-		)
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "subject and substitute have the same public key")
 	}
 
-	clientState := &cs
-
 	// update to substitute parameters
-	clientState.Sequence = substituteClientState.Sequence
-	clientState.ConsensusState = substituteClientState.ConsensusState
-	clientState.IsFrozen = false
+	cs.Sequence = substituteClientState.Sequence
+	cs.ConsensusState = substituteClientState.ConsensusState
+	cs.IsFrozen = false
 
-	setClientState(subjectClientStore, cdc, clientState)
+	setClientState(subjectClientStore, cdc, &cs)
 
-	return clientState, nil
+	return nil
 }

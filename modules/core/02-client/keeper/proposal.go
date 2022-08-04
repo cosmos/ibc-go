@@ -44,19 +44,18 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 		return sdkerrors.Wrapf(types.ErrClientStateNotFound, "substitute client is not Active, status is %s", status)
 	}
 
-	clientState, err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState)
-	if err != nil {
+	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
 		return err
 	}
 
-	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId, "height", clientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.SubjectClientId)
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", "client", "update"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientType, substituteClientState.ClientType()),
 				telemetry.NewLabel(types.LabelClientID, p.SubjectClientId),
 				telemetry.NewLabel(types.LabelUpdateType, "proposal"),
 			},
@@ -64,7 +63,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	}()
 
 	// emitting events in the keeper for proposal updates to clients
-	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, clientState)
+	EmitUpdateClientProposalEvent(ctx, p.SubjectClientId, substituteClientState.ClientType())
 
 	return nil
 }

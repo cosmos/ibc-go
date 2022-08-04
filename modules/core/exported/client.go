@@ -108,8 +108,9 @@ type ClientState interface {
 	// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 	UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg ClientMessage) []Height
 
-	// Update and Misbehaviour functions
-	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) (ClientState, error)
+	// CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
+	// The light client must set the updated client and consensus states within the clientStore for the subject client.
+	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore sdk.KVStore, substituteClient ClientState) error
 
 	// Upgrade functions
 	// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
