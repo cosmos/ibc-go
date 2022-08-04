@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -221,6 +222,14 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			false,
 		},
 		{
+			"refund account is a blocked address",
+			func() {
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				msg.Signer = blockedAddr.String()
+			},
+			false,
+		},
+		{
 			"acknowledgement fee balance not found",
 			func() {
 				msg.Fee.AckFee = invalidCoins
@@ -396,6 +405,14 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			"refund account does not exist",
 			func() {
 				msg.PacketFee.RefundAddress = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			false,
+		},
+		{
+			"refund account is a blocked address",
+			func() {
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				msg.PacketFee.RefundAddress = blockedAddr.String()
 			},
 			false,
 		},

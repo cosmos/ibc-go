@@ -672,9 +672,9 @@ func (app *SimApp) LoadHeight(height int64) error {
 func (app *SimApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		// do not add mock module to blocked addresses
+		// do not add the following modules to blocked addresses
 		// this is only used for testing
-		if acc == ibcmock.ModuleName {
+		if acc == ibcmock.ModuleName || acc == distrtypes.ModuleName {
 			continue
 		}
 
