@@ -656,7 +656,16 @@ var _ sdk.Msg = &MsgChannelUpgradeConfirm{}
 
 // NewMsgChannelUpgradeConfirm constructs a new MsgChannelUpgradeConfirm
 // nolint:interfacer
-func NewMsgChannelUpgradeConfirm(portID, channelID string, counterpartyChannel Channel, proofChannel, proofUpgradeError, proofUpgradeSequence []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeConfirm {
+func NewMsgChannelUpgradeConfirm(
+	portID,
+	channelID string,
+	counterpartyChannel Channel,
+	proofChannel,
+	proofUpgradeError,
+	proofUpgradeSequence []byte,
+	proofHeight clienttypes.Height,
+	signer string,
+) *MsgChannelUpgradeConfirm {
 	return &MsgChannelUpgradeConfirm{
 		PortId:               portID,
 		ChannelId:            channelID,
