@@ -92,6 +92,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/29-fee) [\#1774](https://github.com/cosmos/ibc-go/pull/1774) Change non nil relayer assertion to non empty to avoid import/export issues for genesis upgrades. 
 * (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
+* (apps/27-interchain-accounts) [\#1882](https://github.com/cosmos/ibc-go/pull/1882) Explicitly check length of interchain account packet data in favour of nil check.
 
 ## [v3.1.1](https://github.com/cosmos/ibc-go/releases/tag/v3.1.1) - 2022-08-02
 
