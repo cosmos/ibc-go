@@ -6,7 +6,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -30,7 +30,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 		},
 		{
 			"subject and substitute use different revision numbers", func() {
-				tmClientState, ok := substituteClientState.(*ibctmtypes.ClientState)
+				tmClientState, ok := substituteClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
 				consState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight)
 				suite.Require().True(found)
@@ -40,8 +40,8 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), substitute, tmClientState.LatestHeight, consState)
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute)
-				ibctmtypes.SetProcessedTime(clientStore, tmClientState.LatestHeight, 100)
-				ibctmtypes.SetProcessedHeight(clientStore, tmClientState.LatestHeight, types.NewHeight(0, 1))
+				ibctm.SetProcessedTime(clientStore, tmClientState.LatestHeight, 100)
+				ibctm.SetProcessedHeight(clientStore, tmClientState.LatestHeight, types.NewHeight(0, 1))
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
 
 				content = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subject, substitute)
@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 		},
 		{
 			"subject and substitute have equal latest height", func() {
-				tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
+				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
 				tmClientState.LatestHeight = substituteClientState.GetLatestHeight().(types.Height)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 		},
 		{
 			"update fails, client is not frozen or expired", func() {
-				tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
+				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
 				tmClientState.FrozenHeight = types.ZeroHeight()
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 		},
 		{
 			"substitute is frozen", func() {
-				tmClientState, ok := substituteClientState.(*ibctmtypes.ClientState)
+				tmClientState, ok := substituteClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
 				tmClientState.FrozenHeight = types.NewHeight(0, 1)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitute, tmClientState)
@@ -118,14 +118,14 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 			substitutePath.EndpointA.UpdateClient()
 			substituteClientState = suite.chainA.GetClientState(substitute)
 
-			tmClientState, ok := subjectClientState.(*ibctmtypes.ClientState)
+			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 			suite.Require().True(ok)
 			tmClientState.AllowUpdateAfterMisbehaviour = true
 			tmClientState.AllowUpdateAfterExpiry = true
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 
-			tmClientState, ok = substituteClientState.(*ibctmtypes.ClientState)
+			tmClientState, ok = substituteClientState.(*ibctm.ClientState)
 			suite.Require().True(ok)
 			tmClientState.AllowUpdateAfterMisbehaviour = true
 			tmClientState.AllowUpdateAfterExpiry = true
@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestClientUpdateProposal() {
 
 func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 	var (
-		upgradedClientState *ibctmtypes.ClientState
+		upgradedClientState *ibctm.ClientState
 		oldPlan, plan       upgradetypes.Plan
 		content             govtypes.Content
 		err                 error
@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 		},
 		{
 			"cannot unpack client state", func() {
-				any, err := types.PackConsensusState(&ibctmtypes.ConsensusState{})
+				any, err := types.PackConsensusState(&ibctm.ConsensusState{})
 				suite.Require().NoError(err)
 				content = &types.UpgradeProposal{
 					Title:               ibctesting.Title,
@@ -199,7 +199,7 @@ func (suite *KeeperTestSuite) TestHandleUpgradeProposal() {
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			upgradedClientState = suite.chainA.GetClientState(path.EndpointA.ClientID).ZeroCustomFields().(*ibctmtypes.ClientState)
+			upgradedClientState = suite.chainA.GetClientState(path.EndpointA.ClientID).ZeroCustomFields().(*ibctm.ClientState)
 
 			// use height 1000 to distinguish from old plan
 			plan = upgradetypes.Plan{

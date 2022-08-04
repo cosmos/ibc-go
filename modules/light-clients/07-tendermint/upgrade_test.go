@@ -6,7 +6,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -54,7 +54,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 		{
 			name: "successful upgrade to same revision",
 			setup: func() {
-				upgradedClient = tendermint.NewClientState(suite.chainB.ChainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), upgradedClient.GetLatestHeight().GetRevisionHeight()+10), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				upgradedClient = ibctm.NewClientState(suite.chainB.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), upgradedClient.GetLatestHeight().GetRevisionHeight()+10), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 				upgradedClient = upgradedClient.ZeroCustomFields()
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
@@ -109,7 +109,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			name: "unsuccessful upgrade: committed client does not have zeroed custom fields",
 			setup: func() {
 				// non-zeroed upgrade client
-				upgradedClient = tendermint.NewClientState(newChainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -145,7 +145,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz)
 
 				// change upgradedClient client-specified parameters
-				upgradedClient = tendermint.NewClientState("wrongchainID", tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, true, true)
+				upgradedClient = ibctm.NewClientState("wrongchainID", ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, true, true)
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err := path.EndpointA.UpdateClient()
@@ -167,7 +167,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz)
 
 				// change upgradedClient client-specified parameters
-				upgradedClient = tendermint.NewClientState(newChainID, tendermint.DefaultTrustLevel, ubdPeriod, ubdPeriod+trustingPeriod, maxClockDrift+5, lastHeight, commitmenttypes.GetSDKSpecs(), upgradePath, true, false)
+				upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, ubdPeriod, ubdPeriod+trustingPeriod, maxClockDrift+5, lastHeight, commitmenttypes.GetSDKSpecs(), upgradePath, true, false)
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err := path.EndpointA.UpdateClient()
@@ -192,7 +192,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz)
 
 				// change submitted upgradedConsensusState
-				upgradedConsState = &tendermint.ConsensusState{
+				upgradedConsState = &ibctm.ConsensusState{
 					NextValidatorsHash: []byte("maliciousValidators"),
 				}
 
@@ -296,7 +296,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				proofUpgradedConsState, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
 
 				// SetClientState with empty upgrade path
-				tmClient, _ := cs.(*tendermint.ClientState)
+				tmClient, _ := cs.(*ibctm.ClientState)
 				tmClient.UpgradePath = []string{""}
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 			},
@@ -398,7 +398,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			name: "unsuccessful upgrade: final client is not valid",
 			setup: func() {
 				// new client has smaller unbonding period such that old trusting period is no longer valid
-				upgradedClient = tendermint.NewClientState(newChainID, tendermint.DefaultTrustLevel, trustingPeriod, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+				upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -434,19 +434,19 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 		suite.coordinator.SetupClients(path)
 
-		clientState := path.EndpointA.GetClientState().(*tendermint.ClientState)
+		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 		var err error
 		newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
 		suite.Require().NoError(err)
 
-		upgradedClient = tendermint.NewClientState(newChainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
+		upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 		upgradedClient = upgradedClient.ZeroCustomFields()
 		upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 		suite.Require().NoError(err)
 
-		upgradedConsState = &tendermint.ConsensusState{
+		upgradedConsState = &ibctm.ConsensusState{
 			NextValidatorsHash: []byte("nextValsHash"),
 		}
 		upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)

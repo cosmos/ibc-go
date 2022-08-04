@@ -11,7 +11,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -528,7 +528,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
+				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 				// increment latest height so no consensus state is stored
 				clientState.LatestHeight = clientState.LatestHeight.Increment().(types.Height)
@@ -545,7 +545,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
+				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 				clientState.FrozenHeight = types.NewHeight(0, 1)
 				path.EndpointA.SetClientState(clientState)

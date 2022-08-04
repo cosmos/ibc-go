@@ -12,7 +12,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 )
@@ -30,7 +30,7 @@ var (
 func (suite *TendermintTestSuite) TestStatus() {
 	var (
 		path        *ibctesting.Path
-		clientState *tendermint.ClientState
+		clientState *ibctm.ClientState
 	)
 
 	testCases := []struct {
@@ -57,7 +57,7 @@ func (suite *TendermintTestSuite) TestStatus() {
 		suite.coordinator.SetupClients(path)
 
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-		clientState = path.EndpointA.GetClientState().(*tendermint.ClientState)
+		clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 		tc.malleate()
 
@@ -70,22 +70,22 @@ func (suite *TendermintTestSuite) TestStatus() {
 func (suite *TendermintTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
-		clientState *tendermint.ClientState
+		clientState *ibctm.ClientState
 		expPass     bool
 	}{
 		{
 			name:        "valid client",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     true,
 		},
 		{
 			name:        "valid client with nil upgrade path",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), nil, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), nil, false, false),
 			expPass:     true,
 		},
 		{
 			name:        "invalid chainID",
-			clientState: tendermint.NewClientState("  ", tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState("  ", ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
@@ -93,7 +93,7 @@ func (suite *TendermintTestSuite) TestValidate() {
 			// Do not only fix the test, fix the code!
 			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "valid chainID - chainID validation failed for chainID of length 50! ",
-			clientState: tendermint.NewClientState(fiftyCharChainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(fiftyCharChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     true,
 		},
 		{
@@ -101,52 +101,52 @@ func (suite *TendermintTestSuite) TestValidate() {
 			// Do not only fix the test, fix the code!
 			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "invalid chainID - chainID validation did not fail for chainID of length 51! ",
-			clientState: tendermint.NewClientState(fiftyOneCharChainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(fiftyOneCharChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "invalid trust level",
-			clientState: tendermint.NewClientState(chainID, tendermint.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "invalid trusting period",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "invalid unbonding period",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "invalid max clock drift",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "invalid revision number",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "invalid revision height",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "trusting period not less than unbonding period",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "proof specs is nil",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, nil, upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, nil, upgradePath, false, false),
 			expPass:     false,
 		},
 		{
 			name:        "proof specs contains nil",
-			clientState: tendermint.NewClientState(chainID, tendermint.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, upgradePath, false, false),
+			clientState: ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, upgradePath, false, false),
 			expPass:     false,
 		},
 	}
@@ -170,7 +170,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	}{
 		{
 			name:           "valid consensus",
-			consensusState: &tendermint.ConsensusState{},
+			consensusState: &ibctm.ConsensusState{},
 			expPass:        true,
 		},
 		{
@@ -232,7 +232,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
 
-				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight()).(*tendermint.ConsensusState)
+				consensusState := testingpath.EndpointB.GetConsensusState(testingpath.EndpointB.GetClientState().GetLatestHeight()).(*ibctm.ConsensusState)
 				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
 				suite.Require().NoError(err)
 			},
@@ -442,13 +442,13 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 			proof, proofHeight = suite.chainB.QueryProof(key)
 
-			clientState := testingpath.EndpointB.GetClientState().(*tendermint.ClientState)
+			clientState := testingpath.EndpointB.GetClientState().(*ibctm.ClientState)
 			value, err = suite.chainB.Codec.MarshalInterface(clientState)
 			suite.Require().NoError(err)
 
 			tc.malleate() // make changes as necessary
 
-			clientState = testingpath.EndpointA.GetClientState().(*tendermint.ClientState)
+			clientState = testingpath.EndpointA.GetClientState().(*ibctm.ClientState)
 
 			ctx := suite.chainA.GetContext()
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, testingpath.EndpointA.ClientID)
@@ -680,7 +680,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 
 			tc.malleate() // make changes as necessary
 
-			clientState := testingpath.EndpointA.GetClientState().(*tendermint.ClientState)
+			clientState := testingpath.EndpointA.GetClientState().(*ibctm.ClientState)
 
 			ctx := suite.chainA.GetContext()
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, testingpath.EndpointA.ClientID)
