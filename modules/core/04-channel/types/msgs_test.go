@@ -670,6 +670,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 			false,
 		},
 		{
+			"invalid counterparty channel state",
+			func() {
+				msg.CounterpartyChannel.State = types.TRYUPGRADE
+			},
+			false,
+		},
+		{
 			"cannot submit an empty channel proof",
 			func() {
 				msg.ProofChannel = emptyProof
@@ -694,13 +701,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 			"proof height must be > 0",
 			func() {
 				msg.ProofHeight = clienttypes.ZeroHeight()
-			},
-			false,
-		},
-		{
-			"invalid counterparty channel state",
-			func() {
-				msg.CounterpartyChannel.State = types.TRYUPGRADE
 			},
 			false,
 		},
