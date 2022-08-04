@@ -24,7 +24,7 @@ const (
 	connectionID  = "connection-0"
 	clientID      = "07-tendermint-0"
 	connectionID2 = "connection-1"
-	clientID2     = "07-tendermin-1"
+	clientID2     = "07-tendermint-1"
 
 	port1 = "firstport"
 	port2 = "secondport"
