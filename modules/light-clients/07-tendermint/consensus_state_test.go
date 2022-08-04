@@ -5,45 +5,45 @@ import (
 
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	tendermint "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 )
 
 func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
 		msg            string
-		consensusState *tendermint.ConsensusState
+		consensusState *ibctm.ConsensusState
 		expectPass     bool
 	}{
 		{"success",
-			&tendermint.ConsensusState{
+			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
 			},
 			true},
 		{"success with sentinel",
-			&tendermint.ConsensusState{
+			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
-				Root:               commitmenttypes.NewMerkleRoot([]byte(tendermint.SentinelRoot)),
+				Root:               commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)),
 				NextValidatorsHash: suite.valsHash,
 			},
 			true},
 		{"root is nil",
-			&tendermint.ConsensusState{
+			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
 			},
 			false},
 		{"root is empty",
-			&tendermint.ConsensusState{
+			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
 			},
 			false},
 		{"nextvalshash is invalid",
-			&tendermint.ConsensusState{
+			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: []byte("hi"),
@@ -52,7 +52,7 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		},
 
 		{"timestamp is zero",
-			&tendermint.ConsensusState{
+			&ibctm.ConsensusState{
 				Timestamp:          time.Time{},
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
