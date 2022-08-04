@@ -10,7 +10,7 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 )
@@ -642,11 +642,11 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		{
 			name: "successful upgrade",
 			setup: func() {
-				upgradedClient = ibctmtypes.NewClientState(newChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 				// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 				upgradedClient = upgradedClient.ZeroCustomFields()
 
-				upgradedConsState = &ibctmtypes.ConsensusState{
+				upgradedConsState = &ibctm.ConsensusState{
 					NextValidatorsHash: []byte("nextValsHash"),
 				}
 
@@ -682,11 +682,11 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		{
 			name: "VerifyUpgrade fails",
 			setup: func() {
-				upgradedClient = ibctmtypes.NewClientState(newChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+				upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod+ibctesting.TrustingPeriod, ibctesting.MaxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 				// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
 				upgradedClient = upgradedClient.ZeroCustomFields()
 
-				upgradedConsState = &ibctmtypes.ConsensusState{
+				upgradedConsState = &ibctm.ConsensusState{
 					NextValidatorsHash: []byte("nextValsHash"),
 				}
 
@@ -720,7 +720,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		suite.coordinator.SetupClients(path)
 
 		var err error
-		clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
+		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 		newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)

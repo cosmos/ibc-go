@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 )
@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			connection := path.EndpointA.GetConnection()
 			clientState := path.EndpointA.GetClientState()
-			cs, ok := clientState.(*ibctmtypes.ClientState)
+			cs, ok := clientState.(*ibctm.ClientState)
 			suite.Require().True(ok)
 
 			// freeze client

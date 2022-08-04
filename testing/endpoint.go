@@ -13,7 +13,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -92,7 +92,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		require.True(endpoint.Chain.T, ok)
 
 		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
-		clientState = ibctmtypes.NewClientState(
+		clientState = ibctm.NewClientState(
 			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath, tmConfig.AllowUpdateAfterExpiry, tmConfig.AllowUpdateAfterMisbehaviour,
 		)
@@ -165,7 +165,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
 	}
 
-	clientState := endpoint.Counterparty.GetClientState().(*ibctmtypes.ClientState)
+	clientState := endpoint.Counterparty.GetClientState().(*ibctm.ClientState)
 
 	// increment revision number in chainID
 
@@ -190,7 +190,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	clientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
 	endpoint.Counterparty.SetClientState(clientState)
 
-	consensusState := &ibctmtypes.ConsensusState{
+	consensusState := &ibctm.ConsensusState{
 		Timestamp:          endpoint.Chain.LastHeader.GetTime(),
 		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
 		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,

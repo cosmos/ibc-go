@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 )
 
 // BeginBlocker is used to perform IBC client upgrades
@@ -19,7 +19,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		// within the trusting period of the last block time on this chain.
 		_, exists := k.GetUpgradedClient(ctx, plan.Height)
 		if exists && ctx.BlockHeight() == plan.Height-1 {
-			upgradedConsState := &ibctmtypes.ConsensusState{
+			upgradedConsState := &ibctm.ConsensusState{
 				Timestamp:          ctx.BlockTime(),
 				NextValidatorsHash: ctx.BlockHeader().NextValidatorsHash,
 			}

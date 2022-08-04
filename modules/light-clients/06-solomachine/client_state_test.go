@@ -8,7 +8,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -112,7 +112,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 			},
 			{
 				"invalid consensus state: Tendermint consensus state",
-				&ibctmtypes.ConsensusState{},
+				&ibctm.ConsensusState{},
 				false,
 			},
 			{

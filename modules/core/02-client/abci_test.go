@@ -12,7 +12,7 @@ import (
 
 	client "github.com/cosmos/ibc-go/v5/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -72,7 +72,7 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	// plan Height is at ctx.BlockHeight+1
 	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
 	suite.Require().True(found)
-	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctmtypes.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
+	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
 	suite.Require().NoError(err)
 	suite.Require().Equal(bz, consState)
 }

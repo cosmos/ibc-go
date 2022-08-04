@@ -8,7 +8,7 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -50,7 +50,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"invalid client message type",
 				func() {
-					clientMsg = &ibctmtypes.Header{}
+					clientMsg = &ibctm.Header{}
 				},
 				false,
 			},
@@ -210,7 +210,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"invalid client message type",
 				func() {
-					clientMsg = &ibctmtypes.Header{}
+					clientMsg = &ibctm.Header{}
 				},
 				false,
 			},
