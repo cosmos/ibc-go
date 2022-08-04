@@ -130,7 +130,7 @@ func (cs ClientState) CheckMisbehaviourAndUpdateState(
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, _ codec.BinaryCodec, _, _ sdk.KVStore,
 	_ exported.ClientState,
-) (exported.ClientState, error) {
+) error {
 	panic("legacy solo machine is deprecated!")
 }
 

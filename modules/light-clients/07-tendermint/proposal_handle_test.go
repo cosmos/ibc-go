@@ -59,9 +59,8 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID)
 
-			updatedClient, err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
+			err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 			suite.Require().Error(err)
-			suite.Require().Nil(updatedClient)
 		})
 	}
 }
@@ -170,10 +169,12 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			suite.Require().True(found)
 			expectedIterationKey := tendermint.GetIterationKey(substituteClientStore, substituteClientState.GetLatestHeight())
 
-			updatedClient, err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
+			err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				updatedClient := subjectPath.EndpointA.GetClientState()
 				suite.Require().Equal(clienttypes.ZeroHeight(), updatedClient.(*tendermint.ClientState).FrozenHeight)
 
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
@@ -196,7 +197,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(time.Hour*24*7, updatedClient.(*tendermint.ClientState).TrustingPeriod)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Nil(updatedClient)
 			}
 		})
 	}

@@ -72,21 +72,21 @@ func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
 				substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute.ClientID)
 
-				updatedClient, err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
+				err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
 
-					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).ConsensusState, updatedClient.(*solomachine.ClientState).ConsensusState)
-					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).Sequence, updatedClient.(*solomachine.ClientState).Sequence)
-					suite.Require().Equal(false, updatedClient.(*solomachine.ClientState).IsFrozen)
-
 					// ensure updated client state is set in store
 					bz := subjectClientStore.Get(host.ClientStateKey())
-					suite.Require().Equal(clienttypes.MustMarshalClientState(suite.chainA.Codec, updatedClient), bz)
+					updatedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz).(*solomachine.ClientState)
+
+					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).ConsensusState, updatedClient.ConsensusState)
+					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).Sequence, updatedClient.Sequence)
+					suite.Require().Equal(false, updatedClient.IsFrozen)
+
 				} else {
 					suite.Require().Error(err)
-					suite.Require().Nil(updatedClient)
 				}
 			})
 		}
