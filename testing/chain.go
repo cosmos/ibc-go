@@ -53,8 +53,8 @@ type TestChain struct {
 	Coordinator   *Coordinator
 	App           TestingApp
 	ChainID       string
-	LastHeader    *ibctm.Header // header for last block height committed
-	CurrentHeader tmproto.Header     // header for current block height
+	LastHeader    *ibctm.Header  // header for last block height committed
+	CurrentHeader tmproto.Header // header for current block height
 	QueryServer   types.QueryServer
 	TxConfig      client.TxConfig
 	Codec         codec.BinaryCodec
