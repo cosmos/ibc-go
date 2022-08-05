@@ -437,6 +437,80 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
+	var msg *types.MsgChannelUpgradeInit
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid port identifier",
+			func() {
+				msg.PortId = invalidPort
+			},
+			false,
+		},
+		{
+			"invalid channel identifier",
+			func() {
+				msg.ChannelId = invalidChannel
+			},
+			false,
+		},
+		{
+			"invalid proposed upgrade channel state",
+			func() {
+				msg.ProposedUpgradeChannel.State = types.TRYUPGRADE
+			},
+			false,
+		},
+		{
+			"timeout height is zero && timeout timestamp is zero",
+			func() {
+				msg.TimeoutHeight = clienttypes.ZeroHeight()
+				msg.TimeoutTimestamp = 0
+			},
+			false,
+		},
+		{
+			"missing signer address",
+			func() {
+				msg.Signer = emptyAddr
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			msg = types.NewMsgChannelUpgradeInit(
+				ibctesting.MockPort, ibctesting.FirstChannelID,
+				types.Channel{State: types.INITUPGRADE},
+				clienttypes.NewHeight(0, 10000),
+				0,
+				addr,
+			)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 	var msg *types.MsgChannelUpgradeTry
 

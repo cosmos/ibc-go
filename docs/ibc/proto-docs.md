@@ -3144,6 +3144,16 @@ MsgChannelUpgradeConfirmResponse defines the MsgChannelUpgradeConfirm response t
 MsgChanelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+| `proposed_upgrade_channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `timeout_timestamp` | [uint64](#uint64) |  |  |
+| `signer` | [string](#string) |  |  |
+
+
 
 
 

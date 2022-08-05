@@ -499,18 +499,53 @@ var _ sdk.Msg = &MsgChannelUpgradeInit{}
 
 // NewMsgChannelUpgradeInit constructs a new MsgChannelUpgradeInit
 // nolint:interfacer
-func NewMsgChannelUpgradeInit() *MsgChannelUpgradeInit {
-	return &MsgChannelUpgradeInit{}
+func NewMsgChannelUpgradeInit(
+	portID, channelID string,
+	proposedUpgradeChannel Channel,
+	TimeoutHeight clienttypes.Height,
+	TimeoutTimestamp uint64,
+	signer string,
+) *MsgChannelUpgradeInit {
+	return &MsgChannelUpgradeInit{
+		PortId:                 portID,
+		ChannelId:              channelID,
+		ProposedUpgradeChannel: proposedUpgradeChannel,
+		TimeoutHeight:          TimeoutHeight,
+		TimeoutTimestamp:       TimeoutTimestamp,
+		Signer:                 signer,
+	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgChannelUpgradeInit) ValidateBasic() error {
-	return errors.New("error method not implemented")
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return sdkerrors.Wrap(err, "invalid port ID")
+	}
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+	if msg.ProposedUpgradeChannel.State != INITUPGRADE {
+		return sdkerrors.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", INITUPGRADE, msg.ProposedUpgradeChannel.State)
+	}
+	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
+		return sdkerrors.Wrap(ErrInvalidUpgradeTimeout, "timeout height and timeout timestamp cannot both be 0")
+	}
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
 }
 
 // GetSigners implements sdk.Msg
 func (msg MsgChannelUpgradeInit) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{signer}
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeTry{}

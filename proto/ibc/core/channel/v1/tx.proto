@@ -267,6 +267,15 @@ message MsgAcknowledgementResponse {
 message MsgChannelUpgradeInit {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
+
+  string  port_id                  = 1 [(gogoproto.moretags) = "yaml:\"port_id\""];
+  string  channel_id               = 2 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+  Channel proposed_upgrade_channel = 3
+      [(gogoproto.moretags) = "yaml:\"proposed_upgrade_channel\"", (gogoproto.nullable) = false];
+  ibc.core.client.v1.Height timeout_height = 4
+      [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
+  uint64 timeout_timestamp = 5 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
+  string signer            = 6;
 }
 
 // MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
