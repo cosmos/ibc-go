@@ -215,7 +215,7 @@ func GetHeightFromIterationKey(iterKey []byte) exported.Height {
 
 // IterateConsensusStateAscending iterates through the consensus states in ascending order. It calls the provided
 // callback on each height, until stop=true is returned.
-func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) error {
+func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) {
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	defer iterator.Close()
 
@@ -223,10 +223,9 @@ func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height expo
 		iterKey := iterator.Key()
 		height := GetHeightFromIterationKey(iterKey)
 		if cb(height) {
-			return nil
+			break
 		}
 	}
-	return nil
 }
 
 // GetNextConsensusState returns the lowest consensus state that is larger than the given height.
@@ -278,7 +277,7 @@ func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, h
 func PruneAllExpiredConsensusStates(
 	ctx sdk.Context, clientStore sdk.KVStore,
 	cdc codec.BinaryCodec, clientState *ClientState,
-) (err error) {
+) {
 	var heights []exported.Height
 
 	pruneCb := func(height exported.Height) bool {
@@ -294,17 +293,12 @@ func PruneAllExpiredConsensusStates(
 		return false
 	}
 
-	err = IterateConsensusStateAscending(clientStore, pruneCb)
-	if err != nil {
-		return err
-	}
+	IterateConsensusStateAscending(clientStore, pruneCb)
 
 	for _, height := range heights {
 		deleteConsensusState(clientStore, height)
 		deleteConsensusMetadata(clientStore, height)
 	}
-
-	return nil
 }
 
 // Helper function for GetNextConsensusState and GetPreviousConsensusState
