@@ -3174,6 +3174,18 @@ MsgChannelUpgradeInitResponse defines the MsgChannelUpgradeInit response type
 MsgChannelUpgradeTimeout defines the request type for the ChannelUpgradeTimeout rpc
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+| `counterparty_channel` | [Channel](#ibc.core.channel.v1.Channel) |  |  |
+| `previous_error_receipt` | [ErrorReceipt](#ibc.core.channel.v1.ErrorReceipt) |  |  |
+| `proof_channel` | [bytes](#bytes) |  |  |
+| `proof_error_receipt` | [bytes](#bytes) |  |  |
+| `proof_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `signer` | [string](#string) |  |  |
+
+
 
 
 

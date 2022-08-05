@@ -809,6 +809,99 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutValidateBasic() {
+	var msg *types.MsgChannelUpgradeTimeout
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid port identifier",
+			func() {
+				msg.PortId = invalidPort
+			},
+			false,
+		},
+		{
+			"invalid channel identifier",
+			func() {
+				msg.ChannelId = invalidChannel
+			},
+			false,
+		},
+		{
+			"cannot submit an empty proof",
+			func() {
+				msg.ProofChannel = emptyProof
+			},
+			false,
+		},
+		{
+			"proof height must be > 0",
+			func() {
+				msg.ProofHeight = clienttypes.ZeroHeight()
+			},
+			false,
+		},
+		{
+			"invalid counterparty channel state",
+			func() {
+				msg.CounterpartyChannel.State = types.TRYUPGRADE
+			},
+			false,
+		},
+		{
+			"missing signer address",
+			func() {
+				msg.Signer = emptyAddr
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			msg = types.NewMsgChannelUpgradeTimeout(
+				ibctesting.MockPort, ibctesting.FirstChannelID,
+				types.Channel{State: types.OPEN}, types.ErrorReceipt{},
+				suite.proof, suite.proof,
+				height, addr,
+			)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+
+	msg := types.NewMsgChannelUpgradeTimeout(
+		ibctesting.MockPort, ibctesting.FirstChannelID,
+		types.Channel{}, types.ErrorReceipt{},
+		suite.proof, suite.proof,
+		height, addr,
+	)
+
+	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+}
+
 func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 	var msg *types.MsgChannelUpgradeCancel
 
