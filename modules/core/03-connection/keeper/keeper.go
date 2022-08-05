@@ -89,7 +89,7 @@ func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.Connectio
 	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
 	if !found {
 		return 0, sdkerrors.Wrapf(
-			clienttypes.ErrClientStateNotFound, "clientID (%s)", connection.GetClientID(),
+			clienttypes.ErrClientNotFound, "clientID (%s)", connection.GetClientID(),
 		)
 	}
 
