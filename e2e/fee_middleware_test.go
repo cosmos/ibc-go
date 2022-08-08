@@ -14,10 +14,10 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 func TestFeeMiddlewareTestSuite(t *testing.T) {
@@ -148,7 +148,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds(
 			s.Require().Empty(packets)
 		})
 
-		packetId := channeltypes.NewPacketId(channelA.PortID, channelA.ChannelID, 1)
+		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
@@ -371,7 +371,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	})
 
 	t.Run("pay packet fee", func(t *testing.T) {
-		packetId := channeltypes.NewPacketId(channelA.PortID, channelA.ChannelID, 1)
+		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 
 		t.Run("no incentivized packets", func(t *testing.T) {

@@ -8,31 +8,47 @@ import (
 )
 
 const (
-	DefaultSimdImage = "ghcr.io/cosmos/ibc-go-simd-e2e"
-	SimdImageEnv     = "SIMD_IMAGE"
-	SimdTagEnv       = "SIMD_TAG"
-	GoRelayerTag     = "RLY_TAG"
-
-	defaultRlyTag = "main"
+	DefaultSimdImage   = "ghcr.io/cosmos/ibc-go-simd-e2e"
+	ChainASimdImageEnv = "CHAIN_A_SIMD_IMAGE"
+	ChainASimdTag      = "CHAIN_A_SIMD_TAG"
+	ChainBSimdImageEnv = "CHAIN_B_SIMD_IMAGE"
+	ChainBSimdTag      = "CHAIN_B_SIMD_TAG"
+	GoRelayerTag       = "RLY_TAG"
+	defaultRlyTag      = "main"
 )
 
 // TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
-	SimdImage string
-	SimdTag   string
-	RlyTag    string
+	ChainAConfig ChainConfig
+	ChainBConfig ChainConfig
+	RlyTag       string
+}
+
+type ChainConfig struct {
+	Image string
+	Tag   string
 }
 
 // FromEnv returns a TestConfig constructed from environment variables.
 func FromEnv() TestConfig {
-	simdImage, ok := os.LookupEnv(SimdImageEnv)
+	chainASimdImage, ok := os.LookupEnv(ChainASimdImageEnv)
 	if !ok {
-		simdImage = DefaultSimdImage
+		chainASimdImage = DefaultSimdImage
 	}
 
-	simdTag, ok := os.LookupEnv(SimdTagEnv)
+	chainASimdTag, ok := os.LookupEnv(ChainASimdTag)
 	if !ok {
-		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", SimdTagEnv))
+		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", ChainASimdTag))
+	}
+
+	chainBSimdImage, ok := os.LookupEnv(ChainBSimdImageEnv)
+	if !ok {
+		chainBSimdImage = chainASimdImage
+	}
+
+	chainBSimdTag, ok := os.LookupEnv(ChainBSimdTag)
+	if !ok {
+		chainBSimdTag = chainASimdTag
 	}
 
 	rlyTag, ok := os.LookupEnv(GoRelayerTag)
@@ -41,9 +57,15 @@ func FromEnv() TestConfig {
 	}
 
 	return TestConfig{
-		SimdImage: simdImage,
-		SimdTag:   simdTag,
-		RlyTag:    rlyTag,
+		ChainAConfig: ChainConfig{
+			Image: chainASimdImage,
+			Tag:   chainASimdTag,
+		},
+		ChainBConfig: ChainConfig{
+			Image: chainBSimdImage,
+			Tag:   chainBSimdTag,
+		},
+		RlyTag: rlyTag,
 	}
 }
 
@@ -62,8 +84,8 @@ type ChainOptionConfiguration func(options *ChainOptions)
 // These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func DefaultChainOptions() ChainOptions {
 	tc := FromEnv()
-	chainACfg := newDefaultSimappConfig(tc, "simapp-a", "chain-a", "atoma")
-	chainBCfg := newDefaultSimappConfig(tc, "simapp-b", "chain-b", "atomb")
+	chainACfg := newDefaultSimappConfig(tc.ChainAConfig, "simapp-a", "chain-a", "atoma")
+	chainBCfg := newDefaultSimappConfig(tc.ChainBConfig, "simapp-b", "chain-b", "atomb")
 	return ChainOptions{
 		ChainAConfig: &chainACfg,
 		ChainBConfig: &chainBCfg,
@@ -71,15 +93,15 @@ func DefaultChainOptions() ChainOptions {
 }
 
 // newDefaultSimappConfig creates an ibc configuration for simd.
-func newDefaultSimappConfig(tc TestConfig, name, chainID, denom string) ibc.ChainConfig {
+func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.ChainConfig {
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
 		ChainID: chainID,
 		Images: []ibc.DockerImage{
 			{
-				Repository: tc.SimdImage,
-				Version:    tc.SimdTag,
+				Repository: cc.Image,
+				Version:    cc.Tag,
 			},
 		},
 		Bin:            "simd",
