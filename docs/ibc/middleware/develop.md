@@ -408,6 +408,26 @@ func GetAppVersion(
 
     return metadata.AppVersion, true
 }
+
+// middleware must return the underlying application version 
+func GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+    version, found := ics4Keeper.GetAppVersion(ctx, portID, channelID)
+    if !found {
+        return "", false
+    }
+
+    if !MiddlewareEnabled {
+        return version, true
+    }
+
+    // unwrap channel version
+    metadata, err := Unmarshal(version)
+    if err != nil {
+        panic(fmt.Errof("unable to unmarshal version: %w", err))
+    }
+
+    return metadata.AppVersion, true
+}
 ```
 
 See [here](https://github.com/cosmos/ibc-go/blob/48a6ae512b4ea42c29fdf6c6f5363f50645591a2/modules/apps/29-fee/ibc_middleware.go#L355-L358) an example implementation of this function for the ICS29 Fee Middleware module.
