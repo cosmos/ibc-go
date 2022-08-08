@@ -10,15 +10,15 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-	// TestPortID defines a resuable port identifier for testing purposes
+	// TestPortID defines a reusable port identifier for testing purposes
 	TestPortID, _ = types.NewControllerPortID(TestOwnerAddress)
 )
 

@@ -3,14 +3,15 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
-	"github.com/cosmos/ibc-go/v4/testing/simapp"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
 // test sending from chainA to chainB using both coin that orignate on
@@ -151,7 +152,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
 		trace    types.DenomTrace
-		amount   sdk.Int
+		amount   math.Int
 		receiver string
 	)
 
@@ -257,7 +258,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		successAck = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 		failedAck  = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
 		trace      types.DenomTrace
-		amount     sdk.Int
+		amount     math.Int
 		path       *ibctesting.Path
 	)
 
@@ -339,7 +340,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	var (
 		trace  types.DenomTrace
 		path   *ibctesting.Path
-		amount sdk.Int
+		amount math.Int
 		sender string
 	)
 

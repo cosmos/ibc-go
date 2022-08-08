@@ -5,10 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // ConnOpenInit initialises a connection attempt on chain A. The generated connection identifier
@@ -56,8 +56,8 @@ func (k Keeper) ConnOpenInit(
 // code is executed on chain B).
 //
 // NOTE:
-//  - Here chain A acts as the counterparty
-//  - Identifiers are checked on msg validation
+//   - Here chain A acts as the counterparty
+//   - Identifiers are checked on msg validation
 func (k Keeper) ConnOpenTry(
 	ctx sdk.Context,
 	counterparty types.Counterparty, // counterpartyConnectionIdentifier, counterpartyPrefix and counterpartyClientIdentifier
@@ -71,7 +71,6 @@ func (k Keeper) ConnOpenTry(
 	proofHeight exported.Height, // height at which relayer constructs proof of A storing connectionEnd in state
 	consensusHeight exported.Height, // latest height of chain B which chain A has stored in its chain B client
 ) (string, error) {
-
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
 

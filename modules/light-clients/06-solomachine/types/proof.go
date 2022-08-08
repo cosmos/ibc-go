@@ -7,11 +7,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // VerifySignature verifies if the the provided public key generated the signature
@@ -123,7 +123,7 @@ func ClientStateSignBytes(
 // SignBytes.
 func ClientStateDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 	clientState exported.ClientState,
 ) ([]byte, error) {
 	any, err := clienttypes.PackClientState(clientState)
@@ -173,7 +173,7 @@ func ConsensusStateSignBytes(
 // SignBytes.
 func ConsensusStateDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 	consensusState exported.ConsensusState,
 ) ([]byte, error) {
 	any, err := clienttypes.PackConsensusState(consensusState)
@@ -223,7 +223,7 @@ func ConnectionStateSignBytes(
 // SignBytes.
 func ConnectionStateDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 	connectionEnd exported.ConnectionI,
 ) ([]byte, error) {
 	connection, ok := connectionEnd.(connectiontypes.ConnectionEnd)
@@ -276,7 +276,7 @@ func ChannelStateSignBytes(
 // SignBytes.
 func ChannelStateDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 	channelEnd exported.ChannelI,
 ) ([]byte, error) {
 	channel, ok := channelEnd.(channeltypes.Channel)
@@ -328,7 +328,7 @@ func PacketCommitmentSignBytes(
 // SignBytes.
 func PacketCommitmentDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 	commitmentBytes []byte,
 ) ([]byte, error) {
 	data := &PacketCommitmentData{
@@ -373,7 +373,7 @@ func PacketAcknowledgementSignBytes(
 // SignBytes.
 func PacketAcknowledgementDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 	acknowledgement []byte,
 ) ([]byte, error) {
 	data := &PacketAcknowledgementData{
@@ -417,7 +417,7 @@ func PacketReceiptAbsenceSignBytes(
 // used in constructing SignBytes.
 func PacketReceiptAbsenceDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 ) ([]byte, error) {
 	data := &PacketReceiptAbsenceData{
 		Path: []byte(path.String()),
@@ -460,7 +460,7 @@ func NextSequenceRecvSignBytes(
 // SignBytes.
 func NextSequenceRecvDataBytes(
 	cdc codec.BinaryCodec,
-	path commitmenttypes.MerklePath, // nolint: interfacer
+	path commitmenttypes.MerklePath, //nolint:interfacer
 	nextSequenceRecv uint64,
 ) ([]byte, error) {
 	data := &NextSequenceRecvData{

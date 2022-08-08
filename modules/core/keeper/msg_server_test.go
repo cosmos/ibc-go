@@ -4,15 +4,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	"github.com/cosmos/ibc-go/v4/modules/core/keeper"
-	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
-	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
+	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 )
 
 var (
@@ -472,7 +472,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 // and unordered channels. It verifies that the deletion of a packet
 // commitment occurs. It tests high level properties like ordering and basic
 // sanity checks. More rigorous testing of 'TimeoutOnClose' and
-//'TimeoutExecuted' can be found in the 04-channel/keeper/timeout_test.go.
+// 'TimeoutExecuted' can be found in the 04-channel/keeper/timeout_test.go.
 func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	var (
 		packet    channeltypes.Packet

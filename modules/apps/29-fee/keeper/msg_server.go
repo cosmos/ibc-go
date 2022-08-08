@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -84,7 +84,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, channeltypes.ErrSequenceSendNotFound
 	}
 
-	packetID := channeltypes.NewPacketId(msg.SourcePortId, msg.SourceChannelId, sequence)
+	packetID := channeltypes.NewPacketID(msg.SourcePortId, msg.SourceChannelId, sequence)
 	packetFee := types.NewPacketFee(msg.Fee, msg.Signer, msg.Relayers)
 
 	if err := k.escrowPacketFee(ctx, packetID, packetFee); err != nil {
