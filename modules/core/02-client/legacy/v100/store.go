@@ -121,7 +121,6 @@ func migrateSolomachine(clientState *ClientState) *smtypes.ClientState {
 		Sequence:                 clientState.Sequence,
 		IsFrozen:                 isFrozen,
 		ConsensusState:           consensusState,
-		AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
 	}
 }
 

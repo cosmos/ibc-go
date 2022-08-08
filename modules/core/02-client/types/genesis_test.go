@@ -114,7 +114,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 					types.NewIdentifiedClientState(
 						soloMachineClientID, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
 					),
-					types.NewIdentifiedClientState(tmClientID0, solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}, false)),
+					types.NewIdentifiedClientState(tmClientID0, solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time})),
 				},
 				nil,
 				nil,

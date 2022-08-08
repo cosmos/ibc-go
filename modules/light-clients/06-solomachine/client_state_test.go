@@ -52,22 +52,22 @@ func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
 			},
 			{
 				"sequence is zero",
-				solomachine.NewClientState(0, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, sm.Time}, false),
+				solomachine.NewClientState(0, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, sm.Time}),
 				false,
 			},
 			{
 				"timestamp is zero",
-				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, 0}, false),
+				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, 0}),
 				false,
 			},
 			{
 				"diversifier is blank",
-				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, "  ", 1}, false),
+				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, "  ", 1}),
 				false,
 			},
 			{
 				"pubkey is empty",
-				solomachine.NewClientState(1, &solomachine.ConsensusState{nil, sm.Diversifier, sm.Time}, false),
+				solomachine.NewClientState(1, &solomachine.ConsensusState{nil, sm.Diversifier, sm.Time}),
 				false,
 			},
 		}
@@ -450,7 +450,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"consensus state in client state is nil",
 				func() {
-					clientState = solomachine.NewClientState(1, nil, false)
+					clientState = solomachine.NewClientState(1, nil)
 				},
 				false,
 			},
@@ -462,7 +462,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						PublicKey: sm.ConsensusState().PublicKey,
 					}
 
-					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState, false)
+					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState)
 				},
 				false,
 			},
@@ -499,7 +499,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						PublicKey: sm.ConsensusState().PublicKey,
 					}
 
-					clientState = solomachine.NewClientState(sm.Sequence, consensusState, false)
+					clientState = solomachine.NewClientState(sm.Sequence, consensusState)
 				},
 				false,
 			},
@@ -668,7 +668,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"consensus state in client state is nil",
 				func() {
-					clientState = solomachine.NewClientState(1, nil, false)
+					clientState = solomachine.NewClientState(1, nil)
 				},
 				false,
 			},
@@ -680,7 +680,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 						PublicKey: sm.ConsensusState().PublicKey,
 					}
 
-					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState, false)
+					clientState = solomachine.NewClientState(sm.Sequence-1, consensusState)
 				},
 				false,
 			},
@@ -717,7 +717,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 						PublicKey: sm.ConsensusState().PublicKey,
 					}
 
-					clientState = solomachine.NewClientState(sm.Sequence, consensusState, false)
+					clientState = solomachine.NewClientState(sm.Sequence, consensusState)
 				},
 				false,
 			},
