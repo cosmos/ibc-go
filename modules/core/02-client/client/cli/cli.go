@@ -45,7 +45,7 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewCreateClientCmd(),
 		NewUpdateClientCmd(),
-		NewSubmitMisbehaviourCmd(),
+		NewSubmitMisbehaviourCmd(), // Deprecated
 		NewUpgradeClientCmd(),
 	)
 

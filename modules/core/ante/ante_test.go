@@ -49,7 +49,7 @@ func (suite *AnteTestSuite) createRecvPacketMessage(sequenceNumber uint64, isRed
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(1, 0), 0)
+		clienttypes.NewHeight(2, 0), 0)
 
 	err := suite.path.EndpointA.SendPacket(packet)
 	suite.Require().NoError(err)
@@ -73,7 +73,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(sequenceNumber uint64, 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		clienttypes.NewHeight(1, 0), 0)
+		clienttypes.NewHeight(2, 0), 0)
 
 	err := suite.path.EndpointB.SendPacket(packet)
 	suite.Require().NoError(err)
@@ -153,7 +153,7 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	var header exported.Header
+	var header exported.ClientMessage
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
@@ -415,11 +415,11 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
 					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-					clienttypes.NewHeight(1, 0), 0)
+					clienttypes.NewHeight(2, 0), 0)
 
 				return []sdk.Msg{
 					suite.createRecvPacketMessage(uint64(1), false),
-					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"),
+					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
 			false,
