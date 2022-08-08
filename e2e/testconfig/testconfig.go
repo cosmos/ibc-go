@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	DefaultSimdImage   = "ghcr.io/cosmos/ibc-go-simd-e2e"
 	ChainASimdImageEnv = "CHAIN_A_SIMD_IMAGE"
 	ChainASimdTag      = "CHAIN_A_SIMD_TAG"
 	ChainBSimdImageEnv = "CHAIN_B_SIMD_IMAGE"
-	ChainBSimdTag      = "CHAIN_B_SIMD_TAG"
-	GoRelayerTag       = "RLY_TAG"
-	defaultRlyTag      = "main"
+	ChainBSimdTagEnv   = "CHAIN_B_SIMD_TAG"
+	GoRelayerTagEnv    = "RLY_TAG"
+
+	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd-e2e"
+	defaultRlyTag    = "main"
 )
 
 // TestConfig holds various fields used in the E2E tests.
@@ -33,7 +34,7 @@ type ChainConfig struct {
 func FromEnv() TestConfig {
 	chainASimdImage, ok := os.LookupEnv(ChainASimdImageEnv)
 	if !ok {
-		chainASimdImage = DefaultSimdImage
+		chainASimdImage = defaultSimdImage
 	}
 
 	chainASimdTag, ok := os.LookupEnv(ChainASimdTag)
@@ -46,12 +47,12 @@ func FromEnv() TestConfig {
 		chainBSimdImage = chainASimdImage
 	}
 
-	chainBSimdTag, ok := os.LookupEnv(ChainBSimdTag)
+	chainBSimdTag, ok := os.LookupEnv(ChainBSimdTagEnv)
 	if !ok {
 		chainBSimdTag = chainASimdTag
 	}
 
-	rlyTag, ok := os.LookupEnv(GoRelayerTag)
+	rlyTag, ok := os.LookupEnv(GoRelayerTagEnv)
 	if !ok {
 		rlyTag = defaultRlyTag
 	}
