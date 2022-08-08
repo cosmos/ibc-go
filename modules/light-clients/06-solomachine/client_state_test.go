@@ -448,13 +448,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				true,
 			},
 			{
-				"consensus state in client state is nil",
-				func() {
-					clientState = solomachine.NewClientState(1, nil, false)
-				},
-				false,
-			},
-			{
 				"client state latest height is less than sequence",
 				func() {
 					consensusState := &solomachine.ConsensusState{
@@ -664,13 +657,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					suite.Require().NoError(err)
 				},
 				true,
-			},
-			{
-				"consensus state in client state is nil",
-				func() {
-					clientState = solomachine.NewClientState(1, nil, false)
-				},
-				false,
 			},
 			{
 				"client state latest height is less than sequence",

@@ -231,10 +231,6 @@ func produceVerificationArgs(
 		return nil, nil, 0, 0, err
 	}
 
-	if cs.ConsensusState == nil {
-		return nil, nil, 0, 0, sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
-	}
-
 	// sequence is encoded in the revision height of height struct
 	sequence := height.GetRevisionHeight()
 	latestSequence := cs.GetLatestHeight().GetRevisionHeight()
