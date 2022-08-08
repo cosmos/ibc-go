@@ -1,8 +1,8 @@
 package types
 
 import (
+	"strings"
 	"github.com/ethereum/go-ethereum/log"
-
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -108,12 +108,13 @@ func (cs ClientState) VerifyClientState(
 		return err
 	}
 
-	// TODO: verify use of keyPath as key in trie verification
-	key, err := Encode(path.GetKeyPath())
+	// the key is just the raw utf-8 bytes of the prefix + path
+	key := []byte(strings.Join(path.GetKeyPath(), ""))
 	if err != nil {
 		return sdkerrors.Wrap(err, "keyPath could not be scale encoded")
 	}
 
+	// todo: this should be child trie proof verification
 	isVerified, err := trie.VerifyProof(beefyProof, provingConsensusState.Root, []trie.Pair{{Key: key, Value: csEncoded}})
 	if err != nil {
 		log.Debug("error verifying proof: %v", err.Error())
@@ -165,12 +166,13 @@ func (cs ClientState) VerifyClientConsensusState(
 		return err
 	}
 
-	// TODO: verify use of keyPath as key in trie verification
-	key, err := Encode(path.GetKeyPath())
+	// the key is just the raw utf-8 bytes of the prefix + path
+	key := []byte(strings.Join(path.GetKeyPath(), ""))
 	if err != nil {
 		return sdkerrors.Wrap(err, "keyPath could not be scale encoded")
 	}
 
+	// todo: this should be child trie proof verification
 	isVerified, err := trie.VerifyProof(beefyProof, provingConsensusState.Root, []trie.Pair{{Key: key, Value: csEncoded}})
 	if err != nil {
 		log.Debug("error verifying proof: %v", err.Error())
@@ -212,12 +214,13 @@ func (cs ClientState) VerifyPacketCommitment(
 		return err
 	}
 
-	// TODO: verify use of keyPath as key in trie verification
-	key, err := Encode(path.GetKeyPath())
+	// the key is just the raw utf-8 bytes of the prefix + path
+	key := []byte(strings.Join(path.GetKeyPath(), ""))
 	if err != nil {
 		return sdkerrors.Wrap(err, "keyPath could not be scale encoded")
 	}
 
+	// todo: this should be child trie proof verification
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: commitmentBytes}})
 	if err != nil {
 		log.Debug("error verifying proof: %v", err.Error())
@@ -300,8 +303,8 @@ func (cs ClientState) VerifyConnectionState(
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid connection type %T", connectionEnd)
 	}
 
-	// TODO: verify use of keyPath as key in trie verification
-	key, err := Encode(path.GetKeyPath())
+	// the key is just the raw utf-8 bytes of the prefix + path
+	key := []byte(strings.Join(path.GetKeyPath(), ""))
 	if err != nil {
 		return sdkerrors.Wrap(err, "keyPath could not be scale encoded")
 	}
@@ -311,6 +314,7 @@ func (cs ClientState) VerifyConnectionState(
 		return sdkerrors.Wrap(err, "connection state could not be scale encoded")
 	}
 
+	// todo: this should be child trie proof verification
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: connEncoded}})
 	if err != nil {
 		log.Debug("error verifying proof: %v", err.Error())
@@ -351,12 +355,13 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	// TODO: verify use of keyPath as key in trie verification
-	key, err := Encode(path.GetKeyPath())
+	// the key is just the raw utf-8 bytes of the prefix + path
+	key := []byte(strings.Join(path.GetKeyPath(), ""))
 	if err != nil {
 		return sdkerrors.Wrap(err, "keyPath could not be scale encoded")
 	}
 
+	// todo: this should be child trie proof verification
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: channeltypes.CommitAcknowledgement(acknowledgement)}})
 	if err != nil {
 		log.Debug("error verifying proof: %v", err.Error())
@@ -393,12 +398,13 @@ func (cs ClientState) VerifyChannelState(store sdk.KVStore, cdc codec.BinaryCode
 		return sdkerrors.Wrap(err, "channel end could not be scale encoded")
 	}
 
-	// TODO: verify use of keyPath as key in trie verification
-	key, err := Encode(path.GetKeyPath())
+	// the key is just the raw utf-8 bytes of the prefix + path
+	key := []byte(strings.Join(path.GetKeyPath(), ""))
 	if err != nil {
 		return sdkerrors.Wrap(err, "keyPath could not be scale encoded")
 	}
 
+	// todo: this should be child trie proof verification
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: chanEncoded}})
 	if err != nil {
 		log.Debug("error verifying proof: %v", err.Error())
@@ -472,6 +478,7 @@ func (cs ClientState) VerifyNextSequenceRecv(
 
 	bz := sdk.Uint64ToBigEndian(nextSequenceRecv)
 
+	// todo: this should be child trie proof verification
 	isVerified, err := trie.VerifyProof(beefyProof, consensusState.Root, []trie.Pair{{Key: key, Value: bz}})
 	if err != nil {
 		return sdkerrors.Wrap(err, "error verifying proof")
