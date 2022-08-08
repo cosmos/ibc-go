@@ -186,9 +186,7 @@ func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.Binar
 		return true
 	}
 
-	if err := IterateConsensusStateAscending(clientStore, pruneCb); err != nil {
-		panic(err)
-	}
+	IterateConsensusStateAscending(clientStore, pruneCb)
 
 	// if pruneHeight is set, delete consensus state and metadata
 	if pruneHeight != nil {

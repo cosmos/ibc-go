@@ -488,8 +488,7 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	}
 	ctx := path.EndpointA.Chain.GetContext()
 	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
-	err := ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
-	suite.Require().Nil(err)
+	ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
 
 	// this height will be expired but not pruned
 	path.EndpointA.UpdateClient()
