@@ -6,7 +6,7 @@
 
 ## Status
 
-*Draft*
+*Draft, needs updates*
 
 ## Abstract
 
