@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v4/testing/simapp"
-	"github.com/cosmos/ibc-go/v4/testing/simapp/simd/cmd"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	"github.com/cosmos/ibc-go/v5/testing/simapp/simd/cmd"
 )
 
 func TestInitCmd(t *testing.T) {
@@ -20,5 +20,5 @@ func TestInitCmd(t *testing.T) {
 		fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json, in case it already exists
 	})
 
-	require.NoError(t, svrcmd.Execute(rootCmd, simapp.DefaultNodeHome))
+	require.NoError(t, svrcmd.Execute(rootCmd, "simd", simapp.DefaultNodeHome))
 }

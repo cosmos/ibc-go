@@ -13,7 +13,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v4/testing/simapp/helpers"
+	"github.com/cosmos/ibc-go/v5/testing/simapp/helpers"
 )
 
 // SetupSimulation creates the config, db (levelDB), temporary directory and logger for
@@ -39,7 +39,7 @@ func SetupSimulation(dirPrefix, dbName string) (simtypes.Config, dbm.DB, string,
 		return simtypes.Config{}, nil, "", nil, false, err
 	}
 
-	db, err := sdk.NewLevelDB(dbName, dir)
+	db, err := sdk.NewLevelDB(dbName, dir) //nolint:staticcheck // this is clearer.
 	if err != nil {
 		return simtypes.Config{}, nil, "", nil, false, err
 	}

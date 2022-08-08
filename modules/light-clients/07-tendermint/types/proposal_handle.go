@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // CheckSubstituteAndUpdateState will try to update the client with the state of the
@@ -19,8 +19,8 @@ import (
 // Please see ADR 026 for more information.
 //
 // The following must always be true:
-//	- The substitute client is the same type as the subject client
-//	- The subject and substitute client states match in all parameters (expect frozen height, latest height, and chain-id)
+//   - The substitute client is the same type as the subject client
+//   - The subject and substitute client states match in all parameters (expect frozen height, latest height, and chain-id)
 //
 // In case 1) before updating the client, the client will be unfrozen by resetting
 // the FrozenHeight to the zero Height.
