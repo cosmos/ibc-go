@@ -3,7 +3,6 @@ package e2e
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -44,7 +43,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		s.T().Logf("account created: %s", account)
 	})
 
-	time.Sleep(time.Second * 5)
+	s.StartRelayer(relayer)
 
 	s.Run("verify interchain account", func() {
 		actualAccount, err := chainA.QueryInterchainAccount(ctx, connectionId, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix))

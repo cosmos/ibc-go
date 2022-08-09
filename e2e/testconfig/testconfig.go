@@ -36,16 +36,6 @@ type ChainConfig struct {
 
 // FromEnv returns a TestConfig constructed from environment variables.
 func FromEnv() TestConfig {
-	chainASimdImage, ok := os.LookupEnv(ChainASimdImageEnv)
-	if !ok {
-		chainASimdImage = defaultSimdImage
-	}
-
-	chainASimdTag, ok := os.LookupEnv(ChainASimdTag)
-	if !ok {
-		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", ChainASimdTag))
-	}
-
 	chainABinary, ok := os.LookupEnv(ChainABinaryEnv)
 	if !ok {
 		chainABinary = defaultBinary
@@ -53,7 +43,17 @@ func FromEnv() TestConfig {
 
 	chainBBinary, ok := os.LookupEnv(ChainBBinaryEnv)
 	if !ok {
-		chainBBinary = chainASimdImage
+		chainBBinary = chainABinary
+	}
+
+	chainASimdImage, ok := os.LookupEnv(ChainASimdImageEnv)
+	if !ok {
+		chainASimdImage = defaultSimdImage
+	}
+
+	chainASimdTag, ok := os.LookupEnv(ChainASimdTag)
+	if !ok {
+		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainABinary, ChainASimdTag))
 	}
 
 	chainBSimdImage, ok := os.LookupEnv(ChainBSimdImageEnv)
