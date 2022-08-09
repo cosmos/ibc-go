@@ -15,7 +15,7 @@ type ClientConfig interface {
 }
 
 type TendermintConfig struct {
-	TrustLevel      ibctmtypes.Fraction
+	TrustLevel      ibctm.Fraction
 	TrustingPeriod  time.Duration
 	UnbondingPeriod time.Duration
 	MaxClockDrift   time.Duration
