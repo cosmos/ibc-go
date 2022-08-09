@@ -112,7 +112,6 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-
 				misbehaviour := sm.CreateMisbehaviour()
 				tc.malleateMisbehaviour(misbehaviour)
 
