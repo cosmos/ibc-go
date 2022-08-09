@@ -60,10 +60,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* (apps/transfer) [\#1907](https://github.com/cosmos/ibc-go/pull/1907) Blocked module account addresses are no longer allowed to send IBC transfers. 
 * (apps/27-interchain-accounts) [\#1882](https://github.com/cosmos/ibc-go/pull/1882) Explicitly check length of interchain account packet data in favour of nil check.
 
 ### Improvements
 
+* (testing) [\#1942](https://github.com/cosmos/ibc-go/pull/1942) Add a balance for the mock module account upon testing package initialization. 
 * (app/20-transfer) [\#1680](https://github.com/cosmos/ibc-go/pull/1680) Adds migration to correct any malformed trace path information of tokens with denoms that contains slashes. The transfer module consensus version has been bumped to 2.
 * (app/20-transfer) [\#1730](https://github.com/cosmos/ibc-go/pull/1730) parse the ics20 denomination provided via a packet using the channel identifier format specified by ibc-go.
 * (cleanup) [\#1335](https://github.com/cosmos/ibc-go/pull/1335/) `gofumpt -w -l .` to standardize the code layout more strictly than `go fmt ./...`
