@@ -59,7 +59,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 				Diversifier: clientState.ConsensusState.Diversifier,
 				Timestamp:   clientState.ConsensusState.Timestamp,
 			},
-			AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
 		}
 
 		// set client state

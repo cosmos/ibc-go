@@ -18,12 +18,12 @@ import (
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new ClientState instance.
-func NewClientState(latestSequence uint64, consensusState *ConsensusState, allowUpdateAfterProposal bool) *ClientState {
+func NewClientState(latestSequence uint64, consensusState *ConsensusState) *ClientState {
 	return &ClientState{
-		Sequence:                 latestSequence,
-		IsFrozen:                 false,
-		ConsensusState:           consensusState,
-		AllowUpdateAfterProposal: allowUpdateAfterProposal,
+		Sequence:       latestSequence,
+		IsFrozen:       false,
+		ConsensusState: consensusState,
+		// AllowUpdateAfterProposal has been DEPRECATED. See 01_concepts in the solo machine spec repo for more details.
 	}
 }
 
@@ -75,11 +75,10 @@ func (cs ClientState) Validate() error {
 	return cs.ConsensusState.ValidateBasic()
 }
 
-// ZeroCustomFields returns solomachine client state with client-specific fields FrozenSequence,
-// and AllowUpdateAfterProposal zeroed out
+// ZeroCustomFields returns solomachine client state with client-specific field FrozenSequence zeroed out
 func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	return NewClientState(
-		cs.Sequence, cs.ConsensusState, false,
+		cs.Sequence, cs.ConsensusState,
 	)
 }
 
