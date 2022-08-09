@@ -59,10 +59,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				)
 				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-<<<<<<< HEAD
-			}, true, false},
-
-=======
 			}, true, false,
 		},
 		{
@@ -73,7 +69,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
 			}, true, false,
 		},
->>>>>>> f891c29 (fix: prevent blocked addresses from sending ICS 20 transfers (#1907))
 		// createOutgoingPacket tests
 		// - source chain
 		{"send coin failed",
@@ -133,11 +128,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
-<<<<<<< HEAD
-				suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
-=======
 				sender, suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0,
->>>>>>> f891c29 (fix: prevent blocked addresses from sending ICS 20 transfers (#1907))
 			)
 
 			if tc.expPass {
