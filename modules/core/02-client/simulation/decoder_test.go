@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/simulation"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
@@ -21,11 +21,11 @@ func TestDecodeStore(t *testing.T) {
 
 	height := types.NewHeight(0, 10)
 
-	clientState := &ibctmtypes.ClientState{
+	clientState := &ibctm.ClientState{
 		FrozenHeight: height,
 	}
 
-	consState := &ibctmtypes.ConsensusState{
+	consState := &ibctm.ConsensusState{
 		Timestamp: time.Now().UTC(),
 	}
 
