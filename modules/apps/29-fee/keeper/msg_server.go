@@ -115,6 +115,10 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 		return nil, types.ErrFeeNotEnabled
 	}
 
+	if k.IsLocked(ctx) {
+		return nil, types.ErrFeeModuleLocked
+	}
+
 	refundAcc, err := sdk.AccAddressFromBech32(msg.PacketFee.RefundAddress)
 	if err != nil {
 		return nil, err
@@ -122,10 +126,6 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 
 	if k.bankKeeper.BlockedAddr(refundAcc) {
 		return nil, sdkerrors.Wrapf(types.ErrBlockedAddress, "%s", refundAcc)
-	}
-
-	if k.IsLocked(ctx) {
-		return nil, types.ErrFeeModuleLocked
 	}
 
 	nextSeqSend, found := k.GetNextSequenceSend(ctx, msg.PacketId.PortId, msg.PacketId.ChannelId)
