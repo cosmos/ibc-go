@@ -67,12 +67,19 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 
 func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
-		name    string
-		expPass bool
+		name         string
+		FreezeClient bool
+		expPass      bool
 	}{
 		{
-			name:    "PASS: update checks are deprecated",
-			expPass: true,
+			name:         "PASS: update checks are deprecated, client is not frozen",
+			FreezeClient: false,
+			expPass:      true,
+		},
+		{
+			name:         "PASS: update checks are deprecated, client is frozen",
+			FreezeClient: true,
+			expPass:      true,
 		},
 	}
 
@@ -86,6 +93,10 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(subjectPath)
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
+
+			if tc.FreezeClient {
+				subjectClientState.FrozenHeight = frozenHeight
+			}
 
 			// construct the substitute to match the subject client
 
