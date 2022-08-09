@@ -22,10 +22,6 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	_ sdk.KVStore, substituteClient exported.ClientState,
 ) error {
-	if !cs.AllowUpdateAfterProposal {
-		return sdkerrors.Wrapf(clienttypes.ErrUpdateClientFailed, "solo machine client is not allowed to updated with a proposal")
-	}
-
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "substitute client state type %T, expected  %T", substituteClient, &ClientState{})
