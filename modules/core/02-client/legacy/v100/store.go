@@ -115,9 +115,9 @@ func migrateSolomachine(clientState *ClientState) *smtypes.ClientState {
 	}
 
 	return &smtypes.ClientState{
-		Sequence:                 clientState.Sequence,
-		IsFrozen:                 isFrozen,
-		ConsensusState:           consensusState,
+		Sequence:       clientState.Sequence,
+		IsFrozen:       isFrozen,
+		ConsensusState: consensusState,
 	}
 }
 

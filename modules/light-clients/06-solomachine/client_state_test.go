@@ -76,7 +76,6 @@ func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
-
 				err := tc.clientState.Validate()
 
 				if tc.expPass {
@@ -193,7 +192,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
-
 				},
 				true,
 			},

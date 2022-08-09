@@ -699,9 +699,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 }
 
 func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
