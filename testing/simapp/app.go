@@ -674,7 +674,7 @@ func (app *SimApp) ModuleAccountAddrs() map[string]bool {
 	for acc := range maccPerms {
 		// do not add the following modules to blocked addresses
 		// this is only used for testing
-		if acc == ibcmock.ModuleName || acc == distrtypes.ModuleName {
+		if acc == ibcmock.ModuleName {
 			continue
 		}
 
