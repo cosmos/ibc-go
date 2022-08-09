@@ -189,7 +189,7 @@ func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint6
 		path.EndpointA.ChannelID,
 		path.EndpointB.ChannelConfig.PortID,
 		path.EndpointB.ChannelID,
-		clienttypes.NewHeight(0, 100),
+		clienttypes.NewHeight(1, 100),
 		0,
 	)
 
