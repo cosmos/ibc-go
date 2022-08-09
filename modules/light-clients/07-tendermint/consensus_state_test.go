@@ -14,35 +14,44 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		consensusState *ibctm.ConsensusState
 		expectPass     bool
 	}{
-		{"success",
+		{
+			"success",
 			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
 			},
-			true},
-		{"success with sentinel",
+			true,
+		},
+		{
+			"success with sentinel",
 			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)),
 				NextValidatorsHash: suite.valsHash,
 			},
-			true},
-		{"root is nil",
+			true,
+		},
+		{
+			"root is nil",
 			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
 			},
-			false},
-		{"root is empty",
+			false,
+		},
+		{
+			"root is empty",
 			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
 			},
-			false},
-		{"nextvalshash is invalid",
+			false,
+		},
+		{
+			"nextvalshash is invalid",
 			&ibctm.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
@@ -51,7 +60,8 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 			false,
 		},
 
-		{"timestamp is zero",
+		{
+			"timestamp is zero",
 			&ibctm.ConsensusState{
 				Timestamp:          time.Time{},
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),

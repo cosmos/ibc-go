@@ -117,7 +117,6 @@ func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 			"fails validate abstract - empty title", func() {
 				proposal, err = types.NewUpgradeProposal("", ibctesting.Description, plan, cs.ZeroCustomFields())
 				suite.Require().NoError(err)
-
 			}, false,
 		},
 		{
