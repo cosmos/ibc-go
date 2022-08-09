@@ -23,20 +23,18 @@ func NewClientState(
 	chainID string, trustLevel Fraction,
 	trustingPeriod, ubdPeriod, maxClockDrift time.Duration,
 	latestHeight clienttypes.Height, specs []*ics23.ProofSpec,
-	upgradePath []string, allowUpdateAfterExpiry, allowUpdateAfterMisbehaviour bool,
+	upgradePath []string,
 ) *ClientState {
 	return &ClientState{
-		ChainId:                      chainID,
-		TrustLevel:                   trustLevel,
-		TrustingPeriod:               trustingPeriod,
-		UnbondingPeriod:              ubdPeriod,
-		MaxClockDrift:                maxClockDrift,
-		LatestHeight:                 latestHeight,
-		FrozenHeight:                 clienttypes.ZeroHeight(),
-		ProofSpecs:                   specs,
-		UpgradePath:                  upgradePath,
-		AllowUpdateAfterExpiry:       allowUpdateAfterExpiry,
-		AllowUpdateAfterMisbehaviour: allowUpdateAfterMisbehaviour,
+		ChainId:         chainID,
+		TrustLevel:      trustLevel,
+		TrustingPeriod:  trustingPeriod,
+		UnbondingPeriod: ubdPeriod,
+		MaxClockDrift:   maxClockDrift,
+		LatestHeight:    latestHeight,
+		FrozenHeight:    clienttypes.ZeroHeight(),
+		ProofSpecs:      specs,
+		UpgradePath:     upgradePath,
 	}
 }
 
