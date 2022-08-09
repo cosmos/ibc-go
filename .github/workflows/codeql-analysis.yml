@@ -40,11 +40,7 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-<<<<<<< HEAD
     - uses: technote-space/get-diff-action@v6.1.0
-=======
-    - uses: technote-space/get-diff-action@v6.0.1
->>>>>>> ba8c872 (chore: Fixing github action workflows)
       with:
         PATTERNS: |
           **/**.go
@@ -62,8 +58,9 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
         queries: crypto-com/cosmos-sdk-codeql@main,security-and-quality
       if: env.GIT_DIFF
+    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+    # If this step fails, then you should remove it and run the build manually (see below)
 
-<<<<<<< HEAD
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
       if: env.GIT_DIFF
@@ -78,9 +75,6 @@ jobs:
     #- run: |
     #   make bootstrap
     #   make release
-=======
-    - run: make build
->>>>>>> 1ebaf3e (chore: Specifying build command for the CodeQL action)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
