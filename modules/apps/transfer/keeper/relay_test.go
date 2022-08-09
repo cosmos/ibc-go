@@ -20,6 +20,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
 		amount sdk.Coin
 		path   *ibctesting.Path
+		sender sdk.AccAddress
 		err    error
 	)
 
@@ -68,7 +69,14 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 			}, true, false,
 		},
-
+		{
+			"transfer failed - sender account is blocked",
+			func() {
+				suite.coordinator.CreateTransferChannels(path)
+				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
+			}, true, false,
+		},
 		// createOutgoingPacket tests
 		// - source chain
 		{
@@ -106,6 +114,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			suite.SetupTest() // reset
 			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
+			sender = suite.chainA.SenderAccount.GetAddress()
 
 			tc.malleate()
 
@@ -133,7 +142,11 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
+<<<<<<< HEAD
 				suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
+=======
+				sender, suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0,
+>>>>>>> f891c29 (fix: prevent blocked addresses from sending ICS 20 transfers (#1907))
 			)
 
 			if tc.expPass {
