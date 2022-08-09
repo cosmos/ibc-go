@@ -12,7 +12,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/simulation"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
@@ -25,7 +25,7 @@ func TestDecodeStore(t *testing.T) {
 	channelID := "channelidone"
 	portID := "portidone"
 
-	clientState := &ibctmtypes.ClientState{
+	clientState := &ibctm.ClientState{
 		FrozenHeight: clienttypes.NewHeight(0, 10),
 	}
 	connection := connectiontypes.ConnectionEnd{

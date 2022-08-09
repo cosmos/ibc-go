@@ -308,7 +308,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
 					Sender:           interchainAccountAddr,
 					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
-					TimeoutHeight:    clienttypes.NewHeight(0, 100),
+					TimeoutHeight:    clienttypes.NewHeight(1, 100),
 					TimeoutTimestamp: uint64(0),
 				}
 
@@ -464,7 +464,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				path.EndpointA.ChannelID,
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
-				clienttypes.NewHeight(0, 100),
+				clienttypes.NewHeight(1, 100),
 				0,
 			)
 
