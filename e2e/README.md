@@ -57,8 +57,14 @@ Every time changes are pushed to a branch or to `main`, a new `simd` image is bu
 #### Example Command:
 
 ```sh
-export SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd-e2e"
-export SIMD_TAG="pr-1650"
+export CHAIN_A_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd-e2e"
+export CHAIN_A_SIMD_TAG="pr-1650"
+
+# We can also specify different values for the chains if needed.
+# they will default to the same as chain a.
+# export CHAIN_B_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd-e2e"
+# export CHAIN_B_SIMD_TAG="pr-1650"
+
 export RLY_TAG="v2.0.0-rc2"
 make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
 ```
