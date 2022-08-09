@@ -5,6 +5,7 @@ import (
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
@@ -35,6 +36,20 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 			false,
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+		},
+		{
+			"given payee is not an sdk address",
+			false,
+			func() {
+				msg.Payee = "invalid-addr"
+			},
+		},
+		{
+			"payee is a blocked address",
+			false,
+			func() {
+				msg.Payee = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(transfertypes.ModuleName).String()
 			},
 		},
 	}
@@ -221,6 +236,14 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			false,
 		},
 		{
+			"refund account is a blocked address",
+			func() {
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				msg.Signer = blockedAddr.String()
+			},
+			false,
+		},
+		{
 			"acknowledgement fee balance not found",
 			func() {
 				msg.Fee.AckFee = invalidCoins
@@ -396,6 +419,14 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			"refund account does not exist",
 			func() {
 				msg.PacketFee.RefundAddress = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			false,
+		},
+		{
+			"refund account is a blocked address",
+			func() {
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				msg.PacketFee.RefundAddress = blockedAddr.String()
 			},
 			false,
 		},
