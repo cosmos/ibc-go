@@ -20,6 +20,15 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee) (*types.MsgRegisterPayeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	payee, err := sdk.AccAddressFromBech32(msg.Payee)
+	if err != nil {
+		return nil, err
+	}
+
+	if k.bankKeeper.BlockedAddr(payee) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not authorized to be a payee", payee)
+	}
+
 	// only register payee address if the channel exists and is fee enabled
 	if _, found := k.channelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId); !found {
 		return nil, channeltypes.ErrChannelNotFound

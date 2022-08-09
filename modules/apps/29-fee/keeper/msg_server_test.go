@@ -38,6 +38,20 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
 		},
+		{
+			"given payee is not an sdk address",
+			false,
+			func() {
+				msg.Payee = "invalid-addr"
+			},
+		},
+		{
+			"payee is a blocked address",
+			false,
+			func() {
+				msg.Payee = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(transfertypes.ModuleName).String()
+			},
+		},
 	}
 
 	for _, tc := range testCases {
