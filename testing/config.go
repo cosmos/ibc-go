@@ -6,7 +6,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v5/testing/mock"
 )
 

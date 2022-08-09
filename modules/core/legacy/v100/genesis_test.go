@@ -14,7 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	v100 "github.com/cosmos/ibc-go/v5/modules/core/legacy/v100"
+	"github.com/cosmos/ibc-go/v5/modules/core/legacy/v100"
 	"github.com/cosmos/ibc-go/v5/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"

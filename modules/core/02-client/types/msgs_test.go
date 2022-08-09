@@ -9,9 +9,8 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -20,14 +19,16 @@ type TypesTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
+	chainA      *ibctesting.TestChain
+	chainB      *ibctesting.TestChain
+	solomachine *ibctesting.Solomachine
 }
 
 func (suite *TypesTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
 }
 
 func TestTypesTestSuite(t *testing.T) {
@@ -109,7 +110,7 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 		{
 			"invalid tendermint client",
 			func() {
-				msg, err = types.NewMsgCreateClient(&ibctmtypes.ClientState{}, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
+				msg, err = types.NewMsgCreateClient(&ibctm.ClientState{}, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
 			false,
@@ -203,7 +204,7 @@ func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
 		{
 			"solo machine client", func() {
 				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(), suite.chainA.SenderAccount.GetAddress().String())
+				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(soloMachine.Diversifier), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
 		},
@@ -268,7 +269,7 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		{
 			"invalid tendermint header",
 			func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", &ibctmtypes.Header{}, suite.chainA.SenderAccount.GetAddress().String())
+				msg, err = types.NewMsgUpdateClient("tendermint", &ibctm.Header{}, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
 			false,
@@ -276,7 +277,7 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		{
 			"failed to unpack header",
 			func() {
-				msg.Header = nil
+				msg.ClientMessage = nil
 			},
 			false,
 		},
@@ -291,7 +292,8 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 			"valid - solomachine header",
 			func() {
 				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(), suite.chainA.SenderAccount.GetAddress().String())
+				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(soloMachine.Diversifier), suite.chainA.SenderAccount.GetAddress().String())
+
 				suite.Require().NoError(err)
 			},
 			true,
@@ -300,14 +302,6 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 			"invalid solomachine header",
 			func() {
 				msg, err = types.NewMsgUpdateClient("solomachine", &solomachinetypes.Header{}, suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
-			},
-			false,
-		},
-		{
-			"unsupported - localhost",
-			func() {
-				msg, err = types.NewMsgUpdateClient(exported.Localhost, suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
 			false,
@@ -492,7 +486,7 @@ func (suite *TypesTestSuite) TestMarshalMsgSubmitMisbehaviour() {
 				header1 := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), heightMinus1, suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 				header2 := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), heightMinus1, suite.chainA.CurrentHeader.Time.Add(time.Minute), suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
-				misbehaviour := ibctmtypes.NewMisbehaviour("tendermint", header1, header2)
+				misbehaviour := ibctm.NewMisbehaviour("tendermint", header1, header2)
 				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", misbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
@@ -549,7 +543,7 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 				header1 := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), heightMinus1, suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 				header2 := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), heightMinus1, suite.chainA.CurrentHeader.Time.Add(time.Minute), suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
-				misbehaviour := ibctmtypes.NewMisbehaviour("tendermint", header1, header2)
+				misbehaviour := ibctm.NewMisbehaviour("tendermint", header1, header2)
 				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", misbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
@@ -558,7 +552,7 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 		{
 			"invalid tendermint misbehaviour",
 			func() {
-				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", &ibctmtypes.Misbehaviour{}, suite.chainA.SenderAccount.GetAddress().String())
+				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", &ibctm.Misbehaviour{}, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
 			false,

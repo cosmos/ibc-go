@@ -16,7 +16,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
@@ -116,7 +116,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 	suite.Require().NoError(err)
 
 	// Pack consensus state into any to test unpacking error
-	consState := ibctmtypes.NewConsensusState(
+	consState := ibctm.NewConsensusState(
 		time.Now(), commitmenttypes.NewMerkleRoot([]byte("root")), []byte("nextValsHash"),
 	)
 	invalidAny := clienttypes.MustPackConsensusState(consState)
@@ -167,7 +167,7 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	)
 
 	// Pack consensus state into any to test unpacking error
-	consState := ibctmtypes.NewConsensusState(
+	consState := ibctm.NewConsensusState(
 		time.Now(), commitmenttypes.NewMerkleRoot([]byte("root")), []byte("nextValsHash"),
 	)
 	invalidAny := clienttypes.MustPackConsensusState(consState)
