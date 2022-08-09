@@ -84,7 +84,7 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 	}
 
 	if k.bankKeeper.BlockedAddr(refundAcc) {
-		return nil, sdkerrors.Wrapf(types.ErrBlockedAddress, "%s", refundAcc)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to escrow fees", refundAcc)
 	}
 
 	// get the next sequence
@@ -125,7 +125,7 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 	}
 
 	if k.bankKeeper.BlockedAddr(refundAcc) {
-		return nil, sdkerrors.Wrapf(types.ErrBlockedAddress, "%s", refundAcc)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to escrow fees", refundAcc)
 	}
 
 	nextSeqSend, found := k.GetNextSequenceSend(ctx, msg.PacketId.PortId, msg.PacketId.ChannelId)

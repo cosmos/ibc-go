@@ -16,5 +16,4 @@ var (
 	ErrFeeNotEnabled                 = sdkerrors.Register(ModuleName, 9, "fee module is not enabled for this channel. If this error occurs after channel setup, fee module may not be enabled")
 	ErrRelayerNotFoundForAsyncAck    = sdkerrors.Register(ModuleName, 10, "relayer address must be stored for async WriteAcknowledgement")
 	ErrFeeModuleLocked               = sdkerrors.Register(ModuleName, 11, "the fee module is currently locked, a severe bug has been detected")
-	ErrBlockedAddress                = sdkerrors.Register(ModuleName, 12, "refund address cannot be a blocked address")
 )
