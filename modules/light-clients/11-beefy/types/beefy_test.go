@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
+	"github.com/cosmos/ibc-go/v5/modules/light-clients/11-beefy/types"
 	"testing"
 
 	"github.com/stretchr/testify/suite"

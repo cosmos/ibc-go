@@ -11,7 +11,7 @@ import (
 
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
 	substrateTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
+	"github.com/cosmos/ibc-go/v5/modules/light-clients/11-beefy/types"
 )
 
 func TestDecodeParachainHeader(t *testing.T) {

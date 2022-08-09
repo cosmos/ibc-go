@@ -6,7 +6,6 @@ import (
 	"github.com/ComposableFi/go-merkle-trees/merkle"
 	"reflect"
 
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/log15"
 	"github.com/ComposableFi/go-merkle-trees/hasher"
 	"github.com/ComposableFi/go-merkle-trees/mmr"
@@ -14,9 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -45,7 +44,6 @@ func (cs *ClientState) verifyHeader(
 	ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec,
 	beefyHeader *Header,
 ) error {
-
 	var (
 		mmrUpdateProof   = beefyHeader.MmrUpdateProof
 		authoritiesProof = beefyHeader.MmrUpdateProof.AuthoritiesProof
@@ -122,9 +120,9 @@ func (cs *ClientState) verifyHeader(
 	// only update if we have a higher block number.
 	if signedCommitment.Commitment.BlockNumer > cs.LatestBeefyHeight {
 		for _, payload := range signedCommitment.Commitment.Payload {
-			mmrRootId := []byte("mh")
+			mmrRootID := []byte("mh")
 			// checks for the right payloadId
-			if bytes.Equal(payload.PayloadId[:], mmrRootId) {
+			if bytes.Equal(payload.PayloadId[:], mmrRootID) {
 				// the next authorities are in the latest BeefyMmrLeaf
 
 				// scale encode the mmr leaf
@@ -142,13 +140,13 @@ func (cs *ClientState) verifyHeader(
 				}
 				mmrProof := mmr.NewProof(mmrSize, mmrUpdateProof.MmrProof, mmrLeaves, hasher.Keccak256Hasher{})
 				// verify that the leaf is valid, for the signed mmr-root-hash
-				if !mmrProof.Verify(payload.PayloadData[:]) {
+				if !mmrProof.Verify(payload.PayloadData) {
 					return sdkerrors.Wrap(err, ErrFailedVerifyMMRLeaf.Error()) // error!, mmr proof is invalid
 				}
 				// update the block_number
 				cs.LatestBeefyHeight = signedCommitment.Commitment.BlockNumer
 				// updates the mmr_root_hash
-				cs.MmrRootHash = payload.PayloadData[:]
+				cs.MmrRootHash = payload.PayloadData
 				// authority set has changed, rotate our view of the authorities
 				if updatedAuthority {
 					cs.Authority = cs.NextAuthoritySet
@@ -179,13 +177,15 @@ func (cs *ClientState) verifyHeader(
 
 	return nil
 }
+
+//nolint
 type ParaIdAndHeader struct {
 	ParaId uint32
 	Header []byte
 }
 
 func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Proof, error) {
-	var mmrLeaves = make([]merkletypes.Leaf, len(beefyHeader.ParachainHeaders))
+	mmrLeaves := make([]merkletypes.Leaf, len(beefyHeader.ParachainHeaders))
 
 	// verify parachain headers
 	for i := 0; i < len(beefyHeader.ParachainHeaders); i++ {
@@ -246,7 +246,8 @@ func (cs *ClientState) parachainHeadersToMMRProof(beefyHeader *Header) (*mmr.Pro
 	return mmrProof, nil
 }
 
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+// TODO: implement UpdateState which returns type []exported.Height
+/*func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	beefyHeader, ok := clientMsg.(*Header)
 	if !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got %T", &Header{}, beefyHeader)
@@ -321,7 +322,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	setClientState(clientStore, cdc, &cs)
 
 	return nil
-}
+}*/
 
 // CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
@@ -335,15 +336,12 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 		// since header has already been submitted in a previous UpdateClient.
 		prevConsState, _ := GetConsensusState(clientStore, cdc, tmHeader.GetHeight())
 		if prevConsState != nil {
-			// This header has already been submitted and the necessary state is already stored
+			// return false if this header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
-				return false
-			}
-
-			// A consensus state already exists for this height, but it does not match the provided header.
-			// The assumption is that Header has already been validated. Thus we can return true as misbehaviour is present
-			return true
+			// return true if a consensus state already exists for this height, but it does not match the provided
+			// header. The assumption is that Header has already been validated. Thus we can return true as misbehaviour
+			// is present
+			return !reflect.DeepEqual(prevConsState, tmHeader.ConsensusState())
 		}
 
 		// Check that consensus state timestamps are monotonic
@@ -406,9 +404,23 @@ func authoritiesThreshold(authoritySet BeefyAuthoritySet) uint32 {
 // UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
 // as it does not perform any misbehaviour checks.
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, _ exported.ClientMessage) {
-	//cs.FrozenHeight = FrozenHeight
-
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
+	panic("implement me")
+}
+
+func (cs *ClientState) UpdateState(context sdk.Context, codec codec.BinaryCodec, store sdk.KVStore, message exported.ClientMessage) []exported.Height {
+	panic("implement me")
+}
+
+func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path []byte, value []byte) error {
+	panic("implement me")
+}
+
+func (cs *ClientState) VerifyNonMembership(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path []byte) error {
+	panic("implement me")
+}
+
+func (cs *ClientState) GetTimestampAtHeight(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (uint64, error) {
 	panic("implement me")
 }

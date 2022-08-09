@@ -1,11 +1,11 @@
 package types
 
 import (
-	types1 "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	types1 "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // ClientType returns Beefy

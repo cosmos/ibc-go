@@ -9,7 +9,7 @@ import (
 	"github.com/ComposableFi/go-merkle-trees/mmr"
 	merkletypes "github.com/ComposableFi/go-merkle-trees/types"
 	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
+	"github.com/cosmos/ibc-go/v5/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 )

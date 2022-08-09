@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"log"
 	"time"
 
@@ -10,8 +11,8 @@ import (
 	"github.com/ComposableFi/go-substrate-rpc-client/v4/scale"
 	substrate "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	ics02 "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ics02 "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 var _ exported.ClientMessage = &Header{}
@@ -110,7 +111,7 @@ func (h Header) ValidateBasic() error {
 		}
 
 		if ext := t.Get(key); len(ext) == 0 {
-			// todo: error
+			return fmt.Errorf("invalid key length")
 		}
 
 		// todo: decode extrinsic.
@@ -123,6 +124,5 @@ func (h Header) ValidateBasic() error {
 // An error is returned if the new public key is nil or the cached value
 // is not a PubKey.
 func (h Header) GetPubKey() (cryptotypes.PubKey, error) {
-	panic("implement me")
 	return nil, nil
 }

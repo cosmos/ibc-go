@@ -9,7 +9,6 @@ import (
 	"sort"
 	"testing"
 
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/ComposableFi/go-merkle-trees/hasher"
@@ -18,7 +17,7 @@ import (
 	client "github.com/ComposableFi/go-substrate-rpc-client/v4"
 	clientTypes "github.com/ComposableFi/go-substrate-rpc-client/v4/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v3/modules/light-clients/11-beefy/types"
+	"github.com/cosmos/ibc-go/v5/modules/light-clients/11-beefy/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	// for creating storage keys
