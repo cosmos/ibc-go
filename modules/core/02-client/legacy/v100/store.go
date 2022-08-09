@@ -96,10 +96,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 			// add iteration keys so pruning will be successful
 			addConsensusMetadata(ctx, clientStore)
 
-			if err = ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState); err != nil {
-				return err
-			}
-
+			ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
 		default:
 			continue
 		}
