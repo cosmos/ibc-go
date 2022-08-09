@@ -82,10 +82,9 @@ func GenerateKeys(t *testing.T, n uint64) ([]cryptotypes.PrivKey, []cryptotypes.
 	return privKeys, pubKeys, pk
 }
 
-// ClientState returns a new solo machine ClientState instance. Default usage does not allow update
-// after governance proposal
+// ClientState returns a new solo machine ClientState instance.
 func (solo *Solomachine) ClientState() *solomachinetypes.ClientState {
-	return solomachinetypes.NewClientState(solo.Sequence, solo.ConsensusState(), false)
+	return solomachinetypes.NewClientState(solo.Sequence, solo.ConsensusState())
 }
 
 // ConsensusState returns a new solo machine ConsensusState instance
