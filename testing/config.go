@@ -15,22 +15,18 @@ type ClientConfig interface {
 }
 
 type TendermintConfig struct {
-	TrustLevel                   ibctm.Fraction
-	TrustingPeriod               time.Duration
-	UnbondingPeriod              time.Duration
-	MaxClockDrift                time.Duration
-	AllowUpdateAfterExpiry       bool
-	AllowUpdateAfterMisbehaviour bool
+	TrustLevel      ibctm.Fraction
+	TrustingPeriod  time.Duration
+	UnbondingPeriod time.Duration
+	MaxClockDrift   time.Duration
 }
 
 func NewTendermintConfig() *TendermintConfig {
 	return &TendermintConfig{
-		TrustLevel:                   DefaultTrustLevel,
-		TrustingPeriod:               TrustingPeriod,
-		UnbondingPeriod:              UnbondingPeriod,
-		MaxClockDrift:                MaxClockDrift,
-		AllowUpdateAfterExpiry:       false,
-		AllowUpdateAfterMisbehaviour: false,
+		TrustLevel:      DefaultTrustLevel,
+		TrustingPeriod:  TrustingPeriod,
+		UnbondingPeriod: UnbondingPeriod,
+		MaxClockDrift:   MaxClockDrift,
 	}
 }
 
