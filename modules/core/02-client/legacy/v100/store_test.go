@@ -71,7 +71,6 @@ func (suite *LegacyTestSuite) TestMigrateStoreSolomachine() {
 				Diversifier: clientState.ConsensusState.Diversifier,
 				Timestamp:   clientState.ConsensusState.Timestamp,
 			},
-			AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
 		}
 
 		// set client state

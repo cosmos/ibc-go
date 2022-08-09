@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		expPass     bool
 	}{
 		{"success", ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath), true},
-		{"client type not supported", solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}, false), false},
+		{"client type not supported", solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}), false},
 	}
 
 	for i, tc := range cases {

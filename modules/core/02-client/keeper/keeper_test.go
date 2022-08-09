@@ -190,7 +190,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 		},
 		{
 			"invalid client type",
-			solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}, false),
+			solomachinetypes.NewClientState(0, &solomachinetypes.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time}),
 			false,
 		},
 		{
