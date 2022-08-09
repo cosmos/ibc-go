@@ -2,28 +2,17 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-<<<<<<< HEAD
-	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-  
+
 	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v4/testing"
-=======
-
-	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
->>>>>>> 7694903 (fix: adding check for blocked addresses before escrowing fees (#1890))
+	ibcmock "github.com/cosmos/ibc-go/v4/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
-	var (
-		msg *types.MsgRegisterPayee
-	)
+	var msg *types.MsgRegisterPayee
 
 	testCases := []struct {
 		name     string
@@ -211,7 +200,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"refund account is module account",
 			func() {
-				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(disttypes.ModuleName).String()
+				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(ibcmock.ModuleName).String()
 				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
 				expFeesInEscrow = []types.PacketFee{expPacketFee}
 			},
