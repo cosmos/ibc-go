@@ -13,7 +13,10 @@ const (
 	ChainBSimdImageEnv = "CHAIN_B_SIMD_IMAGE"
 	ChainBSimdTagEnv   = "CHAIN_B_SIMD_TAG"
 	GoRelayerTagEnv    = "RLY_TAG"
+	ChainABinaryEnv    = "CHAIN_A_BINARY"
+	ChainBBinaryEnv    = "CHAIN_B_BINARY"
 
+	defaultBinary    = "simd"
 	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd-e2e"
 	defaultRlyTag    = "main"
 )
@@ -26,8 +29,9 @@ type TestConfig struct {
 }
 
 type ChainConfig struct {
-	Image string
-	Tag   string
+	Image  string
+	Tag    string
+	Binary string
 }
 
 // FromEnv returns a TestConfig constructed from environment variables.
@@ -40,6 +44,16 @@ func FromEnv() TestConfig {
 	chainASimdTag, ok := os.LookupEnv(ChainASimdTag)
 	if !ok {
 		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", ChainASimdTag))
+	}
+
+	chainABinary, ok := os.LookupEnv(ChainABinaryEnv)
+	if !ok {
+		chainABinary = defaultBinary
+	}
+
+	chainBBinary, ok := os.LookupEnv(ChainBBinaryEnv)
+	if !ok {
+		chainBBinary = chainASimdImage
 	}
 
 	chainBSimdImage, ok := os.LookupEnv(ChainBSimdImageEnv)
@@ -59,12 +73,14 @@ func FromEnv() TestConfig {
 
 	return TestConfig{
 		ChainAConfig: ChainConfig{
-			Image: chainASimdImage,
-			Tag:   chainASimdTag,
+			Image:  chainASimdImage,
+			Tag:    chainASimdTag,
+			Binary: chainABinary,
 		},
 		ChainBConfig: ChainConfig{
-			Image: chainBSimdImage,
-			Tag:   chainBSimdTag,
+			Image:  chainBSimdImage,
+			Tag:    chainBSimdTag,
+			Binary: chainBBinary,
 		},
 		RlyTag: rlyTag,
 	}
@@ -105,7 +121,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 				Version:    cc.Tag,
 			},
 		},
-		Bin:            "simd",
+		Bin:            cc.Binary,
 		Bech32Prefix:   "cosmos",
 		Denom:          denom,
 		GasPrices:      fmt.Sprintf("0.00%s", denom),

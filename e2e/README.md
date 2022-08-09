@@ -60,6 +60,14 @@ Every time changes are pushed to a branch or to `main`, a new `simd` image is bu
 export SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd-e2e"
 export SIMD_TAG="pr-1650"
 export RLY_TAG="v2.0.0-rc2"
+
+export CHAIN_A_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-icad"
+export CHAIN_A_SIMD_TAG="v0.3.0"
+export CHAIN_A_BINARY="icad"
+export CHAIN_B_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-icad"
+export CHAIN_B_SIMD_TAG="v0.3.0"
+export CHAIN_B_BINARY="icad"
+
 make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
 ```
 
