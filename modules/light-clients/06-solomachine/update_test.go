@@ -83,7 +83,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"signature uses wrong sequence",
 				func() {
-
 					sm.Sequence++
 					clientMsg = sm.CreateHeader(sm.Diversifier)
 				},
@@ -125,7 +124,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 
 					clientState = cs
 					clientMsg = h
-
 				},
 				false,
 			},
@@ -341,7 +339,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			{
 				"signatures sign over different sequence",
 				func() {
-
 					// store in temp before assigning to interface type
 					m := sm.CreateMisbehaviour()
 
@@ -470,16 +467,13 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 						clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
 					})
 				}
-
 			})
 		}
 	}
 }
 
 func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
-	var (
-		clientMsg exported.ClientMessage
-	)
+	var clientMsg exported.ClientMessage
 
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
@@ -519,7 +513,6 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 				} else {
 					suite.Require().False(foundMisbehaviour)
 				}
-
 			})
 		}
 	}
