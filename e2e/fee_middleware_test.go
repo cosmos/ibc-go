@@ -197,7 +197,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds(
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidAccount() {
+func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 	t := s.T()
 	ctx := context.TODO()
 
