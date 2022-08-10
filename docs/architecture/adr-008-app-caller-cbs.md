@@ -21,17 +21,6 @@ This requires a second layer of callbacks. The IBC application already gets the 
 
 Create a standardized callback interface that callers can implement. IBC applications (or middleware that wraps IBC applications) can now call this callback to route the result of the packet/channel handshake from core IBC to the IBC application to the original caller.
 
-IBC will expose the following enum type:
-
-```proto
-enum PacketResponse {
-    UNSPECIFIED = 0;
-    SUCCESS = 1;
-    FAILURE = 2;
-    TIMEOUT = 3;
-}
-```
-
 IBC callers may implement the following interface:
 
 ```go
@@ -45,11 +34,19 @@ type IBCCaller interface {
     // NOTE: currently the channel does not automatically close if the counterparty fails the handhshake so callers must be prepared for an OpenInit to never return a callback for the time being
     OnChannelClose(ctx sdk.Context, portID, channelID string)
 
-    // OnPacketResponse will be called on the IBC Caller after the IBC Application handles its own OnAcknowledgementPacket or OnTimeoutPacket callback
-    OnPacketResponse(
+    // OnAcknowledgementPacket will be called on the IBC Caller
+    // after the IBC Application handles its own OnAcknowledgementPacket callback
+    OnAcknowledgmentPacket(
         ctx sdk.Context,
         packet channeltypes.Packet,
-        response PacketResponse,
+        ack exported.Acknowledgement
+    )
+
+    // OnTimeoutPacket will be called on the IBC Caller
+    // after the IBC Application handles its own OnTimeoutPacket callback
+    OnTimeoutPacket(
+        ctx sdk.Context,
+        packet channeltypes.Packet
     )
 }
 ```
@@ -78,15 +75,9 @@ func OnAcknowledgementPacket(
     var ack exported.Acknowledgement
     unmarshal(acknowledgement, ack)
 
-    // send acknowledgement success value in packet response
-    // to original caller
+    // send acknowledgement to original caller
     caller := k.getCaller(packetID)
-
-    if ack.Success() {
-        caller.OnPacketResponse(ctx, packet, SUCCESS)
-    } else {
-        caller.OnPacketResonse(ctx, packet, FAILURE)
-    }
+    caller.OnAcknowledgmentPacket(ctx, packet, ack)
 }
 
 func OnTimeoutPacket(
@@ -96,7 +87,25 @@ func OnTimeoutPacket(
 ) {
     // application-specific onTimeoutPacket logic
 
-    // send timeout response to original caller
+    // call timeout callback on original caller
     caller := k.getCaller(packetID)
-    caller.OnPacketResponse(Ctx, packet, TIMEOUT)
+    caller.OnTimeoutPacket(ctx, packet)
 }
+```
+
+## Consequences
+
+### Positive
+
+- IBC Callers can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
+- Leverages the same callback architecture used between core IBC and IBC applications
+
+### Negative
+
+- `OnAcknowledgementPacket` and `OnTimeoutPacket` may now have unbounded gas consumption since the caller may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas a callback can consume.
+
+### Neutral
+
+## References
+
+- https://github.com/cosmos/ibc-go/issues/1660
