@@ -16,7 +16,7 @@ const (
 	testNamePrefix     = "Test"
 	testFileNameSuffix = "_test.go"
 	e2eTestDirectory   = "e2e"
-	testSuiteEnv       = "TEST_SUITE"
+	testEntryPointEnv  = "TEST_ENTRYPOINT"
 )
 
 // GithubActionTestMatrix represents
@@ -30,7 +30,7 @@ type TestSuitePair struct {
 }
 
 func main() {
-	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getTestSuiteToRun())
+	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getTestFunctionToRun())
 	if err != nil {
 		fmt.Printf("error generating github action json: %s", err)
 		os.Exit(1)
@@ -44,10 +44,10 @@ func main() {
 	fmt.Println(string(ghBytes))
 }
 
-// getTestSuiteToRun returns the specified test suite name to run if present, otherwise
+// getTestFunctionToRun returns the specified test function to run if present, otherwise
 // it returns an empty string which will result in running all test suites.
-func getTestSuiteToRun() string {
-	testSuite, ok := os.LookupEnv(testSuiteEnv)
+func getTestFunctionToRun() string {
+	testSuite, ok := os.LookupEnv(testEntryPointEnv)
 	if !ok {
 		return ""
 	}

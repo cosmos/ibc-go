@@ -5,12 +5,12 @@ on:
   # for now this needs to be manual.
   workflow_dispatch:
     inputs:
-      test-suite:
-        description: 'Test suite To run'
+      test-entry-point:
+        description: 'Test entry point'
         required: true
         type: choice
         options:
-          - FeeMiddlewareTestSuite
+          - TestFeeMiddlewareTestSuite
       chain-a-image:
         description: 'The image to use for chain A'
         required: true
@@ -65,7 +65,7 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
         env:
-          TEST_SUITE: "${{ github.event.inputs.test-suite }}"
+          TEST_ENTRYPOINT: "${{ github.event.inputs.test-entry-point }}"
 
 
 
