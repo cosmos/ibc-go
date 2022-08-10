@@ -80,7 +80,7 @@ func getGithubActionMatrixForTests(e2eRootDirectory, suite string) (GithubAction
 			return fmt.Errorf("failed extracting test suite name and test cases: %s", err)
 		}
 
-		if suite != "" && suiteNameForFile == suite {
+		if suite == "" || suiteNameForFile == suite {
 			testSuiteMapping[suiteNameForFile] = testCases
 		}
 
