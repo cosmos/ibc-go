@@ -48,7 +48,7 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
         env:
-          TEST_SUITE: "${{ inputs.test-suite }}"
+          TEST_SUITE: "${{ github.events.inputs.test-suite }}"
 
 
   e2e:
@@ -56,12 +56,12 @@ jobs:
     needs:
       - build-test-matrix
     env:
-      CHAIN_A_SIMD_TAG: "${{ inputs.chain-a-tag }}"
-      CHAIN_A_SIMD_IMAGE: "${{ inputs.chain-a-image }}"
-      CHAIN_B_SIMD_TAG: "${{ inputs.chain-b-tag }}"
-      CHAIN_B_SIMD_IMAGE: "${{ inputs.chain-b-image }}"
+      CHAIN_A_SIMD_TAG: "${{ github.events.inputs.chain-a-tag }}"
+      CHAIN_A_SIMD_IMAGE: "${{ github.events.inputs.chain-a-image }}"
+      CHAIN_B_SIMD_TAG: "${{ github.events.inputs.chain-b-tag }}"
+      CHAIN_B_SIMD_IMAGE: "${{ github.events.inputs.chain-b-image }}"
       # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-      RLY_TAG: "${{ inputs.relayer }}"
+      RLY_TAG: "${{ github.events.inputs.relayer }}"
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
