@@ -46,9 +46,11 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 	chainADenom := chainA.Config().Denom
 
-	wallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := wallet.Bech32Address(chainA.Config().Bech32Prefix)
-	chainBAddress := wallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
 	t.Run("relayer wallets recovered", func(t *testing.T) {
 		err := s.RecoverRelayerWallets(ctx, relayer)
@@ -58,13 +60,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("native IBC token transfer from chainA (source) to chainB, sender is source", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainA, wallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.getTimeoutHeight(ctx, chainB), 0)
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.getTimeoutHeight(ctx, chainB), 0)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(transferTxResp)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
-		actualBalance, err := s.GetChainANativeBalance(ctx, wallet)
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
@@ -86,7 +88,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	})
 
 	t.Run("non-native IBC token transfer from chainB to chainA (source), receiver is source", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainB, wallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.getTimeoutHeight(ctx, chainA), 0)
+		transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.getTimeoutHeight(ctx, chainA), 0)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(transferTxResp)
 	})
@@ -95,15 +97,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		s.Require().Equal(0, actualBalance)
+		s.Require().Equal(int64(0), actualBalance)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
+	//	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		actualBalance, err := s.GetChainANativeBalance(ctx, wallet)
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
