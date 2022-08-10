@@ -147,7 +147,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds(
 			s.Require().Empty(packets)
 		})
 
-		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
+		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
@@ -370,7 +370,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	})
 
 	t.Run("pay packet fee", func(t *testing.T) {
-		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
+		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 
 		t.Run("no incentivized packets", func(t *testing.T) {
