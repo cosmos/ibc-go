@@ -1,0 +1,79 @@
+name: Manual E2E Tests
+on:
+  workflow_dispatch:
+    inputs:
+      test-suite:
+        description: 'The Test Suite To Run'
+        required: true
+        type: string
+      chain-a-image:
+        description: 'The image to use for chain A'
+        required: true
+        type: string
+        default: "ghcr.io/cosmos/ibc-go-simd-e2e"
+      chain-a-tag:
+        description: 'The tag to use for chain A'
+        required: true
+        type: string
+        default: "main"
+      chain-b-image:
+        description: 'The image to use for chain B'
+        required: true
+        type: string
+        default: "ghcr.io/cosmos/ibc-go-simd"
+      chain-b-tag:
+        description: 'The tag to use for chain B'
+        required: true
+        default: "v4.0.0-rc2"
+        type: string
+      relayer-tag:
+        description: 'The tag to use for the relayer'
+        required: true
+        default: "v2.0.0-rc2"
+        type: string
+
+
+jobs:
+  # dynamically build a matrix of test/test suite pairs to run
+  build-test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go {{ inputs.test-suite }})"
+
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs:
+      - build-test-matrix
+    env:
+      CHAIN_A_SIMD_TAG: "${{ inputs.chain-a-tag }}"
+      CHAIN_A_SIMD_IMAGE: "${{ inputs.chain-a-image }}"
+      CHAIN_B_SIMD_TAG: "${{ inputs.chain-b-tag }}"
+      CHAIN_B_SIMD_IMAGE: "${{ inputs.chain-b-image }}"
+      # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
+      RLY_TAG: "${{ inputs.relayer }}"
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Log in to the Container registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run e2e Test
+        run: |
+          cd e2e
+          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}

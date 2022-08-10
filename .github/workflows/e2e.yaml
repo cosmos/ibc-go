@@ -103,36 +103,3 @@ jobs:
         run: |
           cd e2e
           make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
-
-#  e2e-backwards-compatibility:
-#    if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-#    runs-on: ubuntu-latest
-#    needs:
-#      - build-test-matrix
-#      - determine-image-tag
-#      - docker-build
-#    env:
-#      CHAIN_A_SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
-#      CHAIN_A_SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
-#      CHAIN_B_SIMD_TAG: v4.0.0-rc2
-#      CHAIN_B_SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd
-#      # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-#      RLY_TAG: "v2.0.0-rc2"
-#    strategy:
-#      fail-fast: false
-#      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-go@v3
-#        with:
-#          go-version: 1.18
-#      - name: Log in to the Container registry
-#        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-#        with:
-#          registry: ${{ env.REGISTRY }}
-#          username: ${{ github.actor }}
-#          password: ${{ secrets.GITHUB_TOKEN }}
-#      - name: Run e2e Test
-#        run: |
-#          cd e2e
-#          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
