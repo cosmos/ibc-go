@@ -8,11 +8,17 @@ import (
 )
 
 const (
+	// ChainASimdImageEnv specifies the image that Chain A will use.
 	ChainASimdImageEnv = "CHAIN_A_SIMD_IMAGE"
-	ChainASimdTag      = "CHAIN_A_SIMD_TAG"
+	// ChainASimdTagEnv specifies the tag that Chain A will use.
+	ChainASimdTagEnv = "CHAIN_A_SIMD_TAG"
+	// ChainBSimdImageEnv specifies the image that Chain B will use. If unspecified
+	// the value will default to the same value as Chain A.
 	ChainBSimdImageEnv = "CHAIN_B_SIMD_IMAGE"
-	ChainBSimdTagEnv   = "CHAIN_B_SIMD_TAG"
-	GoRelayerTagEnv    = "RLY_TAG"
+	// ChainBSimdTagEnv specifies the tag that Chain B will use. If unspecified
+	// the value will default to the same value as Chain A.
+	ChainBSimdTagEnv = "CHAIN_B_SIMD_TAG"
+	GoRelayerTagEnv  = "RLY_TAG"
 
 	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd-e2e"
 	defaultRlyTag    = "main"
@@ -37,9 +43,9 @@ func FromEnv() TestConfig {
 		chainASimdImage = defaultSimdImage
 	}
 
-	chainASimdTag, ok := os.LookupEnv(ChainASimdTag)
+	chainASimdTag, ok := os.LookupEnv(ChainASimdTagEnv)
 	if !ok {
-		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", ChainASimdTag))
+		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", ChainASimdTagEnv))
 	}
 
 	chainBSimdImage, ok := os.LookupEnv(ChainBSimdImageEnv)
