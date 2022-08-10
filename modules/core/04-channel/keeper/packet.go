@@ -84,25 +84,16 @@ func (k Keeper) SendPacket(
 		)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(connectionEnd.GetClientID())
+	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
 	if err != nil {
 		return err
 	}
 
-	// NOTE: this is a temporary fix. Solo machine does not support usage of 'GetTimestampAtHeight'
-	// A future change should move this function to be a ClientState callback.
-	if clientType != exported.Solomachine {
-		latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
-		if err != nil {
-			return err
-		}
-
-		if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
-			return sdkerrors.Wrapf(
-				types.ErrPacketTimeout,
-				"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
-			)
-		}
+	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
+		return sdkerrors.Wrapf(
+			types.ErrPacketTimeout,
+			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+		)
 	}
 
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
