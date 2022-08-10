@@ -24,7 +24,7 @@ on:
         options:
           - main
           - v4.0.0-rc3
-          - v3.0.0-rc2
+          - v3.0.0
           - v2.2.0
           - v2.1.0
           - v2.0.0
@@ -40,7 +40,7 @@ on:
         type: choice
         options:
           - v4.0.0-rc3
-          - v3.0.0-rc2
+          - v3.0.0
           - v2.2.0
           - v2.1.0
           - v2.0.0
