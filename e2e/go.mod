@@ -167,3 +167,6 @@ require (
 	modernc.org/token v1.0.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+// TODO: using version v1.0.0 causes a build failure. This is the previous version which compiles successfully.
+replace github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
