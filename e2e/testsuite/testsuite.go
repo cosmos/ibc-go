@@ -3,14 +3,16 @@ package testsuite
 import (
 	"context"
 	"fmt"
+<<<<<<< HEAD
 	"io/ioutil"
+=======
+>>>>>>> c304a7c (Fix E2E Tests: Update ibctest (Cosmos SDK 0.46) (#1949))
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
@@ -22,7 +24,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
-	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 )
 
 const (
@@ -92,8 +94,11 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
+<<<<<<< HEAD
 	home, err := ioutil.TempDir("", "")
 	s.Require().NoError(err)
+=======
+>>>>>>> c304a7c (Fix E2E Tests: Update ibctest (Cosmos SDK 0.46) (#1949))
 
 	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
@@ -119,7 +124,6 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	eRep := s.getRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
-		HomeDir:           home,
 		Client:            s.DockerClient,
 		NetworkID:         s.network,
 		CreateChannelOpts: channelOptions,
@@ -173,9 +177,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, msgs ...sdk.Msg) (sdk.TxResponse, error) {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
-	resp, err := ibctest.BroadcastTx(ctx, broadcaster, user, msgs...)
+	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -296,7 +300,6 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 // createCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
-	ctx := context.Background()
 	client, network := ibctest.DockerSetup(s.T())
 
 	s.logger = zap.NewExample()
@@ -308,16 +311,6 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	// TODO(chatton): allow for controller over number of validators and full nodes.
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 1, 0, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 1, 0, logger)
-
-	s.T().Cleanup(func() {
-		if !s.T().Failed() {
-			for _, c := range []*cosmos.CosmosChain{chainA, chainB} {
-				if err := c.Cleanup(ctx); err != nil {
-					s.T().Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
-				}
-			}
-		}
-	})
 
 	return chainA, chainB
 }
