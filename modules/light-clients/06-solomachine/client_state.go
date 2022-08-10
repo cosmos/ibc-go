@@ -75,11 +75,9 @@ func (cs ClientState) Validate() error {
 	return cs.ConsensusState.ValidateBasic()
 }
 
-// ZeroCustomFields returns solomachine client state with client-specific field FrozenSequence zeroed out
+// ZeroCustomFields is not implemented for solo machine
 func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	return NewClientState(
-		cs.Sequence, cs.ConsensusState,
-	)
+	panic("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades.")
 }
 
 // Initialize will check that initial consensus state is equal to the latest consensus state of the initial client.
