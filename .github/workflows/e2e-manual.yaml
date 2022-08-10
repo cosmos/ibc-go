@@ -1,4 +1,4 @@
-name: Manual E2E Tests
+name: Manual E2E
 on:
   workflow_dispatch:
     inputs:
@@ -6,6 +6,7 @@ on:
         description: 'The Test Suite To Run'
         required: true
         type: string
+        default: ""
       chain-a-image:
         description: 'The image to use for chain A'
         required: true
@@ -45,7 +46,9 @@ jobs:
         with:
           go-version: 1.18
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go {{ inputs.test-suite }})"
+        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
+        env:
+          TEST_SUITE: "${{ inputs.test-suite }}"
 
 
   e2e:

@@ -16,6 +16,7 @@ const (
 	testNamePrefix     = "Test"
 	testFileNameSuffix = "_test.go"
 	e2eTestDirectory   = "e2e"
+	testSuiteEnv       = "TEST_SUITE"
 )
 
 // GithubActionTestMatrix represents
@@ -29,12 +30,7 @@ type TestSuitePair struct {
 }
 
 func main() {
-	var suiteNameToRun string
-	if len(os.Args) == 2 {
-		suiteNameToRun = os.Args[1]
-	}
-
-	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, suiteNameToRun)
+	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getTestSuiteToRun())
 	if err != nil {
 		fmt.Printf("error generating github action json: %s", err)
 		os.Exit(1)
@@ -46,6 +42,16 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println(string(ghBytes))
+}
+
+// getTestSuiteToRun returns the specified test suite name to run if present, otherwise
+// it returns an empty string which will result in running all test suites.
+func getTestSuiteToRun() string {
+	testSuite, ok := os.LookupEnv(testSuiteEnv)
+	if !ok {
+		return ""
+	}
+	return testSuite
 }
 
 // getGithubActionMatrixForTests returns a json string representing the contents that should go in the matrix
