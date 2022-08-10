@@ -32,7 +32,7 @@ jobs:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@1cb9d22b932e4832bb29793b7777ec860fc1cde0
+        uses: docker/build-push-action@c84f38281176d4c9cdb1626ffafcd6b3911b5d94
         with:
           context: .
           push: true
@@ -51,7 +51,7 @@ jobs:
         with:
           go-version: 1.18
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
+        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
 
 
   # the tag of the image will differ if this is a PR or the branch is being merged into main.
@@ -68,7 +68,7 @@ jobs:
           go-version: 1.18
       - id: get-tag
         run: |
-          tag=$(go run .github/scripts/determine_simd_tag.go -pr "${{ github.event.pull_request.number }}" )
+          tag=$(go run cmd/determine_simd_tag/main.go -pr "${{ github.event.pull_request.number }}" )
           echo "Using tag $tag"
           echo "::set-output name=simd-tag::$tag"
 

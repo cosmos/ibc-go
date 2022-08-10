@@ -9,15 +9,15 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v4/modules/core/02-client"
-	clientv100 "github.com/cosmos/ibc-go/v4/modules/core/02-client/legacy/v100"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	v100 "github.com/cosmos/ibc-go/v4/modules/core/legacy/v100"
-	"github.com/cosmos/ibc-go/v4/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
-	"github.com/cosmos/ibc-go/v4/testing/simapp"
+	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
+	clientv100 "github.com/cosmos/ibc-go/v5/modules/core/02-client/legacy/v100"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/legacy/v100"
+	"github.com/cosmos/ibc-go/v5/modules/core/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
 type LegacyTestSuite struct {
@@ -52,7 +52,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	clientCtx := client.Context{}.
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
-		WithJSONCodec(encodingConfig.Marshaler)
+		WithCodec(encodingConfig.Marshaler)
 
 	// create multiple legacy solo machine clients
 	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
@@ -77,7 +77,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 			seq = 1
 		}
 
-		// generate old client state proto defintion
+		// generate old client state proto definition
 		legacyClientState := &clientv100.ClientState{
 			Sequence:       clientState.Sequence,
 			FrozenSequence: seq,
@@ -86,7 +86,6 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 				Diversifier: clientState.ConsensusState.Diversifier,
 				Timestamp:   clientState.ConsensusState.Timestamp,
 			},
-			AllowUpdateAfterProposal: clientState.AllowUpdateAfterProposal,
 		}
 
 		// set client state
@@ -155,7 +154,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	ibcGenState := types.DefaultGenesisState()
 	ibcGenState.ClientGenesis = clientGenState
 	clientv100.RegisterInterfaces(clientCtx.InterfaceRegistry)
-	appState[host.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(ibcGenState)
+	appState[host.ModuleName] = clientCtx.Codec.MustMarshalJSON(ibcGenState)
 	genDoc := tmtypes.GenesisDoc{
 		ChainID:       suite.chainA.ChainID,
 		GenesisTime:   suite.coordinator.CurrentTime,
@@ -170,7 +169,7 @@ func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {
 	expectedIBCGenState := types.DefaultGenesisState()
 	expectedIBCGenState.ClientGenesis = expectedClientGenState
 
-	bz, err := clientCtx.JSONCodec.MarshalJSON(expectedIBCGenState)
+	bz, err := clientCtx.Codec.MarshalJSON(expectedIBCGenState)
 	suite.Require().NoError(err)
 	expectedAppState[host.ModuleName] = bz
 

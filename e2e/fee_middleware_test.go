@@ -12,9 +12,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
 
-	"e2e/testsuite"
-	"e2e/testvalues"
-
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -43,7 +42,6 @@ func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, cha
 		ChannelId: channelID,
 		Relayer:   relayerAddress,
 	})
-
 	if err != nil {
 		return "", err
 	}
@@ -372,7 +370,6 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	})
 
 	t.Run("pay packet fee", func(t *testing.T) {
-
 		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
 
@@ -407,7 +404,6 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
-
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -500,7 +496,7 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPar
 		})
 	})
 
-	t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
+	t.Run("balance should be lowered by sum of recv, ack and timeout", func(t *testing.T) {
 		// The balance should be lowered by the sum of the recv, ack and timeout fees.
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)

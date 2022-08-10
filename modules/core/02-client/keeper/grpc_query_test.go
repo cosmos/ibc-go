@@ -9,10 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
 				idcs2 := types.NewIdentifiedClientState(path2.EndpointA.ClientID, clientStateA2)
 
-				// order is sorted by client id, localhost is last
+				// order is sorted by client id
 				expClientStates = types.IdentifiedClientStates{idcs, idcs2}.Sort()
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
@@ -158,13 +158,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			expClientStates = nil
-
 			tc.malleate()
-			// always add localhost which is created by default in init genesis
-			localhostClientState := suite.chainA.GetClientState(exported.Localhost)
-			identifiedLocalhost := types.NewIdentifiedClientState(exported.Localhost, localhostClientState)
-			expClientStates = append(expClientStates, identifiedLocalhost)
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
@@ -534,7 +528,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
+				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 				// increment latest height so no consensus state is stored
 				clientState.LatestHeight = clientState.LatestHeight.Increment().(types.Height)
@@ -551,7 +545,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
+				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 				clientState.FrozenHeight = types.NewHeight(0, 1)
 				path.EndpointA.SetClientState(clientState)

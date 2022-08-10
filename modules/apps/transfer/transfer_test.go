@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type TransferTestSuite struct {
@@ -47,7 +47,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.coordinator.Setup(path)
 
 	//	originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-	timeoutHeight := clienttypes.NewHeight(0, 110)
+	timeoutHeight := clienttypes.NewHeight(1, 110)
 
 	amount, ok := sdk.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
 	suite.Require().True(ok)

@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {
@@ -223,9 +223,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 }
 
 func (suite *KeeperTestSuite) TestEscrowAddress() {
-	var (
-		req *types.QueryEscrowAddressRequest
-	)
+	var req *types.QueryEscrowAddressRequest
 
 	testCases := []struct {
 		msg      string

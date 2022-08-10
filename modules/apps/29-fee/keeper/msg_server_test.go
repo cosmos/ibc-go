@@ -2,18 +2,17 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
-	var (
-		msg *types.MsgRegisterPayee
-	)
+	var msg *types.MsgRegisterPayee
 
 	testCases := []struct {
 		name     string
@@ -37,6 +36,20 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 			false,
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+		},
+		{
+			"given payee is not an sdk address",
+			false,
+			func() {
+				msg.Payee = "invalid-addr"
+			},
+		},
+		{
+			"payee is a blocked address",
+			false,
+			func() {
+				msg.Payee = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(transfertypes.ModuleName).String()
 			},
 		},
 	}
@@ -171,7 +184,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			func() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
@@ -187,7 +200,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"refund account is module account",
 			func() {
-				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(disttypes.ModuleName).String()
+				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(ibcmock.ModuleName).String()
 				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
 				expFeesInEscrow = []types.PacketFee{expPacketFee}
 			},
@@ -219,6 +232,14 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			"refund account does not exist",
 			func() {
 				msg.Signer = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			false,
+		},
+		{
+			"refund account is a blocked address",
+			func() {
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				msg.Signer = blockedAddr.String()
 			},
 			false,
 		},
@@ -272,7 +293,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
 
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
 				suite.Require().True(found)
 				suite.Require().Equal(expFeesInEscrow, feesInEscrow.PacketFees)
@@ -312,7 +333,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			func() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
@@ -370,7 +391,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			"packet already timed out",
 			func() {
 				// try to incentivze a packet which is timed out
-				packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, msg.PacketId.Sequence+1)
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, msg.PacketId.Sequence+1)
 				packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), 0)
 
 				err := suite.path.EndpointA.SendPacket(packet)
@@ -398,6 +419,14 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			"refund account does not exist",
 			func() {
 				msg.PacketFee.RefundAddress = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			false,
+		},
+		{
+			"refund account is a blocked address",
+			func() {
+				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				msg.PacketFee.RefundAddress = blockedAddr.String()
 			},
 			false,
 		},
@@ -432,7 +461,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			suite.coordinator.Setup(suite.path) // setup channel
 
 			// send a packet to incentivize
-			packetID := channeltypes.NewPacketId(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, packetID.Sequence, packetID.PortId, packetID.ChannelId, suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100), 0)
 			err := suite.path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
