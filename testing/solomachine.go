@@ -16,7 +16,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine/types"
+	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
 )
 
 // Solomachine is a testing helper used to simulate a counterparty
@@ -82,10 +82,9 @@ func GenerateKeys(t *testing.T, n uint64) ([]cryptotypes.PrivKey, []cryptotypes.
 	return privKeys, pubKeys, pk
 }
 
-// ClientState returns a new solo machine ClientState instance. Default usage does not allow update
-// after governance proposal
+// ClientState returns a new solo machine ClientState instance.
 func (solo *Solomachine) ClientState() *solomachinetypes.ClientState {
-	return solomachinetypes.NewClientState(solo.Sequence, solo.ConsensusState(), false)
+	return solomachinetypes.NewClientState(solo.Sequence, solo.ConsensusState())
 }
 
 // ConsensusState returns a new solo machine ConsensusState instance
@@ -107,7 +106,8 @@ func (solo *Solomachine) GetHeight() exported.Height {
 
 // CreateHeader generates a new private/public key pair and creates the
 // necessary signature to construct a valid solo machine header.
-func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
+// A new diversifier will be used as well
+func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachinetypes.Header {
 	// generate new private keys and signature for header
 	newPrivKeys, newPubKeys, newPubKey := GenerateKeys(solo.t, uint64(len(solo.PrivateKeys)))
 
@@ -116,7 +116,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 
 	data := &solomachinetypes.HeaderData{
 		NewPubKey:      publicKey,
-		NewDiversifier: solo.Diversifier,
+		NewDiversifier: newDiversifier,
 	}
 
 	dataBz, err := solo.cdc.Marshal(data)
@@ -126,7 +126,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		DataType:    solomachinetypes.HEADER,
+		Path:        []byte{},
 		Data:        dataBz,
 	}
 
@@ -140,7 +140,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 		Timestamp:      solo.Time,
 		Signature:      sig,
 		NewPublicKey:   publicKey,
-		NewDiversifier: solo.Diversifier,
+		NewDiversifier: newDiversifier,
 	}
 
 	// assumes successful header update
@@ -148,6 +148,7 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 	solo.PrivateKeys = newPrivKeys
 	solo.PublicKeys = newPubKeys
 	solo.PublicKey = newPubKey
+	solo.Diversifier = newDiversifier
 
 	return header
 }
@@ -155,20 +156,19 @@ func (solo *Solomachine) CreateHeader() *solomachinetypes.Header {
 // CreateMisbehaviour constructs testing misbehaviour for the solo machine client
 // by signing over two different data bytes at the same sequence.
 func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
-	path := solo.GetClientStatePath("counterparty")
-	dataOne, err := solomachinetypes.ClientStateDataBytes(solo.cdc, path, solo.ClientState())
+	merklePath := solo.GetClientStatePath("counterparty")
+	path, err := solo.cdc.Marshal(&merklePath)
 	require.NoError(solo.t, err)
 
-	path = solo.GetConsensusStatePath("counterparty", clienttypes.NewHeight(0, 1))
-	dataTwo, err := solomachinetypes.ConsensusStateDataBytes(solo.cdc, path, solo.ConsensusState())
+	data, err := solo.cdc.Marshal(solo.ClientState())
 	require.NoError(solo.t, err)
 
 	signBytes := &solomachinetypes.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		DataType:    solomachinetypes.CLIENT,
-		Data:        dataOne,
+		Path:        path,
+		Data:        data,
 	}
 
 	bz, err := solo.cdc.Marshal(signBytes)
@@ -177,20 +177,27 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
 	sig := solo.GenerateSignature(bz)
 	signatureOne := solomachinetypes.SignatureAndData{
 		Signature: sig,
-		DataType:  solomachinetypes.CLIENT,
-		Data:      dataOne,
+		Path:      path,
+		Data:      data,
 		Timestamp: solo.Time,
 	}
 
 	// misbehaviour signaturess can have different timestamps
 	solo.Time++
 
+	merklePath = solo.GetConsensusStatePath("counterparty", clienttypes.NewHeight(0, 1))
+	path, err = solo.cdc.Marshal(&merklePath)
+	require.NoError(solo.t, err)
+
+	data, err = solo.cdc.Marshal(solo.ConsensusState())
+	require.NoError(solo.t, err)
+
 	signBytes = &solomachinetypes.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		DataType:    solomachinetypes.CONSENSUS,
-		Data:        dataTwo,
+		Path:        path,
+		Data:        data,
 	}
 
 	bz, err = solo.cdc.Marshal(signBytes)
@@ -199,8 +206,8 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachinetypes.Misbehaviour {
 	sig = solo.GenerateSignature(bz)
 	signatureTwo := solomachinetypes.SignatureAndData{
 		Signature: sig,
-		DataType:  solomachinetypes.CONSENSUS,
-		Data:      dataTwo,
+		Path:      path,
+		Data:      data,
 		Timestamp: solo.Time,
 	}
 

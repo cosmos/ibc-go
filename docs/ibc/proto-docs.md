@@ -295,9 +295,6 @@
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
-- [ibc/lightclients/localhost/v1/localhost.proto](#ibc/lightclients/localhost/v1/localhost.proto)
-    - [ClientState](#ibc.lightclients.localhost.v1.ClientState)
-  
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -337,6 +334,16 @@
     - [TimestampedSignatureData](#ibc.lightclients.solomachine.v2.TimestampedSignatureData)
   
     - [DataType](#ibc.lightclients.solomachine.v2.DataType)
+  
+- [ibc/lightclients/solomachine/v3/solomachine.proto](#ibc/lightclients/solomachine/v3/solomachine.proto)
+    - [ClientState](#ibc.lightclients.solomachine.v3.ClientState)
+    - [ConsensusState](#ibc.lightclients.solomachine.v3.ConsensusState)
+    - [Header](#ibc.lightclients.solomachine.v3.Header)
+    - [HeaderData](#ibc.lightclients.solomachine.v3.HeaderData)
+    - [Misbehaviour](#ibc.lightclients.solomachine.v3.Misbehaviour)
+    - [SignBytes](#ibc.lightclients.solomachine.v3.SignBytes)
+    - [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData)
+    - [TimestampedSignatureData](#ibc.lightclients.solomachine.v3.TimestampedSignatureData)
   
 - [ibc/lightclients/tendermint/v1/tendermint.proto](#ibc/lightclients/tendermint/v1/tendermint.proto)
     - [ClientState](#ibc.lightclients.tendermint.v1.ClientState)
@@ -3549,13 +3556,14 @@ MsgCreateClientResponse defines the Msg/CreateClient response type.
 ### MsgSubmitMisbehaviour
 MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 light client misbehaviour.
+Warning: DEPRECATED
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  | client unique identifier |
-| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | misbehaviour used for freezing the light client |
-| `signer` | [string](#string) |  | signer address |
+| `client_id` | [string](#string) |  | **Deprecated.** client unique identifier |
+| `misbehaviour` | [google.protobuf.Any](#google.protobuf.Any) |  | **Deprecated.** misbehaviour used for freezing the light client |
+| `signer` | [string](#string) |  | **Deprecated.** signer address |
 
 
 
@@ -3577,13 +3585,13 @@ type.
 
 ### MsgUpdateClient
 MsgUpdateClient defines an sdk.Msg to update a IBC client state using
-the given header.
+the given client message.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `client_id` | [string](#string) |  | client unique identifier |
-| `header` | [google.protobuf.Any](#google.protobuf.Any) |  | header to update the light client |
+| `client_message` | [google.protobuf.Any](#google.protobuf.Any) |  | client message to update the light client |
 | `signer` | [string](#string) |  | signer address |
 
 
@@ -4326,39 +4334,6 @@ GenesisState defines the ibc module's genesis state.
 
 
 
-<a name="ibc/lightclients/localhost/v1/localhost.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/lightclients/localhost/v1/localhost.proto
-
-
-
-<a name="ibc.lightclients.localhost.v1.ClientState"></a>
-
-### ClientState
-ClientState defines a loopback (localhost) client. It requires (read-only)
-access to keys outside the client prefix.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | self chain ID |
-| `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | self latest block height |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/lightclients/solomachine/v1/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -4995,6 +4970,169 @@ to preserve uniqueness of different data sign byte encodings.
 
 
 
+<a name="ibc/lightclients/solomachine/v3/solomachine.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/solomachine/v3/solomachine.proto
+
+
+
+<a name="ibc.lightclients.solomachine.v3.ClientState"></a>
+
+### ClientState
+ClientState defines a solo machine client that tracks the current consensus
+state and if the client is frozen.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | latest sequence of the client state |
+| `is_frozen` | [bool](#bool) |  | frozen sequence of the solo machine |
+| `consensus_state` | [ConsensusState](#ibc.lightclients.solomachine.v3.ConsensusState) |  |  |
+| `allow_update_after_proposal` | [bool](#bool) |  | when set to true, will allow governance to update a solo machine client. The client will be unfrozen if it is frozen. |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.ConsensusState"></a>
+
+### ConsensusState
+ConsensusState defines a solo machine consensus state. The sequence of a
+consensus state is contained in the "height" key used in storing the
+consensus state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `public_key` | [google.protobuf.Any](#google.protobuf.Any) |  | public key of the solo machine |
+| `diversifier` | [string](#string) |  | diversifier allows the same public key to be re-used across different solo machine clients (potentially on different chains) without being considered misbehaviour. |
+| `timestamp` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.Header"></a>
+
+### Header
+Header defines a solo machine consensus header
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence to update solo machine public key at |
+| `timestamp` | [uint64](#uint64) |  |  |
+| `signature` | [bytes](#bytes) |  |  |
+| `new_public_key` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `new_diversifier` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.HeaderData"></a>
+
+### HeaderData
+HeaderData returns the SignBytes data for update verification.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `new_pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | header public key |
+| `new_diversifier` | [string](#string) |  | header diversifier |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.Misbehaviour"></a>
+
+### Misbehaviour
+Misbehaviour defines misbehaviour for a solo machine which consists
+of a sequence and two signatures over different messages at that sequence.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
+| `sequence` | [uint64](#uint64) |  |  |
+| `signature_one` | [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData) |  |  |
+| `signature_two` | [SignatureAndData](#ibc.lightclients.solomachine.v3.SignatureAndData) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.SignBytes"></a>
+
+### SignBytes
+SignBytes defines the signed bytes used for signature verification.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | the sequence number |
+| `timestamp` | [uint64](#uint64) |  | the proof timestamp |
+| `diversifier` | [string](#string) |  | the public key diversifier |
+| `path` | [bytes](#bytes) |  | the standardised path bytes |
+| `data` | [bytes](#bytes) |  | the marshaled data bytes |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.SignatureAndData"></a>
+
+### SignatureAndData
+SignatureAndData contains a signature and the data signed over to create that
+signature.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signature` | [bytes](#bytes) |  |  |
+| `path` | [bytes](#bytes) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `timestamp` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.solomachine.v3.TimestampedSignatureData"></a>
+
+### TimestampedSignatureData
+TimestampedSignatureData contains the signature data and the timestamp of the
+signature.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signature_data` | [bytes](#bytes) |  |  |
+| `timestamp` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/lightclients/tendermint/v1/tendermint.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -5100,7 +5238,7 @@ that implements Misbehaviour interface expected by ICS-02
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
+| `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 
