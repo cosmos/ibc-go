@@ -125,9 +125,3 @@ func validCommit(chainID string, blockID tmtypes.BlockID, commit *tmproto.Commit
 
 	return nil
 }
-
-// TODO: Remove GetHeight()
-// GetHeight implements the curret exported.Header interface, to be updated
-func (misbehaviour Misbehaviour) GetHeight() exported.Height {
-	return nil
-}
