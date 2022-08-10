@@ -1,0 +1,132 @@
+package e2e
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/strangelove-ventures/ibctest"
+	"github.com/strangelove-ventures/ibctest/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/test"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+)
+
+func TestTransferTestSuite(t *testing.T) {
+	suite.Run(t, new(TransferTestSuite))
+}
+
+type TransferTestSuite struct {
+	testsuite.E2ETestSuite
+}
+
+// Transfer broadcasts a MsgTransfer message.
+func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User,
+	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+) (sdk.TxResponse, error) {
+	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
+// The transfer will occur over a basic transfer channel (non incentivized) and both native and non-native tokens
+// will be sent forwards and backwards in the IBC transfer timeline (both chains will act as source and receiver chains).
+func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
+	t := s.T()
+	ctx := context.TODO()
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	chainA, chainB := s.GetChains()
+
+	chainADenom := chainA.Config().Denom
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+
+	chainBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+
+	t.Run("relayer wallets recovered", func(t *testing.T) {
+		err := s.RecoverRelayerWallets(ctx, relayer)
+		s.Require().NoError(err)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("native IBC token transfer from chainA (source) to chainB, sender is source", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.getTimeoutHeight(ctx, chainB), 0)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	chainBIBCToken := s.getIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("non-native IBC token transfer from chainB to chainA (source), receiver is source", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.getTimeoutHeight(ctx, chainA), 0)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		s.Require().Equal(0, actualBalance)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+}
+
+// transferChannelOptions configures both of the chains to have non-incentivized transfer channels.
+func transferChannelOptions() func(options *ibc.CreateChannelOptions) {
+	return func(opts *ibc.CreateChannelOptions) {
+		opts.Version = "ics20-1"
+		opts.SourcePortName = "transfer"
+		opts.DestPortName = "transfer"
+	}
+}
+
+// getIBCToken returns the denomination of the full token denom sent to the receiving channel
+func (s *TransferTestSuite) getIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
+	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
+}
+
+// getTimeoutHeight returns a timeout height of 1000 blocks above the current block height
+// this function should be used when the timeout is never expected to be reached
+func (s *TransferTestSuite) getTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
+	height, err := chain.Height(ctx)
+	s.Require().NoError(err)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
+}
