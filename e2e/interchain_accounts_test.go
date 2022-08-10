@@ -31,23 +31,25 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	connectionId := "connection-0"
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	var (
-		account string
-	)
-
 	s.Run("register interchain account", func() {
-		var err error
-		account, err = chainA.RegisterInterchainAccount(ctx, chainAWallet.KeyName, connectionId)
+		account, err := chainA.RegisterInterchainAccount(ctx, chainAWallet.KeyName, connectionId)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(account)
 		s.T().Logf("account created: %s", account)
 	})
 
-	s.StartRelayer(relayer)
+	s.Run("start relayer", func() {
+		s.StartRelayer(relayer)
+	})
+
+	var (
+		interchainAccountAddress string
+	)
 
 	s.Run("verify interchain account", func() {
-		actualAccount, err := chainA.QueryInterchainAccount(ctx, connectionId, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix))
+		var err error
+		interchainAccountAddress, err = chainA.QueryInterchainAccount(ctx, connectionId, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix))
 		s.Require().NoError(err)
-		s.Require().Equal(account, actualAccount)
+		s.Require().NotEmpty(interchainAccountAddress)
 	})
 }

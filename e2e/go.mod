@@ -170,3 +170,4 @@ require (
 
 // TODO: using version v1.0.0 causes a build failure. This is the previous version which compiles successfully.
 replace github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
+replace github.com/strangelove-ventures/ibctest => ../../forks/ibctest
