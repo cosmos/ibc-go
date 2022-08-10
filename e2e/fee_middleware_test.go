@@ -197,6 +197,119 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds(
 	})
 }
 
+func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
+	ctx := context.TODO()
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+	chainA, chainB := s.GetChains()
+
+	var (
+		chainADenom        = chainA.Config().Denom
+		testFee            = testvalues.DefaultFee(chainADenom)
+		payPacketFeeTxResp sdk.TxResponse
+	)
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	s.Run("relayer wallets recovered", func() {
+		err := s.RecoverRelayerWallets(ctx, relayer)
+		s.Require().NoError(err)
+	})
+
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
+	s.Run("relayer wallets fetched", func() {
+		s.Require().NoError(err)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+
+	s.Run("register counter party payee", func() {
+		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(resp)
+	})
+
+	s.Run("verify counter party payee", func() {
+		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(chainARelayerWallet.Address, address)
+	})
+
+	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
+
+	s.Run("send IBC transfer", func() {
+		transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), testvalues.InvalidAddress, clienttypes.NewHeight(1, 1000), 0)
+		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
+		// this message should be successful, as receiver account is not validated on the sending chain.
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	s.Run("tokens are escrowed", func() {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - transferAmount.Amount.Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	s.Run("pay packet fee", func() {
+		s.Run("no incentivized packets", func() {
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			s.Require().NoError(err)
+			s.Require().Empty(packets)
+		})
+
+		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
+		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+
+		s.Run("should succeed", func() {
+			payPacketFeeTxResp, err = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(payPacketFeeTxResp)
+		})
+
+		s.Run("there should be incentivized packets", func() {
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			s.Require().NoError(err)
+			s.Require().Len(packets, 1)
+			actualFee := packets[0].PacketFees[0].Fee
+
+			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+		})
+
+		s.Run("balance should be lowered by sum of recv ack and timeout", func() {
+			// The balance should be lowered by the sum of the recv, ack and timeout fees.
+			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+			s.Require().NoError(err)
+
+			expected := testvalues.StartingTokenAmount - transferAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
+			s.Require().Equal(expected, actualBalance)
+		})
+	})
+
+	s.Run("start relayer", func() {
+		s.StartRelayer(relayer)
+	})
+
+	s.Run("packets are relayed", func() {
+		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Empty(packets)
+	})
+	s.Run("timeout fee and transfer amount refunded", func() {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance, "the amount sent and timeout fee should have been refunded as there was an invalid receiver address provided")
+	})
+}
+
 func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
