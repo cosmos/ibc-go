@@ -15,7 +15,7 @@ on:
         description: 'The image to use for chain A'
         required: true
         type: string
-        default: "ghcr.io/cosmos/ibc-go-simd-e2e"
+        default: "ghcr.io/cosmos/ibc-go-simd"
       chain-a-tag:
         description: 'The tag to use for chain A'
         required: true
@@ -39,6 +39,7 @@ on:
         required: true
         type: choice
         options:
+          - main
           - v4.0.0-rc3
           - v3.0.0
           - v2.2.0
