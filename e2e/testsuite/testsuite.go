@@ -21,6 +21,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 )
 
 const (
@@ -311,6 +312,14 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporter {
 	rep := testreporter.NewNopReporter()
 	return rep.RelayerExecReporter(s.T())
+}
+
+// GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
+// This function should be used when the timeout is never expected to be reached
+func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
+	height, err := chain.Height(ctx)
+	s.Require().NoError(err)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }
 
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
