@@ -3,8 +3,9 @@ on:
     inputs:
       test-entry-point:
         description: 'Test entry point'
-        required: true
+        required: false
         type: string
+        default: "" # empty string means run all tests
       chain-a-image:
         description: 'The image to use for chain A'
         required: true
@@ -42,6 +43,18 @@ env:
   IMAGE_NAME: ibc-go-simd
 
 jobs:
+  test-details:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Inputs
+        run: |
+          echo "Chain A Image:    ${{ inputs.chain-a-image }}"
+          echo "Chain A Tag:      ${{ inputs.chain-a-tag }}"
+          echo "Chain B Image:    ${{ inputs.chain-b-image }}"
+          echo "Chain B Tag:      ${{ inputs.chain-b-tag }}"
+          echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
+          echo "Test Entry Point: ${{ inputs.test-entry-point }}"
+
   docker-build:
     if: ${{ inputs.build-and-push-docker-image }}
     runs-on: ubuntu-latest

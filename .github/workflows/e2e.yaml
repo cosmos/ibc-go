@@ -32,7 +32,7 @@ jobs:
       if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
         - determine-image-tag
-      uses: ./.github/workflows/e2e-test.yml
+      uses: ./.github/workflows/reusable/e2e-test.yml
       secrets: inherit
       with:
         build-and-push-docker-image: true
@@ -41,4 +41,3 @@ jobs:
         chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-b-image: ghcr.io/cosmos/ibc-go-simd
         relayer-tag: "v2.0.0-rc2"
-        test-entry-point: "" # run all tests
