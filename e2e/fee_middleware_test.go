@@ -240,7 +240,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), testvalues.InvalidAddress, clienttypes.NewHeight(1, 1000), 0)
+		transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainA), 0)
 		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.Require().NoError(err)
