@@ -106,7 +106,7 @@ jobs:
       CHAIN_A_SIMD_IMAGE: "${{ inputs.chain-a-image }}"
       CHAIN_B_SIMD_TAG: "${{ inputs.chain-b-tag }}"
       CHAIN_B_SIMD_IMAGE: "${{ inputs.chain-b-image }}"
-      RLY_TAG: "{{ inputs.relayer-tag }}"
+      RLY_TAG: "${{ inputs.relayer-tag }}"
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
