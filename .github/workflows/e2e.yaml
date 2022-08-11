@@ -29,15 +29,16 @@ jobs:
             echo "Using tag $tag"
             echo "::set-output name=simd-tag::$tag"
     e2e:
+      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
         - determine-image-tag
       uses: ./.github/workflows/e2e-test.yml
       secrets: inherit
       with:
-        build-docker-image: true
-        chain-a-tag: ${{ needs.determine-image-tag.outputs.simd-tag }}
+        build-and-push-docker-image: true
+        chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-a-image: ghcr.io/cosmos/ibc-go-simd
-        chain-b-tag: ${{ needs.determine-image-tag.outputs.simd-tag }}
+        chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-b-image: ghcr.io/cosmos/ibc-go-simd
         relayer-tag: "v2.0.0-rc2"
         test-entry-point: "" # run all tests

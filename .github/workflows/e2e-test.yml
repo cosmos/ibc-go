@@ -30,8 +30,8 @@ on:
         required: true
         default: "v2.0.0-rc2"
         type: string
-      build-docker-image:
-        description: "Flag to specify if the docker image should be built beforehand"
+      build-and-push-docker-image:
+        description: "Flag to specify if the docker image should be built and pushed beforehand"
         required: false
         type: boolean
         default: false
@@ -43,7 +43,7 @@ env:
 
 jobs:
   docker-build:
-    if: ${{ inputs.build-docker-image }}
+    if: ${{ inputs.build-and-push-docker-image }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
