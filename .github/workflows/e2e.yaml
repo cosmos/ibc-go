@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ibc-go-simd-e2e
+  IMAGE_NAME: ibc-go-simd
 
 jobs:
   docker-build:
@@ -32,7 +32,7 @@ jobs:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
+        uses: docker/build-push-action@c84f38281176d4c9cdb1626ffafcd6b3911b5d94
         with:
           context: .
           push: true
@@ -51,7 +51,7 @@ jobs:
         with:
           go-version: 1.18
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(go run .github/scripts/build_test_matrix.go)"
+        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
 
 
   # the tag of the image will differ if this is a PR or the branch is being merged into main.
@@ -68,7 +68,7 @@ jobs:
           go-version: 1.18
       - id: get-tag
         run: |
-          tag=$(go run .github/scripts/determine_simd_tag.go -pr "${{ github.event.pull_request.number }}" )
+          tag=$(go run cmd/determine_simd_tag/main.go -pr "${{ github.event.pull_request.number }}" )
           echo "Using tag $tag"
           echo "::set-output name=simd-tag::$tag"
 
@@ -81,8 +81,8 @@ jobs:
       - determine-image-tag
       - docker-build
     env:
-      SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
-      SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
+      CHAIN_A_SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
+      CHAIN_A_SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd
       # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
       RLY_TAG: "v2.0.0-rc2"
     strategy:
@@ -93,12 +93,6 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: 1.18
-      - name: Log in to the Container registry
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run e2e Test
         run: |
           cd e2e

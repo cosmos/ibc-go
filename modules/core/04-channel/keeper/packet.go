@@ -9,11 +9,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 // SendPacket is called by a module in order to send an IBC packet on a channel
@@ -84,25 +84,16 @@ func (k Keeper) SendPacket(
 		)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(connectionEnd.GetClientID())
+	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
 	if err != nil {
 		return err
 	}
 
-	// NOTE: this is a temporary fix. Solo machine does not support usage of 'GetTimestampAtHeight'
-	// A future change should move this function to be a ClientState callback.
-	if clientType != exported.Solomachine {
-		latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
-		if err != nil {
-			return err
-		}
-
-		if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
-			return sdkerrors.Wrapf(
-				types.ErrPacketTimeout,
-				"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
-			)
-		}
+	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
+		return sdkerrors.Wrapf(
+			types.ErrPacketTimeout,
+			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+		)
 	}
 
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
@@ -361,7 +352,7 @@ func (k Keeper) WriteAcknowledgement(
 	// log that a packet acknowledgement has been written
 	k.Logger(ctx).Info(
 		"acknowledgement written",
-		"sequence", packet.GetSequence(),
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
 		"src_channel", packet.GetSourceChannel(),
 		"dst_port", packet.GetDestPort(),

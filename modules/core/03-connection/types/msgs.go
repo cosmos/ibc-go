@@ -5,10 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 var (
@@ -23,6 +23,7 @@ var (
 
 // NewMsgConnectionOpenInit creates a new MsgConnectionOpenInit instance. It sets the
 // counterparty connection identifier to be empty.
+//
 //nolint:interfacer
 func NewMsgConnectionOpenInit(
 	clientID, counterpartyClientID string,
@@ -72,10 +73,11 @@ func (msg MsgConnectionOpenInit) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConnectionOpenTry creates a new MsgConnectionOpenTry instance
+//
 //nolint:interfacer
 func NewMsgConnectionOpenTry(
-	previousConnectionID, clientID, counterpartyConnectionID,
-	counterpartyClientID string, counterpartyClient exported.ClientState,
+	clientID, counterpartyConnectionID, counterpartyClientID string,
+	counterpartyClient exported.ClientState,
 	counterpartyPrefix commitmenttypes.MerklePrefix,
 	counterpartyVersions []*Version, delayPeriod uint64,
 	proofInit, proofClient, proofConsensus []byte,
@@ -84,7 +86,6 @@ func NewMsgConnectionOpenTry(
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
 	csAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenTry{
-		PreviousConnectionId: previousConnectionID,
 		ClientId:             clientID,
 		ClientState:          csAny,
 		Counterparty:         counterparty,
@@ -101,11 +102,8 @@ func NewMsgConnectionOpenTry(
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgConnectionOpenTry) ValidateBasic() error {
-	// an empty connection identifier indicates that a connection identifier should be generated
 	if msg.PreviousConnectionId != "" {
-		if !IsValidConnectionID(msg.PreviousConnectionId) {
-			return sdkerrors.Wrap(ErrInvalidConnectionIdentifier, "invalid previous connection ID")
-		}
+		return sdkerrors.Wrap(ErrInvalidConnectionIdentifier, "previous connection identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return sdkerrors.Wrap(err, "invalid client ID")
@@ -169,6 +167,7 @@ func (msg MsgConnectionOpenTry) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConnectionOpenAck creates a new MsgConnectionOpenAck instance
+//
 //nolint:interfacer
 func NewMsgConnectionOpenAck(
 	connectionID, counterpartyConnectionID string, counterpartyClient exported.ClientState,
@@ -250,6 +249,7 @@ func (msg MsgConnectionOpenAck) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConnectionOpenConfirm creates a new MsgConnectionOpenConfirm instance
+//
 //nolint:interfacer
 func NewMsgConnectionOpenConfirm(
 	connectionID string, proofAck []byte, proofHeight clienttypes.Height,
