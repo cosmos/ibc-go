@@ -21,6 +21,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
