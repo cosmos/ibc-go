@@ -32,7 +32,7 @@ jobs:
       if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       needs:
         - determine-image-tag
-      uses: ./.github/workflows/_run-e2e-test.yml
+      uses: ./.github/workflows/e2e-test-workflow-call.yml
       secrets: inherit
       with:
         build-and-push-docker-image: true

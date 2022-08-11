@@ -55,6 +55,9 @@ jobs:
           echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
           echo "Test Entry Point: ${{ inputs.test-entry-point }}"
 
+  # we skip individual steps rather than the full job as e2e-tests will not run if this task
+  # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
+  # a job.
   docker-build:
     runs-on: ubuntu-latest
     steps:
