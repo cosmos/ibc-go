@@ -316,6 +316,14 @@ func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporte
 	return rep.RelayerExecReporter(s.T())
 }
 
+// GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
+// This function should be used when the timeout is never expected to be reached
+func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
+	height, err := chain.Height(ctx)
+	s.Require().NoError(err)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
+}
+
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
 func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.User) (int64, error) {
 	bal, err := chain.GetBalance(ctx, user.Bech32Address(chain.Config().Bech32Prefix), chain.Config().Denom)
