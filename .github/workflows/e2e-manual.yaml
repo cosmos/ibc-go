@@ -55,14 +55,11 @@ jobs:
   test-details:
     runs-on: ubuntu-latest
     steps:
-      - name: Display Test Values
-        uses: actions/github-script@v6
-        with:
-          script: |
-            console.log({
-              chainATag: github.event.inputs.chain-a-tag,
-              chainAImage: github.event.inputs.chain-a-image,
-            })
+      - name: Display Inputs
+        run: |
+          echo "Chain A Image:${{ inputs.chain-a-image }}"
+          echo "Chain A Tag: ${{ inputs.chain-a-tag }}"
+         
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
