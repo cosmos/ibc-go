@@ -59,6 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        if: ${{ inputs.build-and-push-docker-image }}
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image }}
         uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
