@@ -1,5 +1,9 @@
 package e2e
 
+/*
+The TransferTestSuite assumes both chainA and chainB support version ics20-1.
+*/
+
 import (
 	"context"
 	"fmt"
@@ -16,7 +20,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -33,20 +36,6 @@ func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosCh
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// QueryPacketCommitment queries the counterparty payee of the given chain and relayer address on the specified channel.
-func (s *TransferTestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) ([]byte, error) {
-	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
-	res, err := queryClient.PacketCommitment(ctx, &channeltypes.QueryPacketCommitmentRequest{
-		PortId:    portID,
-		ChannelId: channelID,
-		Sequence:  sequence,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return res.Commitment, nil
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -67,15 +56,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
-		s.Require().NoError(err)
-	})
-
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("native IBC token transfer from chainA (source) to chainB, sender is source", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.getTimeoutHeight(ctx, chainB), 0)
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(transferTxResp)
 	})
@@ -95,6 +79,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainBIBCToken := s.getIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
 	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
@@ -103,7 +89,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	})
 
 	t.Run("non-native IBC token transfer from chainB to chainA (source), receiver is source", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.getTimeoutHeight(ctx, chainA), 0)
+		transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(transferTxResp)
 	})
@@ -118,8 +104,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		commitment, err := s.QueryPacketCommitment(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
-		s.Require().Empty(commitment)
+		s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
@@ -141,12 +126,4 @@ func transferChannelOptions() func(options *ibc.CreateChannelOptions) {
 // getIBCToken returns the denomination of the full token denom sent to the receiving channel
 func (s *TransferTestSuite) getIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
 	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
-}
-
-// getTimeoutHeight returns a timeout height of 1000 blocks above the current block height
-// this function should be used when the timeout is never expected to be reached
-func (s *TransferTestSuite) getTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
-	height, err := chain.Height(ctx)
-	s.Require().NoError(err)
-	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }

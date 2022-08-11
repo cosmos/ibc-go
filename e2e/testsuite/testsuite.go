@@ -292,6 +292,13 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEmpty(resp.Data, respLogsMsg)
 }
 
+// AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
+// The packet commitment will be deleted upon a packet acknowledgement or timeout.
+func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.CosmosChain, portID, channelID string, sequence uint64) {
+	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
+	s.Require().Empty(commitment)
+}
+
 // createCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
