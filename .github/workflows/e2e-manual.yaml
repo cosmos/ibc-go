@@ -55,10 +55,14 @@ jobs:
   test-details:
     runs-on: ubuntu-latest
     steps:
-      - name: Display Test Inputs
-        uses: sergeysova/jq-action@v2
+      - name: Display Test Values
+        uses: actions/github-script@v6
         with:
-          cmd: jq -n "${{ github.event.inputs }}"
+          script: |
+            console.log({
+              chainATag: github.event.inputs.chain-a-tag,
+              chainAImage: github.event.inputs.chain-a-image,
+            })
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
