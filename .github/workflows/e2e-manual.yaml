@@ -52,6 +52,15 @@ on:
 
 
 jobs:
+  test-details:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Test Inputs
+        uses: actions/github-script@v6
+        with:
+          script: console.log(github.event.inputs)
+
+
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
     runs-on: ubuntu-latest
