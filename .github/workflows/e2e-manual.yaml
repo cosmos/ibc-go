@@ -15,7 +15,7 @@ on:
         description: 'The image to use for chain A'
         required: true
         type: string
-        default: "ghcr.io/cosmos/ibc-go-simd-e2e"
+        default: "ghcr.io/cosmos/ibc-go-simd"
       chain-a-tag:
         description: 'The tag to use for chain A'
         required: true
@@ -39,6 +39,7 @@ on:
         required: true
         type: choice
         options:
+          - main
           - v4.0.0-rc3
           - v3.0.0
           - v2.2.0
@@ -52,6 +53,19 @@ on:
 
 
 jobs:
+  test-details:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Inputs
+        run: |
+          echo "Chain A Image: ${{ inputs.chain-a-image }}"
+          echo "Chain A Tag: ${{ inputs.chain-a-tag }}"
+          echo "Chain B Image: ${{ inputs.chain-b-image }}"
+          echo "Chain B Tag: ${{ inputs.chain-b-tag }}"
+          echo "Relayer Tag: "${{ inputs.relayer-tag }}"
+          echo "Test Entry Point: "${{ inputs.test-entry-point }}"
+         
+
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
     runs-on: ubuntu-latest
