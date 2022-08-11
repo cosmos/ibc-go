@@ -21,6 +21,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 const (
@@ -46,7 +47,8 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	FeeQueryClient feetypes.QueryClient
+	FeeQueryClient     feetypes.QueryClient
+	ChannelQueryClient channeltypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -274,7 +276,8 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		FeeQueryClient: feetypes.NewQueryClient(grpcConn),
+		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 	}
 }
 

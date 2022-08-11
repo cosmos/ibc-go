@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -32,6 +33,20 @@ func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosCh
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// QueryPacketCommitment queries the counterparty payee of the given chain and relayer address on the specified channel.
+func (s *TransferTestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) ([]byte, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.PacketCommitment(ctx, &channeltypes.QueryPacketCommitmentRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+		Sequence:  sequence,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.Commitment, nil
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -100,9 +115,12 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(int64(0), actualBalance)
 	})
 
-	//	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets are relayed", func(t *testing.T) {
+		commitment, err := s.QueryPacketCommitment(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
+		s.Require().Empty(commitment)
+
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
