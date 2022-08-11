@@ -40,3 +40,4 @@ jobs:
         chain-b-tag: ${{ needs.determine-image-tag.outputs.simd-tag }}
         chain-b-image: ghcr.io/cosmos/ibc-go-simd
         relayer-tag: "v2.0.0-rc2"
+        test-entry-point: "" # run all tests
