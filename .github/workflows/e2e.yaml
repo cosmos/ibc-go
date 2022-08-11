@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ibc-go-simd-e2e
+  IMAGE_NAME: ibc-go-simd
 
 jobs:
   docker-build:
@@ -81,8 +81,8 @@ jobs:
       - determine-image-tag
       - docker-build
     env:
-      SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
-      SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
+      CHAIN_A_SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
+      CHAIN_A_SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd
       # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
       RLY_TAG: "v2.0.0-rc2"
     strategy:
@@ -93,12 +93,6 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: 1.18
-      - name: Log in to the Container registry
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run e2e Test
         run: |
           cd e2e
