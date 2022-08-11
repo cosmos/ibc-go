@@ -54,7 +54,7 @@ on:
 
 jobs:
   e2e-manual:
-    uses: ./.github/workflows/reusable/e2e-test.yml
+    uses: ./.github/workflows/_run-e2e-test.yml
     with:
       chain-a-tag: "${{ github.event.inputs.chain-a-tag }}"
       chain-a-image: "${{ github.event.inputs.chain-a-image }}"
