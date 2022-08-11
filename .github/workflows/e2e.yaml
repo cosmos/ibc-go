@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ibc-go-simd-e2e
+  IMAGE_NAME: ibc-go-simd
 
 jobs:
   docker-build:
@@ -82,7 +82,7 @@ jobs:
       - docker-build
     env:
       CHAIN_A_SIMD_TAG: ${{ needs.determine-image-tag.outputs.simd-tag }}
-      CHAIN_A_SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd-e2e
+      CHAIN_A_SIMD_IMAGE: ghcr.io/cosmos/ibc-go-simd
       # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
       RLY_TAG: "v2.0.0-rc2"
     strategy:

@@ -20,7 +20,7 @@ const (
 	ChainBSimdTagEnv = "CHAIN_B_SIMD_TAG"
 	GoRelayerTagEnv  = "RLY_TAG"
 
-	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd-e2e"
+	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd"
 	defaultRlyTag    = "main"
 )
 
