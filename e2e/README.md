@@ -58,7 +58,7 @@ Every time changes are pushed to a branch or to `main`, a new `simd` image is bu
 
 ```sh
 export CHAIN_A_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd"
-export CHAIN_A_SIMD_TAG="pr-1650"
+export CHAIN_A_SIMD_TAG="main"
 
 # We can also specify different values for the chains if needed.
 # they will default to the same as chain a.
