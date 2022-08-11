@@ -59,6 +59,10 @@ jobs:
         run: |
           echo "Chain A Image:${{ inputs.chain-a-image }}"
           echo "Chain A Tag: ${{ inputs.chain-a-tag }}"
+          echo "Chain B Image:${{ inputs.chain-b-image }}"
+          echo "Chain B Tag: ${{ inputs.chain-b-tag }}"
+          echo "Relayer Tag: "${{ inputs.relayer-tag }}"
+          echo "Test Entry Point: "${{ inputs.test-entry-point }}"
          
 
   # dynamically build a matrix of test/test suite pairs to run
