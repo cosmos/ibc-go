@@ -56,10 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Display Test Inputs
-        uses: actions/github-script@v6
+        uses: sergeysova/jq-action@v2
         with:
-          script: console.log(github.event.inputs)
-
+          cmd: jq -n "${{ github.event.inputs }}"
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix:
