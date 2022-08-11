@@ -48,18 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-<<<<<<< HEAD
-=======
-* (apps/29-fee) [\#1774](https://github.com/cosmos/ibc-go/pull/1774) Change non nil relayer assertion to non empty to avoid import/export issues for genesis upgrades. 
-* (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
-* (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
--
-* (light-clients/solomachine) [#1839](https://github.com/cosmos/ibc-go/issues/1839) Fixed usage of the new diversifier in validation of changing diversifiers for the solo machine. The current diversifier must sign over the new diversifier.
-* (light-clients/07-tendermint) [\#1674](https://github.com/cosmos/ibc-go/pull/1674) Submitted ClientState is zeroed out before checking the proof in order to prevent the proposal from containing information governance is not actually voting on.
-* (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 
->>>>>>> 897e7eb (fix: "acknowledgement written" logs unsupported type (#1919))
 ## [v3.1.1](https://github.com/cosmos/ibc-go/releases/tag/v3.1.1) - 2022-08-02
 
 ### Dependencies
