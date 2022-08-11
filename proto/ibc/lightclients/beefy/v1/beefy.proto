@@ -164,26 +164,23 @@ message ParachainHeader {
   // scale-encoded parachain header bytes
   bytes parachain_header = 1;
 
-  // reconstructed MmrLeaf, see beefy-go spec
+  // see beefy-go spec
   BeefyMmrLeafPartial mmr_leaf_partial = 2;
 
-  // para_id of the header.
-  uint32 para_id = 3;
-
   // proofs for our header in the parachain heads root
-  repeated bytes parachain_heads_proof = 4;
+  repeated bytes parachain_heads_proof = 3;
 
   // leaf index for parachain heads proof
-  uint32 heads_leaf_index = 5;
+  uint32 heads_leaf_index = 4;
 
   // total number of para heads in parachain_heads_root
-  uint32 heads_total_count = 6;
+  uint32 heads_total_count = 5;
 
   // trie merkle proof of inclusion in header.extrinsic_root
-  repeated bytes extrinsic_proof = 7;
+  repeated bytes extrinsic_proof = 6;
 
   // the actual timestamp extrinsic
-  bytes timestamp_extrinsic = 8;
+  bytes timestamp_extrinsic = 7;
 }
 
 // Partial data for MmrLeaf
