@@ -14,6 +14,12 @@ option (gogoproto.sizer_all)            = false;
 option (gogoproto.goproto_registration) = true;
 option (gogoproto.protosizer_all)       = false;
 
+enum RelayChain {
+  POLKADOT = 0;
+  KUSAMA = 1;
+  ROCOCO = 2;
+}
+
 // ClientState from Beefy tracks the current validator set, latest height,
 // and a possible frozen height.
 message ClientState {
@@ -28,15 +34,24 @@ message ClientState {
   // Block height when the client was frozen due to a misbehaviour
   uint64 frozen_height = 3;
 
+  /// Known relay chains 
+  RelayChain relay_chain = 4;
+
+  /// ParaId of associated parachain
+  uint32 para_id = 5;
+
+  /// latest parachain height
+  uint32 latest_para_height = 6;
+
   // block number that the beefy protocol was activated on the relay chain.
   // This should be the first block in the merkle-mountain-range tree.
-  uint32 beefy_activation_block = 4;
+  uint32 beefy_activation_block = 7;
 
   // authorities for the current round
-  BeefyAuthoritySet authority = 5;
+  BeefyAuthoritySet authority = 8;
 
   // authorities for the next round
-  BeefyAuthoritySet next_authority_set = 6;
+  BeefyAuthoritySet next_authority_set = 9;
 }
 
 // Actual payload items
