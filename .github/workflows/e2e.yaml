@@ -31,16 +31,12 @@ jobs:
     e2e:
       needs:
         - determine-image-tag
-      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-      runs-on: ubuntu-latest
-      steps:
-        - name: Run E2E Tests
-          uses: ./.github/workflows/e2e-test.yml
-          secrets: inherit
-          with:
-            build-docker-image: true
-            chain-a-tag: ${{ needs.determine-image-tag.outputs.simd-tag }}
-            chain-a-image: ghcr.io/cosmos/ibc-go-simd
-            chain-b-tag: ${{ needs.determine-image-tag.outputs.simd-tag }}
-            chain-b-image: ghcr.io/cosmos/ibc-go-simd
-            relayer-tag: "v2.0.0-rc2"
+      uses: ./.github/workflows/e2e-test.yml
+      secrets: inherit
+      with:
+        build-docker-image: true
+        chain-a-tag: ${{ needs.determine-image-tag.outputs.simd-tag }}
+        chain-a-image: ghcr.io/cosmos/ibc-go-simd
+        chain-b-tag: ${{ needs.determine-image-tag.outputs.simd-tag }}
+        chain-b-image: ghcr.io/cosmos/ibc-go-simd
+        relayer-tag: "v2.0.0-rc2"
