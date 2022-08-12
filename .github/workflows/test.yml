@@ -49,9 +49,10 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - name: Build
+      - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
-
+      - name: Build e2e
+        run: (cd e2e; GOARCH=${{ matrix.go-arch }} go build ./...)
   split-test-files:
     runs-on: ubuntu-latest
     steps:
