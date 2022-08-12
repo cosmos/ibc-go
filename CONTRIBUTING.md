@@ -23,12 +23,6 @@ Contributing to this repo can mean many things such as participating in
 discussion or proposing code changes. To ensure a smooth workflow for all
 contributors, the general procedure for contributing has been established:
 
-You can start by looking through these beginner and help-wanted issues:
-
-Beginner issues - issues which should only require a few lines of code, and a test or two.
-Help wanted issues - issues which should be a bit more involved than beginner issues.
-Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
-
 1. Either [open](https://github.com/cosmos/ibc-go/issues/new/choose) or 
    [find](https://github.com/cosmos/ibc-go/issues) an issue you'd like to help with.
    Looking for a good place to start contributing?
@@ -36,22 +30,22 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
     - Or pick up a [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) issue. These issues should be a bit more involved than the good first issues and the developer working on them would benefit from some familiarity with the codebase. This type of issues may involve adding new (or extending the functionality of existing) gRPC endpoints, bumping the version of Cosmos SDK or Tendermint or fixing bugs.
 2. Participate in thoughtful discussion on that issue.
 3. If you would like to contribute:
-  1. If the issue is a proposal, ensure that the proposal has been accepted
-  2. Ensure that nobody else has already begun working on this issue. If they have, make sure to contact them to collaborate.
-  3. If nobody has been assigned for the issue and you would like to work on it, 
-     make a comment on the issue to inform the community of your intentions
-     to begin work. Then we will be able to assign the issue to you. 
-  4. Follow standard GitHub best practices: fork the repo, branch from the
-     HEAD of `main`, make some commits, and submit a PR to `main`
+   1. If the issue is a proposal, ensure that the proposal has been accepted.
+   2. Ensure that nobody else has already begun working on this issue. If they have, make sure to contact them to collaborate.
+   3. If nobody has been assigned for the issue and you would like to work on it, 
+   make a comment on the issue to inform the community of your intentions
+   to begin work. Then we will be able to assign the issue to you. 
+   4. Follow standard GitHub best practices: fork the repo, branch from the
+   HEAD of `main`, make some commits, and submit a PR to `main`.
       - For core developers working within the ibc-go repo, to ensure a clear
         ownership of branches, branches must be named with the convention
         `{moniker}/{issue#}-branch-name`.
-  5. Feel free to submit the PR in `Draft` mode, even if
-     the work is not complete, as this indicates to the community you're working on
-     something and allows them to provide comments early in the development process.
-  6. When the code is complete it can be marked `Ready for Review`.
-  7. Be sure to include a relevant changelog entry in the `Unreleased` section
-     of [`CHANGELOG.md`](./CHANGELOG.md) (see file for log format).
+   5. Feel free to submit the PR in `Draft` mode, even if
+   the work is not complete, as this indicates to the community you're working on
+   something and allows them to provide comments early in the development process.
+   6. When the code is complete it can be marked `Ready for Review`.
+   7. Be sure to include a relevant changelog entry in the `Unreleased` section
+   of [`CHANGELOG.md`](./CHANGELOG.md) (see file for log format).
 
 Note that for very small or blatantly obvious problems (such as typos) it is
 not required to an open issue to submit a PR, but be aware that for more complex

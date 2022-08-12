@@ -72,11 +72,17 @@ For an overview of upcoming changes to ibc-go take a look at the [roadmap](./doc
 
 ## Contributing
 
-If you're interested in contributing to ibc-go, please take a look at the [contributing guidelines](./CONTRIBUTING.md) and the style guide. This project adheres to ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+If you're interested in contributing to ibc-go, please take a look at the [contributing guidelines](./CONTRIBUTING.md) and the style guide. We welcome and appreciate community contributions!
+
+This project adheres to ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
 To facilitate contributors the task of choosing what issues to pick up, we have the following two categories:
 - Issues with the label [`good first issue`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) should be pretty well defined and are best suited for developers new to ibc-go.
 - Issues with the label [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are a bit more involved and they usually require some familiarity already with the codebase.
+
+If you are interested to work on an issue, please make a comment on it; then we will be able to assign it to you. We will be happy to answer any questions you may have and help you out while you work on the issue.
+
+Teams develpoing an app, middleware or light client that would like to get in touch with us, please reach out to us in the `interchain` channel of the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578) and we can discuss further.
 
 ## Resources
 
