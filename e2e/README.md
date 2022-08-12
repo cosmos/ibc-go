@@ -63,7 +63,7 @@ export CHAIN_A_SIMD_TAG="main"
 # We can also specify different values for the chains if needed.
 # they will default to the same as chain a.
 # export CHAIN_B_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd"
-# export CHAIN_B_SIMD_TAG="pr-1650"
+# export CHAIN_B_SIMD_TAG="main"
 
 export RLY_TAG="v2.0.0-rc2"
 make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
