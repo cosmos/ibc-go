@@ -36,6 +36,8 @@ type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// cd e2e
+// make e2e-test test=TestInterchainAccounts suite=InterchainAccountsTestSuite
 func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	ctx := context.TODO()
 
