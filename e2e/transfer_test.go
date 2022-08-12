@@ -114,9 +114,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	})
 }
 
-// TestMsgTransfer_InvalidAddress_UnescrowsTokens attempts to send an IBC transfer to an invalid address and ensures
+// TestMsgTransfer_Fails_InvalidAddress attempts to send an IBC transfer to an invalid address and ensures
 // that the tokens on the sending chain are unescrowed.
-func (s *TransferTestSuite) TestMsgTransfer_InvalidAddress_UnescrowsTokens() {
+func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
