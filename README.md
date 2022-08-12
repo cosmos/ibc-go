@@ -68,6 +68,17 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
 
+## Ecosystem
+
+Discover what apps, middleware and light clients are developed by other awesome teams in the ecosystem:
+
+|Repository|Type|
+|----------|----|
+|[icq](https://github.com/strangelove-ventures/ibc-go/tree/feature/icq_implementation/modules/apps/icq)|`app`|
+|[interchain-queries](https://github.com/ingenuity-build/interchain-queries)|`app`|
+|[query](https://github.com/defund-labs/defund/tree/main/x/query)|`app`|
+|[packet-forward-middleware](https://github.com/strangelove-ventures/packet-forward-middleware)|`middleware`|
+
 ## Resources
 
 - [IBC Website](https://ibcprotocol.org/)
