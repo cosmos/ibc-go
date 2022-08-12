@@ -12,6 +12,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.48.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -152,7 +153,6 @@ require (
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.3.0 // indirect
 	lukechampine.com/uint128 v1.1.1 // indirect
@@ -170,4 +170,5 @@ require (
 
 // TODO: using version v1.0.0 causes a build failure. This is the previous version which compiles successfully.
 replace github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
-replace github.com/strangelove-ventures/ibctest => ../../forks/ibctest
+
+//replace github.com/strangelove-ventures/ibctest => ../../forks/ibctest
