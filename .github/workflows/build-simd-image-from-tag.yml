@@ -23,6 +23,6 @@ jobs:
               username: ${{ github.actor }}
               password: ${{ secrets.GITHUB_TOKEN }}
          - name: Fetch latest Dockerfile
-           run: git checkout main -- Dockerfile
+           run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
          - name: Build image
            run: docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
