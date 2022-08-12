@@ -107,13 +107,13 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds(
 
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
-	t.Run("register counter party payee", func(t *testing.T) {
+	t.Run("register counterparty payee", func(t *testing.T) {
 		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(resp)
 	})
 
-	t.Run("verify counter party payee", func(t *testing.T) {
+	t.Run("verify counterparty payee", func(t *testing.T) {
 		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.Address, address)
@@ -225,13 +225,13 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
-	t.Run("register counter party payee", func(t *testing.T) {
+	t.Run("register counterparty payee", func(t *testing.T) {
 		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(resp)
 	})
 
-	t.Run("verify counter party payee", func(t *testing.T) {
+	t.Run("verify counterparty payee", func(t *testing.T) {
 		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.Address, address)
@@ -240,7 +240,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainA), 0)
+		transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0)
 		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.Require().NoError(err)
@@ -349,13 +349,13 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	s.Require().NoError(err)
 	t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
 
-	t.Run("register counter party payee", func(t *testing.T) {
+	t.Run("register counterparty payee", func(t *testing.T) {
 		multiMsgTxResponse, err = s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(multiMsgTxResponse)
 	})
 
-	t.Run("verify counter party payee", func(t *testing.T) {
+	t.Run("verify counterparty payee", func(t *testing.T) {
 		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.Address, address)
@@ -451,13 +451,13 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
 
-	t.Run("register counter party payee", func(t *testing.T) {
+	t.Run("register counterparty payee", func(t *testing.T) {
 		resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
 		s.Require().NoError(err)
 		s.AssertValidTxResponse(resp)
 	})
 
-	t.Run("verify counter party payee", func(t *testing.T) {
+	t.Run("verify counterparty payee", func(t *testing.T) {
 		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.Address, address)
@@ -624,7 +624,7 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPar
 		s.StartRelayer(relayer)
 	})
 
-	t.Run("with no counter party address", func(t *testing.T) {
+	t.Run("with no counterparty address", func(t *testing.T) {
 		t.Run("packets are relayed", func(t *testing.T) {
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
