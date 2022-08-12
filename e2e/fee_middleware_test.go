@@ -282,7 +282,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
 		})
 
-		t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
+		t.Run("balance should be lowered by sum of recv, ack and timeout", func(t *testing.T) {
 			// The balance should be lowered by the sum of the recv, ack and timeout fees.
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
