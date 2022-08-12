@@ -70,6 +70,14 @@ Note: The localhost client is currently non-functional.
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
 
+## Contributing
+
+If you're interested in contributing to ibc-go, please take a look at the [contributing guidelines](./CONTRIBUTING.md) and the style guide. This project adheres to ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
+To facilitate contributors the task of choosing what issues to pick up, we have the following two categories:
+- Issues with the label [`good first issue`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) should be pretty well defined and are best suited for developers new to ibc-go.
+- Issues with the label [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are a bit more involved and they usually require some familiarity already with the codebase.
+
 ## Resources
 
 - [IBC Website](https://ibcprotocol.org/)
