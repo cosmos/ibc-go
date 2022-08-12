@@ -25,4 +25,7 @@ jobs:
          - name: Fetch latest Dockerfile
            run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
          - name: Build image
-           run: docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
+           run: |
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
+            docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
+        
