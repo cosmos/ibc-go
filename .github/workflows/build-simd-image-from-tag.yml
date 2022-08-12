@@ -1,0 +1,28 @@
+name: Build Simd Image
+on:
+   push:
+
+env:
+   REGISTRY: ghcr.io
+   ORG: cosmos
+   IMAGE_NAME: ibc-go-simd-e2e
+   VERSION: v3.0.0
+
+jobs:
+   build-simd-image:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v3
+           with:
+            ref: "${{ env.VERSION }}"
+            fetch-depth: 0
+         - name: Log in to the Container registry
+           uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+           with:
+              registry: ${{ env.REGISTRY }}
+              username: ${{ github.actor }}
+              password: ${{ secrets.GITHUB_TOKEN }}
+         - name: Fetch latest Dockerfile
+           run: git checkout main -- Dockerfile
+         - name: Build image
+           run: docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
