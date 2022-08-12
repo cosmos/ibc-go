@@ -8,16 +8,27 @@ import (
 )
 
 const (
-	ChainASimdImageEnv = "CHAIN_A_SIMD_IMAGE"
-	ChainASimdTag      = "CHAIN_A_SIMD_TAG"
-	ChainBSimdImageEnv = "CHAIN_B_SIMD_IMAGE"
-	ChainBSimdTagEnv   = "CHAIN_B_SIMD_TAG"
-	GoRelayerTagEnv    = "RLY_TAG"
-	ChainABinaryEnv    = "CHAIN_A_BINARY"
-	ChainBBinaryEnv    = "CHAIN_B_BINARY"
 
-	defaultBinary    = "simd"
-	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd-e2e"
+	// ChainASimdImageEnv specifies the image that Chain A will use.
+	ChainASimdImageEnv = "CHAIN_A_SIMD_IMAGE"
+	// ChainASimdTagEnv specifies the tag that Chain A will use.
+	ChainASimdTagEnv = "CHAIN_A_SIMD_TAG"
+	// ChainBSimdImageEnv specifies the image that Chain B will use. If unspecified
+	// the value will default to the same value as Chain A.
+	ChainBSimdImageEnv = "CHAIN_B_SIMD_IMAGE"
+	// ChainBSimdTagEnv specifies the tag that Chain B will use. If unspecified
+	// the value will default to the same value as Chain A.
+	ChainBSimdTagEnv = "CHAIN_B_SIMD_TAG"
+	// GoRelayerTagEnv specifies the go relayer version. Defaults to "main"
+	GoRelayerTagEnv = "RLY_TAG"
+	// ChainABinaryEnv binary is the binary that will be used for chain A.
+	ChainABinaryEnv = "CHAIN_A_BINARY"
+	// ChainBBinaryEnv binary is the binary that will be used for chain B.
+	ChainBBinaryEnv = "CHAIN_B_BINARY"
+	// defaultBinary is the default binary that will be used by the chains.
+	defaultBinary = "simd"
+	// defaultSimdImage is the default image that will be used for the chain if none are specified.
+	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd"
 	defaultRlyTag    = "main"
 )
 
@@ -51,9 +62,9 @@ func FromEnv() TestConfig {
 		chainASimdImage = defaultSimdImage
 	}
 
-	chainASimdTag, ok := os.LookupEnv(ChainASimdTag)
+	chainASimdTag, ok := os.LookupEnv(ChainASimdTagEnv)
 	if !ok {
-		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainABinary, ChainASimdTag))
+		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainABinary, ChainASimdTagEnv))
 	}
 
 	chainBSimdImage, ok := os.LookupEnv(ChainBSimdImageEnv)
