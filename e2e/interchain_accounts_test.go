@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -17,16 +18,22 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
+func init() {
+	// TODO: remove these, they should be set external to the tests.
+	os.Setenv("CHAIN_A_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
+	os.Setenv("CHAIN_A_SIMD_TAG", "v0.3.0")
+	os.Setenv("CHAIN_B_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
+	os.Setenv("CHAIN_B_SIMD_TAG", "v0.3.0")
+	os.Setenv("CHAIN_A_BINARY", "icad")
+	os.Setenv("CHAIN_B_BINARY", "icad")
+}
+
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
 
 type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
-}
-
-type IBCTransferTx struct {
-	TxHash string `json:"txhash"`
 }
 
 func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
@@ -66,6 +73,10 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 }
 
 // TODO: replace the below methods with transaction broadcasts.
+
+type IBCTransferTx struct {
+	TxHash string `json:"txhash"`
+}
 
 // RegisterICA will attempt to register an interchain account on the counterparty chain.
 func (*InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *cosmos.CosmosChain, address, connectionID string) (string, error) {
