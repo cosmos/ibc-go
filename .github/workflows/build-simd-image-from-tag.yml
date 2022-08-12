@@ -6,7 +6,7 @@ env:
    REGISTRY: ghcr.io
    ORG: cosmos
    IMAGE_NAME: ibc-go-simd-e2e
-   VERSION: v3.0.0
+   VERSION: v2.0.0
 
 jobs:
    build-simd-image:
