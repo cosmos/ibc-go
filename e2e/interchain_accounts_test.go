@@ -2,9 +2,7 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,7 +64,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAccountAddress, err = s.QueryICA(ctx, chainA, connectionId, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix))
+		interchainAccountAddress, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccountAddress)
 	})
@@ -91,30 +89,4 @@ func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *co
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msg)
 	s.AssertValidTxResponse(txResp)
 	return err
-}
-
-// TODO: replace the below methods with transaction broadcasts.
-
-// QueryICA will query for an interchain account controlled by the specified address on the counterparty chain.
-func (*InterchainAccountsTestSuite) QueryICA(ctx context.Context, chain *cosmos.CosmosChain, connectionID, address string) (string, error) {
-	config := chain.Config()
-	node := chain.ChainNodes[0]
-	command := []string{config.Bin, "query", "intertx", "interchainaccounts", connectionID, address,
-		"--chain-id", node.Chain.Config().ChainID,
-		"--home", node.HomeDir(),
-		"--node", fmt.Sprintf("tcp://%s:26657", node.HostName())}
-
-	stdout, _, err := node.Exec(ctx, command, nil)
-	if err != nil {
-		return "", err
-	}
-
-	// at this point stdout should look like this:
-	// interchain_account_address: cosmos1p76n3mnanllea4d3av0v0e42tjj03cae06xq8fwn9at587rqp23qvxsv0j
-	// we split the string at the : and then just grab the address before returning.
-	parts := strings.SplitN(string(stdout), ":", 2)
-	if len(parts) < 2 {
-		return "", fmt.Errorf("malformed stdout from command: %s", stdout)
-	}
-	return strings.TrimSpace(parts[1]), nil
 }
