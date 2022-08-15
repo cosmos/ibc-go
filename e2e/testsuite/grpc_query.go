@@ -3,6 +3,7 @@ package testsuite
 import (
 	"context"
 
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/ibctest/ibc"
 
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -20,4 +21,17 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 		return nil, err
 	}
 	return res.Commitment, nil
+}
+
+// QueryInterchainAccount queries the interchain account for the given owner and connectionId.
+func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionId string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).ICAQueryClient
+	res, err := queryClient.InterchainAccountFromAddress(ctx, &intertxtypes.QueryInterchainAccountFromAddressRequest{
+		Owner:        owner,
+		ConnectionId: connectionId,
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.InterchainAccountAddress, nil
 }

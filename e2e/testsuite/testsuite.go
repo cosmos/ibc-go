@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -50,6 +51,7 @@ type E2ETestSuite struct {
 type GRPCClients struct {
 	ChannelQueryClient channeltypes.QueryClient
 	FeeQueryClient     feetypes.QueryClient
+	ICAQueryClient     intertxtypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -279,6 +281,7 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
 		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
 	}
 }
 

@@ -2,21 +2,18 @@ package e2e
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	ibctest "github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v2"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -40,6 +37,15 @@ type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// RegisterICA will attempt to register an interchain account on the counterparty chain.
+func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, fromAddress, connectionID string) error {
+	version := "" // allow app to handle the version as appropriate.
+	msg := intertxtypes.NewMsgRegisterAccount(fromAddress, connectionID, version)
+	txResp, err := s.BroadcastMessages(ctx, chain, user, msg)
+	s.AssertValidTxResponse(txResp)
+	return err
+}
+
 // cd e2e
 // make e2e-test test=TestInterchainAccounts suite=InterchainAccountsTestSuite
 func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
@@ -55,10 +61,9 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	controllerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
-	var err error
 
 	t.Run("register interchain account", func(t *testing.T) {
-		_, err := s.RegisterICA(ctx, chainA, controllerWallet.KeyName, connectionId)
+		err := s.RegisterICA(ctx, chainA, controllerWallet, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
 	})
 
@@ -67,13 +72,15 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	})
 
 	t.Run("verify interchain account", func(t *testing.T) {
-		hostAccount, err = s.QueryICA(ctx, chainA, connectionId, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix))
+		var err error
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 	})
 
 	// TODO: RegisterICA should return account addr
 	// TODO: change bech32 prefix so both are not the same
+	// TODO: utility function wrapping Get&FundTestUsers
 
 	t.Run("send successful bank transfer from controller account to host account", func(t *testing.T) {
 
@@ -102,94 +109,4 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance)
 	})
-}
-
-type IBCTransferTx struct {
-	TxHash string `json:"txhash"`
-}
-
-// RegisterICA will attempt to register an interchain account on the counterparty chain.
-func (*InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *cosmos.CosmosChain, address, connectionID string) (string, error) {
-	config := chain.Config()
-	node := chain.ChainNodes[0]
-	command := []string{config.Bin, "tx", "intertx", "register",
-		"--from", address,
-		"--connection-id", connectionID,
-		"--chain-id", config.ChainID,
-		"--home", node.HomeDir(),
-		"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
-		"--keyring-backend", keyring.BackendTest,
-		"-y",
-	}
-
-	stdout, _, err := node.Exec(ctx, command, nil)
-	if err != nil {
-		return "", err
-	}
-	output := IBCTransferTx{}
-	err = yaml.Unmarshal(stdout, &output)
-	if err != nil {
-		return "", err
-	}
-	return output.TxHash, nil
-}
-
-// QueryICA will query for an interchain account controlled by the specified address on the counterparty chain.
-func (*InterchainAccountsTestSuite) QueryICA(ctx context.Context, chain *cosmos.CosmosChain, connectionID, address string) (string, error) {
-	config := chain.Config()
-	node := chain.ChainNodes[0]
-	command := []string{config.Bin, "query", "intertx", "interchainaccounts", connectionID, address,
-		"--chain-id", node.Chain.Config().ChainID,
-		"--home", node.HomeDir(),
-		"--node", fmt.Sprintf("tcp://%s:26657", node.HostName())}
-
-	stdout, _, err := node.Exec(ctx, command, nil)
-	if err != nil {
-		return "", err
-	}
-
-	// at this point stdout should look like this:
-	// interchain_account_address: cosmos1p76n3mnanllea4d3av0v0e42tjj03cae06xq8fwn9at587rqp23qvxsv0j
-	// we split the string at the : and then just grab the address before returning.
-	parts := strings.SplitN(string(stdout), ":", 2)
-	if len(parts) < 2 {
-		return "", fmt.Errorf("malformed stdout from command: %s", stdout)
-	}
-	return strings.TrimSpace(parts[1]), nil
-}
-
-// SendICABankTransfer builds a bank transfer message for a specified address and sends it to the specified
-// interchain account.
-func (*InterchainAccountsTestSuite) SendICABankTransfer(ctx context.Context, chain *cosmos.CosmosChain, connectionID string, amount ibc.WalletAmount, toAddr string) error {
-	config := chain.Config()
-	node := chain.ChainNodes[0]
-
-	msg, err := json.Marshal(map[string]any{
-		"@type":        "/cosmos.bank.v1beta1.MsgSend",
-		"from_address": amount.Address,
-		"to_address":   toAddr,
-		"amount": []map[string]any{
-			{
-				"denom":  amount.Denom,
-				"amount": amount.Amount,
-			},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	command := []string{
-		config.Bin, "tx", "intertx", "submit", string(msg),
-		"--connection-id", connectionID,
-		"--from", amount.Address,
-		"--chain-id", node.Chain.Config().ChainID,
-		"--home", node.HomeDir(),
-		"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),
-		"--keyring-backend", keyring.BackendTest,
-		"-y",
-	}
-
-	_, _, err = node.Exec(ctx, command, nil)
-	return err
 }
