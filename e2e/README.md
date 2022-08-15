@@ -312,7 +312,7 @@ All tests will be run on different hosts.
 
 ### Github Workflows
 
-#### Building and bushing a simd image.
+#### Building and pushing a `simd` image.
 
 If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) github workflow.
 
