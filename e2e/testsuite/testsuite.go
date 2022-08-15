@@ -21,6 +21,8 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 const (
@@ -46,7 +48,8 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	FeeQueryClient feetypes.QueryClient
+	ChannelQueryClient channeltypes.QueryClient
+	FeeQueryClient     feetypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -274,7 +277,8 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		FeeQueryClient: feetypes.NewQueryClient(grpcConn),
+		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -286,6 +290,13 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
 	s.Require().NotEmpty(resp.Events, respLogsMsg)
 	s.Require().NotEmpty(resp.Data, respLogsMsg)
+}
+
+// AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
+// The packet commitment will be deleted upon a packet acknowledgement or timeout.
+func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.CosmosChain, portID, channelID string, sequence uint64) {
+	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
+	s.Require().Empty(commitment)
 }
 
 // createCosmosChains creates two separate chains in docker containers.
@@ -311,6 +322,14 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporter {
 	rep := testreporter.NewNopReporter()
 	return rep.RelayerExecReporter(s.T())
+}
+
+// GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
+// This function should be used when the timeout is never expected to be reached
+func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
+	height, err := chain.Height(ctx)
+	s.Require().NoError(err)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }
 
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.

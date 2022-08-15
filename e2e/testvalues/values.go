@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	StartingTokenAmount int64 = 10_000_000
-	IBCTransferAmount   int64 = 10_000
+	StartingTokenAmount int64  = 10_000_000
+	IBCTransferAmount   int64  = 10_000
+	InvalidAddress      string = "<invalid-address>"
 )
 
 // ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
