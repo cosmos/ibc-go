@@ -38,20 +38,39 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#1615](https://github.com/cosmos/ibc-go/pull/1615) Bump SDK version to v0.45.6
-* [\#1627](https://github.com/cosmos/ibc-go/pull/1627) Bump Go version to 1.18
-
 ### API Breaking
 
 ### State Machine Breaking
 
-### Improvements
-
-* (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal. 
+### Improvements 
 
 ### Features
 
 ### Bug Fixes
+
+## [v3.2.0](https://github.com/cosmos/ibc-go/releases/tag/v3.2.0) - 2022-08-12
+
+### Dependencies
+
+* [\#1627](https://github.com/cosmos/ibc-go/pull/1627) Bump Go version to 1.18
+* [\#1905](https://github.com/cosmos/ibc-go/pull/1905) Bump SDK version to v0.45.7
+
+### State Machine Breaking
+
+* (apps/transfer) [\#1907](https://github.com/cosmos/ibc-go/pull/1907) Blocked module account addresses are no longer allowed to send IBC transfers. 
+* (apps/27-interchain-accounts) [\#1882](https://github.com/cosmos/ibc-go/pull/1882) Explicitly check length of interchain account packet data in favour of nil check.
+
+### Improvements
+
+* (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
+* (modules/light-clients/07-tendermint) [\#1713](https://github.com/cosmos/ibc-go/pull/1713) Allow client upgrade proposals to update `TrustingPeriod`. See ADR-026 for context.
+* (app/20-transfer) [\#1680](https://github.com/cosmos/ibc-go/pull/1680) Adds migration to correct any malformed trace path information of tokens with denoms that contains slashes. The transfer module consensus version has been bumped to 2.
+* (app/20-transfer) [\#1730](https://github.com/cosmos/ibc-go/pull/1730) parse the ics20 denomination provided via a packet using the channel identifier format specified by ibc-go.
+* (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
+
+### Bug Fixes
+
+* (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 
 ## [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) - 2022-04-16
 
