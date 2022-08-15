@@ -233,6 +233,11 @@ func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
 	relayer.StopRelayer(ctx, s.getRelayerExecReporter())
 }
 
+// StopRelayer stops the given relayer.
+func (s *E2ETestSuite) GetRelayerExecReporter() ibc.RelayerExecReporter {
+	return s.getRelayerExecReporter()	
+}
+
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) *ibctest.User {
 	chainA, _ := s.GetChains()

@@ -25,7 +25,7 @@ func init() {
 	os.Setenv("CHAIN_A_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
 	os.Setenv("CHAIN_A_SIMD_TAG", "v0.3.0")
 	os.Setenv("CHAIN_B_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
-	os.Setenv("CHAIN_B_SIMD_TAG", "v0.2.0")
+	os.Setenv("CHAIN_B_SIMD_TAG", "v0.3.0")
 	os.Setenv("CHAIN_A_BINARY", "icad")
 	os.Setenv("CHAIN_B_BINARY", "icad")
 }
@@ -77,12 +77,12 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		hostWallet, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostWallet))
-	})
 
-	t.Run("restart relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-		s.StartRelayer(relayer)
-		test.WaitForBlocks(ctx, 3, chainA, chainB)
+		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+		s.Require().NoError(err)
+		s.Require().Equal(len(channels), 2)
+		fmt.Printf("$$$$$$$$$$$$$%v$$$$$$$$$$$$$$", channels)
+	
 	})
 
 	// TODO: RegisterICA should return account addr
