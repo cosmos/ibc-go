@@ -10,6 +10,7 @@ import (
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -34,6 +35,15 @@ type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// RegisterICA will attempt to register an interchain account on the counterparty chain.
+func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, fromAddress, connectionID string) error {
+	version := "" // allow app to handle the version as appropriate.
+	msg := intertxtypes.NewMsgRegisterAccount(fromAddress, connectionID, version)
+	txResp, err := s.BroadcastMessages(ctx, chain, user, msg)
+	s.AssertValidTxResponse(txResp)
+	return err
+}
+
 // cd e2e
 // make e2e-test test=TestInterchainAccounts suite=InterchainAccountsTestSuite
 func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
@@ -47,7 +57,8 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 	connectionId := "connection-0"
 	controllerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, 0)
+	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
 		err := s.RegisterICA(ctx, chainA, controllerWallet, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
@@ -58,20 +69,27 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		s.StartRelayer(relayer)
 	})
 
-	var (
-		interchainAccountAddress string
-	)
-
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAccountAddress, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
-		s.Require().NotEmpty(interchainAccountAddress)
+		s.Require().NotZero(len(hostAccount))
 	})
 
+	// TODO: RegisterICA should return account addr
 	// TODO: change bech32 prefix so both are not the same
+	// TODO: utility function wrapping Get&FundTestUsers
 
 	t.Run("send successful bank transfer from controller account to host account", func(t *testing.T) {
+
+		// fund the host account wallet so it has some $$ to send
+		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			Address: hostAccount,
+			Amount:  testvalues.StartingTokenAmount,
+			Denom:   chainB.Config().Denom,
+		})
+		s.Require().NoError(err)
+
 		resp, err := s.BroadcastMessages(ctx, chainA, controllerWallet, &banktypes.MsgSend{
 			FromAddress: controllerWallet.Bech32Address(chainA.Config().Bech32Prefix),
 			ToAddress:   chainBWallet.Bech32Address(chainB.Config().Bech32Prefix),
@@ -80,14 +98,11 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
-	})
-}
 
-// RegisterICA will attempt to register an interchain account on the counterparty chain.
-func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, fromAddress, connectionID string) error {
-	version := "" // allow app to handle the version as appropriate.
-	msg := intertxtypes.NewMsgRegisterAccount(fromAddress, connectionID, version)
-	txResp, err := s.BroadcastMessages(ctx, chain, user, msg)
-	s.AssertValidTxResponse(txResp)
-	return err
+		// balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		// s.Require().NoError(err)
+
+		// expected := testvalues.IBCTransferAmount
+		// s.Require().Equal(expected, balance)
+	})
 }
