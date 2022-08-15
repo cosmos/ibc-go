@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -20,7 +20,6 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // MigrateTraces migrates the DenomTraces to the correct format, accounting for slashes in the BaseDenom.
 func (m Migrator) MigrateTraces(ctx sdk.Context) error {
-
 	// list of traces that must replace the old traces in store
 	var newTraces []types.DenomTrace
 	m.keeper.IterateDenomTraces(ctx,

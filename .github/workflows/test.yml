@@ -49,15 +49,16 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - name: Build
+      - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
-
+      - name: Build e2e
+        run: (cd e2e; GOARCH=${{ matrix.go-arch }} go build ./...)
   split-test-files:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Create a file with all the pkgs
-        run: go list ./... ./.github/scripts > pkgs.txt
+        run: go list ./... > pkgs.txt
       - name: Split pkgs into 4 files
         run: split -d -n l/4 pkgs.txt pkgs.txt.part.
       # cache multiple

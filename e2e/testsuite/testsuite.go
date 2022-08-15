@@ -3,16 +3,12 @@ package testsuite
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
-
-	"e2e/testconfig"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/broadcast"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
@@ -23,7 +19,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/e2e/testconfig"
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 const (
@@ -49,7 +48,9 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
-	FeeQueryClient feetypes.QueryClient
+	ClientQueryClient  clienttypes.QueryClient
+	ChannelQueryClient channeltypes.QueryClient
+	FeeQueryClient     feetypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -93,8 +94,6 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
-	home, err := ioutil.TempDir("", "")
-	s.Require().NoError(err)
 
 	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
@@ -120,7 +119,6 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	eRep := s.getRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
-		HomeDir:           home,
 		Client:            s.DockerClient,
 		NetworkID:         s.network,
 		CreateChannelOpts: channelOptions,
@@ -174,9 +172,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user broadcast.User, msgs ...sdk.Msg) (sdk.TxResponse, error) {
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, msgs ...sdk.Msg) (sdk.TxResponse, error) {
 	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
-	resp, err := ibctest.BroadcastTx(ctx, broadcaster, user, msgs...)
+	resp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -280,7 +278,9 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
-		FeeQueryClient: feetypes.NewQueryClient(grpcConn),
+		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
+		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
+		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -294,10 +294,16 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEmpty(resp.Data, respLogsMsg)
 }
 
+// AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
+// The packet commitment will be deleted upon a packet acknowledgement or timeout.
+func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.CosmosChain, portID, channelID string, sequence uint64) {
+	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
+	s.Require().Empty(commitment)
+}
+
 // createCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
-	ctx := context.Background()
 	client, network := ibctest.DockerSetup(s.T())
 
 	s.logger = zap.NewExample()
@@ -310,16 +316,6 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 1, 0, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 1, 0, logger)
 
-	s.T().Cleanup(func() {
-		if !s.T().Failed() {
-			for _, c := range []*cosmos.CosmosChain{chainA, chainB} {
-				if err := c.Cleanup(ctx); err != nil {
-					s.T().Logf("Chain cleanup for %s failed: %v", c.Config().ChainID, err)
-				}
-			}
-		}
-	})
-
 	return chainA, chainB
 }
 
@@ -328,6 +324,14 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporter {
 	rep := testreporter.NewNopReporter()
 	return rep.RelayerExecReporter(s.T())
+}
+
+// GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
+// This function should be used when the timeout is never expected to be reached
+func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
+	height, err := chain.Height(ctx)
+	s.Require().NoError(err)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }
 
 // GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
