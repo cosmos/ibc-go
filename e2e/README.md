@@ -316,7 +316,7 @@ All tests will be run on different hosts.
 
 If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
 
-Thie can be triggered manually from the UI by navigating to
+This can be triggered manually from the UI by navigating to
 
 `Actions` -> `Build Simd Image` -> `Run Workflow`
 
