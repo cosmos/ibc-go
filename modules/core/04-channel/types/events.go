@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
 // IBC channel events
@@ -22,9 +22,9 @@ const (
 	EventTypeTimeoutPacket        = "timeout_packet"
 	EventTypeTimeoutPacketOnClose = "timeout_on_close_packet"
 
-	// NOTE: DEPRECATED in favor of AttributeKeyDataHex
+	// Deprecated: in favor of AttributeKeyDataHex
 	AttributeKeyData = "packet_data"
-	// NOTE: DEPRECATED in favor of AttributeKeyAckHex
+	// Deprecated: in favor of AttributeKeyAckHex
 	AttributeKeyAck = "packet_ack"
 
 	AttributeKeyDataHex          = "packet_data_hex"
@@ -48,6 +48,7 @@ var (
 	EventTypeChannelOpenConfirm  = "channel_open_confirm"
 	EventTypeChannelCloseInit    = "channel_close_init"
 	EventTypeChannelCloseConfirm = "channel_close_confirm"
+	EventTypeChannelClosed       = "channel_close"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", host.ModuleName, SubModuleName)
 )

@@ -1,21 +1,20 @@
 package keeper_test
 
 import (
-	"time"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
@@ -29,6 +28,48 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		malleate func()
 		expPass  bool
 	}{
+		{
+			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
+			func() {
+				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				// Populate the gov keeper in advance with an active proposal
+				testProposal := &govtypes.TextProposal{
+					Title:       "IBC Gov Proposal",
+					Description: "tokens for all!",
+				}
+
+				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
+				suite.Require().NoError(err)
+
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime())
+				suite.Require().NoError(err)
+
+				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
+				suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
+
+				msg := &govtypes.MsgVote{
+					ProposalId: govtypes.DefaultStartingProposalID,
+					Voter:      interchainAccountAddr,
+					Option:     govtypes.OptionYes,
+				}
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []sdk.Msg{msg})
+				suite.Require().NoError(err)
+
+				icaPacketData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{"*"})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			true,
+		},
 		{
 			"interchain account successfully executes banktypes.MsgSend",
 			func() {
@@ -165,7 +206,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Description: "tokens for all!",
 				}
 
-				proposal, err := govtypes.NewProposal(testProposal, govtypes.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour))
+				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
+				suite.Require().NoError(err)
+
+				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, "test proposal", suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime())
 				suite.Require().NoError(err)
 
 				suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -264,7 +308,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)),
 					Sender:           interchainAccountAddr,
 					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
-					TimeoutHeight:    clienttypes.NewHeight(0, 100),
+					TimeoutHeight:    clienttypes.NewHeight(1, 100),
 					TimeoutTimestamp: uint64(0),
 				}
 
@@ -420,7 +464,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				path.EndpointA.ChannelID,
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
-				clienttypes.NewHeight(0, 100),
+				clienttypes.NewHeight(1, 100),
 				0,
 			)
 

@@ -1,13 +1,12 @@
 package types_test
 
 import (
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 // use TestVersion as metadata being compared against
 func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
-
 	var (
 		metadata        types.Metadata
 		previousVersion string
@@ -127,7 +126,6 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 }
 
 func (suite *TypesTestSuite) TestValidateControllerMetadata() {
-
 	var metadata types.Metadata
 
 	testCases := []struct {
@@ -269,7 +267,6 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 }
 
 func (suite *TypesTestSuite) TestValidateHostMetadata() {
-
 	var metadata types.Metadata
 
 	testCases := []struct {

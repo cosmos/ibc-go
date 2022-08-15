@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 // EmitIncentivizedPacketEvent emits an event containing information on the total amount of fees incentivizing
@@ -27,7 +27,7 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 		}
 	}
 
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIncentivizedPacket,
 			sdk.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
@@ -37,5 +37,41 @@ func EmitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 			sdk.NewAttribute(types.AttributeKeyAckFee, totalAckFees.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutFee, totalTimeoutFees.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
+}
+
+// EmitRegisterPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel
+func EmitRegisterPayeeEvent(ctx sdk.Context, relayer, payee, channelID string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRegisterPayee,
+			sdk.NewAttribute(types.AttributeKeyRelayer, relayer),
+			sdk.NewAttribute(types.AttributeKeyPayee, payee),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
+}
+
+// EmitRegisterCounterpartyPayeeEvent emits an event containing information of a registered counterparty payee for a relayer on a particular channel
+func EmitRegisterCounterpartyPayeeEvent(ctx sdk.Context, relayer, counterpartyPayee, channelID string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRegisterCounterpartyPayee,
+			sdk.NewAttribute(types.AttributeKeyRelayer, relayer),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 }

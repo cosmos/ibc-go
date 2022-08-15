@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -27,7 +28,6 @@ func ReceiverChainIsSource(sourcePort, sourceChannel, denom string) bool {
 
 	voucherPrefix := GetDenomPrefix(sourcePort, sourceChannel)
 	return strings.HasPrefix(denom, voucherPrefix)
-
 }
 
 // GetDenomPrefix returns the receiving denomination prefix
@@ -42,7 +42,7 @@ func GetPrefixedDenom(portID, channelID, baseDenom string) string {
 
 // GetTransferCoin creates a transfer coin with the port ID and channel ID
 // prefixed to the base denom.
-func GetTransferCoin(portID, channelID, baseDenom string, amount sdk.Int) sdk.Coin {
+func GetTransferCoin(portID, channelID, baseDenom string, amount math.Int) sdk.Coin {
 	denomTrace := ParseDenomTrace(GetPrefixedDenom(portID, channelID, baseDenom))
 	return sdk.NewCoin(denomTrace.IBCDenom(), amount)
 }

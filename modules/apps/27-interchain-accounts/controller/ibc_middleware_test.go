@@ -9,29 +9,29 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
-	icacontroller "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller"
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	fee "github.com/cosmos/ibc-go/v5/modules/apps/29-fee"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 var (
 	// TODO: Cosmos-SDK ADR-28: Update crypto.AddressHash() when sdk uses address.Module()
 	// https://github.com/cosmos/cosmos-sdk/issues/10225
 	//
-	// TestAccAddress defines a resuable bech32 address for testing purposes
+	// TestAccAddress defines a reusable bech32 address for testing purposes
 	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), ibctesting.FirstConnectionID, TestPortID)
 
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-	// TestPortID defines a resuable port identifier for testing purposes
+	// TestPortID defines a reusable port identifier for testing purposes
 	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
 
-	// TestVersion defines a resuable interchainaccounts version string for testing purposes
+	// TestVersion defines a reusable interchainaccounts version string for testing purposes
 	TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
 		Version:                icatypes.Version,
 		ControllerConnectionId: ibctesting.FirstConnectionID,
@@ -83,7 +83,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
 		return err
 	}
 
@@ -120,9 +120,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
-	var (
-		channel *channeltypes.Channel
-	)
+	var channel *channeltypes.Channel
 
 	testCases := []struct {
 		name     string
@@ -131,6 +129,18 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	}{
 		{
 			"success", func() {}, true,
+		},
+		{
+			"ICA auth module modification of channel version is ignored", func() {
+				// NOTE: explicitly modify the channel version via the auth module callback,
+				// ensuring the expected JSON encoded metadata is not modified upon return
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					return "invalid-version", nil
+				}
+			}, true,
 		},
 		{
 			"controller submodule disabled", func() {
@@ -202,19 +212,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			)
 
 			if tc.expPass {
-				expMetadata := icatypes.NewMetadata(
-					icatypes.Version,
-					path.EndpointA.ConnectionID,
-					path.EndpointB.ConnectionID,
-					"",
-					icatypes.EncodingProtobuf,
-					icatypes.TxTypeSDKMultiMsg,
-				)
-
-				expBytes, err := icatypes.ModuleCdc.MarshalJSON(&expMetadata)
-				suite.Require().NoError(err)
-
-				suite.Require().Equal(version, string(expBytes))
+				suite.Require().Equal(icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID), version)
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -246,7 +244,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	proofInit, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenTry
-	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, proofInit, proofHeight, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, proofInit, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
@@ -273,9 +271,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
@@ -336,10 +332,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
-
 }
 
 // Test initiating a ChanOpenConfirm using the controller chain instead of the host chain
@@ -389,7 +383,6 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 	)
 	suite.Require().Error(err)
-
 }
 
 // OnChanCloseInit on controller (chainA)
@@ -414,16 +407,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -454,13 +444,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -509,9 +497,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
@@ -580,9 +566,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
@@ -730,9 +714,8 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	controllerModule := cbs.(icacontroller.IBCMiddleware)
-
-	appVersion, found := controllerModule.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	controllerStack := cbs.(fee.IBCMiddleware)
+	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
 }

@@ -6,26 +6,34 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.
-func NewGenesisState(identifiedFees []IdentifiedPacketFees, feeEnabledChannels []FeeEnabledChannel, registeredRelayers []RegisteredRelayerAddress, forwardRelayers []ForwardRelayerAddress) *GenesisState {
+func NewGenesisState(
+	identifiedFees []IdentifiedPacketFees,
+	feeEnabledChannels []FeeEnabledChannel,
+	registeredPayees []RegisteredPayee,
+	registeredCounterpartyPayees []RegisteredCounterpartyPayee,
+	forwardRelayers []ForwardRelayerAddress,
+) *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:     identifiedFees,
-		FeeEnabledChannels: feeEnabledChannels,
-		RegisteredRelayers: registeredRelayers,
-		ForwardRelayers:    forwardRelayers,
+		IdentifiedFees:               identifiedFees,
+		FeeEnabledChannels:           feeEnabledChannels,
+		RegisteredPayees:             registeredPayees,
+		RegisteredCounterpartyPayees: registeredCounterpartyPayees,
+		ForwardRelayers:              forwardRelayers,
 	}
 }
 
-// DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
+// DefaultGenesisState returns a default instance of the 29-fee GenesisState.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		IdentifiedFees:     []IdentifiedPacketFees{},
-		ForwardRelayers:    []ForwardRelayerAddress{},
-		FeeEnabledChannels: []FeeEnabledChannel{},
-		RegisteredRelayers: []RegisteredRelayerAddress{},
+		IdentifiedFees:               []IdentifiedPacketFees{},
+		ForwardRelayers:              []ForwardRelayerAddress{},
+		FeeEnabledChannels:           []FeeEnabledChannel{},
+		RegisteredPayees:             []RegisteredPayee{},
+		RegisteredCounterpartyPayees: []RegisteredCounterpartyPayee{},
 	}
 }
 
@@ -55,14 +63,37 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
-	// Validate RegisteredRelayers
-	for _, rel := range gs.RegisteredRelayers {
-		if _, err := sdk.AccAddressFromBech32(rel.Address); err != nil {
-			return sdkerrors.Wrap(err, "failed to convert source relayer address into sdk.AccAddress")
+	// Validate RegisteredPayees
+	for _, registeredPayee := range gs.RegisteredPayees {
+		if registeredPayee.Relayer == registeredPayee.Payee {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address and payee address must not be equal")
 		}
 
-		if strings.TrimSpace(rel.CounterpartyAddress) == "" {
-			return ErrCounterpartyAddressEmpty
+		if _, err := sdk.AccAddressFromBech32(registeredPayee.Relayer); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
+		}
+
+		if _, err := sdk.AccAddressFromBech32(registeredPayee.Payee); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert payee address into sdk.AccAddress")
+		}
+
+		if err := host.ChannelIdentifierValidator(registeredPayee.ChannelId); err != nil {
+			return sdkerrors.Wrapf(err, "invalid channel identifier: %s", registeredPayee.ChannelId)
+		}
+	}
+
+	// Validate RegisteredCounterpartyPayees
+	for _, registeredCounterpartyPayee := range gs.RegisteredCounterpartyPayees {
+		if _, err := sdk.AccAddressFromBech32(registeredCounterpartyPayee.Relayer); err != nil {
+			return sdkerrors.Wrap(err, "failed to convert relayer address into sdk.AccAddress")
+		}
+
+		if strings.TrimSpace(registeredCounterpartyPayee.CounterpartyPayee) == "" {
+			return ErrCounterpartyPayeeEmpty
+		}
+
+		if err := host.ChannelIdentifierValidator(registeredCounterpartyPayee.ChannelId); err != nil {
+			return sdkerrors.Wrapf(err, "invalid channel identifier: %s", registeredCounterpartyPayee.ChannelId)
 		}
 	}
 

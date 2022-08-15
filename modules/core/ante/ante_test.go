@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/ante"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/ante"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type AnteTestSuite struct {
@@ -49,7 +49,7 @@ func (suite *AnteTestSuite) createRecvPacketMessage(sequenceNumber uint64, isRed
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(1, 0), 0)
+		clienttypes.NewHeight(2, 0), 0)
 
 	err := suite.path.EndpointA.SendPacket(packet)
 	suite.Require().NoError(err)
@@ -73,7 +73,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(sequenceNumber uint64, 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequenceNumber,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
 		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		clienttypes.NewHeight(1, 0), 0)
+		clienttypes.NewHeight(2, 0), 0)
 
 	err := suite.path.EndpointB.SendPacket(packet)
 	suite.Require().NoError(err)
@@ -153,7 +153,7 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	var header exported.Header
+	var header exported.ClientMessage
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
@@ -415,11 +415,11 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
 					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-					clienttypes.NewHeight(1, 0), 0)
+					clienttypes.NewHeight(2, 0), 0)
 
 				return []sdk.Msg{
 					suite.createRecvPacketMessage(uint64(1), false),
-					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(0, 1), "signer"),
+					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
 			false,
@@ -430,10 +430,10 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				msg := suite.createRecvPacketMessage(uint64(1), false)
 
 				// We want to be able to run check tx with the non-redundant message without
-				// commiting it to a block, so that the when check tx runs with the redundant
+				// committing it to a block, so that the when check tx runs with the redundant
 				// message they are both in the same block
 				k := suite.chainB.App.GetIBCKeeper()
-				decorator := ante.NewAnteDecorator(k)
+				decorator := ante.NewRedundantRelayDecorator(k)
 				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
 				next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
 				txBuilder := suite.chainB.TxConfig.NewTxBuilder()
@@ -458,7 +458,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			suite.SetupTest()
 
 			k := suite.chainB.App.GetIBCKeeper()
-			decorator := ante.NewAnteDecorator(k)
+			decorator := ante.NewRedundantRelayDecorator(k)
 
 			msgs := tc.malleate(suite)
 

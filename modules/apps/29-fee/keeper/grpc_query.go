@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -35,7 +35,6 @@ func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncen
 		identifiedPackets = append(identifiedPackets, types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees))
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -89,7 +88,6 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -101,7 +99,6 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 // TotalRecvFees implements the Query/TotalRecvFees gRPC method
 func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
@@ -174,21 +171,39 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 	}, nil
 }
 
-// CounterpartyAddress implements the Query/CounterpartyAddress gRPC method and returns the registered counterparty address for forward relaying
-func (k Keeper) CounterpartyAddress(goCtx context.Context, req *types.QueryCounterpartyAddressRequest) (*types.QueryCounterpartyAddressResponse, error) {
+// Payee implements the Query/Payee gRPC method and returns the registered payee address to which packet fees are paid out
+func (k Keeper) Payee(goCtx context.Context, req *types.QueryPayeeRequest) (*types.QueryPayeeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	counterpartyAddr, found := k.GetCounterpartyAddress(ctx, req.RelayerAddress, req.ChannelId)
+	payeeAddr, found := k.GetPayeeAddress(ctx, req.Relayer, req.ChannelId)
 	if !found {
-		return nil, status.Errorf(codes.NotFound, "counterparty address not found for address: %s on channel: %s", req.RelayerAddress, req.ChannelId)
+		return nil, status.Errorf(codes.NotFound, "payee address not found for address: %s on channel: %s", req.Relayer, req.ChannelId)
 	}
 
-	return &types.QueryCounterpartyAddressResponse{
-		CounterpartyAddress: counterpartyAddr,
+	return &types.QueryPayeeResponse{
+		PayeeAddress: payeeAddr,
+	}, nil
+}
+
+// CounterpartyPayee implements the Query/CounterpartyPayee gRPC method and returns the registered counterparty payee address for forward relaying
+func (k Keeper) CounterpartyPayee(goCtx context.Context, req *types.QueryCounterpartyPayeeRequest) (*types.QueryCounterpartyPayeeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	counterpartyPayeeAddr, found := k.GetCounterpartyPayeeAddress(ctx, req.Relayer, req.ChannelId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "counterparty payee address not found for address: %s on channel: %s", req.Relayer, req.ChannelId)
+	}
+
+	return &types.QueryCounterpartyPayeeResponse{
+		CounterpartyPayee: counterpartyPayeeAddr,
 	}, nil
 }
 
@@ -217,7 +232,6 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}

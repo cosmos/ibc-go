@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 const (
@@ -21,6 +21,56 @@ const (
 	flagAckFee     = "ack-fee"
 	flagTimeoutFee = "timeout-fee"
 )
+
+// NewRegisterPayeeCmd returns the command to create a MsgRegisterPayee
+func NewRegisterPayeeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "register-payee [port-id] [channel-id] [relayer] [payee] ",
+		Short:   "Register a payee on a given channel.",
+		Long:    strings.TrimSpace(`Register a payee address on a given channel.`),
+		Example: fmt.Sprintf("%s tx ibc-fee register-payee transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5", version.AppName),
+		Args:    cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRegisterPayee(args[0], args[1], args[2], args[3])
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewRegisterCounterpartyPayeeCmd returns the command to create a MsgRegisterCounterpartyPayee
+func NewRegisterCounterpartyPayeeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "register-counterparty-payee [port-id] [channel-id] [relayer] [counterparty-payee] ",
+		Short:   "Register a counterparty payee address on a given channel.",
+		Long:    strings.TrimSpace(`Register a counterparty payee address on a given channel.`),
+		Example: fmt.Sprintf("%s tx ibc-fee register-counterparty-payee transfer channel-0 cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh osmo1v5y0tz01llxzf4c2afml8s3awue0ymju22wxx2", version.AppName),
+		Args:    cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRegisterCounterpartyPayee(args[0], args[1], args[2], args[3])
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
 
 // NewPayPacketFeeAsyncTxCmd returns the command to create a MsgPayPacketFeeAsync
 func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
@@ -45,7 +95,7 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(args[0], args[1], seq)
+			packetID := channeltypes.NewPacketID(args[0], args[1], seq)
 
 			recvFeeStr, err := cmd.Flags().GetString(flagRecvFee)
 			if err != nil {
@@ -93,31 +143,6 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 	cmd.Flags().String(flagRecvFee, "", "Fee paid to a relayer for relaying a packet receive.")
 	cmd.Flags().String(flagAckFee, "", "Fee paid to a relayer for relaying a packet acknowledgement.")
 	cmd.Flags().String(flagTimeoutFee, "", "Fee paid to a relayer for relaying a packet timeout.")
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// NewRegisterCounterpartyAddress returns the command to create a MsgRegisterCounterpartyAddress
-func NewRegisterCounterpartyAddress() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "register-counterparty [address] [counterparty-address] [channel-id] [port-id]",
-		Short:   "Register a counterparty relayer address on a given channel.",
-		Long:    strings.TrimSpace(`Register a counterparty relayer address on a given channel.`),
-		Example: fmt.Sprintf("%s tx ibc-fee register-counterparty cosmos1rsp837a4kvtgp2m4uqzdge0zzu6efqgucm0qdh osmo1v5y0tz01llxzf4c2afml8s3awue0ymju22wxx2 channel-0 transfer", version.AppName),
-		Args:    cobra.ExactArgs(4),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgRegisterCounterpartyAddress(args[0], args[1], args[2], args[3])
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

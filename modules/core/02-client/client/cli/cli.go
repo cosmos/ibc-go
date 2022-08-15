@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 )
 
 // GetQueryCmd returns the query commands for IBC clients
@@ -22,6 +22,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryClientState(),
 		GetCmdQueryClientStatus(),
 		GetCmdQueryConsensusStates(),
+		GetCmdQueryConsensusStateHeights(),
 		GetCmdQueryConsensusState(),
 		GetCmdQueryHeader(),
 		GetCmdSelfConsensusState(),
@@ -44,7 +45,7 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewCreateClientCmd(),
 		NewUpdateClientCmd(),
-		NewSubmitMisbehaviourCmd(),
+		NewSubmitMisbehaviourCmd(), // Deprecated
 		NewUpgradeClientCmd(),
 	)
 

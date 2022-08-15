@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 )
 
 // IsHostEnabled retrieves the host enabled boolean from the paramstore.

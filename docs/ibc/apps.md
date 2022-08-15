@@ -17,7 +17,7 @@ protocol. Then the document goes into detail on the abstraction layer most relev
 developers (channels and ports), and describes how to define your own custom packets, and
 `IBCModule` callbacks.
 
-To have your module interact over IBC you must: bind to a port(s), define your own packet data and acknolwedgement structs as well as how to encode/decode them, and implement the
+To have your module interact over IBC you must: bind to a port(s), define your own packet data and acknowledgement structs as well as how to encode/decode them, and implement the
 `IBCModule` interface. Below is a more detailed explanation of how to write an IBC application
 module correctly.
 
@@ -73,15 +73,9 @@ OnChanOpenTry(
     counterparty channeltypes.Counterparty,
     counterpartyVersion string,
 ) (string, error) {
-    // Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-    // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-    // If the module can already authenticate the capability then the module already owns it so we don't need to claim
-    // Otherwise, module does not have channel capability and we must claim it from IBC
-    if !k.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-        // Only claim channel capability passed back by IBC module if we do not already own it
-        if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-            return err
-        }
+    // OpenTry must claim the channelCapability that IBC passes into the callback
+    if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+        return err
     }
     
     // ... do custom initialization logic

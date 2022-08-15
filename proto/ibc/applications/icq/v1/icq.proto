@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.icq.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/icq/types";
+option go_package = "github.com/cosmos/ibc-go/v5/modules/apps/icq/types";
 
 import "gogoproto/gogo.proto";
 

@@ -7,18 +7,19 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type TlaBalance struct {
@@ -86,7 +87,7 @@ type Balance struct {
 	Id      string
 	Address string
 	Denom   string
-	Amount  sdk.Int
+	Amount  math.Int
 }
 
 func AddressFromString(address string) string {
@@ -163,12 +164,12 @@ func OnRecvPacketTestCaseFromTla(tc TlaOnRecvPacketTestCase) OnRecvPacketTestCas
 var addressMap = make(map[string]string)
 
 type Bank struct {
-	balances map[OwnedCoin]sdk.Int
+	balances map[OwnedCoin]math.Int
 }
 
 // Make an empty bank
 func MakeBank() Bank {
-	return Bank{balances: make(map[OwnedCoin]sdk.Int)}
+	return Bank{balances: make(map[OwnedCoin]math.Int)}
 }
 
 // Subtract other bank from this bank
@@ -191,7 +192,7 @@ func (bank *Bank) Sub(other *Bank) Bank {
 }
 
 // Set specific bank balance
-func (bank *Bank) SetBalance(address string, denom string, amount sdk.Int) {
+func (bank *Bank) SetBalance(address string, denom string, amount math.Int) {
 	bank.balances[OwnedCoin{address, denom}] = amount
 }
 
@@ -275,16 +276,16 @@ func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, ban
 
 func (suite *KeeperTestSuite) TestModelBasedRelay() {
 	dirname := "model_based_tests/"
-	files, err := ioutil.ReadDir(dirname)
+	files, err := os.ReadDir(dirname)
 	if err != nil {
 		panic(fmt.Errorf("Failed to read model-based test files: %w", err))
 	}
 	for _, file_info := range files {
-		var tlaTestCases = []TlaOnRecvPacketTestCase{}
+		tlaTestCases := []TlaOnRecvPacketTestCase{}
 		if !strings.HasSuffix(file_info.Name(), ".json") {
 			continue
 		}
-		jsonBlob, err := ioutil.ReadFile(dirname + file_info.Name())
+		jsonBlob, err := os.ReadFile(dirname + file_info.Name())
 		if err != nil {
 			panic(fmt.Errorf("Failed to read JSON test fixture: %w", err))
 		}
@@ -312,7 +313,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 			description := file_info.Name() + " # " + strconv.Itoa(i+1)
 			suite.Run(fmt.Sprintf("Case %s", description), func() {
 				seq := uint64(1)
-				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(0, 100), 0)
+				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(1, 100), 0)
 				bankBefore := BankFromBalances(tc.bankBefore)
 				realBankBefore := BankOfChain(suite.chainB)
 				// First validate the packet itself (mimics what happens when the packet is being sent and/or received)
@@ -344,7 +345,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender,
 							tc.packet.Data.Receiver,
-							clienttypes.NewHeight(0, 110),
+							clienttypes.NewHeight(1, 110),
 							0)
 					}
 				case "OnRecvPacket":
@@ -360,7 +361,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					registerDenom()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,
-						channeltypes.NewErrorAcknowledgement("MBT Error Acknowledgement"))
+						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)
 				}

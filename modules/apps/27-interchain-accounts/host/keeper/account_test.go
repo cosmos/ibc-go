@@ -3,8 +3,8 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
@@ -13,7 +13,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 
-	//RegisterInterchainAccount 
+	// RegisterInterchainAccount
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 

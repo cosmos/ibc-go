@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/icq/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 )
 
 // InitGenesis initializes the icq state and binds to PortID.

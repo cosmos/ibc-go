@@ -1,13 +1,14 @@
 package keeper
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 // OnRecvPacket handles a given interchain accounts packet on a destination host chain.
@@ -53,7 +54,7 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 	}
 
 	txMsgData := &sdk.TxMsgData{
-		Data: make([]*sdk.MsgData, len(msgs)),
+		MsgResponses: make([]*codectypes.Any, len(msgs)),
 	}
 
 	// CacheContext returns a new context with the multi-store branched into a cached storage object
@@ -64,16 +65,12 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 			return nil, err
 		}
 
-		msgResponse, err := k.executeMsg(cacheCtx, msg)
+		any, err := k.executeMsg(cacheCtx, msg)
 		if err != nil {
 			return nil, err
 		}
 
-		txMsgData.Data[i] = &sdk.MsgData{
-			MsgType: sdk.MsgTypeURL(msg),
-			Data:    msgResponse,
-		}
-
+		txMsgData.MsgResponses[i] = any
 	}
 
 	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
@@ -114,7 +111,7 @@ func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, po
 
 // Attempts to get the message handler from the router and if found will then execute the message.
 // If the message execution is successful, the proto marshaled message response will be returned.
-func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) ([]byte, error) {
+func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
 	handler := k.msgRouter.Handler(msg)
 	if handler == nil {
 		return nil, icatypes.ErrInvalidRoute
@@ -128,5 +125,11 @@ func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) ([]byte, error) {
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
-	return res.Data, nil
+	// Each individual sdk.Result has exactly one Msg response. We aggregate here.
+	msgResponse := res.MsgResponses[0]
+	if msgResponse == nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
+	}
+
+	return msgResponse, nil
 }

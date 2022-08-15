@@ -6,8 +6,8 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
 var (
@@ -110,7 +110,7 @@ func (gs GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
 	// the next sequence used in creating client identifers.
-	var maxSequence uint64 = 0
+	var maxSequence uint64
 
 	if err := gs.Params.Validate(); err != nil {
 		return err
@@ -196,13 +196,8 @@ func (gs GenesisState) Validate() error {
 			if err := gm.Validate(); err != nil {
 				return fmt.Errorf("invalid client metadata %v clientID %s index %d: %w", gm, clientMetadata.ClientId, i, err)
 			}
-
 		}
 
-	}
-
-	if gs.CreateLocalhost && !gs.Params.IsAllowedClient(exported.Localhost) {
-		return fmt.Errorf("localhost client is not registered on the allowlist")
 	}
 
 	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {

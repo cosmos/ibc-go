@@ -5,11 +5,11 @@ import (
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
@@ -25,7 +25,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -98,7 +97,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				suite.Require().Error(err)
 				suite.Require().Equal(version, "")
 			}
-
 		})
 	}
 }
@@ -117,7 +115,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -127,10 +124,10 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}, false,
 		},
 		{
-			"capability already claimed in INIT should pass", func() {
+			"capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, true,
+			}, false,
 		},
 		{
 			"invalid order - ORDERED", func() {
@@ -191,7 +188,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
 			}
-
 		})
 	}
 }
@@ -204,7 +200,6 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
@@ -241,7 +236,6 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			} else {
 				suite.Require().Error(err)
 			}
-
 		})
 	}
 }

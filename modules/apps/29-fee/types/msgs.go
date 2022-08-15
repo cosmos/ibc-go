@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
 // msg types
@@ -16,55 +16,101 @@ const (
 	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
 )
 
-// NewMsgRegisterCounterpartyAddress creates a new instance of MsgRegisterCounterpartyAddress
-func NewMsgRegisterCounterpartyAddress(address, counterpartyAddress, portID, channelID string) *MsgRegisterCounterpartyAddress {
-	return &MsgRegisterCounterpartyAddress{
-		Address:             address,
-		CounterpartyAddress: counterpartyAddress,
-		PortId:              portID,
-		ChannelId:           channelID,
+// NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
+func NewMsgRegisterPayee(portID, channelID, relayerAddr, payeeAddr string) *MsgRegisterPayee {
+	return &MsgRegisterPayee{
+		PortId:    portID,
+		ChannelId: channelID,
+		Relayer:   relayerAddr,
+		Payee:     payeeAddr,
 	}
 }
 
-// ValidateBasic performs a basic check of the MsgRegisterCounterpartyAddress fields
-func (msg MsgRegisterCounterpartyAddress) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Address)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to convert msg.Address into sdk.AccAddress")
-	}
-
-	if strings.TrimSpace(msg.CounterpartyAddress) == "" {
-		return ErrCounterpartyAddressEmpty
-	}
-
-	// validate portId
+// ValidateBasic implements sdk.Msg and performs basic stateless validation
+func (msg MsgRegisterPayee) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return err
 	}
 
-	// validate channelId
 	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
 		return err
+	}
+
+	if msg.Relayer == msg.Payee {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "relayer address and payee must not be equal")
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Relayer)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from relayer address")
+	}
+
+	_, err = sdk.AccAddressFromBech32(msg.Payee)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from payee address")
 	}
 
 	return nil
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgRegisterCounterpartyAddress) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Address)
+func (msg MsgRegisterPayee) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
 		panic(err)
 	}
+
+	return []sdk.AccAddress{signer}
+}
+
+// NewMsgRegisterCounterpartyPayee creates a new instance of MsgRegisterCounterpartyPayee
+func NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr string) *MsgRegisterCounterpartyPayee {
+	return &MsgRegisterCounterpartyPayee{
+		PortId:            portID,
+		ChannelId:         channelID,
+		Relayer:           relayerAddr,
+		CounterpartyPayee: counterpartyPayeeAddr,
+	}
+}
+
+// ValidateBasic performs a basic check of the MsgRegisterCounterpartyAddress fields
+func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return err
+	}
+
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
+		return err
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Relayer)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to create sdk.AccAddress from relayer address")
+	}
+
+	if strings.TrimSpace(msg.CounterpartyPayee) == "" {
+		return ErrCounterpartyPayeeEmpty
+	}
+
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgRegisterCounterpartyPayee) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Relayer)
+	if err != nil {
+		panic(err)
+	}
+
 	return []sdk.AccAddress{signer}
 }
 
 // NewMsgPayPacketFee creates a new instance of MsgPayPacketFee
-func NewMsgPayPacketFee(fee Fee, sourcePortId, sourceChannelId, signer string, relayers []string) *MsgPayPacketFee {
+func NewMsgPayPacketFee(fee Fee, sourcePortID, sourceChannelID, signer string, relayers []string) *MsgPayPacketFee {
 	return &MsgPayPacketFee{
 		Fee:             fee,
-		SourcePortId:    sourcePortId,
-		SourceChannelId: sourceChannelId,
+		SourcePortId:    sourcePortID,
+		SourceChannelId: sourceChannelID,
 		Signer:          signer,
 		Relayers:        relayers,
 	}
@@ -87,9 +133,9 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
-	// enforce relayer is nil
-	if msg.Relayers != nil {
-		return ErrRelayersNotNil
+	// enforce relayer is not set
+	if len(msg.Relayers) != 0 {
+		return ErrRelayersNotEmpty
 	}
 
 	if err := msg.Fee.Validate(); err != nil {

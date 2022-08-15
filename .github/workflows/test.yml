@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+
 jobs:
   cleanup-runs:
     runs-on: ubuntu-latest
@@ -20,12 +21,12 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.18
       - name: Display go version
         run: go version
       - name: install tparse
         run: |
-          export GO111MODULE="on" && go get github.com/mfridman/tparse@v0.8.3
+          go install github.com/mfridman/tparse@v0.8.3
       - uses: actions/cache@v3
         with:
           path: ~/go/bin
@@ -40,17 +41,18 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
-      - uses: technote-space/get-diff-action@v6.0.1
+          go-version: 1.18
+      - uses: technote-space/get-diff-action@v6.1.0
         id: git_diff
         with:
           PATTERNS: |
             **/**.go
             go.mod
             go.sum
-      - name: Build
+      - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
-
+      - name: Build e2e
+        run: (cd e2e; GOARCH=${{ matrix.go-arch }} go build ./...)
   split-test-files:
     runs-on: ubuntu-latest
     steps:
@@ -88,8 +90,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
-      - uses: technote-space/get-diff-action@v6.0.1
+          go-version: 1.18
+      - uses: technote-space/get-diff-action@v6.1.0
         with:
           PATTERNS: |
             **/**.go
@@ -101,7 +103,7 @@ jobs:
         if: env.GIT_DIFF
       - name: test & coverage report creation
         run: |
-          cat pkgs.txt.part.${{ matrix.part }} | xargs go test -race -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
+          cat pkgs.txt.part.${{ matrix.part }} | xargs go test $(go list ./... | grep -v e2e) -race -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
         if: env.GIT_DIFF
       - uses: actions/upload-artifact@v3
         with:
@@ -113,7 +115,7 @@ jobs:
     needs: tests
     steps:
       - uses: actions/checkout@v3
-      - uses: technote-space/get-diff-action@v6.0.1
+      - uses: technote-space/get-diff-action@v6.1.0
         with:
           PATTERNS: |
             **/**.go

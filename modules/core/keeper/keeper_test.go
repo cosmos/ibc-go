@@ -6,15 +6,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	"github.com/stretchr/testify/suite"
-
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/stretchr/testify/suite"
+
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 type KeeperTestSuite struct {
@@ -83,20 +83,17 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			emptyStakingKeeper := stakingkeeper.Keeper{}
 
 			stakingKeeper = emptyStakingKeeper
-
 		}, false},
 		{"failure: empty mock staking keeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
 			emptyMockStakingKeeper := MockStakingKeeper{}
 
 			stakingKeeper = emptyMockStakingKeeper
-
 		}, false},
 		{"failure: empty upgrade keeper", func() {
 			emptyUpgradeKeeper := upgradekeeper.Keeper{}
 
 			upgradeKeeper = emptyUpgradeKeeper
-
 		}, false},
 		{"failure: empty scoped keeper", func() {
 			emptyScopedKeeper := capabilitykeeper.ScopedKeeper{}
@@ -116,7 +113,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-
 			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
 			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
 			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
@@ -132,7 +128,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					newIBCKeeper,
 				)
 			}
-
 		})
 	}
 }
