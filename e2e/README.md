@@ -15,7 +15,8 @@
 2. [Test design](#test-design)
    - a. [ibctest](#ibctest)
    - b. [CI configuration](#ci-configuration)
-3. [Troubleshooting](#troubleshooting)
+3. [Github Workflows](#github-workflows) 
+4. [Troubleshooting](#troubleshooting)
 
 
 ## How to write tests
@@ -40,25 +41,31 @@ There are several envinronment variables that alter the behaviour of the make ta
 
 | Environment Variable      | Description | Default Value|
 | ----------- | ----------- | ----------- |
-| SIMD_IMAGE      | The image that will be used for simd       | ibc-go-simd-e2e |
+| SIMD_IMAGE      | The image that will be used for simd       | ibc-go-simd |
 | SIMD_TAG   | The tag used for simd        | latest|
 | RLY_TAG   | The tag used for the go relayer        | main|
 
 
-> Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd-e2e` registry.
+> Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
 
 These environment variables allow us to run tests with arbitrary verions (from branches or released) of simd
 and the go relayer.
 
-Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd-e2e).
+Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).
 
 
 #### Example Command:
 
 ```sh
-export SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd-e2e"
-export SIMD_TAG="pr-1650"
+export CHAIN_A_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd"
+export CHAIN_A_SIMD_TAG="main"
+
+# We can also specify different values for the chains if needed.
+# they will default to the same as chain a.
+# export CHAIN_B_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd"
+# export CHAIN_B_SIMD_TAG="pr-1650"
+
 export RLY_TAG="v2.0.0-rc2"
 make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
 ```
@@ -203,7 +210,7 @@ There are two main github actions for e2e tests.
 
 [e2e-fork.yaml](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-fork.yml) which runs when forks are created.
 
-In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd-e2e) and every test
+In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd) and every test
 that is run uses the image that was built.
 
 In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain local to the host runner.
@@ -301,6 +308,25 @@ All tests will be run on different hosts.
 
 * Gas fees are set to zero to simply calcuations when asserting account balances.
 * When upgrading from e.g. v4 -> v5, in ibc-go, we cannot upgrade the go.mod under `e2e` since v5 will not yet exist. We need to upgrade it in a follow up PR.
+
+
+### GitHub Workflows
+
+#### Building and pushing a `simd` image.
+
+If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
+
+This can be triggered manually from the UI by navigating to
+
+`Actions` -> `Build Simd Image` -> `Run Workflow`
+
+And providing the git tag.
+
+Alternatively, the [gh](https://cli.github.com/) CLI tool can be used to trigger this workflow.
+
+```bash
+gh workflow run "Build Simd Image" -f tag=v3.0.0
+```
 
 ### Troubleshooting
 
