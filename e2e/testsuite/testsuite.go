@@ -180,8 +180,8 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return sdk.TxResponse{}, err
 	}
 
-	// chainA, chainB := s.GetChains()
-	err = test.WaitForBlocks(ctx, 2, chain)
+	chainA, chainB := s.GetChains()
+	err = test.WaitForBlocks(ctx, 10, chainA, chainB)
 	return resp, err
 }
 
@@ -226,6 +226,11 @@ func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 	}
 
 	s.startRelayerFn(relayer)
+}
+
+// StopRelayer stops the given relayer.
+func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
+	relayer.StopRelayer(ctx, s.getRelayerExecReporter())
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.

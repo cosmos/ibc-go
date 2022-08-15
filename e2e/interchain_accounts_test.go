@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	ibctest "github.com/strangelove-ventures/ibctest"
+	test "github.com/strangelove-ventures/ibctest/test"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
@@ -60,7 +61,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	connectionId := "connection-0"
 	controllerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	var hostAccount string
+	var hostWallet string
 
 	t.Run("register interchain account", func(t *testing.T) {
 		err := s.RegisterICA(ctx, chainA, controllerWallet, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
@@ -73,9 +74,15 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
+		hostWallet, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotZero(len(hostWallet))
+	})
+
+	t.Run("restart relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
+		s.StartRelayer(relayer)
+		test.WaitForBlocks(ctx, 3, chainA, chainB)
 	})
 
 	// TODO: RegisterICA should return account addr
@@ -86,25 +93,45 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 		// fund the host account wallet so it has some $$ to send
 		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
-			Address: hostAccount,
+			Address: hostWallet,
 			Amount:  testvalues.StartingTokenAmount,
 			Denom:   chainB.Config().Denom,
 		})
 		s.Require().NoError(err)
 
-		fmt.Println("********************************", hostAccount, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix))
+		fmt.Println("********************************", hostWallet, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix))
 
-		resp, err := s.BroadcastMessages(ctx, chainA, controllerWallet, &banktypes.MsgSend{
-			FromAddress: hostAccount,
+		// assemble bank transfer message from host wallet to user wallet on host chain
+		transferMsg := &banktypes.MsgSend{
+			FromAddress: hostWallet,
 			ToAddress:   chainBWallet.Bech32Address(chainB.Config().Bech32Prefix),
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
-		})
+		}
 
+		// assemble submitMessage tx for intertx
+		submitMsg, err := intertxtypes.NewMsgSubmitTx(
+			transferMsg,
+			connectionId,
+			controllerWallet.Bech32Address(chainA.Config().Bech32Prefix),
+		)
+		s.Require().NoError(err)
+
+		resp, err := s.BroadcastMessages(
+			ctx,
+			chainA,
+			controllerWallet,
+			submitMsg,
+		)
+
+		fmt.Printf("%+v", resp)
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
 
 		balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
 		s.Require().NoError(err)
+
+		hostBalance, err := chainB.GetBalance(ctx, hostWallet, chainB.Config().Denom)
+		fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", hostBalance)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance)
