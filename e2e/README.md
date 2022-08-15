@@ -310,7 +310,7 @@ All tests will be run on different hosts.
 * When upgrading from e.g. v4 -> v5, in ibc-go, we cannot upgrade the go.mod under `e2e` since v5 will not yet exist. We need to upgrade it in a follow up PR.
 
 
-### Github Workflows
+### GitHub Workflows
 
 #### Building and pushing a `simd` image.
 
