@@ -85,7 +85,8 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 // RegisterICA will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, fromAddress, connectionID string) error {
-	msg := intertxtypes.NewMsgRegisterAccount(fromAddress, connectionID, "")
+	version := "" // allow app to handle the version as appropriate.
+	msg := intertxtypes.NewMsgRegisterAccount(fromAddress, connectionID, version)
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msg)
 	s.AssertValidTxResponse(txResp)
 	return err
