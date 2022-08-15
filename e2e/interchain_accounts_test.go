@@ -9,8 +9,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ibctest "github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
@@ -54,53 +53,56 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 	connectionId := "connection-0"
 	controllerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, 0)
+	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		account, err := s.RegisterICA(ctx, chainA, controllerWallet.KeyName, connectionId)
+		_, err := s.RegisterICA(ctx, chainA, controllerWallet.KeyName, connectionId)
 		s.Require().NoError(err)
-		s.Require().NotEmpty(account)
-		s.T().Logf("account created: %s", account)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
 
-	var (
-		interchainAccountAddress string
-	)
-
 	t.Run("verify interchain account", func(t *testing.T) {
-		var err error
-		interchainAccountAddress, err = s.QueryICA(ctx, chainA, connectionId, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix))
+		hostAccount, err := s.QueryICA(ctx, chainA, connectionId, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix))
 		s.Require().NoError(err)
-		s.Require().NotEmpty(interchainAccountAddress)
+		s.Require().NotZero(len(hostAccount))
 	})
 
+	// TODO: RegisterICA should return account addr
 	// TODO: change bech32 prefix so both are not the same
 
 	t.Run("send successful bank transfer from controller account to host account", func(t *testing.T) {
+
+		// fund the host account wallet so it has some $$ to send
+		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			Address: hostAccount,
+			Amount:  testvalues.StartingTokenAmount,
+			Denom:   chainB.Config().Denom,
+		})
+		s.Require().NoError(err)
+
 		resp, err := s.BroadcastMessages(ctx, chainA, controllerWallet, &banktypes.MsgSend{
 			FromAddress: controllerWallet.Bech32Address(chainA.Config().Bech32Prefix),
 			ToAddress:   chainBWallet.Bech32Address(chainB.Config().Bech32Prefix),
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainA.Config().Denom)),
 		})
 
-		s.AssertValidTxResponse(resp)
-		s.Require().NoError(err)
+		// s.AssertValidTxResponse(resp)
+		// s.Require().NoError(err)
 
-		tokenOnChainBFromChainA := getIBCToken(chainA.Config().Denom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+		// balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		// s.Require().NoError(err)
 
-		balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), tokenOnChainBFromChainA.IBCDenom())
-		s.Require().NoError(err)
-
-		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, balance)
+		// expected := testvalues.IBCTransferAmount
+		// s.Require().Equal(expected, balance)
 	})
 }
 
 // TODO: replace the below methods with transaction broadcasts.
+// TODO: utility function wrapping Get&FundTestUsers
 
 type IBCTransferTx struct {
 	TxHash string `json:"txhash"`
