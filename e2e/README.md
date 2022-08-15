@@ -322,7 +322,7 @@ Thie can be triggered manually from the UI by navigating to
 
 And providing the git tag.
 
-Alternatively, the [gh](https://cli.github.com/) cli tool can be used to trigger this workflow.
+Alternatively, the [gh](https://cli.github.com/) CLI tool can be used to trigger this workflow.
 
 ```bash
 gh workflow run "Build Simd Image" -f tag=v3.0.0
