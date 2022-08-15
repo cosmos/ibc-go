@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/stretchr/testify/suite"
@@ -16,6 +18,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 )
 
 func init() {
@@ -23,7 +26,7 @@ func init() {
 	os.Setenv("CHAIN_A_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
 	os.Setenv("CHAIN_A_SIMD_TAG", "v0.3.0")
 	os.Setenv("CHAIN_B_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
-	os.Setenv("CHAIN_B_SIMD_TAG", "v0.3.0")
+	os.Setenv("CHAIN_B_SIMD_TAG", "v0.2.0")
 	os.Setenv("CHAIN_A_BINARY", "icad")
 	os.Setenv("CHAIN_B_BINARY", "icad")
 }
@@ -39,6 +42,7 @@ type InterchainAccountsTestSuite struct {
 // cd e2e
 // make e2e-test test=TestInterchainAccounts suite=InterchainAccountsTestSuite
 func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
+	t := s.T()
 	ctx := context.TODO()
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -49,16 +53,17 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	_ = channelA
 
 	connectionId := "connection-0"
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	controllerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	s.Run("register interchain account", func() {
-		account, err := s.RegisterICA(ctx, chainA, chainAWallet.KeyName, connectionId)
+	t.Run("register interchain account", func(t *testing.T) {
+		account, err := s.RegisterICA(ctx, chainA, controllerWallet.KeyName, connectionId)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(account)
 		s.T().Logf("account created: %s", account)
 	})
 
-	s.Run("start relayer", func() {
+	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
 
@@ -66,11 +71,32 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		interchainAccountAddress string
 	)
 
-	s.Run("verify interchain account", func() {
+	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAccountAddress, err = s.QueryICA(ctx, chainA, connectionId, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix))
+		interchainAccountAddress, err = s.QueryICA(ctx, chainA, connectionId, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix))
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccountAddress)
+	})
+
+	// TODO: change bech32 prefix so both are not the same
+
+	t.Run("send successful bank transfer from controller account to host account", func(t *testing.T) {
+		resp, err := s.BroadcastMessages(ctx, chainA, controllerWallet, &banktypes.MsgSend{
+			FromAddress: controllerWallet.Bech32Address(chainA.Config().Bech32Prefix),
+			ToAddress:   chainBWallet.Bech32Address(chainB.Config().Bech32Prefix),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainA.Config().Denom)),
+		})
+
+		s.AssertValidTxResponse(resp)
+		s.Require().NoError(err)
+
+		tokenOnChainBFromChainA := getIBCToken(chainA.Config().Denom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+
+		balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), tokenOnChainBFromChainA.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, balance)
 	})
 }
 
@@ -78,6 +104,11 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 type IBCTransferTx struct {
 	TxHash string `json:"txhash"`
+}
+
+// getIBCToken returns the denomination of the full token denom sent to the receiving channel
+func getIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
+	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }
 
 // RegisterICA will attempt to register an interchain account on the counterparty chain.
@@ -132,13 +163,14 @@ func (*InterchainAccountsTestSuite) QueryICA(ctx context.Context, chain *cosmos.
 
 // SendICABankTransfer builds a bank transfer message for a specified address and sends it to the specified
 // interchain account.
-func (*InterchainAccountsTestSuite) SendICABankTransfer(ctx context.Context, chain *cosmos.CosmosChain, connectionID, fromAddr string, amount ibc.WalletAmount) error {
+func (*InterchainAccountsTestSuite) SendICABankTransfer(ctx context.Context, chain *cosmos.CosmosChain, connectionID string, amount ibc.WalletAmount, toAddr string) error {
 	config := chain.Config()
 	node := chain.ChainNodes[0]
+
 	msg, err := json.Marshal(map[string]any{
 		"@type":        "/cosmos.bank.v1beta1.MsgSend",
-		"from_address": fromAddr,
-		"to_address":   amount.Address,
+		"from_address": amount.Address,
+		"to_address":   toAddr,
 		"amount": []map[string]any{
 			{
 				"denom":  amount.Denom,
@@ -150,9 +182,10 @@ func (*InterchainAccountsTestSuite) SendICABankTransfer(ctx context.Context, cha
 		return err
 	}
 
-	command := []string{config.Bin, "tx", "intertx", "submit", string(msg),
+	command := []string{
+		config.Bin, "tx", "intertx", "submit", string(msg),
 		"--connection-id", connectionID,
-		"--from", fromAddr,
+		"--from", amount.Address,
 		"--chain-id", node.Chain.Config().ChainID,
 		"--home", node.HomeDir(),
 		"--node", fmt.Sprintf("tcp://%s:26657", node.HostName()),

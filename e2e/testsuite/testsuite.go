@@ -178,8 +178,8 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 		return sdk.TxResponse{}, err
 	}
 
-	chainA, chainB := s.GetChains()
-	err = test.WaitForBlocks(ctx, 2, chainA, chainB)
+	// chainA, chainB := s.GetChains()
+	err = test.WaitForBlocks(ctx, 2, chain)
 	return resp, err
 }
 
