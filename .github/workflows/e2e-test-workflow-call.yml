@@ -22,7 +22,7 @@ on:
         type: string
         default: "ghcr.io/cosmos/ibc-go-simd"
       chain-b-tag:
-        default: v4.0.0-rc3
+        default: v4.0.0
         description: 'The tag to use for chain B'
         required: true
         type: string

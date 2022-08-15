@@ -24,7 +24,7 @@ on:
         default: main
         options:
           - main
-          - v4.0.0-rc3
+          - v4.0.0
           - v3.0.0
           - v2.2.0
           - v2.1.0
@@ -41,7 +41,7 @@ on:
         type: choice
         options:
           - main
-          - v4.0.0-rc3
+          - v4.0.0
           - v3.0.0
           - v2.2.0
           - v2.1.0
