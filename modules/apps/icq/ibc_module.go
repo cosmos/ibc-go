@@ -165,7 +165,7 @@ func (im IBCModule) OnRecvPacket(
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	if !im.keeper.IsHostEnabled(ctx) {
-		return types.NewErrorAcknowledgement(types.ErrHostDisabled)
+		return channeltypes.NewErrorAcknowledgement(types.ErrHostDisabled)
 	}
 
 	txResponse, err := im.keeper.OnRecvPacket(ctx, packet)
@@ -173,7 +173,7 @@ func (im IBCModule) OnRecvPacket(
 		// Emit an event including the error msg
 		keeper.EmitWriteErrorAcknowledgementEvent(ctx, packet, err)
 
-		return types.NewErrorAcknowledgement(err)
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.

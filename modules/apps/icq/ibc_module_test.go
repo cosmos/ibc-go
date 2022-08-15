@@ -4,18 +4,16 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gogo/protobuf/proto"
-	"github.com/stretchr/testify/suite"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmstate "github.com/tendermint/tendermint/state"
-
-	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 	icqtypes "github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/gogo/protobuf/proto"
+	"github.com/stretchr/testify/suite"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
+	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
+	tmstate "github.com/tendermint/tendermint/state"
 )
 
 var (
@@ -374,9 +372,9 @@ func (suite *InterchainQueriesTestSuite) TestOnRecvPacket() {
 				},
 			}
 
-			bz, err := types.SerializeCosmosQuery(requests)
+			bz, err := icqtypes.SerializeCosmosQuery(requests)
 			suite.Require().NoError(err)
-			icqPacketData := types.InterchainQueryPacketData{
+			icqPacketData := icqtypes.InterchainQueryPacketData{
 				Data: bz,
 			}
 			packetData = icqPacketData.GetBytes()
@@ -393,7 +391,7 @@ func (suite *InterchainQueriesTestSuite) TestOnRecvPacket() {
 					Height: resp.Height,
 				}
 			}
-			bz, err = types.SerializeCosmosResponse(resps)
+			bz, err = icqtypes.SerializeCosmosResponse(resps)
 			suite.Require().NoError(err)
 
 			icqack := icqtypes.InterchainQueryPacketAck{
