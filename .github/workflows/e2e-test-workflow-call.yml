@@ -6,8 +6,13 @@ on:
         required: false
         type: string
         default: "" # empty string means run all tests
-      chain-a-image:
-        description: 'The image to use for chain A'
+      test-test-exclusions:
+        description: 'Comma separated list of tests to skip'
+        required: false
+        type: string
+        default: "" # empty string means don't skip any test.
+      chain-image:
+        description: 'The image to use for chains'
         required: true
         type: string
         default: "ghcr.io/cosmos/ibc-go-simd"
@@ -16,11 +21,6 @@ on:
         required: true
         type: string
         default: main
-      chain-b-image:
-        description: 'The image to use for chain B'
-        required: true
-        type: string
-        default: "ghcr.io/cosmos/ibc-go-simd"
       chain-b-tag:
         default: v4.0.0
         description: 'The tag to use for chain B'
@@ -48,9 +48,8 @@ jobs:
     steps:
       - name: Display Inputs
         run: |
-          echo "Chain A Image:    ${{ inputs.chain-a-image }}"
+          echo "Chain Image:      ${{ inputs.chain-image }}"
           echo "Chain A Tag:      ${{ inputs.chain-a-tag }}"
-          echo "Chain B Image:    ${{ inputs.chain-b-image }}"
           echo "Chain B Tag:      ${{ inputs.chain-b-tag }}"
           echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
           echo "Test Entry Point: ${{ inputs.test-entry-point }}"
@@ -101,6 +100,7 @@ jobs:
         run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
         env:
           TEST_ENTRYPOINT: "${{ inputs.test-entry-point }}"
+          TEST_EXCLUSIONS: "${{ inputs.test-exclusions }}"
 
   e2e-tests:
     runs-on: ubuntu-latest
@@ -108,10 +108,9 @@ jobs:
       - build-test-matrix
       - docker-build
     env:
-      CHAIN_A_SIMD_TAG: "${{ inputs.chain-a-tag }}"
-      CHAIN_A_SIMD_IMAGE: "${{ inputs.chain-a-image }}"
-      CHAIN_B_SIMD_TAG: "${{ inputs.chain-b-tag }}"
-      CHAIN_B_SIMD_IMAGE: "${{ inputs.chain-b-image }}"
+      CHAIN_IMAGE: "${{ inputs.chain-image }}"
+      CHAIN_A_TAG: "${{ inputs.chain-a-tag }}"
+      CHAIN_B_TAG: "${{ inputs.chain-b-tag }}"
       RLY_TAG: "${{ inputs.relayer-tag }}"
     strategy:
       fail-fast: false
