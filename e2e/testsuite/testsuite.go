@@ -118,7 +118,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		opt(&channelOptions)
 	}
 
-	eRep := s.getRelayerExecReporter()
+	eRep := s.GetRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
 		Client:            s.DockerClient,
@@ -322,9 +322,9 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	return chainA, chainB
 }
 
-// getRelayerExecReporter returns a testreporter.RelayerExecReporter instances
+// GetRelayerExecReporter returns a testreporter.RelayerExecReporter instances
 // using the current test's testing.T.
-func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporter {
+func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporter {
 	rep := testreporter.NewNopReporter()
 	return rep.RelayerExecReporter(s.T())
 }
