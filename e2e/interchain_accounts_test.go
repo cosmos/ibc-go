@@ -19,6 +19,8 @@ import (
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
+	// NOTE: this is a temporary mechanism to enable this test to run alongside the simd tests.
+	// This will be removed in a follow up PR and properly parameterized in a github workflow.
 	testconfig.SetChainBinaryVersions(
 		"ghcr.io/cosmos/ibc-go-icad", "master", "icad", "ghcr.io/cosmos/ibc-go-icad", "master", "icad",
 	)
@@ -38,16 +40,15 @@ func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *co
 	return err
 }
 
-func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
+func (s *InterchainAccountsTestSuite) TestInterchainAccounts_SuccessfulTransfer() {
 	t := s.T()
 	ctx := context.TODO()
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
-	_ = channelA
 	connectionId := "connection-0"
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
