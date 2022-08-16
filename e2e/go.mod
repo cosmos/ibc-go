@@ -7,7 +7,7 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 require (
 	github.com/cosmos/cosmos-sdk v0.46.0
 	github.com/cosmos/ibc-go/v5 v5.0.0-beta1
-	github.com/cosmos/interchain-accounts v0.3.0
+	github.com/cosmos/interchain-accounts v0.3.1-0.20220816085955-393d8444c111
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/strangelove-ventures/ibctest v0.0.0-20220808203516-6cbd3743756d
 	github.com/stretchr/testify v1.8.0

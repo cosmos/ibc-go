@@ -26,7 +26,7 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 // QueryInterchainAccount queries the interchain account for the given owner and connectionId.
 func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionId string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ICAQueryClient
-	res, err := queryClient.InterchainAccountFromAddress(ctx, &intertxtypes.QueryInterchainAccountFromAddressRequest{
+	res, err := queryClient.InterchainAccount(ctx, &intertxtypes.QueryInterchainAccountRequest{
 		Owner:        owner,
 		ConnectionId: connectionId,
 	})
