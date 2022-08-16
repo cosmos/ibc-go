@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest"
@@ -158,6 +159,53 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 
 		expected := testvalues.StartingTokenAmount
 		s.Require().Equal(expected, actualBalance)
+	})
+}
+
+func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
+	t := s.T()
+	ctx := context.TODO()
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	chainA, chainB := s.GetChains()
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	chainBWalletAmount := ibc.WalletAmount{
+		Address: chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), // destination address
+		Denom:   chainA.Config().Denom,
+		Amount:  testvalues.IBCTransferAmount,
+	}
+
+	t.Run("IBC transfer packet timesout", func(t *testing.T) {
+		tx, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, testvalues.ImmediatelyTimeout())
+		s.Require().NoError(err)
+		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
+		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("ensure escrowed tokens have been refunded to sender due to timeout", func(t *testing.T) {
+		// ensure destination address did not recieve any tokens
+		bal, err := s.GetChainBNativeBalance(ctx, chainBWallet)
+		s.Require().NoError(err)
+		s.Require().Equal(testvalues.StartingTokenAmount, bal)
+
+		// ensure that the sender address has been successfully refunded the full amount
+		bal, err = s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+		s.Require().Equal(testvalues.StartingTokenAmount, bal)
 	})
 }
 
