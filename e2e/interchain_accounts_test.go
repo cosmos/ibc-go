@@ -58,7 +58,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts_SuccessfulTransfer(
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
 
-	t.Run("success: register interchain account", func(t *testing.T) {
+	t.Run("register interchain account", func(t *testing.T) {
 		err := s.RegisterICA(ctx, chainA, controllerAccount, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
 	})
@@ -67,7 +67,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts_SuccessfulTransfer(
 		s.StartRelayer(relayer)
 	})
 
-	t.Run("success: verify interchain account", func(t *testing.T) {
+	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
 		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
@@ -76,97 +76,107 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts_SuccessfulTransfer(
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
-
 	})
 
-	t.Run("fail: execute bank transfer over ICA, host account has no funds ", func(t *testing.T) {
-
-		hostAccountBalance, err := chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
-		s.Require().NoError(err)
-		s.Require().Zero(hostAccountBalance)
-
-		// assemble bank transfer message from host account to user account on host chain
-		transferMsg := &banktypes.MsgSend{
-			FromAddress: hostAccount,
-			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
-			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
-		}
-
-		// assemble submitMessage tx for intertx
-		submitMsg, err := intertxtypes.NewMsgSubmitTx(
-			transferMsg,
-			connectionId,
-			controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
-		)
-		s.Require().NoError(err)
-
-		// broadcast submitMessage tx from controller account on chain A
-		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
-		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-		resp, err := s.BroadcastMessages(
-			ctx,
-			chainA,
-			controllerAccount,
-			submitMsg,
-		)
-
-		s.AssertValidTxResponse(resp)
-		s.Require().NoError(err)
-
-		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
-		s.Require().NoError(err)
-
-		expected := testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
-	})
-
-	t.Run("success: execute bank transfer tx from host account to another account on host chain thru controller account over ICA", func(t *testing.T) {
-
-		// fund the host account account so it has some $$ to send
-		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
-			Address: hostAccount,
-			Amount:  testvalues.StartingTokenAmount,
-			Denom:   chainB.Config().Denom,
+	t.Run("fail to execute bank transfer over ICA", func(t *testing.T) {
+		t.Run("verify empty host wallet", func(t *testing.T) {
+			hostAccountBalance, err := chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+			s.Require().NoError(err)
+			s.Require().Zero(hostAccountBalance)
 		})
-		s.Require().NoError(err)
 
-		// assemble bank transfer message from host account to user account on host chain
-		transferMsg := &banktypes.MsgSend{
-			FromAddress: hostAccount,
-			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
-			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
-		}
+		t.Run("broadcast MsgSubmitTx", func(t *testing.T) {
+			// assemble bank transfer message from host account to user account on host chain
+			transferMsg := &banktypes.MsgSend{
+				FromAddress: hostAccount,
+				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+			}
 
-		// assemble submitMessage tx for intertx
-		submitMsg, err := intertxtypes.NewMsgSubmitTx(
-			transferMsg,
-			connectionId,
-			controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
-		)
-		s.Require().NoError(err)
+			// assemble submitMessage tx for intertx
+			submitMsg, err := intertxtypes.NewMsgSubmitTx(
+				transferMsg,
+				connectionId,
+				controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+			)
+			s.Require().NoError(err)
 
-		// broadcast submitMessage tx from controller account on chain A
-		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
-		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-		resp, err := s.BroadcastMessages(
-			ctx,
-			chainA,
-			controllerAccount,
-			submitMsg,
-		)
+			// broadcast submitMessage tx from controller account on chain A
+			// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
+			// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
+			resp, err := s.BroadcastMessages(
+				ctx,
+				chainA,
+				controllerAccount,
+				submitMsg,
+			)
 
-		s.AssertValidTxResponse(resp)
-		s.Require().NoError(err)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
+		})
 
-		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+		t.Run("verify balance is the same", func(t *testing.T) {
+			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			s.Require().NoError(err)
 
-		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
-		s.Require().NoError(err)
+			expected := testvalues.StartingTokenAmount
+			s.Require().Equal(expected, balance)
+		})
+	})
 
-		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
-		s.Require().NoError(err)
+	t.Run("execute bank transfer over ICA through controller account", func(t *testing.T) {
 
-		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		t.Run("fund host wallet", func(t *testing.T) {
+			// fund the host account account so it has some $$ to send
+			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+				Address: hostAccount,
+				Amount:  testvalues.StartingTokenAmount,
+				Denom:   chainB.Config().Denom,
+			})
+			s.Require().NoError(err)
+		})
+
+		t.Run("broadcast MsgSubmitTx", func(t *testing.T) {
+			// assemble bank transfer message from host account to user account on host chain
+			transferMsg := &banktypes.MsgSend{
+				FromAddress: hostAccount,
+				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+			}
+
+			// assemble submitMessage tx for intertx
+			submitMsg, err := intertxtypes.NewMsgSubmitTx(
+				transferMsg,
+				connectionId,
+				controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
+			)
+			s.Require().NoError(err)
+
+			// broadcast submitMessage tx from controller account on chain A
+			// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
+			// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
+			resp, err := s.BroadcastMessages(
+				ctx,
+				chainA,
+				controllerAccount,
+				submitMsg,
+			)
+
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
+
+			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+		})
+
+		t.Run("verify tokens transfered", func(t *testing.T) {
+			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			s.Require().NoError(err)
+
+			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+			s.Require().NoError(err)
+
+			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+			s.Require().Equal(expected, balance)
+		})
 	})
 }
