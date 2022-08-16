@@ -18,8 +18,8 @@ const (
 	ChainBTagEnv = "CHAIN_B_TAG"
 	// GoRelayerTagEnv specifies the go relayer version. Defaults to "main"
 	GoRelayerTagEnv = "RLY_TAG"
-	// ChainBinary binary is the binary that will be used for both chains.
-	ChainBinary = "CHAIN_BINARY"
+	// ChainBinaryEnv binary is the binary that will be used for both chains.
+	ChainBinaryEnv = "CHAIN_BINARY"
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
@@ -48,7 +48,7 @@ type ChainConfig struct {
 
 // FromEnv returns a TestConfig constructed from environment variables.
 func FromEnv() TestConfig {
-	chainBinary, ok := os.LookupEnv(ChainBinary)
+	chainBinary, ok := os.LookupEnv(ChainBinaryEnv)
 	if !ok {
 		chainBinary = defaultBinary
 	}
