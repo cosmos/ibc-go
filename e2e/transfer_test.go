@@ -130,7 +130,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 		Amount:  testvalues.IBCTransferAmount,
 	}
 
-	t.Run("IBC transfer packet timesout", func(t *testing.T) {
+	t.Run("IBC transfer packet times out", func(t *testing.T) {
 		tx, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, chainBWalletAmount, testvalues.ImmediatelyTimeout())
 		s.Require().NoError(err)
 		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
