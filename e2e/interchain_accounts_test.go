@@ -7,6 +7,7 @@ import (
 	ibctest "github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -156,6 +157,8 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts_SuccessfulTransfer(
 
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
 		s.Require().NoError(err)
