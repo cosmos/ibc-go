@@ -41,7 +41,7 @@ func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *co
 	return err
 }
 
-func (s *InterchainAccountsTestSuite) TestInterchainAccounts_SuccessfulTransfer() {
+func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 	t := s.T()
 	ctx := context.TODO()
 
