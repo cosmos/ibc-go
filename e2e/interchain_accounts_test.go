@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	ibctest "github.com/strangelove-ventures/ibctest"
@@ -17,16 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
-
-func init() {
-	// TODO: remove these, they should be set external to the tests.
-	os.Setenv("CHAIN_A_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
-	os.Setenv("CHAIN_A_SIMD_TAG", "master")
-	os.Setenv("CHAIN_B_SIMD_IMAGE", "ghcr.io/cosmos/ibc-go-icad")
-	os.Setenv("CHAIN_B_SIMD_TAG", "master")
-	os.Setenv("CHAIN_A_BINARY", "icad")
-	os.Setenv("CHAIN_B_BINARY", "icad")
-}
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	suite.Run(t, new(InterchainAccountsTestSuite))
@@ -61,7 +50,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostWallet string
 
-	t.Run("register interchain account", func(t *testing.T) {
+	t.Run("success: register interchain account", func(t *testing.T) {
 		err := s.RegisterICA(ctx, chainA, controllerWallet, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
 	})
@@ -70,7 +59,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		s.StartRelayer(relayer)
 	})
 
-	t.Run("verify interchain account", func(t *testing.T) {
+	t.Run("success: verify interchain account", func(t *testing.T) {
 		var err error
 		hostWallet, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
@@ -82,7 +71,48 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 	})
 
-	t.Run("send successful bank transfer from controller account to host account", func(t *testing.T) {
+	t.Run("fail: execute bank transfer over ICA, host wallet has no funds ", func(t *testing.T) {
+
+		hostWalletBalance, err := chainB.GetBalance(ctx, hostWallet, chainB.Config().Denom)
+		s.Require().NoError(err)
+		s.Require().Zero(hostWalletBalance)
+
+		// assemble bank transfer message from host wallet to user wallet on host chain
+		transferMsg := &banktypes.MsgSend{
+			FromAddress: hostWallet,
+			ToAddress:   chainBWallet.Bech32Address(chainB.Config().Bech32Prefix),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		}
+
+		// assemble submitMessage tx for intertx
+		submitMsg, err := intertxtypes.NewMsgSubmitTx(
+			transferMsg,
+			connectionId,
+			controllerWallet.Bech32Address(chainA.Config().Bech32Prefix),
+		)
+		s.Require().NoError(err)
+
+		// broadcast submitMessage tx from controller wallet on chain A
+		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
+		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host wallet on the host chain.
+		resp, err := s.BroadcastMessages(
+			ctx,
+			chainA,
+			controllerWallet,
+			submitMsg,
+		)
+
+		s.AssertValidTxResponse(resp)
+		s.Require().NoError(err)
+
+		balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance)
+	})
+
+	t.Run("success: execute bank transfer tx from host wallet to another wallet on host chain thru controller wallet over ICA", func(t *testing.T) {
 
 		// fund the host account wallet so it has some $$ to send
 		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{

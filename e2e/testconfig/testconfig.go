@@ -141,3 +141,13 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		NoHostMount:    false,
 	}
 }
+
+// SetChainBinaryVersions is a helper function for local cross-version testing
+func SetChainBinaryVersions(chainA_simd_img, chainA_simd_tag, chainA_binary, chainB_simd_img, chainB_simd_tag, chainB_binary string) {
+	os.Setenv("CHAIN_A_SIMD_IMAGE", chainA_simd_img)
+	os.Setenv("CHAIN_A_SIMD_TAG", chainA_simd_tag)
+	os.Setenv("CHAIN_B_SIMD_IMAGE", chainB_simd_img)
+	os.Setenv("CHAIN_B_SIMD_TAG", chainB_simd_tag)
+	os.Setenv("CHAIN_A_BINARY", chainA_binary)
+	os.Setenv("CHAIN_B_BINARY", chainB_binary)
+}
