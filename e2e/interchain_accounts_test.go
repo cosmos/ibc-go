@@ -22,7 +22,7 @@ func TestInterchainAccountsTestSuite(t *testing.T) {
 	// NOTE: this is a temporary mechanism to enable this test to run alongside the simd tests.
 	// This will be removed in a follow up PR and properly parameterized in a github workflow.
 	testconfig.SetChainBinaryVersions(
-		"ghcr.io/cosmos/ibc-go-icad", "master", "icad", "ghcr.io/cosmos/ibc-go-icad", "master", "icad",
+		"ghcr.io/cosmos/ibc-go-icad", "master", "icad", "ghcr.io/cosmos/ibc-go-icad", "master",
 	)
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }

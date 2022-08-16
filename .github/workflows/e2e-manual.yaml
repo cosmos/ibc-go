@@ -10,6 +10,7 @@ on:
         required: true
         type: choice
         options:
+          - TestTransferTestSuite
           - TestFeeMiddlewareTestSuite
       chain-a-image:
         description: 'The image to use for chain A'
@@ -23,7 +24,7 @@ on:
         default: main
         options:
           - main
-          - v4.0.0-rc3
+          - v4.0.0
           - v3.0.0
           - v2.2.0
           - v2.1.0
@@ -40,7 +41,7 @@ on:
         type: choice
         options:
           - main
-          - v4.0.0-rc3
+          - v4.0.0
           - v3.0.0
           - v2.2.0
           - v2.1.0
@@ -53,56 +54,12 @@ on:
 
 
 jobs:
-  test-details:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Display Inputs
-        run: |
-          echo "Chain A Image: ${{ inputs.chain-a-image }}"
-          echo "Chain A Tag: ${{ inputs.chain-a-tag }}"
-          echo "Chain B Image: ${{ inputs.chain-b-image }}"
-          echo "Chain B Tag: ${{ inputs.chain-b-tag }}"
-          echo "Relayer Tag: "${{ inputs.relayer-tag }}"
-          echo "Test Entry Point: "${{ inputs.test-entry-point }}"
-         
-
-  # dynamically build a matrix of test/test suite pairs to run
-  build-test-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
-      - id: set-matrix
-        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
-        env:
-          TEST_ENTRYPOINT: "${{ github.event.inputs.test-entry-point }}"
-
-
-
   e2e-manual:
-    runs-on: ubuntu-latest
-    needs:
-      - build-test-matrix
-    env:
-      CHAIN_A_SIMD_TAG: "${{ github.event.inputs.chain-a-tag }}"
-      CHAIN_A_SIMD_IMAGE: "${{ github.event.inputs.chain-a-image }}"
-      CHAIN_B_SIMD_TAG: "${{ github.event.inputs.chain-b-tag }}"
-      CHAIN_B_SIMD_IMAGE: "${{ github.event.inputs.chain-b-image }}"
-      # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-      RLY_TAG: "${{ github.event.inputs.relayer-tag }}"
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
-      - name: Run e2e Test
-        run: |
-          cd e2e
-          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-a-tag: "${{ github.event.inputs.chain-a-tag }}"
+      chain-a-image: "${{ github.event.inputs.chain-a-image }}"
+      chain-b-tag: "${{ github.event.inputs.chain-b-tag }}"
+      chain-b-image: "${{ github.event.inputs.chain-b-image }}"
+      relayer-tag: "${{ github.event.inputs.relayer-tag }}"
+      test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
