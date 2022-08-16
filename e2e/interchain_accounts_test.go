@@ -13,11 +13,15 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
+	testconfig.SetChainBinaryVersions(
+		"ghcr.io/cosmos/ibc-go-icad", "master", "icad", "ghcr.io/cosmos/ibc-go-icad", "master", "icad",
+	)
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
 
@@ -34,24 +38,26 @@ func (s *InterchainAccountsTestSuite) RegisterICA(ctx context.Context, chain *co
 	return err
 }
 
-// cd e2e
-// make e2e-test test=TestInterchainAccounts suite=InterchainAccountsTestSuite
 func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 	t := s.T()
 	ctx := context.TODO()
 
+	// setup relayers and connection-0 between two chains
+	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
 	_ = channelA
-
 	connectionId := "connection-0"
-	controllerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	var hostWallet string
+
+	// setup 2 accounts: controller account on chain A, a second chain B account.
+	// host account will be created when the ICA is registered
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	var hostAccount string
 
 	t.Run("success: register interchain account", func(t *testing.T) {
-		err := s.RegisterICA(ctx, chainA, controllerWallet, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
+		err := s.RegisterICA(ctx, chainA, controllerAccount, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
 	})
 
@@ -61,9 +67,9 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 	t.Run("success: verify interchain account", func(t *testing.T) {
 		var err error
-		hostWallet, err = s.QueryInterchainAccount(ctx, chainA, controllerWallet.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), connectionId)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostWallet))
+		s.Require().NotZero(len(hostAccount))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
@@ -71,16 +77,16 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 
 	})
 
-	t.Run("fail: execute bank transfer over ICA, host wallet has no funds ", func(t *testing.T) {
+	t.Run("fail: execute bank transfer over ICA, host account has no funds ", func(t *testing.T) {
 
-		hostWalletBalance, err := chainB.GetBalance(ctx, hostWallet, chainB.Config().Denom)
+		hostAccountBalance, err := chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 		s.Require().NoError(err)
-		s.Require().Zero(hostWalletBalance)
+		s.Require().Zero(hostAccountBalance)
 
-		// assemble bank transfer message from host wallet to user wallet on host chain
+		// assemble bank transfer message from host account to user account on host chain
 		transferMsg := &banktypes.MsgSend{
-			FromAddress: hostWallet,
-			ToAddress:   chainBWallet.Bech32Address(chainB.Config().Bech32Prefix),
+			FromAddress: hostAccount,
+			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
@@ -88,44 +94,44 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		submitMsg, err := intertxtypes.NewMsgSubmitTx(
 			transferMsg,
 			connectionId,
-			controllerWallet.Bech32Address(chainA.Config().Bech32Prefix),
+			controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
 		)
 		s.Require().NoError(err)
 
-		// broadcast submitMessage tx from controller wallet on chain A
+		// broadcast submitMessage tx from controller account on chain A
 		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
-		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host wallet on the host chain.
+		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
 		resp, err := s.BroadcastMessages(
 			ctx,
 			chainA,
-			controllerWallet,
+			controllerAccount,
 			submitMsg,
 		)
 
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
 
-		balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance)
 	})
 
-	t.Run("success: execute bank transfer tx from host wallet to another wallet on host chain thru controller wallet over ICA", func(t *testing.T) {
+	t.Run("success: execute bank transfer tx from host account to another account on host chain thru controller account over ICA", func(t *testing.T) {
 
-		// fund the host account wallet so it has some $$ to send
+		// fund the host account account so it has some $$ to send
 		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
-			Address: hostWallet,
+			Address: hostAccount,
 			Amount:  testvalues.StartingTokenAmount,
 			Denom:   chainB.Config().Denom,
 		})
 		s.Require().NoError(err)
 
-		// assemble bank transfer message from host wallet to user wallet on host chain
+		// assemble bank transfer message from host account to user account on host chain
 		transferMsg := &banktypes.MsgSend{
-			FromAddress: hostWallet,
-			ToAddress:   chainBWallet.Bech32Address(chainB.Config().Bech32Prefix),
+			FromAddress: hostAccount,
+			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
@@ -133,27 +139,27 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccounts() {
 		submitMsg, err := intertxtypes.NewMsgSubmitTx(
 			transferMsg,
 			connectionId,
-			controllerWallet.Bech32Address(chainA.Config().Bech32Prefix),
+			controllerAccount.Bech32Address(chainA.Config().Bech32Prefix),
 		)
 		s.Require().NoError(err)
 
-		// broadcast submitMessage tx from controller wallet on chain A
+		// broadcast submitMessage tx from controller account on chain A
 		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
-		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host wallet on the host chain.
+		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
 		resp, err := s.BroadcastMessages(
 			ctx,
 			chainA,
-			controllerWallet,
+			controllerAccount,
 			submitMsg,
 		)
 
 		s.AssertValidTxResponse(resp)
 		s.Require().NoError(err)
 
-		balance, err := chainB.GetBalance(ctx, chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		_, err = chainB.GetBalance(ctx, hostWallet, chainB.Config().Denom)
+		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
