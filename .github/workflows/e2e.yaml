@@ -13,31 +13,31 @@ env:
   IMAGE_NAME: ibc-go-simd
 
 jobs:
-  determine-image-tag:
-    if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-    runs-on: ubuntu-latest
-    outputs:
-      simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
-      - id: get-tag
-        run: |
-          tag=$(go run cmd/determine_simd_tag/main.go -pr "${{ github.event.pull_request.number }}" )
-          echo "Using tag $tag"
-          echo "::set-output name=simd-tag::$tag"
-  e2e:
-    if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-    needs:
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    secrets: inherit
-    with:
-      build-and-push-docker-image: true
-      chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-      chain-a-image: ghcr.io/cosmos/ibc-go-simd
-      chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-      chain-b-image: ghcr.io/cosmos/ibc-go-simd
-      relayer-tag: "v2.0.0-rc2"
+    determine-image-tag:
+      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      runs-on: ubuntu-latest
+      outputs:
+        simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
+      steps:
+        - uses: actions/checkout@v3
+        - uses: actions/setup-go@v3
+          with:
+            go-version: 1.18
+        - id: get-tag
+          run: |
+            tag=$(go run cmd/determine_simd_tag/main.go -pr "${{ github.event.pull_request.number }}" )
+            echo "Using tag $tag"
+            echo "::set-output name=simd-tag::$tag"
+    e2e:
+      if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      needs:
+        - determine-image-tag
+      uses: ./.github/workflows/e2e-test-workflow-call.yml
+      secrets: inherit
+      with:
+        build-and-push-docker-image: true
+        chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
+        chain-a-image: ghcr.io/cosmos/ibc-go-simd
+        chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
+        chain-b-image: ghcr.io/cosmos/ibc-go-simd
+        relayer-tag: "v2.0.0-rc2"

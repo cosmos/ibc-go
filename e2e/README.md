@@ -67,14 +67,6 @@ export CHAIN_A_SIMD_TAG="main"
 # export CHAIN_B_SIMD_TAG="main"
 
 export RLY_TAG="v2.0.0-rc2"
-
-export CHAIN_A_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-icad"
-export CHAIN_A_SIMD_TAG="v0.3.0"
-export CHAIN_A_BINARY="icad"
-export CHAIN_B_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-icad"
-export CHAIN_B_SIMD_TAG="v0.3.0"
-export CHAIN_B_BINARY="icad"
-
 make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
 ```
 
