@@ -117,6 +117,7 @@ jobs:
       CHAIN_A_TAG: "${{ inputs.chain-a-tag }}"
       CHAIN_B_TAG: "${{ inputs.chain-b-tag }}"
       RLY_TAG: "${{ inputs.relayer-tag }}"
+      CHAIN_BINARY: "${{ inputs.chain-binary }}"
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
