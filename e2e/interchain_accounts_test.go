@@ -168,7 +168,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
-		t.Run("verify tokens transfered", func(t *testing.T) {
+		t.Run("verify tokens transferred", func(t *testing.T) {
 			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
 			s.Require().NoError(err)
 
