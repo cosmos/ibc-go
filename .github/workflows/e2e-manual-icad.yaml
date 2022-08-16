@@ -27,7 +27,7 @@ on:
           - v0.2.1
           - v0.1.1
       chain-b-tag:
-        default: v4.0.0-rc3
+        default: master
         description: 'The tag to use for chain B'
         required: true
         type: choice
