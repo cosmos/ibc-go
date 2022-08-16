@@ -40,3 +40,4 @@ jobs:
         chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
         relayer-tag: "v2.0.0-rc2"
+        chain-binary: "simd"

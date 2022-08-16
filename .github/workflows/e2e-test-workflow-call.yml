@@ -26,6 +26,11 @@ on:
         description: 'The tag to use for chain B'
         required: true
         type: string
+      chain-binary:
+        default: "simd"
+        description: 'The chain binary'
+        required: false
+        type: string
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true

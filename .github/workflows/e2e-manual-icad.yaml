@@ -52,3 +52,4 @@ jobs:
       chain-b-tag: "${{ github.event.inputs.chain-b-tag }}"
       relayer-tag: "${{ github.event.inputs.relayer-tag }}"
       test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
+      chain-binary: "icad"
