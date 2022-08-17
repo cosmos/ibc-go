@@ -6,7 +6,7 @@ on:
         required: false
         type: string
         default: "" # empty string means run all tests
-      test-test-exclusions:
+      test-exclusions:
         description: 'Comma separated list of tests to skip'
         required: false
         type: string
