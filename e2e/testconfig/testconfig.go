@@ -73,7 +73,6 @@ func FromEnv() TestConfig {
 	if ok {
 		chainAImage = specifiedChainImage
 	}
-
 	chainBImage := chainAImage
 
 	return TestConfig{

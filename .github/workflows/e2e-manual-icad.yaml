@@ -24,8 +24,8 @@ on:
         options:
           - master
           - v0.3.1
-          - v0.2.1
-          - v0.1.1
+          - v0.2.2
+          - v0.1.2
       chain-b-tag:
         default: master
         description: 'The tag to use for chain B'
@@ -34,8 +34,8 @@ on:
         options:
           - master
           - v0.3.1
-          - v0.2.1
-          - v0.1.1
+          - v0.2.2
+          - v0.1.2
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true
