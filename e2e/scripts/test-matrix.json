@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "TestTransferTestSuite",
+      "binary": "simd",
+      "image": "ghcr.io/cosmos/ibc-go-simd",
+      "tags": [
+        {
+          "chain-a": "main",
+          "chain-b": "v4.0.0"
+        }
+      ]
+    }
+  ]
+}
