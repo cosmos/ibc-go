@@ -8,7 +8,6 @@ import (
 )
 
 const (
-
 	// ChainASimdImageEnv specifies the image that Chain A will use.
 	ChainASimdImageEnv = "CHAIN_A_SIMD_IMAGE"
 	// ChainASimdTagEnv specifies the tag that Chain A will use.
