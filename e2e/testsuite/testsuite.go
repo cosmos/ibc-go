@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -48,8 +49,10 @@ type E2ETestSuite struct {
 // These should typically be used for query clients only. If we need to make changes, we should
 // use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
+	ClientQueryClient  clienttypes.QueryClient
 	ChannelQueryClient channeltypes.QueryClient
 	FeeQueryClient     feetypes.QueryClient
+	ICAQueryClient     intertxtypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -115,7 +118,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		opt(&channelOptions)
 	}
 
-	eRep := s.getRelayerExecReporter()
+	eRep := s.GetRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
 		Client:            s.DockerClient,
@@ -277,8 +280,10 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 	}
 
 	s.grpcClients[chain.Config().ChainID] = GRPCClients{
+		ClientQueryClient:  clienttypes.NewQueryClient(grpcConn),
 		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
+		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -290,6 +295,13 @@ func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
 	s.Require().NotEmpty(resp.Events, respLogsMsg)
 	s.Require().NotEmpty(resp.Data, respLogsMsg)
+}
+
+// AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
+// The packet commitment will be deleted upon a packet acknowledgement or timeout.
+func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.CosmosChain, portID, channelID string, sequence uint64) {
+	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
+	s.Require().Empty(commitment)
 }
 
 // createCosmosChains creates two separate chains in docker containers.
@@ -310,9 +322,9 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	return chainA, chainB
 }
 
-// getRelayerExecReporter returns a testreporter.RelayerExecReporter instances
+// GetRelayerExecReporter returns a testreporter.RelayerExecReporter instances
 // using the current test's testing.T.
-func (s *E2ETestSuite) getRelayerExecReporter() *testreporter.RelayerExecReporter {
+func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporter {
 	rep := testreporter.NewNopReporter()
 	return rep.RelayerExecReporter(s.T())
 }

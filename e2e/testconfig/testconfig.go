@@ -18,8 +18,13 @@ const (
 	// ChainBSimdTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
 	ChainBSimdTagEnv = "CHAIN_B_SIMD_TAG"
-	GoRelayerTagEnv  = "RLY_TAG"
-
+	// GoRelayerTagEnv specifies the go relayer version. Defaults to "main"
+	GoRelayerTagEnv = "RLY_TAG"
+	// ChainBinary binary is the binary that will be used for the chains.
+	ChainBinary = "CHAIN_BINARY"
+	// defaultBinary is the default binary that will be used by the chains.
+	defaultBinary = "simd"
+	// defaultSimdImage is the default image that will be used for the chain if none are specified.
 	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd"
 	defaultRlyTag    = "main"
 )
@@ -32,12 +37,18 @@ type TestConfig struct {
 }
 
 type ChainConfig struct {
-	Image string
-	Tag   string
+	Image  string
+	Tag    string
+	Binary string
 }
 
 // FromEnv returns a TestConfig constructed from environment variables.
 func FromEnv() TestConfig {
+	chainBinary, ok := os.LookupEnv(ChainBinary)
+	if !ok {
+		chainBinary = defaultBinary
+	}
+
 	chainASimdImage, ok := os.LookupEnv(ChainASimdImageEnv)
 	if !ok {
 		chainASimdImage = defaultSimdImage
@@ -45,7 +56,7 @@ func FromEnv() TestConfig {
 
 	chainASimdTag, ok := os.LookupEnv(ChainASimdTagEnv)
 	if !ok {
-		panic(fmt.Sprintf("must specify simd version for test with environment variable [%s]", ChainASimdTagEnv))
+		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainBinary, ChainASimdTagEnv))
 	}
 
 	chainBSimdImage, ok := os.LookupEnv(ChainBSimdImageEnv)
@@ -65,12 +76,14 @@ func FromEnv() TestConfig {
 
 	return TestConfig{
 		ChainAConfig: ChainConfig{
-			Image: chainASimdImage,
-			Tag:   chainASimdTag,
+			Image:  chainASimdImage,
+			Tag:    chainASimdTag,
+			Binary: chainBinary,
 		},
 		ChainBConfig: ChainConfig{
-			Image: chainBSimdImage,
-			Tag:   chainBSimdTag,
+			Image:  chainBSimdImage,
+			Tag:    chainBSimdTag,
+			Binary: chainBinary,
 		},
 		RlyTag: rlyTag,
 	}
@@ -111,7 +124,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 				Version:    cc.Tag,
 			},
 		},
-		Bin:            "simd",
+		Bin:            cc.Binary,
 		Bech32Prefix:   "cosmos",
 		Denom:          denom,
 		GasPrices:      fmt.Sprintf("0.00%s", denom),
@@ -119,4 +132,13 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
 	}
+}
+
+// SetChainBinaryVersions is a helper function for local cross-version testing
+func SetChainBinaryVersions(chainaSimdImg, chainaSimdTag, chainBinary, chainbSimdImg, chainbSimdTag string) {
+	os.Setenv("CHAIN_A_SIMD_IMAGE", chainaSimdImg)
+	os.Setenv("CHAIN_A_SIMD_TAG", chainaSimdTag)
+	os.Setenv("CHAIN_B_SIMD_IMAGE", chainbSimdImg)
+	os.Setenv("CHAIN_B_SIMD_TAG", chainbSimdTag)
+	os.Setenv("CHAIN_BINARY", chainBinary)
 }
