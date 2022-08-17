@@ -270,7 +270,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incenti
 
 	var (
 		chainADenom   = chainA.Config().Denom
-		channelOutput ibc.ChannelOutput
 		interchainAcc = ""
 		testFee       = testvalues.DefaultFee(chainADenom)
 	)
@@ -298,52 +297,28 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incenti
 	t.Run("register interchain account", func(t *testing.T) {
 		err := s.RegisterICA(ctx, chainA, chainAAccount, chainAAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-
-		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
-		})
-
-		t.Run("verify interchain account", func(t *testing.T) {
-			var err error
-			interchainAcc, err = s.QueryInterchainAccount(ctx, chainA, chainAAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
-			s.Require().NoError(err)
-			s.Require().NotZero(len(interchainAcc))
-
-			channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-			s.Require().NoError(err)
-			s.Require().Equal(len(channels), 2)
-
-			// interchain accounts channel at index: 0
-			channelOutput = channels[0]
-		})
-
-		t.Run("stop relayer", func(t *testing.T) {
-			err := relayer.StopRelayer(ctx, s.GetRelayerExecReporter())
-			s.Require().NoError(err)
-		})
 	})
 
-	t.Run("setup counterparty payee", func(t *testing.T) {
-		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(resp)
-		})
-
-		t.Run("verify counterparty payee exists", func(t *testing.T) {
-			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelOutput.Counterparty.ChannelID)
-			s.Require().NoError(err)
-			s.Require().Equal(chainARelayerWallet.Address, address)
-		})
-
-		t.Run("verify no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
-			s.Require().NoError(err)
-			s.Require().Empty(packets)
-		})
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
 	})
 
-	t.Run("execute incentivized interchain account bank send", func(t *testing.T) {
+	var channelOutput ibc.ChannelOutput
+	t.Run("verify interchain account", func(t *testing.T) {
+		var err error
+		interchainAcc, err = s.QueryInterchainAccount(ctx, chainA, chainAAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(interchainAcc))
+
+		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+		s.Require().NoError(err)
+		s.Require().Equal(len(channels), 2)
+
+		// interchain accounts channel at index: 0
+		channelOutput = channels[0]
+	})
+
+	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("fund interchain account wallet on host chainB", func(t *testing.T) {
 			// fund the interchain account so it has some $$ to send
 			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
@@ -351,6 +326,29 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incenti
 				Amount:  testvalues.StartingTokenAmount,
 				Denom:   chainB.Config().Denom,
 			})
+			s.Require().NoError(err)
+		})
+
+		t.Run("register counterparty payee", func(t *testing.T) {
+			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(resp)
+		})
+
+		t.Run("verify counterparty payee", func(t *testing.T) {
+			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.Address, channelOutput.Counterparty.ChannelID)
+			s.Require().NoError(err)
+			s.Require().Equal(chainARelayerWallet.Address, address)
+		})
+
+		t.Run("no incentivized packets", func(t *testing.T) {
+			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			s.Require().NoError(err)
+			s.Require().Empty(packets)
+		})
+
+		t.Run("stop relayer", func(t *testing.T) {
+			err := relayer.StopRelayer(ctx, s.GetRelayerExecReporter())
 			s.Require().NoError(err)
 		})
 
