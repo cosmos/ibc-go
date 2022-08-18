@@ -55,5 +55,3 @@ dependency-graph.png
 
 *.history
 
-# python virtual environments
-venv
