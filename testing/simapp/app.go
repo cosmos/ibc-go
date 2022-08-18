@@ -198,7 +198,7 @@ type SimApp struct {
 	AccountKeeper       authkeeper.AccountKeeper
 	BankKeeper          bankkeeper.Keeper
 	CapabilityKeeper    *capabilitykeeper.Keeper
-	StakingKeeper       ibctestingtypes.IBCTestingStakingKeeper
+	StakingKeeper       stakingkeeper.Keeper
 	SlashingKeeper      slashingkeeper.Keeper
 	MintKeeper          mintkeeper.Keeper
 	DistrKeeper         distrkeeper.Keeper
@@ -749,7 +749,7 @@ func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
 }
 
 // GetStakingKeeper implements the TestingApp interface.
-func (app *SimApp) GetIBCTestStakingKeeper() ibctestingtypes.IBCTestingStakingKeeper {
+func (app *SimApp) GetIBCTestStakingKeeper() ibctestingtypes.StakingKeeper {
 	return app.StakingKeeper
 }
 
