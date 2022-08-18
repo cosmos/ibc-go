@@ -2,19 +2,26 @@
 
 set -Eeou pipefail
 
-VERSION="${1}"
-LATEST_TAG="$(git tag -l | grep "v${VERSION}" | sort -V | tail -n 1)"
-CURRENT_BRANCH="$(git branch --show-current)"
-echo $LATEST_TAG
+VERSION="${1:-main}"
 
-jq -c -r '.[]' scripts/test-matrix.json | while read i; do
+echo "## Test Results"
+echo ""
+jq -c -r '.[]' "scripts/test-matricies/${VERSION}/test-matrix.json" | while read arguments; do
+    test_name="$(echo ${arguments} | jq -r -c '."test-entry-point"')"
+    chain_a_tag="$(echo ${arguments} | jq -r -c '."chain-a-tag"')"
+    chain_b_tag="$(echo ${arguments} | jq -r -c '."chain-b-tag"')"
+
     # manually trigger a workflow using the entry from the list
-    echo ${i} | gh workflow run e2e-manual-simd.yaml --json
+    echo ${arguments} | gh workflow run e2e-manual-simd.yaml --json > /dev/null
     # wait some time for the workflow to be started
-    echo "waiting for task to start..."
     sleep 2
+
     # extract the id of the workflow we just started
     run_id="$(gh run list --workflow=e2e-manual-simd.yaml | grep workflow_dispatch | grep -Eo "[0-9]{9,11}" | head -n 1)"
-    # open the workflow in a browser
-    gh run view "${run_id}" --web
+
+    echo "Test ${test_name}"
+    echo "Chain A: ${chain_a_tag}"
+    echo "Chain B: ${chain_b_tag}"
+    echo "Workflow Run https://github.com/cosmos/ibc-go/actions/runs/${run_id}"
+    echo ""
 done
