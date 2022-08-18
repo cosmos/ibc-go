@@ -17,8 +17,3 @@ func Name() string {
 func GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
-
-// RegisterQueryService registers the gRPC query service for IBC ports.
-func RegisterQueryService(server grpc.Server, queryServer types.QueryServer) {
-	types.RegisterQueryServer(server, queryServer)
-}
