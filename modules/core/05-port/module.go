@@ -1,7 +1,6 @@
 package port
 
 import (
-	"github.com/gogo/protobuf/grpc"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
