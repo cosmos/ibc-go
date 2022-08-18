@@ -19,6 +19,11 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
+// MessageRouter ADR 031 request type routing
+type MessageRouter interface {
+	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
+}
+
 // Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
 	storeKey   storetypes.StoreKey
@@ -31,14 +36,14 @@ type Keeper struct {
 
 	scopedKeeper capabilitykeeper.ScopedKeeper
 
-	msgRouter *baseapp.MsgServiceRouter
+	msgRouter MessageRouter
 }
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
+	scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter MessageRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
