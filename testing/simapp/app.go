@@ -108,6 +108,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v5/testing/simapp/params"
+	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"
 )
 
 const appName = "SimApp"
@@ -197,7 +198,7 @@ type SimApp struct {
 	AccountKeeper       authkeeper.AccountKeeper
 	BankKeeper          bankkeeper.Keeper
 	CapabilityKeeper    *capabilitykeeper.Keeper
-	StakingKeeper       stakingkeeper.Keeper
+	StakingKeeper       ibctestingtypes.IBCTestingStakingKeeper
 	SlashingKeeper      slashingkeeper.Keeper
 	MintKeeper          mintkeeper.Keeper
 	DistrKeeper         distrkeeper.Keeper
@@ -748,7 +749,7 @@ func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
 }
 
 // GetStakingKeeper implements the TestingApp interface.
-func (app *SimApp) GetStakingKeeper() stakingkeeper.Keeper {
+func (app *SimApp) GetIBCTestStakingKeeper() ibctestingtypes.IBCTestingStakingKeeper {
 	return app.StakingKeeper
 }
 

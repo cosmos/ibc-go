@@ -23,11 +23,11 @@ func TestChangeValSet(t *testing.T) {
 	amount2, ok := sdk.NewIntFromString("30000000000000000000")
 	require.True(t, ok)
 
-	val := chainA.App.GetIBCTestStakingKeeper().GetValidators(chainA.GetContext(), 4)
+	val := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
 
-	chainA.App.GetIBCTestStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
+	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
 		amount, types.Unbonded, val[1], true)
-	chainA.App.GetIBCTestStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
+	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
 		amount2, types.Unbonded, val[3], true)
 
 	coord.CommitBlock(chainA)
