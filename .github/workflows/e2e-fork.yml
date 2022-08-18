@@ -21,11 +21,13 @@ jobs:
           go-version: 1.18
       - id: set-matrix
         run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
+        env:
+          TEST_EXCLUSIONS: "TestInterchainAccountsTestSuite"
 
   e2e:
     env:
-      CHAIN_A_SIMD_TAG: latest
-      CHAIN_A_SIMD_IMAGE: ibc-go-simd
+      CHAIN_A_TAG: latest
+      CHAIN_IMAGE: ibc-go-simd
     if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
     needs:
       - build-test-matrix
@@ -36,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Docker Build
-        run: docker build . -t "${CHAIN_A_SIMD_IMAGE}:${CHAIN_A_SIMD_TAG}"
+        run: docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}"
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
