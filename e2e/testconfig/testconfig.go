@@ -8,26 +8,30 @@ import (
 )
 
 const (
-	// ChainASimdImageEnv specifies the image that Chain A will use.
-	ChainASimdImageEnv = "CHAIN_A_SIMD_IMAGE"
-	// ChainASimdTagEnv specifies the tag that Chain A will use.
-	ChainASimdTagEnv = "CHAIN_A_SIMD_TAG"
-	// ChainBSimdImageEnv specifies the image that Chain B will use. If unspecified
+	// ChainImageEnv specifies the image that the chains will use. If left unspecified, it will
+	// default to being determined based on the specified binary. E.g. ghcr.io/cosmos/ibc-go-simd
+	ChainImageEnv = "CHAIN_IMAGE"
+	// ChainATagEnv specifies the tag that Chain A will use.
+	ChainATagEnv = "CHAIN_A_TAG"
+	// ChainBTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
-	ChainBSimdImageEnv = "CHAIN_B_SIMD_IMAGE"
-	// ChainBSimdTagEnv specifies the tag that Chain B will use. If unspecified
-	// the value will default to the same value as Chain A.
-	ChainBSimdTagEnv = "CHAIN_B_SIMD_TAG"
+	ChainBTagEnv = "CHAIN_B_TAG"
 	// GoRelayerTagEnv specifies the go relayer version. Defaults to "main"
 	GoRelayerTagEnv = "RLY_TAG"
-	// ChainBinary binary is the binary that will be used for the chains.
-	ChainBinary = "CHAIN_BINARY"
+	// ChainBinaryEnv binary is the binary that will be used for both chains.
+	ChainBinaryEnv = "CHAIN_BINARY"
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
-	// defaultSimdImage is the default image that will be used for the chain if none are specified.
-	defaultSimdImage = "ghcr.io/cosmos/ibc-go-simd"
-	defaultRlyTag    = "main"
+	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
+	defaultRlyTag = "main"
 )
+
+func getChainImage(binary string) string {
+	if binary == "" {
+		binary = defaultBinary
+	}
+	return fmt.Sprintf("ghcr.io/cosmos/ibc-go-%s", binary)
+}
 
 // TestConfig holds various fields used in the E2E tests.
 type TestConfig struct {
@@ -44,29 +48,19 @@ type ChainConfig struct {
 
 // FromEnv returns a TestConfig constructed from environment variables.
 func FromEnv() TestConfig {
-	chainBinary, ok := os.LookupEnv(ChainBinary)
+	chainBinary, ok := os.LookupEnv(ChainBinaryEnv)
 	if !ok {
 		chainBinary = defaultBinary
 	}
 
-	chainASimdImage, ok := os.LookupEnv(ChainASimdImageEnv)
+	chainATag, ok := os.LookupEnv(ChainATagEnv)
 	if !ok {
-		chainASimdImage = defaultSimdImage
+		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainBinary, ChainATagEnv))
 	}
 
-	chainASimdTag, ok := os.LookupEnv(ChainASimdTagEnv)
+	chainBTag, ok := os.LookupEnv(ChainBTagEnv)
 	if !ok {
-		panic(fmt.Sprintf("must specify %s version for test with environment variable [%s]", chainBinary, ChainASimdTagEnv))
-	}
-
-	chainBSimdImage, ok := os.LookupEnv(ChainBSimdImageEnv)
-	if !ok {
-		chainBSimdImage = chainASimdImage
-	}
-
-	chainBSimdTag, ok := os.LookupEnv(ChainBSimdTagEnv)
-	if !ok {
-		chainBSimdTag = chainASimdTag
+		chainBTag = chainATag
 	}
 
 	rlyTag, ok := os.LookupEnv(GoRelayerTagEnv)
@@ -74,15 +68,22 @@ func FromEnv() TestConfig {
 		rlyTag = defaultRlyTag
 	}
 
+	chainAImage := getChainImage(chainBinary)
+	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
+	if ok {
+		chainAImage = specifiedChainImage
+	}
+	chainBImage := chainAImage
+
 	return TestConfig{
 		ChainAConfig: ChainConfig{
-			Image:  chainASimdImage,
-			Tag:    chainASimdTag,
+			Image:  chainAImage,
+			Tag:    chainATag,
 			Binary: chainBinary,
 		},
 		ChainBConfig: ChainConfig{
-			Image:  chainBSimdImage,
-			Tag:    chainBSimdTag,
+			Image:  chainBImage,
+			Tag:    chainBTag,
 			Binary: chainBinary,
 		},
 		RlyTag: rlyTag,
@@ -132,13 +133,4 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
 	}
-}
-
-// SetChainBinaryVersions is a helper function for local cross-version testing
-func SetChainBinaryVersions(chainaSimdImg, chainaSimdTag, chainBinary, chainbSimdImg, chainbSimdTag string) {
-	os.Setenv("CHAIN_A_SIMD_IMAGE", chainaSimdImg)
-	os.Setenv("CHAIN_A_SIMD_TAG", chainaSimdTag)
-	os.Setenv("CHAIN_B_SIMD_IMAGE", chainbSimdImg)
-	os.Setenv("CHAIN_B_SIMD_TAG", chainbSimdTag)
-	os.Setenv("CHAIN_BINARY", chainBinary)
 }
