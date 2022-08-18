@@ -36,8 +36,10 @@ jobs:
       secrets: inherit
       with:
         build-and-push-docker-image: true
+        chain-image: ghcr.io/cosmos/ibc-go-simd
         chain-a-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-        chain-a-image: ghcr.io/cosmos/ibc-go-simd
         chain-b-tag: "${{ needs.determine-image-tag.outputs.simd-tag }}"
-        chain-b-image: ghcr.io/cosmos/ibc-go-simd
         relayer-tag: "v2.0.0-rc2"
+        chain-binary: "simd"
+        # on regular PRs we won't run interchain account tests.
+        test-exclusions: "TestInterchainAccountsTestSuite"

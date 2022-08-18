@@ -19,7 +19,7 @@ const (
 func TestGetGithubActionMatrixForTests(t *testing.T) {
 	t.Run("empty dir does not fail", func(t *testing.T) {
 		testingDir := t.TempDir()
-		_, err := getGithubActionMatrixForTests(testingDir, "")
+		_, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 	})
 
@@ -27,7 +27,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
-		gh, err := getGithubActionMatrixForTests(testingDir, "")
+		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
@@ -50,7 +50,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
 
-		gh, err := getGithubActionMatrixForTests(testingDir, "")
+		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
@@ -81,7 +81,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
-		gh, err := getGithubActionMatrixForTests(testingDir, "")
+		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.NoError(t, err)
 		assert.Empty(t, gh.Include)
 	})
@@ -105,7 +105,7 @@ type FeeMiddlewareTestSuite struct {}
 		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(777))
 		assert.NoError(t, err)
 
-		_, err = getGithubActionMatrixForTests(testingDir, "")
+		_, err = getGithubActionMatrixForTests(testingDir, "", nil)
 		assert.Error(t, err)
 	})
 }
