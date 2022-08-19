@@ -5,6 +5,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 )
 
+// ScopedKeeper defines the expected x/capability scoped keeper interface
 type ScopedKeeper interface {
 	NewCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, error)
 	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
