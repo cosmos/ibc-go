@@ -16,7 +16,7 @@
    - a. [ibctest](#ibctest)
    - b. [CI configuration](#ci-configuration)
 3. [Github Workflows](#github-workflows) 
-4. [Running Compatibility Tests](#compatibility-tests)
+4. [Running Compatibility Tests](#running-compatibility-tests)
 5. [Troubleshooting](#troubleshooting)
 
 
@@ -330,7 +330,7 @@ Alternatively, the [gh](https://cli.github.com/) CLI tool can be used to trigger
 gh workflow run "Build Simd Image" -f tag=v3.0.0
 ```
 
-### Compatibility Tests
+### Running Compatibility Tests
 
 A full matrix of tests can be configured in json format. See [this file](./scripts/test-matricies/main/test-matrix.json) as a reference.
 
