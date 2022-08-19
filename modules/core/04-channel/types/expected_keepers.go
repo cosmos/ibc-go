@@ -77,6 +77,7 @@ type PortKeeper interface {
 	Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) bool
 }
 
+// ScopedKeeper defines the expected x/capability scoped keeper interface
 type ScopedKeeper interface {
 	NewCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, error)
 	AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool
