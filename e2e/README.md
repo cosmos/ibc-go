@@ -340,11 +340,11 @@ To run all of the tests specified in this file, run
 make compatibility-tests
 ```
 
-This will run a Github Action for each entry, and display markdown which can be used in Github Issue
+This will run a GitHub Action for each entry, and display markdown which can be used in GitHub issue
 bodies to provide links to each of the workflows.
 
 Note: a version field which corresponds to a subdirectory under scripts/test-matricies can also be specified. Once a file exists there,
-e.g. `scripts/test-matricies/v5.0.0/test-matrix.json`, that file will be used to provide values to the github workflows
+e.g. `scripts/test-matricies/v5.0.0/test-matrix.json`, that file will be used to provide values to the GitHub workflows
 if we run `make compatibility-tests version=v5.0.0`
 
 ### Troubleshooting
