@@ -230,8 +230,8 @@ func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 }
 
 // StopRelayer stops the given relayer.
-func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer, eRep ibc.RelayerExecReporter) {
-	err := relayer.StopRelayer(ctx, eRep)
+func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
+	err := relayer.StopRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
 }
 
