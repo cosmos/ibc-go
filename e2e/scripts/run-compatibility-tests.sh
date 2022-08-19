@@ -13,14 +13,14 @@ function run_gh_workflow(){
         local current_branch="$(git branch --show-current)"
 
         # manually trigger a workflow using each entry from the list
-        gh workflow run "e2e-manual-${chain_binary}.yml" --ref="${current_branch}" \
+        gh workflow run "e2e-manual-${chain_binary}.yaml" --ref="${current_branch}" \
           -f chain-a-tag="${chain_a_tag}" \
           -f chain-b-tag="${chain_b_tag}" \
           -f test-entry-point="${test_entry_point}" > /dev/null
         # it takes some time for the test to appear in the list, we need to wait for it to show up.
         sleep 2
         # this assumes nobody else has run a manual workflow in the last 2 seconds
-        run_id="$(gh run list "--workflow=e2e-manual-${chain_binary}.yml" --ref="${current_branch}" | grep workflow_dispatch | grep -Eo "[0-9]{9,11}" | head -n 1)"
+        run_id="$(gh run list "--workflow=e2e-manual-${chain_binary}.yaml" --ref="${current_branch}" | grep workflow_dispatch | grep -Eo "[0-9]{9,11}" | head -n 1)"
         echo "[${test_entry_point} chain A (${chain_a_tag}) -> chain B (${chain_b_tag})](https://github.com/cosmos/ibc-go/actions/runs/${run_id})"
         echo ""
 }
