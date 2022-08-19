@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
@@ -59,7 +60,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := "" // allow app to handle the version as appropriate.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
@@ -153,7 +154,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_FailedTransfer_Insufficien
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := "" // allow app to handle the version as appropriate.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
