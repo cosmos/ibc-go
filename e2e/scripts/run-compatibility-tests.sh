@@ -28,7 +28,7 @@ function run_gh_workflow(){
 # run_full_compatibility_suite runs all tests specified in the test-matrix.json file.
 function run_full_compatibility_suite(){
     local matrix_version="${1}"
-    local matrix_file_path="${2:-"scripts/test-matricies/${VERSION}/test-matrix.json"}"
+    local matrix_file_path="${2:-"scripts/test-matricies/${matrix_version}/test-matrix.json"}"
 
     echo "### Backwards compatibility tests"
     echo "## Matrix Version: ${matrix_version}"
