@@ -21,8 +21,7 @@ function run_gh_workflow(){
         sleep 2
         # this assumes nobody else has run a manual workflow in the last 2 seconds
         run_id="$(gh run list "--workflow=e2e-manual-${chain_binary}.yaml" | grep workflow_dispatch | grep -Eo "[0-9]{9,11}" | head -n 1)"
-        echo "- [ ] [${test_entry_point} chain A (${chain_a_tag}) -> chain B (${chain_b_tag})](https://github.com/cosmos/ibc-go/actions/runs/${run_id})"
-        echo ""
+        echo "  - [ ] [chain A (${chain_a_tag}) -> chain B (${chain_b_tag})](https://github.com/cosmos/ibc-go/actions/runs/${run_id})"
 }
 
 # run_full_compatibility_suite runs all tests specified in the test-matrix.json file.
@@ -30,14 +29,14 @@ function run_full_compatibility_suite(){
     local matrix_version="${1}"
     local matrix_file_path="${2:-"scripts/test-matricies/${matrix_version}/test-matrix.json"}"
 
-    echo "### Backwards compatibility tests"
-    echo "#### Matrix Version: ${matrix_version}"
+    echo "## Backwards compatibility tests"
+    echo "### Matrix Version: ${matrix_version}"
 
     jq -c -r '.[]' "${matrix_file_path}" | while read arguments; do
         test_entry_point="$(echo ${arguments} | jq -r -c '."test-entry-point"')"
         test_arguments="$(echo ${arguments} | jq -r -c '."tests"')"
         chain_binary="$(echo ${arguments} | jq -r -c '."chain-binary"')"
-
+        echo "#### ${test_entry_point}"
         echo ${test_arguments} | jq -c -r '.[]' | while read test; do
             chain_a_tag="$(echo ${test} | jq -r -c '."chain-a-tag"')"
             chain_b_tag="$(echo ${test} | jq -r -c '."chain-b-tag"')"
