@@ -14,7 +14,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
@@ -23,11 +22,6 @@ import (
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
-	// NOTE: this is a temporary mechanism to enable this test to run alongside the simd tests.
-	// This will be removed in a follow up PR and properly parameterized in a github workflow.
-	testconfig.SetChainBinaryVersions(
-		"ghcr.io/cosmos/ibc-go-icad", "master", "icad", "ghcr.io/cosmos/ibc-go-icad", "master",
-	)
 	suite.Run(t, new(InterchainAccountsTestSuite))
 }
 
