@@ -37,42 +37,11 @@ func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Cont
 	return err
 }
 
-// QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
-func (s *InterchainAccountsTestSuite) QueryIncentivizedPacketsForChannel(
-	ctx context.Context,
-	chain *cosmos.CosmosChain,
-	portId,
-	channelId string,
-) ([]*feetypes.IdentifiedPacketFees, error) {
-	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
-	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
-		PortId:    portId,
-		ChannelId: channelId,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return res.IncentivizedPackets, err
-}
-
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
 	user *ibctest.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
-func (s *InterchainAccountsTestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
-	res, err := queryClient.CounterpartyPayee(ctx, &feetypes.QueryCounterpartyPayeeRequest{
-		ChannelId: channelID,
-		Relayer:   relayerAddress,
-	})
-	if err != nil {
-		return "", err
-	}
-	return res.CounterpartyPayee, nil
 }
 
 func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
