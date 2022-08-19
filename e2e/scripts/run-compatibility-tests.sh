@@ -21,7 +21,7 @@ function run_gh_workflow(){
         sleep 2
         # this assumes nobody else has run a manual workflow in the last 2 seconds
         run_id="$(gh run list "--workflow=e2e-manual-${chain_binary}.yaml" | grep workflow_dispatch | grep -Eo "[0-9]{9,11}" | head -n 1)"
-        echo "-[ ] [${test_entry_point} chain A (${chain_a_tag}) -> chain B (${chain_b_tag})](https://github.com/cosmos/ibc-go/actions/runs/${run_id})"
+        echo "- [ ] [${test_entry_point} chain A (${chain_a_tag}) -> chain B (${chain_b_tag})](https://github.com/cosmos/ibc-go/actions/runs/${run_id})"
         echo ""
 }
 
