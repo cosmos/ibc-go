@@ -23,7 +23,7 @@
 </div>
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go">
-    <img alt="Lines Of Code" src="https://tokei.rs/b1/github/cosmos/ibc-go" />
+    <img alt="Lines Of Code" src="https://tokei.ekzhang.com/b1/github/cosmos/ibc-go" />
   </a>
   <a href="https://discord.gg/AzefAFd">
     <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
