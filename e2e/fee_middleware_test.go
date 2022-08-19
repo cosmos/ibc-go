@@ -34,19 +34,6 @@ func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
-// QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
-func (s *FeeMiddlewareTestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
-	res, err := queryClient.CounterpartyPayee(ctx, &feetypes.QueryCounterpartyPayeeRequest{
-		ChannelId: channelID,
-		Relayer:   relayerAddress,
-	})
-	if err != nil {
-		return "", err
-	}
-	return res.CounterpartyPayee, nil
-}
-
 // PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
 func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(
 	ctx context.Context,
@@ -57,24 +44,6 @@ func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(
 ) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
 	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
-func (s *FeeMiddlewareTestSuite) QueryIncentivizedPacketsForChannel(
-	ctx context.Context,
-	chain *cosmos.CosmosChain,
-	portId,
-	channelId string,
-) ([]*feetypes.IdentifiedPacketFees, error) {
-	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
-	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
-		PortId:    portId,
-		ChannelId: channelId,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return res.IncentivizedPackets, err
 }
 
 func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
