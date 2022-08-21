@@ -22,8 +22,46 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// QueryResult
+type QueryResult int32
+
+const (
+	// UNSPECIFIED
+	QueryResult_QUERY_RESULT_UNSPECIFIED QueryResult = 0
+	// SUCCESS
+	QueryResult_QUERY_RESULT_SUCCESS QueryResult = 1
+	// FAILURE
+	QueryResult_QUERY_RESULT_FAILURE QueryResult = 2
+	// TIMEOUT
+	QueryResult_QUERY_RESULT_TIMEOUT QueryResult = 3
+)
+
+var QueryResult_name = map[int32]string{
+	0: "QUERY_RESULT_UNSPECIFIED",
+	1: "QUERY_RESULT_SUCCESS",
+	2: "QUERY_RESULT_FAILURE",
+	3: "QUERY_RESULT_TIMEOUT",
+}
+
+var QueryResult_value = map[string]int32{
+	"QUERY_RESULT_UNSPECIFIED": 0,
+	"QUERY_RESULT_SUCCESS":     1,
+	"QUERY_RESULT_FAILURE":     2,
+	"QUERY_RESULT_TIMEOUT":     3,
+}
+
+func (x QueryResult) String() string {
+	return proto.EnumName(QueryResult_name, int32(x))
+}
+
+func (QueryResult) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_c259616820459d03, []int{0}
+}
+
+// GenesisState defines the ICS31 ibc-query genesis state
 type GenesisState struct {
-	Queries []*CrossChainQuery `protobuf:"bytes,1,rep,name=queries,proto3" json:"queries,omitempty"`
+	Queries []*CrossChainQuery       `protobuf:"bytes,1,rep,name=queries,proto3" json:"queries,omitempty"`
+	Results []*CrossChainQueryResult `protobuf:"bytes,2,rep,name=results,proto3" json:"results,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -66,13 +104,21 @@ func (m *GenesisState) GetQueries() []*CrossChainQuery {
 	return nil
 }
 
+func (m *GenesisState) GetResults() []*CrossChainQueryResult {
+	if m != nil {
+		return m.Results
+	}
+	return nil
+}
+
+// CrossChainQuery
 type CrossChainQuery struct {
 	Id                    string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Path                  string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
-	LocalTimeoutHeight    uint64 `protobuf:"varint,3,opt,name=localTimeoutHeight,proto3" json:"localTimeoutHeight,omitempty"`
-	LocalTimeoutTimestamp uint64 `protobuf:"varint,4,opt,name=localTimeoutTimestamp,proto3" json:"localTimeoutTimestamp,omitempty"`
-	QueryHeight           uint64 `protobuf:"varint,5,opt,name=queryHeight,proto3" json:"queryHeight,omitempty"`
-	ClientId              string `protobuf:"bytes,6,opt,name=clientId,proto3" json:"clientId,omitempty"`
+	LocalTimeoutHeight    uint64 `protobuf:"varint,3,opt,name=local_timeout_height,json=localTimeoutHeight,proto3" json:"local_timeout_height,omitempty"`
+	LocalTimeoutTimestamp uint64 `protobuf:"varint,4,opt,name=local_timeout_timestamp,json=localTimeoutTimestamp,proto3" json:"local_timeout_timestamp,omitempty"`
+	QueryHeight           uint64 `protobuf:"varint,5,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
+	ClientId              string `protobuf:"bytes,6,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 }
 
 func (m *CrossChainQuery) Reset()         { *m = CrossChainQuery{} }
@@ -150,9 +196,72 @@ func (m *CrossChainQuery) GetClientId() string {
 	return ""
 }
 
+// CrossChainQueryResult
+type CrossChainQueryResult struct {
+	Id     string      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Result QueryResult `protobuf:"varint,2,opt,name=result,proto3,enum=ibc.applications.ibc_query.v1.QueryResult" json:"result,omitempty"`
+	Data   []byte      `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+}
+
+func (m *CrossChainQueryResult) Reset()         { *m = CrossChainQueryResult{} }
+func (m *CrossChainQueryResult) String() string { return proto.CompactTextString(m) }
+func (*CrossChainQueryResult) ProtoMessage()    {}
+func (*CrossChainQueryResult) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c259616820459d03, []int{2}
+}
+func (m *CrossChainQueryResult) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CrossChainQueryResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CrossChainQueryResult.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CrossChainQueryResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CrossChainQueryResult.Merge(m, src)
+}
+func (m *CrossChainQueryResult) XXX_Size() int {
+	return m.Size()
+}
+func (m *CrossChainQueryResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_CrossChainQueryResult.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CrossChainQueryResult proto.InternalMessageInfo
+
+func (m *CrossChainQueryResult) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *CrossChainQueryResult) GetResult() QueryResult {
+	if m != nil {
+		return m.Result
+	}
+	return QueryResult_QUERY_RESULT_UNSPECIFIED
+}
+
+func (m *CrossChainQueryResult) GetData() []byte {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "ibc.application.ibc_query.v1.GenesisState")
-	proto.RegisterType((*CrossChainQuery)(nil), "ibc.application.ibc_query.v1.CrossChainQuery")
+	proto.RegisterEnum("ibc.applications.ibc_query.v1.QueryResult", QueryResult_name, QueryResult_value)
+	proto.RegisterType((*GenesisState)(nil), "ibc.applications.ibc_query.v1.GenesisState")
+	proto.RegisterType((*CrossChainQuery)(nil), "ibc.applications.ibc_query.v1.CrossChainQuery")
+	proto.RegisterType((*CrossChainQueryResult)(nil), "ibc.applications.ibc_query.v1.CrossChainQueryResult")
 }
 
 func init() {
@@ -160,28 +269,37 @@ func init() {
 }
 
 var fileDescriptor_c259616820459d03 = []byte{
-	// 321 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x91, 0x41, 0x4b, 0xc3, 0x30,
-	0x1c, 0xc5, 0x97, 0x6d, 0x4e, 0xcd, 0x44, 0x21, 0x20, 0x14, 0x91, 0x50, 0x76, 0x1a, 0xc8, 0x12,
-	0xe6, 0x76, 0xf3, 0xe6, 0x0e, 0xd3, 0xa3, 0x53, 0x11, 0xbc, 0x48, 0x9a, 0x86, 0xf6, 0x0f, 0x6d,
-	0x13, 0x97, 0x74, 0xb0, 0x6f, 0xe1, 0xc7, 0xf2, 0xb8, 0xa3, 0xde, 0x64, 0xfb, 0x22, 0xd2, 0x4c,
-	0xc7, 0x90, 0xe1, 0x29, 0xc9, 0xfb, 0xbd, 0x17, 0xfe, 0x7f, 0x1e, 0xbe, 0x80, 0x48, 0x72, 0x61,
-	0x4c, 0x06, 0x52, 0x38, 0xd0, 0x85, 0xe5, 0x10, 0xc9, 0x97, 0xd7, 0x52, 0x4d, 0xe7, 0x7c, 0xd6,
-	0xe7, 0x89, 0x2a, 0x94, 0x05, 0xcb, 0xcc, 0x54, 0x3b, 0x4d, 0xce, 0x21, 0x92, 0x6c, 0xcb, 0xcc,
-	0x36, 0x5e, 0x36, 0xeb, 0x77, 0x9e, 0xf0, 0xd1, 0x78, 0x6d, 0xbf, 0x77, 0xc2, 0x29, 0x32, 0xc6,
-	0xfb, 0x15, 0x03, 0x65, 0x03, 0x14, 0x36, 0xba, 0xed, 0xcb, 0x1e, 0xfb, 0x2f, 0xcf, 0x46, 0x53,
-	0x6d, 0xed, 0x28, 0x15, 0x50, 0xdc, 0x55, 0xd2, 0xe4, 0x37, 0xdd, 0xf9, 0x44, 0xf8, 0xe4, 0x0f,
-	0x24, 0xc7, 0xb8, 0x0e, 0x71, 0x80, 0x42, 0xd4, 0x3d, 0x9c, 0xd4, 0x21, 0x26, 0x04, 0x37, 0x8d,
-	0x70, 0x69, 0x50, 0xf7, 0x8a, 0xbf, 0x13, 0x86, 0x49, 0xa6, 0xa5, 0xc8, 0x1e, 0x20, 0x57, 0xba,
-	0x74, 0x37, 0x0a, 0x92, 0xd4, 0x05, 0x8d, 0x10, 0x75, 0x9b, 0x93, 0x1d, 0x84, 0x0c, 0xf1, 0xe9,
-	0xb6, 0x5a, 0x1d, 0xd6, 0x89, 0xdc, 0x04, 0x4d, 0x1f, 0xd9, 0x0d, 0x49, 0x88, 0xdb, 0x7e, 0x85,
-	0x9f, 0xef, 0xf7, 0xbc, 0x77, 0x5b, 0x22, 0x67, 0xf8, 0x40, 0x66, 0xa0, 0x0a, 0x77, 0x1b, 0x07,
-	0x2d, 0x3f, 0xdf, 0xe6, 0x7d, 0xfd, 0xf8, 0xbe, 0xa4, 0x68, 0xb1, 0xa4, 0xe8, 0x6b, 0x49, 0xd1,
-	0xdb, 0x8a, 0xd6, 0x16, 0x2b, 0x5a, 0xfb, 0x58, 0xd1, 0xda, 0xf3, 0x55, 0x02, 0x2e, 0x2d, 0x23,
-	0x26, 0x75, 0xce, 0xa5, 0xb6, 0xb9, 0xf6, 0xd5, 0xf4, 0x12, 0xcd, 0x67, 0x43, 0x9e, 0xeb, 0xb8,
-	0xcc, 0x94, 0xad, 0x9a, 0xb3, 0x7c, 0xd0, 0xef, 0x55, 0x64, 0x5d, 0x9a, 0x9b, 0x1b, 0x65, 0xa3,
-	0x96, 0x2f, 0x6c, 0xf0, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x56, 0x23, 0x9e, 0x25, 0xdf, 0x01, 0x00,
-	0x00,
+	// 473 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x93, 0x4f, 0x6f, 0xd3, 0x30,
+	0x18, 0xc6, 0xeb, 0xb4, 0x74, 0xcc, 0xad, 0x46, 0x65, 0x6d, 0xc2, 0x12, 0x10, 0x95, 0x9e, 0xaa,
+	0xa1, 0x25, 0x74, 0x9b, 0xb8, 0x70, 0x62, 0x21, 0x63, 0x91, 0xc6, 0x60, 0xf9, 0x73, 0x80, 0x4b,
+	0xe4, 0x24, 0x56, 0x63, 0x29, 0xa9, 0x43, 0xed, 0x54, 0xea, 0x89, 0xaf, 0xc0, 0xc7, 0xe0, 0xa3,
+	0x70, 0xdc, 0x91, 0x1b, 0xa8, 0xfd, 0x22, 0x28, 0xce, 0x8a, 0x5a, 0x8a, 0x40, 0x3b, 0xc5, 0x7a,
+	0x7f, 0xef, 0xf3, 0x38, 0xef, 0x23, 0xbf, 0xf0, 0x19, 0x8b, 0x62, 0x93, 0x14, 0x45, 0xc6, 0x62,
+	0x22, 0x19, 0x9f, 0x08, 0x93, 0x45, 0x71, 0xf8, 0xa9, 0xa4, 0xd3, 0xb9, 0x39, 0x1b, 0x99, 0x63,
+	0x3a, 0xa1, 0x82, 0x09, 0xa3, 0x98, 0x72, 0xc9, 0xd1, 0x13, 0x16, 0xc5, 0xc6, 0x7a, 0xb3, 0xf1,
+	0xbb, 0xd9, 0x98, 0x8d, 0x06, 0x5f, 0x01, 0xec, 0xbe, 0xa9, 0x05, 0x9e, 0x24, 0x92, 0xa2, 0x0b,
+	0xb8, 0x53, 0x41, 0x46, 0x05, 0x06, 0xfd, 0xe6, 0xb0, 0x73, 0x6c, 0x18, 0xff, 0x74, 0x30, 0xac,
+	0x29, 0x17, 0xc2, 0x4a, 0x09, 0x9b, 0x5c, 0x57, 0x25, 0x77, 0x25, 0x47, 0x57, 0x70, 0x67, 0x4a,
+	0x45, 0x99, 0x49, 0x81, 0x35, 0xe5, 0x74, 0x7a, 0x47, 0x27, 0x25, 0x76, 0x57, 0x26, 0x83, 0x1f,
+	0x00, 0x3e, 0xf8, 0xa3, 0x05, 0xed, 0x41, 0x8d, 0x25, 0x18, 0xf4, 0xc1, 0x70, 0xd7, 0xd5, 0x58,
+	0x82, 0x10, 0x6c, 0x15, 0x44, 0xa6, 0x58, 0x53, 0x15, 0x75, 0x46, 0xcf, 0xe1, 0x7e, 0xc6, 0x63,
+	0x92, 0x85, 0x92, 0xe5, 0x94, 0x97, 0x32, 0x4c, 0x29, 0x1b, 0xa7, 0x12, 0x37, 0xfb, 0x60, 0xd8,
+	0x72, 0x91, 0x62, 0x7e, 0x8d, 0x2e, 0x14, 0x41, 0x2f, 0xe0, 0xc3, 0x4d, 0x45, 0xf5, 0x15, 0x92,
+	0xe4, 0x05, 0x6e, 0x29, 0xd1, 0xc1, 0xba, 0xc8, 0x5f, 0x41, 0xf4, 0x14, 0x76, 0xd5, 0x30, 0xab,
+	0x1b, 0xee, 0xa9, 0xe6, 0x8e, 0xaa, 0xdd, 0x5a, 0x3f, 0x82, 0xbb, 0x71, 0xc6, 0xe8, 0x44, 0x86,
+	0x2c, 0xc1, 0x6d, 0xf5, 0x97, 0xf7, 0xeb, 0x82, 0x93, 0x0c, 0x3e, 0xc3, 0x83, 0xbf, 0x66, 0xb0,
+	0x35, 0xe6, 0x19, 0x6c, 0xd7, 0xa9, 0xa8, 0x41, 0xf7, 0x8e, 0x0f, 0xff, 0x93, 0xec, 0x7a, 0x9e,
+	0xb7, 0xca, 0x2a, 0xaa, 0x84, 0x48, 0xa2, 0x62, 0xe8, 0xba, 0xea, 0x7c, 0x38, 0x87, 0x9d, 0xf5,
+	0x6b, 0x1f, 0x43, 0x7c, 0x1d, 0xd8, 0xee, 0x87, 0xd0, 0xb5, 0xbd, 0xe0, 0xd2, 0x0f, 0x83, 0x2b,
+	0xef, 0xbd, 0x6d, 0x39, 0xe7, 0x8e, 0xfd, 0xba, 0xd7, 0x40, 0x18, 0xee, 0x6f, 0x50, 0x2f, 0xb0,
+	0x2c, 0xdb, 0xf3, 0x7a, 0x60, 0x8b, 0x9c, 0xbf, 0x72, 0x2e, 0x03, 0xd7, 0xee, 0x69, 0x5b, 0xc4,
+	0x77, 0xde, 0xda, 0xef, 0x02, 0xbf, 0xd7, 0x3c, 0x0b, 0xbe, 0x2d, 0x74, 0x70, 0xb3, 0xd0, 0xc1,
+	0xcf, 0x85, 0x0e, 0xbe, 0x2c, 0xf5, 0xc6, 0xcd, 0x52, 0x6f, 0x7c, 0x5f, 0xea, 0x8d, 0x8f, 0x2f,
+	0xc7, 0x4c, 0xa6, 0x65, 0x64, 0xc4, 0x3c, 0x37, 0x63, 0x2e, 0x72, 0xae, 0xde, 0xfb, 0xd1, 0x98,
+	0x9b, 0xb3, 0x53, 0x33, 0xe7, 0x49, 0x99, 0x51, 0x51, 0xad, 0x83, 0x30, 0x4f, 0x46, 0x47, 0x15,
+	0xa9, 0x37, 0x41, 0xce, 0x0b, 0x2a, 0xa2, 0xb6, 0xda, 0x82, 0x93, 0x5f, 0x01, 0x00, 0x00, 0xff,
+	0xff, 0x3c, 0xed, 0xf2, 0x26, 0x34, 0x03, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -204,6 +322,20 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Results) > 0 {
+		for iNdEx := len(m.Results) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Results[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
 	if len(m.Queries) > 0 {
 		for iNdEx := len(m.Queries) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -280,6 +412,48 @@ func (m *CrossChainQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *CrossChainQueryResult) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CrossChainQueryResult) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CrossChainQueryResult) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Result != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.Result))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintGenesis(dAtA []byte, offset int, v uint64) int {
 	offset -= sovGenesis(v)
 	base := offset
@@ -299,6 +473,12 @@ func (m *GenesisState) Size() (n int) {
 	_ = l
 	if len(m.Queries) > 0 {
 		for _, e := range m.Queries {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.Results) > 0 {
+		for _, e := range m.Results {
 			l = e.Size()
 			n += 1 + l + sovGenesis(uint64(l))
 		}
@@ -330,6 +510,26 @@ func (m *CrossChainQuery) Size() (n int) {
 		n += 1 + sovGenesis(uint64(m.QueryHeight))
 	}
 	l = len(m.ClientId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	return n
+}
+
+func (m *CrossChainQueryResult) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	if m.Result != 0 {
+		n += 1 + sovGenesis(uint64(m.Result))
+	}
+	l = len(m.Data)
 	if l > 0 {
 		n += 1 + l + sovGenesis(uint64(l))
 	}
@@ -402,6 +602,40 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			}
 			m.Queries = append(m.Queries, &CrossChainQuery{})
 			if err := m.Queries[len(m.Queries)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Results", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Results = append(m.Results, &CrossChainQueryResult{})
+			if err := m.Results[len(m.Results)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -607,6 +841,141 @@ func (m *CrossChainQuery) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.ClientId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CrossChainQueryResult) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CrossChainQueryResult: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CrossChainQueryResult: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
+			}
+			m.Result = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Result |= QueryResult(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

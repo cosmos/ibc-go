@@ -6,6 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
@@ -27,55 +28,30 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type QueryResult int32
-
-const (
-	QueryResult_SUCCESS QueryResult = 0
-	QueryResult_FAILURE QueryResult = 1
-	QueryResult_TIMEOUT QueryResult = 2
-)
-
-var QueryResult_name = map[int32]string{
-	0: "SUCCESS",
-	1: "FAILURE",
-	2: "TIMEOUT",
-}
-
-var QueryResult_value = map[string]int32{
-	"SUCCESS": 0,
-	"FAILURE": 1,
-	"TIMEOUT": 2,
-}
-
-func (x QueryResult) String() string {
-	return proto.EnumName(QueryResult_name, int32(x))
-}
-
-func (QueryResult) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_5d40a119a77c1eef, []int{0}
-}
-
-type MsgCrossChainQuery struct {
+// MsgSubmitCrossChainQuery
+type MsgSubmitCrossChainQuery struct {
 	Id                 string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Path               string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
-	LocalTimeoutHeight uint64 `protobuf:"varint,3,opt,name=localTimeoutHeight,proto3" json:"localTimeoutHeight,omitempty"`
-	LocalTimeoutStamp  uint64 `protobuf:"varint,4,opt,name=localTimeoutStamp,proto3" json:"localTimeoutStamp,omitempty"`
-	QueryHeight        uint64 `protobuf:"varint,5,opt,name=queryHeight,proto3" json:"queryHeight,omitempty"`
-	ClientId           string `protobuf:"bytes,6,opt,name=clientId,proto3" json:"clientId,omitempty"`
+	LocalTimeoutHeight uint64 `protobuf:"varint,3,opt,name=local_timeout_height,json=localTimeoutHeight,proto3" json:"local_timeout_height,omitempty"`
+	LocalTimeoutStamp  uint64 `protobuf:"varint,4,opt,name=local_timeout_stamp,json=localTimeoutStamp,proto3" json:"local_timeout_stamp,omitempty"`
+	QueryHeight        uint64 `protobuf:"varint,5,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
+	ClientId           string `protobuf:"bytes,6,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// sender address
+	Sender string `protobuf:"bytes,7,opt,name=sender,proto3" json:"sender,omitempty"`
 }
 
-func (m *MsgCrossChainQuery) Reset()         { *m = MsgCrossChainQuery{} }
-func (m *MsgCrossChainQuery) String() string { return proto.CompactTextString(m) }
-func (*MsgCrossChainQuery) ProtoMessage()    {}
-func (*MsgCrossChainQuery) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitCrossChainQuery) Reset()         { *m = MsgSubmitCrossChainQuery{} }
+func (m *MsgSubmitCrossChainQuery) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitCrossChainQuery) ProtoMessage()    {}
+func (*MsgSubmitCrossChainQuery) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d40a119a77c1eef, []int{0}
 }
-func (m *MsgCrossChainQuery) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitCrossChainQuery) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCrossChainQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitCrossChainQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCrossChainQuery.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitCrossChainQuery.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -85,75 +61,34 @@ func (m *MsgCrossChainQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgCrossChainQuery) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCrossChainQuery.Merge(m, src)
+func (m *MsgSubmitCrossChainQuery) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitCrossChainQuery.Merge(m, src)
 }
-func (m *MsgCrossChainQuery) XXX_Size() int {
+func (m *MsgSubmitCrossChainQuery) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCrossChainQuery) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCrossChainQuery.DiscardUnknown(m)
+func (m *MsgSubmitCrossChainQuery) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitCrossChainQuery.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCrossChainQuery proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitCrossChainQuery proto.InternalMessageInfo
 
-func (m *MsgCrossChainQuery) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
+// MsgSubmitCrossChainQueryResponse
+type MsgSubmitCrossChainQueryResponse struct {
 }
 
-func (m *MsgCrossChainQuery) GetPath() string {
-	if m != nil {
-		return m.Path
-	}
-	return ""
-}
-
-func (m *MsgCrossChainQuery) GetLocalTimeoutHeight() uint64 {
-	if m != nil {
-		return m.LocalTimeoutHeight
-	}
-	return 0
-}
-
-func (m *MsgCrossChainQuery) GetLocalTimeoutStamp() uint64 {
-	if m != nil {
-		return m.LocalTimeoutStamp
-	}
-	return 0
-}
-
-func (m *MsgCrossChainQuery) GetQueryHeight() uint64 {
-	if m != nil {
-		return m.QueryHeight
-	}
-	return 0
-}
-
-func (m *MsgCrossChainQuery) GetClientId() string {
-	if m != nil {
-		return m.ClientId
-	}
-	return ""
-}
-
-type MsgCrossChainQueryResponse struct {
-}
-
-func (m *MsgCrossChainQueryResponse) Reset()         { *m = MsgCrossChainQueryResponse{} }
-func (m *MsgCrossChainQueryResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCrossChainQueryResponse) ProtoMessage()    {}
-func (*MsgCrossChainQueryResponse) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitCrossChainQueryResponse) Reset()         { *m = MsgSubmitCrossChainQueryResponse{} }
+func (m *MsgSubmitCrossChainQueryResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitCrossChainQueryResponse) ProtoMessage()    {}
+func (*MsgSubmitCrossChainQueryResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d40a119a77c1eef, []int{1}
 }
-func (m *MsgCrossChainQueryResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitCrossChainQueryResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCrossChainQueryResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitCrossChainQueryResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCrossChainQueryResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitCrossChainQueryResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -163,36 +98,39 @@ func (m *MsgCrossChainQueryResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgCrossChainQueryResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCrossChainQueryResponse.Merge(m, src)
+func (m *MsgSubmitCrossChainQueryResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitCrossChainQueryResponse.Merge(m, src)
 }
-func (m *MsgCrossChainQueryResponse) XXX_Size() int {
+func (m *MsgSubmitCrossChainQueryResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCrossChainQueryResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCrossChainQueryResponse.DiscardUnknown(m)
+func (m *MsgSubmitCrossChainQueryResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitCrossChainQueryResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCrossChainQueryResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitCrossChainQueryResponse proto.InternalMessageInfo
 
-type MsgCrossChainQueryResult struct {
+// MsgSubmitCrossChainQueryResult
+type MsgSubmitCrossChainQueryResult struct {
 	Id     string      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Result QueryResult `protobuf:"varint,2,opt,name=result,proto3,enum=ibc.application.ibc_query.v1.QueryResult" json:"result,omitempty"`
+	Result QueryResult `protobuf:"varint,2,opt,name=result,proto3,enum=ibc.applications.ibc_query.v1.QueryResult" json:"result,omitempty"`
 	Data   []byte      `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	// relayer address
+	Relayer string `protobuf:"bytes,4,opt,name=relayer,proto3" json:"relayer,omitempty"`
 }
 
-func (m *MsgCrossChainQueryResult) Reset()         { *m = MsgCrossChainQueryResult{} }
-func (m *MsgCrossChainQueryResult) String() string { return proto.CompactTextString(m) }
-func (*MsgCrossChainQueryResult) ProtoMessage()    {}
-func (*MsgCrossChainQueryResult) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitCrossChainQueryResult) Reset()         { *m = MsgSubmitCrossChainQueryResult{} }
+func (m *MsgSubmitCrossChainQueryResult) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitCrossChainQueryResult) ProtoMessage()    {}
+func (*MsgSubmitCrossChainQueryResult) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d40a119a77c1eef, []int{2}
 }
-func (m *MsgCrossChainQueryResult) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitCrossChainQueryResult) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCrossChainQueryResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitCrossChainQueryResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCrossChainQueryResult.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitCrossChainQueryResult.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -202,54 +140,36 @@ func (m *MsgCrossChainQueryResult) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *MsgCrossChainQueryResult) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCrossChainQueryResult.Merge(m, src)
+func (m *MsgSubmitCrossChainQueryResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitCrossChainQueryResult.Merge(m, src)
 }
-func (m *MsgCrossChainQueryResult) XXX_Size() int {
+func (m *MsgSubmitCrossChainQueryResult) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCrossChainQueryResult) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCrossChainQueryResult.DiscardUnknown(m)
+func (m *MsgSubmitCrossChainQueryResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitCrossChainQueryResult.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCrossChainQueryResult proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitCrossChainQueryResult proto.InternalMessageInfo
 
-func (m *MsgCrossChainQueryResult) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
+// MsgSubmitCrossChainQueryResultResponse
+type MsgSubmitCrossChainQueryResultResponse struct {
 }
 
-func (m *MsgCrossChainQueryResult) GetResult() QueryResult {
-	if m != nil {
-		return m.Result
-	}
-	return QueryResult_SUCCESS
+func (m *MsgSubmitCrossChainQueryResultResponse) Reset() {
+	*m = MsgSubmitCrossChainQueryResultResponse{}
 }
-
-func (m *MsgCrossChainQueryResult) GetData() []byte {
-	if m != nil {
-		return m.Data
-	}
-	return nil
-}
-
-type MsgCrossChainQueryResultResponse struct {
-}
-
-func (m *MsgCrossChainQueryResultResponse) Reset()         { *m = MsgCrossChainQueryResultResponse{} }
-func (m *MsgCrossChainQueryResultResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCrossChainQueryResultResponse) ProtoMessage()    {}
-func (*MsgCrossChainQueryResultResponse) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitCrossChainQueryResultResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitCrossChainQueryResultResponse) ProtoMessage()    {}
+func (*MsgSubmitCrossChainQueryResultResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d40a119a77c1eef, []int{3}
 }
-func (m *MsgCrossChainQueryResultResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitCrossChainQueryResultResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCrossChainQueryResultResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitCrossChainQueryResultResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCrossChainQueryResultResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitCrossChainQueryResultResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -259,24 +179,23 @@ func (m *MsgCrossChainQueryResultResponse) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *MsgCrossChainQueryResultResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCrossChainQueryResultResponse.Merge(m, src)
+func (m *MsgSubmitCrossChainQueryResultResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitCrossChainQueryResultResponse.Merge(m, src)
 }
-func (m *MsgCrossChainQueryResultResponse) XXX_Size() int {
+func (m *MsgSubmitCrossChainQueryResultResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCrossChainQueryResultResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCrossChainQueryResultResponse.DiscardUnknown(m)
+func (m *MsgSubmitCrossChainQueryResultResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitCrossChainQueryResultResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCrossChainQueryResultResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitCrossChainQueryResultResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterEnum("ibc.application.ibc_query.v1.QueryResult", QueryResult_name, QueryResult_value)
-	proto.RegisterType((*MsgCrossChainQuery)(nil), "ibc.application.ibc_query.v1.MsgCrossChainQuery")
-	proto.RegisterType((*MsgCrossChainQueryResponse)(nil), "ibc.application.ibc_query.v1.MsgCrossChainQueryResponse")
-	proto.RegisterType((*MsgCrossChainQueryResult)(nil), "ibc.application.ibc_query.v1.MsgCrossChainQueryResult")
-	proto.RegisterType((*MsgCrossChainQueryResultResponse)(nil), "ibc.application.ibc_query.v1.MsgCrossChainQueryResultResponse")
+	proto.RegisterType((*MsgSubmitCrossChainQuery)(nil), "ibc.applications.ibc_query.v1.MsgSubmitCrossChainQuery")
+	proto.RegisterType((*MsgSubmitCrossChainQueryResponse)(nil), "ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResponse")
+	proto.RegisterType((*MsgSubmitCrossChainQueryResult)(nil), "ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResult")
+	proto.RegisterType((*MsgSubmitCrossChainQueryResultResponse)(nil), "ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResultResponse")
 }
 
 func init() {
@@ -284,36 +203,38 @@ func init() {
 }
 
 var fileDescriptor_5d40a119a77c1eef = []byte{
-	// 451 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0x41, 0x8b, 0xd3, 0x40,
-	0x14, 0xc7, 0x3b, 0xd9, 0x5a, 0xf5, 0x55, 0x96, 0x3a, 0x20, 0x84, 0xba, 0x84, 0x92, 0x83, 0xac,
-	0xe2, 0xce, 0xd8, 0xdd, 0x45, 0x04, 0x41, 0x58, 0x4b, 0xc5, 0x82, 0x45, 0x4c, 0xda, 0x8b, 0x17,
-	0x99, 0x4c, 0x86, 0x74, 0x20, 0xe9, 0xc4, 0xce, 0xa4, 0xb8, 0x47, 0xf1, 0x0b, 0x78, 0xf1, 0x13,
-	0xf8, 0x65, 0x3c, 0xee, 0xc1, 0x83, 0x47, 0x69, 0xbf, 0x88, 0x64, 0x6c, 0x97, 0x60, 0xeb, 0xc2,
-	0xf6, 0x36, 0xef, 0xfd, 0xdf, 0x7b, 0xfc, 0xfe, 0x6f, 0x78, 0xf0, 0x40, 0x46, 0x9c, 0xb2, 0x3c,
-	0x4f, 0x25, 0x67, 0x46, 0xaa, 0xa9, 0xa6, 0x32, 0xe2, 0x1f, 0x3e, 0x16, 0x62, 0x76, 0x4e, 0xe7,
-	0x5d, 0x6a, 0x3e, 0x91, 0x7c, 0xa6, 0x8c, 0xc2, 0x07, 0x32, 0xe2, 0xa4, 0x52, 0x47, 0x2e, 0xcb,
-	0xc8, 0xbc, 0xeb, 0xff, 0x44, 0x80, 0x87, 0x3a, 0xe9, 0xcd, 0x94, 0xd6, 0xbd, 0x09, 0x93, 0xd3,
-	0x77, 0xa5, 0x82, 0xf7, 0xc1, 0x91, 0xb1, 0x8b, 0x3a, 0xe8, 0xf0, 0x76, 0xe0, 0xc8, 0x18, 0x63,
-	0xa8, 0xe7, 0xcc, 0x4c, 0x5c, 0xc7, 0x66, 0xec, 0x1b, 0x13, 0xc0, 0xa9, 0xe2, 0x2c, 0x1d, 0xc9,
-	0x4c, 0xa8, 0xc2, 0xbc, 0x16, 0x32, 0x99, 0x18, 0x77, 0xaf, 0x83, 0x0e, 0xeb, 0xc1, 0x16, 0x05,
-	0x3f, 0x86, 0xbb, 0xd5, 0x6c, 0x68, 0x58, 0x96, 0xbb, 0x75, 0x5b, 0xbe, 0x29, 0xe0, 0x0e, 0x34,
-	0x2d, 0xe4, 0x6a, 0xec, 0x0d, 0x5b, 0x57, 0x4d, 0xe1, 0x36, 0xdc, 0xe2, 0xa9, 0x14, 0x53, 0x33,
-	0x88, 0xdd, 0x86, 0xe5, 0xba, 0x8c, 0xfd, 0x03, 0x68, 0x6f, 0xba, 0x0a, 0x84, 0xce, 0xd5, 0x54,
-	0x0b, 0xff, 0x33, 0x02, 0x77, 0xab, 0x5c, 0xa4, 0x66, 0xc3, 0xfa, 0x19, 0x34, 0x66, 0x56, 0xb1,
-	0xe6, 0xf7, 0x8f, 0x1f, 0x92, 0xab, 0x16, 0x4a, 0x2a, 0xa3, 0x82, 0x55, 0x63, 0xb9, 0xbd, 0x98,
-	0x19, 0x66, 0x77, 0x73, 0x27, 0xb0, 0x6f, 0xdf, 0x87, 0xce, 0xff, 0x10, 0xd6, 0x9c, 0x8f, 0x4e,
-	0xa1, 0x59, 0x25, 0x6b, 0xc2, 0xcd, 0x70, 0xdc, 0xeb, 0xf5, 0xc3, 0xb0, 0x55, 0x2b, 0x83, 0x57,
-	0x67, 0x83, 0x37, 0xe3, 0xa0, 0xdf, 0x42, 0x65, 0x30, 0x1a, 0x0c, 0xfb, 0x6f, 0xc7, 0xa3, 0x96,
-	0x73, 0xfc, 0xdd, 0x81, 0xbd, 0xa1, 0x4e, 0xf0, 0x17, 0x04, 0xf7, 0xc2, 0x22, 0xca, 0xa4, 0xf9,
-	0xf7, 0x77, 0x9f, 0x5c, 0x6d, 0x61, 0x93, 0xab, 0xfd, 0xec, 0xba, 0x1d, 0x6b, 0x0f, 0xf8, 0x1b,
-	0x82, 0xfb, 0x5b, 0x29, 0x56, 0xa6, 0x9e, 0xee, 0x30, 0xb9, 0x48, 0x4d, 0xfb, 0xc5, 0x6e, 0x7d,
-	0x6b, 0xae, 0x97, 0xe3, 0x1f, 0x0b, 0x0f, 0x5d, 0x2c, 0x3c, 0xf4, 0x7b, 0xe1, 0xa1, 0xaf, 0x4b,
-	0xaf, 0x76, 0xb1, 0xf4, 0x6a, 0xbf, 0x96, 0x5e, 0xed, 0xfd, 0xf3, 0x44, 0x9a, 0x49, 0x11, 0x11,
-	0xae, 0x32, 0xca, 0x95, 0xce, 0x94, 0xbd, 0xac, 0xa3, 0x44, 0xd1, 0xf9, 0x29, 0xcd, 0x54, 0x5c,
-	0xa4, 0x42, 0x97, 0x87, 0xa7, 0xe9, 0x49, 0xf7, 0xa8, 0x54, 0xfe, 0xde, 0x9c, 0x39, 0xcf, 0x85,
-	0x8e, 0x1a, 0xf6, 0xe8, 0x4e, 0xfe, 0x04, 0x00, 0x00, 0xff, 0xff, 0x48, 0x84, 0x43, 0x43, 0x9e,
-	0x03, 0x00, 0x00,
+	// 490 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0x41, 0x6b, 0xd4, 0x40,
+	0x14, 0x4e, 0xd2, 0x75, 0xdb, 0x7d, 0x96, 0x82, 0x63, 0x95, 0xb0, 0xc5, 0x74, 0xdd, 0x43, 0x59,
+	0x94, 0x66, 0xdc, 0x56, 0x10, 0x14, 0x11, 0x5a, 0x04, 0x3d, 0xf4, 0x60, 0xaa, 0x17, 0x2f, 0xcb,
+	0x24, 0x19, 0x92, 0x81, 0x24, 0x13, 0x33, 0x93, 0xc5, 0xbd, 0x7a, 0xf2, 0xa8, 0xff, 0xa0, 0xe0,
+	0xd5, 0xff, 0xe0, 0xd5, 0x63, 0x8f, 0x1e, 0x65, 0xf7, 0xe2, 0xcf, 0x90, 0xbc, 0x6c, 0x64, 0x45,
+	0x1b, 0xa1, 0xde, 0xde, 0xbc, 0xef, 0xfb, 0xde, 0x7c, 0xf3, 0x25, 0x0f, 0xf6, 0x84, 0x1f, 0x50,
+	0x96, 0xe7, 0x89, 0x08, 0x98, 0x16, 0x32, 0x53, 0x54, 0xf8, 0xc1, 0xe4, 0x4d, 0xc9, 0x8b, 0x19,
+	0x9d, 0x8e, 0xa9, 0x7e, 0xeb, 0xe6, 0x85, 0xd4, 0x92, 0xdc, 0x12, 0x7e, 0xe0, 0xae, 0xf2, 0xdc,
+	0x5f, 0x3c, 0x77, 0x3a, 0xee, 0x6f, 0x47, 0x32, 0x92, 0xc8, 0xa4, 0x55, 0x55, 0x8b, 0xfa, 0x77,
+	0xdb, 0x87, 0x47, 0x3c, 0xe3, 0x4a, 0xa8, 0x9a, 0x3c, 0x7c, 0x67, 0x81, 0x7d, 0xa2, 0xa2, 0xd3,
+	0xd2, 0x4f, 0x85, 0x3e, 0x2e, 0xa4, 0x52, 0xc7, 0x31, 0x13, 0xd9, 0x8b, 0x8a, 0x4d, 0xb6, 0xc0,
+	0x12, 0xa1, 0x6d, 0x0e, 0xcc, 0x51, 0xcf, 0xb3, 0x44, 0x48, 0x08, 0x74, 0x72, 0xa6, 0x63, 0xdb,
+	0xc2, 0x0e, 0xd6, 0xe4, 0x1e, 0x6c, 0x27, 0x32, 0x60, 0xc9, 0x44, 0x8b, 0x94, 0xcb, 0x52, 0x4f,
+	0x62, 0x2e, 0xa2, 0x58, 0xdb, 0x6b, 0x03, 0x73, 0xd4, 0xf1, 0x08, 0x62, 0x2f, 0x6b, 0xe8, 0x19,
+	0x22, 0xc4, 0x85, 0xeb, 0xbf, 0x2b, 0x94, 0x66, 0x69, 0x6e, 0x77, 0x50, 0x70, 0x6d, 0x55, 0x70,
+	0x5a, 0x01, 0xe4, 0x36, 0x6c, 0xa2, 0xf9, 0x66, 0xf2, 0x15, 0x24, 0x5e, 0xc5, 0xde, 0x72, 0xe4,
+	0x0e, 0xf4, 0x82, 0x44, 0xf0, 0x4c, 0x4f, 0x44, 0x68, 0x77, 0xd1, 0xdd, 0x46, 0xdd, 0x78, 0x1e,
+	0x92, 0x9b, 0xd0, 0x55, 0x3c, 0x0b, 0x79, 0x61, 0xaf, 0x23, 0xb2, 0x3c, 0x3d, 0xdc, 0x78, 0x7f,
+	0xb6, 0x6b, 0xfc, 0x38, 0xdb, 0x35, 0x86, 0x43, 0x18, 0x5c, 0x94, 0x81, 0xc7, 0x55, 0x2e, 0x33,
+	0xc5, 0x87, 0x9f, 0x4d, 0x70, 0x5a, 0x48, 0x65, 0xa2, 0xff, 0x88, 0xeb, 0x08, 0xba, 0x05, 0x22,
+	0x18, 0xd8, 0xd6, 0xc1, 0x1d, 0xb7, 0xf5, 0x73, 0xba, 0x2b, 0xb3, 0xbc, 0xa5, 0xb2, 0x8a, 0x3c,
+	0x64, 0x9a, 0x61, 0x9c, 0x9b, 0x1e, 0xd6, 0xc4, 0x86, 0xf5, 0x82, 0x27, 0x6c, 0xc6, 0x0b, 0x0c,
+	0xad, 0xe7, 0x35, 0xc7, 0x95, 0x27, 0x8d, 0x60, 0xaf, 0xdd, 0x6d, 0xf3, 0xb0, 0x83, 0x2f, 0x16,
+	0xac, 0x9d, 0xa8, 0x88, 0x7c, 0x34, 0xe1, 0xc6, 0xdf, 0x7f, 0x83, 0x07, 0xff, 0xf0, 0x7d, 0xd1,
+	0x45, 0xfd, 0x27, 0x97, 0x14, 0x36, 0xde, 0xc8, 0x27, 0x13, 0x76, 0xda, 0x12, 0x7f, 0x7c, 0xf9,
+	0x0b, 0xca, 0x44, 0xf7, 0x9f, 0xfe, 0x97, 0xbc, 0x71, 0x79, 0xf4, 0xea, 0xeb, 0xdc, 0x31, 0xcf,
+	0xe7, 0x8e, 0xf9, 0x7d, 0xee, 0x98, 0x1f, 0x16, 0x8e, 0x71, 0xbe, 0x70, 0x8c, 0x6f, 0x0b, 0xc7,
+	0x78, 0xfd, 0x28, 0x12, 0x3a, 0x2e, 0x7d, 0x37, 0x90, 0x29, 0x0d, 0xa4, 0x4a, 0x25, 0xee, 0xe2,
+	0x7e, 0x24, 0xe9, 0xf4, 0x3e, 0x4d, 0x65, 0x58, 0x26, 0x5c, 0x55, 0xab, 0xaa, 0xe8, 0xe1, 0x78,
+	0xbf, 0x42, 0xea, 0x2d, 0xd5, 0xb3, 0x9c, 0x2b, 0xbf, 0x8b, 0x1b, 0x7a, 0xf8, 0x33, 0x00, 0x00,
+	0xff, 0xff, 0x8d, 0x3d, 0xfb, 0x63, 0x2d, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -328,8 +249,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	SubmitCrossChainQuery(ctx context.Context, in *MsgCrossChainQuery, opts ...grpc.CallOption) (*MsgCrossChainQueryResponse, error)
-	SubmitCrossChainQueryResult(ctx context.Context, in *MsgCrossChainQueryResult, opts ...grpc.CallOption) (*MsgCrossChainQueryResultResponse, error)
+	// submit query request
+	SubmitCrossChainQuery(ctx context.Context, in *MsgSubmitCrossChainQuery, opts ...grpc.CallOption) (*MsgSubmitCrossChainQueryResponse, error)
+	// submit query result
+	SubmitCrossChainQueryResult(ctx context.Context, in *MsgSubmitCrossChainQueryResult, opts ...grpc.CallOption) (*MsgSubmitCrossChainQueryResultResponse, error)
 }
 
 type msgClient struct {
@@ -340,18 +263,18 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) SubmitCrossChainQuery(ctx context.Context, in *MsgCrossChainQuery, opts ...grpc.CallOption) (*MsgCrossChainQueryResponse, error) {
-	out := new(MsgCrossChainQueryResponse)
-	err := c.cc.Invoke(ctx, "/ibc.application.ibc_query.v1.Msg/SubmitCrossChainQuery", in, out, opts...)
+func (c *msgClient) SubmitCrossChainQuery(ctx context.Context, in *MsgSubmitCrossChainQuery, opts ...grpc.CallOption) (*MsgSubmitCrossChainQueryResponse, error) {
+	out := new(MsgSubmitCrossChainQueryResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.ibc_query.v1.Msg/SubmitCrossChainQuery", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) SubmitCrossChainQueryResult(ctx context.Context, in *MsgCrossChainQueryResult, opts ...grpc.CallOption) (*MsgCrossChainQueryResultResponse, error) {
-	out := new(MsgCrossChainQueryResultResponse)
-	err := c.cc.Invoke(ctx, "/ibc.application.ibc_query.v1.Msg/SubmitCrossChainQueryResult", in, out, opts...)
+func (c *msgClient) SubmitCrossChainQueryResult(ctx context.Context, in *MsgSubmitCrossChainQueryResult, opts ...grpc.CallOption) (*MsgSubmitCrossChainQueryResultResponse, error) {
+	out := new(MsgSubmitCrossChainQueryResultResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.ibc_query.v1.Msg/SubmitCrossChainQueryResult", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -360,18 +283,20 @@ func (c *msgClient) SubmitCrossChainQueryResult(ctx context.Context, in *MsgCros
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	SubmitCrossChainQuery(context.Context, *MsgCrossChainQuery) (*MsgCrossChainQueryResponse, error)
-	SubmitCrossChainQueryResult(context.Context, *MsgCrossChainQueryResult) (*MsgCrossChainQueryResultResponse, error)
+	// submit query request
+	SubmitCrossChainQuery(context.Context, *MsgSubmitCrossChainQuery) (*MsgSubmitCrossChainQueryResponse, error)
+	// submit query result
+	SubmitCrossChainQueryResult(context.Context, *MsgSubmitCrossChainQueryResult) (*MsgSubmitCrossChainQueryResultResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) SubmitCrossChainQuery(ctx context.Context, req *MsgCrossChainQuery) (*MsgCrossChainQueryResponse, error) {
+func (*UnimplementedMsgServer) SubmitCrossChainQuery(ctx context.Context, req *MsgSubmitCrossChainQuery) (*MsgSubmitCrossChainQueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitCrossChainQuery not implemented")
 }
-func (*UnimplementedMsgServer) SubmitCrossChainQueryResult(ctx context.Context, req *MsgCrossChainQueryResult) (*MsgCrossChainQueryResultResponse, error) {
+func (*UnimplementedMsgServer) SubmitCrossChainQueryResult(ctx context.Context, req *MsgSubmitCrossChainQueryResult) (*MsgSubmitCrossChainQueryResultResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitCrossChainQueryResult not implemented")
 }
 
@@ -380,7 +305,7 @@ func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 }
 
 func _Msg_SubmitCrossChainQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCrossChainQuery)
+	in := new(MsgSubmitCrossChainQuery)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -389,16 +314,16 @@ func _Msg_SubmitCrossChainQuery_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.application.ibc_query.v1.Msg/SubmitCrossChainQuery",
+		FullMethod: "/ibc.applications.ibc_query.v1.Msg/SubmitCrossChainQuery",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).SubmitCrossChainQuery(ctx, req.(*MsgCrossChainQuery))
+		return srv.(MsgServer).SubmitCrossChainQuery(ctx, req.(*MsgSubmitCrossChainQuery))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_SubmitCrossChainQueryResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCrossChainQueryResult)
+	in := new(MsgSubmitCrossChainQueryResult)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -407,16 +332,16 @@ func _Msg_SubmitCrossChainQueryResult_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.application.ibc_query.v1.Msg/SubmitCrossChainQueryResult",
+		FullMethod: "/ibc.applications.ibc_query.v1.Msg/SubmitCrossChainQueryResult",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).SubmitCrossChainQueryResult(ctx, req.(*MsgCrossChainQueryResult))
+		return srv.(MsgServer).SubmitCrossChainQueryResult(ctx, req.(*MsgSubmitCrossChainQueryResult))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 var _Msg_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "ibc.application.ibc_query.v1.Msg",
+	ServiceName: "ibc.applications.ibc_query.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -432,7 +357,7 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	Metadata: "ibc/applications/ibc_query/v1/tx.proto",
 }
 
-func (m *MsgCrossChainQuery) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitCrossChainQuery) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -442,16 +367,23 @@ func (m *MsgCrossChainQuery) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCrossChainQuery) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQuery) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCrossChainQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0x3a
+	}
 	if len(m.ClientId) > 0 {
 		i -= len(m.ClientId)
 		copy(dAtA[i:], m.ClientId)
@@ -491,7 +423,7 @@ func (m *MsgCrossChainQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCrossChainQueryResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitCrossChainQueryResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -501,12 +433,12 @@ func (m *MsgCrossChainQueryResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCrossChainQueryResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQueryResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCrossChainQueryResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQueryResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -514,7 +446,7 @@ func (m *MsgCrossChainQueryResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCrossChainQueryResult) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitCrossChainQueryResult) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -524,16 +456,23 @@ func (m *MsgCrossChainQueryResult) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCrossChainQueryResult) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQueryResult) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCrossChainQueryResult) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQueryResult) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if len(m.Relayer) > 0 {
+		i -= len(m.Relayer)
+		copy(dAtA[i:], m.Relayer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Relayer)))
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.Data) > 0 {
 		i -= len(m.Data)
 		copy(dAtA[i:], m.Data)
@@ -556,7 +495,7 @@ func (m *MsgCrossChainQueryResult) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCrossChainQueryResultResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitCrossChainQueryResultResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -566,12 +505,12 @@ func (m *MsgCrossChainQueryResultResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCrossChainQueryResultResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQueryResultResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCrossChainQueryResultResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitCrossChainQueryResultResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -590,7 +529,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgCrossChainQuery) Size() (n int) {
+func (m *MsgSubmitCrossChainQuery) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -617,10 +556,14 @@ func (m *MsgCrossChainQuery) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	return n
 }
 
-func (m *MsgCrossChainQueryResponse) Size() (n int) {
+func (m *MsgSubmitCrossChainQueryResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -629,7 +572,7 @@ func (m *MsgCrossChainQueryResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgCrossChainQueryResult) Size() (n int) {
+func (m *MsgSubmitCrossChainQueryResult) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -646,10 +589,14 @@ func (m *MsgCrossChainQueryResult) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	l = len(m.Relayer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	return n
 }
 
-func (m *MsgCrossChainQueryResultResponse) Size() (n int) {
+func (m *MsgSubmitCrossChainQueryResultResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -664,7 +611,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgCrossChainQuery) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitCrossChainQuery) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -687,10 +634,10 @@ func (m *MsgCrossChainQuery) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCrossChainQuery: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitCrossChainQuery: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCrossChainQuery: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitCrossChainQuery: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -846,6 +793,38 @@ func (m *MsgCrossChainQuery) Unmarshal(dAtA []byte) error {
 			}
 			m.ClientId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -867,7 +846,7 @@ func (m *MsgCrossChainQuery) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCrossChainQueryResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitCrossChainQueryResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -890,10 +869,10 @@ func (m *MsgCrossChainQueryResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCrossChainQueryResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitCrossChainQueryResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCrossChainQueryResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitCrossChainQueryResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -917,7 +896,7 @@ func (m *MsgCrossChainQueryResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCrossChainQueryResult) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitCrossChainQueryResult) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -940,10 +919,10 @@ func (m *MsgCrossChainQueryResult) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCrossChainQueryResult: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitCrossChainQueryResult: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCrossChainQueryResult: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitCrossChainQueryResult: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1031,6 +1010,38 @@ func (m *MsgCrossChainQueryResult) Unmarshal(dAtA []byte) error {
 				m.Data = []byte{}
 			}
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Relayer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Relayer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -1052,7 +1063,7 @@ func (m *MsgCrossChainQueryResult) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCrossChainQueryResultResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitCrossChainQueryResultResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1075,10 +1086,10 @@ func (m *MsgCrossChainQueryResultResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCrossChainQueryResultResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitCrossChainQueryResultResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCrossChainQueryResultResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitCrossChainQueryResultResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

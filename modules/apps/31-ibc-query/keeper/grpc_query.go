@@ -8,5 +8,7 @@ import (
 var _ types.QueryServer = Keeper{}
 
 func (k Keeper) CrossChainQuery(context context.Context, query *types.QueryCrossChainQuery) (*types.QueryCrossChainQueryResponse, error) {
+	// TODO
+	// get queryResult from private store
 	return nil, nil
 }

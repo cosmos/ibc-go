@@ -1,14 +1,16 @@
 package types
 
-func NewGenesisState(crossChainQueries []*CrossChainQuery) *GenesisState {
+func NewGenesisState(queries []*CrossChainQuery, results []*CrossChainQueryResult) *GenesisState {
 	return &GenesisState{
-		Queries: crossChainQueries,
+		Queries: queries,
+		Results: results,
 	}
 }
 
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Queries: []*CrossChainQuery{},
+		Results: []*CrossChainQueryResult{},
 	}
 }
 

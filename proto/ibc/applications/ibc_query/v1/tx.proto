@@ -1,36 +1,49 @@
 syntax = "proto3";
 
-package ibc.application.ibc_query.v1;
+package ibc.applications.ibc_query.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types";
 
+import "gogoproto/gogo.proto";
+import "ibc/applications/ibc_query/v1/genesis.proto";
+
+// Msg
 service Msg {
-  rpc SubmitCrossChainQuery(MsgCrossChainQuery) returns (MsgCrossChainQueryResponse);
-
-  rpc SubmitCrossChainQueryResult(MsgCrossChainQueryResult) returns (MsgCrossChainQueryResultResponse);
+  // submit query request
+  rpc SubmitCrossChainQuery(MsgSubmitCrossChainQuery) returns (MsgSubmitCrossChainQueryResponse);
+  // submit query result
+  rpc SubmitCrossChainQueryResult(MsgSubmitCrossChainQueryResult) returns (MsgSubmitCrossChainQueryResultResponse);
 }
 
-message MsgCrossChainQuery {
-  string id = 1;
-  string path = 2;
-  uint64 localTimeoutHeight = 3;
-  uint64 localTimeoutStamp = 4;
-  uint64 queryHeight = 5;
-  string clientId = 6;
+// MsgSubmitCrossChainQuery
+message MsgSubmitCrossChainQuery {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string id                   = 1;
+  string path                 = 2;
+  uint64 local_timeout_height = 3;
+  uint64 local_timeout_stamp  = 4;
+  uint64 query_height         = 5;
+  string client_id            = 6;
+  // sender address
+  string sender = 7;
 }
 
-message MsgCrossChainQueryResponse {}
+// MsgSubmitCrossChainQueryResponse
+message MsgSubmitCrossChainQueryResponse {}
 
-enum QueryResult {
-  SUCCESS = 0;
-  FAILURE = 1;
-  TIMEOUT = 2;
-}
+// MsgSubmitCrossChainQueryResult
+message MsgSubmitCrossChainQueryResult {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
 
-message MsgCrossChainQueryResult {
-  string id = 1;
+  string      id     = 1;
   QueryResult result = 2;
-  bytes data = 3;
+  bytes       data   = 3;
+  // relayer address
+  string relayer = 4;
 }
 
-message MsgCrossChainQueryResultResponse {}
+// MsgSubmitCrossChainQueryResultResponse
+message MsgSubmitCrossChainQueryResultResponse {}

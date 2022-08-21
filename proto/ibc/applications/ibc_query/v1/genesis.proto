@@ -1,18 +1,40 @@
 syntax = "proto3";
 
-package ibc.application.ibc_query.v1;
+package ibc.applications.ibc_query.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types";
 
+// GenesisState defines the ICS31 ibc-query genesis state
 message GenesisState {
-  repeated CrossChainQuery queries = 1;
+  repeated CrossChainQuery       queries = 1;
+  repeated CrossChainQueryResult results = 2;
 }
 
+// CrossChainQuery
 message CrossChainQuery {
-  string id = 1;
-  string path = 2;
-  uint64 localTimeoutHeight = 3;
-  uint64 localTimeoutTimestamp = 4;
-  uint64 queryHeight = 5;
-  string clientId = 6;
+  string id                      = 1;
+  string path                    = 2;
+  uint64 local_timeout_height    = 3;
+  uint64 local_timeout_timestamp = 4;
+  uint64 query_height            = 5;
+  string client_id               = 6;
+}
+
+// QueryResult
+enum QueryResult {
+  // UNSPECIFIED
+  QUERY_RESULT_UNSPECIFIED = 0;
+  // SUCCESS
+  QUERY_RESULT_SUCCESS = 1;
+  // FAILURE
+  QUERY_RESULT_FAILURE = 2;
+  // TIMEOUT
+  QUERY_RESULT_TIMEOUT = 3;
+}
+
+// CrossChainQueryResult
+message CrossChainQueryResult {
+  string      id     = 1;
+  QueryResult result = 2;
+  bytes       data   = 3;
 }

@@ -81,24 +81,25 @@
     - [Msg](#ibc.applications.fee.v1.Msg)
   
 - [ibc/applications/ibc_query/v1/genesis.proto](#ibc/applications/ibc_query/v1/genesis.proto)
-    - [CrossChainQuery](#ibc.application.ibc_query.v1.CrossChainQuery)
-    - [GenesisState](#ibc.application.ibc_query.v1.GenesisState)
+    - [CrossChainQuery](#ibc.applications.ibc_query.v1.CrossChainQuery)
+    - [CrossChainQueryResult](#ibc.applications.ibc_query.v1.CrossChainQueryResult)
+    - [GenesisState](#ibc.applications.ibc_query.v1.GenesisState)
+  
+    - [QueryResult](#ibc.applications.ibc_query.v1.QueryResult)
   
 - [ibc/applications/ibc_query/v1/query.proto](#ibc/applications/ibc_query/v1/query.proto)
-    - [QueryCrossChainQuery](#ibc.application.ibc_query.v1.QueryCrossChainQuery)
-    - [QueryCrossChainQueryResponse](#ibc.application.ibc_query.v1.QueryCrossChainQueryResponse)
+    - [QueryCrossChainQuery](#ibc.applications.ibc_query.v1.QueryCrossChainQuery)
+    - [QueryCrossChainQueryResponse](#ibc.applications.ibc_query.v1.QueryCrossChainQueryResponse)
   
-    - [Query](#ibc.application.ibc_query.v1.Query)
+    - [Query](#ibc.applications.ibc_query.v1.Query)
   
 - [ibc/applications/ibc_query/v1/tx.proto](#ibc/applications/ibc_query/v1/tx.proto)
-    - [MsgCrossChainQuery](#ibc.application.ibc_query.v1.MsgCrossChainQuery)
-    - [MsgCrossChainQueryResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResponse)
-    - [MsgCrossChainQueryResult](#ibc.application.ibc_query.v1.MsgCrossChainQueryResult)
-    - [MsgCrossChainQueryResultResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResultResponse)
+    - [MsgSubmitCrossChainQuery](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQuery)
+    - [MsgSubmitCrossChainQueryResponse](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResponse)
+    - [MsgSubmitCrossChainQueryResult](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResult)
+    - [MsgSubmitCrossChainQueryResultResponse](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResultResponse)
   
-    - [QueryResult](#ibc.application.ibc_query.v1.QueryResult)
-  
-    - [Msg](#ibc.application.ibc_query.v1.Msg)
+    - [Msg](#ibc.applications.ibc_query.v1.Msg)
   
 - [ibc/applications/interchain_accounts/controller/v1/controller.proto](#ibc/applications/interchain_accounts/controller/v1/controller.proto)
     - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
@@ -1448,41 +1449,73 @@ Msg defines the ICS29 Msg service.
 
 
 
-<a name="ibc.application.ibc_query.v1.CrossChainQuery"></a>
+<a name="ibc.applications.ibc_query.v1.CrossChainQuery"></a>
 
 ### CrossChainQuery
-
+CrossChainQuery
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `id` | [string](#string) |  |  |
 | `path` | [string](#string) |  |  |
-| `localTimeoutHeight` | [uint64](#uint64) |  |  |
-| `localTimeoutTimestamp` | [uint64](#uint64) |  |  |
-| `queryHeight` | [uint64](#uint64) |  |  |
-| `clientId` | [string](#string) |  |  |
+| `local_timeout_height` | [uint64](#uint64) |  |  |
+| `local_timeout_timestamp` | [uint64](#uint64) |  |  |
+| `query_height` | [uint64](#uint64) |  |  |
+| `client_id` | [string](#string) |  |  |
 
 
 
 
 
 
-<a name="ibc.application.ibc_query.v1.GenesisState"></a>
+<a name="ibc.applications.ibc_query.v1.CrossChainQueryResult"></a>
 
-### GenesisState
-
+### CrossChainQueryResult
+CrossChainQueryResult
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `queries` | [CrossChainQuery](#ibc.application.ibc_query.v1.CrossChainQuery) | repeated |  |
+| `id` | [string](#string) |  |  |
+| `result` | [QueryResult](#ibc.applications.ibc_query.v1.QueryResult) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.ibc_query.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the ICS31 ibc-query genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `queries` | [CrossChainQuery](#ibc.applications.ibc_query.v1.CrossChainQuery) | repeated |  |
+| `results` | [CrossChainQueryResult](#ibc.applications.ibc_query.v1.CrossChainQueryResult) | repeated |  |
 
 
 
 
 
  <!-- end messages -->
+
+
+<a name="ibc.applications.ibc_query.v1.QueryResult"></a>
+
+### QueryResult
+QueryResult
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| QUERY_RESULT_UNSPECIFIED | 0 | UNSPECIFIED |
+| QUERY_RESULT_SUCCESS | 1 | SUCCESS |
+| QUERY_RESULT_FAILURE | 2 | FAILURE |
+| QUERY_RESULT_TIMEOUT | 3 | TIMEOUT |
+
 
  <!-- end enums -->
 
@@ -1499,25 +1532,32 @@ Msg defines the ICS29 Msg service.
 
 
 
-<a name="ibc.application.ibc_query.v1.QueryCrossChainQuery"></a>
+<a name="ibc.applications.ibc_query.v1.QueryCrossChainQuery"></a>
 
 ### QueryCrossChainQuery
+QueryCrossChainQuery
 
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  | query id |
+
+
+
+
+
+
+<a name="ibc.applications.ibc_query.v1.QueryCrossChainQueryResponse"></a>
+
+### QueryCrossChainQueryResponse
+QueryCrossChainQueryResponse
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.application.ibc_query.v1.QueryCrossChainQueryResponse"></a>
-
-### QueryCrossChainQueryResponse
-
+| `result` | [QueryResult](#ibc.applications.ibc_query.v1.QueryResult) |  |  |
+| `data` | [bytes](#bytes) |  |  |
 
 
 
@@ -1530,14 +1570,14 @@ Msg defines the ICS29 Msg service.
  <!-- end HasExtensions -->
 
 
-<a name="ibc.application.ibc_query.v1.Query"></a>
+<a name="ibc.applications.ibc_query.v1.Query"></a>
 
 ### Query
-
+Query
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `CrossChainQuery` | [QueryCrossChainQuery](#ibc.application.ibc_query.v1.QueryCrossChainQuery) | [QueryCrossChainQueryResponse](#ibc.application.ibc_query.v1.QueryCrossChainQueryResponse) |  | GET|/ibc/apps/ibc-query/v1/{id}|
+| `CrossChainQuery` | [QueryCrossChainQuery](#ibc.applications.ibc_query.v1.QueryCrossChainQuery) | [QueryCrossChainQueryResponse](#ibc.applications.ibc_query.v1.QueryCrossChainQueryResponse) | query CrossChainQuery | GET|/ibc/apps/ibc-query/v1/{id}|
 
  <!-- end services -->
 
@@ -1550,57 +1590,59 @@ Msg defines the ICS29 Msg service.
 
 
 
-<a name="ibc.application.ibc_query.v1.MsgCrossChainQuery"></a>
+<a name="ibc.applications.ibc_query.v1.MsgSubmitCrossChainQuery"></a>
 
-### MsgCrossChainQuery
-
+### MsgSubmitCrossChainQuery
+MsgSubmitCrossChainQuery
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `id` | [string](#string) |  |  |
 | `path` | [string](#string) |  |  |
-| `localTimeoutHeight` | [uint64](#uint64) |  |  |
-| `localTimeoutStamp` | [uint64](#uint64) |  |  |
-| `queryHeight` | [uint64](#uint64) |  |  |
-| `clientId` | [string](#string) |  |  |
+| `local_timeout_height` | [uint64](#uint64) |  |  |
+| `local_timeout_stamp` | [uint64](#uint64) |  |  |
+| `query_height` | [uint64](#uint64) |  |  |
+| `client_id` | [string](#string) |  |  |
+| `sender` | [string](#string) |  | sender address |
 
 
 
 
 
 
-<a name="ibc.application.ibc_query.v1.MsgCrossChainQueryResponse"></a>
+<a name="ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResponse"></a>
 
-### MsgCrossChainQueryResponse
-
-
-
+### MsgSubmitCrossChainQueryResponse
+MsgSubmitCrossChainQueryResponse
 
 
 
 
-<a name="ibc.application.ibc_query.v1.MsgCrossChainQueryResult"></a>
 
-### MsgCrossChainQueryResult
 
+<a name="ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResult"></a>
+
+### MsgSubmitCrossChainQueryResult
+MsgSubmitCrossChainQueryResult
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `id` | [string](#string) |  |  |
-| `result` | [QueryResult](#ibc.application.ibc_query.v1.QueryResult) |  |  |
+| `result` | [QueryResult](#ibc.applications.ibc_query.v1.QueryResult) |  |  |
 | `data` | [bytes](#bytes) |  |  |
+| `relayer` | [string](#string) |  | relayer address |
 
 
 
 
 
 
-<a name="ibc.application.ibc_query.v1.MsgCrossChainQueryResultResponse"></a>
+<a name="ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResultResponse"></a>
 
-### MsgCrossChainQueryResultResponse
-
+### MsgSubmitCrossChainQueryResultResponse
+MsgSubmitCrossChainQueryResultResponse
 
 
 
@@ -1608,33 +1650,20 @@ Msg defines the ICS29 Msg service.
 
  <!-- end messages -->
 
-
-<a name="ibc.application.ibc_query.v1.QueryResult"></a>
-
-### QueryResult
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| SUCCESS | 0 |  |
-| FAILURE | 1 |  |
-| TIMEOUT | 2 |  |
-
-
  <!-- end enums -->
 
  <!-- end HasExtensions -->
 
 
-<a name="ibc.application.ibc_query.v1.Msg"></a>
+<a name="ibc.applications.ibc_query.v1.Msg"></a>
 
 ### Msg
-
+Msg
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `SubmitCrossChainQuery` | [MsgCrossChainQuery](#ibc.application.ibc_query.v1.MsgCrossChainQuery) | [MsgCrossChainQueryResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResponse) |  | |
-| `SubmitCrossChainQueryResult` | [MsgCrossChainQueryResult](#ibc.application.ibc_query.v1.MsgCrossChainQueryResult) | [MsgCrossChainQueryResultResponse](#ibc.application.ibc_query.v1.MsgCrossChainQueryResultResponse) |  | |
+| `SubmitCrossChainQuery` | [MsgSubmitCrossChainQuery](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQuery) | [MsgSubmitCrossChainQueryResponse](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResponse) | submit query request | |
+| `SubmitCrossChainQueryResult` | [MsgSubmitCrossChainQueryResult](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResult) | [MsgSubmitCrossChainQueryResultResponse](#ibc.applications.ibc_query.v1.MsgSubmitCrossChainQueryResultResponse) | submit query result | |
 
  <!-- end services -->
 

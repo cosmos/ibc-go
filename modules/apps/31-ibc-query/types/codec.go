@@ -8,15 +8,15 @@ import (
 )
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCrossChainQuery{}, "cosmos-sdk/MsgCrossChainQuery", nil)
-	cdc.RegisterConcrete(&MsgCrossChainQueryResult{}, "cosmos-sdk/MsgCrossChainQueryResult", nil)
+	cdc.RegisterConcrete(&MsgSubmitCrossChainQuery{}, "cosmos-sdk/MsgSubmitCrossChainQuery", nil)
+	cdc.RegisterConcrete(&MsgSubmitCrossChainQueryResult{}, "cosmos-sdk/MsgSubmitCrossChainQueryResult", nil)
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgCrossChainQuery{},
-		&MsgCrossChainQueryResult{},
+		&MsgSubmitCrossChainQuery{},
+		&MsgSubmitCrossChainQueryResult{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
