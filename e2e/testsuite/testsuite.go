@@ -313,8 +313,8 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	logger := zaptest.NewLogger(s.T())
 
 	// TODO(chatton): allow for controller over number of validators and full nodes.
-	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 2, 1, logger)
-	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 2, 1, logger)
+	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 4, 1, logger)
+	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 4, 1, logger)
 
 	return chainA, chainB
 }
