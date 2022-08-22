@@ -248,7 +248,7 @@ default: // for SDK 0.45 and below
 }
 ```
 
-See [ADR-03](../architecture/adr-003-ics27-acknowledgement.md/#next-major-version-format) for more information.
+See [ADR-03](../architecture/adr-003-ics27-acknowledgement.md/#next-major-version-format) for more information or the [corrresponding documentation about authentication modules](../apps/interchain-accounts/auth-modules.md#onacknowledgementpacket).
 
 ### ICS29 - Fee Middleware
 
