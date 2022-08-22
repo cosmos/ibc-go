@@ -373,7 +373,7 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
 // a success boolean depending on if the validator set exists or not at that height.
 func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bool) {
-	histInfo, ok := chain.App.GetIBCTestStakingKeeper().GetHistoricalInfo(chain.GetContext(), height)
+	histInfo, ok := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), height)
 	if !ok {
 		return nil, false
 	}
