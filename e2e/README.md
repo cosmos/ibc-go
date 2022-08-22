@@ -69,7 +69,7 @@ export CHAIN_BINARY="simd"
 # export CHAIN_BINARY="icad"
 
 export RLY_TAG="v2.0.0-rc2"
-make e2e-test entry-point=TestFeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
+make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
 

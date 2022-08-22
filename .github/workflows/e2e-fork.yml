@@ -22,7 +22,7 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
         env:
-          TEST_EXCLUSIONS: "TestInterchainAccountsTestSuite"
+          TEST_EXCLUSIONS: "TestInterchainAccountsTestSuite,TestIncentivizedInterchainAccountsTestSuite"
 
   e2e:
     env:
@@ -49,4 +49,4 @@ jobs:
           RLY_TAG: "v2.0.0-rc2"
         run: |
           cd e2e
-          make e2e-test entry-point=${{ matrix.entry-point }} test=${{ matrix.test }}
+          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}

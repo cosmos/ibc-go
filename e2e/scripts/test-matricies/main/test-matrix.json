@@ -64,5 +64,19 @@
         "chain-b-tag": "v0.2.2"
       }
     ]
+  },
+  {
+    "test-entry-point": "TestIncentivizedInterchainAccountsTestSuite",
+    "chain-binary": "icad",
+    "tests": [
+      {
+        "chain-a-tag": "v0.2.2",
+        "chain-b-tag": "v0.3.2"
+      },
+      {
+        "chain-a-tag": "v0.3.2",
+        "chain-b-tag": "v0.2.2"
+      }
+    ]
   }
 ]
