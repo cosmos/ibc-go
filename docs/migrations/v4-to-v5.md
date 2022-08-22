@@ -22,15 +22,15 @@ The `AnteDecorator` type in `core/ante` has been renamed to `RedundantRelayDecor
 
 ```diff
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
-	// parameter validation
+   // parameter validation
 
-	anteDecorators := []sdk.AnteDecorator{
+   anteDecorators := []sdk.AnteDecorator{
       // other ante decorators
 -     ibcante.NewAnteDecorator(opts.IBCkeeper),
 +     ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
-	}
+   }
 
-	return sdk.ChainAnteDecorators(anteDecorators...), nil
+   return sdk.ChainAnteDecorators(anteDecorators...), nil
 }
 ```
 
@@ -182,12 +182,12 @@ for i, msg := range msgs {
    // message validation
 
    msgResponse, err := k.executeMsg(cacheCtx, msg)
-	// return if err != nil
+   // return if err != nil
 
-	txMsgData.Data[i] = &sdk.MsgData{
-		MsgType: sdk.MsgTypeURL(msg),
-		Data:    msgResponse,
-	}
+   txMsgData.Data[i] = &sdk.MsgData{
+	   MsgType: sdk.MsgTypeURL(msg),
+	   Data:    msgResponse,
+   }
 }
 
 // emit events
@@ -286,7 +286,7 @@ type IBCModule struct {
 
 - The `app` parameter to `*NewIBCModule` in `testing/mock` to change its type as well to `*IBCApp`:
 
-```
+```diff
 func NewIBCModule(
    appModule *AppModule,
 -  app *MockIBCApp
