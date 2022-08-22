@@ -30,7 +30,7 @@ type GithubActionTestMatrix struct {
 
 type TestSuitePair struct {
 	Test       string `json:"test"`
-	EntryPoint string `json:"entry-point"`
+	EntryPoint string `json:"entrypoint"`
 }
 
 func main() {

@@ -274,27 +274,27 @@ In the above example, the following would be generated.
 {
    "include": [
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestA"
       },
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestB"
       },
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestC"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestD"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestE"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestF"
       }
    ]
