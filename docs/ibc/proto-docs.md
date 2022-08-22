@@ -1564,7 +1564,7 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | Register defines a rpc handler for MsgRegisterAccount. | |
+| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
 
  <!-- end services -->
 

@@ -8,7 +8,7 @@ import "gogoproto/gogo.proto";
 
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
-  // Register defines a rpc handler for MsgRegisterAccount.
+  // RegisterAccount defines a rpc handler for MsgRegisterAccount.
   rpc RegisterAccount(MsgRegisterAccount) returns (MsgRegisterAccountResponse);
 }
 

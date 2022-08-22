@@ -152,7 +152,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// Register defines a rpc handler for MsgRegisterAccount.
+	// RegisterAccount defines a rpc handler for MsgRegisterAccount.
 	RegisterAccount(ctx context.Context, in *MsgRegisterAccount, opts ...grpc.CallOption) (*MsgRegisterAccountResponse, error)
 }
 
@@ -175,7 +175,7 @@ func (c *msgClient) RegisterAccount(ctx context.Context, in *MsgRegisterAccount,
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// Register defines a rpc handler for MsgRegisterAccount.
+	// RegisterAccount defines a rpc handler for MsgRegisterAccount.
 	RegisterAccount(context.Context, *MsgRegisterAccount) (*MsgRegisterAccountResponse, error)
 }
 
