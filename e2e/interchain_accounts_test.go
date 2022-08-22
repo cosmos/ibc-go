@@ -31,7 +31,7 @@ type InterchainAccountsTestSuite struct {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
+func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.AssertValidTxResponse(txResp)
 	return err
@@ -39,7 +39,7 @@ func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Cont
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user *ibctest.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
+	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
