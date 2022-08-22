@@ -1547,6 +1547,11 @@ MsgRegisterAccount defines the payload for Msg/RegisterAccount
 MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  |  |
+
+
 
 
 

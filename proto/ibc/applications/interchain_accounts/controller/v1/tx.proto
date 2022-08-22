@@ -23,4 +23,6 @@ message MsgRegisterAccount {
 }
 
 // MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
-message MsgRegisterAccountResponse {}
+message MsgRegisterAccountResponse {
+  string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+}
