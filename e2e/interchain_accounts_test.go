@@ -313,8 +313,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incenti
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {
-			err := relayer.StopRelayer(ctx, s.GetRelayerExecReporter())
-			s.Require().NoError(err)
+			s.StopRelayer(ctx, relayer)
 		})
 
 		t.Run("broadcast incentivized MsgSubmitTx", func(t *testing.T) {
