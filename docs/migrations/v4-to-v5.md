@@ -167,14 +167,84 @@ func NewKeeper(
 
 The `RegisterRESTRoutes` function in `modules/apps/27-interchain-accounts` has been removed.
 
-####
+#### Cosmos SDK message handler responses in packet acknowledgement
 
-The response of a message execution on the host chain is constructed now like this:
+The construction of the transaction response of a message execution on the host chain has changed. The `Data` field in the `sdk.TxMsgData` has been deprecated and since Cosmos SDK 0.46 the `MsgResponses` field contains the message handler responses packed into `Any`s.
 
+For chains on Cosmos SDK 0.45 and below, the message response was constructed like this:
+
+```go
+txMsgData := &sdk.TxMsgData{
+	Data: make([]*sdk.MsgData, len(msgs)),
+}
+
+for i, msg := range msgs {
+   // message validation
+
+   msgResponse, err := k.executeMsg(cacheCtx, msg)
+	// return if err != nil
+
+	txMsgData.Data[i] = &sdk.MsgData{
+		MsgType: sdk.MsgTypeURL(msg),
+		Data:    msgResponse,
+	}
+}
+
+// emit events
+
+txResponse, err := proto.Marshal(txMsgData)
+// return if err != nil
+
+return txResponse, nil
 ```
-&codectypes.Any{
-  TypeUrl: sdk.MsgTypeURL(msg),
-  Value:   msgResponse,
+
+Ano for chains on Cosmos SDK 0.46 and above, it is now done like this:
+
+```go
+txMsgData := &sdk.TxMsgData{
+	MsgResponses: make([]*codectypes.Any, len(msgs)),
+}
+
+for i, msg := range msgs {
+   // message validation
+
+   any, err := k.executeMsg(cacheCtx, msg)
+   // return if err != nil
+
+   txMsgData.MsgResponses[i] = any
+}
+
+// emit events
+
+txResponse, err := proto.Marshal(txMsgData)
+// return if err != nil
+
+return txResponse, nil
+```
+
+When handling the acknowledgement in the `OnAcknowledgementPacket` callback of a custom ICA controller module, then depending on whether `txMsgData.Data` is empty or not, the logic to handle the message handler response will be different. **Only controller chains on Cosmos SDK 0.46 or above will be able to write the logic needed to handle the response from a host chain on Cosmos SDK 0.46 or above.**
+
+```go
+var ack channeltypes.Acknowledgement
+if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+   return err
+}
+
+txMsgData := &sdk.TxMsgData{}
+if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
+   return err
+}
+
+switch len(txMsgData.Data) {
+case 0: // for SDK 0.46 and above
+   for _, msgResponse := range txMsgData.MsgResponses {
+      // unmarshall msgResponse and execute logic based on the response 
+   }
+   return nil
+default: // for SDK 0.45 and below
+   for _, msgData := range txMsgData.Data {
+      // unmarshall msgData and execute logic based on the response 
+   }
 }
 ```
 
@@ -204,10 +274,27 @@ The `RegisterRESTRoutes` function in `modules/apps/29-fee` has been removed.
 
 The `MockIBCApp` type has been renamed to `IBCApp` (and the corresponding constructor function to `NewIBCApp`). This has resulted therefore in:
 
-- The `IBCApp` field of the `*IBCModule` in `testing/mock` to change its type as well to `*IBCApp`.
-- The `app` parameter to `*NewIBCModule` in `testing/mock` to change its type as well to `*IBCApp`.
+- The `IBCApp` field of the `*IBCModule` in `testing/mock` to change its type as well to `*IBCApp`:
 
-The `MockEmptyAcknowledgement` field has been renamed to `EmptyAcknowledgement` (and the corresponding constructor function to `NewEmptyAcknowledgement`).
+```diff
+type IBCModule struct {
+   appModule *AppModule
+-  IBCApp    *MockIBCApp // base application of an IBC middleware stack
++  IBCApp    *IBCApp // base application of an IBC middleware stack
+}
+```
+
+- The `app` parameter to `*NewIBCModule` in `testing/mock` to change its type as well to `*IBCApp`:
+
+```
+func NewIBCModule(
+   appModule *AppModule,
+-  app *MockIBCApp
++  app *IBCApp
+) IBCModule
+```
+
+The `MockEmptyAcknowledgement` type has been renamed to `EmptyAcknowledgement` (and the corresponding constructor function to `NewEmptyAcknowledgement`).
 
 The return type of the function `LastCommitID` of the `TestingApp` interface in `testing` has changed to `storetypes.CommitID` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
 
