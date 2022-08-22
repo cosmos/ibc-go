@@ -30,7 +30,7 @@
     ]
   },
   {
-    "test-entry-point": "TestFeeMiddlewareTestSuite",
+    "test-entry-point": "TestIncentivizedTransferTestSuite",
     "chain-binary": "simd",
     "tests": [
       {
