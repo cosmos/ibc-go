@@ -31,7 +31,8 @@
   <a href="https://sourcegraph.com/github.com/cosmos/ibc-go?badge">
     <img alt="Imported by" src="https://sourcegraph.com/github.com/cosmos/ibc-go/-/badge.svg" />
   </a>
-    <img alt="Lint Status" src="https://github.com/cosmos/cosmos-sdk/workflows/Lint/badge.svg" />
+    <img alt="Tests / Code Coverage Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg" />
+    <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
 </div>
 
 The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to each other. IBC handles transport across different sovereign blockchains. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. This IBC implementation in Golang is built as a Cosmos SDK module.
@@ -67,6 +68,14 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
 ## Roadmap
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
+
+## Support
+
+We have active, helpful communities on Discord and Telegram.
+
+For questions and support please use the `new-devs-support` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/699634178173698108) or join the [IBC Gang Discord server](https://discord.gg/RdpdkaXKpZ). The issue list of this repo is exclusively for bug reports and feature requests.
+
+To receive announcements of new releases or other technical updates, please join the [IBC is expansive Telegram group](https://t.me/ibc_is_expansive).
 
 ## Resources
 

@@ -10,4 +10,7 @@ cleanup-ibc-test-containers:
 e2e-test: cleanup-ibc-test-containers
 	./scripts/run-e2e.sh $(suite) $(test)
 
-.PHONY: cleanup-ibc-test-containers e2e-test
+compatibility-tests:
+	./scripts/run-compatibility-tests.sh $(version)
+
+.PHONY: cleanup-ibc-test-containers e2e-test compatibility-tests

@@ -3,8 +3,11 @@ package testsuite
 import (
 	"context"
 
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
@@ -40,4 +43,48 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 		return nil, err
 	}
 	return res.Commitment, nil
+}
+
+// QueryInterchainAccount queries the interchain account for the given owner and connectionId.
+func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionId string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).ICAQueryClient
+	res, err := queryClient.InterchainAccount(ctx, &intertxtypes.QueryInterchainAccountRequest{
+		Owner:        owner,
+		ConnectionId: connectionId,
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.InterchainAccountAddress, nil
+}
+
+// QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
+func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
+	ctx context.Context,
+	chain *cosmos.CosmosChain,
+	portId,
+	channelId string,
+) ([]*feetypes.IdentifiedPacketFees, error) {
+	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
+	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
+		PortId:    portId,
+		ChannelId: channelId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.IncentivizedPackets, err
+}
+
+// QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
+func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
+	res, err := queryClient.CounterpartyPayee(ctx, &feetypes.QueryCounterpartyPayeeRequest{
+		ChannelId: channelID,
+		Relayer:   relayerAddress,
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.CounterpartyPayee, nil
 }
