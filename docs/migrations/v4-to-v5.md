@@ -198,7 +198,7 @@ txResponse, err := proto.Marshal(txMsgData)
 return txResponse, nil
 ```
 
-Ano for chains on Cosmos SDK 0.46 and above, it is now done like this:
+And for chains on Cosmos SDK 0.46 and above, it is now done like this:
 
 ```go
 txMsgData := &sdk.TxMsgData{
