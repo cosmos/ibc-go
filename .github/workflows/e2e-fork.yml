@@ -49,4 +49,4 @@ jobs:
           RLY_TAG: "v2.0.0-rc2"
         run: |
           cd e2e
-          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
+          make e2e-test entry-point=${{ matrix.entry-point }} test=${{ matrix.test }}

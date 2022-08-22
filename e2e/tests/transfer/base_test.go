@@ -1,8 +1,4 @@
-package e2e
-
-/*
-The TransferTestSuite assumes both chainA and chainB support version ics20-1.
-*/
+package transfer
 
 import (
 	"context"
