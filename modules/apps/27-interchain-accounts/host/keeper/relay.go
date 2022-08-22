@@ -70,7 +70,7 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 			return nil, err
 		}
 
-		txMsgData.MsgResponses[i] = any
+		txMsgData.Data.MsgResponses[i] = any
 	}
 
 	// NOTE: The context returned by CacheContext() creates a new EventManager, so events must be correctly propagated back to the current context
