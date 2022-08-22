@@ -175,7 +175,7 @@ For chains on Cosmos SDK 0.45 and below, the message response was constructed li
 
 ```go
 txMsgData := &sdk.TxMsgData{
-	Data: make([]*sdk.MsgData, len(msgs)),
+   Data: make([]*sdk.MsgData, len(msgs)),
 }
 
 for i, msg := range msgs {
@@ -185,8 +185,8 @@ for i, msg := range msgs {
    // return if err != nil
 
    txMsgData.Data[i] = &sdk.MsgData{
-	   MsgType: sdk.MsgTypeURL(msg),
-	   Data:    msgResponse,
+      MsgType: sdk.MsgTypeURL(msg),
+      Data:    msgResponse,
    }
 }
 
@@ -202,7 +202,7 @@ Ano for chains on Cosmos SDK 0.46 and above, it is now done like this:
 
 ```go
 txMsgData := &sdk.TxMsgData{
-	MsgResponses: make([]*codectypes.Any, len(msgs)),
+   MsgResponses: make([]*codectypes.Any, len(msgs)),
 }
 
 for i, msg := range msgs {
