@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
-func NewMsgRegisterPayee(connectionID, owner, version string) *MsgRegisterAccount {
+// NewMsgRegisterAccount creates a new instance of MsgRegisterAccount
+func NewMsgRegisterAccount(connectionID, owner, version string) *MsgRegisterAccount {
 	return &MsgRegisterAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
