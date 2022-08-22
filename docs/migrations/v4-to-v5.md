@@ -230,7 +230,7 @@ if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err !=
    return err
 }
 
-txMsgData := &sdk.TxMsgData{}
+var txMsgData sdk.TxMsgData
 if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
    return err
 }
