@@ -380,7 +380,7 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().NoError(err)
 	s.AssertValidTxResponse(txResp)
 
-	time.Sleep(time.Nanosecond * 10) // pass proposal
+	time.Sleep(time.Second * 11) // pass proposal
 
 	proposal, err := s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)

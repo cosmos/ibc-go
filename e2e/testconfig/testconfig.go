@@ -1,9 +1,15 @@
 package testconfig
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/ibctest/ibc"
 )
 
@@ -132,5 +138,38 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
+		ModifyGenesis:  modifyGenesisVotingPeriod("10s", denom),
+	}
+}
+
+func modifyGenesisVotingPeriod(votingPeriod string, denom string) func([]byte) ([]byte, error) {
+	return func(genbz []byte) ([]byte, error) {
+		g := make(map[string]interface{})
+		if err := json.Unmarshal(genbz, &g); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+
+		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "voting_params", "voting_period"); err != nil {
+			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		}
+
+		appState := &genutiltypes.AppMap{}
+		if err := json.Unmarshal(g["app_state"].([]byte), appState); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+
+		govGenesisState := &govv1beta1.GenesisState{}
+		if err := json.Unmarshal(appState[govtypes.ModuleName], govGenesisState); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+
+		govGenesisState.DepositParams = govv1beta1.NewDepositParams(sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens)), govv1beta1.DefaultPeriod)
+		g[govtypes.ModuleName] = govGenesisState
+
+		out, err := json.Marshal(g)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+		}
+		return out, nil
 	}
 }
