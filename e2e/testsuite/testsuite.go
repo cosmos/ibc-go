@@ -7,6 +7,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
@@ -21,6 +23,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -53,6 +56,10 @@ type GRPCClients struct {
 	ChannelQueryClient channeltypes.QueryClient
 	FeeQueryClient     feetypes.QueryClient
 	ICAQueryClient     intertxtypes.QueryClient
+
+	// SDK query clients
+	GovQueryClient    govtypes.QueryClient
+	ParamsQueryClient paramsproposaltypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -290,6 +297,8 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -350,4 +359,30 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibctest.U
 		return -1, err
 	}
 	return bal, nil
+}
+
+func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, content govtypes.Content) {
+	sender := sdk.AccAddress(user.Bech32Address(chain.Config().Bech32Prefix))
+
+	msgSubmitProposal, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewInt64Coin(chain.Config().Denom, testvalues.InitialDeposit)), sender)
+	s.Require().NoError(err)
+
+	txResp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	fmt.Println(txResp)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(txResp)
+
+	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
+	// <insert issue link>
+
+	msgVote := govtypes.NewMsgVote(sender, 1, govtypes.OptionYes)
+	txResp, err = s.BroadcastMessages(ctx, chain, user, msgVote)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(txResp)
+
+	time.Sleep(time.Nanosecond * 10) // pass proposal
+
+	proposal, err := s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
 }

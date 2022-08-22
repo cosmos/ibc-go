@@ -7,10 +7,12 @@ The TransferTestSuite assumes both chainA and chainB support version ics20-1.
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
@@ -21,6 +23,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -37,6 +40,36 @@ func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosCh
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
+func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, chain ibc.Chain) bool {
+	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
+	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
+		Subspace: "transfer",
+		Key:      string(transfertypes.KeySendEnabled),
+	})
+	s.Require().NoError(err)
+
+	enabled, err := strconv.ParseBool(res.Param.Value)
+	s.Require().NoError(err)
+
+	return enabled
+}
+
+// QueryTransferSendEnabledParam queries the on-chain receive enabled param for the transfer module
+func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context, chain ibc.Chain) bool {
+	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
+	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
+		Subspace: "transfer",
+		Key:      string(transfertypes.KeyReceiveEnabled),
+	})
+	s.Require().NoError(err)
+
+	enabled, err := strconv.ParseBool(res.Param.Value)
+	s.Require().NoError(err)
+
+	return enabled
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -214,8 +247,19 @@ func (s *TransferTestSuite) TestParams() {
 	t := s.T()
 	ctx := context.TODO()
 
-	t.Run("ensure transfer params are enabled", func(t *testing.T) {
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	chainA, chainB := s.GetChains()
 
+	wallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("ensure transfer params are enabled", func(t *testing.T) {
+		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		s.Require().True(enabled)
+
+		enabled = s.QueryTransferReceiveEnabledParam(ctx, chainA)
+		s.Require().True(enabled)
 	})
 
 	t.Run("ensure packets can be sent and received", func(t *testing.T) {
@@ -223,7 +267,21 @@ func (s *TransferTestSuite) TestParams() {
 	})
 
 	t.Run("change ics20 parameters to disabled ", func(t *testing.T) {
+		changes := []paramsproposaltypes.ParamChange{
+			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
+			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
+		}
 
+		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+		s.ExecuteGovProposal(ctx, chainA, wallet, proposal)
+	})
+
+	t.Run("ensure transfer params are disabled", func(t *testing.T) {
+		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		s.Require().False(enabled)
+
+		enabled = s.QueryTransferReceiveEnabledParam(ctx, chainA)
+		s.Require().False(enabled)
 	})
 
 	t.Run("ensure ics20 transfer fails", func(t *testing.T) {

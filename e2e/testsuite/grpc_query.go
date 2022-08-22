@@ -3,6 +3,7 @@ package testsuite
 import (
 	"context"
 
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
@@ -87,4 +88,16 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 		return "", err
 	}
 	return res.CounterpartyPayee, nil
+}
+
+// QueryProposal
+func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypes.Proposal, error) {
+	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
+	res, err := queryClient.Proposal(ctx, &govtypes.QueryProposalRequest{
+		ProposalId: proposalID,
+	})
+	if err != nil {
+		return govtypes.Proposal{}, err
+	}
+	return res.Proposal, nil
 }
