@@ -40,9 +40,32 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+<<<<<<< HEAD
 * (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types.
 * (apps/27-interchain-accounts)[\#2302](https://github.com/cosmos/ibc-go/pull/2302) Handle unwrapping of channel version in interchain accounts channel reopening handshake flow. The `host` submodule `Keeper` now requires an `ICS4Wrapper` similarly to the `controller` submodule.
 * (apps/27-interchain-accounts) [\#2035](https://github.com/cosmos/ibc-go/pull/2035) Interchain accounts host and controller Keepers now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+=======
+* (core/04-channel) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `NewPacketId` has been renamed to `NewPacketID` to comply with go linting rules.
+* (core/ante) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `AnteDecorator` has been renamed to `RedundancyDecorator` to comply with go linting rules and to give more clarity to the purpose of the Decorator.
+* (core/ante) [\#1820](https://github.com/cosmos/ibc-go/pull/1418) `RedundancyDecorator` has been renamed to `RedundantRelayDecorator` to make the name for explicit.
+* (testing) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `MockIBCApp` has been renamed to `IBCApp` and `MockEmptyAcknowledgement` has been renamed to `EmptyAcknowledgement` to comply with go linting rules.
+* (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768) Removed `AllowUpdateAfterExpiry`, `AllowUpdateAfterMisbehaviour` booleans as they are deprecated (see ADR026)
+* (06-solomachine) [\#1679](https://github.com/cosmos/ibc-go/pull/1679) Remove `types` sub-package from `06-solomachine` lightclient directory. 
+* (07-tendermint) [\#1677](https://github.com/cosmos/ibc-go/pull/1677) Remove `types` sub-package from `07-tendermint` lightclient directory. 
+* (06-solomachine) [\#1687](https://github.com/cosmos/ibc-go/pull/1687) Bump `06-solomachine` protobuf version from `v2` to `v3`.
+* (06-solomachine) [\#1687](https://github.com/cosmos/ibc-go/pull/1687) Removed `DataType` enum and associated message types from `06-solomachine`. `DataType` has been removed from `SignBytes` and `SignatureAndData` in favour of `path`.
+* (02-client) [\#598](https://github.com/cosmos/ibc-go/pull/598) The client state and consensus state return value has been removed from `VerifyUpgradeAndUpdateState`. Light client implementations must update the client state and consensus state after verifying a valid client upgrade. 
+* (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Remove `GetClientID` function from 06-solomachine `Misbehaviour` type.
+* (06-solomachine) [\#1100](https://github.com/cosmos/ibc-go/pull/1100) Deprecate `ClientId` field in 06-solomachine `Misbehaviour` type. 
+* (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Remove `GetClientID` function from 07-tendermint `Misbehaviour` type.
+* (07-tendermint) [\#1097](https://github.com/cosmos/ibc-go/pull/1097) Deprecate `ClientId` field in 07-tendermint `Misbehaviour` type.
+* (modules/core/exported) [\#1107](https://github.com/cosmos/ibc-go/pull/1107) Merging the `Header` and `Misbehaviour` interfaces into a single `ClientMessage` type.
+* (06-solomachine)[\#1906](https://github.com/cosmos/ibc-go/pull/1906/files) Removed `AllowUpdateAfterProposal` boolean as it has been deprecated (see 01_concepts of the solo machine spec for more details).
+* (07-tendermint) [\#1896](https://github.com/cosmos/ibc-go/pull/1896) Remove error return from `IterateConsensusStateAscending` in `07-tendermint`.
+* (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+* (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+* (04-channel) [\#2024](https://github.com/cosmos/ibc-go/pull/2024) Channel Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+>>>>>>> 0ecbf61 (Add interface for scoped keeper for transfer module (#2034))
 
 ### State Machine Breaking
 
