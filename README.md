@@ -64,11 +64,17 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
 
     3.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
 
-Note: The localhost client is currently non-functional. 
-
 ## Roadmap
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
+
+## Support
+
+We have active, helpful communities on Discord and Telegram.
+
+For questions and support please use the `new-devs-support` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/699634178173698108) or join the [IBC Gang Discord server](https://discord.gg/RdpdkaXKpZ). The issue list of this repo is exclusively for bug reports and feature requests.
+
+To receive announcements of new releases or other technical updates, please join the [IBC is expansive Telegram group](https://t.me/ibc_is_expansive).
 
 ## Resources
 

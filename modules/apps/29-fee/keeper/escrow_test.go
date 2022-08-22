@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			},
 			func() {
 				// check if the refund acc has been refunded the timeoutFee
-				expectedRefundAccBal := defaultTimeoutFee[0].Add(defaultTimeoutFee[0])
+				expectedRefundAccBal := refundAccBal.Add(defaultTimeoutFee[0]).Add(defaultTimeoutFee[0])
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedRefundAccBal, balance)
 			},
@@ -370,7 +370,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.Require().NoError(err)
 
 				expEscrowBal = fee.Total()
-				expRefundBal = expRefundBal.Sub(fee.Total())
+				expRefundBal = expRefundBal.Sub(fee.Total()...)
 			}, true,
 		},
 		{
@@ -425,7 +425,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
 
 				expEscrowBal = fee.Total()
-				expRefundBal = expRefundBal.Sub(fee.Total())
+				expRefundBal = expRefundBal.Sub(fee.Total()...)
 			}, true,
 		},
 		{
@@ -446,7 +446,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
 
 				expEscrowBal = fee.Total()
-				expRefundBal = expRefundBal.Sub(fee.Total())
+				expRefundBal = expRefundBal.Sub(fee.Total()...)
 			}, true,
 		},
 	}

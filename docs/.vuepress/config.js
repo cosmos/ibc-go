@@ -101,12 +101,24 @@ module.exports = {
         key: "v2.3.0",
       },
       {
+        label: "v2.4.0",
+        key: "v2.4.0",
+      },
+      {
         label: "v3.0.0",
         key: "v3.0.0",
       },
       {
         label: "v3.1.0",
         key: "v3.1.0",
+      },
+      {
+        label: "v3.2.0",
+        key: "v3.2.0",
+      },
+      {
+        label: "v4.0.0",
+        key: "v4.0.0",
       },
     ],
     topbar: {
