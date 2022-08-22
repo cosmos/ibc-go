@@ -209,6 +209,28 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	})
 }
 
+// TestParams tests changing ics20 on-chain parameters
+func (s *TransferTestSuite) TestParams() {
+	t := s.T()
+	ctx := context.TODO()
+
+	t.Run("ensure transfer params are enabled", func(t *testing.T) {
+
+	})
+
+	t.Run("ensure packets can be sent and received", func(t *testing.T) {
+
+	})
+
+	t.Run("change ics20 parameters to disabled ", func(t *testing.T) {
+
+	})
+
+	t.Run("ensure ics20 transfer fails", func(t *testing.T) {
+
+	})
+}
+
 // transferChannelOptions configures both of the chains to have non-incentivized transfer channels.
 func transferChannelOptions() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
