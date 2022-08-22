@@ -13,7 +13,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
@@ -35,7 +34,7 @@ type TransferTestSuite struct {
 }
 
 // Transfer broadcasts a MsgTransfer message.
-func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User,
+func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
