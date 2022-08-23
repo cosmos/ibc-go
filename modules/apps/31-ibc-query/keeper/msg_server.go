@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types"
 )
@@ -23,20 +22,24 @@ func (k Keeper) SubmitCrossChainQuery(goCtx context.Context, msg *types.MsgSubmi
 
 // SubmitCrossChainQueryResult Handling SubmitCrossChainQueryResult transaction
 func (k Keeper) SubmitCrossChainQueryResult(goCtx context.Context, msg *types.MsgSubmitCrossChainQueryResult) (*types.MsgSubmitCrossChainQueryResultResponse, error) {
-	// TODO
-	// 0. verify the result using local client <- other function
-	// 1. retrieve the query from privateStore
-	// 2. remove query from privateStore
-	// 3. store result in privateStore
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryKey)
-	_ = prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryResultKey)
+	// check CrossChainQuery exist
+	if _, found := k.GetCrossChainQuery(ctx, msg.Id); !found {
+		return nil, types.ErrCrossChainQueryNotFound
+	}
 
-	// retrieve the query from privateStore
-	// k.RetrieveQuery()
-	// k.StoreQueryResult()
+	// remove query from privateStore
+	k.DeleteCrossChainQuery(ctx, msg.Id)
+
+	queryResult := &types.CrossChainQueryResult{
+		Id:     msg.Id,
+		Result: msg.Result,
+		Data:   msg.Data,
+	}
+
+	// store result in privateStore
+	k.SetCrossChainQueryResult(ctx, queryResult)
 
 	return &types.MsgSubmitCrossChainQueryResultResponse{}, nil
 }

@@ -14,7 +14,7 @@ func (suite *KeeperTestSuite) TestSubmitCrossChainQueryResult() {
 
 	// checkList
 	// 1. retrieve the query from privateStore
-	// 2. remover query from privateStore
+	// 2. remove query from privateStore
 	// 3. store result in privateStore
 
 	testCases := []struct {
@@ -22,14 +22,14 @@ func (suite *KeeperTestSuite) TestSubmitCrossChainQueryResult() {
 		expPass  bool
 		malleate func()
 	}{
-		//{
-		//	"success",
-		//	true,
-		//	func() {
-		//		result = types.QueryResult_QUERY_RESULT_SUCCESS
-		//		data = []byte("query data")
-		//	},
-		//},
+		{
+			"success",
+			true,
+			func() {
+				result = types.QueryResult_QUERY_RESULT_SUCCESS
+				data = []byte("query data")
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -37,8 +37,10 @@ func (suite *KeeperTestSuite) TestSubmitCrossChainQueryResult() {
 
 		tc.malleate()
 
-		msg = types.NewMsgSubmitCrossChainQueryResult("queryId", result, data)
+		query := &types.CrossChainQuery{Id: "queryId"}
+		suite.chainA.GetSimApp().IBCQueryKeeper.SetCrossChainQuery(suite.chainA.GetContext(), query)
 
+		msg = types.NewMsgSubmitCrossChainQueryResult("queryId", result, data)
 		res, err := suite.chainA.GetSimApp().IBCQueryKeeper.SubmitCrossChainQueryResult(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 		if tc.expPass {
@@ -47,7 +49,9 @@ func (suite *KeeperTestSuite) TestSubmitCrossChainQueryResult() {
 			queryResult, found := suite.chainA.GetSimApp().IBCQueryKeeper.GetCrossChainQueryResult(suite.chainA.GetContext(), "queryId")
 
 			suite.Require().True(found)
-			suite.Require().Equal(result, queryResult)
+			suite.Require().Equal("queryId", queryResult.Id)
+			suite.Require().Equal(result, queryResult.Result)
+			suite.Require().Equal(data, queryResult.Data)
 		} else {
 			suite.Require().Error(err)
 		}
