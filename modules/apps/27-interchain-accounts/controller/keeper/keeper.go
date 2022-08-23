@@ -37,7 +37,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter icatypes.MessageRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
