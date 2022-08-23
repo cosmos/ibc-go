@@ -13,7 +13,7 @@ func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAcc
 	return &types.MsgRegisterAccountResponse{}, nil
 }
 
-// SubmitTx defines a rpc handler for MsgSendTx
+// SubmitTx defines a rpc handler for MsgSubmitTx
 func (k Keeper) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
 	return &types.MsgSubmitTxResponse{}, nil
 }
