@@ -8,9 +8,7 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
-var (
-	_ sdk.Msg = &MsgRegisterAccount{}
-)
+var _ sdk.Msg = &MsgRegisterAccount{}
 
 // NewMsgRegisterAccount creates a new instance of MsgRegisterAccount
 func NewMsgRegisterAccount(connectionID, owner, version string) *MsgRegisterAccount {
