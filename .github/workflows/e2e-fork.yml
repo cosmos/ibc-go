@@ -5,7 +5,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - docs/**
+      - "docs/**"
+      - "**.md"
+      - "LICENSE"
 
 jobs:
   # dynamically build a matrix of test/test suite pairs to run
