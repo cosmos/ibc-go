@@ -9,11 +9,13 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/mod/semver"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
@@ -33,6 +35,7 @@ type InterchainAccountsTestSuite struct {
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
+	s.Require().NoError(err)
 	s.AssertValidTxResponse(txResp)
 	return err
 }
@@ -42,6 +45,18 @@ func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Cont
 	user *ibctest.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
+// controller chain.
+func getICAVersion(chainAVersion, chainBVersion string) string {
+	chainBIsGreaterThanChainA := semver.Compare(chainAVersion, chainBVersion) == -1
+	if chainBIsGreaterThanChainA {
+		// allow version to be specified by the controller chain
+		return ""
+	}
+	// explicitly set the version string because the host chain might not yet support incentivized channels.
+	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
 func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
@@ -60,7 +75,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
@@ -154,7 +169,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_FailedTransfer_Insufficien
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, version)
 		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.Require().NoError(err)
