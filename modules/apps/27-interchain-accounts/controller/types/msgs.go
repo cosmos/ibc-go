@@ -24,7 +24,7 @@ func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{}
 }
 
-// NewMsgSendTx creates a new instance of MsgSendTx
+// NewMsgSubmitTx creates a new instance of MsgSubmitTx
 func NewMsgSubmitTx(connectionID, owner, timeout string, msg []*codectypes.Any) *MsgSubmitTx {
 	return &MsgSubmitTx{
 		ConnectionId: connectionID,
