@@ -7,6 +7,7 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
+// CrossChainQuery implements the Query/CrossChainQuery gRPC method
 func (k Keeper) CrossChainQuery(context context.Context, query *types.QueryCrossChainQuery) (*types.QueryCrossChainQueryResponse, error) {
 	// TODO
 	// get queryResult from private store

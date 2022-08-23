@@ -1,5 +1,6 @@
 package types
 
+// NewGenesisState creates a 31-ibc-query GenesisState instance.
 func NewGenesisState(queries []*CrossChainQuery, results []*CrossChainQueryResult) *GenesisState {
 	return &GenesisState{
 		Queries: queries,
@@ -7,6 +8,7 @@ func NewGenesisState(queries []*CrossChainQuery, results []*CrossChainQueryResul
 	}
 }
 
+// DefaultGenesisState returns a default instance of the 31-ibc-query GenesisState.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Queries: []*CrossChainQuery{},
@@ -14,6 +16,8 @@ func DefaultGenesisState() *GenesisState {
 	}
 }
 
+// Validate performs basic genesis state validation returning an error upon any
+// failure.
 func (gs GenesisState) Validate() error {
 	return nil
 }

@@ -22,8 +22,10 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
+// AppModuleBasic is the 31-ibc-query AppModuleBasic
 type AppModuleBasic struct{}
 
+// Name implements AppModuleBasic interface
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }

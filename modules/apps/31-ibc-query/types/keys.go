@@ -1,9 +1,16 @@
 package types
 
 const (
-	ModuleName   = "queryibc"
-	StoreKey     = ModuleName
-	RouterKey    = ModuleName
+	// ModuleName defines the 31-ibc-query name
+	ModuleName = "queryibc"
+
+	// StoreKey is the store key string for IBC query module
+	StoreKey = ModuleName
+
+	// RouterKey is the message route for IBC query module
+	RouterKey = ModuleName
+
+	// QuerierRoute is the querier route for IBC query module
 	QuerierRoute = ModuleName
 )
 

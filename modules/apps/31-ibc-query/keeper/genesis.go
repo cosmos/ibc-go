@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types"
 )
 
-// InitGenesis initializes the fee middleware application state from a provided genesis state
+// InitGenesis initializes the application state from a provided genesis state
 func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, query := range state.Queries {
 		k.SetCrossChainQuery(ctx, query)
@@ -15,7 +15,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	}
 }
 
-// ExportGenesis returns the fee middleware application exported genesis
+// ExportGenesis returns the application exported genesis
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Queries: k.GetAllCrossChainQueries(ctx),

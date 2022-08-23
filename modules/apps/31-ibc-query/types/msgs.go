@@ -9,6 +9,7 @@ const (
 	TypeMsgSubmitCrossChainQueryResult = "submitCrossChainQueryResult"
 )
 
+// NewMsgSubmitCrossChainQuery creates a new instance of NewMsgSubmitCrossChainQuery
 func NewMsgSubmitCrossChainQuery(path string, localTimeoutHeight, localTimeoutStamp, queryHeight uint64, clientId string) *MsgSubmitCrossChainQuery {
 	return &MsgSubmitCrossChainQuery{
 		Path:               path,
@@ -50,6 +51,7 @@ func (msg MsgSubmitCrossChainQuery) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
 
+// NewMsgSubmitCrossChainQueryResult creates a new instance of MsgSubmitCrossChainQueryResult
 func NewMsgSubmitCrossChainQueryResult(id string, result QueryResult, data []byte) *MsgSubmitCrossChainQueryResult {
 	return &MsgSubmitCrossChainQueryResult{
 		Id:     id,

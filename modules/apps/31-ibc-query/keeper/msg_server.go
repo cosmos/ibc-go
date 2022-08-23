@@ -9,7 +9,7 @@ import (
 
 var _ types.MsgServer = Keeper{}
 
-// SubmitCrossChainQuery Handling CrossChainQuery transaction
+// SubmitCrossChainQuery Handling SubmitCrossChainQuery transaction
 func (k Keeper) SubmitCrossChainQuery(goCtx context.Context, msg *types.MsgSubmitCrossChainQuery) (*types.MsgSubmitCrossChainQueryResponse, error) {
 	// TODO
 	// 1. UnwrapSDKContext
@@ -21,6 +21,7 @@ func (k Keeper) SubmitCrossChainQuery(goCtx context.Context, msg *types.MsgSubmi
 	return &types.MsgSubmitCrossChainQueryResponse{}, nil
 }
 
+// SubmitCrossChainQueryResult Handling SubmitCrossChainQueryResult transaction
 func (k Keeper) SubmitCrossChainQueryResult(goCtx context.Context, msg *types.MsgSubmitCrossChainQueryResult) (*types.MsgSubmitCrossChainQueryResultResponse, error) {
 	// TODO
 	// 0. verify the result using local client <- other function

@@ -9,11 +9,13 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
+// Keeper define 31-ibc-query keeper
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
 }
 
+// NewKeeper creates a new 31-ibc-query Keeper instance
 func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey) Keeper {
 	return Keeper{
 		cdc:      cdc,
@@ -21,6 +23,7 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey) Keeper {
 	}
 }
 
+// Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
 }
@@ -35,6 +38,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // 1. relayer should be call this func with query result
 // 2. save query in private store
 
+// GetAllCrossChainQueries returns a list of all CrossChainQueries that are stored in state
 func (k Keeper) GetAllCrossChainQueries(ctx sdk.Context) []*types.CrossChainQuery {
 	var crossChainQueries []*types.CrossChainQuery
 	store := ctx.KVStore(k.storeKey)
@@ -50,6 +54,7 @@ func (k Keeper) GetAllCrossChainQueries(ctx sdk.Context) []*types.CrossChainQuer
 	return crossChainQueries
 }
 
+// GetCrossChainQuery retrieve the CrossChainQuery stored in state given the query id
 func (k Keeper) GetCrossChainQuery(ctx sdk.Context, queryId string) (types.CrossChainQuery, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryKey)
 	key := []byte(queryId)
@@ -61,17 +66,20 @@ func (k Keeper) GetCrossChainQuery(ctx sdk.Context, queryId string) (types.Cross
 	return k.MustUnmarshalQuery(bz), true
 }
 
+// SetCrossChainQuery stores the CrossChainQuery in state keyed by the query id
 func (k Keeper) SetCrossChainQuery(ctx sdk.Context, query *types.CrossChainQuery) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryKey)
 	bz := k.MustMarshalQuery(query)
 	store.Set([]byte(query.Id), bz)
 }
 
+// DeleteCrossChainQuery deletes CrossChainQuery associated with the query id
 func (k Keeper) DeleteCrossChainQuery(ctx sdk.Context, queryId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryKey)
 	store.Delete([]byte(queryId))
 }
 
+// GetAllCrossChainQueryResults returns a list of all CrossChainQueryResults that are stored in state
 func (k Keeper) GetAllCrossChainQueryResults(ctx sdk.Context) []*types.CrossChainQueryResult {
 	var crossChainQueryResults []*types.CrossChainQueryResult
 	store := ctx.KVStore(k.storeKey)
@@ -87,6 +95,7 @@ func (k Keeper) GetAllCrossChainQueryResults(ctx sdk.Context) []*types.CrossChai
 	return crossChainQueryResults
 }
 
+// GetCrossChainQueryResult retrieve the CrossChainQueryResult stored in state given the query id
 func (k Keeper) GetCrossChainQueryResult(ctx sdk.Context, queryId string) (types.CrossChainQueryResult, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryResultKey)
 	key := []byte(queryId)
@@ -98,12 +107,14 @@ func (k Keeper) GetCrossChainQueryResult(ctx sdk.Context, queryId string) (types
 	return k.MustUnmarshalQueryResult(bz), true
 }
 
+// SetCrossChainQueryResult stores the CrossChainQueryResult in state keyed by the query id
 func (k Keeper) SetCrossChainQueryResult(ctx sdk.Context, result *types.CrossChainQueryResult) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryResultKey)
 	bz := k.MustMarshalQueryResult(result)
 	store.Set([]byte(result.Id), bz)
 }
 
+// DeleteCrossChainQueryResult deletes CrossChainQueryResult associated with the query id
 func (k Keeper) DeleteCrossChainQueryResult(ctx sdk.Context, queryId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.QueryResultKey)
 	store.Delete([]byte(queryId))
