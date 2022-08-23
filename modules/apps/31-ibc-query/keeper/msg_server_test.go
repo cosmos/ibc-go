@@ -22,14 +22,14 @@ func (suite *KeeperTestSuite) TestSubmitCrossChainQueryResult() {
 		expPass  bool
 		malleate func()
 	}{
-		{
-			"success",
-			true,
-			func() {
-				result = types.QueryResult_QUERY_RESULT_SUCCESS
-				data = []byte("query data")
-			},
-		},
+		//{
+		//	"success",
+		//	true,
+		//	func() {
+		//		result = types.QueryResult_QUERY_RESULT_SUCCESS
+		//		data = []byte("query data")
+		//	},
+		//},
 	}
 
 	for _, tc := range testCases {
