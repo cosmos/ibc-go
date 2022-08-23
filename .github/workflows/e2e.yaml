@@ -6,7 +6,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - docs/**
+      - "docs/**"
+      - "**.md"
+      - "LICENSE"
 
 env:
   REGISTRY: ghcr.io
