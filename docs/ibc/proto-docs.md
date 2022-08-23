@@ -89,6 +89,12 @@
   
     - [Query](#ibc.applications.interchain_accounts.controller.v1.Query)
   
+- [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
+    - [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount)
+    - [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse)
+  
+    - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
+  
 - [ibc/applications/interchain_accounts/host/v1/host.proto](#ibc/applications/interchain_accounts/host/v1/host.proto)
     - [Params](#ibc.applications.interchain_accounts.host.v1.Params)
   
@@ -1506,6 +1512,64 @@ Query provides defines the gRPC querier service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse) | Params queries all parameters of the ICA controller submodule. | GET|/ibc/apps/interchain_accounts/controller/v1/params|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/controller/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/controller/v1/tx.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount"></a>
+
+### MsgRegisterAccount
+MsgRegisterAccount defines the payload for Msg/RegisterAccount
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `version` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse"></a>
+
+### MsgRegisterAccountResponse
+MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.Msg"></a>
+
+### Msg
+Msg defines the 27-interchain-accounts/controller Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
 
  <!-- end services -->
 
