@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -16,11 +15,11 @@ import (
 type Keeper struct {
 	Router *types.Router
 
-	scopedKeeper capabilitykeeper.ScopedKeeper
+	scopedKeeper types.ScopedKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(sck capabilitykeeper.ScopedKeeper) Keeper {
+func NewKeeper(sck types.ScopedKeeper) Keeper {
 	return Keeper{
 		scopedKeeper: sck,
 	}
