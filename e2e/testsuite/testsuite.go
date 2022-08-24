@@ -3,10 +3,6 @@ package testsuite
 import (
 	"context"
 	"fmt"
-<<<<<<< HEAD
-	"io/ioutil"
-=======
->>>>>>> c304a7c (Fix E2E Tests: Update ibctest (Cosmos SDK 0.46) (#1949))
 	"strings"
 	"time"
 
@@ -94,11 +90,6 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
-<<<<<<< HEAD
-	home, err := ioutil.TempDir("", "")
-	s.Require().NoError(err)
-=======
->>>>>>> c304a7c (Fix E2E Tests: Update ibctest (Cosmos SDK 0.46) (#1949))
 
 	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
