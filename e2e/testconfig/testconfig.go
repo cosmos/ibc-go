@@ -97,6 +97,7 @@ func GetChainATag() string {
 	}
 	return chainATag
 }
+
 func GetChainBTag() string {
 	chainBTag, ok := os.LookupEnv(ChainBTagEnv)
 	if !ok {
