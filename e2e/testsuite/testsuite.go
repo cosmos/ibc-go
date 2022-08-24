@@ -32,6 +32,9 @@ const (
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
 
+	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
+	// the result is empty, when this happens we include the raw logs instead to get as much information
+	// amount the failure as possible.
 	emptyLogs = "[]"
 )
 
