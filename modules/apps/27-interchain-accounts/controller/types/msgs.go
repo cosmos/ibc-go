@@ -1,7 +1,14 @@
 package types
 
 import (
+	"strings"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
 var _ sdk.Msg = &MsgRegisterAccount{}
@@ -34,5 +41,31 @@ func (msg MsgRegisterAccount) ValidateBasic() error {
 
 // GetSigners implements sdk.Msg
 func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{accAddr}
+}
+
+// NewMsgSubmitTx creates a new instance of MsgSubmitTx
+func NewMsgSubmitTx(connectionID, owner string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, msgs []*codectypes.Any) *MsgSubmitTx {
+	return &MsgSubmitTx{
+		ConnectionId:     connectionID,
+		Owner:            owner,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		Msg:              msgs,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgSubmitTx) ValidateBasic() error {
+	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgSubmitTx) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{}
 }
