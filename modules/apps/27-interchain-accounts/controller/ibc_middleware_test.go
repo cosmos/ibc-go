@@ -165,7 +165,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			}, false,
 		},
 		{
-			"nil auth module", func() {
+			"nil underlying app", func() {
 				isNilApp = true
 			}, true,
 		},
@@ -315,7 +315,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			}, false,
 		},
 		{
-			"nil auth module", func() {
+			"nil underlying app", func() {
 				isNilApp = true
 			}, true,
 		},
@@ -548,7 +548,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 			}, false,
 		},
 		{
-			"nil auth module", func() {
+			"nil underlying app", func() {
 				isNilApp = true
 			}, true,
 		},
@@ -628,7 +628,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			}, false,
 		},
 		{
-			"nil auth module", func() {
+			"nil underlying app", func() {
 				isNilApp = true
 			}, true,
 		},
