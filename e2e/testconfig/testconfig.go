@@ -185,11 +185,10 @@ func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
 		}
 
 		// set correct minimum deposit using configured denom
-		govGenesisState.DepositParams = govv1beta1.NewDepositParams(sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens)), govv1beta1.DefaultPeriod)
+		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens))
 
 		// set voting period to 10s
-		votingPeriod := time.Duration(time.Second * 30)
-		govGenesisState.VotingParams = govv1beta1.NewVotingParams(votingPeriod)
+		govGenesisState.VotingParams.VotingPeriod = time.Duration(time.Second * 30)
 
 		govGenBz, err := cdc.MarshalJSON(govGenesisState)
 		if err != nil {
