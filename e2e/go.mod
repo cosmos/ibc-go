@@ -9,10 +9,11 @@ require (
 	github.com/cosmos/ibc-go/v5 v5.0.0-beta1
 	github.com/cosmos/interchain-accounts v0.3.1-0.20220816085955-393d8444c111
 	github.com/docker/docker v20.10.17+incompatible
-	github.com/strangelove-ventures/ibctest v0.0.0-20220822145344-eb5511e535a8
+	github.com/strangelove-ventures/ibctest v0.0.0-20220824150312-9d02bdb119b0
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/tendermint v0.34.20
 	go.uber.org/zap v1.21.0
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	google.golang.org/grpc v1.48.0
 )
 
@@ -26,6 +27,7 @@ require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
+	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/ChainSafe/go-schnorrkel/1 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
@@ -168,7 +170,6 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 // indirect
@@ -208,5 +209,3 @@ replace (
 // uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
 // replace github.com/cosmos/ibc-go/v5 => ../`
 )
-
-replace github.com/strangelove-ventures/ibctest => github.com/colin-axner/ibctest v0.0.0-20220824120504-ed511b187bc8
