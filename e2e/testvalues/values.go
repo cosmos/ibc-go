@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/ibctest/ibc"
 
-	feetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 )
 
 const (
