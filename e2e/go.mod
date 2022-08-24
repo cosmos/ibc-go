@@ -9,7 +9,7 @@ require (
 	github.com/cosmos/ibc-go/v5 v5.0.0-beta1
 	github.com/cosmos/interchain-accounts v0.3.1-0.20220816085955-393d8444c111
 	github.com/docker/docker v20.10.17+incompatible
-	github.com/strangelove-ventures/ibctest v0.0.0-20220822145344-eb5511e535a8
+	github.com/strangelove-ventures/ibctest v0.0.0-20220824150312-9d02bdb119b0
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.48.0
@@ -25,6 +25,7 @@ require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
+	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/ChainSafe/go-schnorrkel/1 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
