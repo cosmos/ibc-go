@@ -4,13 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/ibctest/ibc"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (
@@ -138,38 +142,60 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
-		ModifyGenesis:  modifyGenesisVotingPeriod("10s", denom),
+		ModifyGenesis:  defaultModifyGenesis(denom),
 	}
 }
 
-func modifyGenesisVotingPeriod(votingPeriod string, denom string) func([]byte) ([]byte, error) {
+// defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
+// are functional for e2e testing purposes.
+func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
 	return func(genbz []byte) ([]byte, error) {
-		g := make(map[string]interface{})
-		if err := json.Unmarshal(genbz, &g); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
 		}
 
-		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "voting_params", "voting_period"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		var appState genutiltypes.AppMap
+		if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		appState := &genutiltypes.AppMap{}
-		if err := json.Unmarshal(g["app_state"].([]byte), appState); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-		}
+		cfg := simappparams.MakeTestEncodingConfig()
+		govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
+		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
 		govGenesisState := &govv1beta1.GenesisState{}
-		if err := json.Unmarshal(appState[govtypes.ModuleName], govGenesisState); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		if err := cdc.UnmarshalJSON(appState[govtypes.ModuleName], govGenesisState); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into gov genesis state: %w", err)
 		}
 
+		// set correct minimum deposit using configured denom
 		govGenesisState.DepositParams = govv1beta1.NewDepositParams(sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens)), govv1beta1.DefaultPeriod)
-		g[govtypes.ModuleName] = govGenesisState
 
-		out, err := json.Marshal(g)
+		// set voting period to 10s
+		votingPeriod := time.Duration(time.Second * 30)
+		govGenesisState.VotingParams = govv1beta1.NewVotingParams(votingPeriod)
+
+		// ensure any amount of yes votes pass a proposal
+		//		govGenesisState.TallyParams.Quorum = sdk.NewDecWithPrec(1, 17) // 0.0000000001% required
+
+		govGenBz, err := cdc.MarshalJSON(govGenesisState)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+			return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
 		}
-		return out, nil
+
+		appState[govtypes.ModuleName] = govGenBz
+
+		genDoc.AppState, err = json.Marshal(appState)
+		if err != nil {
+			return nil, err
+		}
+
+		bz, err := tmjson.MarshalIndent(genDoc, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+
+		return bz, nil
 	}
 }

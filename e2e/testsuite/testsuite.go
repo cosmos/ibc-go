@@ -374,15 +374,21 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// <insert issue link>
 
-	msgVote := govtypes.NewMsgVote(sender, 1, govtypes.OptionYes)
-	txResp, err = s.BroadcastMessages(ctx, chain, user, msgVote)
-	fmt.Println(txResp)
-	s.Require().NoError(err)
-	s.AssertValidTxResponse(txResp)
-
-	time.Sleep(time.Second * 11) // pass proposal
-
 	proposal, err := s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+
+	err = chain.VoteOnProposalAllValidators(ctx, "1", ibc.ProposalVoteYes)
+	s.Require().NoError(err)
+
+	// ensure voting period has not passed before validators finished voting
+	proposal, err = s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+
+	time.Sleep(time.Second * 30) // pass proposal
+
+	proposal, err = s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
 }
