@@ -3,6 +3,8 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 )
 
 // NewMsgRegisterAccount creates a new instance of MsgRegisterAccount
@@ -25,12 +27,13 @@ func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgSubmitTx creates a new instance of MsgSubmitTx
-func NewMsgSubmitTx(connectionID, owner, timeout string, msg []*codectypes.Any) *MsgSubmitTx {
+func NewMsgSubmitTx(connectionID, owner string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, msgs []*codectypes.Any) *MsgSubmitTx {
 	return &MsgSubmitTx{
-		ConnectionId: connectionID,
-		Owner:        owner,
-		Timeout:      timeout,
-		Msg:          msg,
+		ConnectionId:     connectionID,
+		Owner:            owner,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		Msg:              msgs,
 	}
 }
 
