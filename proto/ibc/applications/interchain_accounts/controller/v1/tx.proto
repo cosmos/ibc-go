@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "ibc/core/client/v1/client.proto";
 
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
@@ -35,10 +36,16 @@ message MsgSubmitTx {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string   owner                   = 1;
-  string   connection_id           = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
-  string   timeout                 = 3;
-  repeated google.protobuf.Any msg = 4;
+  string owner         = 1;
+  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  ibc.core.client.v1.Height timeout_height = 3
+      [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64   timeout_timestamp       = 4 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
+  repeated google.protobuf.Any msg = 5;
 }
 
 // MsgSubmitTxResponse defines the response for MsgSubmitTx

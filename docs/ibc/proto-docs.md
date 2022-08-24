@@ -1568,7 +1568,8 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 | ----- | ---- | ----- | ----------- |
 | `owner` | [string](#string) |  |  |
 | `connection_id` | [string](#string) |  |  |
-| `timeout` | [string](#string) |  |  |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
+| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
 | `msg` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
 
 
