@@ -6,7 +6,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
@@ -29,7 +28,7 @@ type FeeMiddlewareTestSuite struct {
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user *ibctest.User, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
+	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -38,7 +37,7 @@ func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, 
 func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(
 	ctx context.Context,
 	chain *cosmos.CosmosChain,
-	user *ibctest.User,
+	user *ibc.Wallet,
 	packetID channeltypes.PacketId,
 	packetFee feetypes.PacketFee,
 ) (sdk.TxResponse, error) {
