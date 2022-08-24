@@ -11,6 +11,7 @@ require (
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/strangelove-ventures/ibctest v0.0.0-20220822145344-eb5511e535a8
 	github.com/stretchr/testify v1.8.0
+	github.com/tendermint/tendermint v0.34.20
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.48.0
 )
@@ -158,7 +159,6 @@ require (
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
-	github.com/tendermint/tendermint v0.34.20 // indirect
 	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/vedhavyas/go-subkey v1.0.3 // indirect
@@ -206,3 +206,5 @@ replace github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel
 replace github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 
 replace github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
+
+replace github.com/strangelove-ventures/ibctest => github.com/colin-axner/ibctest v0.0.0-20220824120504-ed511b187bc8
