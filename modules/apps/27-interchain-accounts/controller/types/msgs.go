@@ -1,11 +1,10 @@
 package types
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 )
+
+var _ sdk.Msg = &MsgRegisterAccount{}
 
 // NewMsgRegisterAccount creates a new instance of MsgRegisterAccount
 func NewMsgRegisterAccount(connectionID, owner, version string) *MsgRegisterAccount {
@@ -18,31 +17,22 @@ func NewMsgRegisterAccount(connectionID, owner, version string) *MsgRegisterAcco
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgRegisterAccount) ValidateBasic() error {
+	if err := host.ConnectionIdentifierValidator(msg.ConnectionId); err != nil {
+		return sdkerrors.Wrap(err, "invalid connection ID")
+	}
+
+	if strings.TrimSpace(msg.Owner) == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "failed to parse owner address: %s", msg.Owner)
+	}
+
 	return nil
 }
 
 // GetSigners implements sdk.Msg
 func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
-}
-
-// NewMsgSubmitTx creates a new instance of MsgSubmitTx
-func NewMsgSubmitTx(connectionID, owner string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, msgs []*codectypes.Any) *MsgSubmitTx {
-	return &MsgSubmitTx{
-		ConnectionId:     connectionID,
-		Owner:            owner,
-		TimeoutHeight:    timeoutHeight,
-		TimeoutTimestamp: timeoutTimestamp,
-		Msg:              msgs,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgSubmitTx) ValidateBasic() error {
-	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgSubmitTx) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{}
 }
