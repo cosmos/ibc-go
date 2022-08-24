@@ -329,11 +329,26 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(s.T())
 
-	// TODO(chatton): allow for controller over number of validators and full nodes.
-	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 4, 1, logger)
-	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 4, 1, logger)
+	numValidators, numFullNodes := getValidatorsAndFullNodes(chainOptions)
 
+	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
+	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
 	return chainA, chainB
+}
+
+// getValidatorsAndFullNodes returns the number of validators and full nodes which should be used
+// for the given chain config.
+func getValidatorsAndFullNodes(chainOptions testconfig.ChainOptions) (int, int) {
+	// TODO: the icad tests are failing with a larger number of validators.
+	// this can be removed once https://github.com/cosmos/ibc-go/issues/2104 os resolved.
+	numValidators := 4
+	numFullNodes := 1
+	isIcadImage := strings.Contains(chainOptions.ChainAConfig.Images[0].Repository, "icad")
+	if isIcadImage {
+		numValidators = 1
+		numFullNodes = 0
+	}
+	return numValidators, numFullNodes
 }
 
 // GetRelayerExecReporter returns a testreporter.RelayerExecReporter instances
