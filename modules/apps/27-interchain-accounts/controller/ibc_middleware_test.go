@@ -521,6 +521,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	var path *ibctesting.Path
+	var isNilApp bool
 
 	testCases := []struct {
 		msg      string
@@ -546,11 +547,17 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				}
 			}, false,
 		},
+		{
+			"nil auth module", func() {
+				isNilApp = true
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
+			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -577,6 +584,10 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
+			if isNilApp {
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+			}
+
 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
 
 			if tc.expPass {
@@ -590,6 +601,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	var path *ibctesting.Path
+	var isNilApp bool
 
 	testCases := []struct {
 		msg      string
@@ -615,6 +627,11 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				}
 			}, false,
 		},
+		{
+			"nil auth module", func() {
+				isNilApp = true
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -645,6 +662,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
+
+			if isNilApp {
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+			}
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
 
