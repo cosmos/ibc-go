@@ -8,12 +8,8 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-)
-
-var (
-	testAccAddress     = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-	testMetadataString = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 )
 
 func TestMsgRegisterAccountValidateBasic(t *testing.T) {
@@ -27,6 +23,26 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 		{
 			"success",
 			func() {},
+			true,
+		},
+		{
+			"success: with empty channel version",
+			func() {
+				msg.Version = ""
+			},
+			true,
+		},
+		{
+			"success: with fee enabled channel version",
+			func() {
+				feeMetadata := feetypes.Metadata{
+					FeeVersion: feetypes.Version,
+					AppVersion: icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
+				}
+
+				bz := feetypes.ModuleCdc.MustMarshalJSON(&feeMetadata)
+				msg.Version = string(bz)
+			},
 			true,
 		},
 		{
@@ -54,7 +70,11 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 
 	for i, tc := range testCases {
 
-		msg = types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, testAccAddress, testMetadataString)
+		msg = types.NewMsgRegisterAccount(
+			ibctesting.FirstConnectionID,
+			ibctesting.TestAccAddress,
+			icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
+		)
 
 		tc.malleate()
 
@@ -68,9 +88,9 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 }
 
 func TestMsgRegisterAccountGetSigners(t *testing.T) {
-	expSigner, err := sdk.AccAddressFromBech32(testAccAddress)
+	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
-	msg := types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, testAccAddress, testMetadataString)
+	msg := types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
