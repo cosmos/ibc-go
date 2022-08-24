@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	fee "github.com/cosmos/ibc-go/v5/modules/apps/29-fee"
@@ -121,6 +122,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	var channel *channeltypes.Channel
+	var isNilApp bool
 
 	testCases := []struct {
 		name     string
@@ -162,6 +164,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				}
 			}, false,
 		},
+		{
+			"nil auth module", func() {
+				isNilApp = true
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -169,6 +176,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+
+			isNilApp = false
 
 			path := NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -206,6 +215,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
+
+			if isNilApp {
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+			}
 
 			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.GetVersion(),
@@ -272,6 +285,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	var path *ibctesting.Path
+	var isNilApp bool
 
 	testCases := []struct {
 		name     string
@@ -300,6 +314,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				}
 			}, false,
 		},
+		{
+			"nil auth module", func() {
+				isNilApp = true
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -326,6 +345,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			suite.Require().True(ok)
 
 			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
+
+			if isNilApp {
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+			}
 
 			if tc.expPass {
 				suite.Require().NoError(err)
