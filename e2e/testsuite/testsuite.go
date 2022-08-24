@@ -33,6 +33,11 @@ const (
 	ChainARelayerName = "rlyA"
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
+
+	// emptyLogs is the string value returned from `BroadcastMessages`. There are some situations in which
+	// the result is empty, when this happens we include the raw logs instead to get as much information
+	// amount the failure as possible.
+	emptyLogs = "[]"
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
@@ -305,6 +310,9 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 // has non-empty values.
 func (s *E2ETestSuite) AssertValidTxResponse(resp sdk.TxResponse) {
 	respLogsMsg := resp.Logs.String()
+	if respLogsMsg == emptyLogs {
+		respLogsMsg = resp.RawLog
+	}
 	s.Require().NotEqual(int64(0), resp.GasUsed, respLogsMsg)
 	s.Require().NotEqual(int64(0), resp.GasWanted, respLogsMsg)
 	s.Require().NotEmpty(resp.Events, respLogsMsg)
@@ -330,8 +338,8 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 	logger := zaptest.NewLogger(s.T())
 
 	// TODO(chatton): allow for controller over number of validators and full nodes.
-	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 1, 0, logger)
-	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 1, 0, logger)
+	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, 4, 1, logger)
+	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, 4, 1, logger)
 
 	return chainA, chainB
 }

@@ -100,6 +100,22 @@ func FromEnv() TestConfig {
 	}
 }
 
+func GetChainATag() string {
+	chainATag, ok := os.LookupEnv(ChainATagEnv)
+	if !ok {
+		panic(fmt.Sprintf("no environment variable specified for %s", ChainATagEnv))
+	}
+	return chainATag
+}
+
+func GetChainBTag() string {
+	chainBTag, ok := os.LookupEnv(ChainBTagEnv)
+	if !ok {
+		return GetChainATag()
+	}
+	return chainBTag
+}
+
 // ChainOptions stores chain configurations for the chains that will be
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
