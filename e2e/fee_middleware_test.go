@@ -634,10 +634,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders_Succee
 	})
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
-		s.Require().NoError(err)
-	})
-
+	s.Require().NoError(err)
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
@@ -702,6 +699,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders_Succee
 			s.Require().Len(packets, 1)
 			actualFee1 := packets[0].PacketFees[0].Fee
 			actualFee2 := packets[0].PacketFees[1].Fee
+			s.Require().Len(packets[0].PacketFees, 2)
 
 			s.Require().True(actualFee1.RecvFee.IsEqual(testFee.RecvFee))
 			s.Require().True(actualFee1.AckFee.IsEqual(testFee.AckFee))
@@ -712,14 +710,15 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders_Succee
 			s.Require().True(actualFee2.TimeoutFee.IsEqual(testFee.TimeoutFee))
 		})
 
-		t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
-			// The balance should be lowered by the sum of the recv, ack and timeout fees.
+		t.Run("balance of chainAWallet1 should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 			actualBalance1, err := s.GetChainANativeBalance(ctx, chainAWallet1)
 			s.Require().NoError(err)
 
 			expected1 := testvalues.StartingTokenAmount - walletAmount1.Amount - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected1, actualBalance1)
+		})
 
+		t.Run("balance of chainAWallet2 should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 			actualBalance2, err := s.GetChainANativeBalance(ctx, chainAWallet2)
 			s.Require().NoError(err)
 
