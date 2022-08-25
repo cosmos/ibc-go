@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
@@ -58,6 +59,9 @@ type GRPCClients struct {
 	ChannelQueryClient channeltypes.QueryClient
 	FeeQueryClient     feetypes.QueryClient
 	ICAQueryClient     intertxtypes.QueryClient
+
+	// SDK query clients
+	GovQueryClient govtypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -314,6 +318,7 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		ChannelQueryClient: channeltypes.NewQueryClient(grpcConn),
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
+		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -392,4 +397,39 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user *ibc.Walle
 		return -1, err
 	}
 	return bal, nil
+}
+
+// ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
+// It ensure the proposal successfully passes.
+func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, content govtypes.Content) {
+	sender, err := sdk.AccAddressFromBech32(user.Bech32Address(chain.Config().Bech32Prefix))
+	s.Require().NoError(err)
+
+	msgSubmitProposal, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypes.DefaultMinDepositTokens)), sender)
+	s.Require().NoError(err)
+
+	txResp, err := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(txResp)
+
+	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
+	// https://github.com/cosmos/ibc-go/issues/2122
+
+	proposal, err := s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+
+	err = chain.VoteOnProposalAllValidators(ctx, "1", ibc.ProposalVoteYes)
+	s.Require().NoError(err)
+
+	// ensure voting period has not passed before validators finished voting
+	proposal, err = s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
+
+	time.Sleep(time.Second * 30) // pass proposal
+
+	proposal, err = s.QueryProposal(ctx, chain, 1)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
 }
