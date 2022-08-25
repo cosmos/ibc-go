@@ -23,6 +23,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -411,7 +412,7 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().NoError(err)
 	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
 
-	time.Sleep(time.Second * 30) // pass proposal
+	time.Sleep(testvalues.VotingPeriod) // pass proposal
 
 	proposal, err = s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)
