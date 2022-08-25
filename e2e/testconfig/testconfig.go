@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
@@ -15,6 +14,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
 const (
@@ -186,9 +187,7 @@ func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
 
 		// set correct minimum deposit using configured denom
 		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens))
-
-		// set voting period to 10s
-		govGenesisState.VotingParams.VotingPeriod = time.Duration(time.Second * 30)
+		govGenesisState.VotingParams.VotingPeriod = testvalues.VotingPeriod
 
 		govGenBz, err := cdc.MarshalJSON(govGenesisState)
 		if err != nil {
