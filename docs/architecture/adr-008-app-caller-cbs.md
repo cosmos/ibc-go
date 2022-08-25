@@ -13,7 +13,7 @@ IBC was designed with callbacks between core IBC and IBC applications. IBC apps 
 
 We are now seeing the desire for secondary applications to call into IBC apps as part of their state machine logic and then do some actions on the basis of the packet result.
 
-E.g. Send an ICS-20 packet, and if it is successful, then send an ICA-packet to swap tokens on LP and return funds to sender
+E.g. Send an ICS-20 packet, and if it is successful, then send an ICA packet to swap tokens on LP and return funds to sender.
 
 This requires a second layer of callbacks. The IBC application already gets the result of the packet from core IBC, but currently there is no standardized way to pass this information on to a caller module/smart contract.
 
@@ -51,24 +51,24 @@ type IBCCaller interface {
 }
 ```
 
-IBC Apps or middleware can then call the IBCCaller callbacks like so in their own callbacks:
+IBC Apps or middleware can then call the `IBCCaller` callbacks like so in their own callbacks:
 
 ```go
 // this is the module-defined SendPacket function. It may differ from application to application
 // e.g. For ICS20 this would be the SendTransfer function
-func SendPacket(ctx sdk.Context, packet channeltypes.Packet, caller IBCaller) {
+func SendPacket(ctx sdk.Context, packet channeltypes.Packet, caller IBCCaller) {
     // do custom logic and send packet
 
     // store a mapping of the packetID to the caller
     k.setCaller(packetID, caller)
 }
 
-func OnAcknowledgementPacket(
+func (im IBCModule) OnAcknowledgementPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     acknowledgement []byte,
     relayer string,
-) {
+) error {
     // application-specific onAcknowledgmentPacket logic
 
     // unmarshal ack bytes into the acknowledgment interface
@@ -76,19 +76,19 @@ func OnAcknowledgementPacket(
     unmarshal(acknowledgement, ack)
 
     // send acknowledgement to original caller
-    caller := k.getCaller(packetID)
+    caller := im.keeper.getCaller(packetID)
     caller.OnAcknowledgmentPacket(ctx, packet, ack)
 }
 
-func OnTimeoutPacket(
+func (im IBCModule) OnTimeoutPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     relayer string,
-) {
+) error {
     // application-specific onTimeoutPacket logic
 
     // call timeout callback on original caller
-    caller := k.getCaller(packetID)
+    caller := im.keeper.getCaller(packetID)
     caller.OnTimeoutPacket(ctx, packet)
 }
 ```
@@ -97,8 +97,8 @@ func OnTimeoutPacket(
 
 ### Positive
 
-- IBC Callers can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
-- Leverages the same callback architecture used between core IBC and IBC applications
+- IBC callers can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete.
+- Leverages the same callback architecture used between core IBC and IBC applications.
 
 ### Negative
 
