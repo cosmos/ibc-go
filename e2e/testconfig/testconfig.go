@@ -15,6 +15,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
 const (
@@ -190,6 +192,54 @@ func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
 
 		// set voting period to 10s
 		govGenesisState.VotingParams.VotingPeriod = time.Duration(time.Second * 30)
+
+		govGenBz, err := cdc.MarshalJSON(govGenesisState)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+		}
+
+		appState[govtypes.ModuleName] = govGenBz
+
+		genDoc.AppState, err = json.Marshal(appState)
+		if err != nil {
+			return nil, err
+		}
+
+		bz, err := tmjson.MarshalIndent(genDoc, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+
+		return bz, nil
+	}
+}
+
+// defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
+// are functional for e2e testing purposes.
+func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
+	return func(genbz []byte) ([]byte, error) {
+		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
+		}
+
+		var appState genutiltypes.AppMap
+		if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
+		}
+
+		cfg := simappparams.MakeTestEncodingConfig()
+		govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
+		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+
+		govGenesisState := &govv1beta1.GenesisState{}
+		if err := cdc.UnmarshalJSON(appState[govtypes.ModuleName], govGenesisState); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into gov genesis state: %w", err)
+		}
+
+		// set correct minimum deposit using configured denom
+		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens))
+		govGenesisState.VotingParams.VotingPeriod = testvalues.VotingPeriod
 
 		govGenBz, err := cdc.MarshalJSON(govGenesisState)
 		if err != nil {
