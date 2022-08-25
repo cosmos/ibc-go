@@ -22,7 +22,7 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 
-Please read the Fee Middleware [integration documentation](https://ibc.cosmos.network/main/middleware/ics29-fee/overview.html) for an in depth guide on how to congfigure the module correctly in order to incentivize IBC packets. 
+Please read the Fee Middleware [integration documentation](https://ibc.cosmos.network/main/middleware/ics29-fee/integration.html) for an in depth guide on how to congfigure the module correctly in order to incentivize IBC packets. 
 
 ### Migration to fix support for base denoms with slashes
 
