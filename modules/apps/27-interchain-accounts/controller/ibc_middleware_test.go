@@ -121,8 +121,10 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
-	var channel *channeltypes.Channel
-	var isNilApp bool
+	var (
+		channel  *channeltypes.Channel
+		isNilApp bool
+	)
 
 	testCases := []struct {
 		name     string
@@ -176,7 +178,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-
 			isNilApp = false
 
 			path := NewICAPath(suite.chainA, suite.chainB)
@@ -284,8 +285,10 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
-	var path *ibctesting.Path
-	var isNilApp bool
+	var (
+		path     *ibctesting.Path
+		isNilApp bool
+	)
 
 	testCases := []struct {
 		name     string
@@ -326,6 +329,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -520,8 +524,10 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
-	var path *ibctesting.Path
-	var isNilApp bool
+	var (
+		path     *ibctesting.Path
+		isNilApp bool
+	)
 
 	testCases := []struct {
 		msg      string
@@ -600,8 +606,10 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
-	var path *ibctesting.Path
-	var isNilApp bool
+	var (
+		path     *ibctesting.Path
+		isNilApp bool
+	)
 
 	testCases := []struct {
 		msg      string
@@ -637,6 +645,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	for _, tc := range testCases {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
+			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)

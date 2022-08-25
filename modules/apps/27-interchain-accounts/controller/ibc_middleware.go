@@ -106,6 +106,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	if im.app != nil {
 		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
+
 	return nil
 }
 
@@ -164,6 +165,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	if im.app != nil {
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
+
 	return nil
 }
 
@@ -184,6 +186,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	if im.app != nil {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
+
 	return nil
 }
 
