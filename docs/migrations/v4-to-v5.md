@@ -4,10 +4,10 @@ This document is intended to highlight significant changes which may require mor
 Any changes that must be done by a user of ibc-go should be documented here.
 
 There are four sections based on the four potential user groups of this document:
-- Chains
-- IBC Apps
-- Relayers
-- IBC Light Clients
+- [Chains](#chains)
+- [IBC Apps](#ibc-apps)
+- [Relayers](#relayers)
+- [IBC Light Clients](#relayers)
 
 **Note:** ibc-go supports golang semantic versioning and therefore all imports must be updated to bump the version number on major releases.
 ```go
