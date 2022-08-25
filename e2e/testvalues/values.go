@@ -10,7 +10,6 @@ import (
 const (
 	StartingTokenAmount int64  = 100_000_000
 	IBCTransferAmount   int64  = 10_000
-	InitialDeposit      int64  = 10_000
 	InvalidAddress      string = "<invalid-address>"
 )
 
