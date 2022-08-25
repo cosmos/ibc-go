@@ -15,7 +15,9 @@
 2. [Test design](#test-design)
    - a. [ibctest](#ibctest)
    - b. [CI configuration](#ci-configuration)
-3. [Troubleshooting](#troubleshooting)
+3. [Github Workflows](#github-workflows) 
+4. [Running Compatibility Tests](#running-compatibility-tests)
+5. [Troubleshooting](#troubleshooting)
 
 
 ## How to write tests
@@ -38,11 +40,11 @@ Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
 There are several envinronment variables that alter the behaviour of the make target.
 
-| Environment Variable      | Description | Default Value|
-| ----------- | ----------- | ----------- |
-| SIMD_IMAGE      | The image that will be used for simd       | ibc-go-simd |
-| SIMD_TAG   | The tag used for simd        | latest|
-| RLY_TAG   | The tag used for the go relayer        | main|
+| Environment Variable      | Description                               | Default Value|
+| ----------- |-------------------------------------------| ----------- |
+| CHAIN_IMAGE      | The image that will be used for the chain | ibc-go-simd |
+| CHAIN_A_TAG   | The tag used for the chain                | latest|
+| RLY_TAG   | The tag used for the go relayer           | main|
 
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
@@ -57,13 +59,14 @@ Every time changes are pushed to a branch or to `main`, a new `simd` image is bu
 #### Example Command:
 
 ```sh
-export CHAIN_A_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd"
-export CHAIN_A_SIMD_TAG="main"
+export CHAIN_IMAGE="ghcr.io/cosmos/ibc-go-simd"
+export CHAIN_A_TAG="main"
+export CHAIN_BINARY="simd"
 
 # We can also specify different values for the chains if needed.
 # they will default to the same as chain a.
-# export CHAIN_B_SIMD_IMAGE="ghcr.io/cosmos/ibc-go-simd"
-# export CHAIN_B_SIMD_TAG="pr-1650"
+# export CHAIN_B_TAG="main"
+# export CHAIN_BINARY="icad"
 
 export RLY_TAG="v2.0.0-rc2"
 make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
@@ -307,6 +310,42 @@ All tests will be run on different hosts.
 
 * Gas fees are set to zero to simply calcuations when asserting account balances.
 * When upgrading from e.g. v4 -> v5, in ibc-go, we cannot upgrade the go.mod under `e2e` since v5 will not yet exist. We need to upgrade it in a follow up PR.
+
+
+### GitHub Workflows
+
+#### Building and pushing a `simd` image.
+
+If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
+
+This can be triggered manually from the UI by navigating to
+
+`Actions` -> `Build Simd Image` -> `Run Workflow`
+
+And providing the git tag.
+
+Alternatively, the [gh](https://cli.github.com/) CLI tool can be used to trigger this workflow.
+
+```bash
+gh workflow run "Build Simd Image" -f tag=v3.0.0
+```
+
+### Running Compatibility Tests
+
+A full matrix of tests can be configured in json format. See [this file](./scripts/test-matricies/main/test-matrix.json) as a reference.
+
+To run all of the tests specified in this file, run
+
+```bash
+make compatibility-tests
+```
+
+This will run a GitHub Action for each entry, and display markdown which can be used in GitHub issue
+bodies to provide links to each of the workflows.
+
+Note: a version field which corresponds to a subdirectory under scripts/test-matricies can also be specified. Once a file exists there,
+e.g. `scripts/test-matricies/v5.0.0/test-matrix.json`, that file will be used to provide values to the GitHub workflows
+if we run `make compatibility-tests version=v5.0.0`
 
 ### Troubleshooting
 

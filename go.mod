@@ -9,7 +9,7 @@ require (
 	github.com/armon/go-metrics v0.4.0
 	github.com/confio/ics23/go v0.7.0
 	github.com/cosmos/cosmos-sdk v0.46.0
-	github.com/gogo/protobuf v1.3.3
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -27,9 +27,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
-
 require (
+	github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
 	cloud.google.com/go v0.100.2 // indirect
 	cloud.google.com/go/compute v1.6.1 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
