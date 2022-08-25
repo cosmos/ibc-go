@@ -47,15 +47,10 @@ var (
 	DefaultOpenInitVersion *connectiontypes.Version
 
 	// DefaultTrustLevel sets params variables used to create a TM client
-<<<<<<< HEAD
 	DefaultTrustLevel = ibctmtypes.DefaultTrustLevel
-	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-=======
-	DefaultTrustLevel = ibctm.DefaultTrustLevel
 
 	TestAccAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
->>>>>>> 94d0840 (chore: adding `sdk.Msg` impl for ics27 `MsgRegisterAccount` (#2081))
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
