@@ -33,7 +33,7 @@ type InterchainAccountsTestSuite struct {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
+func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
 	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.Require().NoError(err)
 	s.AssertValidTxResponse(txResp)
