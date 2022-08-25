@@ -12,7 +12,7 @@ import (
 func (suite *KeeperTestSuite) TestRegisterAccount() {
 	var (
 		msg               *icatypes.MsgRegisterAccount
-		expectedChannelId = "channel-0"
+		expectedChannelID = "channel-0"
 	)
 
 	testCases := []struct {
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		if tc.expPass {
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
-			suite.Require().Equal(expectedChannelId, res.ChannelId)
+			suite.Require().Equal(expectedChannelID, res.ChannelId)
 
 			writeCache()
 			events := cacheCtx.EventManager().Events()
