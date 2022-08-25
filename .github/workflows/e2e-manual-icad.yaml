@@ -1,4 +1,4 @@
-name: Manual E2E
+name: Manual E2E (Icad)
 on:
   # when https://github.com/community/community/discussions/11795 is resolved
   # we will be able to dynamically build up the list of valid inputs.
@@ -10,42 +10,32 @@ on:
         required: true
         type: choice
         options:
-          - TestTransferTestSuite
-          - TestFeeMiddlewareTestSuite
-      chain-a-image:
+          - TestInterchainAccountsTestSuite
+      chain-image:
         description: 'The image to use for chain A'
         required: true
         type: string
-        default: "ghcr.io/cosmos/ibc-go-simd"
+        default: "ghcr.io/cosmos/ibc-go-icad"
       chain-a-tag:
         description: 'The tag to use for chain A'
         required: true
         type: choice
-        default: main
+        default: master
         options:
-          - main
-          - v4.0.0-rc3
-          - v3.0.0
-          - v2.2.0
-          - v2.1.0
-          - v2.0.0
-      chain-b-image:
-        description: 'The image to use for chain B'
-        required: true
-        type: string
-        default: "ghcr.io/cosmos/ibc-go-simd"
+          - master
+          - v0.3.2
+          - v0.2.2
+          - v0.1.3
       chain-b-tag:
-        default: v4.0.0-rc3
+        default: master
         description: 'The tag to use for chain B'
         required: true
         type: choice
         options:
-          - main
-          - v4.0.0-rc3
-          - v3.0.0
-          - v2.2.0
-          - v2.1.0
-          - v2.0.0
+          - master
+          - v0.3.2
+          - v0.2.2
+          - v0.1.3
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true
@@ -57,9 +47,9 @@ jobs:
   e2e-manual:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
+      chain-image: "${{ github.event.inputs.chain-image }}"
       chain-a-tag: "${{ github.event.inputs.chain-a-tag }}"
-      chain-a-image: "${{ github.event.inputs.chain-a-image }}"
       chain-b-tag: "${{ github.event.inputs.chain-b-tag }}"
-      chain-b-image: "${{ github.event.inputs.chain-b-image }}"
       relayer-tag: "${{ github.event.inputs.relayer-tag }}"
       test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
+      chain-binary: "icad"

@@ -1,0 +1,35 @@
+name: Build Simd Image
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The tag of the image to build'
+        required: true
+        type: string
+
+env:
+   REGISTRY: ghcr.io
+   ORG: cosmos
+   IMAGE_NAME: ibc-go-simd
+   VERSION: "${{ inputs.tag }}"
+
+jobs:
+   build-image-at-tag:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v3
+           with:
+            ref: "${{ env.VERSION }}"
+            fetch-depth: 0
+         - name: Log in to the Container registry
+           uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+           with:
+              registry: ${{ env.REGISTRY }}
+              username: ${{ github.actor }}
+              password: ${{ secrets.GITHUB_TOKEN }}
+         - name: Fetch latest Dockerfile
+           run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
+         - name: Build image
+           run: |
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
+            docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
