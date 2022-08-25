@@ -108,8 +108,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 
 	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
-	pathName := fmt.Sprintf("%s-path", s.T().Name())
-	pathName = strings.ReplaceAll(pathName, "/", "-")
+	pathName := s.getPathName()
 
 	ic := ibctest.NewInterchain().
 		AddChain(chainA).
@@ -155,6 +154,18 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	chainAChannels, err := r.GetChannels(ctx, eRep, chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
+}
+
+// getPathName generates the path name using the test suites name
+func (s *E2ETestSuite) getPathName() string {
+	pathName := fmt.Sprintf("%s-path", s.T().Name())
+	return strings.ReplaceAll(pathName, "/", "-")
+}
+
+// SetupClients creates clients on chainA and chainB using the provided create client options
+func (s *E2ETestSuite) SetupClients(ctx context.Context, relayer ibc.Relayer, opts ibc.CreateClientOptions) {
+	err := relayer.CreateClients(ctx, s.GetRelayerExecReporter(), s.getPathName(), opts)
+	s.Require().NoError(err)
 }
 
 // GetChains returns two chains that can be used in a test. The pair returned

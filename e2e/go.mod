@@ -9,9 +9,11 @@ require (
 	github.com/cosmos/ibc-go/v5 v5.0.0-beta1
 	github.com/cosmos/interchain-accounts v0.3.1-0.20220816085955-393d8444c111
 	github.com/docker/docker v20.10.17+incompatible
-	github.com/strangelove-ventures/ibctest v0.0.0-20220824150312-9d02bdb119b0
+	github.com/strangelove-ventures/ibctest v0.0.0-20220824180329-f73a9f936fce
 	github.com/stretchr/testify v1.8.0
+	github.com/tendermint/tendermint v0.34.20
 	go.uber.org/zap v1.21.0
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	google.golang.org/grpc v1.48.0
 )
 
@@ -159,7 +161,6 @@ require (
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
-	github.com/tendermint/tendermint v0.34.20 // indirect
 	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/vedhavyas/go-subkey v1.0.3 // indirect
@@ -169,7 +170,6 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 // indirect

@@ -1,26 +1,19 @@
 package e2e
 
-/*
-The ClientTestSuite assumes both chainA and chainB support the ClientUpdate Proposal.
-*/
-
 import (
 	"context"
-	"fmt"
 	"testing"
+	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func TestClientTestSuite(t *testing.T) {
@@ -31,64 +24,87 @@ type ClientTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// CreateClient broadcasts a MsgCreateClient message.
-func (s *TransferTestSuite) CreateClient(ctx context.Context, chain *cosmos.CosmosChain, user *ibctest.User,
-	clientState ibcexported.ClientState, counterpartyChain *cosmos.CosmosChain,
-) (sdk.TxResponse, error) {
-	msg, err := clienttypes.NewMsgCreateClient(clientState, consensusState, user.Bech32Address(chain.Config().Bech32Prefix))
-	s.Require().NoError(err)
-	return s.BroadcastMessages(ctx, chain, user, msg)
+// Status queries the current status of the client
+func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
+		ClientId: clientID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.Status, nil
 }
 
 func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, channelA := s.SetupClients(ctx)
-		chainA, chainB := s.GetChains()
+	var (
+		relayer            ibc.Relayer
+		subjectClientID    string
+		substituteClientID string
+		badTrustingPeriod  = time.Duration(time.Second)
+	)
 
+	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+
+		// TODO: update when client identifier created is accessible
+		// currently assumes first client is 07-tendermint-0
+		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 	})
 
+	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
 
 	t.Run("create subject client with bad trusting period", func(t *testing.T) {
-		clientState = ibctm.NewClientState(
-			chainB.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
+		createClientOptions := ibc.CreateClientOptions{
+			TrustingPeriod: badTrustingPeriod.String(),
+		}
 
-		createClientTxResp, err := s.CreateClient(ctx, chainA, chainAWallet)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(createClientTxResp)
+		s.SetupClients(ctx, relayer, createClientOptions)
+
+		// TODO: update when client identifier created is accessible
+		// currently assumes second client is 07-tendermint-1
+		subjectClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 1)
 	})
 
-	t.Run("ensure subject client is expired", func(t *testing.T) {
-		status := s.Status()
-		s.Require().Equal(ibcexported.Expired, status)
+	time.Sleep(badTrustingPeriod)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
+
+		t.Run("subject should be expired", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Expired.String(), status)
+		})
 	})
 
 	t.Run("pass client update proposal", func(t *testing.T) {
-		t.Run("create and submit proposal", func(t *testing.T) {
-			prop, err := s.ClientUpdateProposal()
-			s.Require().NoError(err)
-			s.Require().NotNil(prop)
-
-			err := s.SubmitProposal(prop)
-			s.Require().NoError(err)
-		})
-
-		t.Run("vote on proposal", func(t *testing.T) {
-			err := s.VoteYes(prop)
-			s.Require().NoError(err)
-		})
-
-		t.Run("wait for proposal to pass", func(t *testing.T) {
-
-		})
+		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
+		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
 	})
 
-	t.Run("ensure subject client has been updated", func(t *testing.T) {
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
 
+		t.Run("subject should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
 	})
 }
