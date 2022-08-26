@@ -4,13 +4,15 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
 func TestMsgRegisterAccountValidateBasic(t *testing.T) {
@@ -133,12 +135,14 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 		{
 			"timeout height and timestamp are both not set",
 			func() {
+				msg.TimeoutTimestamp = 0
 			},
 			false,
 		},
 		{
 			"messages array is empty",
 			func() {
+				msg.Msgs = []*icatypes.InterchainAccountPacketData{}
 			},
 			false,
 		},
@@ -146,27 +150,33 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 
 	for i, tc := range testCases {
 
-		data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), msgsBankSend)
-		suite.Require().NoError(err)
+		msgBankSend := &banktypes.MsgSend{
+			FromAddress: ibctesting.TestAccAddress,
+			ToAddress:   ibctesting.TestAccAddress,
+			Amount:      ibctesting.TestCoins,
+		}
 
-		packetData := icatypes.InterchainAccountPacketData{
+		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []sdk.Msg{msgBankSend})
+		require.NoError(t, err)
+
+		packetData := &icatypes.InterchainAccountPacketData{
 			Type: icatypes.EXECUTE_TX,
 			Data: data,
 		}
 
-
 		msg = types.NewMsgSubmitTx(
 			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
-			0,
-			[]icatypes.InterchainAccountPacketData{
+			clienttypes.ZeroHeight(),
+			100000,
+			[]*icatypes.InterchainAccountPacketData{
 				packetData,
 			},
 		)
 
 		tc.malleate()
 
-		err := msg.ValidateBasic()
+		err = msg.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
 		} else {
@@ -179,9 +189,28 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
+	msgBankSend := &banktypes.MsgSend{
+		FromAddress: ibctesting.TestAccAddress,
+		ToAddress:   ibctesting.TestAccAddress,
+		Amount:      ibctesting.TestCoins,
+	}
+
+	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []sdk.Msg{msgBankSend})
+	require.NoError(t, err)
+
+	packetData := &icatypes.InterchainAccountPacketData{
+		Type: icatypes.EXECUTE_TX,
+		Data: data,
+	}
+
 	msg := types.NewMsgSubmitTx(
 		ibctesting.FirstConnectionID,
 		ibctesting.TestAccAddress,
+		clienttypes.ZeroHeight(),
+		100000,
+		[]*icatypes.InterchainAccountPacketData{
+			packetData,
+		},
 	)
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
