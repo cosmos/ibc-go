@@ -1,307 +1,321 @@
 package types_test
 
-// import (
-// 	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-// 	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-// 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-// 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-// )
+import (
+	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
+	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/stretchr/testify/suite"
+)
 
-// func (suite *TypesTestSuite) TestValidateGenesisState() {
-// 	var genesisState types.GenesisState
+var (
+	// TestOwnerAddress defines a reusable bech32 address for testing purposes
+	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-// 		{
-// 			"success",
-// 			func() {},
-// 			true,
-// 		},
-// 		{
-// 			"failed to validate - empty value",
-// 			func() {
-// 				genesisState = types.GenesisState{}
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate - invalid controller genesis",
-// 			func() {
-// 				genesisState = *types.NewGenesisState(types.ControllerGenesisState{Ports: []string{"invalid|port"}}, types.DefaultHostGenesis())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate - invalid host genesis",
-// 			func() {
-// 				genesisState = *types.NewGenesisState(types.DefaultControllerGenesis(), types.HostGenesisState{})
-// 			},
-// 			false,
-// 		},
-// 	}
+	// TestPortID defines a reusable port identifier for testing purposes
+	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
+)
 
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			genesisState = *types.DefaultGenesis()
+type GenesisTypesTestSuite struct {
+	suite.Suite
+}
 
-// 			tc.malleate() // malleate mutates test data
+func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
+	var genesisState genesistypes.GenesisState
 
-// 			err := genesisState.Validate()
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"failed to validate - empty value",
+			func() {
+				genesisState = genesistypes.GenesisState{}
+			},
+			false,
+		},
+		{
+			"failed to validate - invalid controller genesis",
+			func() {
+				genesisState = *genesistypes.NewGenesisState(genesistypes.ControllerGenesisState{Ports: []string{"invalid|port"}}, genesistypes.DefaultHostGenesis())
+			},
+			false,
+		},
+		{
+			"failed to validate - invalid host genesis",
+			func() {
+				genesisState = *genesistypes.NewGenesisState(genesistypes.DefaultControllerGenesis(), genesistypes.HostGenesisState{})
+			},
+			false,
+		},
+	}
 
-// 			if tc.expPass {
-// 				suite.Require().NoError(err, tc.name)
-// 			} else {
-// 				suite.Require().Error(err, tc.name)
-// 			}
-// 		})
-// 	}
-// }
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			genesisState = *genesistypes.DefaultGenesis()
 
-// func (suite *TypesTestSuite) TestValidateControllerGenesisState() {
-// 	var genesisState types.ControllerGenesisState
+			tc.malleate() // malleate mutates test data
 
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-// 		{
-// 			"success",
-// 			func() {},
-// 			true,
-// 		},
-// 		{
-// 			"failed to validate active channel - invalid port identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    "invalid|port",
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+			err := genesisState.Validate()
 
-// 				genesisState = types.NewControllerGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate active channel - invalid channel identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: "invalid|channel",
-// 					},
-// 				}
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
+	}
+}
 
-// 				genesisState = types.NewControllerGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate registered account - invalid port identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
+	var genesisState genesistypes.ControllerGenesisState
 
-// 				registeredAccounts := []types.RegisteredInterchainAccount{
-// 					{
-// 						PortId:         "invalid|port",
-// 						AccountAddress: TestOwnerAddress,
-// 					},
-// 				}
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"failed to validate active channel - invalid port identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    "invalid|port",
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate registered account - invalid owner address",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+				genesisState = genesistypes.NewControllerGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate active channel - invalid channel identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: "invalid|channel",
+					},
+				}
 
-// 				registeredAccounts := []types.RegisteredInterchainAccount{
-// 					{
-// 						PortId:         TestPortID,
-// 						AccountAddress: "",
-// 					},
-// 				}
+				genesisState = genesistypes.NewControllerGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate registered account - invalid port identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate controller ports - invalid port identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+				registeredAccounts := []genesistypes.RegisteredInterchainAccount{
+					{
+						PortId:         "invalid|port",
+						AccountAddress: TestOwnerAddress,
+					},
+				}
 
-// 				registeredAccounts := []types.RegisteredInterchainAccount{
-// 					{
-// 						PortId:         TestPortID,
-// 						AccountAddress: TestOwnerAddress,
-// 					},
-// 				}
+				genesisState = genesistypes.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate registered account - invalid owner address",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 				genesisState = types.NewControllerGenesisState(activeChannels, registeredAccounts, []string{"invalid|port"}, controllertypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 	}
+				registeredAccounts := []genesistypes.RegisteredInterchainAccount{
+					{
+						PortId:         TestPortID,
+						AccountAddress: "",
+					},
+				}
 
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			genesisState = types.DefaultControllerGenesis()
+				genesisState = genesistypes.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate controller ports - invalid port identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 			tc.malleate() // malleate mutates test data
+				registeredAccounts := []genesistypes.RegisteredInterchainAccount{
+					{
+						PortId:         TestPortID,
+						AccountAddress: TestOwnerAddress,
+					},
+				}
 
-// 			err := genesisState.Validate()
+				genesisState = genesistypes.NewControllerGenesisState(activeChannels, registeredAccounts, []string{"invalid|port"}, controllertypes.DefaultParams())
+			},
+			false,
+		},
+	}
 
-// 			if tc.expPass {
-// 				suite.Require().NoError(err, tc.name)
-// 			} else {
-// 				suite.Require().Error(err, tc.name)
-// 			}
-// 		})
-// 	}
-// }
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			genesisState = genesistypes.DefaultControllerGenesis()
 
-// func (suite *TypesTestSuite) TestValidateHostGenesisState() {
-// 	var genesisState types.HostGenesisState
+			tc.malleate() // malleate mutates test data
 
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-// 		{
-// 			"success",
-// 			func() {},
-// 			true,
-// 		},
-// 		{
-// 			"failed to validate active channel - invalid port identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    "invalid|port",
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+			err := genesisState.Validate()
 
-// 				genesisState = types.NewHostGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, types.PortID, hosttypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate active channel - invalid channel identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: "invalid|channel",
-// 					},
-// 				}
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
+	}
+}
 
-// 				genesisState = types.NewHostGenesisState(activeChannels, []types.RegisteredInterchainAccount{}, types.PortID, hosttypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate registered account - invalid port identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
+	var genesisState genesistypes.HostGenesisState
 
-// 				registeredAccounts := []types.RegisteredInterchainAccount{
-// 					{
-// 						PortId:         "invalid|port",
-// 						AccountAddress: TestOwnerAddress,
-// 					},
-// 				}
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"failed to validate active channel - invalid port identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    "invalid|port",
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, types.PortID, hosttypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate registered account - invalid owner address",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.PortID, hosttypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate active channel - invalid channel identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: "invalid|channel",
+					},
+				}
 
-// 				registeredAccounts := []types.RegisteredInterchainAccount{
-// 					{
-// 						PortId:         TestPortID,
-// 						AccountAddress: "",
-// 					},
-// 				}
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.PortID, hosttypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate registered account - invalid port identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, types.PortID, hosttypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"failed to validate controller ports - invalid port identifier",
-// 			func() {
-// 				activeChannels := []types.ActiveChannel{
-// 					{
-// 						PortId:    TestPortID,
-// 						ChannelId: ibctesting.FirstChannelID,
-// 					},
-// 				}
+				registeredAccounts := []genesistypes.RegisteredInterchainAccount{
+					{
+						PortId:         "invalid|port",
+						AccountAddress: TestOwnerAddress,
+					},
+				}
 
-// 				registeredAccounts := []types.RegisteredInterchainAccount{
-// 					{
-// 						PortId:         TestPortID,
-// 						AccountAddress: TestOwnerAddress,
-// 					},
-// 				}
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.PortID, hosttypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate registered account - invalid owner address",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 				genesisState = types.NewHostGenesisState(activeChannels, registeredAccounts, "invalid|port", hosttypes.DefaultParams())
-// 			},
-// 			false,
-// 		},
-// 	}
+				registeredAccounts := []genesistypes.RegisteredInterchainAccount{
+					{
+						PortId:         TestPortID,
+						AccountAddress: "",
+					},
+				}
 
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			genesisState = types.DefaultHostGenesis()
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.PortID, hosttypes.DefaultParams())
+			},
+			false,
+		},
+		{
+			"failed to validate controller ports - invalid port identifier",
+			func() {
+				activeChannels := []genesistypes.ActiveChannel{
+					{
+						PortId:    TestPortID,
+						ChannelId: ibctesting.FirstChannelID,
+					},
+				}
 
-// 			tc.malleate() // malleate mutates test data
+				registeredAccounts := []genesistypes.RegisteredInterchainAccount{
+					{
+						PortId:         TestPortID,
+						AccountAddress: TestOwnerAddress,
+					},
+				}
 
-// 			err := genesisState.Validate()
+				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, "invalid|port", hosttypes.DefaultParams())
+			},
+			false,
+		},
+	}
 
-// 			if tc.expPass {
-// 				suite.Require().NoError(err, tc.name)
-// 			} else {
-// 				suite.Require().Error(err, tc.name)
-// 			}
-// 		})
-// 	}
-// }
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			genesisState = genesistypes.DefaultHostGenesis()
+
+			tc.malleate() // malleate mutates test data
+
+			err := genesisState.Validate()
+
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
+	}
+}
