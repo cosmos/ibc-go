@@ -101,9 +101,15 @@ func (suite *MigrationsTestSuite) TestMigrateChannelCapability() {
 	suite.Require().NotNil(cap)
 	suite.Require().True(found)
 
+	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().True(isAuthenticated)
+
 	cap, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
+
+	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().False(isAuthenticated)
 
 	err = v5.MigrateICS27ChannelCapability(
 		suite.chainA.GetContext(),
@@ -119,7 +125,13 @@ func (suite *MigrationsTestSuite) TestMigrateChannelCapability() {
 	suite.Require().NotNil(cap)
 	suite.Require().True(found)
 
+	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().True(isAuthenticated)
+
 	cap, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
+
+	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().False(isAuthenticated)
 }
