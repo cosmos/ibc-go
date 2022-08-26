@@ -1,4 +1,4 @@
-package e2e
+package transfer
 
 import (
 	"context"
@@ -6,46 +6,25 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
-func TestFeeMiddlewareTestSuite(t *testing.T) {
-	suite.Run(t, new(FeeMiddlewareTestSuite))
+type IncentivizedTransferTestSuite struct {
+	TransferTestSuite
 }
 
-type FeeMiddlewareTestSuite struct {
-	testsuite.E2ETestSuite
+func TestIncentivizedTransferTestSuite(t *testing.T) {
+	suite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
-// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *FeeMiddlewareTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
-	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
-func (s *FeeMiddlewareTestSuite) PayPacketFeeAsync(
-	ctx context.Context,
-	chain *cosmos.CosmosChain,
-	user *ibc.Wallet,
-	packetID channeltypes.PacketId,
-	packetFee feetypes.PacketFee,
-) (sdk.TxResponse, error) {
-	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
+func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -164,7 +143,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds(
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
+func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -280,7 +259,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
+func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -391,7 +370,7 @@ func (s *FeeMiddlewareTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
+func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -508,7 +487,7 @@ func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
+func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -610,7 +589,7 @@ func (s *FeeMiddlewareTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPar
 	})
 }
 
-func (s *FeeMiddlewareTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds() {
+func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 

@@ -8,7 +8,7 @@ cleanup-ibc-test-containers:
 	done
 
 e2e-test: cleanup-ibc-test-containers
-	./scripts/run-e2e.sh $(suite) $(test)
+	./scripts/run-e2e.sh $(entrypoint) $(test)
 
 compatibility-tests:
 	./scripts/run-compatibility-tests.sh $(version)

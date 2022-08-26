@@ -197,6 +197,25 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	return resp, err
 }
 
+// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
+func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
+	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
+	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
+func (s *E2ETestSuite) PayPacketFeeAsync(
+	ctx context.Context,
+	chain *cosmos.CosmosChain,
+	user *ibc.Wallet,
+	packetID channeltypes.PacketId,
+	packetFee feetypes.PacketFee,
+) (sdk.TxResponse, error) {
+	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
 // GetRelayerWallets returns the relayer wallets associated with the chains.
 func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
 	chainA, chainB := s.GetChains()

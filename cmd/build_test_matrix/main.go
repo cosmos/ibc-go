@@ -29,8 +29,8 @@ type GithubActionTestMatrix struct {
 }
 
 type TestSuitePair struct {
-	Test  string `json:"test"`
-	Suite string `json:"suite"`
+	Test       string `json:"test"`
+	EntryPoint string `json:"entrypoint"`
 }
 
 func main() {
@@ -123,8 +123,8 @@ func getGithubActionMatrixForTests(e2eRootDirectory, suite string, exlcudedItems
 	for testSuiteName, testCases := range testSuiteMapping {
 		for _, testCaseName := range testCases {
 			gh.Include = append(gh.Include, TestSuitePair{
-				Test:  testCaseName,
-				Suite: testSuiteName,
+				Test:       testCaseName,
+				EntryPoint: testSuiteName,
 			})
 		}
 	}

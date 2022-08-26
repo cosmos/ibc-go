@@ -11,6 +11,7 @@ on:
         type: choice
         options:
           - TestInterchainAccountsTestSuite
+          - TestIncentivizedInterchainAccountsTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
