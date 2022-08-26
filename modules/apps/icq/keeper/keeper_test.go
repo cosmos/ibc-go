@@ -10,9 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-var (
-	TestPort = "icq-test"
-)
+var TestPort = "icq-test"
 
 type KeeperTestSuite struct {
 	suite.Suite

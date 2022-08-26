@@ -495,9 +495,8 @@ func NewSimApp(
 	// icqKeeper.SendQuery -> icqKeeper.SendPacket -> channel.SendPacket
 
 	// initialize ICQ module with mock module
-	//var icqStack porttypes.IBCModule
+	// var icqStack porttypes.IBCModule
 	icqStack := icq.NewIBCModule(app.ICQKeeper)
-	//icqStack = icq.NewIBCMiddleware(icqStack, app.ICQKeeper)
 
 	// Add icq modules to IBC router
 	ibcRouter.AddRoute(icqtypes.ModuleName, icqStack)

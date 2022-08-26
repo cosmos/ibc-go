@@ -5,6 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/gogo/protobuf/proto"
+	"github.com/stretchr/testify/suite"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
+	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
+	tmstate "github.com/tendermint/tendermint/state"
+
 	"github.com/cosmos/ibc-go/v5/modules/apps/icq"
 	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 	icqtypes "github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
@@ -12,11 +18,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	"github.com/gogo/protobuf/proto"
-	"github.com/stretchr/testify/suite"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmstate "github.com/tendermint/tendermint/state"
 )
 
 var (
@@ -293,7 +294,6 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenAck() {
 }
 
 func (suite *InterchainQueriesTestSuite) TestOnAcknowledgementPacket() {
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -347,7 +347,6 @@ func (suite *InterchainQueriesTestSuite) TestOnAcknowledgementPacket() {
 }
 
 func (suite *InterchainQueriesTestSuite) TestOnTimeoutPacket() {
-
 	testCases := []struct {
 		name     string
 		malleate func()
