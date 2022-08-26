@@ -98,6 +98,13 @@
 - [ibc/applications/interchain_accounts/host/v1/host.proto](#ibc/applications/interchain_accounts/host/v1/host.proto)
     - [Params](#ibc.applications.interchain_accounts.host.v1.Params)
   
+- [ibc/applications/interchain_accounts/genesis/v1/genesis.proto](#ibc/applications/interchain_accounts/genesis/v1/genesis.proto)
+    - [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel)
+    - [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState)
+    - [GenesisState](#ibc.applications.interchain_accounts.genesis.v1.GenesisState)
+    - [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState)
+    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount)
+  
 - [ibc/applications/interchain_accounts/host/v1/query.proto](#ibc/applications/interchain_accounts/host/v1/query.proto)
     - [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest)
     - [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse)
@@ -106,13 +113,6 @@
   
 - [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
     - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
-  
-- [ibc/applications/interchain_accounts/v1/genesis.proto](#ibc/applications/interchain_accounts/v1/genesis.proto)
-    - [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel)
-    - [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState)
-    - [GenesisState](#ibc.applications.interchain_accounts.v1.GenesisState)
-    - [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState)
-    - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount)
   
 - [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
     - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
@@ -1608,6 +1608,108 @@ The following parameters may be used to disable the host submodule.
 
 
 
+<a name="ibc/applications/interchain_accounts/genesis/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/genesis/v1/genesis.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
+
+### ActiveChannel
+ActiveChannel contains a connection ID, port ID and associated active channel ID
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState"></a>
+
+### ControllerGenesisState
+ControllerGenesisState defines the interchain accounts controller genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount) | repeated |  |
+| `ports` | [string](#string) | repeated |  |
+| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain accounts genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState) |  |  |
+| `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.HostGenesisState"></a>
+
+### HostGenesisState
+HostGenesisState defines the interchain accounts host genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount) | repeated |  |
+| `port` | [string](#string) |  |  |
+| `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount"></a>
+
+### RegisteredInterchainAccount
+RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `connection_id` | [string](#string) |  |  |
+| `port_id` | [string](#string) |  |  |
+| `account_address` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/applications/interchain_accounts/host/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -1676,108 +1778,6 @@ An InterchainAccount is defined as a BaseAccount & the address of the account ow
 | ----- | ---- | ----- | ----------- |
 | `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
 | `account_owner` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/interchain_accounts/v1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/interchain_accounts/v1/genesis.proto
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.ActiveChannel"></a>
-
-### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
-| `port_id` | [string](#string) |  |  |
-| `channel_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.ControllerGenesisState"></a>
-
-### ControllerGenesisState
-ControllerGenesisState defines the interchain accounts controller genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
-| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
-| `ports` | [string](#string) | repeated |  |
-| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.GenesisState"></a>
-
-### GenesisState
-GenesisState defines the interchain accounts genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.v1.ControllerGenesisState) |  |  |
-| `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.v1.HostGenesisState) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.HostGenesisState"></a>
-
-### HostGenesisState
-HostGenesisState defines the interchain accounts host genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `active_channels` | [ActiveChannel](#ibc.applications.interchain_accounts.v1.ActiveChannel) | repeated |  |
-| `interchain_accounts` | [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount) | repeated |  |
-| `port` | [string](#string) |  |  |
-| `params` | [ibc.applications.interchain_accounts.host.v1.Params](#ibc.applications.interchain_accounts.host.v1.Params) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.RegisteredInterchainAccount"></a>
-
-### RegisteredInterchainAccount
-RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
-| `port_id` | [string](#string) |  |  |
-| `account_address` | [string](#string) |  |  |
 
 
 
