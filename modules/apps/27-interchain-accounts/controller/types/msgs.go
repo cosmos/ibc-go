@@ -62,10 +62,35 @@ func NewMsgSubmitTx(connectionID, owner string, timeoutHeight clienttypes.Height
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgSubmitTx) ValidateBasic() error {
+	if err := host.ConnectionIdentifierValidator(msg.ConnectionId); err != nil {
+		return sdkerrors.Wrap(err, "invalid connection ID")
+	}
+
+	if strings.TrimSpace(msg.Owner) == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "failed to parse owner address: %s", msg.Owner)
+	}
+
+	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
+		return sdkerrors.Wrap(ErrInvalidTimeout, "msg timeout height and msg timeout timestamp cannot both be 0")
+	}
+
+	if len(msg.Msgs) == 0 {
+		return sdkerrors.Wrap(ErrEmptyMsgs, "interchain accounts data packets array cannot be empty")
+	}
+
 	return nil
 }
 
 // GetSigners implements sdk.Msg
 func (msg MsgSubmitTx) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
+	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{accAddr}
 }

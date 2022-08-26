@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
@@ -92,5 +93,95 @@ func TestMsgRegisterAccountGetSigners(t *testing.T) {
 	require.NoError(t, err)
 
 	msg := types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
+}
+
+func TestMsgSubmitTxValidateBasic(t *testing.T) {
+	var msg *types.MsgSubmitTx
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"connection id is invalid",
+			func() {
+				msg.ConnectionId = ""
+			},
+			false,
+		},
+		{
+			"owner address is empty",
+			func() {
+				msg.Owner = ""
+			},
+			false,
+		},
+		{
+			"owner address is invalid",
+			func() {
+				msg.Owner = "invalid_address"
+			},
+			false,
+		},
+		{
+			"timeout height and timestamp are both not set",
+			func() {
+			},
+			false,
+		},
+		{
+			"messages array is empty",
+			func() {
+			},
+			false,
+		},
+	}
+
+	for i, tc := range testCases {
+
+		data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), msgsBankSend)
+		suite.Require().NoError(err)
+
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: data,
+		}
+
+
+		msg = types.NewMsgSubmitTx(
+			ibctesting.FirstConnectionID,
+			ibctesting.TestAccAddress,
+			0,
+			[]icatypes.InterchainAccountPacketData{
+				packetData,
+			},
+		)
+
+		tc.malleate()
+
+		err := msg.ValidateBasic()
+		if tc.expPass {
+			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
+
+func TestMsgSubmitTxGetSigners(t *testing.T) {
+	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+	require.NoError(t, err)
+
+	msg := types.NewMsgSubmitTx(
+		ibctesting.FirstConnectionID,
+		ibctesting.TestAccAddress,
+	)
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
