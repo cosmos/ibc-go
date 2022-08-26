@@ -1,12 +1,12 @@
-package keeper
+package v5
 
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
@@ -15,41 +15,40 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
-// MigrateChannelCapability performs a search on a prefix store using the provided store key and module name.
+// MigrateICS27ChannelCapability performs a search on a prefix store using the provided store key and module name.
 // It retrieves the associated channel capability index and reassigns ownership to the ICS27 controller submodule.
-func MigrateChannelCapability(
+func MigrateICS27ChannelCapability(
 	ctx sdk.Context,
-	cdc codec.BinaryCodec,
 	memStoreKey storetypes.StoreKey,
 	capabilityKeeper *capabilitykeeper.Keeper,
 	module string,
 ) error {
+	// construct a prefix store using the x/capability reverse lookup key: {module}/rev/{name} -> index
 	keyPrefix := capabilitytypes.RevCapabilityKey(module, fmt.Sprintf("%s/%s/%s", host.KeyChannelCapabilityPrefix, host.KeyPortPrefix, icatypes.PortPrefix))
 	prefixStore := prefix.NewStore(ctx.KVStore(memStoreKey), keyPrefix)
+
 	iterator := sdk.KVStorePrefixIterator(prefixStore, nil)
-
 	defer iterator.Close()
+
 	for ; iterator.Valid(); iterator.Next() {
-		key := string(iterator.Key()) // search prefix is omitted
-
-		// reconstruct the capability name using the prefix and iterator key
-		name := fmt.Sprintf("%s/%s/%s%s", host.KeyChannelCapabilityPrefix, host.KeyPortPrefix, icatypes.PortPrefix, key)
-		owner := capabilitytypes.NewOwner(module, name)
-
-		ctx.Logger().Info("migrating ibc channel capability", "owner", owner.String())
-
+		// unmarshal the index value and retrieve the set of owners
 		index := sdk.BigEndianToUint64(iterator.Value())
 		owners, found := capabilityKeeper.GetOwners(ctx, index)
 		if !found {
-			panic(fmt.Sprintf("no owners for capability at index: %d", index))
+			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityOwnersNotFound, "no owners found for capability at index: %d", index)
 		}
 
+		// reconstruct the capability name using the prefixes and iterator key
+		name := fmt.Sprintf("%s/%s/%s%s", host.KeyChannelCapabilityPrefix, host.KeyPortPrefix, icatypes.PortPrefix, string(iterator.Key()))
+		prevOwner := capabilitytypes.NewOwner(module, name)
+		newOwner := capabilitytypes.NewOwner(types.SubModuleName, name)
+
 		// remove the existing module owner
-		owners.Remove(owner)
+		owners.Remove(prevOwner)
 		prefixStore.Delete(iterator.Key())
 
-		// add the controller submodule as a new capability owner
-		owners.Set(capabilitytypes.NewOwner(types.SubModuleName, name))
+		// add the controller submodule to the set of owners and initialise the capability
+		owners.Set(newOwner)
 		capabilityKeeper.SetOwners(ctx, index, owners)
 		capabilityKeeper.InitializeCapability(ctx, index, owners)
 	}
