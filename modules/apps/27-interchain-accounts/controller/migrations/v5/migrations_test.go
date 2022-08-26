@@ -86,7 +86,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(MigrationsTestSuite))
 }
 
-func (suite *MigrationsTestSuite) TestMigrateChannelCapability() {
+func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.SetupTest()
 	suite.coordinator.SetupConnections(suite.path)
 
