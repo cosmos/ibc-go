@@ -31,7 +31,7 @@ func MigrateICS27ChannelCapability(
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		// unmarshal the index value and retrieve the set of owners
+		// unmarshal the capability index value and retrieve the set of owners
 		index := sdk.BigEndianToUint64(iterator.Value())
 		owners, found := capabilityKeeper.GetOwners(ctx, index)
 		if !found {
@@ -48,7 +48,10 @@ func MigrateICS27ChannelCapability(
 		prefixStore.Delete(iterator.Key())
 
 		// add the controller submodule to the set of owners and initialise the capability
-		owners.Set(newOwner)
+		if err := owners.Set(newOwner); err != nil {
+			return err
+		}
+
 		capabilityKeeper.SetOwners(ctx, index, owners)
 		capabilityKeeper.InitializeCapability(ctx, index, owners)
 	}
