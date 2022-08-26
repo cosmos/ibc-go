@@ -69,7 +69,7 @@ export CHAIN_BINARY="simd"
 # export CHAIN_BINARY="icad"
 
 export RLY_TAG="v2.0.0-rc2"
-make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
+make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
 
@@ -274,27 +274,27 @@ In the above example, the following would be generated.
 {
    "include": [
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestA"
       },
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestB"
       },
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestC"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestD"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestE"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestF"
       }
    ]
