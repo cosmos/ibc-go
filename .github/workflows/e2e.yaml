@@ -44,4 +44,4 @@ jobs:
         relayer-tag: "v2.0.0-rc2"
         chain-binary: "simd"
         # on regular PRs we won't run interchain account tests.
-        test-exclusions: "TestInterchainAccountsTestSuite"
+        test-exclusions: "TestInterchainAccountsTestSuite,TestIncentivizedInterchainAccountsTestSuite"
