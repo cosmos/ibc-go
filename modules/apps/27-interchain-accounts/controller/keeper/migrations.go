@@ -15,16 +15,16 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
-// MigrateChannelCapability performs a search on a prefix store using the provided authModule name,
-// retrieves the associated capability index and reassigns ownership to the ICS27 controller submodule
+// MigrateChannelCapability performs a search on a prefix store using the provided store key and module name.
+// It retrieves the associated channel capability index and reassigns ownership to the ICS27 controller submodule.
 func MigrateChannelCapability(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
 	memStoreKey storetypes.StoreKey,
-	capabilityKeeper capabilitykeeper.Keeper,
-	authModule string,
+	capabilityKeeper *capabilitykeeper.Keeper,
+	module string,
 ) error {
-	keyPrefix := capabilitytypes.RevCapabilityKey(authModule, fmt.Sprintf("%s/%s/%s", host.KeyChannelCapabilityPrefix, host.KeyPortPrefix, icatypes.PortPrefix))
+	keyPrefix := capabilitytypes.RevCapabilityKey(module, fmt.Sprintf("%s/%s/%s", host.KeyChannelCapabilityPrefix, host.KeyPortPrefix, icatypes.PortPrefix))
 	prefixStore := prefix.NewStore(ctx.KVStore(memStoreKey), keyPrefix)
 	iterator := sdk.KVStorePrefixIterator(prefixStore, nil)
 
@@ -34,23 +34,24 @@ func MigrateChannelCapability(
 
 		// reconstruct the capability name using the prefix and iterator key
 		name := fmt.Sprintf("%s/%s/%s%s", host.KeyChannelCapabilityPrefix, host.KeyPortPrefix, icatypes.PortPrefix, key)
-		capOwner := capabilitytypes.NewOwner(authModule, name)
+		owner := capabilitytypes.NewOwner(module, name)
 
-		ctx.Logger().Info("migrating ibc channel capability", "owner", capOwner.String())
+		ctx.Logger().Info("migrating ibc channel capability", "owner", owner.String())
 
 		index := sdk.BigEndianToUint64(iterator.Value())
-		capOwners, found := capabilityKeeper.GetOwners(ctx, index)
+		owners, found := capabilityKeeper.GetOwners(ctx, index)
 		if !found {
 			panic(fmt.Sprintf("no owners for capability at index: %d", index))
 		}
 
-		// remove the existing auth module owner
-		capOwners.Remove(capOwner)
+		// remove the existing module owner
+		owners.Remove(owner)
+		prefixStore.Delete(iterator.Key())
 
 		// add the controller submodule as a new capability owner
-		capOwners.Set(capabilitytypes.NewOwner(types.SubModuleName, name))
-
-		capabilityKeeper.SetOwners(ctx, index, capOwners)
+		owners.Set(capabilitytypes.NewOwner(types.SubModuleName, name))
+		capabilityKeeper.SetOwners(ctx, index, owners)
+		capabilityKeeper.InitializeCapability(ctx, index, owners)
 	}
 
 	return nil
