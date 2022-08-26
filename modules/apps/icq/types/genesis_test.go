@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	"github.com/stretchr/testify/suite"
 )
 
 type TypesTestSuite struct {

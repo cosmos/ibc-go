@@ -6,14 +6,12 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-var (
-	// ModuleCdc references the global interchain queries module codec. Note, the codec
-	// should ONLY be used in certain instances of tests and for JSON encoding.
-	//
-	// The actual codec used for serialization should be provided to interchain queries and
-	// defined at the application level.
-	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-)
+// ModuleCdc references the global interchain queries module codec. Note, the codec
+// should ONLY be used in certain instances of tests and for JSON encoding.
+//
+// The actual codec used for serialization should be provided to interchain queries and
+// defined at the application level.
+var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 func SerializeCosmosQuery(reqs []abci.RequestQuery) (bz []byte, err error) {
 	q := &CosmosQuery{

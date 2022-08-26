@@ -4,20 +4,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
-	icqtypes "github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
 
 // OnRecvPacket handles a given interchain queries packet on a destination host chain.
 // If the transaction is successfully executed, the transaction response bytes will be returned.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byte, error) {
-	var data icqtypes.InterchainQueryPacketData
+	var data types.InterchainQueryPacketData
 
-	if err := icqtypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
-		return nil, sdkerrors.Wrapf(icqtypes.ErrUnknownDataType, "cannot unmarshal ICQ packet data")
+		return nil, sdkerrors.Wrapf(types.ErrUnknownDataType, "cannot unmarshal ICQ packet data")
 	}
 
 	reqs, err := types.DeserializeCosmosQuery(data.GetData())
@@ -54,10 +54,10 @@ func (k Keeper) executeQuery(ctx sdk.Context, reqs []abci.RequestQuery) ([]byte,
 	if err != nil {
 		return nil, err
 	}
-	ack := icqtypes.InterchainQueryPacketAck{
+	ack := types.InterchainQueryPacketAck{
 		Data: bz,
 	}
-	data, err := icqtypes.ModuleCdc.MarshalJSON(&ack)
+	data, err := types.ModuleCdc.MarshalJSON(&ack)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to marshal tx data")
 	}
