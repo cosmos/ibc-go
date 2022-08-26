@@ -3,10 +3,16 @@ FROM golang:1.18 as builder
 ENV GOPATH=""
 ENV GOMODULE="on"
 
-COPY go.mod .
-COPY go.sum .
+COPY go.mod go.mod
+COPY go.sum go.sum
 
+COPY testing/go.mod testing/go.mod
+COPY testing/go.sum testing/go.sum
+
+WORKDIR /go/testing
 RUN go mod download
+
+WORKDIR /go
 
 ADD testing testing
 ADD modules modules
