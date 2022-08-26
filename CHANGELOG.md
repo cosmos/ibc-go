@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Dependencies
 
 * [\#1653](https://github.com/cosmos/ibc-go/pull/1653) Bump SDK version to v0.46
+* [\#2124](https://github.com/cosmos/ibc-go/pull/2124) Bump SDK version to v0.46.1
 
 ### API Breaking
 
