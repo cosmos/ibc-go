@@ -14,7 +14,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {

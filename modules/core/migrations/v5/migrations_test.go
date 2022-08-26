@@ -10,7 +10,7 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	v5 "github.com/cosmos/ibc-go/v5/modules/core/migrations/v5"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 type MigrationsV5TestSuite struct {

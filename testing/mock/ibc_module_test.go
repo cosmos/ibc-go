@@ -7,7 +7,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v5/testing/mock"
+	"github.com/cosmos/ibc-go/testing/mock"
 )
 
 func TestCreateCapabilityName(t *testing.T) {

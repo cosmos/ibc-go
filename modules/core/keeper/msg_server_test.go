@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibcmock "github.com/cosmos/ibc-go/testing/mock"
 )
 
 var (

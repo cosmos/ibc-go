@@ -21,9 +21,9 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
+	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 const (

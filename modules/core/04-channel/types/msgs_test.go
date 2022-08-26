@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *TypesTestSuite) TestNewControllerPortID() {

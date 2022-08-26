@@ -10,8 +10,8 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibcmock "github.com/cosmos/ibc-go/testing/mock"
 )
 
 var (

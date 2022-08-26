@@ -13,9 +13,9 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
+	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 const (

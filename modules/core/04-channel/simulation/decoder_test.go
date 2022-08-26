@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/simulation"
 	"github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {

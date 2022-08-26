@@ -21,7 +21,7 @@ import (
 
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {

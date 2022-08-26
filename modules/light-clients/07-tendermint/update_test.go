@@ -11,8 +11,8 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
 )
 
 func (suite *TendermintTestSuite) TestVerifyHeader() {

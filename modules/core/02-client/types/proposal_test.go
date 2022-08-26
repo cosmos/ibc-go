@@ -10,7 +10,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *TypesTestSuite) TestValidateBasic() {

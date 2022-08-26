@@ -106,9 +106,9 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
-	simappparams "github.com/cosmos/ibc-go/v5/testing/simapp/params"
-	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"
+	ibcmock "github.com/cosmos/ibc-go/testing/mock"
+	simappparams "github.com/cosmos/ibc-go/testing/simapp/params"
+	ibctestingtypes "github.com/cosmos/ibc-go/testing/types"
 )
 
 const appName = "SimApp"

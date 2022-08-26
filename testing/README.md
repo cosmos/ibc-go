@@ -256,7 +256,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/simapp"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {

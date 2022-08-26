@@ -20,7 +20,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	simappparams "github.com/cosmos/ibc-go/v5/testing/simapp/params"
+	simappparams "github.com/cosmos/ibc-go/testing/simapp/params"
 )
 
 // AppStateFn returns the initial application state using a genesis or the simulation parameters.

@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/simulation"
 	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {
