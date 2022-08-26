@@ -1,6 +1,8 @@
 package icq
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -41,6 +43,10 @@ func (im IBCModule) OnChanOpenInit(
 
 	if err := ValidateICQChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
 		return "", err
+	}
+
+	if strings.TrimSpace(version) == "" {
+		version = types.Version
 	}
 
 	if version != types.Version {

@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/icq"
+	"github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 	icqtypes "github.com/cosmos/ibc-go/v5/modules/apps/icq/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -17,19 +20,7 @@ import (
 )
 
 var (
-	// TODO: Cosmos-SDK ADR-28: Update crypto.AddressHash() when sdk uses address.Module()
-	// https://github.com/cosmos/cosmos-sdk/issues/10225
-	//
-	// TestAccAddress defines a resuable bech32 address for testing purposes
-	// TestAccAddress = icqtypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icqtypes.ModuleName))), ibctesting.FirstConnectionID, TestPortID)
-
-	// TestOwnerAddress defines a reusable bech32 address for testing purposes
-	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-
-	// TestPortID defines a resuable port identifier for testing purposes
-	//TestPortID, _ = icqtypes.NewControllerPortID(TestOwnerAddress)
-
-	// TestVersion defines a resuable interchainaccounts version string for testing purposes
+	// TestVersion defines a reusable icq version string for testing purposes
 	TestVersion = "icq-1"
 
 	TestQueryPath = "/store/params/key"
@@ -89,25 +80,12 @@ func SetupICQPath(path *ibctesting.Path) error {
 	return nil
 }
 
-// Test initiating a ChanOpenInit using the host chain instead of the controller chain
-// ChainA is the controller chain. ChainB is the host chain
-func (suite *InterchainQueriesTestSuite) TestChanOpenInit() {
-	suite.SetupTest() // reset
-	path := NewICQPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-
-	// use chainB (host) for ChanOpenInit
-	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icqtypes.Version, channeltypes.UNORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icqtypes.ModuleName)
-	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
-	_, err := handler(suite.chainB.GetContext(), msg)
-
-	suite.Require().Error(err)
-}
-
-func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
+func (suite *InterchainQueriesTestSuite) TestOnChanOpenInit() {
 	var (
-		path    *ibctesting.Path
-		channel *channeltypes.Channel
+		channel      *channeltypes.Channel
+		path         *ibctesting.Path
+		chanCap      *capabilitytypes.Capability
+		counterparty channeltypes.Counterparty
 	)
 
 	testCases := []struct {
@@ -115,13 +93,33 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
 		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICQKeeper.SetParams(suite.chainB.GetContext(), icqtypes.NewParams(false, []string{}))
+			"empty version string", func() {
+				channel.Version = ""
+			}, true,
+		},
+		{
+			"invalid order - ORDERED", func() {
+				channel.Ordering = channeltypes.ORDERED
+			}, false,
+		},
+		{
+			"invalid port ID", func() {
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
+			}, false,
+		},
+		{
+			"invalid version", func() {
+				channel.Version = "version"
+			}, false,
+		},
+		{
+			"capability already claimed", func() {
+				err := suite.chainA.GetSimApp().ScopedICQKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				suite.Require().NoError(err)
 			}, false,
 		},
 	}
@@ -131,96 +129,71 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-
 			path = NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
-			path.EndpointB.ChannelID = ibctesting.FirstChannelID
-
-			// default values
-			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
-				State:          channeltypes.TRYOPEN,
+				State:          channeltypes.INIT,
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
-				ConnectionHops: []string{path.EndpointB.ConnectionID},
-				Version:        path.EndpointB.ChannelConfig.Version,
+				ConnectionHops: []string{path.EndpointA.ConnectionID},
+				Version:        types.Version,
 			}
 
-			tc.malleate()
-
-			// ensure channel on chainB is set in state
-			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *channel)
-
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			var err error
+			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(icqtypes.PortID, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
-			chanCap, err := suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-			suite.Require().NoError(err)
+			tc.malleate() // explicitly change fields in channel and testChannel
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
-			suite.Require().True(ok)
-
-			version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
+			icqModule := icq.NewIBCModule(suite.chainA.GetSimApp().ICQKeeper)
+			version, err := icqModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.GetVersion(),
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal("", version)
+				suite.Require().Equal(version, "")
 			}
-
 		})
 	}
-
 }
 
-// Test initiating a ChanOpenAck using the host chain instead of the controller chain
-// ChainA is the controller chain. ChainB is the host chain
-func (suite *InterchainQueriesTestSuite) TestChanOpenAck() {
-	suite.SetupTest() // reset
-	path := NewICQPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+func (suite *InterchainQueriesTestSuite) TestOnChanOpenTry() {
+	var (
+		channel             *channeltypes.Channel
+		chanCap             *capabilitytypes.Capability
+		path                *ibctesting.Path
+		counterparty        channeltypes.Counterparty
+		counterpartyVersion string
+	)
 
-	err := path.EndpointB.ChanOpenTry()
-	suite.Require().NoError(err)
-
-	// chainA maliciously sets channel to TRYOPEN
-	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
-	suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
-
-	// commit state changes so proof can be created
-	suite.chainA.NextBlock()
-
-	path.EndpointB.UpdateClient()
-
-	// query proof from ChainA
-	channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	proofTry, proofHeight := path.EndpointA.Chain.QueryProof(channelKey)
-
-	// use chainB (host) for ChanOpenAck
-	msg := channeltypes.NewMsgChannelOpenAck(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelID, TestVersion, proofTry, proofHeight, icqtypes.ModuleName)
-	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
-	_, err = handler(suite.chainB.GetContext(), msg)
-
-	suite.Require().Error(err)
-}
-
-func (suite *InterchainQueriesTestSuite) TestOnChanOpenConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
-
 		{
 			"success", func() {}, true,
 		},
 		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICQKeeper.SetParams(suite.chainB.GetContext(), icqtypes.NewParams(false, []string{}))
+			"invalid order - ORDERED", func() {
+				channel.Ordering = channeltypes.ORDERED
+			}, false,
+		},
+		{
+			"invalid port ID", func() {
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
+			}, false,
+		},
+		{
+			"invalid counterparty version", func() {
+				counterpartyVersion = "version"
 			}, false,
 		},
 	}
@@ -228,125 +201,63 @@ func (suite *InterchainQueriesTestSuite) TestOnChanOpenConfirm() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			path := NewICQPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
-
-			err := path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.ChanOpenAck()
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
-			suite.Require().True(ok)
-
-			err = cbs.OnChanOpenConfirm(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-
-		})
-	}
-
-}
-
-// OnChanCloseInit on host (chainB)
-func (suite *InterchainQueriesTestSuite) TestOnChanCloseInit() {
-	path := NewICQPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
-
-	err := SetupICQPath(path)
-	suite.Require().NoError(err)
-
-	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-	suite.Require().NoError(err)
-
-	cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
-
-	err = cbs.OnChanCloseInit(
-		suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-	)
-
-	suite.Require().Error(err)
-}
-
-func (suite *InterchainQueriesTestSuite) TestOnChanCloseConfirm() {
-	var (
-		path *ibctesting.Path
-	)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-
-		{
-			"success", func() {}, true,
-		},
-	}
-
-	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			path = NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
-			err := SetupICQPath(path)
+			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			channel = &channeltypes.Channel{
+				State:          channeltypes.TRYOPEN,
+				Ordering:       channeltypes.UNORDERED,
+				Counterparty:   counterparty,
+				ConnectionHops: []string{path.EndpointA.ConnectionID},
+				Version:        types.Version,
+			}
+			counterpartyVersion = types.Version
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), icqtypes.PortID)
 			suite.Require().NoError(err)
 
-			tc.malleate() // malleate mutates test data
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
+			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(icqtypes.PortID, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanCloseConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			tc.malleate() // explicitly change fields in channel and testChannel
+
+			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, counterpartyVersion,
+			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal("", version)
 			}
-
 		})
 	}
 }
 
-func (suite *InterchainQueriesTestSuite) TestOnRecvPacket() {
-	var (
-		packetData []byte
-	)
+func (suite *InterchainQueriesTestSuite) TestOnChanOpenAck() {
+	var counterpartyVersion string
+
 	testCases := []struct {
-		name          string
-		malleate      func()
-		expAckSuccess bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
 			"success", func() {}, true,
 		},
 		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICQKeeper.SetParams(suite.chainB.GetContext(), icqtypes.NewParams(false, []string{}))
-			}, false,
-		},
-		{
-			"icq OnRecvPacket fails - cannot unmarshal packet data", func() {
-				packetData = []byte("invalid data")
+			"invalid counterparty version", func() {
+				counterpartyVersion = "version"
 			}, false,
 		},
 	}
@@ -359,77 +270,26 @@ func (suite *InterchainQueriesTestSuite) TestOnRecvPacket() {
 
 			path := NewICQPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-			err := SetupICQPath(path)
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
+			counterpartyVersion = types.Version
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), icqtypes.PortID)
 			suite.Require().NoError(err)
 
-			// build packet data
-			requests := []abcitypes.RequestQuery{
-				{
-					Path:   TestQueryPath,
-					Height: 0,
-					Data:   []byte(TestQueryData),
-					Prove:  false,
-				},
-			}
-
-			bz, err := icqtypes.SerializeCosmosQuery(requests)
-			suite.Require().NoError(err)
-			icqPacketData := icqtypes.InterchainQueryPacketData{
-				Data: bz,
-			}
-			packetData = icqPacketData.GetBytes()
-
-			// build expected ack
-			resps := make([]abcitypes.ResponseQuery, len(requests))
-			for i, req := range requests {
-				resp := suite.chainB.GetSimApp().Query(req)
-				resps[i] = abcitypes.ResponseQuery{
-					Code:   resp.Code,
-					Index:  resp.Index,
-					Key:    resp.Key,
-					Value:  resp.Value,
-					Height: resp.Height,
-				}
-			}
-			bz, err = icqtypes.SerializeCosmosResponse(resps)
-			suite.Require().NoError(err)
-
-			icqack := icqtypes.InterchainQueryPacketAck{
-				Data: bz,
-			}
-			expectedTxResponse, err := icqtypes.ModuleCdc.MarshalJSON(&icqack)
-			suite.Require().NoError(err)
-
-			expectedAck := channeltypes.NewResultAcknowledgement(expectedTxResponse)
-
-			params := icqtypes.NewParams(true, []string{TestQueryPath})
-			suite.chainB.GetSimApp().ICQKeeper.SetParams(suite.chainB.GetContext(), params)
-
-			// malleate packetData for test cases
-			tc.malleate()
-
-			seq := uint64(1)
-			packet := channeltypes.NewPacket(packetData, seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
-
-			tc.malleate()
-
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			ack := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, nil)
-			if tc.expAckSuccess {
-				suite.Require().True(ack.Success())
-				suite.Require().Equal(expectedAck, ack)
-			} else {
-				suite.Require().False(ack.Success())
-			}
+			tc.malleate() // explicitly change fields in channel and testChannel
 
+			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
 		})
 	}
-
 }
 
 func (suite *InterchainQueriesTestSuite) TestOnAcknowledgementPacket() {
