@@ -14,12 +14,12 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	channelId, err := k.registerInterchainAccount(ctx, msg.ConnectionId, msg.Owner, msg.Version)
+	channelID, err := k.registerInterchainAccount(ctx, msg.ConnectionId, msg.Owner, msg.Version)
 	if err != nil {
 		return nil, err
 	}
 
 	return &types.MsgRegisterAccountResponse{
-		ChannelId: channelId,
+		ChannelId: channelID,
 	}, nil
 }
