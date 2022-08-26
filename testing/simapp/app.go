@@ -85,6 +85,9 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	ibcmock "github.com/cosmos/ibc-go/testing/mock"
+	simappparams "github.com/cosmos/ibc-go/testing/simapp/params"
+	ibctestingtypes "github.com/cosmos/ibc-go/testing/types"
 	ica "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
@@ -106,9 +109,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	ibcmock "github.com/cosmos/ibc-go/testing/mock"
-	simappparams "github.com/cosmos/ibc-go/testing/simapp/params"
-	ibctestingtypes "github.com/cosmos/ibc-go/testing/types"
 )
 
 const appName = "SimApp"

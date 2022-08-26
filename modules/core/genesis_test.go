@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/testing/simapp"
 	ibc "github.com/cosmos/ibc-go/v5/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
@@ -16,8 +18,6 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 const (

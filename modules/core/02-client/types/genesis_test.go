@@ -5,14 +5,14 @@ import (
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
 	client "github.com/cosmos/ibc-go/v5/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/testing/mock"
 )
 
 const (

@@ -4,6 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibcmock "github.com/cosmos/ibc-go/testing/mock"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
@@ -11,8 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	ibcmock "github.com/cosmos/ibc-go/testing/mock"
 )
 
 var (

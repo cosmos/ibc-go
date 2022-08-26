@@ -24,9 +24,9 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
 	"github.com/cosmos/ibc-go/testing/simapp"
 	ibctestingtypes "github.com/cosmos/ibc-go/testing/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
 )
 
 var DefaultTestingAppInit = SetupTestingApp

@@ -6,11 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	v5 "github.com/cosmos/ibc-go/v5/modules/core/migrations/v5"
-	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 type MigrationsV5TestSuite struct {

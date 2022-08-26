@@ -3,12 +3,12 @@ package keeper_test
 import (
 	"time"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with

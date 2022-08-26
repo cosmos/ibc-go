@@ -3,13 +3,13 @@ package solomachine_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 const (

@@ -3,11 +3,11 @@ package ibctesting
 import (
 	"time"
 
+	"github.com/cosmos/ibc-go/testing/mock"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/testing/mock"
 )
 
 type ClientConfig interface {

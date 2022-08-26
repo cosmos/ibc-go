@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
 	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func TestValidateDefaultGenesis(t *testing.T) {

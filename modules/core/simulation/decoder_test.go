@@ -7,13 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/ibc-go/testing/simapp"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/simulation"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {

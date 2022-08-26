@@ -3,12 +3,12 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibcmock "github.com/cosmos/ibc-go/testing/mock"
 	"github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	ibcmock "github.com/cosmos/ibc-go/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {

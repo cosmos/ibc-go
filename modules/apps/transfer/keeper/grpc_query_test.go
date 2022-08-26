@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {

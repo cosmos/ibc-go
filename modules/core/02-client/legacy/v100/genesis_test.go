@@ -9,14 +9,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/testing/simapp"
 	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
 	v100 "github.com/cosmos/ibc-go/v5/modules/core/02-client/legacy/v100"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/testing"
-	"github.com/cosmos/ibc-go/testing/simapp"
 )
 
 func (suite *LegacyTestSuite) TestMigrateGenesisSolomachine() {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	ibctesting "github.com/cosmos/ibc-go/testing"
 	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func TestValidateVersion(t *testing.T) {

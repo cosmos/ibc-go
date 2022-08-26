@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/testing"
+	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 )
 
 type KeeperTestSuite struct {
