@@ -88,7 +88,6 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *MigrationsTestSuite) TestMigrateChannelCapability() {
 	suite.SetupTest()
-
 	suite.coordinator.SetupConnections(suite.path)
 
 	err := suite.SetupPath()
@@ -107,9 +106,6 @@ func (suite *MigrationsTestSuite) TestMigrateChannelCapability() {
 	cap, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
-
-	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
-	suite.Require().False(isAuthenticated)
 
 	err = v5.MigrateICS27ChannelCapability(
 		suite.chainA.GetContext(),
@@ -131,7 +127,4 @@ func (suite *MigrationsTestSuite) TestMigrateChannelCapability() {
 	cap, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
-
-	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
-	suite.Require().False(isAuthenticated)
 }
