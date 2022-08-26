@@ -21,7 +21,6 @@ import (
 func MigrateChannelCapability(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
 	memStoreKey storetypes.StoreKey,
 	capabilityKeeper capabilitykeeper.Keeper,
 	authModule string,

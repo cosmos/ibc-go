@@ -18,7 +18,6 @@ func (suite *KeeperTestSuite) TestMigrateChannelCapability() {
 	err = keeper.MigrateChannelCapability(
 		suite.chainA.GetContext(),
 		suite.chainA.Codec,
-		suite.chainA.GetSimApp().GetKey(capabilitytypes.StoreKey),
 		suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey),
 		*suite.chainA.GetSimApp().CapabilityKeeper,
 		"mockicacontroller",
