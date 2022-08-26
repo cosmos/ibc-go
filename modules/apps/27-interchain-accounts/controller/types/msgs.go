@@ -3,10 +3,10 @@ package types
 import (
 	"strings"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
@@ -50,13 +50,13 @@ func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgSubmitTx creates a new instance of MsgSubmitTx
-func NewMsgSubmitTx(connectionID, owner string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, msgs []*codectypes.Any) *MsgSubmitTx {
+func NewMsgSubmitTx(connectionID, owner string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, msgs []*icatypes.InterchainAccountPacketData) *MsgSubmitTx {
 	return &MsgSubmitTx{
 		ConnectionId:     connectionID,
 		Owner:            owner,
 		TimeoutHeight:    timeoutHeight,
 		TimeoutTimestamp: timeoutTimestamp,
-		Msg:              msgs,
+		Msgs:             msgs,
 	}
 }
 
