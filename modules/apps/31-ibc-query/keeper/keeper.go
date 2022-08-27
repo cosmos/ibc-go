@@ -28,6 +28,42 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.ModuleName)
 }
 
+func (k Keeper) GenerateQueryIdentifier(ctx sdk.Context) string {
+	nextQuerySeq := k.GetNextQuerySequence(ctx)
+	queryID := types.FormatQueryIdentifier(nextQuerySeq)
+
+	nextQuerySeq++
+	k.SetNextQuerySequence(ctx, nextQuerySeq)
+	return queryID
+}
+
+
+func (k Keeper) GetNextQuerySequence(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.KeyNextQuerySequence))
+	if bz == nil {
+		panic("next connection sequence is nil")
+	}
+
+	return sdk.BigEndianToUint64(bz)
+}
+
+func (k Keeper) SetNextQuerySequence(ctx sdk.Context, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := sdk.Uint64ToBigEndian(sequence)
+	store.Set([]byte(types.KeyNextQuerySequence), bz)
+}
+
+func (k Keeper) SetQuery(ctx sdk.Context, query types.MsgSubmitCrossChainQuery) string {
+	store := ctx.KVStore(k.storeKey)
+	appendedValue := k.cdc.MustMarshal(&query)
+
+	store.Set([]byte(host.QueryPath(query.Id)), appendedValue)
+
+	return query.Id
+}
+
+
 // TODO
 // func handleIbcQuery
 // 1. set unique query Id
