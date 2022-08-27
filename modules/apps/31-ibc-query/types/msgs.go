@@ -10,25 +10,40 @@ const (
 )
 
 // NewMsgSubmitCrossChainQuery creates a new instance of NewMsgSubmitCrossChainQuery
-func NewMsgSubmitCrossChainQuery(path string, localTimeoutHeight, localTimeoutStamp, queryHeight uint64, clientId string) *MsgSubmitCrossChainQuery {
+func NewMsgSubmitCrossChainQuery(id string, path string, localTimeoutHeight uint64, localTimeoutStamp uint64, queryHeight uint64, clientId string, creator string) *MsgSubmitCrossChainQuery {
 	return &MsgSubmitCrossChainQuery{
+		Id:                 id,
 		Path:               path,
 		LocalTimeoutHeight: localTimeoutHeight,
 		LocalTimeoutStamp:  localTimeoutStamp,
 		QueryHeight:        queryHeight,
 		ClientId:           clientId,
+		Sender:             creator,
 	}
 }
 
+func (q MsgSubmitCrossChainQuery) GetQueryId() string { return q.Id }
+
+func (q MsgSubmitCrossChainQuery) GetPath() string { return q.Path }
+
+func (q MsgSubmitCrossChainQuery) GetTimeoutHeight() uint64 { return q.LocalTimeoutHeight }
+
+func (q MsgSubmitCrossChainQuery) GetTimeoutTimestamp() uint64 { return q.LocalTimeoutStamp }
+
+func (q MsgSubmitCrossChainQuery) GetQueryHeight() uint64 { return q.QueryHeight }
+
+func (q MsgSubmitCrossChainQuery) GetClientID() string { return q.ClientId }
+
+
 // ValidateBasic implements sdk.Msg and performs basic stateless validation
-func (msg MsgSubmitCrossChainQuery) ValidateBasic() error {
+func (q MsgSubmitCrossChainQuery) ValidateBasic() error {
 
 	return nil
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgSubmitCrossChainQuery) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Sender)
+func (q MsgSubmitCrossChainQuery) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(q.Sender)
 	if err != nil {
 		panic(err)
 	}
@@ -37,18 +52,18 @@ func (msg MsgSubmitCrossChainQuery) GetSigners() []sdk.AccAddress {
 }
 
 // Route implements sdk.Msg
-func (msg MsgSubmitCrossChainQuery) Route() string {
+func (q MsgSubmitCrossChainQuery) Route() string {
 	return RouterKey
 }
 
 // Type implements sdk.Msg
-func (msg MsgSubmitCrossChainQuery) Type() string {
+func (q MsgSubmitCrossChainQuery) Type() string {
 	return TypeMsgSubmitCrossChainQuery
 }
 
 // GetSignBytes implements sdk.Msg.
-func (msg MsgSubmitCrossChainQuery) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+func (q MsgSubmitCrossChainQuery) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&q))
 }
 
 // NewMsgSubmitCrossChainQueryResult creates a new instance of MsgSubmitCrossChainQueryResult
@@ -61,13 +76,13 @@ func NewMsgSubmitCrossChainQueryResult(id string, result QueryResult, data []byt
 }
 
 // ValidateBasic implements sdk.Msg and performs basic stateless validation
-func (msg MsgSubmitCrossChainQueryResult) ValidateBasic() error {
+func (q MsgSubmitCrossChainQueryResult) ValidateBasic() error {
 	return nil
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgSubmitCrossChainQueryResult) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Relayer)
+func (q MsgSubmitCrossChainQueryResult) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(q.Relayer)
 	if err != nil {
 		panic(err)
 	}
@@ -76,16 +91,16 @@ func (msg MsgSubmitCrossChainQueryResult) GetSigners() []sdk.AccAddress {
 }
 
 // Route implements sdk.Msg
-func (msg MsgSubmitCrossChainQueryResult) Route() string {
+func (q MsgSubmitCrossChainQueryResult) Route() string {
 	return RouterKey
 }
 
 // Type implements sdk.Msg
-func (msg MsgSubmitCrossChainQueryResult) Type() string {
+func (q MsgSubmitCrossChainQueryResult) Type() string {
 	return TypeMsgSubmitCrossChainQueryResult
 }
 
 // GetSignBytes implements sdk.Msg.
-func (msg MsgSubmitCrossChainQueryResult) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+func (q MsgSubmitCrossChainQueryResult) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&q))
 }

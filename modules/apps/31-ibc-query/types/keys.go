@@ -1,5 +1,7 @@
 package types
 
+import fmt "fmt"
+
 const (
 	// ModuleName defines the 31-ibc-query name
 	ModuleName = "queryibc"
@@ -12,6 +14,9 @@ const (
 
 	// QuerierRoute is the querier route for IBC query module
 	QuerierRoute = ModuleName
+
+	KeyNextQuerySequence = "nextQuerySequence"
+	QueryPrefix = "query-"
 )
 
 var (
@@ -20,3 +25,7 @@ var (
 	// QueryResultKey defines the key to store query result in store
 	QueryResultKey = []byte{0x02}
 )
+
+func FormatQueryIdentifier(sequence uint64) string {
+	return fmt.Sprintf("%s%d", QueryPrefix, sequence)
+}

@@ -33,6 +33,7 @@ const (
 	KeyChannelEndPrefix        = "channelEnds"
 	KeyChannelPrefix           = "channels"
 	KeyPortPrefix              = "ports"
+	KeyQueryPrefix             = "queries"
 	KeySequencePrefix          = "sequences"
 	KeyChannelCapabilityPrefix = "capabilities"
 	KeyNextSeqSendPrefix       = "nextSequenceSend"
@@ -216,6 +217,10 @@ func PacketReceiptPath(portID, channelID string, sequence uint64) string {
 // receipt is stored
 func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
 	return []byte(PacketReceiptPath(portID, channelID, sequence))
+}
+
+func QueryPath(queryID string) string {
+	return fmt.Sprintf("%s/%s", KeyQueryPrefix, queryID)
 }
 
 func channelPath(portID, channelID string) string {
