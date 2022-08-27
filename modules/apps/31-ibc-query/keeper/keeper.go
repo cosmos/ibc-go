@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types"
 	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 	"github.com/tendermint/tendermint/libs/log"
@@ -11,8 +12,9 @@ import (
 
 // Keeper define 31-ibc-query keeper
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      codec.BinaryCodec
+	storeKey       sdk.StoreKey
+	cdc            codec.BinaryCodec
+	scopedKeeper   capabilitykeeper.ScopedKeeper
 }
 
 // NewKeeper creates a new 31-ibc-query Keeper instance

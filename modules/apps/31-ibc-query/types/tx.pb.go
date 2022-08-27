@@ -37,7 +37,7 @@ type MsgSubmitCrossChainQuery struct {
 	QueryHeight        uint64 `protobuf:"varint,5,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
 	ClientId           string `protobuf:"bytes,6,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// sender address
-	Sender string `protobuf:"bytes,7,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender             string `protobuf:"bytes,7,opt,name=sender,json=sender,proto3" json:"sender,omitempty"`
 }
 
 func (m *MsgSubmitCrossChainQuery) Reset()         { *m = MsgSubmitCrossChainQuery{} }
@@ -75,6 +75,8 @@ var xxx_messageInfo_MsgSubmitCrossChainQuery proto.InternalMessageInfo
 
 // MsgSubmitCrossChainQueryResponse
 type MsgSubmitCrossChainQueryResponse struct {
+	Query  MsgSubmitCrossChainQuery  `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	Index  uint64                    `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty" yaml:"index"`
 }
 
 func (m *MsgSubmitCrossChainQueryResponse) Reset()         { *m = MsgSubmitCrossChainQueryResponse{} }

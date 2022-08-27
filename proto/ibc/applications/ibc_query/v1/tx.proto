@@ -27,11 +27,14 @@ message MsgSubmitCrossChainQuery {
   uint64 query_height         = 5;
   string client_id            = 6;
   // sender address
-  string sender = 7;
+  string sender               = 7;
 }
 
 // MsgSubmitCrossChainQueryResponse
-message MsgSubmitCrossChainQueryResponse {}
+message MsgSubmitCrossChainQueryResponse {
+  MsgSubmitCrossChainQuery query      = 1;
+  uint64                   cap_key    = 2;
+}
 
 // MsgSubmitCrossChainQueryResult
 message MsgSubmitCrossChainQueryResult {
