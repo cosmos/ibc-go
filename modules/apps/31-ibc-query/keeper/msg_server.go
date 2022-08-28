@@ -7,7 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/v4/modules/apps/31-ibc-query/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -24,14 +23,14 @@ func (k Keeper) SubmitCrossChainQuery(goCtx context.Context, msg *types.MsgSubmi
 	if !(msg.LocalTimeoutHeight == 0 || msg.LocalTimeoutHeight > currentHeight.RevisionHeight){
 		return nil, sdkerrors.Wrapf(
 			types.ErrInvalidTimeoutHeight,
-			"localTimeoutHeight is not 0 and current height >= localTimeoutHeight(%s >= %s)", currentHeight.RevisionHeight, msg.LocalTimeoutHeight,
+			"localTimeoutHeight is not 0 and current height >= localTimeoutHeight(%d >= %d)", currentHeight.RevisionHeight, msg.LocalTimeoutHeight,
 		)
 	}
 	// Sanity-check that localTimeoutTimestamp is 0 or greater than the current timestamp, otherwise the query will always time out.
 	if !(msg.LocalTimeoutStamp == 0 || msg.LocalTimeoutStamp > currentTimestamp){
 		return nil, sdkerrors.Wrapf(
 			types.ErrQuerytTimeout,
-			"localTimeoutTimestamp is not 0 and current timestamp >= localTimeoutTimestamp(%s >= %s)", currentTimestamp, msg.LocalTimeoutStamp,
+			"localTimeoutTimestamp is not 0 and current timestamp >= localTimeoutTimestamp(%d >= %d)", currentTimestamp, msg.LocalTimeoutStamp,
 		)
 	}
 
@@ -48,14 +47,10 @@ func (k Keeper) SubmitCrossChainQuery(goCtx context.Context, msg *types.MsgSubmi
 		Sender: msg.Sender,
 	}
 
-	k.SetQuery(ctx,query)
+	k.SetSubmitCrossChainQuery(ctx,query)
 
-
-	capKey, err := k.scopedKeeper.NewCapability(ctx, host.QueryPath(msg.Id))
-	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "could not create query capability for query ID %s ", msg.Id)
-	}
-	
+	//TODO
+	//Capablity 
 
 	// Log the query request
 	k.Logger(ctx).Info("query sent","query_id", msg.GetQueryId())
@@ -63,7 +58,7 @@ func (k Keeper) SubmitCrossChainQuery(goCtx context.Context, msg *types.MsgSubmi
 	// emit event 
 	EmitQueryEvent(ctx, msg)
 
-	return &types.MsgSubmitCrossChainQueryResponse{Query: query, Index: capKey.Index}, nil
+	return &types.MsgSubmitCrossChainQueryResponse{Query: query}, nil
 }
 
 // SubmitCrossChainQueryResult Handling SubmitCrossChainQueryResult transaction

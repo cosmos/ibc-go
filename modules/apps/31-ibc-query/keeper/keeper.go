@@ -18,10 +18,11 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new 31-ibc-query Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey,) Keeper {
 	return Keeper{
 		cdc:      cdc,
 		storeKey: key,
+
 	}
 }
 
@@ -56,20 +57,29 @@ func (k Keeper) SetNextQuerySequence(ctx sdk.Context, sequence uint64) {
 	store.Set([]byte(types.KeyNextQuerySequence), bz)
 }
 
-func (k Keeper) SetQuery(ctx sdk.Context, query types.MsgSubmitCrossChainQuery) string {
+func (k Keeper) SetSubmitCrossChainQuery(ctx sdk.Context, query types.MsgSubmitCrossChainQuery) string {
 	store := ctx.KVStore(k.storeKey)
-	appendedValue := k.cdc.MustMarshal(&query)
+    bz := k.cdc.MustMarshal(&query)
 
-	store.Set([]byte(host.QueryPath(query.Id)), appendedValue)
+	store.Set(host.QueryKey(query.Id), bz)
 
 	return query.Id
 }
 
+func (k Keeper) GetSubmitCrossChainQuery(ctx sdk.Context, queryId string) (types.MsgSubmitCrossChainQuery, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.QueryKey(queryId))
+	if bz == nil {
+		return types.MsgSubmitCrossChainQuery{}, false
+	}
 
-// TODO
-// func handleIbcQuery
-// 1. set unique query Id
-// 2. set query in private store
+	var query types.MsgSubmitCrossChainQuery
+	k.cdc.MustUnmarshal(bz, &query)
+
+	return query, true
+}
+
+
 
 // TODO
 // func handleIbcQueryResult
@@ -185,3 +195,6 @@ func (k Keeper) MustUnmarshalQueryResult(bz []byte) types.CrossChainQueryResult 
 	k.cdc.MustUnmarshal(bz, &result)
 	return result
 }
+
+
+

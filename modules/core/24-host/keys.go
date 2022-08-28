@@ -219,8 +219,14 @@ func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
 	return []byte(PacketReceiptPath(portID, channelID, sequence))
 }
 
+//ICS31
+
 func QueryPath(queryID string) string {
 	return fmt.Sprintf("%s/%s", KeyQueryPrefix, queryID)
+}
+
+func QueryKey(queryID string) []byte {
+	return []byte(QueryPath(queryID))
 }
 
 func channelPath(portID, channelID string) string {
