@@ -90,8 +90,8 @@ func (suite *KeeperTestSuite) TestSubmitCrossChainQueryResult() {
 
 		tc.malleate()
 
-		query := &types.CrossChainQuery{Id: "queryId"}
-		suite.chainA.GetSimApp().IBCQueryKeeper.SetCrossChainQuery(suite.chainA.GetContext(), query)
+		query := types.MsgSubmitCrossChainQuery{Id: "queryId"}
+		suite.chainA.GetSimApp().IBCQueryKeeper.SetSubmitCrossChainQuery(suite.chainA.GetContext(), query)
 
 		msg = types.NewMsgSubmitCrossChainQueryResult("queryId", result, data)
 		res, err := suite.chainA.GetSimApp().IBCQueryKeeper.SubmitCrossChainQueryResult(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)

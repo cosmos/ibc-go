@@ -50,7 +50,12 @@ func (k Keeper) SubmitCrossChainQuery(goCtx context.Context, msg *types.MsgSubmi
 	k.SetSubmitCrossChainQuery(ctx,query)
 
 	//TODO
-	//Capablity 
+	// Add Capability Key
+	// capKey, err := k.scopedKeeper.NewCapability(ctx,msg.Id)
+	// if err != nil {
+	// 	return nil, sdkerrors.Wrapf(err, "could not create query capability for query ID %s ", msg.Id)
+	// }
+	
 
 	// Log the query request
 	k.Logger(ctx).Info("query sent","query_id", msg.GetQueryId())
@@ -66,21 +71,21 @@ func (k Keeper) SubmitCrossChainQueryResult(goCtx context.Context, msg *types.Ms
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// check CrossChainQuery exist
-	if _, found := k.GetCrossChainQuery(ctx, msg.Id); !found {
+	if _, found := k.GetSubmitCrossChainQuery(ctx, msg.Id); !found {
 		return nil, types.ErrCrossChainQueryNotFound
 	}
 
 	// remove query from privateStore
-	k.DeleteCrossChainQuery(ctx, msg.Id)
+	k.DeleteSubmitCrossChainQuery(ctx, msg.Id)
 
-	queryResult := &types.CrossChainQueryResult{
+	queryResult := types.MsgSubmitCrossChainQueryResult{
 		Id:     msg.Id,
 		Result: msg.Result,
 		Data:   msg.Data,
 	}
 
 	// store result in privateStore
-	k.SetCrossChainQueryResult(ctx, queryResult)
+	k.SetSubmitCrossChainQueryResult(ctx, queryResult)
 
 	return &types.MsgSubmitCrossChainQueryResultResponse{}, nil
 }

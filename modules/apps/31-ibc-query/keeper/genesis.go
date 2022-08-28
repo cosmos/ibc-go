@@ -8,17 +8,17 @@ import (
 // InitGenesis initializes the application state from a provided genesis state
 func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, query := range state.Queries {
-		k.SetCrossChainQuery(ctx, query)
+		k.SetSubmitCrossChainQuery(ctx, *query)
 	}
 	for _, result := range state.Results {
-		k.SetCrossChainQueryResult(ctx, result)
+		k.SetSubmitCrossChainQueryResult(ctx, *result)
 	}
 }
 
 // ExportGenesis returns the application exported genesis
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		Queries: k.GetAllCrossChainQueries(ctx),
-		Results: k.GetAllCrossChainQueryResults(ctx),
+		Queries: k.GetAllSubmitCrossChainQueries(ctx),
+		Results: k.GetAllSubmitCrossChainQueryResults(ctx),
 	}
 }

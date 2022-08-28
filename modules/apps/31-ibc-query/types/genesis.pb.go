@@ -60,8 +60,8 @@ func (QueryResult) EnumDescriptor() ([]byte, []int) {
 
 // GenesisState defines the ICS31 ibc-query genesis state
 type GenesisState struct {
-	Queries []*CrossChainQuery       `protobuf:"bytes,1,rep,name=queries,proto3" json:"queries,omitempty"`
-	Results []*CrossChainQueryResult `protobuf:"bytes,2,rep,name=results,proto3" json:"results,omitempty"`
+	Queries []*MsgSubmitCrossChainQuery       `protobuf:"bytes,1,rep,name=queries,proto3" json:"queries,omitempty"`
+	Results []*MsgSubmitCrossChainQueryResult `protobuf:"bytes,2,rep,name=results,proto3" json:"results,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -97,14 +97,14 @@ func (m *GenesisState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 
-func (m *GenesisState) GetQueries() []*CrossChainQuery {
+func (m *GenesisState) GetQueries() []*MsgSubmitCrossChainQuery {
 	if m != nil {
 		return m.Queries
 	}
 	return nil
 }
 
-func (m *GenesisState) GetResults() []*CrossChainQueryResult {
+func (m *GenesisState) GetResults() []*MsgSubmitCrossChainQueryResult {
 	if m != nil {
 		return m.Results
 	}
@@ -600,7 +600,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Queries = append(m.Queries, &CrossChainQuery{})
+			m.Queries = append(m.Queries, &MsgSubmitCrossChainQuery{})
 			if err := m.Queries[len(m.Queries)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -634,7 +634,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Results = append(m.Results, &CrossChainQueryResult{})
+			m.Results = append(m.Results, &MsgSubmitCrossChainQueryResult{})
 			if err := m.Results[len(m.Results)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
