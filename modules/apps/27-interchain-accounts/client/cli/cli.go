@@ -28,7 +28,7 @@ func GetQueryCmd() *cobra.Command {
 // NewTxCmd returns the tx commands for the interchain-accounts submodule
 func NewTxCmd() *cobra.Command {
 	icaTxCmd := &cobra.Command{
-		Use:                        "interchain-accounts tx",
+		Use:                        "interchain-accounts",
 		Aliases:                    []string{"ica"},
 		Short:                      "interchain-accounts tx subcommands",
 		DisableFlagParsing:         true,

@@ -19,7 +19,7 @@ const (
 // NewTxCmd creates and returns the tx command
 func NewTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        "ica controller",
+		Use:                        "controller",
 		Short:                      "ica controller transactions subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
