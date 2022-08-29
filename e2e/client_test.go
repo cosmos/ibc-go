@@ -2,6 +2,8 @@ package e2e
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -42,6 +44,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	ctx := context.TODO()
 
 	var (
+		pathName           string
 		relayer            ibc.Relayer
 		subjectClientID    string
 		substituteClientID string
@@ -54,6 +57,10 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
+
+		// TODO: replace with better handling of path names
+		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
+		pathName = strings.ReplaceAll(pathName, "/", "-")
 	})
 
 	chainA, chainB := s.GetChains()
@@ -72,6 +79,10 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	})
 
 	time.Sleep(badTrustingPeriod)
+
+	t.Run("update substitute client", func(t *testing.T) {
+		s.UpdateClients(ctx, relayer, pathName)
+	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
