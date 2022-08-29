@@ -35,35 +35,29 @@ func NewTxCmd() *cobra.Command {
 
 func newRegisterAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "register",
+		Use:   "register [connection-id]",
+		Short: "Register account via connection end identifier on the controller chain",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			connectionID, err := cmd.Flags().GetString(flagConnectionID)
-			if err != nil {
-				return err
-			}
+			connectionID := args[0]
+			owner := clientCtx.GetFromAddress().String()
 			version, err := cmd.Flags().GetString(flagVersion)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgRegisterAccount(
-				connectionID,
-				clientCtx.GetFromAddress().String(),
-				version,
-			)
+			msg := types.NewMsgRegisterAccount(connectionID, owner, version)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd.Flags().String(flagConnectionID, "", "Connection ID")
-	cmd.Flags().String(flagVersion, "", "Version")
-	_ = cmd.MarkFlagRequired(flagConnectionID)
+	cmd.Flags().String(flagVersion, "", "Controller chain channel version")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
