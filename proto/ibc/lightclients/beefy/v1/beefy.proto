@@ -101,7 +101,7 @@ message SignedCommitment {
   repeated CommitmentSignature signatures = 2;
 }
 // data needed to update the client
-message MmrUpdateProof {
+message ClientStateUpdateProof {
   option (gogoproto.goproto_getters) = false;
   // the new mmr leaf SCALE encoded.
   BeefyMmrLeaf mmr_leaf = 1;
@@ -140,10 +140,19 @@ message Misbehaviour {
   Header header_2 = 3 [(gogoproto.customname) = "Header2", (gogoproto.moretags) = "yaml:\"header_2\""];
 }
 
-// Header contains the neccessary data to proove finality about IBC commitments
+// Header contains the neccessary data to prove finality about IBC commitments
 message Header {
   option (gogoproto.goproto_getters) = false;
 
+  // optional payload to update ConsensusState
+  ConsensusStateUpdateProof consensus_state = 1 [(gogoproto.nullable) = true];
+
+  // optional payload to update the ClientState.
+  ClientStateUpdateProof client_state = 2 [(gogoproto.nullable) = true];
+}
+
+/// Parachain headers and their mmr proofs. 
+message ConsensusStateUpdateProof {
   // parachain headers needed for proofs and ConsensusState
   repeated ParachainHeader parachain_headers = 1;
 
@@ -152,9 +161,6 @@ message Header {
 
   // size of the mmr for the given proof
   uint64 mmr_size = 3;
-
-  // optional payload to update the mmr root hash.
-  MmrUpdateProof mmr_update_proof = 4 [(gogoproto.nullable) = true];
 }
 
 // data needed to prove parachain header inclusion in mmr.
@@ -164,7 +170,7 @@ message ParachainHeader {
   // scale-encoded parachain header bytes
   bytes parachain_header = 1;
 
-  // see beefy-go spec
+  // see beefy spec
   BeefyMmrLeafPartial mmr_leaf_partial = 2;
 
   // proofs for our header in the parachain heads root
