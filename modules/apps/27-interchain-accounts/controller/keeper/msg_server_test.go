@@ -67,16 +67,15 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 
 		tc.malleate()
 
-		cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
-		res, err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterAccount(sdktypes.WrapSDKContext(cacheCtx), msg)
+		ctx := suite.chainA.GetContext()
+		res, err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterAccount(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
 			suite.Require().Equal(expectedChannelID, res.ChannelId)
 
-			writeCache()
-			events := cacheCtx.EventManager().Events()
+			events := ctx.EventManager().Events()
 			suite.Require().Len(events, 2)
 			suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
 			suite.Require().Equal(events[1].Type, sdktypes.EventTypeMessage)
