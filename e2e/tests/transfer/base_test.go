@@ -1,16 +1,14 @@
-package e2e
-
-/*
-The TransferTestSuite assumes both chainA and chainB support version ics20-1.
-*/
+package transfer
 
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
@@ -20,6 +18,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -36,6 +35,21 @@ func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosCh
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
+func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, chain ibc.Chain) bool {
+	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
+	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
+		Subspace: "transfer",
+		Key:      string(transfertypes.KeySendEnabled),
+	})
+	s.Require().NoError(err)
+
+	enabled, err := strconv.ParseBool(res.Param.Value)
+	s.Require().NoError(err)
+
+	return enabled
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -205,6 +219,56 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 		bal, err = s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.StartingTokenAmount, bal)
+	})
+}
+
+// TestSendEnabledParam tests changing ics20 SendEnabled parameter
+func (s *TransferTestSuite) TestSendEnabledParam() {
+	t := s.T()
+	ctx := context.TODO()
+
+	_, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	chainA, chainB := s.GetChains()
+
+	chainADenom := chainA.Config().Denom
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("ensure transfer sending is enabled", func(t *testing.T) {
+		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		s.Require().True(enabled)
+	})
+
+	t.Run("ensure packets can be sent", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
+	})
+
+	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
+		changes := []paramsproposaltypes.ParamChange{
+			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
+		}
+
+		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+	})
+
+	t.Run("ensure transfer params are disabled", func(t *testing.T) {
+		enabled := s.QueryTransferSendEnabledParam(ctx, chainA)
+		s.Require().False(enabled)
+	})
+
+	t.Run("ensure ics20 transfer fails", func(t *testing.T) {
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0)
+		s.Require().NoError(err)
+		s.Require().Equal(transfertypes.ErrSendDisabled.ABCICode(), transferTxResp.Code)
 	})
 }
 

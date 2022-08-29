@@ -11,7 +11,7 @@ on:
         type: choice
         options:
           - TestTransferTestSuite
-          - TestFeeMiddlewareTestSuite
+          - TestIncentivizedTransferTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
