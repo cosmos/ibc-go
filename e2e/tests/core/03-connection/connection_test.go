@@ -28,7 +28,7 @@ type ConnectionTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// QueryConnectionEnabledParam queries the on-chain connection enabled param for the connection module
+// QueryConnectionEnabledParam queries the on-chain connection enabled param for 03-connection
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
@@ -37,7 +37,7 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 	})
 	s.Require().NoError(err)
 
-	// TODO: investigate why Value is double wrapped in qoutes
+	// removing additional strings that are used for amino
 	delay := strings.ReplaceAll(res.Param.Value, "\"", "")
 	time, err := strconv.ParseUint(delay, 10, 64)
 	s.Require().NoError(err)
@@ -45,26 +45,27 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 	return time
 }
 
-// TestMaxExpectedTimePerBlock tests changing the MaxExpectedTimePerBlock param
+// TestMaxExpectedTimePerBlock tests changing the MaxExpectedTimePerBlock param using a governance proposal
 func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	t := s.T()
 	ctx := context.TODO()
 
 	_, _ = s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
 	chainA, chainB := s.GetChains()
-
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("ensure delay is currenly not set to 0", func(t *testing.T) {
-		delay := s.QueryMaxExpectedTimePerBlockParam(ctx, chainA)
-		s.Require().NotZero(delay)
+	t.Run("ensure delay is set to the default of 30 seconds", func(t *testing.T) {
+		expectedDelay := fmt.Sprintf("\"%d\"", 30*time.Second)
+		delay := fmt.Sprintf("\"%d\"", s.QueryMaxExpectedTimePerBlockParam(ctx, chainA))
+		s.Require().Equal(expectedDelay, delay)
 	})
 
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
+		delay := fmt.Sprintf("\"%d\"", 60*time.Second)
 		changes := []paramsproposaltypes.ParamChange{
-			paramsproposaltypes.NewParamChange(connectiontypes.StoreKey, string(connectiontypes.KeyMaxExpectedTimePerBlock), fmt.Sprint(60*time.Second)),
+			paramsproposaltypes.NewParamChange("ibc", string(connectiontypes.KeyMaxExpectedTimePerBlock), delay),
 		}
 
 		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
@@ -72,12 +73,12 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	})
 
 	t.Run("validate the param was successfully changed", func(t *testing.T) {
-		delay := s.QueryTransferSendEnabledParam(ctx, chainA)
-		s.Require().Equal(fmt.Sprint(60*time.Second), delay)
+		expectedDelay := fmt.Sprintf("\"%d\"", 60*time.Second)
+		delay := s.QueryMaxExpectedTimePerBlockParam(ctx, chainA)
+		s.Require().Equal(expectedDelay, fmt.Sprintf("\"%d\"", delay))
 	})
 }
 
-// TODO: remove
 // transferChannelOptions configures both of the chains to have non-incentivized transfer channels.
 func transferChannelOptions() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
