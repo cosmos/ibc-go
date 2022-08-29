@@ -1631,7 +1631,7 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 | `connection_id` | [string](#string) |  |  |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
 | `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
-| `msgs` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) | repeated |  |
+| `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  |  |
 
 
 
