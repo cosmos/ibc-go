@@ -188,7 +188,7 @@ func (s *E2ETestSuite) SetupClients(ctx context.Context, relayer ibc.Relayer, op
 	s.Require().NoError(err)
 }
 
-// UpdateClients updates clients on chainA and chainB using the provided create client options
+// UpdateClients updates clients on chainA and chainB
 func (s *E2ETestSuite) UpdateClients(ctx context.Context, relayer ibc.Relayer, pathName string) {
 	err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), pathName)
 	s.Require().NoError(err)
