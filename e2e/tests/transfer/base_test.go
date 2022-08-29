@@ -41,7 +41,7 @@ func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosCh
 func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, chain ibc.Chain) bool {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: "transfer",
+		Subspace: transfertypes.StoreKey,
 		Key:      string(transfertypes.KeySendEnabled),
 	})
 	s.Require().NoError(err)
@@ -56,7 +56,7 @@ func (s *TransferTestSuite) QueryTransferSendEnabledParam(ctx context.Context, c
 func (s *TransferTestSuite) QueryTransferReceiveEnabledParam(ctx context.Context, chain ibc.Chain) bool {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: "transfer",
+		Subspace: transfertypes.StoreKey,
 		Key:      string(transfertypes.KeyReceiveEnabled),
 	})
 	s.Require().NoError(err)
