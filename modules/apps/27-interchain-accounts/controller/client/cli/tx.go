@@ -10,8 +10,6 @@ import (
 )
 
 const (
-	// The connection end identifier on the controller chain
-	flagConnectionID = "connection-id"
 	// The controller chain channel version
 	flagVersion = "version"
 )
