@@ -68,7 +68,7 @@ export CHAIN_BINARY="simd"
 # export CHAIN_B_TAG="main"
 # export CHAIN_BINARY="icad"
 
-export RLY_TAG="v2.0.0-rc2"
+export RLY_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
