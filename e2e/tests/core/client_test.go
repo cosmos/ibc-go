@@ -52,7 +52,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
