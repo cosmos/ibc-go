@@ -1644,6 +1644,11 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 MsgSubmitTxResponse defines the response for MsgSubmitTx
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  |  |
+
+
 
 
 
