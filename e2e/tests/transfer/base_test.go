@@ -1,8 +1,4 @@
-package e2e
-
-/*
-The TransferTestSuite assumes both chainA and chainB support version ics20-1.
-*/
+package transfer
 
 import (
 	"context"
@@ -270,7 +266,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 		s.AssertValidTxResponse(transferTxResp)
 	})
 
-	t.Run("change send enabled parameter to disabled ", func(t *testing.T) {
+	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
 		changes := []paramsproposaltypes.ParamChange{
 			paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
 		}
