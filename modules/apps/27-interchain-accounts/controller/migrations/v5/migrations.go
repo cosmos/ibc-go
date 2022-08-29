@@ -47,13 +47,16 @@ func MigrateICS27ChannelCapability(
 		owners.Remove(prevOwner)
 		prefixStore.Delete(iterator.Key())
 
-		// add the controller submodule to the set of owners and initialise the capability
+		// add the controller submodule to the set of owners
 		if err := owners.Set(newOwner); err != nil {
 			return err
 		}
 
+		// set the new owners for the appropriate capability index
 		capabilityKeeper.SetOwners(ctx, index, owners)
-		capabilityKeeper.InitializeCapability(ctx, index, owners)
+
+		// initialise the x/capability memstore
+		capabilityKeeper.InitMemStore(ctx)
 	}
 
 	return nil

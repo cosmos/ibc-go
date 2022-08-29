@@ -107,6 +107,11 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
 
+	// manually delete the `KeyMemInitialised` from the x/capability memstore
+	// this allows capabilityKeeper.InitMemStore(ctx) to re-initialise capabilities
+	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey))
+	memStore.Delete(capabilitytypes.KeyMemInitialized)
+
 	err = v5.MigrateICS27ChannelCapability(
 		suite.chainA.GetContext(),
 		suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey),
