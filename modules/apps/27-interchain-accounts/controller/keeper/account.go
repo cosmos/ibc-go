@@ -60,6 +60,6 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, owner, 
 	if !ok {
 		return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "failed to covert %T message response to %T", firstMsgResponse.GetCachedValue(), &channeltypes.MsgChannelOpenInitResponse{})
 	}
-	
+
 	return channelOpenInitResponse.ChannelId, nil
 }
