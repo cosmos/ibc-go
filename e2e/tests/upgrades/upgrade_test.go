@@ -2,13 +2,15 @@ package upgrades
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/strangelove-ventures/ibctest/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
@@ -17,7 +19,7 @@ import (
 )
 
 const (
-	haltHeight         = uint64(100)
+	haltHeight         = uint64(50)
 	blocksAfterUpgrade = uint64(10)
 )
 
@@ -29,54 +31,58 @@ type UpgradeTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *UpgradeTestSuite) TestChainUpgrade() {
+// UpgradeChain upgrades a chain to a specific version using the planName provided.
+// The software upgrade proposal is broadcast by the provided wallet.
+func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet *ibc.Wallet, planName, upgradeVersion string) {
+	plan := upgradetypes.Plan{
+		Name:   planName,
+		Height: int64(haltHeight),
+		Info:   fmt.Sprintf("upgrade test from %s to version %s", chain.Nodes()[0].Image.Version, upgradeVersion),
+	}
+	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal("some title", "some description", plan)
+	s.ExecuteGovProposal(ctx, chain, wallet, upgradeProposal)
+
+	height, err := chain.Height(ctx)
+	s.Require().NoError(err, "error fetching height before upgrade")
+
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
+	defer timeoutCtxCancel()
+
+	err = test.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, chain)
+	s.Require().Error(err, "chain did not halt at halt height")
+
+	err = chain.StopAllNodes(ctx)
+	s.Require().NoError(err, "error stopping node(s)")
+
+	chain.UpgradeVersion(ctx, s.DockerClient, upgradeVersion)
+
+	err = chain.StartAllNodes(ctx)
+	s.Require().NoError(err, "error starting upgraded node(s)")
+
+	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
+	defer timeoutCtxCancel()
+
+	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
+	s.Require().NoError(err, "chain did not produce blocks after upgrade")
+
+	height, err = chain.Height(ctx)
+	s.Require().NoError(err, "error fetching height after upgrade")
+
+	s.Require().GreaterOrEqual(height, haltHeight+blocksAfterUpgrade, "height did not increment enough after upgrade")
+}
+
+func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	// TODO: temporarily hard code the version upgrades.
-	oldVersion := "v5.0.0-rc0"
+	oldVersion := "v4.0.0"
+	targetVersion := "pr-2144" // v5 version with upgrade handler, replace with v5.0.0-rc3 when it is cut.
 	s.Require().NoError(os.Setenv(testconfig.ChainATagEnv, oldVersion))
 	s.Require().NoError(os.Setenv(testconfig.ChainBTagEnv, oldVersion))
-	upgradeVersion := "v5.0.0-rc1"
 
-	t := s.T()
 	ctx := context.Background()
 
 	s.SetupChainsRelayerAndChannel(ctx)
 	chainA, _ := s.GetChains()
 
 	chainAUser := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-
-	plan := upgradetypes.Plan{
-		Name:   "some-plan",
-		Height: int64(haltHeight),
-		Info:   "some info",
-	}
-	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal("some title", "some description", plan)
-	s.ExecuteGovProposal(ctx, chainA, chainAUser, upgradeProposal)
-
-	height, err := chainA.Height(ctx)
-	require.NoError(t, err, "error fetching height before upgrade")
-
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
-	defer timeoutCtxCancel()
-
-	err = test.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, chainA)
-	require.Error(t, err, "chain did not halt at halt height")
-
-	err = chainA.StopAllNodes(ctx)
-	s.Require().NoError(err, "error stopping node(s)")
-
-	chainA.UpgradeVersion(ctx, s.DockerClient, upgradeVersion)
-
-	err = chainA.StartAllNodes(ctx)
-	s.Require().NoError(err, "error starting upgraded node(s)")
-
-	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
-	defer timeoutCtxCancel()
-
-	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chainA)
-	s.Require().NoError(err, "chain did not produce blocks after upgrade")
-
-	height, err = chainA.Height(ctx)
-	s.Require().NoError(err, "error fetching height after upgrade")
-
-	s.Require().GreaterOrEqual(height, haltHeight+blocksAfterUpgrade, "height did not increment enough after upgrade")
+	s.UpgradeChain(ctx, chainA, chainAUser, "normal upgrade", targetVersion)
 }

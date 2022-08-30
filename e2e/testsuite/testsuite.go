@@ -176,7 +176,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguratio
 		opt(&chainOptions)
 	}
 
-	chainA, chainB := s.CreateCosmosChains(chainOptions)
+	chainA, chainB := s.createCosmosChains(chainOptions)
 	path = newPath(chainA, chainB)
 	s.paths[s.T().Name()] = path
 
@@ -345,9 +345,9 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.Co
 	s.Require().Empty(commitment)
 }
 
-// CreateCosmosChains creates two separate chains in docker containers.
+// createCosmosChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
-func (s *E2ETestSuite) CreateCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
+func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
 	client, network := ibctest.DockerSetup(s.T())
 
 	s.logger = zap.NewExample()
@@ -357,10 +357,6 @@ func (s *E2ETestSuite) CreateCosmosChains(chainOptions testconfig.ChainOptions) 
 	logger := zaptest.NewLogger(s.T())
 
 	numValidators, numFullNodes := getValidatorsAndFullNodes(chainOptions)
-
-	// TODO: temporary for this branch
-	numValidators = 1
-	numFullNodes = 0
 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
