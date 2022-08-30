@@ -72,8 +72,6 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
-	time.Sleep(100 * time.Hour)
-
 	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chainA)
 	s.Require().NoError(err, "chain did not produce blocks after upgrade")
 
