@@ -89,9 +89,17 @@
   
     - [Query](#ibc.applications.interchain_accounts.controller.v1.Query)
   
+- [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
+    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
+    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
+  
+    - [Type](#ibc.applications.interchain_accounts.v1.Type)
+  
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
     - [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount)
     - [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse)
+    - [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx)
+    - [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse)
   
     - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
   
@@ -116,12 +124,6 @@
   
 - [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
     - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
-  
-- [ibc/applications/interchain_accounts/v1/packet.proto](#ibc/applications/interchain_accounts/v1/packet.proto)
-    - [CosmosTx](#ibc.applications.interchain_accounts.v1.CosmosTx)
-    - [InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData)
-  
-    - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
@@ -1510,6 +1512,67 @@ Query provides defines the gRPC querier service.
 
 
 
+<a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/packet.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
+
+### CosmosTx
+CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
+
+### InterchainAccountPacketData
+InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `memo` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="ibc.applications.interchain_accounts.v1.Type"></a>
+
+### Type
+Type defines a classification of message issued from a controller chain to its associated interchain accounts
+host
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
+| TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/applications/interchain_accounts/controller/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -1548,6 +1611,40 @@ MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
 
 
 
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx"></a>
+
+### MsgSubmitTx
+MsgSubmitTx defines the payload for MsgSubmitTx
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
+| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
+| `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse"></a>
+
+### MsgSubmitTxResponse
+MsgSubmitTxResponse defines the response for MsgSubmitTx
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  |  |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -1563,6 +1660,7 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
+| `SubmitTx` | [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx) | [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse) | SubmitTx defines a rpc handler for MsgSubmitTx. | |
 
  <!-- end services -->
 
@@ -1814,67 +1912,6 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 
 
  <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/interchain_accounts/v1/packet.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/interchain_accounts/v1/packet.proto
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.CosmosTx"></a>
-
-### CosmosTx
-CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.v1.InterchainAccountPacketData"></a>
-
-### InterchainAccountPacketData
-InterchainAccountPacketData is comprised of a raw transaction, type of transaction and optional memo field.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `type` | [Type](#ibc.applications.interchain_accounts.v1.Type) |  |  |
-| `data` | [bytes](#bytes) |  |  |
-| `memo` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
-
-<a name="ibc.applications.interchain_accounts.v1.Type"></a>
-
-### Type
-Type defines a classification of message issued from a controller chain to its associated interchain accounts
-host
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| TYPE_UNSPECIFIED | 0 | Default zero value enumeration |
-| TYPE_EXECUTE_TX | 1 | Execute a transaction on an interchain accounts host chain |
-
 
  <!-- end enums -->
 

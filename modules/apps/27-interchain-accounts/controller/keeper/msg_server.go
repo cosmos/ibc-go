@@ -23,3 +23,8 @@ func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAcc
 		ChannelId: channelID,
 	}, nil
 }
+
+// SubmitTx defines a rpc handler for MsgSubmitTx
+func (k Keeper) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
+	return &types.MsgSubmitTxResponse{}, nil
+}
