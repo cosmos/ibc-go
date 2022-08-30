@@ -34,7 +34,7 @@ func MigrateICS27ChannelCapability(
 
 		for _, owner := range owners.GetOwners() {
 			if owner.Module == module {
-				// remove the existing module owners
+				// remove the owner from the set
 				owners.Remove(owner)
 
 				// reassign the owner module to icacontroller
