@@ -86,14 +86,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 					return "", fmt.Errorf("incorrect mock version")
 				}
 
-				if err := suite.chainA.GetSimApp().FeeMockModule.IBCApp.ScopedKeeper.ClaimCapability(
-					suite.chainA.GetContext(),
-					chanCap,
-					host.ChannelCapabilityPath(portID, channelID),
-				); err != nil {
-					return "", err
-				}
-
 				return ibcmock.Version, nil
 			}
 
@@ -190,14 +182,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			) (string, error) {
 				if counterpartyVersion != ibcmock.Version {
 					return "", fmt.Errorf("incorrect mock version")
-				}
-
-				if err := suite.chainA.GetSimApp().FeeMockModule.IBCApp.ScopedKeeper.ClaimCapability(
-					suite.chainA.GetContext(),
-					chanCap,
-					host.ChannelCapabilityPath(portID, channelID),
-				); err != nil {
-					return "", err
 				}
 
 				return ibcmock.Version, nil
@@ -377,25 +361,6 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			suite.coordinator.Setup(suite.path) // setup channel
-
-			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-				portID, channelID string, chanCap *capabilitytypes.Capability,
-				counterparty channeltypes.Counterparty, version string,
-			) (string, error) {
-				if version != ibcmock.Version {
-					return "", fmt.Errorf("incorrect mock version")
-				}
-
-				if err := suite.chainA.GetSimApp().FeeMockModule.IBCApp.ScopedKeeper.ClaimCapability(
-					suite.chainA.GetContext(),
-					chanCap,
-					host.ChannelCapabilityPath(portID, channelID),
-				); err != nil {
-					return "", err
-				}
-
-				return ibcmock.Version, nil
-			}
 
 			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
