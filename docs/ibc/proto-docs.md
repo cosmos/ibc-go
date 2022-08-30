@@ -91,12 +91,6 @@
     - [CosmosResponse](#ibc.applications.icq.v1.CosmosResponse)
     - [InterchainQueryPacketAck](#ibc.applications.icq.v1.InterchainQueryPacketAck)
     - [InterchainQueryPacketData](#ibc.applications.icq.v1.InterchainQueryPacketData)
-
-- [ibc/applications/icq/v1/tx.proto](#ibc/applications/icq/v1/tx.proto)
-    - [MsgQuery](#ibc.applications.icq.v1.MsgQuery)
-    - [MsgQueryResponse](#ibc.applications.icq.v1.MsgQueryResponse)
-
-    - [Msg](#ibc.applications.icq.v1.Msg)
   
 - [ibc/applications/interchain_accounts/controller/v1/controller.proto](#ibc/applications/interchain_accounts/controller/v1/controller.proto)
     - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
@@ -1581,62 +1575,6 @@ InterchainQueryPacketData is comprised of raw query.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-<a name="ibc/applications/icq/v1/tx.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/icq/v1/tx.proto
-
-
-
-<a name="ibc.applications.icq.v1.MsgQuery"></a>
-
-### MsgQuery
-MsgQuery defines a msg to send queries between
-ICQ enabled chains.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `source_port` | [string](#string) |  | the port on which the packet will be sent |
-| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
-| `requests` | [tendermint.abci.RequestQuery](#tendermint.abci.RequestQuery) | repeated | query reqeusts |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
-| `signer` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.applications.icq.v1.MsgQueryResponse"></a>
-
-### MsgQueryResponse
-MsgQueryResponse defines the MsgQuery response type.
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="ibc.applications.icq.v1.Msg"></a>
-
-### Msg
-Msg defines the ibc/icq Msg service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Query` | [MsgQuery](#ibc.applications.icq.v1.MsgQuery) | [MsgQueryResponse](#ibc.applications.icq.v1.MsgQueryResponse) | Query defines a rpc handler method for MsgQuery. | |
 
  <!-- end services -->
 
