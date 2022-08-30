@@ -34,7 +34,7 @@ func NewTxCmd() *cobra.Command {
 func newRegisterAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register [connection-id]",
-		Short: "Register account via connection end identifier on the controller chain",
+		Short: "Register an interchain account on the provided connection.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
