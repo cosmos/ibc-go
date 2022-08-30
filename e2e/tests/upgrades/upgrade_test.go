@@ -34,12 +34,13 @@ type UpgradeTestSuite struct {
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
 // The software upgrade proposal is broadcast by the provided wallet.
 func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet *ibc.Wallet, planName, upgradeVersion string) {
+	prevVersion := chain.Nodes()[0].Image.Version
 	plan := upgradetypes.Plan{
 		Name:   planName,
 		Height: int64(haltHeight),
-		Info:   fmt.Sprintf("upgrade version test from %s to %s", chain.Nodes()[0].Image.Version, upgradeVersion),
+		Info:   fmt.Sprintf("upgrade version test from %s to %s", prevVersion, upgradeVersion),
 	}
-	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal("some title", "some description", plan)
+	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", prevVersion, upgradeVersion), "upgrade chain E2E test", plan)
 	s.ExecuteGovProposal(ctx, chain, wallet, upgradeProposal)
 
 	height, err := chain.Height(ctx)
