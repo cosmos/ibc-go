@@ -165,8 +165,8 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 		}
 
 		msg = types.NewMsgSubmitTx(
-			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
+			ibctesting.FirstConnectionID,
 			clienttypes.ZeroHeight(),
 			100000,
 			packetData,
@@ -202,8 +202,8 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 	}
 
 	msg := types.NewMsgSubmitTx(
-		ibctesting.FirstConnectionID,
 		ibctesting.TestAccAddress,
+		ibctesting.FirstConnectionID,
 		clienttypes.ZeroHeight(),
 		100000,
 		packetData,
