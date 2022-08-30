@@ -48,7 +48,7 @@ jobs:
       - name: Run e2e Test
         env:
           # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-          RLY_TAG: "v2.0.0-rc2"
+          RLY_TAG: "v2.0.0"
         run: |
           cd e2e
           make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
