@@ -49,7 +49,7 @@ type E2ETestSuite struct {
 	paths          map[string]path
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
-	Network        string
+	network        string
 	startRelayerFn func(relayer ibc.Relayer)
 }
 
@@ -109,7 +109,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...testcon
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.Network)
+	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
 	pathName := fmt.Sprintf("%s-path", s.T().Name())
 	pathName = strings.ReplaceAll(pathName, "/", "-")
@@ -134,7 +134,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	s.Require().NoError(ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
 		TestName:          s.T().Name(),
 		Client:            s.DockerClient,
-		NetworkID:         s.Network,
+		NetworkID:         s.network,
 		CreateChannelOpts: channelOptions,
 	}))
 
@@ -353,7 +353,7 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	s.logger = zap.NewExample()
 	s.DockerClient = client
-	s.Network = network
+	s.network = network
 
 	logger := zaptest.NewLogger(s.T())
 
