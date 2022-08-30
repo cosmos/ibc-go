@@ -78,7 +78,7 @@ func (msg MsgSubmitTx) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidTimeout, "msg timeout height and msg timeout timestamp cannot both be 0")
 	}
 
-	if len(msg.Msgs) == 0 {
+	if len(msg.PacketData.Data) == 0 {
 		return sdkerrors.Wrap(ErrEmptyMsgs, "interchain accounts data packets array cannot be empty")
 	}
 
