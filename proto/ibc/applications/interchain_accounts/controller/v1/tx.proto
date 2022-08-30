@@ -5,11 +5,15 @@ package ibc.applications.interchain_accounts.controller.v1;
 option go_package = "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types";
 
 import "gogoproto/gogo.proto";
+import "ibc/core/client/v1/client.proto";
+import "ibc/applications/interchain_accounts/v1/packet.proto";
 
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
   // RegisterAccount defines a rpc handler for MsgRegisterAccount.
   rpc RegisterAccount(MsgRegisterAccount) returns (MsgRegisterAccountResponse);
+  // SubmitTx defines a rpc handler for MsgSubmitTx.
+  rpc SubmitTx(MsgSubmitTx) returns (MsgSubmitTxResponse);
 }
 
 // MsgRegisterAccount defines the payload for Msg/RegisterAccount
@@ -25,4 +29,27 @@ message MsgRegisterAccount {
 // MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
 message MsgRegisterAccountResponse {
   string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
+}
+
+// MsgSubmitTx defines the payload for MsgSubmitTx
+message MsgSubmitTx {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner         = 1;
+  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  ibc.core.client.v1.Height timeout_height = 3
+      [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64 timeout_timestamp = 4 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
+  ibc.applications.interchain_accounts.v1.InterchainAccountPacketData packet_data = 5
+      [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
+}
+
+// MsgSubmitTxResponse defines the response for MsgSubmitTx
+message MsgSubmitTxResponse {
+  uint64 sequence = 1;
 }
