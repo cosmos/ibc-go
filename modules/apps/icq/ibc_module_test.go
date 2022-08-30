@@ -60,7 +60,7 @@ func NewICQPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	return path
 }
 
-// SetupICQPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
+// SetupICQPath invokes the ICQ entrypoint and subsequent channel handshake handlers
 func SetupICQPath(path *ibctesting.Path) error {
 	if err := path.EndpointA.ChanOpenInit(); err != nil {
 		return err
