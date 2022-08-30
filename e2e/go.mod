@@ -9,7 +9,7 @@ require (
 	github.com/cosmos/ibc-go/v5 v5.0.0-beta1
 	github.com/cosmos/interchain-accounts v0.3.1-0.20220816085955-393d8444c111
 	github.com/docker/docker v20.10.17+incompatible
-	github.com/strangelove-ventures/ibctest v0.0.0-20220824150312-9d02bdb119b0
+	github.com/strangelove-ventures/ibctest v0.0.0-20220824180329-f73a9f936fce
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/tendermint v0.34.20
 	go.uber.org/zap v1.21.0
