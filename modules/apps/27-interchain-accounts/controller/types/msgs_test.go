@@ -142,7 +142,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 		{
 			"messages array is empty",
 			func() {
-				msg.Msgs = []*icatypes.InterchainAccountPacketData{}
+				msg.PacketData = icatypes.InterchainAccountPacketData{}
 			},
 			false,
 		},
@@ -159,7 +159,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []sdk.Msg{msgBankSend})
 		require.NoError(t, err)
 
-		packetData := &icatypes.InterchainAccountPacketData{
+		packetData := icatypes.InterchainAccountPacketData{
 			Type: icatypes.EXECUTE_TX,
 			Data: data,
 		}
@@ -169,9 +169,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 			ibctesting.TestAccAddress,
 			clienttypes.ZeroHeight(),
 			100000,
-			[]*icatypes.InterchainAccountPacketData{
-				packetData,
-			},
+			packetData,
 		)
 
 		tc.malleate()
@@ -198,7 +196,7 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []sdk.Msg{msgBankSend})
 	require.NoError(t, err)
 
-	packetData := &icatypes.InterchainAccountPacketData{
+	packetData := icatypes.InterchainAccountPacketData{
 		Type: icatypes.EXECUTE_TX,
 		Data: data,
 	}
@@ -208,9 +206,7 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 		ibctesting.TestAccAddress,
 		clienttypes.ZeroHeight(),
 		100000,
-		[]*icatypes.InterchainAccountPacketData{
-			packetData,
-		},
+		packetData,
 	)
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }

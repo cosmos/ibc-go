@@ -8,6 +8,7 @@ import (
 
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	channelerrors "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
@@ -75,10 +76,10 @@ func (msg MsgSubmitTx) ValidateBasic() error {
 	}
 
 	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
-		return sdkerrors.Wrap(ErrInvalidTimeout, "msg timeout height and msg timeout timestamp cannot both be 0")
+		return sdkerrors.Wrap(channelerrors.ErrInvalidTimeout, "msg timeout height and msg timeout timestamp cannot both be 0")
 	}
 
-	if len(msg.PacketData.Data) == 0 {
+	if err := msg.PacketData.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(ErrEmptyMsgs, "interchain accounts data packets array cannot be empty")
 	}
 
