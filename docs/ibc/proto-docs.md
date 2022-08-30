@@ -1615,92 +1615,6 @@ MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
 | `channel_id` | [string](#string) |  |  |
 
 
-
-
-
-
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx"></a>
-
-### MsgSubmitTx
-MsgSubmitTx defines the payload for MsgSubmitTx
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `owner` | [string](#string) |  |  |
-| `connection_id` | [string](#string) |  |  |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
-| `msgs` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse"></a>
-
-### MsgSubmitTxResponse
-MsgSubmitTxResponse defines the response for MsgSubmitTx
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="ibc.applications.interchain_accounts.controller.v1.Msg"></a>
-
-### Msg
-Msg defines the 27-interchain-accounts/controller Msg service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
-| `SubmitTx` | [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx) | [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse) | SubmitTx defines a rpc handler for MsgSubmitTx. | |
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/interchain_accounts/host/v1/host.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/interchain_accounts/host/v1/host.proto
-
-
-
-<a name="ibc.applications.interchain_accounts.host.v1.Params"></a>
-
-### Params
-Params defines the set of on-chain interchain accounts parameters.
-The following parameters may be used to disable the host submodule.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `host_enabled` | [bool](#bool) |  | host_enabled enables or disables the host submodule. |
-| `allow_messages` | [string](#string) | repeated | allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain. |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ibc/applications/interchain_accounts/genesis/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -1730,6 +1644,7 @@ ActiveChannel contains a connection ID, port ID and associated active channel ID
 ### ControllerGenesisState
 ControllerGenesisState defines the interchain accounts controller genesis state
 
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse"></a>
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1788,6 +1703,89 @@ RegisteredInterchainAccount contains a connection ID, port ID and associated int
 | `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `account_address` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/host/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/host/v1/query.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.interchain_accounts.host.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse) | Params queries all parameters of the ICA host submodule. | GET|/ibc/apps/interchain_accounts/host/v1/params|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/v1/account.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/v1/account.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.v1.InterchainAccount"></a>
+
+### InterchainAccount
+An InterchainAccount is defined as a BaseAccount & the address of the account owner on the controller chain
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
+| `account_owner` | [string](#string) |  |  |
 
 
 
