@@ -104,7 +104,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			var request abci.RequestQuery
-			if err := json.Unmarshal([]byte(requestData), request); err != nil {
+			if err := json.Unmarshal([]byte(requestData), &request); err != nil {
 				return err
 			}
 			msg := types.NewMsgQuery(
