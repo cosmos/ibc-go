@@ -10,6 +10,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
@@ -41,6 +42,13 @@ func (im IBCModule) OnChanOpenInit(
 		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 	}
 
+	if chanCap != nil {
+		// Claim channel capability passed back by IBC module
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return "", err
+		}
+	}
+
 	return version, nil
 }
 
@@ -51,6 +59,13 @@ func (im IBCModule) OnChanOpenTry(
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
 		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	}
+
+	if chanCap != nil {
+		// Claim channel capability passed back by IBC module
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return "", err
+		}
 	}
 
 	return Version, nil
