@@ -40,7 +40,7 @@ on:
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true
-        default: "v2.0.0-rc2"
+        default: "v2.0.0"
         type: string
 
 
