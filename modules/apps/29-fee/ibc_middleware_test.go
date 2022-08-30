@@ -85,7 +85,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				if version != ibcmock.Version {
 					return "", fmt.Errorf("incorrect mock version")
 				}
-
 				return ibcmock.Version, nil
 			}
 
@@ -183,7 +182,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				if counterpartyVersion != ibcmock.Version {
 					return "", fmt.Errorf("incorrect mock version")
 				}
-
 				return ibcmock.Version, nil
 			}
 
