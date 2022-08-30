@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package ibc.applications.icq.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v3/modules/apps/icq/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "ibc/core/client/v1/client.proto";
+import "tendermint/abci/types.proto";
+
+// Msg defines the ibc/icq Msg service.
+service Msg {
+  // Query defines a rpc handler method for MsgQuery.
+  rpc Query(MsgQuery) returns (MsgQueryResponse);
+}
+
+// MsgQuery defines a msg to send queries between
+// ICQ enabled chains. 
+message MsgQuery {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // the port on which the packet will be sent
+  string source_port = 1 [(gogoproto.moretags) = "yaml:\"source_port\""];
+  // the channel by which the packet will be sent
+  string source_channel = 2 [(gogoproto.moretags) = "yaml:\"source_channel\""];
+  // query reqeusts
+  repeated tendermint.abci.RequestQuery requests = 3 [(gogoproto.nullable) = false];
+  // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  ibc.core.client.v1.Height timeout_height = 4
+      [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64 timeout_timestamp = 5 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
+  string signer = 6;
+}
+
+// MsgQueryResponse defines the MsgQuery response type.
+message MsgQueryResponse {}
