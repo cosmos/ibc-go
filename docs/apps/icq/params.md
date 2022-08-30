@@ -4,7 +4,7 @@ order: 3
 
 # Parameters
 
-The IBC transfer application module contains the following parameters:
+The ICQ application module contains the following parameters:
 
 | Key              | Type     | Default Value |
 |------------------|----------|---------------|
