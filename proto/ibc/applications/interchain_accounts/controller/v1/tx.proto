@@ -44,8 +44,9 @@ message MsgSubmitTx {
       [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
   // Timeout timestamp in absolute nanoseconds since unix epoch.
   // The timeout is disabled when set to 0.
-  uint64 timeout_timestamp = 4 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\"", (gogoproto.nullable) = false];
-  ibc.applications.interchain_accounts.v1.InterchainAccountPacketData packet_data = 5 [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
+  uint64 timeout_timestamp = 4 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
+  ibc.applications.interchain_accounts.v1.InterchainAccountPacketData packet_data = 5
+      [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
 }
 
 // MsgSubmitTxResponse defines the response for MsgSubmitTx
