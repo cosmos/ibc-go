@@ -51,6 +51,7 @@ var (
 
 	TestAccAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	TestCoins      = sdk.NewCoins(TestCoin)
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
