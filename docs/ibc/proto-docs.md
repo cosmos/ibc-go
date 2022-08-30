@@ -1631,7 +1631,7 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 | `connection_id` | [string](#string) |  |  |
 | `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
 | `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
-| `msgs` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) | repeated |  |
+| `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  |  |
 
 
 
@@ -1642,6 +1642,11 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 
 ### MsgSubmitTxResponse
 MsgSubmitTxResponse defines the response for MsgSubmitTx
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  |  |
 
 
 
@@ -1753,7 +1758,6 @@ GenesisState defines the interchain accounts genesis state
 | ----- | ---- | ----- | ----------- |
 | `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v1.ControllerGenesisState) |  |  |
 | `host_genesis_state` | [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState) |  |  |
-
 
 
 

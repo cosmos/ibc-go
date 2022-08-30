@@ -50,13 +50,13 @@ func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgSubmitTx creates a new instance of MsgSubmitTx
-func NewMsgSubmitTx(connectionID, owner string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, msgs []*icatypes.InterchainAccountPacketData) *MsgSubmitTx {
+func NewMsgSubmitTx(owner, connectionID string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData icatypes.InterchainAccountPacketData) *MsgSubmitTx {
 	return &MsgSubmitTx{
 		ConnectionId:     connectionID,
 		Owner:            owner,
 		TimeoutHeight:    timeoutHeight,
 		TimeoutTimestamp: timeoutTimestamp,
-		Msgs:             msgs,
+		PacketData:       packetData,
 	}
 }
 
