@@ -135,6 +135,20 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			"success", func() {}, true,
 		},
 		{
+			"ICA auth module does not claim channel capability", func() {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					if chanCap != nil {
+						return "", fmt.Errorf("channel capability should be nil")
+					}
+
+					return version, nil
+				}
+			}, true,
+		},
+		{
 			"ICA auth module modification of channel version is ignored", func() {
 				// NOTE: explicitly modify the channel version via the auth module callback,
 				// ensuring the expected JSON encoded metadata is not modified upon return

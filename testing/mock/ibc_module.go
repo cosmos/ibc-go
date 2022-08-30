@@ -42,9 +42,11 @@ func (im IBCModule) OnChanOpenInit(
 		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 	}
 
-	// Claim channel capability passed back by IBC module
-	if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", err
+	if chanCap != nil {
+		// Claim channel capability passed back by IBC module
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return "", err
+		}
 	}
 
 	return version, nil
@@ -59,9 +61,11 @@ func (im IBCModule) OnChanOpenTry(
 		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
 	}
 
-	// Claim channel capability passed back by IBC module
-	if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", err
+	if chanCap != nil {
+		// Claim channel capability passed back by IBC module
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+			return "", err
+		}
 	}
 
 	return Version, nil
