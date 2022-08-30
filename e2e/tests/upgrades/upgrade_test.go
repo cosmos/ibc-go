@@ -37,7 +37,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	plan := upgradetypes.Plan{
 		Name:   planName,
 		Height: int64(haltHeight),
-		Info:   fmt.Sprintf("upgrade test from %s to version %s", chain.Nodes()[0].Image.Version, upgradeVersion),
+		Info:   fmt.Sprintf("upgrade version test from %s to %s", chain.Nodes()[0].Image.Version, upgradeVersion),
 	}
 	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal("some title", "some description", plan)
 	s.ExecuteGovProposal(ctx, chain, wallet, upgradeProposal)
