@@ -107,14 +107,12 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
 
-	// manually delete the `KeyMemInitialised` from the x/capability memstore
-	// this allows capabilityKeeper.InitMemStore(ctx) to re-initialise capabilities
-	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey))
-	memStore.Delete(capabilitytypes.KeyMemInitialized)
+	suite.ResetMemStore() // empty the x/capability in-memory store
 
 	err = v5.MigrateICS27ChannelCapability(
 		suite.chainA.GetContext(),
-		suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey),
+		suite.chainA.Codec,
+		suite.chainA.GetSimApp().GetKey(capabilitytypes.StoreKey),
 		suite.chainA.GetSimApp().CapabilityKeeper,
 		ibcmock.ModuleName+types.SubModuleName,
 	)
@@ -132,4 +130,18 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	cap, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
+}
+
+// ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
+// This effectively mocks a new chain binary being started. Migration code is run against persisted state only and allows the memstore to be reinitialised.
+func (suite *MigrationsTestSuite) ResetMemStore() {
+	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey))
+	memStore.Delete(capabilitytypes.KeyMemInitialized)
+
+	iterator := memStore.Iterator(nil, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		memStore.Delete(iterator.Key())
+	}
 }
