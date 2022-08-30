@@ -80,7 +80,7 @@ func (msg MsgSubmitTx) ValidateBasic() error {
 	}
 
 	if err := msg.PacketData.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(ErrEmptyMsgs, "interchain accounts data packets array cannot be empty")
+		return sdkerrors.Wrap(err, "invalid interchain account packet data")
 	}
 
 	return nil
