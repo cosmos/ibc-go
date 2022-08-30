@@ -39,7 +39,7 @@ func newRegisterAccountCmd() *cobra.Command {
 		Short: "Register an interchain account on the provided connection.",
 		Long: strings.TrimSpace(`Register an account on the counterparty chain via the 
 connection id from the source chain. Connection identifier should be for the source chain 
-and that the account will be created on the counterparty chain. Callers are expected to 
+and the interchain account will be created on the counterparty chain. Callers are expected to 
 provide the appropriate application version string via {version} flag. Generates a new 
 port identifier using the provided owner string, binds to the port identifier and claims 
 the associated capability.`),
