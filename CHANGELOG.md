@@ -92,6 +92,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support. 
 * (apps/27-interchain-accounts) [\#2102](https://github.com/cosmos/ibc-go/pull/2102) ICS27 controller middleware now supports a nil underlying application. This allows chains to make use of interchain accounts with existing auth mechanisms such as x/group and x/gov.
 * (apps/27-interchain-accounts) [\#2146](https://github.com/cosmos/ibc-go/pull/2146) ICS27 controller now claims the channel capability passed via ibc core, and passes `nil` to the underlying app callback. The channel capability arg in `SendTx` is now ignored and looked up internally.
+* (apps/27-interchain-accounts) [\#2134](https://github.com/cosmos/ibc-go/pull/2134) Adding upgrade handler to ICS27 `controller` submodule for migration of channel capabilities. This upgrade handler migrates ownership of channel capabilities from the underlying application to the ICS27 `controller` submodule.
 
 ### Features
 
