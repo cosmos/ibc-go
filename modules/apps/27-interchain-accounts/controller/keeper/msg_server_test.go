@@ -113,37 +113,27 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			},
 			true,
 		},
-		/*
-			{
-				"failure - owner address is empty", func() {
-					owner = ""
-					connectionId = path.EndpointA.ConnectionID
-				},
+		{
+			"failure - owner address is empty", func() {
+				owner = ""
+				connectionId = path.EndpointA.ConnectionID
 			},
-			{
-				"failure - active channel does not exist for connection ID", func() {
-					owner = TestOwnerAddress
-					connectionId = "connection-100"
-				},
+			false,
+		},
+		{
+			"failure - active channel does not exist for connection ID", func() {
+				owner = TestOwnerAddress
+				connectionId = "connection-100"
 			},
-			{
-				"failure - active channel does not exist for port ID", func() {
-					owner = "cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5"
-					connectionId = path.EndpointA.ConnectionID
-				},
+			false,
+		},
+		{
+			"failure - active channel does not exist for port ID", func() {
+				owner = "cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5"
+				connectionId = path.EndpointA.ConnectionID
 			},
-			{
-				"failure - module does not own channel capability", func() {
-					owner = TestOwnerAddress
-					connectionId = path.EndpointA.ConnectionID
-					icaMsg = &banktypes.MsgSend{
-						FromAddress: "source-address",
-						ToAddress:   "destination-address",
-						Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
-					}
-				},
-			},
-		*/
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
