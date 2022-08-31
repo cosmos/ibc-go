@@ -159,18 +159,18 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			// Get the address of the interchain account stored in state during handshake step
+			// get the address of the interchain account stored in state during handshake step
 			interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID)
 			suite.Require().True(found)
 
 			icaAddr, err := sdk.AccAddressFromBech32(interchainAccountAddr)
 			suite.Require().NoError(err)
 
-			// Check if account is created
+			// check if account is created
 			interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
 			suite.Require().Equal(interchainAccount.GetAddress().String(), interchainAccountAddr)
 
-			// Create bank transfer message to execute on the host
+			// create bank transfer message to execute on the host
 			icaMsg = &banktypes.MsgSend{
 				FromAddress: interchainAccountAddr,
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
