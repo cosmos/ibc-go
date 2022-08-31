@@ -133,16 +133,18 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
-	var eg errgroup.Group
-	eg.Go(func() error {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, "normal upgrade", targetVersion)
-		return nil
+	t.Run("upgrade both chains", func(t *testing.T) {
+		var eg errgroup.Group
+		eg.Go(func() error {
+			s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, "normal upgrade", targetVersion)
+			return nil
+		})
+		eg.Go(func() error {
+			s.UpgradeChain(ctx, chainB, chainBUpgradeProposalWallet, "normal upgrade", targetVersion)
+			return nil
+		})
+		s.Require().NoError(eg.Wait())
 	})
-	eg.Go(func() error {
-		s.UpgradeChain(ctx, chainB, chainBUpgradeProposalWallet, "normal upgrade", targetVersion)
-		return nil
-	})
-	s.Require().NoError(eg.Wait())
 
 	t.Run("restart relayer", func(t *testing.T) {
 		s.StopRelayer(ctx, relayer)
