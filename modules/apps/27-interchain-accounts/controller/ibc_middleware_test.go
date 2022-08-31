@@ -193,10 +193,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			}, true,
 		},
 		{
-			"nil underlying app, middleware enabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				isNilApp = true
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			}, true,
 		},
 	}
@@ -348,6 +346,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		{
 			"nil underlying app", func() {
 				isNilApp = true
+			}, true,
+		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			}, true,
 		},
 	}
@@ -586,6 +589,11 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				isNilApp = true
 			}, true,
 		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -666,6 +674,11 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		{
 			"nil underlying app", func() {
 				isNilApp = true
+			}, true,
+		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			}, true,
 		},
 	}

@@ -218,3 +218,9 @@ func (k Keeper) SetMiddlewareEnabled(ctx sdk.Context, portID, channelID string) 
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, channelID), []byte{byte(1)})
 }
+
+// DeleteMiddlewareEnabled deletes the middleware enabled flag stored in state
+func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, channelID))
+}
