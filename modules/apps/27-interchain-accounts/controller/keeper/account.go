@@ -17,8 +17,19 @@ import (
 // - An error is returned if the port identifier is already in use. Gaining access to interchain accounts whose channels
 // have closed cannot be done with this function. A regular MsgChannelOpenInit must be used.
 func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
-	_, err := k.registerInterchainAccount(ctx, connectionID, owner, version)
-	return err
+	channelID, err := k.registerInterchainAccount(ctx, connectionID, owner, version)
+	if err != nil {
+		return err
+	}
+
+	portID, err := icatypes.NewControllerPortID(owner)
+	if err != nil {
+		return err
+	}
+
+	k.SetMiddlewareEnabled(ctx, portID, channelID)
+
+	return nil
 }
 
 // registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
