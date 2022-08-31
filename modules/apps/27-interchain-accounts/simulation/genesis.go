@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 )
 
-// RadomEnabled randomized controller or host enabled param with 75% prob of being true.
-func RadomEnabled(r *rand.Rand) bool {
+// RandomEnabled randomized controller or host enabled param with 75% prob of being true.
+func RandomEnabled(r *rand.Rand) bool {
 	return r.Int63n(101) <= 75
 }
 
@@ -24,7 +24,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var controllerEnabled bool
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, string(controllertypes.KeyControllerEnabled), &controllerEnabled, simState.Rand,
-		func(r *rand.Rand) { controllerEnabled = RadomEnabled(r) },
+		func(r *rand.Rand) { controllerEnabled = RandomEnabled(r) },
 	)
 
 	controllerParams := controllertypes.Params{
@@ -41,7 +41,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var hostEnabled bool
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, string(hosttypes.KeyHostEnabled), &hostEnabled, simState.Rand,
-		func(r *rand.Rand) { hostEnabled = RadomEnabled(r) },
+		func(r *rand.Rand) { hostEnabled = RandomEnabled(r) },
 	)
 
 	hostParams := hosttypes.Params{
