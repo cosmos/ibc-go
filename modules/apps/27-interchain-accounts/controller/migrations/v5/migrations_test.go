@@ -138,6 +138,15 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	cap, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
+
+	// ensure channel capability for "channel-0" is still owned by the controller
+	capName = host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	cap, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
+	suite.Require().NotNil(cap)
+	suite.Require().True(found)
+
+	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().True(isAuthenticated)
 }
 
 // ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
