@@ -8,7 +8,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -18,7 +18,7 @@ import (
 
 func (suite *KeeperTestSuite) TestRegisterAccount() {
 	var (
-		msg               *icacontrollertypes.MsgRegisterAccount
+		msg               *controllertypes.MsgRegisterAccount
 		expectedChannelID = "channel-0"
 	)
 
@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
-		msg = icacontrollertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+		msg = controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
 		tc.malleate()
 

@@ -47,10 +47,10 @@ func (k Keeper) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.
 		return nil, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	_, err = k.SendTx(ctx, chanCap, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
+	seq, err := k.SendTx(ctx, chanCap, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.MsgSubmitTxResponse{}, nil
+	return &types.MsgSubmitTxResponse{Sequence: seq}, nil
 }
