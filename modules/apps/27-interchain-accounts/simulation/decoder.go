@@ -16,7 +16,6 @@ func NewDecodeStore() func(kvA, kvB kv.Pair) string {
 		switch {
 		case bytes.Equal(kvA.Key[:len(types.PortKeyPrefix)], []byte(types.PortKeyPrefix)):
 			return fmt.Sprintf("Port A: %s\nPort B: %s", string(kvA.Value), string(kvB.Value))
-
 		case bytes.Equal(kvA.Key[:len(types.OwnerKeyPrefix)], []byte(types.OwnerKeyPrefix)):
 			return fmt.Sprintf("Owner A: %s\nOwner B: %s", string(kvA.Value), string(kvB.Value))
 		case bytes.Equal(kvA.Key[:len(types.ActiveChannelKeyPrefix)], []byte(types.ActiveChannelKeyPrefix)):
