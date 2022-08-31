@@ -199,3 +199,8 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
+
+// RandomizedParams creates randomized ibc-transfer param changes for the simulator.
+func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return simulation.ParamChanges(r)
+}
