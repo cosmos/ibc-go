@@ -207,7 +207,7 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
 }
 
-// IsMiddlewareEnabled returns true if the underlying application calbacks are enabled for given port and channel identifier pair, otherwise false
+// IsMiddlewareEnabled returns true if the underlying application callbacks are enabled for given port and channel identifier pair, otherwise false
 func (k Keeper) IsMiddlewareEnabled(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(icatypes.KeyIsMiddlewareEnabled(portID, channelID))
