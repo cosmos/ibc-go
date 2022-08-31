@@ -63,15 +63,10 @@ func (im IBCMiddleware) OnChanOpenInit(
 	// call underlying app's OnChanOpenInit callback with the passed in version
 	// the version returned is discarded as the ica-auth module does not have permission to edit the version string.
 	// ics27 will always return the version string containing the Metadata struct which is created during the `RegisterInterchainAccount` call.
-<<<<<<< HEAD
-	if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
-		return "", err
-=======
 	if im.app != nil {
 		if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, nil, counterparty, version); err != nil {
 			return "", err
 		}
->>>>>>> 56f9da2 (chore: adapt ics27 controller claiming of channel capability (#2146))
 	}
 
 	return version, nil
