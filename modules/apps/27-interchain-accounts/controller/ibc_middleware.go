@@ -10,6 +10,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
@@ -55,11 +56,17 @@ func (im IBCMiddleware) OnChanOpenInit(
 		return "", err
 	}
 
+	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		return "", err
+	}
+
 	// call underlying app's OnChanOpenInit callback with the passed in version
 	// the version returned is discarded as the ica-auth module does not have permission to edit the version string.
 	// ics27 will always return the version string containing the Metadata struct which is created during the `RegisterInterchainAccount` call.
-	if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version); err != nil {
-		return "", err
+	if im.app != nil {
+		if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, nil, counterparty, version); err != nil {
+			return "", err
+		}
 	}
 
 	return version, nil
@@ -101,7 +108,11 @@ func (im IBCMiddleware) OnChanOpenAck(
 	}
 
 	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	if im.app != nil {
+		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	}
+
+	return nil
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -156,7 +167,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// call underlying app's OnAcknowledgementPacket callback.
-	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if im.app != nil {
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -173,7 +188,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	if im.app != nil {
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	return nil
 }
 
 // SendPacket implements the ICS4 Wrapper interface

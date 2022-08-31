@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SUITE="${1}"
+ENTRY_POINT="${1}"
 TEST="${2}"
 
 export CHAIN_A_TAG="${CHAIN_A_TAG:-latest}"
@@ -16,4 +16,4 @@ then
   (cd ..; docker build . -t "${CHAIN_A_IMAGE}:${CHAIN_A_TAG}")
 fi
 
-go test -v ./ --run ${SUITE} -testify.m ^${TEST}$
+go test -v ./tests/... --run ${ENTRY_POINT} -testify.m ^${TEST}$
