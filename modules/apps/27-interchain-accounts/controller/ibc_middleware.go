@@ -108,7 +108,11 @@ func (im IBCMiddleware) OnChanOpenAck(
 	}
 
 	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	if im.app != nil {
+		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	}
+
+	return nil
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -163,7 +167,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// call underlying app's OnAcknowledgementPacket callback.
-	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if im.app != nil {
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -180,7 +188,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	if im.app != nil {
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	return nil
 }
 
 // SendPacket implements the ICS4 Wrapper interface
