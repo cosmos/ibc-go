@@ -63,7 +63,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	// call underlying app's OnChanOpenInit callback with the passed in version
 	// the version returned is discarded as the ica-auth module does not have permission to edit the version string.
 	// ics27 will always return the version string containing the Metadata struct which is created during the `RegisterInterchainAccount` call.
-	if im.app != nil {
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, channelID) {
 		if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, nil, counterparty, version); err != nil {
 			return "", err
 		}
@@ -108,7 +108,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	}
 
 	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	if im.app != nil {
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, channelID) {
 		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
 
@@ -167,7 +167,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// call underlying app's OnAcknowledgementPacket callback.
-	if im.app != nil {
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
@@ -188,7 +188,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	if im.app != nil {
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
