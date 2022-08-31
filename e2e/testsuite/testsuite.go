@@ -51,6 +51,9 @@ type E2ETestSuite struct {
 	DockerClient   *dockerclient.Client
 	network        string
 	startRelayerFn func(relayer ibc.Relayer)
+
+	// pathNameIndex is the latest index to be used for generating paths
+	pathNameIndex uint64
 }
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
@@ -111,8 +114,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 
 	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
-	pathName := fmt.Sprintf("%s-path", s.T().Name())
-	pathName = strings.ReplaceAll(pathName, "/", "-")
+	pathName := s.generatePathName()
 
 	ic := ibctest.NewInterchain().
 		AddChain(chainA).
@@ -158,6 +160,39 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	chainAChannels, err := r.GetChannels(ctx, eRep, chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
+}
+
+// generatePathName generates the path name using the test suites name
+func (s *E2ETestSuite) generatePathName() string {
+	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), s.pathNameIndex)
+	s.pathNameIndex++
+	return strings.ReplaceAll(pathName, "/", "-")
+}
+
+// generatePath generates the path name using the test suites name
+func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) string {
+	chainA, chainB := s.GetChains()
+	chainAID := chainA.Config().ChainID
+	chainBID := chainB.Config().ChainID
+
+	pathName := s.generatePathName()
+	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
+	s.Require().NoError(err)
+
+	return pathName
+}
+
+// SetupClients creates clients on chainA and chainB using the provided create client options
+func (s *E2ETestSuite) SetupClients(ctx context.Context, relayer ibc.Relayer, opts ibc.CreateClientOptions) {
+	pathName := s.generatePath(ctx, relayer)
+	err := relayer.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, opts)
+	s.Require().NoError(err)
+}
+
+// UpdateClients updates clients on chainA and chainB
+func (s *E2ETestSuite) UpdateClients(ctx context.Context, relayer ibc.Relayer, pathName string) {
+	err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), pathName)
+	s.Require().NoError(err)
 }
 
 // GetChains returns two chains that can be used in a test. The pair returned
