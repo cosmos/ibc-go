@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path         *ibctesting.Path
 		owner        string
-		connectionId string
+		connectionID string
 		icaMsg       sdk.Msg
 	)
 
@@ -109,28 +109,36 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		{
 			"success", func() {
 				owner = TestOwnerAddress
-				connectionId = path.EndpointA.ConnectionID
 			},
 			true,
 		},
 		{
 			"failure - owner address is empty", func() {
 				owner = ""
-				connectionId = path.EndpointA.ConnectionID
 			},
 			false,
 		},
 		{
 			"failure - active channel does not exist for connection ID", func() {
 				owner = TestOwnerAddress
-				connectionId = "connection-100"
+				connectionID = "connection-100"
 			},
 			false,
 		},
 		{
 			"failure - active channel does not exist for port ID", func() {
-				owner = "cosmos153lf4zntqt33a4v0sm5cytrxyqn78q7kz8j8x5"
-				connectionId = path.EndpointA.ConnectionID
+				owner = TestAccAddress.String()
+			},
+			false,
+		},
+		{
+			"failure - controller module does not own capability for this channel", func() {
+				owner = TestAccAddress.String()
+				portID, err := icatypes.NewControllerPortID(owner)
+				suite.Require().NoError(err)
+
+				// set the active channel with the incorrect portID in order to reach the capability check
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), connectionID, portID, path.EndpointA.ChannelID)
 			},
 			false,
 		},
@@ -144,8 +152,6 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
-
-			tc.malleate() // malleate mutates test data
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -183,8 +189,11 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
 			// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
 			timeoutTimestamp := suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano()
+			connectionID = path.EndpointA.ConnectionID
 
-			msg := types.NewMsgSubmitTx(owner, connectionId, clienttypes.NewHeight(0, 0), uint64(timeoutTimestamp), packetData)
+			tc.malleate() // malleate mutates test data
+
+			msg := types.NewMsgSubmitTx(owner, connectionID, clienttypes.NewHeight(0, 0), uint64(timeoutTimestamp), packetData)
 			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 			if tc.expPass {
