@@ -6,8 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec
@@ -20,8 +18,6 @@ var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 // RegisterInterfaces registers the interchain accounts controller types and the concrete InterchainAccount implementation
 // against the associated x/auth AccountI and GenesisAccount interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	controllertypes.RegisterInterfaces(registry)
-
 	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil), &InterchainAccount{})
 }

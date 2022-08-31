@@ -13,6 +13,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
@@ -135,16 +136,16 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers
-func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []icatypes.ActiveChannel {
+func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []genesistypes.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
 	defer iterator.Close()
 
-	var activeChannels []icatypes.ActiveChannel
+	var activeChannels []genesistypes.ActiveChannel
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		ch := icatypes.ActiveChannel{
+		ch := genesistypes.ActiveChannel{
 			ConnectionId: keySplit[2],
 			PortId:       keySplit[1],
 			ChannelId:    string(iterator.Value()),
@@ -181,15 +182,15 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 }
 
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated connection and controller port identifiers
-func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []icatypes.RegisteredInterchainAccount {
+func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.RegisteredInterchainAccount {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.OwnerKeyPrefix))
 
-	var interchainAccounts []icatypes.RegisteredInterchainAccount
+	var interchainAccounts []genesistypes.RegisteredInterchainAccount
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
-		acc := icatypes.RegisteredInterchainAccount{
+		acc := genesistypes.RegisteredInterchainAccount{
 			ConnectionId:   keySplit[2],
 			PortId:         keySplit[1],
 			AccountAddress: string(iterator.Value()),
