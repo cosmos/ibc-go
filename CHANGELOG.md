@@ -56,24 +56,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-<<<<<<< HEAD
 * (apps/27-interchain-accounts) [\#2102](https://github.com/cosmos/ibc-go/pull/2102) ICS27 controller middleware now supports a nil underlying application. This allows chains to make use of interchain accounts with existing auth mechanisms such as x/group and x/gov.
-* (testing) [\#1942](https://github.com/cosmos/ibc-go/pull/1942) Add a balance for the mock module account upon testing package initialization. 
 * (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatiblity with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
-=======
-* (app/20-transfer) [\#1680](https://github.com/cosmos/ibc-go/pull/1680) Adds migration to correct any malformed trace path information of tokens with denoms that contains slashes. The transfer module consensus version has been bumped to 2.
-* (app/20-transfer) [\#1730](https://github.com/cosmos/ibc-go/pull/1730) parse the ics20 denomination provided via a packet using the channel identifier format specified by ibc-go.
-* (cleanup) [\#1335](https://github.com/cosmos/ibc-go/pull/1335/) `gofumpt -w -l .` to standardize the code layout more strictly than `go fmt ./...`
-* (middleware) [\#1022](https://github.com/cosmos/ibc-go/pull/1022) Add `GetAppVersion` to the ICS4Wrapper interface. This function should be used by IBC applications to obtain their own version since the version set in the channel structure may be wrapped many times by middleware. 
-* (modules/core/04-channel) [\#1232](https://github.com/cosmos/ibc-go/pull/1232) Updating params on `NewPacketId` and moving to bottom of file.
-* (app/29-fee) [\#1305](https://github.com/cosmos/ibc-go/pull/1305) Change version string for fee module to `ics29-1`
-* (app/29-fee) [\#1341](https://github.com/cosmos/ibc-go/pull/1341) Check if the fee module is locked and if the fee module is enabled before refunding all fees
-* (transfer) [\#1414](https://github.com/cosmos/ibc-go/pull/1414) Emitting Sender address from `fungible_token_packet` events in `OnRecvPacket` and `OnAcknowledgementPacket`.
-* (testing/simapp) [\#1397](https://github.com/cosmos/ibc-go/pull/1397) Adding mock module to maccperms and adding check to ensure mock module is not a blocked account address. 
-* (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal. 
-* (modules/light-clients/07-tendermint) [\#1713](https://github.com/cosmos/ibc-go/pull/1713) Allow client upgrade proposals to update `TrustingPeriod`. See ADR-026 for context.
-* (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
->>>>>>> 2d3e55d (fix: partial revert of #1942 (#2148))
 
 ### Features
 
