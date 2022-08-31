@@ -120,12 +120,6 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 		senderAccs = append(senderAccs, senderAcc)
 	}
 
-	// add mock module account balance
-	genBals = append(genBals, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(mock.ModuleName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000))},
-	})
-
 	app := SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
@@ -154,10 +148,6 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 		SenderAccount:  senderAccs[0].SenderAccount,
 		SenderAccounts: senderAccs,
 	}
-
-	// creates mock module account
-	mockModuleAcc := chain.GetSimApp().AccountKeeper.GetModuleAccount(chain.GetContext(), mock.ModuleName)
-	require.NotNil(t, mockModuleAcc)
 
 	coord.CommitBlock(chain)
 
