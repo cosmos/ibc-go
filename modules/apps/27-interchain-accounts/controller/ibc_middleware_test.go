@@ -189,6 +189,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					return "", fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
@@ -347,6 +354,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
+					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
@@ -588,6 +601,12 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
@@ -675,6 +694,12 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
