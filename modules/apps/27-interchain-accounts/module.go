@@ -203,7 +203,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // AppModuleSimulation functions
 
-// RegisterStoreDecoder registers a decoder for transfer module's types
+// RegisterStoreDecoder registers a decoder for interchain accounts module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }
