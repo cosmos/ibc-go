@@ -12,7 +12,6 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -22,6 +21,7 @@ import (
 const (
 	haltHeight         = uint64(100)
 	blocksAfterUpgrade = uint64(10)
+	defaultUpgradeName = "normal upgrade"
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
@@ -88,10 +88,9 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 
 	chainADenom := chainA.Config().Denom
 
-	// create separate users specifically for the upgrade proposal to more easily verify starting
-	// and end balances of chainA and chainB users.
+	// create separate user specifically for the upgrade proposal to more easily verify starting
+	// and end balances of the chainA users.
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainBUpgradeProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
@@ -133,17 +132,8 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("upgrade both chains", func(t *testing.T) {
-		var eg errgroup.Group
-		eg.Go(func() error {
-			s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, "normal upgrade", targetVersion)
-			return nil
-		})
-		eg.Go(func() error {
-			s.UpgradeChain(ctx, chainB, chainBUpgradeProposalWallet, "normal upgrade", targetVersion)
-			return nil
-		})
-		s.Require().NoError(eg.Wait())
+	t.Run("upgrade chainA", func(t *testing.T) {
+		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, defaultUpgradeName, targetVersion)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
