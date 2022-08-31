@@ -18,7 +18,7 @@ func MigrateICS27ChannelCapability(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	capabilityKeeper *capabilitykeeper.Keeper,
-	module string,
+	module string, // the name of the scoped keeper for the underlying app module
 ) error {
 	// construct a prefix store using the x/capability index prefix: index->capability owners
 	prefixStore := prefix.NewStore(ctx.KVStore(storeKey), capabilitytypes.KeyPrefixIndexCapability)
