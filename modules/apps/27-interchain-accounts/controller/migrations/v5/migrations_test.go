@@ -93,7 +93,15 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	err := suite.SetupPath()
 	suite.Require().NoError(err)
 
-	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	// create and claim a new capability with ibc/mock for "channel-1"
+	// note: suite.SetupPath() now claims the chanel capability using icacontroller for "channel-0"
+	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, channeltypes.FormatChannelIdentifier(1))
+
+	cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), capName)
+	suite.Require().NoError(err)
+
+	err = suite.chainA.GetSimApp().ScopedICAMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().NoError(err)
 
 	// assert the capability is owned by the mock module
 	cap, found := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
