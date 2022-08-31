@@ -163,14 +163,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID)
 			suite.Require().True(found)
 
-			icaAddr, err := sdk.AccAddressFromBech32(interchainAccountAddr)
-			suite.Require().NoError(err)
-
-			// check if account is created
-			interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
-			suite.Require().Equal(interchainAccount.GetAddress().String(), interchainAccountAddr)
-
-			// create bank transfer message to execute on the host
+			// create bank transfer message that will execute on the host chain
 			icaMsg = &banktypes.MsgSend{
 				FromAddress: interchainAccountAddr,
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
@@ -186,8 +179,6 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				Memo: "memo",
 			}
 
-			// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
-			// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
 			timeoutTimestamp := suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano()
 			connectionID = path.EndpointA.ConnectionID
 
