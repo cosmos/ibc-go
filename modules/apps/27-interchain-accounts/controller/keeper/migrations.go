@@ -5,7 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
@@ -24,18 +24,13 @@ func NewMigrator(keeper *Keeper) Migrator {
 func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 	for _, channel := range m.keeper.GetAllActiveChannels(ctx) {
 		name := host.ChannelCapabilityPath(channel.PortId, channel.ChannelId)
-		owners, found := m.keeper.scopedKeeper.GetOwners(ctx, name)
+		cap, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
 		if !found {
-			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityOwnersNotFound, "failed to find capability owners for: %s", name)
+			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", name)
 		}
 
-		ibcOwner := capabilitytypes.NewOwner(host.ModuleName, name)
-		if index, found := owners.Get(ibcOwner); !found && index != 0 {
-			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", host.ModuleName)
-		}
-
-		controllerOwner := capabilitytypes.NewOwner(types.SubModuleName, name)
-		if index, found := owners.Get(controllerOwner); !found && index != 1 {
+		isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, cap, name)
+		if !isAuthenticated {
 			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", types.SubModuleName)
 		}
 	}

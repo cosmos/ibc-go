@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			tc.malleate()
 
 			migrator := keeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			err = migrator.MigrateCapabilitiesConfirm(suite.chainA.GetContext())
+			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 		})
 	}

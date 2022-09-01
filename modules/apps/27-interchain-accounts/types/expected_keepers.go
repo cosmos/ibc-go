@@ -43,5 +43,4 @@ type ScopedKeeper interface {
 	AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool
 	LookupModules(ctx sdk.Context, name string) ([]string, *capabilitytypes.Capability, error)
 	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
-	GetOwners(ctx sdk.Context, name string) (*capabilitytypes.CapabilityOwners, bool)
 }

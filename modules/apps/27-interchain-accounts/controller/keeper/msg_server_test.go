@@ -7,7 +7,6 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -180,7 +179,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID := path.EndpointA.ConnectionID
 
-			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+			msg = controllertypes.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
 			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
