@@ -16,6 +16,18 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			func() {},
 			true,
 		},
+		{
+			"capability not found",
+			func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(
+					suite.chainA.GetContext(),
+					ibctesting.FirstConnectionID,
+					ibctesting.MockPort,
+					ibctesting.FirstChannelID,
+				)
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -32,7 +44,12 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 
 			migrator := keeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
 			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
-			suite.Require().NoError(err)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
 		})
 	}
 }
