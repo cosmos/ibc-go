@@ -108,7 +108,6 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 	}{
 		{
 			"success", func() {
-				owner = TestOwnerAddress
 			},
 			true,
 		},
@@ -150,10 +149,11 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
+			owner = TestOwnerAddress
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
-			err := SetupICAPath(path, TestOwnerAddress)
+			err := SetupICAPath(path, owner)
 			suite.Require().NoError(err)
 
 			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
@@ -179,12 +179,12 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				Memo: "memo",
 			}
 
-			timeoutTimestamp := suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano()
+			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID = path.EndpointA.ConnectionID
 
 			tc.malleate() // malleate mutates test data
 
-			msg := types.NewMsgSubmitTx(owner, connectionID, clienttypes.NewHeight(0, 0), uint64(timeoutTimestamp), packetData)
+			msg := types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 			if tc.expPass {
