@@ -82,11 +82,16 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	s.Require().NoError(os.Setenv(testconfig.ChainBTagEnv, oldVersion))
 
 	ctx := context.Background()
-
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
+	var (
+		chainADenom    = chainA.Config().Denom
+		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
+
+		chainBDenom    = chainB.Config().Denom
+		chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
+	)
 
 	// create separate user specifically for the upgrade proposal to more easily verify starting
 	// and end balances of the chainA users.
@@ -117,8 +122,6 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
-
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
@@ -157,5 +160,25 @@ func (s *UpgradeTestSuite) TestV4ToV5ChainUpgrade() {
 
 		expected := testvalues.IBCTransferAmount * 2
 		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
+		t.Run("send from chainB to chainA", func(t *testing.T) {
+			transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(transferTxResp)
+		})
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
+		t.Run("packets are relayed", func(t *testing.T) {
+			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
+
+			actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainAIBCToken.IBCDenom())
+			s.Require().NoError(err)
+
+			expected := testvalues.IBCTransferAmount
+			s.Require().Equal(expected, actualBalance)
+		})
 	})
 }
