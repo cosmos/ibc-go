@@ -22,32 +22,50 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 		return err
 	}
 
+	channelID, err := k.registerInterchainAccount(ctx, connectionID, portID, version)
+	if err != nil {
+		return err
+	}
+
+	k.SetMiddlewareEnabled(ctx, portID, channelID)
+
+	return nil
+}
+
+// registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
+// and an error if one occurred.
+func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string) (string, error) {
 	// if there is an active channel for this portID / connectionID return an error
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if found {
-		return sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s for owner %s", activeChannelID, portID, connectionID, owner)
+		return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s", activeChannelID, portID, connectionID)
 	}
 
 	switch {
 	case k.portKeeper.IsBound(ctx, portID) && !k.IsBound(ctx, portID):
-		return sdkerrors.Wrapf(icatypes.ErrPortAlreadyBound, "another module has claimed capability for and bound port with portID: %s", portID)
+		return "", sdkerrors.Wrapf(icatypes.ErrPortAlreadyBound, "another module has claimed capability for and bound port with portID: %s", portID)
 	case !k.portKeeper.IsBound(ctx, portID):
 		cap := k.BindPort(ctx, portID)
 		if err := k.ClaimCapability(ctx, cap, host.PortPath(portID)); err != nil {
-			return sdkerrors.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
+			return "", sdkerrors.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
 		}
 	}
 
 	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
 	handler := k.msgRouter.Handler(msg)
-
 	res, err := handler(ctx, msg)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
-	return nil
+	firstMsgResponse := res.MsgResponses[0]
+	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)
+	if !ok {
+		return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "failed to covert %T message response to %T", firstMsgResponse.GetCachedValue(), &channeltypes.MsgChannelOpenInitResponse{})
+	}
+
+	return channelOpenInitResponse.ChannelId, nil
 }

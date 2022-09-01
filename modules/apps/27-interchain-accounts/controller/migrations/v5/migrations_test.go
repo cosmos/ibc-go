@@ -93,7 +93,15 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	err := suite.SetupPath()
 	suite.Require().NoError(err)
 
-	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	// create and claim a new capability with ibc/mock for "channel-1"
+	// note: suite.SetupPath() now claims the chanel capability using icacontroller for "channel-0"
+	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, channeltypes.FormatChannelIdentifier(1))
+
+	cap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), capName)
+	suite.Require().NoError(err)
+
+	err = suite.chainA.GetSimApp().ScopedICAMockKeeper.ClaimCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().NoError(err)
 
 	// assert the capability is owned by the mock module
 	cap, found := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
@@ -107,14 +115,12 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
 
-	// manually delete the `KeyMemInitialised` from the x/capability memstore
-	// this allows capabilityKeeper.InitMemStore(ctx) to re-initialise capabilities
-	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey))
-	memStore.Delete(capabilitytypes.KeyMemInitialized)
+	suite.ResetMemStore() // empty the x/capability in-memory store
 
 	err = v5.MigrateICS27ChannelCapability(
 		suite.chainA.GetContext(),
-		suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey),
+		suite.chainA.Codec,
+		suite.chainA.GetSimApp().GetKey(capabilitytypes.StoreKey),
 		suite.chainA.GetSimApp().CapabilityKeeper,
 		ibcmock.ModuleName+types.SubModuleName,
 	)
@@ -132,4 +138,27 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	cap, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
 	suite.Require().Nil(cap)
 	suite.Require().False(found)
+
+	// ensure channel capability for "channel-0" is still owned by the controller
+	capName = host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	cap, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
+	suite.Require().NotNil(cap)
+	suite.Require().True(found)
+
+	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), cap, capName)
+	suite.Require().True(isAuthenticated)
+}
+
+// ResetMemstore removes all existing fwd and rev capability kv pairs and deletes `KeyMemInitialised` from the x/capability memstore.
+// This effectively mocks a new chain binary being started. Migration code is run against persisted state only and allows the memstore to be reinitialised.
+func (suite *MigrationsTestSuite) ResetMemStore() {
+	memStore := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetMemKey(capabilitytypes.MemStoreKey))
+	memStore.Delete(capabilitytypes.KeyMemInitialized)
+
+	iterator := memStore.Iterator(nil, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		memStore.Delete(iterator.Key())
+	}
 }

@@ -71,6 +71,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (27-interchain-accounts) [\#1352](https://github.com/cosmos/ibc-go/issues/1352) Add support for Cosmos-SDK simulation to ics27 module.  
+* (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types. 
 * (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatiblity with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
 * (modules/light-clients/07-tendermint) [\#1713](https://github.com/cosmos/ibc-go/pull/1713) Allow client upgrade proposals to update `TrustingPeriod`. See ADR-026 for context.
 * (modules/core/02-client) [\#1188](https://github.com/cosmos/ibc-go/pull/1188/files) Routing `MsgSubmitMisbehaviour` to `UpdateClient` keeper function. Deprecating `SubmitMisbehaviour` endpoint.
@@ -89,8 +91,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (02-client/cli) [\#897](https://github.com/cosmos/ibc-go/pull/897) Remove `GetClientID()` from `Misbehaviour` interface. Submit client misbehaviour cli command requires an explicit client id now.
 * (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support. 
 * (apps/27-interchain-accounts) [\#2102](https://github.com/cosmos/ibc-go/pull/2102) ICS27 controller middleware now supports a nil underlying application. This allows chains to make use of interchain accounts with existing auth mechanisms such as x/group and x/gov.
+* (apps/27-interchain-accounts) [\#2146](https://github.com/cosmos/ibc-go/pull/2146) ICS27 controller now claims the channel capability passed via ibc core, and passes `nil` to the underlying app callback. The channel capability arg in `SendTx` is now ignored and looked up internally.
+* (apps/27-interchain-accounts) [\#2134](https://github.com/cosmos/ibc-go/pull/2134) Adding upgrade handler to ICS27 `controller` submodule for migration of channel capabilities. This upgrade handler migrates ownership of channel capabilities from the underlying application to the ICS27 `controller` submodule.
+* (apps/27-interchain-accounts) [\#2157](https://github.com/cosmos/ibc-go/pull/2157) Adding `IsMiddlewareEnabled` functionality to enforce calls to ICS27 msg server to *not* route to the underlying application.
 
 ### Features
+
+* (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
 
 ### Bug Fixes
 
@@ -129,7 +136,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (testing) [\#1942](https://github.com/cosmos/ibc-go/pull/1942) Add a balance for the mock module account upon testing package initialization. 
 * (app/20-transfer) [\#1680](https://github.com/cosmos/ibc-go/pull/1680) Adds migration to correct any malformed trace path information of tokens with denoms that contains slashes. The transfer module consensus version has been bumped to 2.
 * (app/20-transfer) [\#1730](https://github.com/cosmos/ibc-go/pull/1730) parse the ics20 denomination provided via a packet using the channel identifier format specified by ibc-go.
 * (cleanup) [\#1335](https://github.com/cosmos/ibc-go/pull/1335/) `gofumpt -w -l .` to standardize the code layout more strictly than `go fmt ./...`
