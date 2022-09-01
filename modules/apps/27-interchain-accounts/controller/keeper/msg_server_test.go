@@ -95,10 +95,8 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 
 func (suite *KeeperTestSuite) TestSubmitTx() {
 	var (
-		path         *ibctesting.Path
-		owner        string
-		connectionID string
-		icaMsg       sdk.Msg
+		path *ibctesting.Path
+		msg  *controllertypes.MsgSubmitTx
 	)
 
 	testCases := []struct {
@@ -113,31 +111,31 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		},
 		{
 			"failure - owner address is empty", func() {
-				owner = ""
+				msg.Owner = ""
 			},
 			false,
 		},
 		{
 			"failure - active channel does not exist for connection ID", func() {
-				owner = TestOwnerAddress
-				connectionID = "connection-100"
+				msg.Owner = TestOwnerAddress
+				msg.ConnectionId = "connection-100"
 			},
 			false,
 		},
 		{
 			"failure - active channel does not exist for port ID", func() {
-				owner = TestAccAddress.String()
+				msg.Owner = TestAccAddress.String()
 			},
 			false,
 		},
 		{
 			"failure - controller module does not own capability for this channel", func() {
-				owner = TestAccAddress.String()
-				portID, err := icatypes.NewControllerPortID(owner)
+				msg.Owner = TestAccAddress.String()
+				portID, err := icatypes.NewControllerPortID(msg.Owner)
 				suite.Require().NoError(err)
 
 				// set the active channel with the incorrect portID in order to reach the capability check
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), connectionID, portID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID, path.EndpointA.ChannelID)
 			},
 			false,
 		},
@@ -149,7 +147,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			owner = TestOwnerAddress
+			owner := TestOwnerAddress
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
@@ -164,7 +162,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			suite.Require().True(found)
 
 			// create bank transfer message that will execute on the host chain
-			icaMsg = &banktypes.MsgSend{
+			icaMsg := &banktypes.MsgSend{
 				FromAddress: interchainAccountAddr,
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
 				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
@@ -180,11 +178,11 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			}
 
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
-			connectionID = path.EndpointA.ConnectionID
+			connectionID := path.EndpointA.ConnectionID
+
+			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
-
-			msg := types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 			if tc.expPass {
