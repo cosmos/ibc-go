@@ -19,6 +19,7 @@ import (
 	controllerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
+	genesistypesv2 "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types/v2"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host"
 	hostkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/keeper"
 	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
@@ -55,12 +56,12 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // DefaultGenesis returns default genesis state as raw bytes for the IBC
 // interchain accounts module
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
+	return cdc.MustMarshalJSON(genesistypesv2.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the IBC interchain acounts module
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var gs genesistypes.GenesisState
+	var gs genesistypesv2.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
@@ -156,7 +157,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // InitGenesis performs genesis initialization for the interchain accounts module.
 // It returns no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState genesistypes.GenesisState
+	var genesisState genesistypesv2.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	if am.controllerKeeper != nil {
@@ -173,7 +174,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // ExportGenesis returns the exported genesis state as raw bytes for the interchain accounts module
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	var (
-		controllerGenesisState = genesistypes.DefaultControllerGenesis()
+		controllerGenesisState = genesistypesv2.DefaultControllerGenesis()
 		hostGenesisState       = genesistypes.DefaultHostGenesis()
 	)
 
@@ -185,7 +186,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 		hostGenesisState = hostkeeper.ExportGenesis(ctx, *am.hostKeeper)
 	}
 
-	gs := genesistypes.NewGenesisState(controllerGenesisState, hostGenesisState)
+	gs := genesistypesv2.NewGenesisState(controllerGenesisState, hostGenesisState)
 
 	return cdc.MustMarshalJSON(gs)
 }

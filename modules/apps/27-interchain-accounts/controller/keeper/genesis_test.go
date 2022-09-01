@@ -4,13 +4,14 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
+	genesistypesv2 "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types/v2"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
-	genesisState := genesistypes.ControllerGenesisState{
+	genesisState := genesistypesv2.ControllerGenesisState{
 		ActiveChannels: []genesistypes.ActiveChannel{
 			{
 				ConnectionId: ibctesting.FirstConnectionID,
@@ -26,6 +27,12 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			},
 		},
 		Ports: []string{TestPortID},
+		MiddlewareEnabled: []genesistypesv2.MiddlewareEnabled{
+			{
+				PortId:    TestPortID,
+				ChannelId: ibctesting.FirstChannelID,
+			},
+		},
 	}
 
 	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAControllerKeeper, genesisState)
@@ -41,6 +48,9 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	expParams := types.NewParams(false)
 	params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
 	suite.Require().Equal(expParams, params)
+
+	isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(suite.chainA.GetContext(), TestPortID, ibctesting.FirstChannelID)
+	suite.Require().True(isMiddlewareEnabled)
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
@@ -64,4 +74,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	expParams := types.DefaultParams()
 	suite.Require().Equal(expParams, genesisState.GetParams())
+
+	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.MiddlewareEnabled[0].PortId)
+	suite.Require().Equal(path.EndpointA.ChannelID, genesisState.MiddlewareEnabled[0].ChannelId)
 }

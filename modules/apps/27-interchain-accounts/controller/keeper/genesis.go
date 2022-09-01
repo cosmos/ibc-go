@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
+	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types/v2"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
@@ -28,6 +28,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 		keeper.SetInterchainAccountAddress(ctx, acc.ConnectionId, acc.PortId, acc.AccountAddress)
 	}
 
+	for _, mw := range state.MiddlewareEnabled {
+		keeper.SetMiddlewareEnabled(ctx, mw.PortId, mw.ChannelId)
+	}
+
 	keeper.SetParams(ctx, state.Params)
 }
 
@@ -38,5 +42,6 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) genesistypes.ControllerGenesi
 		keeper.GetAllInterchainAccounts(ctx),
 		keeper.GetAllPorts(ctx),
 		keeper.GetParams(ctx),
+		keeper.GetAllMiddlewareEnabledChannels(ctx),
 	)
 }

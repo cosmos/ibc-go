@@ -13,6 +13,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
+	genesistypesv2 "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types/v2"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
@@ -223,4 +224,23 @@ func (k Keeper) SetMiddlewareEnabled(ctx sdk.Context, portID, channelID string) 
 func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, channelID))
+}
+
+func (k Keeper) GetAllMiddlewareEnabledChannels(ctx sdk.Context) []genesistypesv2.MiddlewareEnabled {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.IsMiddlewareEnabledPrefix))
+
+	var mwEnabledChannels []genesistypesv2.MiddlewareEnabled
+	for ; iterator.Valid(); iterator.Next() {
+		keySplit := strings.Split(string(iterator.Key()), "/")
+
+		mwEnabledChannel := genesistypesv2.MiddlewareEnabled{
+			PortId:    keySplit[1],
+			ChannelId: keySplit[2],
+		}
+
+		mwEnabledChannels = append(mwEnabledChannels, mwEnabledChannel)
+	}
+
+	return mwEnabledChannels
 }

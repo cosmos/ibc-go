@@ -113,6 +113,11 @@
     - [HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState)
     - [RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount)
   
+- [ibc/applications/interchain_accounts/genesis/v2/genesis.proto](#ibc/applications/interchain_accounts/genesis/v2/genesis.proto)
+    - [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v2.ControllerGenesisState)
+    - [GenesisState](#ibc.applications.interchain_accounts.genesis.v2.GenesisState)
+    - [MiddlewareEnabled](#ibc.applications.interchain_accounts.genesis.v2.MiddlewareEnabled)
+  
 - [ibc/applications/interchain_accounts/host/v1/query.proto](#ibc/applications/interchain_accounts/host/v1/query.proto)
     - [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest)
     - [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse)
@@ -1793,6 +1798,73 @@ RegisteredInterchainAccount contains a connection ID, port ID and associated int
 | `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `account_address` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/genesis/v2/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/genesis/v2/genesis.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v2.ControllerGenesisState"></a>
+
+### ControllerGenesisState
+ControllerGenesisState defines the interchain accounts controller genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active_channels` | [ibc.applications.interchain_accounts.genesis.v1.ActiveChannel](#ibc.applications.interchain_accounts.genesis.v1.ActiveChannel) | repeated |  |
+| `interchain_accounts` | [ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount](#ibc.applications.interchain_accounts.genesis.v1.RegisteredInterchainAccount) | repeated |  |
+| `ports` | [string](#string) | repeated |  |
+| `params` | [ibc.applications.interchain_accounts.controller.v1.Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  |  |
+| `middleware_enabled` | [MiddlewareEnabled](#ibc.applications.interchain_accounts.genesis.v2.MiddlewareEnabled) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v2.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the interchain accounts genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `controller_genesis_state` | [ControllerGenesisState](#ibc.applications.interchain_accounts.genesis.v2.ControllerGenesisState) |  |  |
+| `host_genesis_state` | [ibc.applications.interchain_accounts.genesis.v1.HostGenesisState](#ibc.applications.interchain_accounts.genesis.v1.HostGenesisState) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.genesis.v2.MiddlewareEnabled"></a>
+
+### MiddlewareEnabled
+MiddlewareEnabled defines an interchain accounts channel which is middleware enabled
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `channel_id` | [string](#string) |  |  |
 
 
 
