@@ -1,10 +1,11 @@
 package types
 
 import (
+	"time"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"time"
 )
 
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
