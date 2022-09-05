@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        includes:
+        include:
           - test: TestV4ToV5ChainUpgrade
     steps:
       - uses: actions/checkout@v3
