@@ -206,3 +206,21 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
 }
+
+// IsMiddlewareEnabled returns true if the underlying application callbacks are enabled for given port and channel identifier pair, otherwise false
+func (k Keeper) IsMiddlewareEnabled(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(icatypes.KeyIsMiddlewareEnabled(portID, channelID))
+}
+
+// SetMiddlewareEnabled stores a flag to indicate that the underlying application callbacks should be enabled for the given port and channel identifier pair
+func (k Keeper) SetMiddlewareEnabled(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, channelID), []byte{byte(1)})
+}
+
+// DeleteMiddlewareEnabled deletes the middleware enabled flag stored in state
+func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, channelID))
+}

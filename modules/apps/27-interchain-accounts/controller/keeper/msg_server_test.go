@@ -1,9 +1,16 @@
 package keeper_test
 
 import (
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	"time"
 
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
@@ -11,7 +18,7 @@ import (
 
 func (suite *KeeperTestSuite) TestRegisterAccount() {
 	var (
-		msg               *icatypes.MsgRegisterAccount
+		msg               *controllertypes.MsgRegisterAccount
 		expectedChannelID = "channel-0"
 	)
 
@@ -63,7 +70,7 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
-		msg = icatypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+		msg = controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
 		tc.malleate()
 
@@ -83,5 +90,108 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 			suite.Require().Error(err)
 			suite.Require().Nil(res)
 		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestSubmitTx() {
+	var (
+		path *ibctesting.Path
+		msg  *controllertypes.MsgSubmitTx
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success", func() {
+			},
+			true,
+		},
+		{
+			"failure - owner address is empty", func() {
+				msg.Owner = ""
+			},
+			false,
+		},
+		{
+			"failure - active channel does not exist for connection ID", func() {
+				msg.Owner = TestOwnerAddress
+				msg.ConnectionId = "connection-100"
+			},
+			false,
+		},
+		{
+			"failure - active channel does not exist for port ID", func() {
+				msg.Owner = TestAccAddress.String()
+			},
+			false,
+		},
+		{
+			"failure - controller module does not own capability for this channel", func() {
+				msg.Owner = TestAccAddress.String()
+				portID, err := icatypes.NewControllerPortID(msg.Owner)
+				suite.Require().NoError(err)
+
+				// set the active channel with the incorrect portID in order to reach the capability check
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID, path.EndpointA.ChannelID)
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			owner := TestOwnerAddress
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, owner)
+			suite.Require().NoError(err)
+
+			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			// get the address of the interchain account stored in state during handshake step
+			interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID)
+			suite.Require().True(found)
+
+			// create bank transfer message that will execute on the host chain
+			icaMsg := &banktypes.MsgSend{
+				FromAddress: interchainAccountAddr,
+				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))),
+			}
+
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []sdk.Msg{icaMsg})
+			suite.Require().NoError(err)
+
+			packetData := icatypes.InterchainAccountPacketData{
+				Type: icatypes.EXECUTE_TX,
+				Data: data,
+				Memo: "memo",
+			}
+
+			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
+			connectionID := path.EndpointA.ConnectionID
+
+			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+
+			tc.malleate() // malleate mutates test data
+			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+		})
 	}
 }

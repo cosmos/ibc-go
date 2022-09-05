@@ -124,6 +124,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	var (
 		channel  *channeltypes.Channel
 		isNilApp bool
+		path     *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -185,6 +186,18 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				isNilApp = true
 			}, true,
 		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					return "", fmt.Errorf("error should be unreachable")
+				}
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -194,7 +207,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.SetupTest() // reset
 			isNilApp = false
 
-			path := NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
@@ -206,6 +219,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 			path.EndpointA.ChannelConfig.PortID = portID
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
+
+			suite.chainA.GetSimApp().ICAControllerKeeper.SetMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			// default values
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -334,6 +349,17 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		{
 			"nil underlying app", func() {
 				isNilApp = true
+			}, true,
+		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
+					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
@@ -572,6 +598,17 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				isNilApp = true
 			}, true,
 		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -652,6 +689,17 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		{
 			"nil underlying app", func() {
 				isNilApp = true
+			}, true,
+		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
