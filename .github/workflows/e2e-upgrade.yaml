@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         includes:
-            test: TestV4ToV5ChainUpgrade
+          - test: TestV4ToV5ChainUpgrade
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
