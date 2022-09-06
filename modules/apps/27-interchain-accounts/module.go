@@ -200,8 +200,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-<<<<<<< HEAD
-=======
 
 // AppModuleSimulation functions
 
@@ -224,4 +222,3 @@ func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.Weig
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }
->>>>>>> eb508b5 (feat: add genesis simulation generation for ics27 (#2154))
