@@ -85,7 +85,7 @@ func NewCreateClientCmd() *cobra.Command {
 
 // NewUpdateClientCmd defines the command to update an IBC client.
 func NewUpdateClientCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:     "update [client-id] [path/to/client_msg.json]",
 		Short:   "update existing client with a client message",
 		Long:    "update existing client with a client message, for example a header, misbehaviour or batch update",
@@ -123,6 +123,9 @@ func NewUpdateClientCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // NewSubmitMisbehaviourCmd defines the command to submit a misbehaviour to prevent
@@ -130,7 +133,7 @@ func NewUpdateClientCmd() *cobra.Command {
 // Deprecated: NewSubmitMisbehaviourCmd is deprecated and will be removed in a future release.
 // Please use NewUpdateClientCmd instead.
 func NewSubmitMisbehaviourCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:     "misbehaviour [clientID] [path/to/misbehaviour.json]",
 		Short:   "submit a client misbehaviour",
 		Long:    "submit a client misbehaviour to prevent future updates",
@@ -167,6 +170,9 @@ func NewSubmitMisbehaviourCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // NewUpgradeClientCmd defines the command to upgrade an IBC light client.
