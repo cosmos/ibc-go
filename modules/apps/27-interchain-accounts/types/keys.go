@@ -36,6 +36,9 @@ var (
 
 	// PortKeyPrefix defines the key prefix used to store ports
 	PortKeyPrefix = "port"
+
+	// IsMiddlewareEnabledPrefix defines the key prefix used to store a flag for legacy API callback routing via ibc middleware
+	IsMiddlewareEnabledPrefix = "isMiddlewareEnabled"
 )
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
@@ -51,4 +54,9 @@ func KeyOwnerAccount(portID, connectionID string) []byte {
 // KeyPort creates and returns a new key used for port store operations
 func KeyPort(portID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", PortKeyPrefix, portID))
+}
+
+// KeyIsMiddlewareEnabled creates and returns a new key used for signaling legacy API callback routing via ibc middleware
+func KeyIsMiddlewareEnabled(portID, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", IsMiddlewareEnabledPrefix, portID, channelID))
 }
