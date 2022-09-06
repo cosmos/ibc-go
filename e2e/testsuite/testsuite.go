@@ -25,6 +25,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
@@ -286,6 +287,14 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Re
 	return nil
 }
 
+// Transfer broadcasts a MsgTransfer message.
+func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
+	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+) (sdk.TxResponse, error) {
+	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
 // StartRelayer starts the given relayer.
 func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
 	if s.startRelayerFn == nil {
@@ -392,26 +401,11 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(s.T())
 
-	numValidators, numFullNodes := getValidatorsAndFullNodes(chainOptions)
+	numValidators, numFullNodes := 4, 1
 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
 	return chainA, chainB
-}
-
-// getValidatorsAndFullNodes returns the number of validators and full nodes which should be used
-// for the given chain config.
-func getValidatorsAndFullNodes(chainOptions testconfig.ChainOptions) (int, int) {
-	// TODO: the icad tests are failing with a larger number of validators.
-	// this function can be removed once https://github.com/cosmos/ibc-go/issues/2104 is resolved.
-	numValidators := 4
-	numFullNodes := 1
-	isIcadImage := strings.Contains(chainOptions.ChainAConfig.Images[0].Repository, "icad")
-	if isIcadImage {
-		numValidators = 1
-		numFullNodes = 0
-	}
-	return numValidators, numFullNodes
 }
 
 // GetRelayerExecReporter returns a testreporter.RelayerExecReporter instances
@@ -471,4 +465,9 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	proposal, err = s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
+}
+
+// GetIBCToken returns the denomination of the full token denom sent to the receiving channel
+func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
+	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }
