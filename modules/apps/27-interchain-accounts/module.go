@@ -223,7 +223,6 @@ func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.Weig
 // RandomizedParams creates randomized ibc-transfer param changes for the simulator.
 func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 	return simulation.ParamChanges(r, am.controllerKeeper, am.hostKeeper)
-
 }
 
 // RegisterStoreDecoder registers a decoder for interchain accounts module's types
