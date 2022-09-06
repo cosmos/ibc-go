@@ -211,4 +211,4 @@ replace (
 // uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
 replace github.com/cosmos/ibc-go/v5 => ../
 
-replace github.com/strangelove-ventures/ibctest => ../../ibctest
+replace github.com/strangelove-ventures/ibctest => ../../ibctest/
