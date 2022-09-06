@@ -1,0 +1,23 @@
+name: Tests / E2E Upgrade
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  upgrade-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test: TestV4ToV5ChainUpgrade
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Run e2e upgrade test
+        run: |
+          cd e2e
+          make e2e-test entrypoint=TestUpgradeTestSuite test=${{ matrix.test }}
