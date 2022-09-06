@@ -36,9 +36,9 @@ func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterch
 }
 
 // Params implements the Query/Params gRPC method
-func (q Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	params := q.GetParams(ctx)
+	params := k.GetParams(ctx)
 
 	return &types.QueryParamsResponse{
 		Params: &params,
