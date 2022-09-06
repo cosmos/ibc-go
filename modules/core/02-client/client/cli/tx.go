@@ -85,11 +85,19 @@ func NewCreateClientCmd() *cobra.Command {
 
 // NewUpdateClientCmd defines the command to update an IBC client.
 func NewUpdateClientCmd() *cobra.Command {
+<<<<<<< HEAD
 	return &cobra.Command{
 		Use:     "update [client-id] [path/to/header.json]",
 		Short:   "update existing client with a header",
 		Long:    "update existing client with a header",
 		Example: fmt.Sprintf("%s tx ibc %s update [client-id] [path/to/header.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
+=======
+	cmd := &cobra.Command{
+		Use:     "update [client-id] [path/to/client_msg.json]",
+		Short:   "update existing client with a client message",
+		Long:    "update existing client with a client message, for example a header, misbehaviour or batch update",
+		Example: fmt.Sprintf("%s tx ibc %s update [client-id] [path/to/client_msg.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
+>>>>>>> 4adc069 (fix: missing tx flags for update and misbehaviour commands in client (#2171))
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -123,13 +131,21 @@ func NewUpdateClientCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // NewSubmitMisbehaviourCmd defines the command to submit a misbehaviour to prevent
 // future updates.
 func NewSubmitMisbehaviourCmd() *cobra.Command {
+<<<<<<< HEAD
 	return &cobra.Command{
 		Use:     "misbehaviour [path/to/misbehaviour.json]",
+=======
+	cmd := &cobra.Command{
+		Use:     "misbehaviour [clientID] [path/to/misbehaviour.json]",
+>>>>>>> 4adc069 (fix: missing tx flags for update and misbehaviour commands in client (#2171))
 		Short:   "submit a client misbehaviour",
 		Long:    "submit a client misbehaviour to prevent future updates",
 		Example: fmt.Sprintf("%s tx ibc %s misbehaviour [path/to/misbehaviour.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
@@ -164,6 +180,9 @@ func NewSubmitMisbehaviourCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // NewUpgradeClientCmd defines the command to upgrade an IBC light client.
