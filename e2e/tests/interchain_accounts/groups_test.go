@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	ibctest "github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
@@ -18,7 +17,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
@@ -65,136 +63,124 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
 
-	t.Run("interchain accounts group integration", func(t *testing.T) {
-		t.Run("create group with policy", func(t *testing.T) {
-			members := []grouptypes.MemberRequest{
-				{
-					Address: chainAAddress,
-					Weight:  "1",
-				},
-			}
+	t.Run("create group with new threshold decision policy", func(t *testing.T) {
+		members := []grouptypes.MemberRequest{
+			{
+				Address: chainAAddress,
+				Weight:  "1",
+			},
+		}
 
-			decisionPolicy := grouptypes.NewThresholdDecisionPolicy("1", time.Duration(time.Minute), time.Duration(0))
-			msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, "ics27-controller-group", "ics27-controller-policy", true, decisionPolicy)
-			s.Require().NoError(err)
+		decisionPolicy := grouptypes.NewThresholdDecisionPolicy("1", time.Duration(time.Minute), time.Duration(0))
+		msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, "ics27-controller-group", "ics27-controller-policy", true, decisionPolicy)
+		s.Require().NoError(err)
 
-			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 
+	})
+
+	t.Run("submit proposal register interchain account", func(t *testing.T) {
+		groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, chainA)
+		msgRegisterAccount := controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
+
+		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, "", grouptypes.Exec_EXEC_UNSPECIFIED)
+		s.Require().NoError(err)
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("vote and exec proposal", func(t *testing.T) {
+		msgVote := &grouptypes.MsgVote{
+			ProposalId: 1,
+			Voter:      chainAAddress,
+			Option:     grouptypes.VOTE_OPTION_YES,
+			Exec:       grouptypes.Exec_EXEC_TRY,
+		}
+
+		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("verify interchain account registration success", func(t *testing.T) {
+		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
+		s.Require().NoError(err)
+
+		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+		s.Require().NoError(err)
+		s.Require().Equal(len(channels), 2)
+	})
+
+	t.Run("fund interchain account wallet", func(t *testing.T) {
+		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			Address: interchainAccAddr,
+			Amount:  testvalues.StartingTokenAmount,
+			Denom:   chainB.Config().Denom,
 		})
+		s.Require().NoError(err)
+	})
 
-		t.Run("submit proposal register interchain account", func(t *testing.T) {
-			groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, chainA)
-			msgRegisterAccount := controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
+	t.Run("submit proposal submit tx", func(t *testing.T) {
+		msgBankSend := &banktypes.MsgSend{
+			FromAddress: interchainAccAddr,
+			ToAddress:   chainBAddress,
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		}
 
-			msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, "", grouptypes.Exec_EXEC_UNSPECIFIED)
-			s.Require().NoError(err)
+		cfg := simappparams.MakeTestEncodingConfig()
+		banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
+		cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 
-			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(txResp)
-		})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []sdk.Msg{msgBankSend})
+		s.Require().NoError(err)
 
-		t.Run("vote and exec proposal", func(t *testing.T) {
-			msgVote := &grouptypes.MsgVote{
-				ProposalId: 1,
-				Voter:      chainAAddress,
-				Option:     grouptypes.VOTE_OPTION_YES,
-				Exec:       grouptypes.Exec_EXEC_TRY,
-			}
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: bz,
+			Memo: "e2e",
+		}
 
-			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(txResp)
-		})
+		timeoutTimestamp := time.Now().Add(time.Hour * 24).UnixNano() // TODO: find a better solution
+		msgSubmitTx := controllertypes.NewMsgSubmitTx(groupPolicyAddr, ibctesting.FirstConnectionID, clienttypes.NewHeight(1, 1000), uint64(timeoutTimestamp), packetData)
+		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, "", grouptypes.Exec_EXEC_UNSPECIFIED)
+		s.Require().NoError(err)
 
-		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
-		})
+		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
 
-		t.Run("verify interchain account registration success", func(t *testing.T) {
-			interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
-			s.Require().NoError(err)
+	t.Run("vote and exec proposal", func(t *testing.T) {
+		msgVote := &grouptypes.MsgVote{
+			ProposalId: 2,
+			Voter:      chainAAddress,
+			Option:     grouptypes.VOTE_OPTION_YES,
+			Exec:       grouptypes.Exec_EXEC_TRY,
+		}
 
-			channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-			s.Require().NoError(err)
-			s.Require().Equal(len(channels), 2)
-		})
+		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
+	})
 
-		t.Run("fund interchain account wallet", func(t *testing.T) {
-			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
-				Address: interchainAccAddr,
-				Amount:  testvalues.StartingTokenAmount,
-				Denom:   chainB.Config().Denom,
-			})
-			s.Require().NoError(err)
-		})
+	t.Run("verify tokens transferred", func(t *testing.T) {
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
-		// TODO: move this to defaultModifyGensis
-		t.Run("enable allow all messages on host chain", func(t *testing.T) {
-			changes := []paramsproposaltypes.ParamChange{
-				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyAllowMessages), "[\"*\"]"),
-			}
+		balance, err := chainB.GetBalance(ctx, chainBAddress, chainB.Config().Denom)
+		s.Require().NoError(err)
 
-			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovProposal(ctx, chainB, chainBWallet, proposal)
-		})
+		_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
+		s.Require().NoError(err)
 
-		t.Run("submit proposal submit tx", func(t *testing.T) {
-			msgBankSend := &banktypes.MsgSend{
-				FromAddress: interchainAccAddr,
-				ToAddress:   chainBAddress,
-				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
-			}
-
-			cfg := simappparams.MakeTestEncodingConfig()
-			banktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
-
-			bz, err := icatypes.SerializeCosmosTx(cdc, []sdk.Msg{msgBankSend})
-			s.Require().NoError(err)
-
-			packetData := icatypes.InterchainAccountPacketData{
-				Type: icatypes.EXECUTE_TX,
-				Data: bz,
-				Memo: "e2e",
-			}
-
-			timeoutTimestamp := time.Now().Add(time.Hour * 24).UnixNano() // TODO: find a better solution
-			msgSubmitTx := controllertypes.NewMsgSubmitTx(groupPolicyAddr, ibctesting.FirstConnectionID, clienttypes.NewHeight(1, 1000), uint64(timeoutTimestamp), packetData)
-			msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, "", grouptypes.Exec_EXEC_UNSPECIFIED)
-			s.Require().NoError(err)
-
-			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(txResp)
-		})
-
-		t.Run("vote and exec proposal", func(t *testing.T) {
-			msgVote := &grouptypes.MsgVote{
-				ProposalId: 2,
-				Voter:      chainAAddress,
-				Option:     grouptypes.VOTE_OPTION_YES,
-				Exec:       grouptypes.Exec_EXEC_TRY,
-			}
-
-			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(txResp)
-		})
-
-		t.Run("verify tokens transferred", func(t *testing.T) {
-			s.Require().NoError(test.WaitForBlocks(ctx, 15, chainA, chainB), "failed to wait for blocks")
-
-			balance, err := chainB.GetBalance(ctx, chainBAddress, chainB.Config().Denom)
-			s.Require().NoError(err)
-
-			_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
-			s.Require().NoError(err)
-
-			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
-		})
+		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance)
 	})
 }
