@@ -47,6 +47,14 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+				)
+
+				suite.Require().True(isMiddlewareEnabled)
 			} else {
 				suite.Require().Error(err)
 			}
