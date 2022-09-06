@@ -61,44 +61,65 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
 
-	t.Run("create and configure group and group policy", func(t *testing.T) {
-		members := []grouptypes.MemberRequest{
-			{
-				Address: chainAAddress,
-				Weight:  "1",
-			},
-		}
+	t.Run("interchain accounts group integration", func(t *testing.T) {
+		t.Run("create group with policy", func(t *testing.T) {
+			members := []grouptypes.MemberRequest{
+				{
+					Address: chainAAddress,
+					Weight:  "1",
+				},
+			}
 
-		decisionPolicy := grouptypes.NewThresholdDecisionPolicy("1", time.Duration(time.Minute), time.Duration(0))
-		msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, "ics27-controller-group", "ics27-controller-policy", true, decisionPolicy)
-		s.Require().NoError(err)
+			decisionPolicy := grouptypes.NewThresholdDecisionPolicy("1", time.Duration(time.Minute), time.Duration(0))
+			msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, "ics27-controller-group", "ics27-controller-policy", true, decisionPolicy)
+			s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(txResp)
+
+		})
 
 		groupPolicyAddr := s.QueryGroupPolicyAddress(ctx, chainA)
-		msgRegisterAccount := controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
 
-		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, "", grouptypes.Exec_EXEC_TRY)
-		s.Require().NoError(err)
+		t.Run("submit register account proposal", func(t *testing.T) {
+			msgRegisterAccount := controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
 
-		s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+			msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, "", grouptypes.Exec_EXEC_UNSPECIFIED)
+			s.Require().NoError(err)
 
-		interchainAccAddr, err := s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
-		s.Require().NoError(err)
+			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(txResp)
+		})
 
-		t.Logf("successfully registered interchain account via controller group: %s", interchainAccAddr)
+		t.Run("vote and exec proposal", func(t *testing.T) {
+			msgVote := &grouptypes.MsgVote{
+				ProposalId: 1,
+				Voter:      chainAAddress,
+				Option:     grouptypes.VOTE_OPTION_YES,
+				Exec:       grouptypes.Exec_EXEC_TRY,
+			}
+
+			txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(txResp)
+		})
+
+		t.Run("start relayer", func(t *testing.T) {
+			s.StartRelayer(relayer)
+		})
+
+		t.Run("verify interchain account registration success", func(t *testing.T) {
+			interchainAccAddr, err := s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
+			s.Require().NoError(err)
+
+			t.Logf("successfully registered interchain account via controller group: %s", interchainAccAddr)
+
+			channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+			s.Require().NoError(err)
+			s.Require().Equal(len(channels), 2)
+		})
+
 	})
-
-	// setup 2 accounts: controller account on chain A, a second chain B account.
-	// host account will be created when the ICA is registered
-	// controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	// chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	// var hostAccount string
-
-	// t.Run("start relayer", func(t *testing.T) {
-	// 	s.StartRelayer(relayer)
-	// })
-
 }
