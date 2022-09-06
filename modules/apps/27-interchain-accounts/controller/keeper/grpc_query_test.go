@@ -9,7 +9,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
-	var msg *types.QueryInterchainAccountRequest
+	var req *types.QueryInterchainAccountRequest
 
 	testCases := []struct {
 		name     string
@@ -24,21 +24,21 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 		{
 			"empty request",
 			func() {
-				msg = nil
+				req = nil
 			},
 			false,
 		},
 		{
 			"empty owner address",
 			func() {
-				msg.Owner = ""
+				req.Owner = ""
 			},
 			false,
 		},
 		{
 			"invalid connection, account address not found",
 			func() {
-				msg.ConnectionId = "invalid-connection-id"
+				req.ConnectionId = "invalid-connection-id"
 			},
 			false,
 		},
@@ -54,14 +54,14 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 			err := SetupICAPath(path, ibctesting.TestAccAddress)
 			suite.Require().NoError(err)
 
-			msg = &types.QueryInterchainAccountRequest{
+			req = &types.QueryInterchainAccountRequest{
 				ConnectionId: ibctesting.FirstConnectionID,
 				Owner:        ibctesting.TestAccAddress,
 			}
 
 			tc.malleate()
 
-			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(sdk.WrapSDKContext(suite.chainA.GetContext()), req)
 
 			if tc.expPass {
 				expAddress := icatypes.GenerateAddress(suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(icatypes.ModuleName), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
