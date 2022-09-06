@@ -2,7 +2,7 @@
 ## Table of Contents
 1. [How to write tests](#how-to-write-tests)
    - a. [Adding a new test](#adding-a-new-test)
-   - b. [Running the tests](#running-tests-with-custom-images)
+   - b. [Running the tests with custom images](#running-tests-with-custom-images)
    - b. [Code samples](#code-samples)
      - [Setup](#setup)
      - [Creating test users](#creating-test-users)
