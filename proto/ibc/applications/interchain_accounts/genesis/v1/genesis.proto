@@ -42,7 +42,7 @@ message ActiveChannel {
   string connection_id         = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
   string port_id               = 2 [(gogoproto.moretags) = "yaml:\"port_id\""];
   string channel_id            = 3 [(gogoproto.moretags) = "yaml:\"channel_id\""];
-  bool   is_middleware_enabled = 4 [(gogoproto.moretags) = "yaml:\"middleware_enabled\""];
+  bool   is_middleware_enabled = 4 [(gogoproto.moretags) = "yaml:\"is_middleware_enabled\""];
 }
 
 // RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address
