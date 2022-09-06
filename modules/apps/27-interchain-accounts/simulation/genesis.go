@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
 	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 )
@@ -31,7 +30,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		ControllerEnabled: controllerEnabled,
 	}
 
-	controllerGenesisState := genesistypes.ControllerGenesisState{
+	controllerGenesisState := types.ControllerGenesisState{
 		ActiveChannels:     nil,
 		InterchainAccounts: nil,
 		Ports:              []string{},
@@ -49,14 +48,14 @@ func RandomizedGenState(simState *module.SimulationState) {
 		AllowMessages: []string{"*"}, // allow all messages
 	}
 
-	hostGenesisState := genesistypes.HostGenesisState{
+	hostGenesisState := types.HostGenesisState{
 		ActiveChannels:     nil,
 		InterchainAccounts: nil,
 		Port:               types.PortID,
 		Params:             hostParams,
 	}
 
-	icaGenesis := genesistypes.GenesisState{
+	icaGenesis := types.GenesisState{
 		ControllerGenesisState: controllerGenesisState,
 		HostGenesisState:       hostGenesisState,
 	}

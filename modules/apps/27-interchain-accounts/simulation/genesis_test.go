@@ -13,7 +13,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/stretchr/testify/require"
 
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/simulation"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 )
@@ -40,7 +39,7 @@ func TestRandomizedGenState(t *testing.T) {
 
 	simulation.RandomizedGenState(&simState)
 
-	var icaGenesis genesistypes.GenesisState
+	var icaGenesis types.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], &icaGenesis)
 
 	require.True(t, icaGenesis.ControllerGenesisState.Params.ControllerEnabled)

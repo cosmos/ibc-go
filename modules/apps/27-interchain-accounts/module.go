@@ -21,6 +21,7 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host"
 	hostkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/keeper"
 	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/simulation"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
@@ -197,8 +198,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-<<<<<<< HEAD
-=======
 
 // AppModuleSimulation functions
 
@@ -221,4 +220,3 @@ func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.Weig
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }
->>>>>>> eb508b5 (feat: add genesis simulation generation for ics27 (#2154))
