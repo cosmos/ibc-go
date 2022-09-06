@@ -39,20 +39,23 @@ func TestParamChanges(t *testing.T) {
 		require.Equal(t, expected[i].subspace, p.Subspace())
 	}
 
-	paramChanges := simulation.ParamChanges(r, &app.ICAControllerKeeper, nil)
+	paramChanges = simulation.ParamChanges(r, &app.ICAControllerKeeper, nil)
 	require.Len(t, paramChanges, 1)
 
-	for i, p := range paramChanges {
+	// the second call to paramChanges causing the controller enabled to be changed to true
+	expected[0].simValue = "true"
+
+	for _, p := range paramChanges {
 		require.Equal(t, expected[0].composedKey, p.ComposedKey())
 		require.Equal(t, expected[0].key, p.Key())
 		require.Equal(t, expected[0].simValue, p.SimValue()(r), p.Key())
 		require.Equal(t, expected[0].subspace, p.Subspace())
 	}
 
-	paramChanges := simulation.ParamChanges(r, nil, &app.ICAHostKeeper)
+	paramChanges = simulation.ParamChanges(r, nil, &app.ICAHostKeeper)
 	require.Len(t, paramChanges, 1)
 
-	for i, p := range paramChanges {
+	for _, p := range paramChanges {
 		require.Equal(t, expected[1].composedKey, p.ComposedKey())
 		require.Equal(t, expected[1].key, p.Key())
 		require.Equal(t, expected[1].simValue, p.SimValue()(r), p.Key())
