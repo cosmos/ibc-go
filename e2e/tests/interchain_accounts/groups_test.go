@@ -41,7 +41,6 @@ func (s *InterchainAccountsGroupsTestSuite) QueryGroupPolicyAddress(ctx context.
 	return res.GroupPolicies[0].Address
 }
 
-// TestInterchainAccountsGroupsIntegration_Success runs a full integration test between the x/group module and ICS27 interchain accounts.
 func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegration_Success() {
 	t := s.T()
 	ctx := context.TODO()
