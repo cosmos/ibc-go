@@ -27,8 +27,8 @@ func GetCmdQueryInterchainAccount() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			req := &types.QueryInterchainAccountRequest{
-				ConnectionId: args[0],
-				Owner:        args[1],
+				Owner:        args[0],
+				ConnectionId: args[1],
 			}
 
 			res, err := queryClient.InterchainAccount(cmd.Context(), req)
