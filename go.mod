@@ -1,6 +1,6 @@
 go 1.18
 
-module github.com/cosmos/ibc-go/v5
+module github.com/cosmos/ibc-go/v6
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
