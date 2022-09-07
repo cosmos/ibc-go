@@ -14,7 +14,7 @@ import (
 // GetCmdQueryInterchainAccount returns the command handler for the controller submodule parameter querying.
 func GetCmdQueryInterchainAccount() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "interchain-account [connection-id] [owner]",
+		Use:     "interchain-account [owner] [connection-id]",
 		Short:   "Query the interchain account address for a given owner on a particular connection",
 		Long:    "Query the controller submodule for the interchain account address for a given owner on a particular connection",
 		Args:    cobra.ExactArgs(2),
