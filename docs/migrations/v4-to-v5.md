@@ -128,12 +128,12 @@ The `RegisterRESTRoutes` function in `modules/apps/transfer` has been removed.
 
 ### ICS27 - Interchain Accounts
 
-The `key` parameter of the `NewKeeper` functions in 
+The `key` and `msgRouter` parameters of the `NewKeeper` functions in 
 
 - `modules/apps/27-interchain-accounts/controller/keeper` 
 - and `modules/apps/27-interchain-accounts/host/keeper` 
 
- is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
+have changed type. The `key` parameter is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`), and the `msgRouter` parameter is now of type `*icatypes.MessageRouter` (where `icatypes` is an import alias for `"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"`):
 
 ```diff
 // NewKeeper creates a new interchain accounts controller Keeper instance
@@ -146,7 +146,8 @@ func NewKeeper(
    channelKeeper icatypes.ChannelKeeper,
    portKeeper icatypes.PortKeeper,
    scopedKeeper capabilitykeeper.ScopedKeeper,
-   msgRouter *baseapp.MsgServiceRouter,
+-  msgRouter *baseapp.MsgServiceRouter,
++  msgRouter *icatypes.MessageRouter,
 ) Keeper  
 ```
 
@@ -161,8 +162,17 @@ func NewKeeper(
    portKeeper icatypes.PortKeeper,
    accountKeeper icatypes.AccountKeeper,
    scopedKeeper capabilitykeeper.ScopedKeeper,
-   msgRouter *baseapp.MsgServiceRouter,
+-  msgRouter *baseapp.MsgServiceRouter,
++  msgRouter *icatypes.MessageRouter,
 ) Keeper 
+```
+
+The new `MessageRouter` interface is defined as:
+
+```go
+type MessageRouter interface {
+ 	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
+}
 ```
 
 The `RegisterRESTRoutes` function in `modules/apps/27-interchain-accounts` has been removed.
