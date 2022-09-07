@@ -82,7 +82,7 @@ func newSubmitTxCmd() *cobra.Command {
 		Use:   "submit [connection-id] [path/to/packet_msg.json]",
 		Short: "Submit an interchain account txn on the provided connection.",
 		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain 
-from an authentication module and attempts to send the packet. Packet data is provided as json, file or string. An 
+and attempts to send the packet. Packet data is provided as json, file or string. An 
 appropriate relative timeoutTimestamp must be provided with flag {packet-timeout-timestamp}, along with a timeoutHeight
 via {packet-timeout-timestamp}`),
 		Args: cobra.ExactArgs(2),
