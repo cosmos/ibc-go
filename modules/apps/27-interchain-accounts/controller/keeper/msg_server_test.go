@@ -4,10 +4,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -17,7 +16,7 @@ import (
 
 func (suite *KeeperTestSuite) TestRegisterAccount() {
 	var (
-		msg               *controllertypes.MsgRegisterAccount
+		msg               *types.MsgRegisterAccount
 		expectedChannelID = "channel-0"
 	)
 
@@ -69,7 +68,7 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
-		msg = controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+		msg = types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
 		tc.malleate()
 
@@ -84,7 +83,7 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 			events := ctx.EventManager().Events()
 			suite.Require().Len(events, 2)
 			suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
-			suite.Require().Equal(events[1].Type, sdktypes.EventTypeMessage)
+			suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
 		} else {
 			suite.Require().Error(err)
 			suite.Require().Nil(res)
@@ -95,7 +94,7 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 func (suite *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path *ibctesting.Path
-		msg  *controllertypes.MsgSubmitTx
+		msg  *types.MsgSubmitTx
 	)
 
 	testCases := []struct {
@@ -179,7 +178,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID := path.EndpointA.ConnectionID
 
-			msg = controllertypes.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
 			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)

@@ -2,14 +2,11 @@ package transfer
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/test"
 	"github.com/stretchr/testify/suite"
@@ -17,7 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -27,14 +23,6 @@ func TestTransferTestSuite(t *testing.T) {
 
 type TransferTestSuite struct {
 	testsuite.E2ETestSuite
-}
-
-// Transfer broadcasts a MsgTransfer message.
-func (s *TransferTestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
-	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-) (sdk.TxResponse, error) {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
-	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
@@ -105,7 +93,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.StartRelayer(relayer)
 	})
 
-	chainBIBCToken := s.getIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
@@ -300,7 +288,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 
 	var (
 		chainBDenom    = chainB.Config().Denom
-		chainAIBCToken = s.getIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
+		chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
 
 		chainAAddress = chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
 		chainBAddress = chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
@@ -397,9 +385,4 @@ func transferChannelOptions() func(options *ibc.CreateChannelOptions) {
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}
-}
-
-// getIBCToken returns the denomination of the full token denom sent to the receiving channel
-func (s *TransferTestSuite) getIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
-	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }
