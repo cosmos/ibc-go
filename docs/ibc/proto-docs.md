@@ -1546,7 +1546,7 @@ Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `InterchainAccount` | [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest) | [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse) | InterchainAccount returns the interchain account address for a given owner address on a given connection | GET|/ibc/apps/interchain_accounts/controller/v1/owner/{owner}/connection/{connection_id}|
+| `InterchainAccount` | [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest) | [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse) | InterchainAccount returns the interchain account address for a given owner address on a given connection | GET|/ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}|
 | `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse) | Params queries all parameters of the ICA controller submodule. | GET|/ibc/apps/interchain_accounts/controller/v1/params|
 
  <!-- end services -->
