@@ -18,7 +18,12 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	channelID, err := k.registerInterchainAccount(ctx, msg.ConnectionId, msg.Owner, msg.Version)
+	portID, err := icatypes.NewControllerPortID(msg.Owner)
+	if err != nil {
+		return nil, err
+	}
+
+	channelID, err := k.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {
 		return nil, err
 	}
