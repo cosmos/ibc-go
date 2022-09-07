@@ -127,7 +127,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.Require().NoError(err)
 	})
 
-	t.Run("submit proposal submit tx", func(t *testing.T) {
+	t.Run("submit proposal for submit tx", func(t *testing.T) {
 		msgBankSend := &banktypes.MsgSend{
 			FromAddress: interchainAccAddr,
 			ToAddress:   chainBAddress,
