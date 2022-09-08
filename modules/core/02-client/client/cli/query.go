@@ -120,7 +120,7 @@ func GetCmdQueryClientStatus() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	
+
 	return cmd
 }
 
