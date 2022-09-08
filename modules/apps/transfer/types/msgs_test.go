@@ -57,6 +57,24 @@ func TestMsgTransferGetSignBytes(t *testing.T) {
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
 func TestMsgTransferValidation(t *testing.T) {
+	invalidReceiverAddress := `1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890
+		1234567890`
+
 	testCases := []struct {
 		name    string
 		msg     *MsgTransfer
