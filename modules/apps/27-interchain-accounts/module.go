@@ -205,8 +205,6 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // AppModuleSimulation functions
 
-<<<<<<< HEAD
-=======
 // GenerateGenesisState creates a randomized GenState of the ics27 module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
@@ -227,7 +225,6 @@ func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 	return simulation.ParamChanges(r, am.controllerKeeper, am.hostKeeper)
 }
 
->>>>>>> cd913b8 (feat: add params for ics27 simulation (#2160))
 // RegisterStoreDecoder registers a decoder for interchain accounts module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
