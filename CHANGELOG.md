@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (27-interchain-accounts) [\#1352](https://github.com/cosmos/ibc-go/issues/1352) Add support for Cosmos-SDK simulation to ics27 module.  
 * (apps/27-interchain-accounts) [\#2134](https://github.com/cosmos/ibc-go/pull/2134) Adding upgrade handler to ICS27 `controller` submodule for migration of channel capabilities. This upgrade handler migrates ownership of channel capabilities from the underlying application to the ICS27 `controller` submodule.
 * (apps/27-interchain-accounts) [\#2102](https://github.com/cosmos/ibc-go/pull/2102) ICS27 controller middleware now supports a nil underlying application. This allows chains to make use of interchain accounts with existing auth mechanisms such as x/group and x/gov.
 * (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatiblity with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
