@@ -182,14 +182,16 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 
 	expectedChannels := []genesistypes.ActiveChannel{
 		{
-			ConnectionId: ibctesting.FirstConnectionID,
-			PortId:       TestPortID,
-			ChannelId:    path.EndpointA.ChannelID,
+			ConnectionId:        ibctesting.FirstConnectionID,
+			PortId:              TestPortID,
+			ChannelId:           path.EndpointA.ChannelID,
+			IsMiddlewareEnabled: true,
 		},
 		{
-			ConnectionId: ibctesting.FirstConnectionID,
-			PortId:       expectedPortID,
-			ChannelId:    expectedChannelID,
+			ConnectionId:        ibctesting.FirstConnectionID,
+			PortId:              expectedPortID,
+			ChannelId:           expectedChannelID,
+			IsMiddlewareEnabled: false,
 		},
 	}
 
