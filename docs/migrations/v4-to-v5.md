@@ -34,6 +34,8 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 }
 ```
 
+The `AnteDecorator` was actually renamed twice, but in [this PR](https://github.com/cosmos/ibc-go/pull/1820) you can see the changes made for the final rename.
+
 ## IBC Apps
 
 ### Core
