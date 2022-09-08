@@ -146,9 +146,10 @@ func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []genesistypes.ActiveChann
 		keySplit := strings.Split(string(iterator.Key()), "/")
 
 		ch := genesistypes.ActiveChannel{
-			ConnectionId: keySplit[2],
-			PortId:       keySplit[1],
-			ChannelId:    string(iterator.Value()),
+			ConnectionId:        keySplit[2],
+			PortId:              keySplit[1],
+			ChannelId:           string(iterator.Value()),
+			IsMiddlewareEnabled: k.IsMiddlewareEnabled(ctx, keySplit[1], string(iterator.Value())),
 		}
 
 		activeChannels = append(activeChannels, ch)
