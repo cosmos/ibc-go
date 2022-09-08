@@ -18,7 +18,7 @@ func GetCmdQueryInterchainAccount() *cobra.Command {
 		Short:   "Query the interchain account address for a given owner on a particular connection",
 		Long:    "Query the controller submodule for the interchain account address for a given owner on a particular connection",
 		Args:    cobra.ExactArgs(2),
-		Example: fmt.Sprintf("%s query interchain-accounts controller interchain-account connection-0 cosmos1layxcsmyye0dc0har9sdfzwckaz8sjwlfsj8zs", version.AppName),
+		Example: fmt.Sprintf("%s query interchain-accounts controller interchain-account cosmos1layxcsmyye0dc0har9sdfzwckaz8sjwlfsj8zs connection-0", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
