@@ -12,7 +12,8 @@ import (
 
 // msg types
 const (
-	TypeMsgTransfer = "transfer"
+	TypeMsgTransfer           = "transfer"
+	MaxRecipientAddressLength = 2048
 )
 
 // NewMsgTransfer creates a new MsgTransfer instance
@@ -68,6 +69,10 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing recipient address")
+	}
+	receiver := []rune(msg.Receiver)
+	if len(receiver) > MaxRecipientAddressLength {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address cannot be longer than %d characters", MaxRecipientAddressLength)
 	}
 	return ValidateIBCDenom(msg.Token.Denom)
 }

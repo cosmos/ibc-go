@@ -70,6 +70,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* (apps/transfer) [\#2221](https://github.com/cosmos/ibc-go/pull/2221) Add validation to make sure receipent address in `MsgTransfer` is not longer than 2048 characters.
+
 ### Improvements
 
 * (27-interchain-accounts) [\#1352](https://github.com/cosmos/ibc-go/issues/1352) Add support for Cosmos-SDK simulation to ics27 module.

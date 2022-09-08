@@ -28,7 +28,7 @@ This message is expected to fail if:
   - `Token.Amount` is not positive.
   - `Token.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](../../../docs/architecture/adr-001-coin-source-tracing.md).
 - `Sender` is empty.
-- `Receiver` is empty.
+- `Receiver` is empty or longer than 2048 characters.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.
 
 This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
