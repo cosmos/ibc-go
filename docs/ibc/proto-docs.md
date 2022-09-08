@@ -1709,7 +1709,8 @@ The following parameters may be used to disable the host submodule.
 <a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
 
 ### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID
+ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as boolean flag to indicate
+if the channel is middleware enabled
 
 
 | Field | Type | Label | Description |
@@ -1717,6 +1718,7 @@ ActiveChannel contains a connection ID, port ID and associated active channel ID
 | `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
+| `is_middleware_enabled` | [bool](#bool) |  |  |
 
 
 
