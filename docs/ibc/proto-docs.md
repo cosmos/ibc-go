@@ -100,8 +100,8 @@
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
     - [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount)
     - [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse)
-    - [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx)
-    - [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse)
+    - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
+    - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
   
     - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
   
@@ -1653,10 +1653,10 @@ MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTx"></a>
 
-### MsgSubmitTx
-MsgSubmitTx defines the payload for MsgSubmitTx
+### MsgSendTx
+MsgSendTx defines the payload for Msg/SendTx
 
 
 | Field | Type | Label | Description |
@@ -1672,10 +1672,10 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse"></a>
 
-### MsgSubmitTxResponse
-MsgSubmitTxResponse defines the response for MsgSubmitTx
+### MsgSendTxResponse
+MsgSendTxResponse defines the response for MsgSendTx
 
 
 | Field | Type | Label | Description |
@@ -1701,7 +1701,7 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
-| `SubmitTx` | [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx) | [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse) | SubmitTx defines a rpc handler for MsgSubmitTx. | |
+| `SendTx` | [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx) | [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse) | SendTx defines a rpc handler for MsgSendTx. | |
 
  <!-- end services -->
 
@@ -1750,8 +1750,8 @@ The following parameters may be used to disable the host submodule.
 <a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
 
 ### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as boolean flag to indicate
-if the channel is middleware enabled
+ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as a boolean flag to
+indicate if the channel is middleware enabled
 
 
 | Field | Type | Label | Description |
