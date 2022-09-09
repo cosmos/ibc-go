@@ -25,7 +25,7 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 }
 
 // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
-func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
+func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -33,7 +33,7 @@ func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 		return nil, err
 	}
 
-	channelID, err := k.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
+	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +43,8 @@ func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 	}, nil
 }
 
-// SubmitTx defines a rpc handler for MsgSubmitTx
-func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
+// SendTx defines a rpc handler for MsgSendTx
+func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.MsgSendTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -52,20 +52,20 @@ func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*typ
 		return nil, err
 	}
 
-	channelID, found := k.GetActiveChannelID(ctx, msg.ConnectionId, portID)
+	channelID, found := s.Keeper.GetActiveChannelID(ctx, msg.ConnectionId, portID)
 	if !found {
 		return nil, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
 
-	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+	chanCap, found := s.Keeper.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 	if !found {
 		return nil, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	seq, err := k.SendTx(ctx, chanCap, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
+	seq, err := s.Keeper.SendTx(ctx, chanCap, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.MsgSubmitTxResponse{Sequence: seq}, nil
+	return &types.MsgSendTxResponse{Sequence: seq}, nil
 }
