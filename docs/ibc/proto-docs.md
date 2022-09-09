@@ -98,8 +98,8 @@
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
-    - [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount)
-    - [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse)
+    - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
+    - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
     - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
     - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
   
@@ -1621,16 +1621,16 @@ host
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount"></a>
 
-### MsgRegisterAccount
-MsgRegisterAccount defines the payload for Msg/RegisterAccount
+### MsgRegisterInterchainAccount
+MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
 | `version` | [string](#string) |  |  |
 
 
@@ -1638,10 +1638,10 @@ MsgRegisterAccount defines the payload for Msg/RegisterAccount
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse"></a>
 
-### MsgRegisterAccountResponse
-MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
+### MsgRegisterInterchainAccountResponse
+MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
@@ -1700,7 +1700,7 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
+| `RegisterInterchainAccount` | [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount) | [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse) | RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount. | |
 | `SendTx` | [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx) | [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse) | SendTx defines a rpc handler for MsgSendTx. | |
 
  <!-- end services -->
