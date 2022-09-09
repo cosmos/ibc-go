@@ -96,7 +96,11 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 func (suite *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path *ibctesting.Path
+<<<<<<< HEAD
 		msg  *controllertypes.MsgSubmitTx
+=======
+		msg  *types.MsgSendTx
+>>>>>>> a4be561 (chore: rename `SubmitTx` to `SendTx` (#2255))
 	)
 
 	testCases := []struct {
@@ -180,10 +184,17 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID := path.EndpointA.ConnectionID
 
-			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+			msg = types.NewMsgSendTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
+<<<<<<< HEAD
 			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+=======
+
+			ctx := suite.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			res, err := msgServer.SendTx(ctx, msg)
+>>>>>>> a4be561 (chore: rename `SubmitTx` to `SendTx` (#2255))
 
 			if tc.expPass {
 				suite.Require().NoError(err)

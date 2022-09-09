@@ -98,8 +98,8 @@ func TestMsgRegisterAccountGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
 
-func TestMsgSubmitTxValidateBasic(t *testing.T) {
-	var msg *types.MsgSubmitTx
+func TestMsgSendTxValidateBasic(t *testing.T) {
+	var msg *types.MsgSendTx
 
 	testCases := []struct {
 		name     string
@@ -164,7 +164,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 			Data: data,
 		}
 
-		msg = types.NewMsgSubmitTx(
+		msg = types.NewMsgSendTx(
 			ibctesting.TestAccAddress,
 			ibctesting.FirstConnectionID,
 			clienttypes.ZeroHeight(),
@@ -183,7 +183,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgSubmitTxGetSigners(t *testing.T) {
+func TestMsgSendTxGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
@@ -201,7 +201,7 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 		Data: data,
 	}
 
-	msg := types.NewMsgSubmitTx(
+	msg := types.NewMsgSendTx(
 		ibctesting.TestAccAddress,
 		ibctesting.FirstConnectionID,
 		clienttypes.ZeroHeight(),

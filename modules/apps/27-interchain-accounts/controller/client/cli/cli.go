@@ -34,8 +34,13 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+<<<<<<< HEAD
 		newRegisterAccountCmd(),
 		newSubmitTxCmd(),
+=======
+		newRegisterInterchainAccountCmd(),
+		newSendTxCmd(),
+>>>>>>> a4be561 (chore: rename `SubmitTx` to `SendTx` (#2255))
 	)
 
 	return cmd
