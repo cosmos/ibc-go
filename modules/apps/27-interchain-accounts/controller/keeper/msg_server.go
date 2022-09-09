@@ -15,7 +15,7 @@ import (
 var _ types.MsgServer = msgServer{}
 
 type msgServer struct {
-	Keeper *Keeper
+	*Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the ICS27 MsgServer interface
@@ -33,7 +33,7 @@ func (s msgServer) RegisterAccount(goCtx context.Context, msg *types.MsgRegister
 		return nil, err
 	}
 
-	channelID, err := s.Keeper.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
+	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {
 		return nil, err
 	}
