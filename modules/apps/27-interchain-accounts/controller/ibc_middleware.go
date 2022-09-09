@@ -115,7 +115,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	return nil
 }
 
-// OnChanOpenAck implements the IBCMiddleware interface
+// OnChanOpenConfirm implements the IBCMiddleware interface
 func (im IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
@@ -140,7 +140,15 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
+	if err := im.keeper.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+		return err
+	}
+
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, channelID) {
+		return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+	}
+
+	return nil
 }
 
 // OnRecvPacket implements the IBCMiddleware interface
