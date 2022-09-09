@@ -62,7 +62,8 @@ func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*typ
 		return nil, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	seq, err := k.SendTx(ctx, chanCap, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
+	absoluteTimeout := uint64(ctx.BlockTime().UnixNano()) + msg.TimeoutTimestamp
+	seq, err := k.sendTx(ctx, chanCap, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
 	if err != nil {
 		return nil, err
 	}
