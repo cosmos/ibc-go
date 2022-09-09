@@ -34,14 +34,14 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		newRegisterAccountCmd(),
+		newRegisterInterchainAccountCmd(),
 		newSubmitTxCmd(),
 	)
 
 	return cmd
 }
 
-func newRegisterAccountCmd() *cobra.Command {
+func newRegisterInterchainAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register [connection-id]",
 		Short: "Register an interchain account on the provided connection.",
@@ -65,7 +65,7 @@ the associated capability.`),
 				return err
 			}
 
-			msg := types.NewMsgRegisterAccount(connectionID, owner, version)
+			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
