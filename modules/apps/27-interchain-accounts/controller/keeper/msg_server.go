@@ -39,6 +39,7 @@ func (k Keeper) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.
 		return nil, err
 	}
 
+	// explicitly passing nil as the argument is discarded as the channel capability is retrieved in SendTx.
 	seq, err := k.SendTx(ctx, nil, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
