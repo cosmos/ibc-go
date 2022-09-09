@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 func (suite *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path *ibctesting.Path
-		msg  *types.MsgSubmitTx
+		msg  *types.MsgSendTx
 	)
 
 	testCases := []struct {
@@ -180,13 +180,13 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID := path.EndpointA.ConnectionID
 
-			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+			msg = types.NewMsgSendTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
 
 			ctx := suite.chainA.GetContext()
 			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			res, err := msgServer.SubmitTx(ctx, msg)
+			res, err := msgServer.SendTx(ctx, msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

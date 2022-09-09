@@ -12,8 +12,8 @@ import "ibc/applications/interchain_accounts/v1/packet.proto";
 service Msg {
   // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
   rpc RegisterInterchainAccount(MsgRegisterInterchainAccount) returns (MsgRegisterInterchainAccountResponse);
-  // SubmitTx defines a rpc handler for MsgSubmitTx.
-  rpc SubmitTx(MsgSubmitTx) returns (MsgSubmitTxResponse);
+  // SendTx defines a rpc handler for MsgSendTx.
+  rpc SendTx(MsgSendTx) returns (MsgSendTxResponse);
 }
 
 // MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
@@ -31,8 +31,8 @@ message MsgRegisterInterchainAccountResponse {
   string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
-// MsgSubmitTx defines the payload for MsgSubmitTx
-message MsgSubmitTx {
+// MsgSendTx defines the payload for Msg/SendTx
+message MsgSendTx {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -49,7 +49,7 @@ message MsgSubmitTx {
       [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
 }
 
-// MsgSubmitTxResponse defines the response for MsgSubmitTx
-message MsgSubmitTxResponse {
+// MsgSendTxResponse defines the response for MsgSendTx
+message MsgSendTxResponse {
   uint64 sequence = 1;
 }
