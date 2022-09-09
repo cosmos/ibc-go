@@ -34,7 +34,7 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", types.SubModuleName)
 		}
 
-		m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ChannelId)
+		m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionId)
 	}
 
 	return nil
