@@ -23,24 +23,6 @@ const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 )
 
-// NewTxCmd creates and returns the tx command
-func NewTxCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "controller",
-		Short:                      "ica controller transactions subcommands",
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		newRegisterInterchainAccountCmd(),
-		newSubmitTxCmd(),
-	)
-
-	return cmd
-}
-
 func newRegisterInterchainAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register [connection-id]",
