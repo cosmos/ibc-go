@@ -30,25 +30,25 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgRegisterAccount defines the payload for Msg/RegisterAccount
-type MsgRegisterAccount struct {
-	ConnectionId string `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
-	Owner        string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+// MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
+type MsgRegisterInterchainAccount struct {
+	Owner        string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	ConnectionId string `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
 	Version      string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
 }
 
-func (m *MsgRegisterAccount) Reset()         { *m = MsgRegisterAccount{} }
-func (m *MsgRegisterAccount) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterAccount) ProtoMessage()    {}
-func (*MsgRegisterAccount) Descriptor() ([]byte, []int) {
+func (m *MsgRegisterInterchainAccount) Reset()         { *m = MsgRegisterInterchainAccount{} }
+func (m *MsgRegisterInterchainAccount) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterInterchainAccount) ProtoMessage()    {}
+func (*MsgRegisterInterchainAccount) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7def041328c84a30, []int{0}
 }
-func (m *MsgRegisterAccount) XXX_Unmarshal(b []byte) error {
+func (m *MsgRegisterInterchainAccount) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRegisterInterchainAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterAccount.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRegisterInterchainAccount.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -58,35 +58,35 @@ func (m *MsgRegisterAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterAccount) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterAccount.Merge(m, src)
+func (m *MsgRegisterInterchainAccount) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterInterchainAccount.Merge(m, src)
 }
-func (m *MsgRegisterAccount) XXX_Size() int {
+func (m *MsgRegisterInterchainAccount) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterAccount) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterAccount.DiscardUnknown(m)
+func (m *MsgRegisterInterchainAccount) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterInterchainAccount.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterAccount proto.InternalMessageInfo
+var xxx_messageInfo_MsgRegisterInterchainAccount proto.InternalMessageInfo
 
-// MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
-type MsgRegisterAccountResponse struct {
+// MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
+type MsgRegisterInterchainAccountResponse struct {
 	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
 }
 
-func (m *MsgRegisterAccountResponse) Reset()         { *m = MsgRegisterAccountResponse{} }
-func (m *MsgRegisterAccountResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterAccountResponse) ProtoMessage()    {}
-func (*MsgRegisterAccountResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRegisterInterchainAccountResponse) Reset()         { *m = MsgRegisterInterchainAccountResponse{} }
+func (m *MsgRegisterInterchainAccountResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterInterchainAccountResponse) ProtoMessage()    {}
+func (*MsgRegisterInterchainAccountResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7def041328c84a30, []int{1}
 }
-func (m *MsgRegisterAccountResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRegisterInterchainAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRegisterInterchainAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterAccountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRegisterInterchainAccountResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -96,19 +96,19 @@ func (m *MsgRegisterAccountResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterAccountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterAccountResponse.Merge(m, src)
+func (m *MsgRegisterInterchainAccountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterInterchainAccountResponse.Merge(m, src)
 }
-func (m *MsgRegisterAccountResponse) XXX_Size() int {
+func (m *MsgRegisterInterchainAccountResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterAccountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterAccountResponse.DiscardUnknown(m)
+func (m *MsgRegisterInterchainAccountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterInterchainAccountResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterAccountResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRegisterInterchainAccountResponse proto.InternalMessageInfo
 
-func (m *MsgRegisterAccountResponse) GetChannelId() string {
+func (m *MsgRegisterInterchainAccountResponse) GetChannelId() string {
 	if m != nil {
 		return m.ChannelId
 	}
@@ -207,8 +207,8 @@ func (m *MsgSubmitTxResponse) GetSequence() uint64 {
 }
 
 func init() {
-	proto.RegisterType((*MsgRegisterAccount)(nil), "ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount")
-	proto.RegisterType((*MsgRegisterAccountResponse)(nil), "ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse")
+	proto.RegisterType((*MsgRegisterInterchainAccount)(nil), "ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount")
+	proto.RegisterType((*MsgRegisterInterchainAccountResponse)(nil), "ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse")
 	proto.RegisterType((*MsgSubmitTx)(nil), "ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx")
 	proto.RegisterType((*MsgSubmitTxResponse)(nil), "ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse")
 }
@@ -218,45 +218,45 @@ func init() {
 }
 
 var fileDescriptor_7def041328c84a30 = []byte{
-	// 605 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xbf, 0x6f, 0xd3, 0x40,
-	0x18, 0xb5, 0xfb, 0x03, 0xda, 0x2b, 0x05, 0x6a, 0x5a, 0xc9, 0xb2, 0xc0, 0xae, 0x3c, 0x75, 0xe9,
-	0x9d, 0x1c, 0x8a, 0x90, 0x8a, 0x10, 0x22, 0xaa, 0x80, 0x0c, 0x45, 0x95, 0xe9, 0xc4, 0x12, 0xce,
-	0x97, 0x93, 0x73, 0x60, 0xdf, 0x19, 0xdf, 0xd9, 0xb4, 0x23, 0x1b, 0x0b, 0x12, 0x03, 0x2b, 0x52,
-	0x57, 0xfe, 0x93, 0x8e, 0x1d, 0x99, 0x22, 0xd4, 0x2e, 0xcc, 0xf9, 0x0b, 0x90, 0x7f, 0xc4, 0x49,
-	0x49, 0x87, 0x16, 0x98, 0xe2, 0xef, 0xbb, 0xf7, 0xde, 0xbd, 0x4f, 0xef, 0xcb, 0x81, 0x47, 0x2c,
-	0x20, 0x08, 0x27, 0x49, 0xc4, 0x08, 0x56, 0x4c, 0x70, 0x89, 0x18, 0x57, 0x34, 0x25, 0x7d, 0xcc,
-	0x78, 0x17, 0x13, 0x22, 0x32, 0xae, 0x24, 0x22, 0x82, 0xab, 0x54, 0x44, 0x11, 0x4d, 0x51, 0xee,
-	0x21, 0x75, 0x00, 0x93, 0x54, 0x28, 0x61, 0xb4, 0x58, 0x40, 0xe0, 0x24, 0x19, 0x5e, 0x40, 0x86,
-	0x63, 0x32, 0xcc, 0x3d, 0x6b, 0x35, 0x14, 0xa1, 0x28, 0xe9, 0xa8, 0xf8, 0xaa, 0x94, 0x2c, 0xa7,
-	0xb0, 0x41, 0x44, 0x4a, 0x11, 0x89, 0x18, 0xe5, 0xaa, 0xb8, 0xa6, 0xfa, 0xaa, 0x01, 0x5b, 0x97,
-	0xf2, 0x99, 0x7b, 0x28, 0xc1, 0xe4, 0x1d, 0xad, 0x59, 0xee, 0x67, 0x1d, 0x18, 0xbb, 0x32, 0xf4,
-	0x69, 0xc8, 0xa4, 0xa2, 0xe9, 0xd3, 0x0a, 0x67, 0x3c, 0x06, 0xcb, 0x44, 0x70, 0x4e, 0x49, 0xa1,
-	0xd4, 0x65, 0x3d, 0x53, 0x5f, 0xd7, 0x37, 0x16, 0xdb, 0xe6, 0x70, 0xe0, 0xac, 0x1e, 0xe2, 0x38,
-	0xda, 0x76, 0xcf, 0x1d, 0xbb, 0xfe, 0x8d, 0x71, 0xdd, 0xe9, 0x19, 0xab, 0x60, 0x5e, 0x7c, 0xe0,
-	0x34, 0x35, 0x67, 0x0a, 0x9a, 0x5f, 0x15, 0x86, 0x09, 0xae, 0xe7, 0x34, 0x95, 0x4c, 0x70, 0x73,
-	0xb6, 0xec, 0x8f, 0xca, 0xed, 0x85, 0x4f, 0x47, 0x8e, 0xf6, 0xeb, 0xc8, 0xd1, 0x5c, 0x1f, 0x58,
-	0xd3, 0x76, 0x7c, 0x2a, 0x13, 0xc1, 0x25, 0x35, 0xb6, 0x00, 0x20, 0x7d, 0xcc, 0x39, 0x8d, 0xc6,
-	0x9e, 0xd6, 0x86, 0x03, 0x67, 0xa5, 0xf6, 0xd4, 0x9c, 0xb9, 0xfe, 0x62, 0x5d, 0x74, 0x7a, 0xee,
-	0xb7, 0x59, 0xb0, 0xb4, 0x2b, 0xc3, 0x57, 0x59, 0x10, 0x33, 0xb5, 0x7f, 0x30, 0x76, 0xa7, 0x4f,
-	0xba, 0x9b, 0x1a, 0x79, 0xe6, 0x4a, 0x23, 0xbf, 0x01, 0x37, 0x15, 0x8b, 0xa9, 0xc8, 0x54, 0xb7,
-	0x4f, 0x59, 0xd8, 0x57, 0xe5, 0x8c, 0x4b, 0x2d, 0x0b, 0x16, 0x2b, 0x50, 0x04, 0x07, 0xeb, 0xb8,
-	0x72, 0x0f, 0xbe, 0x28, 0x11, 0xed, 0x7b, 0xc7, 0x03, 0x47, 0x1b, 0x0e, 0x9c, 0xb5, 0x4a, 0xff,
-	0x3c, 0xdf, 0xf5, 0x97, 0xeb, 0x46, 0x85, 0x36, 0x3a, 0x60, 0x65, 0x84, 0x28, 0x7e, 0xa5, 0xc2,
-	0x71, 0x62, 0xce, 0xad, 0xeb, 0x1b, 0x73, 0xed, 0xbb, 0xc3, 0x81, 0x63, 0x9e, 0x17, 0x69, 0x20,
-	0xae, 0x7f, 0xbb, 0xee, 0xed, 0x8f, 0x5a, 0xc6, 0x47, 0x1d, 0x2c, 0x55, 0x6b, 0xd0, 0xed, 0x61,
-	0x85, 0xcd, 0xf9, 0xd2, 0xea, 0x0e, 0xbc, 0xd4, 0xb6, 0xe6, 0x1e, 0xec, 0x34, 0xed, 0x3a, 0xa1,
-	0xbd, 0x52, 0x6c, 0x07, 0x2b, 0xdc, 0xb6, 0xea, 0xa1, 0x8c, 0xca, 0xcf, 0xc4, 0x35, 0xae, 0x0f,
-	0x92, 0x06, 0x37, 0x91, 0xb9, 0x07, 0xee, 0x4c, 0xc4, 0xd3, 0x84, 0x6d, 0x81, 0x05, 0x49, 0xdf,
-	0x67, 0x94, 0x13, 0x5a, 0x26, 0x35, 0xe7, 0x37, 0x75, 0xeb, 0x78, 0x06, 0xcc, 0xee, 0xca, 0xd0,
-	0xf8, 0xae, 0x83, 0x5b, 0x7f, 0xee, 0xee, 0x33, 0x78, 0xf5, 0x3f, 0x1d, 0x9c, 0x5e, 0x3a, 0xeb,
-	0xe5, 0xff, 0xd1, 0x69, 0xe6, 0xf9, 0xaa, 0x83, 0x85, 0x66, 0x07, 0x9f, 0xfc, 0xa5, 0xf8, 0x48,
-	0xc0, 0x7a, 0xfe, 0x8f, 0x02, 0x23, 0x5b, 0xed, 0xb7, 0xc7, 0xa7, 0xb6, 0x7e, 0x72, 0x6a, 0xeb,
-	0x3f, 0x4f, 0x6d, 0xfd, 0xcb, 0x99, 0xad, 0x9d, 0x9c, 0xd9, 0xda, 0x8f, 0x33, 0x5b, 0x7b, 0xbd,
-	0x17, 0x32, 0xd5, 0xcf, 0x02, 0x48, 0x44, 0x8c, 0x88, 0x90, 0xb1, 0x90, 0x88, 0x05, 0x64, 0x33,
-	0x14, 0x28, 0x7f, 0x80, 0x62, 0xd1, 0xcb, 0x22, 0x2a, 0x8b, 0x17, 0x47, 0xa2, 0xd6, 0xc3, 0xcd,
-	0xf1, 0xe5, 0x9b, 0x17, 0x3d, 0x8a, 0xea, 0x30, 0xa1, 0x32, 0xb8, 0x56, 0x3e, 0x3a, 0xf7, 0x7f,
-	0x07, 0x00, 0x00, 0xff, 0xff, 0xca, 0xfa, 0x92, 0xae, 0x54, 0x05, 0x00, 0x00,
+	// 604 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0xcf, 0x6b, 0xd4, 0x40,
+	0x14, 0xde, 0xf4, 0x87, 0xb6, 0x53, 0x2b, 0x36, 0xb6, 0x10, 0x43, 0x4d, 0x4a, 0xf0, 0xd0, 0x4b,
+	0x67, 0xc8, 0x5a, 0x11, 0x2a, 0x22, 0x86, 0x82, 0xee, 0xa1, 0x50, 0x62, 0x0f, 0x22, 0xc2, 0x3a,
+	0x99, 0x1d, 0xb2, 0xa3, 0xc9, 0x4c, 0xcc, 0x4c, 0x62, 0x7b, 0xf4, 0xe6, 0xd1, 0x83, 0xe0, 0x49,
+	0xe8, 0x7f, 0x63, 0x8f, 0x3d, 0x7a, 0x5a, 0xa4, 0x05, 0xf1, 0xbc, 0x7f, 0x81, 0xe4, 0xc7, 0xa6,
+	0x5b, 0xac, 0xa5, 0xfe, 0x3a, 0x65, 0xde, 0xcc, 0xfb, 0xbe, 0xf7, 0x3d, 0xbe, 0x97, 0x07, 0xee,
+	0xb1, 0x80, 0x20, 0x9c, 0x24, 0x11, 0x23, 0x58, 0x31, 0xc1, 0x25, 0x62, 0x5c, 0xd1, 0x94, 0xf4,
+	0x31, 0xe3, 0x5d, 0x4c, 0x88, 0xc8, 0xb8, 0x92, 0x88, 0x08, 0xae, 0x52, 0x11, 0x45, 0x34, 0x45,
+	0xb9, 0x8b, 0xd4, 0x2e, 0x4c, 0x52, 0xa1, 0x84, 0xde, 0x66, 0x01, 0x81, 0xe3, 0x60, 0x78, 0x06,
+	0x18, 0x9e, 0x80, 0x61, 0xee, 0x9a, 0x8b, 0xa1, 0x08, 0x45, 0x09, 0x47, 0xc5, 0xa9, 0x62, 0x32,
+	0xed, 0x42, 0x06, 0x11, 0x29, 0x45, 0x24, 0x62, 0x94, 0xab, 0xa2, 0x4c, 0x75, 0xaa, 0x13, 0xd6,
+	0x2f, 0xa4, 0x33, 0x77, 0x51, 0x82, 0xc9, 0x2b, 0x5a, 0xa3, 0x9c, 0x8f, 0x1a, 0x58, 0xde, 0x92,
+	0xa1, 0x4f, 0x43, 0x26, 0x15, 0x4d, 0x3b, 0x0d, 0xe4, 0x61, 0x85, 0xd0, 0x17, 0xc1, 0xb4, 0x78,
+	0xc3, 0x69, 0x6a, 0x68, 0x2b, 0xda, 0xea, 0xac, 0x5f, 0x05, 0xfa, 0x7d, 0x30, 0x4f, 0x04, 0xe7,
+	0x94, 0x14, 0x95, 0xba, 0xac, 0x67, 0x4c, 0x14, 0xaf, 0x9e, 0x31, 0x1c, 0xd8, 0x8b, 0x7b, 0x38,
+	0x8e, 0x36, 0x9c, 0x53, 0xcf, 0x8e, 0x7f, 0xe5, 0x24, 0xee, 0xf4, 0x74, 0x03, 0x5c, 0xce, 0x69,
+	0x2a, 0x99, 0xe0, 0xc6, 0x64, 0x49, 0x3b, 0x0a, 0x37, 0x66, 0xde, 0xed, 0xdb, 0xad, 0xef, 0xfb,
+	0x76, 0xcb, 0x79, 0x0e, 0x6e, 0x9d, 0x27, 0xcc, 0xa7, 0x32, 0x11, 0x5c, 0x52, 0x7d, 0x1d, 0x00,
+	0xd2, 0xc7, 0x9c, 0xd3, 0xa8, 0xd0, 0x51, 0xaa, 0xf4, 0x96, 0x86, 0x03, 0x7b, 0xa1, 0xd6, 0xd1,
+	0xbc, 0x39, 0xfe, 0x6c, 0x1d, 0x74, 0x7a, 0xce, 0xa7, 0x49, 0x30, 0xb7, 0x25, 0xc3, 0x27, 0x59,
+	0x10, 0x33, 0xb5, 0xb3, 0xfb, 0x7f, 0xda, 0x7c, 0x01, 0xae, 0x2a, 0x16, 0x53, 0x91, 0xa9, 0x6e,
+	0x9f, 0xb2, 0xb0, 0xaf, 0xca, 0x6e, 0xe7, 0xda, 0x26, 0x2c, 0xc6, 0xa2, 0x30, 0x13, 0xd6, 0x16,
+	0xe6, 0x2e, 0x7c, 0x5c, 0x66, 0x78, 0x37, 0x0f, 0x06, 0x76, 0x6b, 0x38, 0xb0, 0x97, 0x2a, 0xfe,
+	0xd3, 0x78, 0xc7, 0x9f, 0xaf, 0x2f, 0xaa, 0x6c, 0xbd, 0x03, 0x16, 0x46, 0x19, 0xc5, 0x57, 0x2a,
+	0x1c, 0x27, 0xc6, 0xd4, 0x8a, 0xb6, 0x3a, 0xe5, 0x2d, 0x0f, 0x07, 0xb6, 0x71, 0x9a, 0xa4, 0x49,
+	0x71, 0xfc, 0x6b, 0xf5, 0xdd, 0xce, 0xe8, 0x4a, 0x7f, 0xab, 0x81, 0xb9, 0x6a, 0x34, 0xba, 0x3d,
+	0xac, 0xb0, 0x31, 0x5d, 0x4a, 0xdd, 0x84, 0x17, 0x9a, 0xe0, 0xdc, 0x85, 0x3f, 0x39, 0xb4, 0x5d,
+	0x92, 0x6d, 0x62, 0x85, 0x3d, 0xb3, 0x6e, 0x4a, 0xaf, 0xf4, 0x8c, 0x95, 0x71, 0x7c, 0x90, 0x34,
+	0x79, 0x63, 0xee, 0xbb, 0xe0, 0xfa, 0x98, 0x3d, 0x8d, 0xd9, 0x26, 0x98, 0x91, 0xf4, 0x75, 0x46,
+	0x39, 0xa1, 0xa5, 0x53, 0x53, 0x7e, 0x13, 0xb7, 0xbf, 0x4d, 0x80, 0xc9, 0x2d, 0x19, 0xea, 0x9f,
+	0x35, 0x70, 0xe3, 0xd7, 0xf3, 0xbc, 0x0d, 0x7f, 0xff, 0x97, 0x84, 0xe7, 0x0d, 0xa2, 0xf9, 0xf4,
+	0x5f, 0x33, 0x36, 0xdd, 0x7e, 0xd0, 0xc0, 0x4c, 0x33, 0xa1, 0x0f, 0xfe, 0xb0, 0xcc, 0x88, 0xc0,
+	0x7c, 0xf4, 0x97, 0x04, 0x23, 0x59, 0xde, 0xcb, 0x83, 0x23, 0x4b, 0x3b, 0x3c, 0xb2, 0xb4, 0xaf,
+	0x47, 0x96, 0xf6, 0xfe, 0xd8, 0x6a, 0x1d, 0x1e, 0x5b, 0xad, 0x2f, 0xc7, 0x56, 0xeb, 0xd9, 0x76,
+	0xc8, 0x54, 0x3f, 0x0b, 0x20, 0x11, 0x31, 0x22, 0x42, 0xc6, 0x42, 0x22, 0x16, 0x90, 0xb5, 0x50,
+	0xa0, 0xfc, 0x0e, 0x8a, 0x45, 0x2f, 0x8b, 0xa8, 0x2c, 0x76, 0x94, 0x44, 0xed, 0xbb, 0x6b, 0x27,
+	0xc5, 0xd7, 0xce, 0x5a, 0xa3, 0x6a, 0x2f, 0xa1, 0x32, 0xb8, 0x54, 0xae, 0xa9, 0xdb, 0x3f, 0x02,
+	0x00, 0x00, 0xff, 0xff, 0xdb, 0xb2, 0xd6, 0x41, 0x86, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -271,8 +271,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// RegisterAccount defines a rpc handler for MsgRegisterAccount.
-	RegisterAccount(ctx context.Context, in *MsgRegisterAccount, opts ...grpc.CallOption) (*MsgRegisterAccountResponse, error)
+	// RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
+	RegisterInterchainAccount(ctx context.Context, in *MsgRegisterInterchainAccount, opts ...grpc.CallOption) (*MsgRegisterInterchainAccountResponse, error)
 	// SubmitTx defines a rpc handler for MsgSubmitTx.
 	SubmitTx(ctx context.Context, in *MsgSubmitTx, opts ...grpc.CallOption) (*MsgSubmitTxResponse, error)
 }
@@ -285,9 +285,9 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) RegisterAccount(ctx context.Context, in *MsgRegisterAccount, opts ...grpc.CallOption) (*MsgRegisterAccountResponse, error) {
-	out := new(MsgRegisterAccountResponse)
-	err := c.cc.Invoke(ctx, "/ibc.applications.interchain_accounts.controller.v1.Msg/RegisterAccount", in, out, opts...)
+func (c *msgClient) RegisterInterchainAccount(ctx context.Context, in *MsgRegisterInterchainAccount, opts ...grpc.CallOption) (*MsgRegisterInterchainAccountResponse, error) {
+	out := new(MsgRegisterInterchainAccountResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.interchain_accounts.controller.v1.Msg/RegisterInterchainAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -305,8 +305,8 @@ func (c *msgClient) SubmitTx(ctx context.Context, in *MsgSubmitTx, opts ...grpc.
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// RegisterAccount defines a rpc handler for MsgRegisterAccount.
-	RegisterAccount(context.Context, *MsgRegisterAccount) (*MsgRegisterAccountResponse, error)
+	// RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
+	RegisterInterchainAccount(context.Context, *MsgRegisterInterchainAccount) (*MsgRegisterInterchainAccountResponse, error)
 	// SubmitTx defines a rpc handler for MsgSubmitTx.
 	SubmitTx(context.Context, *MsgSubmitTx) (*MsgSubmitTxResponse, error)
 }
@@ -315,8 +315,8 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) RegisterAccount(ctx context.Context, req *MsgRegisterAccount) (*MsgRegisterAccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterAccount not implemented")
+func (*UnimplementedMsgServer) RegisterInterchainAccount(ctx context.Context, req *MsgRegisterInterchainAccount) (*MsgRegisterInterchainAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterInterchainAccount not implemented")
 }
 func (*UnimplementedMsgServer) SubmitTx(ctx context.Context, req *MsgSubmitTx) (*MsgSubmitTxResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitTx not implemented")
@@ -326,20 +326,20 @@ func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_RegisterAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRegisterAccount)
+func _Msg_RegisterInterchainAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterInterchainAccount)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RegisterAccount(ctx, in)
+		return srv.(MsgServer).RegisterInterchainAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.applications.interchain_accounts.controller.v1.Msg/RegisterAccount",
+		FullMethod: "/ibc.applications.interchain_accounts.controller.v1.Msg/RegisterInterchainAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RegisterAccount(ctx, req.(*MsgRegisterAccount))
+		return srv.(MsgServer).RegisterInterchainAccount(ctx, req.(*MsgRegisterInterchainAccount))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -367,8 +367,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RegisterAccount",
-			Handler:    _Msg_RegisterAccount_Handler,
+			MethodName: "RegisterInterchainAccount",
+			Handler:    _Msg_RegisterInterchainAccount_Handler,
 		},
 		{
 			MethodName: "SubmitTx",
@@ -379,7 +379,7 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	Metadata: "ibc/applications/interchain_accounts/controller/v1/tx.proto",
 }
 
-func (m *MsgRegisterAccount) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterInterchainAccount) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -389,12 +389,12 @@ func (m *MsgRegisterAccount) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRegisterAccount) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterInterchainAccount) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRegisterAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterInterchainAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -406,24 +406,24 @@ func (m *MsgRegisterAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Owner) > 0 {
-		i -= len(m.Owner)
-		copy(dAtA[i:], m.Owner)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
-		i--
-		dAtA[i] = 0x12
-	}
 	if len(m.ConnectionId) > 0 {
 		i -= len(m.ConnectionId)
 		copy(dAtA[i:], m.ConnectionId)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.ConnectionId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRegisterAccountResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterInterchainAccountResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -433,12 +433,12 @@ func (m *MsgRegisterAccountResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRegisterAccountResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterInterchainAccountResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRegisterAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterInterchainAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -554,17 +554,17 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgRegisterAccount) Size() (n int) {
+func (m *MsgRegisterInterchainAccount) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.ConnectionId)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Owner)
+	l = len(m.ConnectionId)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -575,7 +575,7 @@ func (m *MsgRegisterAccount) Size() (n int) {
 	return n
 }
 
-func (m *MsgRegisterAccountResponse) Size() (n int) {
+func (m *MsgRegisterInterchainAccountResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -630,7 +630,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgRegisterAccount) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterInterchainAccount) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -653,45 +653,13 @@ func (m *MsgRegisterAccount) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterAccount: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterInterchainAccount: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterAccount: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterInterchainAccount: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ConnectionId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
@@ -722,6 +690,38 @@ func (m *MsgRegisterAccount) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ConnectionId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -776,7 +776,7 @@ func (m *MsgRegisterAccount) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRegisterAccountResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterInterchainAccountResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -799,10 +799,10 @@ func (m *MsgRegisterAccountResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterAccountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterInterchainAccountResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterInterchainAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

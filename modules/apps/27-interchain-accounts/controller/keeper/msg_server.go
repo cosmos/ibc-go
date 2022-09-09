@@ -14,8 +14,13 @@ import (
 
 var _ types.MsgServer = Keeper{}
 
+<<<<<<< HEAD
 // RegisterAccount defines a rpc handler for MsgRegisterAccount
 func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
+=======
+// RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
+func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
+>>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -28,7 +33,7 @@ func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAcc
 		return nil, err
 	}
 
-	return &types.MsgRegisterAccountResponse{
+	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,
 	}, nil
 }

@@ -16,9 +16,13 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterAccount() {
+func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
+<<<<<<< HEAD
 		msg               *controllertypes.MsgRegisterAccount
+=======
+		msg               *types.MsgRegisterInterchainAccount
+>>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 		expectedChannelID = "channel-0"
 	)
 
@@ -70,12 +74,21 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
+<<<<<<< HEAD
 		msg = controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+=======
+		msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+>>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 
 		tc.malleate()
 
 		ctx := suite.chainA.GetContext()
+<<<<<<< HEAD
 		res, err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterAccount(ctx, msg)
+=======
+		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		res, err := msgServer.RegisterInterchainAccount(ctx, msg)
+>>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 
 		if tc.expPass {
 			suite.Require().NoError(err)
