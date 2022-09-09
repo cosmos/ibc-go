@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -73,7 +74,8 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		tc.malleate()
 
 		ctx := suite.chainA.GetContext()
-		res, err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterAccount(ctx, msg)
+		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		res, err := msgServer.RegisterAccount(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -181,7 +183,10 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
-			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+
+			ctx := suite.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			res, err := msgServer.SubmitTx(ctx, msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
