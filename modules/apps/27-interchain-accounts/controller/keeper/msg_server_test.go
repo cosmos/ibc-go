@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -14,9 +15,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterAccount() {
+func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
-		msg               *types.MsgRegisterAccount
+		msg               *types.MsgRegisterInterchainAccount
 		expectedChannelID = "channel-0"
 	)
 
@@ -68,12 +69,13 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
-		msg = types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+		msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
 		tc.malleate()
 
 		ctx := suite.chainA.GetContext()
-		res, err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterAccount(ctx, msg)
+		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -181,7 +183,10 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
-			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.SubmitTx(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+
+			ctx := suite.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			res, err := msgServer.SubmitTx(ctx, msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
