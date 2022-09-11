@@ -34,7 +34,9 @@ func FormatClientIdentifier(clientType string, sequence uint64) string {
 
 // IsClientIDFormat checks if a clientID is in the format required on the SDK for
 // parsing client identifiers. The client identifier must be in the form: `{client-type}-{N}
-var IsClientIDFormat = regexp.MustCompile(`^.*[^\n-]-[0-9]{1,20}$`).MatchString
+// which per the specification only permits ASCII for the {client-type} segment and
+// 1 to 20 digits for the {N} segment.
+var IsClientIDFormat = regexp.MustCompile(`^\w+([\w-]+\w)?-[0-9]{1,20}$`).MatchString
 
 // IsValidClientID checks if the clientID is valid and can be parsed into the client
 // identifier format.
