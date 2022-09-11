@@ -8,7 +8,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
@@ -18,11 +17,7 @@ import (
 
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
-<<<<<<< HEAD
-		msg               *controllertypes.MsgRegisterAccount
-=======
 		msg               *types.MsgRegisterInterchainAccount
->>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 		expectedChannelID = "channel-0"
 	)
 
@@ -74,21 +69,14 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
-<<<<<<< HEAD
-		msg = controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
-=======
 		msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
->>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 
 		tc.malleate()
 
 		ctx := suite.chainA.GetContext()
-<<<<<<< HEAD
-		res, err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterAccount(ctx, msg)
-=======
+
 		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
 		res, err := msgServer.RegisterInterchainAccount(ctx, msg)
->>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 
 		if tc.expPass {
 			suite.Require().NoError(err)
