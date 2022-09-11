@@ -35,22 +35,31 @@ func TestParseClientIdentifier(t *testing.T) {
 		{"negative sequence", "tendermint--1", "tendermint", 0, false},
 		{"invalid format", "tendermint-tm", "tendermint", 0, false},
 		{"empty clientype", " -100", "tendermint", 0, false},
+		{"with in the middle tabs", "a\t\t\t-100", "tendermint", 0, false},
+		{"leading tabs", "\t\t\ta-100", "tendermint", 0, false},
+		{"with whitespace", "                  a-100", "tendermint", 0, false},
+		{"leading hyphens", "-----a-100", "tendermint", 0, false},
+		{"with slash", "tendermint/-100", "tendermint", 0, false},
+		{"non-ASCII:: emoji", "🚨😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎-100", "tendermint", 0, false},
+		{"non-ASCII:: others", "世界-100", "tendermint", 0, false},
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			clientType, seq, err := types.ParseClientIdentifier(tc.clientID)
+			valid := types.IsValidClientID(tc.clientID)
+			require.Equal(t, tc.expSeq, seq, tc.clientID)
 
-		clientType, seq, err := types.ParseClientIdentifier(tc.clientID)
-		valid := types.IsValidClientID(tc.clientID)
-		require.Equal(t, tc.expSeq, seq, tc.clientID)
-
-		if tc.expPass {
-			require.NoError(t, err, tc.name)
-			require.True(t, valid)
-			require.Equal(t, tc.clientType, clientType)
-		} else {
-			require.Error(t, err, tc.name, tc.clientID)
-			require.False(t, valid)
-			require.Equal(t, "", clientType)
-		}
+			if tc.expPass {
+				require.NoError(t, err, tc.name)
+				require.True(t, valid)
+				require.Equal(t, tc.clientType, clientType)
+			} else {
+				require.Error(t, err, tc.name, tc.clientID)
+				require.False(t, valid)
+				require.Equal(t, "", clientType)
+			}
+		})
 	}
 }
