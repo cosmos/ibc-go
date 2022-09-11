@@ -23,7 +23,6 @@ const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 )
 
-<<<<<<< HEAD
 // NewTxCmd creates and returns the tx command
 func NewTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -42,10 +41,7 @@ func NewTxCmd() *cobra.Command {
 	return cmd
 }
 
-func newRegisterAccountCmd() *cobra.Command {
-=======
 func newRegisterInterchainAccountCmd() *cobra.Command {
->>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
 	cmd := &cobra.Command{
 		Use:   "register [connection-id]",
 		Short: "Register an interchain account on the provided connection.",

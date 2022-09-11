@@ -2,6 +2,8 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/cosmos-sdk/client"
 )
 
 // GetQueryCmd returns the query commands for the ICA controller submodule
@@ -20,8 +22,6 @@ func GetQueryCmd() *cobra.Command {
 
 	return queryCmd
 }
-<<<<<<< HEAD
-=======
 
 // NewTxCmd creates and returns the tx command
 func NewTxCmd() *cobra.Command {
@@ -40,4 +40,3 @@ func NewTxCmd() *cobra.Command {
 
 	return cmd
 }
->>>>>>> f8f226d (chore: rename `RegisterAccount` rpc and msgs to `RegisterInterchainAccount` (#2253))
