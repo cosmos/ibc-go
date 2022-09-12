@@ -308,7 +308,19 @@ func NewIBCModule(
 
 The `MockEmptyAcknowledgement` type has been renamed to `EmptyAcknowledgement` (and the corresponding constructor function to `NewEmptyAcknowledgement`).
 
-The return type of the function `LastCommitID` of the `TestingApp` interface in `testing` has changed to `storetypes.CommitID` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
+The `TestingApp` interface in `testing` has gone through some modifications:
+
+- The return type of the function `GetStakingKeeper` is not the concrete type `stakingkeeper.Keeper` anymore (where `stakingkeeper` is an import alias for `"github.com/cosmos/cosmos-sdk/x/staking/keeper"`), but it has been changed to the interface `ibctestingtypes.StakingKeeper` (where `ibctestingtypes` is an import alias for `""github.com/cosmos/ibc-go/v5/testing/types"`). See this [PR](https://github.com/cosmos/ibc-go/pull/2028) for more details. The `StakingKeeper` interface is defined as:
+
+```go
+type StakingKeeper interface {
+ 	GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool)
+}
+```
+
+- The return type of the function `LastCommitID` has changed to `storetypes.CommitID` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`).
+
+See the following `git diff` for more details:
 
 ```diff
 type TestingApp interface {
@@ -316,7 +328,8 @@ type TestingApp interface {
    
    // ibc-go additions
    GetBaseApp() *baseapp.BaseApp
-   GetStakingKeeper() stakingkeeper.Keeper
+-  GetStakingKeeper() stakingkeeper.Keeper
++  GetStakingKeeper() ibctestingtypes.StakingKeeper
    GetIBCKeeper() *keeper.Keeper
    GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
    GetTxConfig() client.TxConfig
