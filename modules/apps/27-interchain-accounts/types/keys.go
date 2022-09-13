@@ -57,6 +57,6 @@ func KeyPort(portID string) []byte {
 }
 
 // KeyIsMiddlewareEnabled creates and returns a new key used for signaling legacy API callback routing via ibc middleware
-func KeyIsMiddlewareEnabled(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", IsMiddlewareEnabledPrefix, portID, channelID))
+func KeyIsMiddlewareEnabled(portID, connectionID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", IsMiddlewareEnabledPrefix, portID, connectionID))
 }
