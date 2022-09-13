@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 func (suite *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path *ibctesting.Path
-		msg  *controllertypes.MsgSubmitTx
+		msg  *controllertypes.MsgSendTx
 	)
 
 	testCases := []struct {
