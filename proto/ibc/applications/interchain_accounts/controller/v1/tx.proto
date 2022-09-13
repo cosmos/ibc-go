@@ -21,8 +21,8 @@ message MsgRegisterInterchainAccount {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string connection_id = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
-  string owner         = 2;
+  string owner         = 1;
+  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
   string version       = 3;
 }
 

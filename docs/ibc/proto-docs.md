@@ -1622,8 +1622,8 @@ MsgRegisterInterchainAccount defines the payload for Msg/MsgRegisterInterchainAc
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
 | `version` | [string](#string) |  |  |
 
 

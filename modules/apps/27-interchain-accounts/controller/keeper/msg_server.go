@@ -12,7 +12,7 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
-var _ types.MsgServer = Keeper{}
+var _ types.MsgServer = msgServer{}
 
 type msgServer struct {
 	*Keeper
@@ -38,7 +38,7 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 		return nil, err
 	}
 
-	return &types.MsgRegisterAccountResponse{
+	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,
 	}, nil
 }

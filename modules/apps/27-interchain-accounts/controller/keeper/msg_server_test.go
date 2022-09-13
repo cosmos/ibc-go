@@ -7,7 +7,7 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -16,9 +16,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterAccount() {
+func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
-		msg               *controllertypes.MsgRegisterAccount
+		msg               *controllertypes.MsgRegisterInterchainAccount
 		expectedChannelID = "channel-0"
 	)
 
@@ -70,12 +70,14 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
-		msg = controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+		msg = controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
 		tc.malleate()
 
 		ctx := suite.chainA.GetContext()
-		res, err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterAccount(ctx, msg)
+
+		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -180,7 +182,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID := path.EndpointA.ConnectionID
 
-			msg = types.NewMsgSendTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+			msg = controllertypes.NewMsgSendTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
 

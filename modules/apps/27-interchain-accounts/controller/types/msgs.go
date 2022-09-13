@@ -12,11 +12,11 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
-var _ sdk.Msg = &MsgRegisterAccount{}
+var _ sdk.Msg = &MsgRegisterInterchainAccount{}
 
-// NewMsgRegisterAccount creates a new instance of MsgRegisterAccount
-func NewMsgRegisterAccount(connectionID, owner, version string) *MsgRegisterAccount {
-	return &MsgRegisterAccount{
+// NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
+func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
+	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
@@ -24,7 +24,7 @@ func NewMsgRegisterAccount(connectionID, owner, version string) *MsgRegisterAcco
 }
 
 // ValidateBasic implements sdk.Msg
-func (msg MsgRegisterAccount) ValidateBasic() error {
+func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 	if err := host.ConnectionIdentifierValidator(msg.ConnectionId); err != nil {
 		return sdkerrors.Wrap(err, "invalid connection ID")
 	}
@@ -41,7 +41,7 @@ func (msg MsgRegisterAccount) ValidateBasic() error {
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
+func (msg MsgRegisterInterchainAccount) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
