@@ -12,10 +12,20 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 )
 
-var _ types.MsgServer = Keeper{}
+var _ types.MsgServer = msgServer{}
 
-// RegisterAccount defines a rpc handler for MsgRegisterAccount
-func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
+type msgServer struct {
+	*Keeper
+}
+
+// NewMsgServerImpl returns an implementation of the ICS27 MsgServer interface
+// for the provided Keeper.
+func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
+	return &msgServer{Keeper: keeper}
+}
+
+// RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
+func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -28,13 +38,13 @@ func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAcc
 		return nil, err
 	}
 
-	return &types.MsgRegisterAccountResponse{
+	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,
 	}, nil
 }
 
 // SubmitTx defines a rpc handler for MsgSubmitTx
-func (k Keeper) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
+func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)

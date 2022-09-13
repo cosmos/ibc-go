@@ -98,8 +98,8 @@
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
-    - [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount)
-    - [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse)
+    - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
+    - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
     - [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx)
     - [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse)
   
@@ -1614,16 +1614,16 @@ host
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount"></a>
 
-### MsgRegisterAccount
-MsgRegisterAccount defines the payload for Msg/RegisterAccount
+### MsgRegisterInterchainAccount
+MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
 | `version` | [string](#string) |  |  |
 
 
@@ -1631,10 +1631,10 @@ MsgRegisterAccount defines the payload for Msg/RegisterAccount
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse"></a>
 
-### MsgRegisterAccountResponse
-MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
+### MsgRegisterInterchainAccountResponse
+MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
@@ -1693,7 +1693,7 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
+| `RegisterInterchainAccount` | [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount) | [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse) | RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount. | |
 | `SubmitTx` | [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx) | [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse) | SubmitTx defines a rpc handler for MsgSubmitTx. | |
 
  <!-- end services -->
@@ -1743,8 +1743,8 @@ The following parameters may be used to disable the host submodule.
 <a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
 
 ### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as boolean flag to indicate
-if the channel is middleware enabled
+ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as a boolean flag to
+indicate if the channel is middleware enabled
 
 
 | Field | Type | Label | Description |

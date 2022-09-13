@@ -15,8 +15,8 @@ import (
 	"github.com/cosmos/ibc-go/v5/testing/simapp"
 )
 
-func TestMsgRegisterAccountValidateBasic(t *testing.T) {
-	var msg *types.MsgRegisterAccount
+func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
+	var msg *types.MsgRegisterInterchainAccount
 
 	testCases := []struct {
 		name     string
@@ -73,7 +73,7 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 
 	for i, tc := range testCases {
 
-		msg = types.NewMsgRegisterAccount(
+		msg = types.NewMsgRegisterInterchainAccount(
 			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
 			icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
@@ -90,11 +90,11 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgRegisterAccountGetSigners(t *testing.T) {
+func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
-	msg := types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
 
