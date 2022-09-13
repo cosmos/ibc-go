@@ -100,11 +100,11 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: "${{ github.sha }}-${{ matrix.part }}"
-        # if: env.GIT_DIFF
+        if: env.GIT_DIFF
       - name: test & coverage report creation
         run: |
           cat pkgs.txt.part.${{ matrix.part }} | xargs go test -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
-        # if: env.GIT_DIFF
+        if: env.GIT_DIFF
       - uses: actions/upload-artifact@v3
         with:
           name: "${{ github.sha }}-${{ matrix.part }}-coverage"
