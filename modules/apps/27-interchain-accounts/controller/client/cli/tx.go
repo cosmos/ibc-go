@@ -13,7 +13,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 )
 
 const (
@@ -65,8 +64,7 @@ func newSendTxCmd() *cobra.Command {
 		Short: "Send an interchain account tx on the provided connection.",
 		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain 
 and attempts to send the packet. Packet data is provided as json, file or string. An 
-appropriate relative timeoutTimestamp must be provided with flag {packet-timeout-timestamp}, along with a timeoutHeight
-via {packet-timeout-timestamp}`),
+appropriate relative timeoutTimestamp must be provided with flag {packet-timeout-timestamp}`),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -94,21 +92,12 @@ via {packet-timeout-timestamp}`),
 				}
 			}
 
-			timeoutHeightStr, err := cmd.Flags().GetString(flagPacketTimeoutHeight)
-			if err != nil {
-				return err
-			}
-			timeoutHeight, err := clienttypes.ParseHeight(timeoutHeightStr)
+			relativeTimeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
 			if err != nil {
 				return err
 			}
 
-			timeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgSendTx(owner, connectionID, timeoutHeight, timeoutTimestamp, icaMsgData)
+			msg := types.NewMsgSendTx(owner, connectionID, relativeTimeoutTimestamp, icaMsgData)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
