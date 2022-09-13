@@ -8,7 +8,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 )
 
 // MigrateICS27ChannelCapability performs a search on a prefix store using the provided store key and module name.
@@ -16,12 +16,12 @@ import (
 func MigrateICS27ChannelCapability(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	capabilityStoreKey storetypes.StoreKey,
 	capabilityKeeper *capabilitykeeper.Keeper,
 	module string, // the name of the scoped keeper for the underlying app module
 ) error {
 	// construct a prefix store using the x/capability index prefix: index->capability owners
-	prefixStore := prefix.NewStore(ctx.KVStore(storeKey), capabilitytypes.KeyPrefixIndexCapability)
+	prefixStore := prefix.NewStore(ctx.KVStore(capabilityStoreKey), capabilitytypes.KeyPrefixIndexCapability)
 	iterator := sdk.KVStorePrefixIterator(prefixStore, nil)
 	defer iterator.Close()
 
@@ -38,7 +38,7 @@ func MigrateICS27ChannelCapability(
 				owners.Remove(owner)
 
 				// reassign the owner module to icacontroller
-				owner.Module = types.SubModuleName
+				owner.Module = controllertypes.SubModuleName
 
 				// add the controller submodule to the set of owners
 				if err := owners.Set(owner); err != nil {
