@@ -10,21 +10,14 @@ import "ibc/applications/interchain_accounts/v1/packet.proto";
 
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
-<<<<<<< HEAD
-  // RegisterAccount defines a rpc handler for MsgRegisterAccount.
-  rpc RegisterAccount(MsgRegisterAccount) returns (MsgRegisterAccountResponse);
-  // SubmitTx defines a rpc handler for MsgSubmitTx.
-  rpc SubmitTx(MsgSubmitTx) returns (MsgSubmitTxResponse);
-=======
   // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
   rpc RegisterInterchainAccount(MsgRegisterInterchainAccount) returns (MsgRegisterInterchainAccountResponse);
   // SendTx defines a rpc handler for MsgSendTx.
   rpc SendTx(MsgSendTx) returns (MsgSendTxResponse);
->>>>>>> a4be561 (chore: rename `SubmitTx` to `SendTx` (#2255))
 }
 
-// MsgRegisterAccount defines the payload for Msg/RegisterAccount
-message MsgRegisterAccount {
+// MsgRegisterInterchainAccount defines the payload for Msg/MsgRegisterInterchainAccount
+message MsgRegisterInterchainAccount {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -33,8 +26,8 @@ message MsgRegisterAccount {
   string version       = 3;
 }
 
-// MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
-message MsgRegisterAccountResponse {
+// MsgRegisterInterchainAccountResponse defines the response for Msg/MsgRegisterInterchainAccountResponse
+message MsgRegisterInterchainAccountResponse {
   string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 

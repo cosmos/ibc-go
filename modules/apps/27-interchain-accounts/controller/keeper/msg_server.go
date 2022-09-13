@@ -14,10 +14,6 @@ import (
 
 var _ types.MsgServer = Keeper{}
 
-<<<<<<< HEAD
-// RegisterAccount defines a rpc handler for MsgRegisterAccount
-func (k Keeper) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
-=======
 type msgServer struct {
 	*Keeper
 }
@@ -30,7 +26,6 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
 func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
->>>>>>> a4be561 (chore: rename `SubmitTx` to `SendTx` (#2255))
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -48,13 +43,8 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 	}, nil
 }
 
-<<<<<<< HEAD
-// SubmitTx defines a rpc handler for MsgSubmitTx
-func (k Keeper) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
-=======
 // SendTx defines a rpc handler for MsgSendTx
 func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.MsgSendTxResponse, error) {
->>>>>>> a4be561 (chore: rename `SubmitTx` to `SendTx` (#2255))
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)

@@ -9,12 +9,7 @@ import (
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-<<<<<<< HEAD
-		&MsgRegisterAccount{},
-		&MsgSubmitTx{},
-=======
 		&MsgRegisterInterchainAccount{},
 		&MsgSendTx{},
->>>>>>> a4be561 (chore: rename `SubmitTx` to `SendTx` (#2255))
 	)
 }
