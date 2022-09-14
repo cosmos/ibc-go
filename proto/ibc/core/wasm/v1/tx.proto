@@ -1,0 +1,23 @@
+syntax = "proto3";
+package ibc.core.wasm.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types";
+
+// Msg defines the ibc/wasm Msg service.
+service Msg {
+  // PushNewWasmCode defines a rpc handler method for PushNewWasmCode.
+  rpc PushNewWasmCode(MsgPushNewWasmCode) returns (MsgPushNewWasmCodeResponse);
+}
+
+// Message type to push new wasm code
+message MsgPushNewWasmCode {
+  string signer      = 1;
+  bytes  code        = 3;
+}
+
+// Response in case of successful handling
+message MsgPushNewWasmCodeResponse {
+  bytes  code_id   = 1;
+}

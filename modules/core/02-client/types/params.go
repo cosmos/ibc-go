@@ -36,7 +36,10 @@ func DefaultParams() Params {
 
 // Validate all ibc-client module parameters
 func (p Params) Validate() error {
-	return validateClients(p.AllowedClients)
+	if err := validateClients(p.AllowedClients); err != nil {
+		return err
+	}
+	return validateWasmClientEnabledFlag(p.WasmClientsEnabled)
 }
 
 // ParamSetPairs implements params.ParamSet
@@ -66,6 +69,15 @@ func validateClients(i interface{}) error {
 		if strings.TrimSpace(clientType) == "" {
 			return fmt.Errorf("client type %d cannot be blank", i)
 		}
+	}
+
+	return nil
+}
+
+func validateWasmClientEnabledFlag(i interface{}) error {
+	_, ok := i.(bool)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
 	return nil

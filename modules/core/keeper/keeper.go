@@ -16,6 +16,7 @@ import (
 	channelkeeper "github.com/cosmos/ibc-go/v5/modules/core/04-channel/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v5/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
+	wasmkeeper "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/keeper"
 	"github.com/cosmos/ibc-go/v5/modules/core/types"
 )
 
@@ -32,6 +33,7 @@ type Keeper struct {
 	ConnectionKeeper connectionkeeper.Keeper
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       portkeeper.Keeper
+	WasmKeeper       wasmkeeper.Keeper
 	Router           *porttypes.Router
 }
 
@@ -66,6 +68,15 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
+	wasmKeeper := wasmkeeper.NewKeeper(cdc, key, &wasmkeeper.VMConfig{
+		DataDir:           "wasm_data",
+		SupportedFeatures: []string{"staking"},
+		MemoryLimitMb:     8,
+		PrintDebug:        true,
+		CacheSizeMb:       8,
+	}, &wasmkeeper.ValidationConfig{
+		MaxSizeAllowed: 1024 * 1024, // 1 MB
+	})
 
 	return &Keeper{
 		cdc:              cdc,
@@ -73,6 +84,7 @@ func NewKeeper(
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       portKeeper,
+		WasmKeeper:       wasmKeeper,
 	}
 }
 

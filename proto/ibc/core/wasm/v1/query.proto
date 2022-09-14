@@ -1,0 +1,24 @@
+syntax = "proto3";
+package ibc.core.wasm.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types";
+
+// WasmCode query
+message WasmCodeQuery {
+  string code_id = 1;
+}
+
+// WasmCode response
+message WasmCodeResponse {
+  bytes code = 1;
+}
+
+// Query service for wasm module
+service Query {
+  // Get Wasm code for given code id
+  rpc WasmCode(WasmCodeQuery) returns (WasmCodeResponse) {
+    option (google.api.http).get = "/ibc/core/wasm/v1beta1/code/{code_id}";
+  }
+}

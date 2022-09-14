@@ -19,6 +19,9 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
+	// Wasm is used to indicate that the light client is a on-chain wasm program
+	Wasm string = "10-wasm"
+
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
 

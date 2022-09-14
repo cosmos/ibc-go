@@ -303,6 +303,18 @@
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
+- [ibc/core/wasm/v1/query.proto](#ibc/core/wasm/v1/query.proto)
+    - [WasmCodeQuery](#ibc.core.wasm.v1.WasmCodeQuery)
+    - [WasmCodeResponse](#ibc.core.wasm.v1.WasmCodeResponse)
+  
+    - [Query](#ibc.core.wasm.v1.Query)
+  
+- [ibc/core/wasm/v1/tx.proto](#ibc/core/wasm/v1/tx.proto)
+    - [MsgPushNewWasmCode](#ibc.core.wasm.v1.MsgPushNewWasmCode)
+    - [MsgPushNewWasmCodeResponse](#ibc.core.wasm.v1.MsgPushNewWasmCodeResponse)
+  
+    - [Msg](#ibc.core.wasm.v1.Msg)
+  
 - [ibc/lightclients/solomachine/v1/solomachine.proto](#ibc/lightclients/solomachine/v1/solomachine.proto)
     - [ChannelStateData](#ibc.lightclients.solomachine.v1.ChannelStateData)
     - [ClientState](#ibc.lightclients.solomachine.v1.ClientState)
@@ -359,6 +371,12 @@
     - [Fraction](#ibc.lightclients.tendermint.v1.Fraction)
     - [Header](#ibc.lightclients.tendermint.v1.Header)
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
+  
+- [ibc/lightclients/wasm/v1/wasm.proto](#ibc/lightclients/wasm/v1/wasm.proto)
+    - [ClientState](#ibc.lightclients.wasm.v1.ClientState)
+    - [ConsensusState](#ibc.lightclients.wasm.v1.ConsensusState)
+    - [Header](#ibc.lightclients.wasm.v1.Header)
+    - [Misbehaviour](#ibc.lightclients.wasm.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -510,6 +528,7 @@ Params defines the set of IBC light client parameters.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `allowed_clients` | [string](#string) | repeated | allowed_clients defines the list of allowed client state types. |
+| `wasm_clients_enabled` | [bool](#bool) |  | ehether or not wasm clients are enabled |
 
 
 
@@ -4435,6 +4454,119 @@ GenesisState defines the ibc module's genesis state.
 
 
 
+<a name="ibc/core/wasm/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/wasm/v1/query.proto
+
+
+
+<a name="ibc.core.wasm.v1.WasmCodeQuery"></a>
+
+### WasmCodeQuery
+WasmCode query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.core.wasm.v1.WasmCodeResponse"></a>
+
+### WasmCodeResponse
+WasmCode response
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.core.wasm.v1.Query"></a>
+
+### Query
+Query service for wasm module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `WasmCode` | [WasmCodeQuery](#ibc.core.wasm.v1.WasmCodeQuery) | [WasmCodeResponse](#ibc.core.wasm.v1.WasmCodeResponse) | Get Wasm code for given code id | GET|/ibc/core/wasm/v1beta1/code/{code_id}|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/core/wasm/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/wasm/v1/tx.proto
+
+
+
+<a name="ibc.core.wasm.v1.MsgPushNewWasmCode"></a>
+
+### MsgPushNewWasmCode
+Message type to push new wasm code
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signer` | [string](#string) |  |  |
+| `code` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="ibc.core.wasm.v1.MsgPushNewWasmCodeResponse"></a>
+
+### MsgPushNewWasmCodeResponse
+Response in case of successful handling
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code_id` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.core.wasm.v1.Msg"></a>
+
+### Msg
+Msg defines the ibc/wasm Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `PushNewWasmCode` | [MsgPushNewWasmCode](#ibc.core.wasm.v1.MsgPushNewWasmCode) | [MsgPushNewWasmCodeResponse](#ibc.core.wasm.v1.MsgPushNewWasmCodeResponse) | PushNewWasmCode defines a rpc handler method for PushNewWasmCode. | |
+
+ <!-- end services -->
+
+
+
 <a name="ibc/lightclients/solomachine/v1/solomachine.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -5342,6 +5474,91 @@ that implements Misbehaviour interface expected by ICS-02
 | `client_id` | [string](#string) |  | **Deprecated.** ClientID is deprecated |
 | `header_1` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
 | `header_2` | [Header](#ibc.lightclients.tendermint.v1.Header) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/lightclients/wasm/v1/wasm.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/lightclients/wasm/v1/wasm.proto
+
+
+
+<a name="ibc.lightclients.wasm.v1.ClientState"></a>
+
+### ClientState
+Wasm light client's Client state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  |  |
+| `code_id` | [bytes](#bytes) |  |  |
+| `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+| `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.wasm.v1.ConsensusState"></a>
+
+### ConsensusState
+Wasm light client's ConsensusState
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  |  |
+| `code_id` | [bytes](#bytes) |  |  |
+| `timestamp` | [uint64](#uint64) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
+| `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
+
+
+
+
+
+
+<a name="ibc.lightclients.wasm.v1.Header"></a>
+
+### Header
+Wasm light client Header
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  |  |
+| `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
+
+
+
+
+
+
+<a name="ibc.lightclients.wasm.v1.Misbehaviour"></a>
+
+### Misbehaviour
+Wasm light client Misbehaviour
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `client_id` | [string](#string) |  |  |
+| `header_1` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |
+| `header_2` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |
 
 
 

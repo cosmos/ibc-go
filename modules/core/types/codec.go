@@ -7,6 +7,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	wasmmanagertypes "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types"
 	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 )
@@ -19,4 +20,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	solomachinetypes.RegisterInterfaces(registry)
 	ibctm.RegisterInterfaces(registry)
 	commitmenttypes.RegisterInterfaces(registry)
+	wasmmanagertypes.RegisterInterfaces(registry)
+	// wasmtypes.RegisterInterfaces(registry)
 }
