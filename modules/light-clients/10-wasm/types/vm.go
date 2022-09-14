@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/CosmWasm/wasmvm/api"
+	cosmwasm "github.com/CosmWasm/wasmvm"
 	"github.com/CosmWasm/wasmvm/types"
 	ics23 "github.com/confio/ics23/go"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -80,10 +80,11 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 		Sender: "",
 		Funds:  nil,
 	}
-	mockFailureAPI := *api.NewMockFailureAPI()
-	mockQuerier := api.MockQuerier{}
+	// mockFailureAPI := *api.NewMockFailureAPI()
+	// mockQuerier := api.MockQuerier{}
 
-	response, _, err := keeper.WasmVM.Instantiate(codeID, env, msgInfo, msg, store, mockFailureAPI, mockQuerier, gasMeter, gasMeter.Limit())
+	desercost := types.UFraction{Numerator: 1, Denominator: 1}
+	response, _, err := keeper.WasmVM.Instantiate(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return response, err
 }
 
@@ -115,7 +116,7 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 }
 
 // Calls vm.Execute with supplied environment and gas meter
-func callContractWithEnvAndMeter(codeID types.Checksum, ctx *sdk.Context, store sdk.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.Response, error) {
+func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx *sdk.Context, store cosmwasm.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.Response, error) {
 	msgInfo := types.MessageInfo{
 		Sender: "",
 		Funds:  nil,
@@ -123,21 +124,23 @@ func callContractWithEnvAndMeter(codeID types.Checksum, ctx *sdk.Context, store 
 	// TODO: fix this
 	// mockFailureAPI := *api.NewMockFailureAPI()
 	// mockQuerier := api.MockQuerier{}
-
-	resp, gasUsed, err := keeper.WasmVM.Execute(codeID, env, msgInfo, msg, store, nil, nil, gasMeter, gasMeter.Limit())
+	desercost := types.UFraction{Numerator: 1, Denominator: 1}
+	resp, gasUsed, err := keeper.WasmVM.Execute(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, nil, gasMeter.Limit(), desercost)
 	if ctx != nil {
 		consumeGas(*ctx, gasUsed)
 	}
 	return resp, err
 }
 
-func queryContractWithStore(codeID []byte, store sdk.KVStore, msg []byte) ([]byte, error) {
-	mockEnv := api.MockEnv()
-	mockGasMeter := api.NewMockGasMeter(1)
-	mockFailureAPI := *api.NewMockFailureAPI()
-	mockQuerier := api.MockQuerier{}
-
-	resp, _, err := keeper.WasmVM.Query(codeID, mockEnv, msg, store, mockFailureAPI, mockQuerier, mockGasMeter, maxGasLimit)
+func queryContractWithStore(codeID cosmwasm.Checksum, store cosmwasm.KVStore, msg []byte) ([]byte, error) {
+	// TODO: fix this
+	// mockEnv := api.MockEnv()
+	// mockGasMeter := api.NewMockGasMeter(1)
+	// mockFailureAPI := *api.NewMockFailureAPI()
+	// mockQuerier := api.MockQuerier{}
+	// TODO: figure out what this is for
+	desercost := types.UFraction{Numerator: 1, Denominator: 1}
+	resp, _, err := keeper.WasmVM.Query(codeID, types.Env{}, msg, store, cosmwasm.GoAPI{}, nil, nil, maxGasLimit, desercost)
 	return resp, err
 }
 
