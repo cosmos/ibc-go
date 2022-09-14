@@ -49,22 +49,8 @@ func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*typ
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	channelID, found := k.GetActiveChannelID(ctx, msg.ConnectionId, portID)
-	if !found {
-		return nil, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
-	}
-
-	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
-	if !found {
-		return nil, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
-	seq, err := k.SendTx(ctx, chanCap, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
-=======
 	// explicitly passing nil as the argument is discarded as the channel capability is retrieved in SendTx.
 	seq, err := s.Keeper.SendTx(ctx, nil, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
->>>>>>> 9fa6008 (Removing getting of the capability in controller message server (#2250))
 	if err != nil {
 		return nil, err
 	}
