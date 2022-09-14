@@ -99,6 +99,8 @@ import (
 	ibcfee "github.com/cosmos/ibc-go/v5/modules/apps/29-fee"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/keeper"
 	ibcfeetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	ibchooks "github.com/cosmos/ibc-go/v5/modules/apps/hooks"
+	ibchooktypes "github.com/cosmos/ibc-go/v5/modules/apps/hooks/types"
 	transfer "github.com/cosmos/ibc-go/v5/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v5/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
@@ -119,7 +121,8 @@ const appName = "SimApp"
 
 // IBC application testing ports
 const (
-	MockFeePort string = ibcmock.ModuleName + ibcfeetypes.ModuleName
+	MockFeePort   string = ibcmock.ModuleName + ibcfeetypes.ModuleName
+	MockHooksPort string = ibcmock.ModuleName + ibchooktypes.ModuleName
 )
 
 var (
@@ -220,6 +223,10 @@ type SimApp struct {
 	EvidenceKeeper      evidencekeeper.Keeper
 	TransferKeeper      ibctransferkeeper.Keeper
 	FeeGrantKeeper      feegrantkeeper.Keeper
+
+	// make IBC hooks public for test purposes
+	HooksMiddleware  ibchooks.IBCMiddleware
+	HooksICS4Wrapper ibchooks.ICS4Middleware
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -387,10 +394,13 @@ func NewSimApp(
 	*/
 	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
 
+	// The ICS4Wrapper used by the hooks middleware
+	app.HooksICS4Wrapper = ibchooks.NewICS4Middleware(app.IBCKeeper.ChannelKeeper)
+
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
 		appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+		app.HooksICS4Wrapper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
 	)
@@ -437,19 +447,23 @@ func NewSimApp(
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// transferKeeper.SendPacket -> hooks.SendPacket -> fee.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> hooks.OnRecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
 	// - IBC Fee Middleware
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
+
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+	// store the hooks middleware in the app  so that it can be manipulated during testing
+	app.HooksMiddleware = ibchooks.NewIBCMiddleware(transferStack, &app.HooksICS4Wrapper) //.WithHooks(ibchooks.TestHooks{})
+	transferStack = app.HooksMiddleware
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
