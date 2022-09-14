@@ -48,6 +48,8 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
+
+// nova -
 func (k Keeper) SendTransfer(
 	ctx sdk.Context,
 	sourcePort,
@@ -88,12 +90,15 @@ func (k Keeper) SendTransfer(
 	}
 
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
+	// uatom
 	fullDenomPath := token.Denom
 
 	var err error
 
 	// deconstruct the token denomination into the denomination trace info
 	// to determine if the sender is the source chain
+	// uatom -> osmo -> nova
+	// ibc/hash
 	if strings.HasPrefix(token.Denom, "ibc/") {
 		fullDenomPath, err = k.DenomPathFromHash(ctx, token.Denom)
 		if err != nil {
@@ -122,7 +127,6 @@ func (k Keeper) SendTransfer(
 		); err != nil {
 			return err
 		}
-
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
@@ -243,6 +247,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 		}
 
+		// portID/channelID/basedenom
 		// unescrow tokens
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(token)); err != nil {
@@ -270,7 +275,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				),
 			)
 		}()
-
 		return nil
 	}
 
@@ -313,6 +317,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
+	// hook 실행
+	// k.AfterOnRecvPacket(ctx, packet)
+
 	defer func() {
 		if transferAmount.IsInt64() {
 			telemetry.SetGaugeWithLabels(
@@ -345,10 +352,6 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	default:
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
-
-		//TODO : add filter
-		denom := types.ParseDenomTrace(data.Denom)
-		k.AfterTransferEnd(ctx, data, denom.BaseDenom)
 		return nil
 	}
 }

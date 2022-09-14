@@ -184,6 +184,8 @@ func (im IBCModule) OnRecvPacket(
 		if err != nil {
 			ack = types.NewErrorAcknowledgement(err)
 		}
+
+		im.keeper.AfterOnRecvPacket(ctx, data)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -221,6 +223,10 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
 		return err
 	}
+
+	// AfterTransferEnd
+	denom := types.ParseDenomTrace(data.Denom)
+	im.keeper.AfterTransferEnd(ctx, data, denom.BaseDenom)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
