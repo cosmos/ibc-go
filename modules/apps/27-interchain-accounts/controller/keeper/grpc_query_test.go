@@ -3,13 +3,9 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
-=======
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
->>>>>>> e569045 (feat: adding interchain account address query to controller submodule (#2193))
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccount() {

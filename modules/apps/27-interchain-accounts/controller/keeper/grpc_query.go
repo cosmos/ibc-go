@@ -7,12 +7,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
-=======
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
->>>>>>> e569045 (feat: adding interchain account address query to controller submodule (#2193))
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 )
 
 var _ types.QueryServer = Keeper{}

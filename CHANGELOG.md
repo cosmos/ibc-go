@@ -46,12 +46,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-<<<<<<< HEAD
-=======
-* (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
 * (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
 
->>>>>>> e569045 (feat: adding interchain account address query to controller submodule (#2193))
 ### Bug Fixes
 
 ## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-08-12
