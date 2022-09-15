@@ -2,7 +2,6 @@ package ibc_hooks_test
 
 import (
 	"cosmossdk.io/math"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibchooks "github.com/cosmos/ibc-go/v5/modules/apps/hooks"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
@@ -18,24 +17,28 @@ import (
 var _ ibchooks.IBCAppHooks = TestOverrideHooks{}
 var _ ibchooks.IBCAppHooks = TestBeforeAfterHooks{}
 
-type TestOverrideHooks struct{}
+type Status struct {
+	OverrideRan bool
+	BeforeRan   bool
+	AfterRan    bool
+}
+
+type TestOverrideHooks struct{ Status *Status }
 
 func (t TestOverrideHooks) OnRecvPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	fmt.Println("BEFORE")
+	t.Status.OverrideRan = true
 	ack := im.App.OnRecvPacket(ctx, packet, relayer)
-	fmt.Println("AFTER")
 	return ack
 }
 
-type TestBeforeAfterHooks struct{}
+type TestBeforeAfterHooks struct{ Status *Status }
 
 func (t TestBeforeAfterHooks) OnRecvPacketBeforeHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) {
-	fmt.Println("Before")
+	t.Status.BeforeRan = true
 }
-
-//func (t TestBeforeAfterHooks) OnRecvPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) {
-//	fmt.Println("After")
-//}
+func (t TestBeforeAfterHooks) OnRecvPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, ack ibcexported.Acknowledgement) {
+	t.Status.AfterRan = true
+}
 
 type HooksTestSuite struct {
 	suite.Suite
@@ -84,21 +87,29 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	return path
 }
 
-func (suite *HooksTestSuite) TestOnRecvPacket() {
+func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 	var (
 		trace    transfertypes.DenomTrace
 		amount   math.Int
 		receiver string
+		status   Status
 	)
 
 	testCases := []struct {
 		msg          string
-		malleate     func()
+		malleate     func(*Status)
 		recvIsSource bool // the receiving chain is the source of the coin originally
 		expPass      bool
 	}{
-		{"success receive on source chain", func() {}, true, true},
-		{"success receive with coin from another chain as source", func() {}, false, true},
+		{"override", func(status *Status) {
+			suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestOverrideHooks{Status: status}
+		}, true, true},
+		{"before and after", func(status *Status) {
+			suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestBeforeAfterHooks{Status: status}
+		}, false, true},
+		{"before and after with error", func(status *Status) {
+			suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestBeforeAfterHooks{Status: status}
+		}, false, true},
 	}
 
 	for _, tc := range testCases {
@@ -109,6 +120,7 @@ func (suite *HooksTestSuite) TestOnRecvPacket() {
 			path := NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
+			status = Status{}
 
 			amount = sdk.NewInt(100) // must be explicitly changed in malleate
 			seq := uint64(1)
@@ -139,9 +151,7 @@ func (suite *HooksTestSuite) TestOnRecvPacket() {
 			_, err := suite.chainA.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
-			tc.malleate()
-			//suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestOverrideHooks{}
-			suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestBeforeAfterHooks{}
+			tc.malleate(&status)
 
 			data := transfertypes.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
@@ -152,6 +162,17 @@ func (suite *HooksTestSuite) TestOnRecvPacket() {
 				suite.Require().True(ack.Success())
 			} else {
 				suite.Require().False(ack.Success())
+			}
+
+			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(TestBeforeAfterHooks); ok {
+				suite.Require().False(status.OverrideRan)
+				suite.Require().True(status.BeforeRan)
+				suite.Require().True(status.AfterRan)
+			}
+			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(TestOverrideHooks); ok {
+				suite.Require().True(status.OverrideRan)
+				suite.Require().False(status.BeforeRan)
+				suite.Require().False(status.AfterRan)
 			}
 		})
 	}
