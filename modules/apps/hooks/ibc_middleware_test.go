@@ -15,8 +15,8 @@ import (
 	"testing"
 )
 
-var _ ibchooks.TransferHooks = TestOverrideHooks{}
-var _ ibchooks.TransferHooks = TestBeforeAfterHooks{}
+var _ ibchooks.IBCAppHooks = TestOverrideHooks{}
+var _ ibchooks.IBCAppHooks = TestBeforeAfterHooks{}
 
 type TestOverrideHooks struct{}
 
