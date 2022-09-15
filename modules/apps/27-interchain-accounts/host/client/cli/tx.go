@@ -36,6 +36,9 @@ which submits pre-built packet data containing messages to be executed on the ho
 				return err
 			}
 			packetDataBytes, err := generatePacketData(cdc, []byte(args[0]), memo)
+			if err != nil {
+				return err
+			}
 			cmd.Println(string(packetDataBytes))
 			return nil
 		},
