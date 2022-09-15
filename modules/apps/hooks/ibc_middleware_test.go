@@ -3,42 +3,16 @@ package ibc_hooks_test
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibchooks "github.com/cosmos/ibc-go/v5/modules/apps/hooks"
+	testutils "github.com/cosmos/ibc-go/v5/modules/apps/hooks/testutils"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
+
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
-
-var _ ibchooks.IBCAppHooks = TestOverrideHooks{}
-var _ ibchooks.IBCAppHooks = TestBeforeAfterHooks{}
-
-type Status struct {
-	OverrideRan bool
-	BeforeRan   bool
-	AfterRan    bool
-}
-
-type TestOverrideHooks struct{ Status *Status }
-
-func (t TestOverrideHooks) OnRecvPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	t.Status.OverrideRan = true
-	ack := im.App.OnRecvPacket(ctx, packet, relayer)
-	return ack
-}
-
-type TestBeforeAfterHooks struct{ Status *Status }
-
-func (t TestBeforeAfterHooks) OnRecvPacketBeforeHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) {
-	t.Status.BeforeRan = true
-}
-func (t TestBeforeAfterHooks) OnRecvPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, ack ibcexported.Acknowledgement) {
-	t.Status.AfterRan = true
-}
 
 type HooksTestSuite struct {
 	suite.Suite
@@ -92,23 +66,20 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 		trace    transfertypes.DenomTrace
 		amount   math.Int
 		receiver string
-		status   Status
+		status   testutils.Status
 	)
 
 	testCases := []struct {
 		msg          string
-		malleate     func(*Status)
+		malleate     func(*testutils.Status)
 		recvIsSource bool // the receiving chain is the source of the coin originally
 		expPass      bool
 	}{
-		{"override", func(status *Status) {
-			suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestOverrideHooks{Status: status}
+		{"override", func(status *testutils.Status) {
+			suite.chainB.GetSimApp().HooksMiddleware.Hooks = testutils.TestRecvBeforeAfterHooks{Status: status}
 		}, true, true},
-		{"before and after", func(status *Status) {
-			suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestBeforeAfterHooks{Status: status}
-		}, false, true},
-		{"before and after with error", func(status *Status) {
-			suite.chainB.GetSimApp().HooksMiddleware.Hooks = TestBeforeAfterHooks{Status: status}
+		{"before and after", func(status *testutils.Status) {
+			suite.chainB.GetSimApp().HooksMiddleware.Hooks = testutils.TestRecvBeforeAfterHooks{Status: status}
 		}, false, true},
 	}
 
@@ -120,7 +91,7 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 			path := NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
-			status = Status{}
+			status = testutils.Status{}
 
 			amount = sdk.NewInt(100) // must be explicitly changed in malleate
 			seq := uint64(1)
@@ -164,15 +135,16 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 				suite.Require().False(ack.Success())
 			}
 
-			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(TestBeforeAfterHooks); ok {
-				suite.Require().False(status.OverrideRan)
-				suite.Require().True(status.BeforeRan)
-				suite.Require().True(status.AfterRan)
-			}
-			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(TestOverrideHooks); ok {
+			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(testutils.TestRecvOverrides); ok {
 				suite.Require().True(status.OverrideRan)
 				suite.Require().False(status.BeforeRan)
 				suite.Require().False(status.AfterRan)
+			}
+
+			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(testutils.TestRecvBeforeAfterHooks); ok {
+				suite.Require().False(status.OverrideRan)
+				suite.Require().True(status.BeforeRan)
+				suite.Require().True(status.AfterRan)
 			}
 		})
 	}
