@@ -21,7 +21,7 @@ func generatePacketDataCmd() *cobra.Command {
 		Use:   "generate-packet-data [message]",
 		Short: "Generates ICA packet data.",
 		Long: fmt.Sprintf(`generate-packet-data accepts a message string and serializes it
-into packet data which is outputted to stdout. It can be used in conjuction with "%s ica controller send-tx"
+into packet data which is outputted to stdout. It can be used in conjunction with "%s ica controller send-tx"
 which submits pre-built packet data containing messages to be executed on the host chain.
 `, version.AppName),
 		Args: cobra.ExactArgs(1),
