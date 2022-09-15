@@ -33,7 +33,7 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		generatePacketData(),
+		generatePacketDataCmd(),
 	)
 
 	return cmd
