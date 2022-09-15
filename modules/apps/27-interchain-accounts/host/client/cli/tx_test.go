@@ -14,25 +14,25 @@ import (
 )
 
 const msgDelegateMessage = `{
-  "@type": "/cosmos.staking.v1beta1.MsgDelegate",
-  "delegator_address": "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
-  "validator_address": "cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k",
-  "amount": {
-    "denom": "stake",
-    "amount": "1000"
-  }
+	"@type": "/cosmos.staking.v1beta1.MsgDelegate",
+	"delegator_address": "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
+	"validator_address": "cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k",
+	"amount": {
+		"denom": "stake",
+		"amount": "1000"
+	}
 }`
 
 const bankSendMessage = `{
-    "@type":"/cosmos.bank.v1beta1.MsgSend",
-    "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
-    "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
-    "amount": [
-        {
-            "denom": "stake",
-            "amount": "1000"
-        }
-    ]
+	"@type":"/cosmos.bank.v1beta1.MsgSend",
+	"from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
+	"to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
+	"amount": [
+		{
+			"denom": "stake",
+			"amount": "1000"
+		}
+	]
 }`
 
 func TestGeneratePacketData(t *testing.T) {
@@ -51,7 +51,8 @@ func TestGeneratePacketData(t *testing.T) {
 			message:             msgDelegateMessage,
 			registerInterfaceFn: stakingtypes.RegisterInterfaces,
 			assertionFn: func(msg sdk.Msg) {
-				msgDelegate := msg.(*stakingtypes.MsgDelegate)
+				msgDelegate, ok := msg.(*stakingtypes.MsgDelegate)
+				require.True(t, ok)
 				require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", msgDelegate.DelegatorAddress)
 				require.Equal(t, "cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k", msgDelegate.ValidatorAddress)
 				require.Equal(t, "stake", msgDelegate.Amount.Denom)
@@ -65,7 +66,8 @@ func TestGeneratePacketData(t *testing.T) {
 			message:             bankSendMessage,
 			registerInterfaceFn: banktypes.RegisterInterfaces,
 			assertionFn: func(msg sdk.Msg) {
-				bankSendMsg := msg.(*banktypes.MsgSend)
+				bankSendMsg, ok := msg.(*banktypes.MsgSend)
+				require.True(t, ok)
 				require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", bankSendMsg.FromAddress)
 				require.Equal(t, "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw", bankSendMsg.ToAddress)
 				require.Equal(t, "stake", bankSendMsg.Amount.GetDenomByIndex(0))
@@ -78,19 +80,12 @@ func TestGeneratePacketData(t *testing.T) {
 			expectedPass:        true,
 			message:             msgDelegateMessage,
 			registerInterfaceFn: stakingtypes.RegisterInterfaces,
-			assertionFn: func(msg sdk.Msg) {
-				msgDelegate := msg.(*stakingtypes.MsgDelegate)
-				require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", msgDelegate.DelegatorAddress)
-				require.Equal(t, "cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k", msgDelegate.ValidatorAddress)
-				require.Equal(t, "stake", msgDelegate.Amount.Denom)
-				require.Equal(t, uint64(1000), msgDelegate.Amount.Amount.Uint64())
-			},
+			assertionFn:         func(msg sdk.Msg) {},
 		},
 		{
 			name:                "invalid message string",
-			memo:                "",
 			expectedPass:        false,
-			message:             "{}",
+			message:             "<invalid-message-body>",
 			registerInterfaceFn: func(codectypes.InterfaceRegistry) {},
 			assertionFn:         func(sdk.Msg) {},
 		},
