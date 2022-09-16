@@ -326,7 +326,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
-		
+
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
 
@@ -335,7 +335,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
 
-		s.Require().Equal(channels[1].State, "CLOSED")
+		t.Logf("channel 0: %+v", channels[0])
+		t.Logf("channel 1: %+v", channels[1])
+		s.Require().Equal("STATE_CLOSED", channels[1].State)
 	})
 
 	t.Run("verify tokens not transferred", func(t *testing.T) {
