@@ -100,8 +100,8 @@
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
     - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
     - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
-    - [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx)
-    - [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse)
+    - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
+    - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
   
     - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
   
@@ -1617,7 +1617,7 @@ host
 <a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount"></a>
 
 ### MsgRegisterInterchainAccount
-MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
+MsgRegisterInterchainAccount defines the payload for Msg/MsgRegisterInterchainAccount
 
 
 | Field | Type | Label | Description |
@@ -1634,7 +1634,7 @@ MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 <a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse"></a>
 
 ### MsgRegisterInterchainAccountResponse
-MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
+MsgRegisterInterchainAccountResponse defines the response for Msg/MsgRegisterInterchainAccountResponse
 
 
 | Field | Type | Label | Description |
@@ -1646,10 +1646,10 @@ MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccoun
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTx"></a>
 
-### MsgSubmitTx
-MsgSubmitTx defines the payload for MsgSubmitTx
+### MsgSendTx
+MsgSendTx defines the payload for Msg/SendTx
 
 
 | Field | Type | Label | Description |
@@ -1665,10 +1665,10 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse"></a>
 
-### MsgSubmitTxResponse
-MsgSubmitTxResponse defines the response for MsgSubmitTx
+### MsgSendTxResponse
+MsgSendTxResponse defines the response for MsgSendTx
 
 
 | Field | Type | Label | Description |
@@ -1694,7 +1694,7 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `RegisterInterchainAccount` | [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount) | [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse) | RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount. | |
-| `SubmitTx` | [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx) | [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse) | SubmitTx defines a rpc handler for MsgSubmitTx. | |
+| `SendTx` | [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx) | [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse) | SendTx defines a rpc handler for MsgSendTx. | |
 
  <!-- end services -->
 

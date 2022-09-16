@@ -22,7 +22,7 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 }
 
 // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
-func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
+func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -30,7 +30,7 @@ func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 		return nil, err
 	}
 
-	channelID, err := k.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
+	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +40,8 @@ func (k msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 	}, nil
 }
 
-// SubmitTx defines a rpc handler for MsgSubmitTx
-func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
+// SendTx defines a rpc handler for MsgSendTx
+func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.MsgSendTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -55,5 +55,5 @@ func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*typ
 		return nil, err
 	}
 
-	return &types.MsgSubmitTxResponse{Sequence: seq}, nil
+	return &types.MsgSendTxResponse{Sequence: seq}, nil
 }
