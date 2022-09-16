@@ -96,7 +96,8 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
   ```
   <binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
   ```
-  The `<expired-client-id>` identifier is the proposed client to be updated. This client must be either frozen or expired.
+
+The `<expired-client-id>` identifier is the proposed client to be updated. This client must be either frozen or expired.
 
 The `<active-client-id>` represents a substitute client. It carries all the state for the client which may be updated. It must have identitical client and chain parameters to the client which may be updated (except for latest height, frozen height, and chain-id). It should be continually updated during the voting period.
 
