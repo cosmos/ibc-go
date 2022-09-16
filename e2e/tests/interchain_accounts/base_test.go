@@ -3,6 +3,7 @@ package interchain_accounts
 import (
 	"context"
 	"testing"
+	"time"
 
 	ibctest "github.com/strangelove-ventures/ibctest"
 	"github.com/strangelove-ventures/ibctest/chain/cosmos"
@@ -319,12 +320,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 			s.AssertValidTxResponse(resp)
 			s.Require().NoError(err)
 
-			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+			time.Sleep(90 * time.Second) // submit tx message has a timeout of 1 minute
 		})
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
+		
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
 
 	t.Run("verify channel is closed", func(t *testing.T) {
