@@ -336,8 +336,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		s.Require().Equal(len(channels), 2)
 
 		t.Logf("channel 0: %+v", channels[0])
-		t.Logf("channel 1: %+v", channels[1])
-		s.Require().Equal("STATE_CLOSED", channels[1].State)
+		s.Require().Equal("STATE_CLOSED", channels[0].State)
 	})
 
 	t.Run("verify tokens not transferred", func(t *testing.T) {
