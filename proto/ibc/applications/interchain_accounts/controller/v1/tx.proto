@@ -10,29 +10,29 @@ import "ibc/applications/interchain_accounts/v1/packet.proto";
 
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
-  // RegisterAccount defines a rpc handler for MsgRegisterAccount.
-  rpc RegisterAccount(MsgRegisterAccount) returns (MsgRegisterAccountResponse);
-  // SubmitTx defines a rpc handler for MsgSubmitTx.
-  rpc SubmitTx(MsgSubmitTx) returns (MsgSubmitTxResponse);
+  // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount.
+  rpc RegisterInterchainAccount(MsgRegisterInterchainAccount) returns (MsgRegisterInterchainAccountResponse);
+  // SendTx defines a rpc handler for MsgSendTx.
+  rpc SendTx(MsgSendTx) returns (MsgSendTxResponse);
 }
 
-// MsgRegisterAccount defines the payload for Msg/RegisterAccount
-message MsgRegisterAccount {
+// MsgRegisterInterchainAccount defines the payload for Msg/MsgRegisterInterchainAccount
+message MsgRegisterInterchainAccount {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string connection_id = 1 [(gogoproto.moretags) = "yaml:\"connection_id\""];
-  string owner         = 2;
+  string owner         = 1;
+  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
   string version       = 3;
 }
 
-// MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
-message MsgRegisterAccountResponse {
+// MsgRegisterInterchainAccountResponse defines the response for Msg/MsgRegisterInterchainAccountResponse
+message MsgRegisterInterchainAccountResponse {
   string channel_id = 1 [(gogoproto.moretags) = "yaml:\"channel_id\""];
 }
 
-// MsgSubmitTx defines the payload for MsgSubmitTx
-message MsgSubmitTx {
+// MsgSendTx defines the payload for Msg/SendTx
+message MsgSendTx {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -49,7 +49,7 @@ message MsgSubmitTx {
       [(gogoproto.moretags) = "yaml:\"packet_data\"", (gogoproto.nullable) = false];
 }
 
-// MsgSubmitTxResponse defines the response for MsgSubmitTx
-message MsgSubmitTxResponse {
+// MsgSendTxResponse defines the response for MsgSendTx
+message MsgSendTxResponse {
   uint64 sequence = 1;
 }

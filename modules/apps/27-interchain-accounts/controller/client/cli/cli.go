@@ -34,8 +34,8 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		newRegisterAccountCmd(),
-		newSubmitTxCmd(),
+		newRegisterInterchainAccountCmd(),
+		newSendTxCmd(),
 	)
 
 	return cmd
