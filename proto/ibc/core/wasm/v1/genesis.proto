@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package ibc.core.wasm.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types";
+
+import "gogoproto/gogo.proto";
+
+// GenesisState defines the ibc module's genesis state.
+message GenesisState {
+    repeated WasmCode wasm_code = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"wasm_code\""];
+}
+
+message WasmCode {
+    bytes checksum = 1;
+    bytes code = 2;
+}

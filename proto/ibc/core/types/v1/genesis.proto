@@ -8,6 +8,7 @@ import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/genesis.proto";
 import "ibc/core/connection/v1/genesis.proto";
 import "ibc/core/channel/v1/genesis.proto";
+import "ibc/core/wasm/v1/genesis.proto";
 
 // GenesisState defines the ibc module's genesis state.
 message GenesisState {
@@ -20,4 +21,7 @@ message GenesisState {
   // ICS004 - Channel genesis state
   ibc.core.channel.v1.GenesisState channel_genesis = 3
       [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"channel_genesis\""];
+  // ICS028 - Wasm Light Client genesis state
+  ibc.core.wasm.v1.GenesisState wasm_genesis = 4
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"wasm_genesis\""];
 }

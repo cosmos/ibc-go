@@ -14,6 +14,7 @@ import (
 )
 
 // WasmVM initialized by wasm keeper
+// TODO: make this private
 var WasmVM *wasm.VM
 
 // VMConfig represents Wasm virtual machine settings
@@ -56,7 +57,42 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, vmConfig *VMConfi
 	}
 }
 
+func (k Keeper) SetWasmCode(ctx sdk.Context, code types.WasmCode) error {
+	store := ctx.KVStore(k.storeKey)
+	codeHash := generateWasmCodeHash(code.Code)
+	codeIDKey := types.CodeID(codeHash)
+
+	if !bytes.Equal(code.Checksum, codeIDKey) {
+		return types.ErrWasmInvalidCodeID
+	}
+
+	if store.Has(codeIDKey) {
+		return types.ErrWasmCodeExists
+	}
+
+	if isValidWasmCode, err := k.wasmValidator.validateWasmCode(code.Code); err != nil {
+		return sdkerrors.Wrapf(types.ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
+	} else if !isValidWasmCode {
+		return types.ErrWasmInvalidCode
+	}
+
+	codeID, err := WasmVM.Create(code.Code)
+	if err != nil {
+		return types.ErrWasmInvalidCode
+	}
+
+	// safety check to assert that code id returned by WasmVM equals to code hash
+	if !bytes.Equal(codeID, codeHash) {
+		return types.ErrWasmInvalidCodeID
+	}
+
+	store.Set(codeIDKey, code.Code)
+	return nil
+}
+
 func (k Keeper) PushNewWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
+	// TODO: Make gov enabled?
+	// Maybe even a governace proposal
 	store := ctx.KVStore(k.storeKey)
 	codeHash := generateWasmCodeHash(code)
 	codeIDKey := types.CodeID(codeHash)
@@ -82,7 +118,6 @@ func (k Keeper) PushNewWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	store.Set(codeIDKey, code)
-
 	return codeID, nil
 }
 

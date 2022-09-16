@@ -5,25 +5,28 @@ import (
 	"github.com/CosmWasm/wasmvm/types"
 	ics23 "github.com/confio/ics23/go"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	types3 "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	committypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/28-wasm/keeper"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
+// TODO: figure out better handling for the gas settings. ideally these should be in the
+// 28-wasm module and handled as params
 const GasMultiplier uint64 = 100
 const maxGasLimit = uint64(0x7FFFFFFFFFFFFFFF)
 
 var _ exported.ClientState = (*ClientState)(nil)
 
+// generalize this maybe?
 type queryResponse struct {
-	ProofSpecs      []*ics23.ProofSpec       `json:"proof_specs,omitempty"`
-	Height          types2.Height            `json:"height,omitempty"`
-	GenesisMetadata []types2.GenesisMetadata `json:"genesis_metadata,omitempty"`
-	Result          contractResult           `json:"result,omitempty"`
-	Root            types3.MerkleRoot        `json:"root,omitempty"`
-	Timestamp       uint64                   `json:"timestamp,omitempty"`
-	Status          exported.Status          `json:"status,omitempty"`
+	ProofSpecs      []*ics23.ProofSpec            `json:"proof_specs,omitempty"`
+	Height          clienttypes.Height            `json:"height,omitempty"`
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
+	Result          contractResult                `json:"result,omitempty"`
+	Root            committypes.MerkleRoot        `json:"root,omitempty"`
+	Timestamp       uint64                        `json:"timestamp,omitempty"`
+	Status          exported.Status               `json:"status,omitempty"`
 }
 
 type contractResult struct {
@@ -31,6 +34,7 @@ type contractResult struct {
 	ErrorMsg string `json:"err_msg,omitempty"`
 }
 
+// TODO: Move this into the 28-wasm keeper
 type clientStateCallResponse struct {
 	Me                *ClientState    `json:"me,omitempty"`
 	NewConsensusState *ConsensusState `json:"new_consensus_state,omitempty"`
@@ -53,6 +57,7 @@ func (r *clientStateCallResponse) resetImmutables(c *ClientState) {
 }
 
 // Calls vm.Init with appropriate arguments
+// TODO: Move this into a public method on the 28-wasm keeper
 func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.Response, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
@@ -83,12 +88,13 @@ func initContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 	// mockFailureAPI := *api.NewMockFailureAPI()
 	// mockQuerier := api.MockQuerier{}
 
-	desercost := types.UFraction{Numerator: 1, Denominator: 1}
+	desercost := types.UFraction{Numerator: 0, Denominator: 1}
 	response, _, err := keeper.WasmVM.Instantiate(codeID, env, msgInfo, msg, store, cosmwasm.GoAPI{}, nil, gasMeter, gasMeter.Limit(), desercost)
 	return response, err
 }
 
 // Calls vm.Execute with internally constructed Gas meter and environment
+// TODO: Move this into a public method on the 28-wasm keeper
 func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte) (*types.Response, error) {
 	gasMeter := ctx.GasMeter()
 	chainID := ctx.BlockHeader().ChainID
@@ -116,6 +122,7 @@ func callContract(codeID []byte, ctx sdk.Context, store sdk.KVStore, msg []byte)
 }
 
 // Calls vm.Execute with supplied environment and gas meter
+// TODO: Move this into a private method on the 28-wasm keeper
 func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx *sdk.Context, store cosmwasm.KVStore, env types.Env, gasMeter sdk.GasMeter, msg []byte) (*types.Response, error) {
 	msgInfo := types.MessageInfo{
 		Sender: "",
@@ -132,6 +139,7 @@ func callContractWithEnvAndMeter(codeID cosmwasm.Checksum, ctx *sdk.Context, sto
 	return resp, err
 }
 
+// TODO: Move this into a public method on the 28-wasm keeper
 func queryContractWithStore(codeID cosmwasm.Checksum, store cosmwasm.KVStore, msg []byte) ([]byte, error) {
 	// TODO: fix this
 	// mockEnv := api.MockEnv()

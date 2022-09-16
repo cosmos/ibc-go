@@ -26,3 +26,5 @@ func GetQueryCmd() *cobra.Command {
 func RegisterQueryService(server grpc.Server, queryServer types.QueryServer) {
 	types.RegisterQueryServer(server, queryServer)
 }
+
+// TODO: genesis state import and export

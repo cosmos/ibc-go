@@ -300,6 +300,10 @@
   
     - [Msg](#ibc.core.connection.v1.Msg)
   
+- [ibc/core/wasm/v1/genesis.proto](#ibc/core/wasm/v1/genesis.proto)
+    - [GenesisState](#ibc.core.wasm.v1.GenesisState)
+    - [WasmCode](#ibc.core.wasm.v1.WasmCode)
+  
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
@@ -4421,6 +4425,53 @@ Msg defines the ibc/connection Msg service.
 
 
 
+<a name="ibc/core/wasm/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/core/wasm/v1/genesis.proto
+
+
+
+<a name="ibc.core.wasm.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the ibc module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `wasm_code` | [WasmCode](#ibc.core.wasm.v1.WasmCode) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.core.wasm.v1.WasmCode"></a>
+
+### WasmCode
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `checksum` | [bytes](#bytes) |  |  |
+| `code` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/core/types/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -4439,6 +4490,7 @@ GenesisState defines the ibc module's genesis state.
 | `client_genesis` | [ibc.core.client.v1.GenesisState](#ibc.core.client.v1.GenesisState) |  | ICS002 - Clients genesis state |
 | `connection_genesis` | [ibc.core.connection.v1.GenesisState](#ibc.core.connection.v1.GenesisState) |  | ICS003 - Connections genesis state |
 | `channel_genesis` | [ibc.core.channel.v1.GenesisState](#ibc.core.channel.v1.GenesisState) |  | ICS004 - Channel genesis state |
+| `wasm_genesis` | [ibc.core.wasm.v1.GenesisState](#ibc.core.wasm.v1.GenesisState) |  | ICS028 - Wasm Light Client genesis state |
 
 
 
