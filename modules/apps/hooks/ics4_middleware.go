@@ -7,9 +7,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-var (
-	_ porttypes.ICS4Wrapper = &ICS4Middleware{}
-)
+var _ porttypes.ICS4Wrapper = &ICS4Middleware{}
 
 type ICS4Middleware struct {
 	channel porttypes.ICS4Wrapper

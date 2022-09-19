@@ -7,8 +7,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-type Hooks interface {
-}
+type Hooks interface{}
 
 type OnChanOpenInitOverrideHooks interface {
 	OnChanOpenInitOverride(im IBCMiddleware, ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, error)

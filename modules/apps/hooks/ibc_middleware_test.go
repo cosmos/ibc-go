@@ -1,6 +1,8 @@
 package ibc_hooks_test
 
 import (
+	"testing"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testutils "github.com/cosmos/ibc-go/v5/modules/apps/hooks/testutils"
@@ -11,7 +13,6 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
 
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type HooksTestSuite struct {

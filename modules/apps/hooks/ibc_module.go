@@ -8,9 +8,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-var (
-	_ porttypes.Middleware = &IBCMiddleware{}
-)
+var _ porttypes.Middleware = &IBCMiddleware{}
 
 type IBCMiddleware struct {
 	App            porttypes.IBCModule

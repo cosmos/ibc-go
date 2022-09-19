@@ -7,8 +7,10 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-var _ ibchooks.Hooks = TestRecvOverrideHooks{}
-var _ ibchooks.Hooks = TestRecvBeforeAfterHooks{}
+var (
+	_ ibchooks.Hooks = TestRecvOverrideHooks{}
+	_ ibchooks.Hooks = TestRecvBeforeAfterHooks{}
+)
 
 type Status struct {
 	OverrideRan bool
@@ -30,6 +32,7 @@ type TestRecvBeforeAfterHooks struct{ Status *Status }
 func (t TestRecvBeforeAfterHooks) OnRecvPacketBeforeHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) {
 	t.Status.BeforeRan = true
 }
+
 func (t TestRecvBeforeAfterHooks) OnRecvPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, ack ibcexported.Acknowledgement) {
 	t.Status.AfterRan = true
 }
