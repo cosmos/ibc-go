@@ -143,6 +143,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
 				sender, suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0,
+				nil,
 			)
 
 			if tc.expPass {

@@ -236,7 +236,8 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
+	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
+) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -292,6 +293,14 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, 
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 ) (sdk.TxResponse, error) {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// TransferWithMetadata broadcasts a MsgTransfer message with metadata.
+func (s *E2ETestSuite) TransferWithMetadata(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
+	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, metadata []byte,
+) (sdk.TxResponse, error) {
+	msg := transfertypes.NewMsgTransferWithMetadata(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, metadata)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

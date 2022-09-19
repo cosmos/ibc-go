@@ -49,11 +49,12 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		suite.coordinator.Setup(path)
 
 		coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-		msg = types.NewMsgTransfer(
+		msg = types.NewMsgTransferWithMetadata(
 			path.EndpointA.ChannelConfig.PortID,
 			path.EndpointA.ChannelID,
 			coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 			suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+			[]byte("custom metadata"),
 		)
 
 		tc.malleate()
