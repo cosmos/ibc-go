@@ -1,7 +1,11 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
@@ -17,14 +21,18 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			true,
 		},
 		{
+			"channel with different port is filtered out",
+			func() {
+				portIdWithOutPrefix := ibctesting.MockPort
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIdWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{})
+			},
+			true,
+		},
+		{
 			"capability not found",
 			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(
-					suite.chainA.GetContext(),
-					ibctesting.FirstConnectionID,
-					ibctesting.MockPort,
-					ibctesting.FirstChannelID,
-				)
+				portIdWithPrefix := fmt.Sprintf("%s-%s", controllertypes.SubModuleName, TestAccAddress)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIdWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{})
 			},
 			false,
 		},

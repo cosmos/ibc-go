@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -384,6 +385,24 @@ func (k Keeper) IterateChannels(ctx sdk.Context, cb func(types.IdentifiedChannel
 	}
 }
 
+// GetChannelsWithPortPrefix returns all channels with the specified port prefix.
+func (k Keeper) GetChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []types.IdentifiedChannel {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, filteredPortPrefix(portPrefix))
+	defer iterator.Close()
+
+	var filteredChannels []types.IdentifiedChannel
+	for ; iterator.Valid(); iterator.Next() {
+		var channel types.Channel
+		k.cdc.MustUnmarshal(iterator.Value(), &channel)
+
+		portID, channelID := host.MustParseChannelPath(string(iterator.Key()))
+		identifiedChannel := types.NewIdentifiedChannel(portID, channelID, channel)
+		filteredChannels = append(filteredChannels, identifiedChannel)
+	}
+	return filteredChannels
+}
+
 // GetAllChannels returns all stored Channel objects.
 func (k Keeper) GetAllChannels(ctx sdk.Context) (channels []types.IdentifiedChannel) {
 	k.IterateChannels(ctx, func(channel types.IdentifiedChannel) bool {
@@ -468,4 +487,9 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(portI
 			break
 		}
 	}
+}
+
+// filteredPortPrefix returns the prefix key for the given port prefix.
+func filteredPortPrefix(portPrefix string) []byte {
+	return []byte(fmt.Sprintf("%s/ports/%s", host.KeyChannelEndPrefix, portPrefix))
 }
