@@ -80,10 +80,28 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
 
 > Note that the Cosmos SDK has updated how governance proposals are submitted in SDK v0.46, now requiring to pass a .json proposal file
 
-- Starting SDK v0.46.x
+- From SDK v0.46.x onwards
 
   ```
   <binary> tx gov submit-proposal [path-to-proposal-json]
+  ```
+
+  where `proposal.json` contains:
+
+  ```json
+  {
+    "messages": [
+      {
+        "@type": "/ibc.core.client.v1.ClientUpdateProposal",
+        "title": "title_string",
+        "description": "description_string",
+        "subject_client_id": "expired_client_id_string",
+        "substitute_client_id": "active_client_id_string"
+      }
+    ],
+    "metadata": "<metadata>",
+    "deposit": "10stake"
+  }
   ```
 
   Alternatively there's a legacy command (that is no longer recommended though):
