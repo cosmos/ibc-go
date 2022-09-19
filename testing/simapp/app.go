@@ -462,7 +462,7 @@ func NewSimApp(
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 	// store the hooks middleware in the app  so that it can be manipulated during testing
-	app.HooksMiddleware = ibchooks.NewIBCMiddleware(transferStack, &app.HooksICS4Wrapper) //.WithHooks(ibchooks.TestHooks{})
+	app.HooksMiddleware = ibchooks.NewIBCMiddleware(transferStack, &app.HooksICS4Wrapper, nil) // We can add hooks here when there is an app using them
 	transferStack = app.HooksMiddleware
 
 	// Add transfer stack to IBC Router
