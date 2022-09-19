@@ -20,16 +20,12 @@ type IBCMiddleware struct {
 	Hooks Hooks
 }
 
-func NewIBCMiddleware(app porttypes.IBCModule, ics4 *ICS4Middleware) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, ics4 *ICS4Middleware, hooks Hooks) IBCMiddleware {
 	return IBCMiddleware{
 		App:            app,
 		ICS4Middleware: ics4,
+		Hooks:          hooks,
 	}
-}
-
-func (im IBCMiddleware) WithHooks(hooks Hooks) IBCMiddleware {
-	im.Hooks = hooks
-	return im
 }
 
 // OnChanOpenInit implements the IBCMiddleware interface
