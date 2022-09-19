@@ -67,17 +67,16 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 	)
 
 	testCases := []struct {
-		msg          string
-		malleate     func(*testutils.Status)
-		recvIsSource bool // the receiving chain is the source of the coin originally
-		expPass      bool
+		msg      string
+		malleate func(*testutils.Status)
+		expPass  bool
 	}{
 		{"override", func(status *testutils.Status) {
 			suite.chainB.GetSimApp().HooksMiddleware.Hooks = testutils.TestRecvOverrideHooks{Status: status}
-		}, true, true},
+		}, true},
 		{"before and after", func(status *testutils.Status) {
 			suite.chainB.GetSimApp().HooksMiddleware.Hooks = testutils.TestRecvBeforeAfterHooks{Status: status}
-		}, false, true},
+		}, true},
 	}
 
 	for _, tc := range testCases {
@@ -93,26 +92,7 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 			amount = sdk.NewInt(100) // must be explicitly changed in malleate
 			seq := uint64(1)
 
-			if tc.recvIsSource {
-				// send coin from chainB to chainA, receive them, acknowledge them, and send back to chainB
-				coinFromBToA := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-				transferMsg := transfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinFromBToA, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 110), 0)
-				res, err := suite.chainB.SendMsgs(transferMsg)
-				suite.Require().NoError(err) // message committed
-
-				packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-				suite.Require().NoError(err)
-
-				err = path.RelayPacket(packet)
-				suite.Require().NoError(err) // relay committed
-
-				seq++
-
-				// NOTE: trace must be explicitly changed in malleate to test invalid cases
-				trace = transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-			} else {
-				trace = transfertypes.ParseDenomTrace(sdk.DefaultBondDenom)
-			}
+			trace = transfertypes.ParseDenomTrace(sdk.DefaultBondDenom)
 
 			// send coin from chainA to chainB
 			transferMsg := transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoin(trace.IBCDenom(), amount), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0)
