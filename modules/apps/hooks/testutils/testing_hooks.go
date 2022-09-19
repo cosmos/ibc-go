@@ -2,7 +2,6 @@ package testutils
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	ibchooks "github.com/cosmos/ibc-go/v5/modules/apps/hooks"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
@@ -32,23 +31,5 @@ func (t TestRecvBeforeAfterHooks) OnRecvPacketBeforeHook(ctx sdk.Context, packet
 	t.Status.BeforeRan = true
 }
 func (t TestRecvBeforeAfterHooks) OnRecvPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, ack ibcexported.Acknowledgement) {
-	t.Status.AfterRan = true
-}
-
-// Send
-type TestSendOverrideHooks struct{ Status *Status }
-
-func (t TestSendOverrideHooks) SendPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
-	t.Status.OverrideRan = true
-	err := im.SendPacket(ctx, chanCap, packet)
-	return err
-}
-
-type TestSendBeforeAfterHooks struct{ Status *Status }
-
-func (t TestSendBeforeAfterHooks) SendPacketBeforeHook(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) {
-	t.Status.BeforeRan = true
-}
-func (t TestSendBeforeAfterHooks) SendPacketAfterHook(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, err error) {
 	t.Status.AfterRan = true
 }

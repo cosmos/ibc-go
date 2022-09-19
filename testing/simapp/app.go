@@ -395,7 +395,7 @@ func NewSimApp(
 	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
 
 	// The ICS4Wrapper used by the hooks middleware
-	app.HooksICS4Wrapper = ibchooks.NewICS4Middleware(app.IBCKeeper.ChannelKeeper)
+	app.HooksICS4Wrapper = ibchooks.NewICS4Middleware(app.IBCKeeper.ChannelKeeper, nil)
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(

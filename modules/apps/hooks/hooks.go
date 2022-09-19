@@ -110,7 +110,7 @@ type OnTimeoutPacketAfterHooks interface {
 
 // SendPacket Hooks
 type SendPacketOverrideHooks interface {
-	SendPacketOverride(im IBCMiddleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
+	SendPacketOverride(i ICS4Middleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
 }
 type SendPacketBeforeHooks interface {
 	SendPacketBeforeHook(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI)
@@ -121,7 +121,7 @@ type SendPacketAfterHooks interface {
 
 // WriteAcknowledgement Hooks
 type WriteAcknowledgementOverrideHooks interface {
-	WriteAcknowledgementOverride(im IBCMiddleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error
+	WriteAcknowledgementOverride(i ICS4Middleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error
 }
 type WriteAcknowledgementBeforeHooks interface {
 	WriteAcknowledgementBeforeHook(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, ack ibcexported.Acknowledgement)
@@ -132,7 +132,7 @@ type WriteAcknowledgementAfterHooks interface {
 
 // GetAppVersion Hooks
 type GetAppVersionOverrideHooks interface {
-	GetAppVersionOverride(im IBCMiddleware, ctx sdk.Context, portID, channelID string) (string, bool)
+	GetAppVersionOverride(i ICS4Middleware, ctx sdk.Context, portID, channelID string) (string, bool)
 }
 type GetAppVersionBeforeHooks interface {
 	GetAppVersionBeforeHook(ctx sdk.Context, portID, channelID string)

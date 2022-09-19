@@ -13,22 +13,63 @@ var (
 
 type ICS4Middleware struct {
 	channel porttypes.ICS4Wrapper
+
+	// Hooks
+	Hooks Hooks
 }
 
-func NewICS4Middleware(channel porttypes.ICS4Wrapper) ICS4Middleware {
+func NewICS4Middleware(channel porttypes.ICS4Wrapper, hooks Hooks) ICS4Middleware {
 	return ICS4Middleware{
 		channel: channel,
+		Hooks:   hooks,
 	}
 }
 
 func (i ICS4Middleware) SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
-	return i.channel.SendPacket(ctx, channelCap, packet)
+	if hook, ok := i.Hooks.(SendPacketOverrideHooks); ok {
+		return hook.SendPacketOverride(i, ctx, channelCap, packet)
+	}
+
+	if hook, ok := i.Hooks.(SendPacketBeforeHooks); ok {
+		hook.SendPacketBeforeHook(ctx, channelCap, packet)
+	}
+	err := i.channel.SendPacket(ctx, channelCap, packet)
+
+	if hook, ok := i.Hooks.(SendPacketAfterHooks); ok {
+		hook.SendPacketAfterHook(ctx, channelCap, packet, err)
+	}
+
+	return err
 }
 
 func (i ICS4Middleware) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
-	return i.channel.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	if hook, ok := i.Hooks.(WriteAcknowledgementOverrideHooks); ok {
+		return hook.WriteAcknowledgementOverride(i, ctx, chanCap, packet, ack)
+	}
+
+	if hook, ok := i.Hooks.(WriteAcknowledgementBeforeHooks); ok {
+		hook.WriteAcknowledgementBeforeHook(ctx, chanCap, packet, ack)
+	}
+	err := i.channel.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	if hook, ok := i.Hooks.(WriteAcknowledgementAfterHooks); ok {
+		hook.WriteAcknowledgementAfterHook(ctx, chanCap, packet, ack, err)
+	}
+
+	return err
 }
 
 func (i ICS4Middleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return i.channel.GetAppVersion(ctx, portID, channelID)
+	if hook, ok := i.Hooks.(GetAppVersionOverrideHooks); ok {
+		return hook.GetAppVersionOverride(i, ctx, portID, channelID)
+	}
+
+	if hook, ok := i.Hooks.(GetAppVersionBeforeHooks); ok {
+		hook.GetAppVersionBeforeHook(ctx, portID, channelID)
+	}
+	version, err := i.channel.GetAppVersion(ctx, portID, channelID)
+	if hook, ok := i.Hooks.(GetAppVersionAfterHooks); ok {
+		hook.GetAppVersionAfterHook(ctx, portID, channelID, version, err)
+	}
+
+	return version, err
 }

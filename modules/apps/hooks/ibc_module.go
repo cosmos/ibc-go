@@ -242,19 +242,7 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 ) error {
-	if hook, ok := im.Hooks.(SendPacketOverrideHooks); ok {
-		return hook.SendPacketOverride(im, ctx, chanCap, packet)
-	}
-
-	if hook, ok := im.Hooks.(SendPacketBeforeHooks); ok {
-		hook.SendPacketBeforeHook(ctx, chanCap, packet)
-	}
-	err := im.ICS4Middleware.SendPacket(ctx, chanCap, packet)
-	if hook, ok := im.Hooks.(SendPacketAfterHooks); ok {
-		hook.SendPacketAfterHook(ctx, chanCap, packet, err)
-	}
-
-	return err
+	return im.ICS4Middleware.SendPacket(ctx, chanCap, packet)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -264,33 +252,9 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	if hook, ok := im.Hooks.(WriteAcknowledgementOverrideHooks); ok {
-		return hook.WriteAcknowledgementOverride(im, ctx, chanCap, packet, ack)
-	}
-
-	if hook, ok := im.Hooks.(WriteAcknowledgementBeforeHooks); ok {
-		hook.WriteAcknowledgementBeforeHook(ctx, chanCap, packet, ack)
-	}
-	err := im.ICS4Middleware.WriteAcknowledgement(ctx, chanCap, packet, ack)
-	if hook, ok := im.Hooks.(WriteAcknowledgementAfterHooks); ok {
-		hook.WriteAcknowledgementAfterHook(ctx, chanCap, packet, ack, err)
-	}
-
-	return err
+	return im.ICS4Middleware.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
 
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	if hook, ok := im.Hooks.(GetAppVersionOverrideHooks); ok {
-		return hook.GetAppVersionOverride(im, ctx, portID, channelID)
-	}
-
-	if hook, ok := im.Hooks.(GetAppVersionBeforeHooks); ok {
-		hook.GetAppVersionBeforeHook(ctx, portID, channelID)
-	}
-	version, err := im.ICS4Middleware.GetAppVersion(ctx, portID, channelID)
-	if hook, ok := im.Hooks.(GetAppVersionAfterHooks); ok {
-		hook.GetAppVersionAfterHook(ctx, portID, channelID, version, err)
-	}
-
-	return version, err
+	return im.ICS4Middleware.GetAppVersion(ctx, portID, channelID)
 }
