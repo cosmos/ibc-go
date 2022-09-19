@@ -1,9 +1,9 @@
 package ibc_hooks_test
 
 import (
-	// standard libraries
-	"github.com/stretchr/testify/suite"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 
 	// external libraries
 	sdk "github.com/cosmos/cosmos-sdk/types"
