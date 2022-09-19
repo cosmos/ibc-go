@@ -75,6 +75,17 @@ type IBCAppHooksOnChanCloseConfirmAfter interface {
 	OnChanCloseConfirmAfterHook(ctx sdk.Context, portID, channelID string, err error)
 }
 
+// OnRecvPacket Hooks
+type IBCAppHooksOnRecvPacketOverride interface {
+	OnRecvPacketOverride(im IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement
+}
+type IBCAppHooksOnRecvPacketBefore interface {
+	OnRecvPacketBeforeHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress)
+}
+type IBCAppHooksOnRecvPacketAfter interface {
+	OnRecvPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, ack ibcexported.Acknowledgement)
+}
+
 // OnAcknowledgementPacket Hooks
 type IBCAppHooksOnAcknowledgementPacketOverride interface {
 	OnAcknowledgementPacketOverride(im IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error
@@ -95,17 +106,6 @@ type IBCAppHooksOnTimeoutPacketBefore interface {
 }
 type IBCAppHooksOnTimeoutPacketAfter interface {
 	OnTimeoutPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, err error)
-}
-
-// OnRecvPacket Hooks
-type IBCAppHooksOnRecvPacketOverride interface {
-	OnRecvPacketOverride(im IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement
-}
-type IBCAppHooksOnRecvPacketBefore interface {
-	OnRecvPacketBeforeHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress)
-}
-type IBCAppHooksOnRecvPacketAfter interface {
-	OnRecvPacketAfterHook(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, ack ibcexported.Acknowledgement)
 }
 
 // SendPacket Hooks
