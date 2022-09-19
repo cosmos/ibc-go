@@ -17,7 +17,7 @@ type IBCMiddleware struct {
 	ICS4Middleware *ICS4Middleware
 
 	// Hooks
-	Hooks IBCAppHooks
+	Hooks Hooks
 }
 
 func NewIBCMiddleware(app porttypes.IBCModule, ics4 *ICS4Middleware) IBCMiddleware {
@@ -27,7 +27,7 @@ func NewIBCMiddleware(app porttypes.IBCModule, ics4 *ICS4Middleware) IBCMiddlewa
 	}
 }
 
-func (im IBCMiddleware) WithHooks(hooks IBCAppHooks) IBCMiddleware {
+func (im IBCMiddleware) WithHooks(hooks Hooks) IBCMiddleware {
 	im.Hooks = hooks
 	return im
 }
@@ -43,17 +43,17 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenInitOverride); ok {
+	if hook, ok := im.Hooks.(OnChanOpenInitOverrideHooks); ok {
 		return hook.OnChanOpenInitOverride(im, ctx, order, connectionHops, portID, channelID, channelCap, counterparty, version)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenInitBefore); ok {
+	if hook, ok := im.Hooks.(OnChanOpenInitBeforeHooks); ok {
 		hook.OnChanOpenInitBeforeHook(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, version)
 	}
 
 	result, err := im.App.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, version)
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenInitAfter); ok {
+	if hook, ok := im.Hooks.(OnChanOpenInitAfterHooks); ok {
 		hook.OnChanOpenInitAfterHook(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, version, result, err)
 	}
 	return result, err
@@ -70,17 +70,17 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenTryOverride); ok {
+	if hook, ok := im.Hooks.(OnChanOpenTryOverrideHooks); ok {
 		return hook.OnChanOpenTryOverride(im, ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenTryBefore); ok {
+	if hook, ok := im.Hooks.(OnChanOpenTryBeforeHooks); ok {
 		hook.OnChanOpenTryBeforeHook(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
 	}
 
 	version, err := im.App.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenTryAfter); ok {
+	if hook, ok := im.Hooks.(OnChanOpenTryAfterHooks); ok {
 		hook.OnChanOpenTryAfterHook(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion, version, err)
 	}
 	return version, err
@@ -94,15 +94,15 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenAckOverride); ok {
+	if hook, ok := im.Hooks.(OnChanOpenAckOverrideHooks); ok {
 		return hook.OnChanOpenAckOverride(im, ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenAckBefore); ok {
+	if hook, ok := im.Hooks.(OnChanOpenAckBeforeHooks); ok {
 		hook.OnChanOpenAckBeforeHook(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
 	err := im.App.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenAckAfter); ok {
+	if hook, ok := im.Hooks.(OnChanOpenAckAfterHooks); ok {
 		hook.OnChanOpenAckAfterHook(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion, err)
 	}
 
@@ -115,15 +115,15 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenConfirmOverride); ok {
+	if hook, ok := im.Hooks.(OnChanOpenConfirmOverrideHooks); ok {
 		return hook.OnChanOpenConfirmOverride(im, ctx, portID, channelID)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenConfirmBefore); ok {
+	if hook, ok := im.Hooks.(OnChanOpenConfirmBeforeHooks); ok {
 		hook.OnChanOpenConfirmBeforeHook(ctx, portID, channelID)
 	}
 	err := im.App.OnChanOpenConfirm(ctx, portID, channelID)
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanOpenConfirmAfter); ok {
+	if hook, ok := im.Hooks.(OnChanOpenConfirmAfterHooks); ok {
 		hook.OnChanOpenConfirmAfterHook(ctx, portID, channelID, err)
 	}
 	return err
@@ -136,15 +136,15 @@ func (im IBCMiddleware) OnChanCloseInit(
 	channelID string,
 ) error {
 	// Here we can remove the limits when a new channel is closed. For now, they can remove them  manually on the contract
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanCloseInitOverride); ok {
+	if hook, ok := im.Hooks.(OnChanCloseInitOverrideHooks); ok {
 		return hook.OnChanCloseInitOverride(im, ctx, portID, channelID)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanCloseInitBefore); ok {
+	if hook, ok := im.Hooks.(OnChanCloseInitBeforeHooks); ok {
 		hook.OnChanCloseInitBeforeHook(ctx, portID, channelID)
 	}
 	err := im.App.OnChanCloseInit(ctx, portID, channelID)
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanCloseInitAfter); ok {
+	if hook, ok := im.Hooks.(OnChanCloseInitAfterHooks); ok {
 		hook.OnChanCloseInitAfterHook(ctx, portID, channelID, err)
 	}
 
@@ -158,15 +158,15 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	// Here we can remove the limits when a new channel is closed. For now, they can remove them  manually on the contract
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanCloseConfirmOverride); ok {
+	if hook, ok := im.Hooks.(OnChanCloseConfirmOverrideHooks); ok {
 		return hook.OnChanCloseConfirmOverride(im, ctx, portID, channelID)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanCloseConfirmBefore); ok {
+	if hook, ok := im.Hooks.(OnChanCloseConfirmBeforeHooks); ok {
 		hook.OnChanCloseConfirmBeforeHook(ctx, portID, channelID)
 	}
 	err := im.App.OnChanCloseConfirm(ctx, portID, channelID)
-	if hook, ok := im.Hooks.(IBCAppHooksOnChanCloseConfirmAfter); ok {
+	if hook, ok := im.Hooks.(OnChanCloseConfirmAfterHooks); ok {
 		hook.OnChanCloseConfirmAfterHook(ctx, portID, channelID, err)
 	}
 
@@ -189,15 +189,15 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	if hook, ok := im.Hooks.(IBCAppHooksOnTimeoutPacketOverride); ok {
+	if hook, ok := im.Hooks.(OnTimeoutPacketOverrideHooks); ok {
 		return hook.OnTimeoutPacketOverride(im, ctx, packet, relayer)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnTimeoutPacketBefore); ok {
+	if hook, ok := im.Hooks.(OnTimeoutPacketBeforeHooks); ok {
 		hook.OnTimeoutPacketBeforeHook(ctx, packet, relayer)
 	}
 	err := im.App.OnTimeoutPacket(ctx, packet, relayer)
-	if hook, ok := im.Hooks.(IBCAppHooksOnTimeoutPacketAfter); ok {
+	if hook, ok := im.Hooks.(OnTimeoutPacketAfterHooks); ok {
 		hook.OnTimeoutPacketAfterHook(ctx, packet, relayer, err)
 	}
 
@@ -210,17 +210,17 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	if hook, ok := im.Hooks.(IBCAppHooksOnRecvPacketOverride); ok {
+	if hook, ok := im.Hooks.(OnRecvPacketOverrideHooks); ok {
 		return hook.OnRecvPacketOverride(im, ctx, packet, relayer)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnRecvPacketBefore); ok {
+	if hook, ok := im.Hooks.(OnRecvPacketBeforeHooks); ok {
 		hook.OnRecvPacketBeforeHook(ctx, packet, relayer)
 	}
 
 	ack := im.App.OnRecvPacket(ctx, packet, relayer)
 
-	if hook, ok := im.Hooks.(IBCAppHooksOnRecvPacketAfter); ok {
+	if hook, ok := im.Hooks.(OnRecvPacketAfterHooks); ok {
 		hook.OnRecvPacketAfterHook(ctx, packet, relayer, ack)
 	}
 
@@ -233,15 +233,15 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 ) error {
-	if hook, ok := im.Hooks.(IBCAppHooksSendPacketOverride); ok {
+	if hook, ok := im.Hooks.(SendPacketOverrideHooks); ok {
 		return hook.SendPacketOverride(im, ctx, chanCap, packet)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksSendPacketBefore); ok {
+	if hook, ok := im.Hooks.(SendPacketBeforeHooks); ok {
 		hook.SendPacketBeforeHook(ctx, chanCap, packet)
 	}
 	err := im.ICS4Middleware.SendPacket(ctx, chanCap, packet)
-	if hook, ok := im.Hooks.(IBCAppHooksSendPacketAfter); ok {
+	if hook, ok := im.Hooks.(SendPacketAfterHooks); ok {
 		hook.SendPacketAfterHook(ctx, chanCap, packet, err)
 	}
 
@@ -255,15 +255,15 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	if hook, ok := im.Hooks.(IBCAppHooksWriteAcknowledgementOverride); ok {
+	if hook, ok := im.Hooks.(WriteAcknowledgementOverrideHooks); ok {
 		return hook.WriteAcknowledgementOverride(im, ctx, chanCap, packet, ack)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksWriteAcknowledgementBefore); ok {
+	if hook, ok := im.Hooks.(WriteAcknowledgementBeforeHooks); ok {
 		hook.WriteAcknowledgementBeforeHook(ctx, chanCap, packet, ack)
 	}
 	err := im.ICS4Middleware.WriteAcknowledgement(ctx, chanCap, packet, ack)
-	if hook, ok := im.Hooks.(IBCAppHooksWriteAcknowledgementAfter); ok {
+	if hook, ok := im.Hooks.(WriteAcknowledgementAfterHooks); ok {
 		hook.WriteAcknowledgementAfterHook(ctx, chanCap, packet, ack, err)
 	}
 
@@ -271,15 +271,15 @@ func (im IBCMiddleware) WriteAcknowledgement(
 }
 
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	if hook, ok := im.Hooks.(IBCAppHooksGetAppVersionOverride); ok {
+	if hook, ok := im.Hooks.(GetAppVersionOverrideHooks); ok {
 		return hook.GetAppVersionOverride(im, ctx, portID, channelID)
 	}
 
-	if hook, ok := im.Hooks.(IBCAppHooksGetAppVersionBefore); ok {
+	if hook, ok := im.Hooks.(GetAppVersionBeforeHooks); ok {
 		hook.GetAppVersionBeforeHook(ctx, portID, channelID)
 	}
 	version, err := im.ICS4Middleware.GetAppVersion(ctx, portID, channelID)
-	if hook, ok := im.Hooks.(IBCAppHooksGetAppVersionAfter); ok {
+	if hook, ok := im.Hooks.(GetAppVersionAfterHooks); ok {
 		hook.GetAppVersionAfterHook(ctx, portID, channelID, version, err)
 	}
 

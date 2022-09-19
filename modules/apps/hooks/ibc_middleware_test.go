@@ -132,7 +132,7 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 				suite.Require().False(ack.Success())
 			}
 
-			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(testutils.TestRecvOverrides); ok {
+			if _, ok := suite.chainB.GetSimApp().HooksMiddleware.Hooks.(testutils.TestRecvOverrideHooks); ok {
 				suite.Require().True(status.OverrideRan)
 				suite.Require().False(status.BeforeRan)
 				suite.Require().False(status.AfterRan)

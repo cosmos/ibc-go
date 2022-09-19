@@ -8,8 +8,8 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
 )
 
-var _ ibchooks.IBCAppHooks = TestRecvOverrides{}
-var _ ibchooks.IBCAppHooks = TestRecvBeforeAfterHooks{}
+var _ ibchooks.Hooks = TestRecvOverrideHooks{}
+var _ ibchooks.Hooks = TestRecvBeforeAfterHooks{}
 
 type Status struct {
 	OverrideRan bool
@@ -18,9 +18,9 @@ type Status struct {
 }
 
 // Recv
-type TestRecvOverrides struct{ Status *Status }
+type TestRecvOverrideHooks struct{ Status *Status }
 
-func (t TestRecvOverrides) OnRecvPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+func (t TestRecvOverrideHooks) OnRecvPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	t.Status.OverrideRan = true
 	ack := im.App.OnRecvPacket(ctx, packet, relayer)
 	return ack
@@ -36,9 +36,9 @@ func (t TestRecvBeforeAfterHooks) OnRecvPacketAfterHook(ctx sdk.Context, packet 
 }
 
 // Send
-type TestSendOverrides struct{ Status *Status }
+type TestSendOverrideHooks struct{ Status *Status }
 
-func (t TestSendOverrides) SendPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
+func (t TestSendOverrideHooks) SendPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI) error {
 	t.Status.OverrideRan = true
 	err := im.SendPacket(ctx, chanCap, packet)
 	return err
