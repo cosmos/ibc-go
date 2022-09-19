@@ -1,7 +1,10 @@
 package testutils
 
 import (
+	// external libraries
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	// ibc-go
 	ibchooks "github.com/cosmos/ibc-go/v5/modules/apps/hooks"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"

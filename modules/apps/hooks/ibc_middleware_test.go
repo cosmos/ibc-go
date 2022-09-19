@@ -1,18 +1,20 @@
 package ibc_hooks_test
 
 import (
+	// standard libraries
+	"github.com/stretchr/testify/suite"
 	"testing"
 
-	"cosmossdk.io/math"
+	// external libraries
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testutils "github.com/cosmos/ibc-go/v5/modules/apps/hooks/testutils"
+
+	// ibc-go
+	"github.com/cosmos/ibc-go/v5/modules/apps/hooks/testutils"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
-
-	"github.com/stretchr/testify/suite"
 )
 
 type HooksTestSuite struct {
@@ -62,7 +64,7 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 	var (
 		trace    transfertypes.DenomTrace
-		amount   math.Int
+		amount   sdk.Int
 		receiver string
 		status   testutils.Status
 	)
