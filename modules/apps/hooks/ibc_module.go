@@ -203,7 +203,20 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	return im.App.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if hook, ok := im.Hooks.(OnAcknowledgementPacketOverrideHooks); ok {
+		return hook.OnAcknowledgementPacketOverride(im, ctx, packet, acknowledgement, relayer)
+	}
+	if hook, ok := im.Hooks.(OnAcknowledgementPacketBeforeHooks); ok {
+		hook.OnAcknowledgementPacketBeforeHook(ctx, packet, acknowledgement, relayer)
+	}
+
+	err := im.App.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+
+	if hook, ok := im.Hooks.(OnAcknowledgementPacketAfterHooks); ok {
+		hook.OnAcknowledgementPacketAfterHook(ctx, packet, acknowledgement, relayer, err)
+	}
+
+	return err
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
