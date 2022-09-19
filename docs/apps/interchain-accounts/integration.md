@@ -127,6 +127,7 @@ app.mm.SetOrderInitGenesis(
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
     ...
     paramsKeeper.Subspace(icahosttypes.SubModuleName)
+    paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
     ...
 ```
 
