@@ -173,6 +173,29 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	return err
 }
 
+// OnRecvPacket implements the IBCMiddleware interface
+func (im IBCMiddleware) OnRecvPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	relayer sdk.AccAddress,
+) ibcexported.Acknowledgement {
+	if hook, ok := im.Hooks.(OnRecvPacketOverrideHooks); ok {
+		return hook.OnRecvPacketOverride(im, ctx, packet, relayer)
+	}
+
+	if hook, ok := im.Hooks.(OnRecvPacketBeforeHooks); ok {
+		hook.OnRecvPacketBeforeHook(ctx, packet, relayer)
+	}
+
+	ack := im.App.OnRecvPacket(ctx, packet, relayer)
+
+	if hook, ok := im.Hooks.(OnRecvPacketAfterHooks); ok {
+		hook.OnRecvPacketAfterHook(ctx, packet, relayer, ack)
+	}
+
+	return ack
+}
+
 // OnAcknowledgementPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
@@ -202,29 +225,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 
 	return err
-}
-
-// OnRecvPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnRecvPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
-	if hook, ok := im.Hooks.(OnRecvPacketOverrideHooks); ok {
-		return hook.OnRecvPacketOverride(im, ctx, packet, relayer)
-	}
-
-	if hook, ok := im.Hooks.(OnRecvPacketBeforeHooks); ok {
-		hook.OnRecvPacketBeforeHook(ctx, packet, relayer)
-	}
-
-	ack := im.App.OnRecvPacket(ctx, packet, relayer)
-
-	if hook, ok := im.Hooks.(OnRecvPacketAfterHooks); ok {
-		hook.OnRecvPacketAfterHook(ctx, packet, relayer, ack)
-	}
-
-	return ack
 }
 
 // SendPacket implements the ICS4 Wrapper interface
