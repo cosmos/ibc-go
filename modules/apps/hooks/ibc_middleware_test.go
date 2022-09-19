@@ -21,17 +21,14 @@ type HooksTestSuite struct {
 
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
 
-	path     *ibctesting.Path
-	pathAToC *ibctesting.Path
+	path *ibctesting.Path
 }
 
 func (suite *HooksTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
 func TestIBCHooksTestSuite(t *testing.T) {
@@ -127,7 +124,7 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 			data := transfertypes.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
-			ack := suite.chainB.GetSimApp().HooksMiddleware.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainC.SenderAccount.GetAddress())
+			ack := suite.chainB.GetSimApp().HooksMiddleware.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 
 			if tc.expPass {
 				suite.Require().True(ack.Success())
