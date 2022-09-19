@@ -73,7 +73,7 @@ func (suite *HooksTestSuite) TestOnRecvPacketHooks() {
 		expPass      bool
 	}{
 		{"override", func(status *testutils.Status) {
-			suite.chainB.GetSimApp().HooksMiddleware.Hooks = testutils.TestRecvBeforeAfterHooks{Status: status}
+			suite.chainB.GetSimApp().HooksMiddleware.Hooks = testutils.TestRecvOverrides{Status: status}
 		}, true, true},
 		{"before and after", func(status *testutils.Status) {
 			suite.chainB.GetSimApp().HooksMiddleware.Hooks = testutils.TestRecvBeforeAfterHooks{Status: status}
