@@ -15,9 +15,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterAccount() {
+func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
-		msg               *types.MsgRegisterAccount
+		msg               *types.MsgRegisterInterchainAccount
 		expectedChannelID = "channel-0"
 	)
 
@@ -69,13 +69,13 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 		path := NewICAPath(suite.chainA, suite.chainB)
 		suite.coordinator.SetupConnections(path)
 
-		msg = types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+		msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
 		tc.malleate()
 
 		ctx := suite.chainA.GetContext()
 		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-		res, err := msgServer.RegisterAccount(ctx, msg)
+		res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestRegisterAccount() {
 func (suite *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path *ibctesting.Path
-		msg  *types.MsgSubmitTx
+		msg  *types.MsgSendTx
 	)
 
 	testCases := []struct {
@@ -124,13 +124,13 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		},
 		{
 			"failure - active channel does not exist for port ID", func() {
-				msg.Owner = TestAccAddress.String()
+				msg.Owner = "invalid-owner"
 			},
 			false,
 		},
 		{
 			"failure - controller module does not own capability for this channel", func() {
-				msg.Owner = TestAccAddress.String()
+				msg.Owner = "invalid-owner"
 				portID, err := icatypes.NewControllerPortID(msg.Owner)
 				suite.Require().NoError(err)
 
@@ -180,13 +180,13 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 			connectionID := path.EndpointA.ConnectionID
 
-			msg = types.NewMsgSubmitTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
+			msg = types.NewMsgSendTx(owner, connectionID, clienttypes.ZeroHeight(), timeoutTimestamp, packetData)
 
 			tc.malleate() // malleate mutates test data
 
 			ctx := suite.chainA.GetContext()
 			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			res, err := msgServer.SubmitTx(ctx, msg)
+			res, err := msgServer.SendTx(ctx, msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

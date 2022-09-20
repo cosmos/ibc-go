@@ -23,7 +23,7 @@ const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 )
 
-func newRegisterAccountCmd() *cobra.Command {
+func newRegisterInterchainAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register [connection-id]",
 		Short: "Register an interchain account on the provided connection.",
@@ -47,7 +47,7 @@ the associated capability.`),
 				return err
 			}
 
-			msg := types.NewMsgRegisterAccount(connectionID, owner, version)
+			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -59,10 +59,10 @@ the associated capability.`),
 	return cmd
 }
 
-func newSubmitTxCmd() *cobra.Command {
+func newSendTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "submit [connection-id] [path/to/packet_msg.json]",
-		Short: "Submit an interchain account txn on the provided connection.",
+		Use:   "send-tx [connection-id] [path/to/packet_msg.json]",
+		Short: "Send an interchain account tx on the provided connection.",
 		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain 
 and attempts to send the packet. Packet data is provided as json, file or string. An 
 appropriate relative timeoutTimestamp must be provided with flag {packet-timeout-timestamp}, along with a timeoutHeight
@@ -108,7 +108,7 @@ via {packet-timeout-timestamp}`),
 				return err
 			}
 
-			msg := types.NewMsgSubmitTx(owner, connectionID, timeoutHeight, timeoutTimestamp, icaMsgData)
+			msg := types.NewMsgSendTx(owner, connectionID, timeoutHeight, timeoutTimestamp, icaMsgData)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
