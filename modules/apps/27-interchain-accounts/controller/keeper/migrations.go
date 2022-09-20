@@ -23,21 +23,22 @@ func NewMigrator(keeper *Keeper) Migrator {
 // AssertChannelCapabilityMigrations checks that all channel capabilities generated using the interchain accounts controller port prefix
 // are owned by the controller submodule and ibc.
 func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
-	filteredChannels := m.keeper.channelKeeper.GetChannelsWithPortPrefix(ctx, icatypes.PortPrefix)
-	for _, ch := range filteredChannels {
-		name := host.ChannelCapabilityPath(ch.PortId, ch.ChannelId)
-		capacity, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
-		if !found {
-			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", name)
-		}
+	if m.keeper != nil {
+		filteredChannels := m.keeper.channelKeeper.GetChannelsWithPortPrefix(ctx, icatypes.PortPrefix)
+		for _, ch := range filteredChannels {
+			name := host.ChannelCapabilityPath(ch.PortId, ch.ChannelId)
+			capacity, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
+			if !found {
+				return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", name)
+			}
 
-		isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, capacity, name)
-		if !isAuthenticated {
-			return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", controllertypes.SubModuleName)
-		}
+			isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, capacity, name)
+			if !isAuthenticated {
+				return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", controllertypes.SubModuleName)
+			}
 
-		m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ChannelId)
+			m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionHops[0])
+		}
 	}
-
 	return nil
 }

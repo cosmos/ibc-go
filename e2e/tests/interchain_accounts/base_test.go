@@ -50,8 +50,8 @@ func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Cont
 // getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
 // controller chain.
 func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanChainA := semver.Compare(chainAVersion, chainBVersion) == -1
-	if chainBIsGreaterThanChainA {
+	chainBIsGreaterThanOrEqualToChainA := semver.Compare(chainAVersion, chainBVersion) <= 0
+	if chainBIsGreaterThanOrEqualToChainA {
 		// allow version to be specified by the controller chain
 		return ""
 	}
