@@ -25,6 +25,9 @@ const (
 
 	// QuerierRoute is the querier route for interchain accounts
 	QuerierRoute = ModuleName
+
+	// hostAccountKey is the key used when generating a module address for the host submodule
+	hostAccountsKey = "icahost-accounts"
 )
 
 var (
@@ -57,6 +60,6 @@ func KeyPort(portID string) []byte {
 }
 
 // KeyIsMiddlewareEnabled creates and returns a new key used for signaling legacy API callback routing via ibc middleware
-func KeyIsMiddlewareEnabled(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", IsMiddlewareEnabledPrefix, portID, channelID))
+func KeyIsMiddlewareEnabled(portID, connectionID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", IsMiddlewareEnabledPrefix, portID, connectionID))
 }
