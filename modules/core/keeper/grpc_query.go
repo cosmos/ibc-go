@@ -30,8 +30,8 @@ func (q Keeper) ConsensusStates(c context.Context, req *clienttypes.QueryConsens
 }
 
 // WasmCode implements the IBC QueryServer interface
-func (q Keeper) WasmCode(c context.Context, req *wasmtypes.WasmCodeQuery) (*wasmtypes.WasmCodeResponse, error) {
-	return q.WasmKeeper.WasmCode(c, req)
+func (q Keeper) WasmLightClient(c context.Context, req *wasmtypes.WasmLightClientRequest) (*wasmtypes.WasmLightClientResponse, error) {
+	return q.WasmKeeper.WasmLightClient(c, req)
 }
 
 // ConsensusStateHeights implements the IBC QueryServer interface

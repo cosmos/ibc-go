@@ -8,10 +8,12 @@ import "gogoproto/gogo.proto";
 
 // GenesisState defines the ibc module's genesis state.
 message GenesisState {
-    repeated WasmCode wasm_code = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"wasm_code\""];
+    repeated WasmLightClient wasm_light_clients = 1;
 }
 
-message WasmCode {
-    bytes checksum = 1;
-    bytes code = 2;
+message WasmLightClient {
+    string name       = 1;
+    string repository = 2;
+    bytes  code_hash  = 3;
+    bytes  code       = 4;
 }

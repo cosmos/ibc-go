@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"bytes"
-	"crypto/sha256"
+	"context"
 	"strings"
 
 	wasm "github.com/CosmWasm/wasmvm"
@@ -13,9 +13,8 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types"
 )
 
-// WasmVM initialized by wasm keeper
-// TODO: make this private
-var WasmVM *wasm.VM
+var _ types.QueryServer = (*Keeper)(nil)
+var _ types.MsgServer = (*Keeper)(nil)
 
 // VMConfig represents Wasm virtual machine settings
 type VMConfig struct {
@@ -31,6 +30,7 @@ type Keeper struct {
 	storeKey      storetypes.StoreKey
 	cdc           codec.BinaryCodec
 	wasmValidator *WasmValidator
+	vm            *wasm.VM
 }
 
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, vmConfig *VMConfig, validationConfig *ValidationConfig) Keeper {
@@ -41,6 +41,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, vmConfig *VMConfi
 		panic(err)
 	}
 
+	// This may potentially be unsafe, but we need to be able to create a VM for validation
 	wasmValidator, err := NewWasmValidator(validationConfig, func() (*wasm.VM, error) {
 		return wasm.NewVM(vmConfig.DataDir, supportedFeatures, vmConfig.MemoryLimitMb, vmConfig.PrintDebug, vmConfig.CacheSizeMb)
 	})
@@ -48,80 +49,66 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, vmConfig *VMConfi
 		panic(err)
 	}
 
-	WasmVM = vm
-
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
 		wasmValidator: wasmValidator,
+		vm:            vm,
 	}
 }
 
-func (k Keeper) SetWasmCode(ctx sdk.Context, code types.WasmCode) error {
+func (k Keeper) SetWasmLightClient(ctx sdk.Context, code *types.WasmLightClient) error {
 	store := ctx.KVStore(k.storeKey)
-	codeHash := generateWasmCodeHash(code.Code)
-	codeIDKey := types.CodeID(codeHash)
 
-	if !bytes.Equal(code.Checksum, codeIDKey) {
-		return types.ErrWasmInvalidCodeID
-	}
-
-	if store.Has(codeIDKey) {
+	// check to see if the store has a code with the same name
+	if store.Has([]byte(code.Name)) {
 		return types.ErrWasmCodeExists
 	}
 
+	// run the code through the wasm light client validation process
 	if isValidWasmCode, err := k.wasmValidator.validateWasmCode(code.Code); err != nil {
 		return sdkerrors.Wrapf(types.ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
 	} else if !isValidWasmCode {
 		return types.ErrWasmInvalidCode
 	}
 
-	codeID, err := WasmVM.Create(code.Code)
+	// create the code in the vm
+	// TODO: do we need to check and make sure there
+	// is no code with the same hash?
+	codeID, err := k.vm.Create(code.Code)
 	if err != nil {
 		return types.ErrWasmInvalidCode
 	}
 
 	// safety check to assert that code id returned by WasmVM equals to code hash
-	if !bytes.Equal(codeID, codeHash) {
+	if !bytes.Equal(codeID, code.CodeHash) {
 		return types.ErrWasmInvalidCodeID
 	}
 
-	store.Set(codeIDKey, code.Code)
+	// store the whole code in the store
+	store.Set([]byte(code.Name), k.cdc.MustMarshalLengthPrefixed(code))
 	return nil
 }
 
-func (k Keeper) PushNewWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
-	// TODO: Make gov enabled?
-	// Maybe even a governace proposal
-	store := ctx.KVStore(k.storeKey)
-	codeHash := generateWasmCodeHash(code)
-	codeIDKey := types.CodeID(codeHash)
-
-	if store.Has(codeIDKey) {
-		return nil, types.ErrWasmCodeExists
-	}
-
-	if isValidWasmCode, err := k.wasmValidator.validateWasmCode(code); err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrWasmCodeValidation, "unable to validate wasm code: %s", err)
-	} else if !isValidWasmCode {
-		return nil, types.ErrWasmInvalidCode
-	}
-
-	codeID, err := WasmVM.Create(code)
-	if err != nil {
-		return nil, types.ErrWasmInvalidCode
-	}
-
-	// safety check to assert that code id returned by WasmVM equals to code hash
-	if !bytes.Equal(codeID, codeHash) {
-		return nil, types.ErrWasmInvalidCodeID
-	}
-
-	store.Set(codeIDKey, code)
-	return codeID, nil
+func (k Keeper) GetWasmLightClients(ctx sdk.Context) []*types.WasmLightClient {
+	// TODO: iterate over the store and return all wasm light clients
+	return nil
 }
 
-func generateWasmCodeHash(code []byte) []byte {
-	hash := sha256.Sum256(code)
-	return hash[:]
+func (k Keeper) GetWasmLightClient(ctx sdk.Context, name string) (out *types.WasmLightClient) {
+	store := ctx.KVStore(k.storeKey)
+	// TODO: this might be the wrong pattern but says what its supposed to do
+	k.cdc.MustUnmarshalLengthPrefixed(store.Get([]byte(name)), out)
+	return
+}
+
+func (k Keeper) SubmitWasmLightClient(ctx context.Context, in *types.MsgSubmitWasmLightClient) (*types.MsgSubmitWasmLightClientResponse, error) {
+	if err := k.SetWasmLightClient(sdk.UnwrapSDKContext(ctx), in.WasmLightClient); err != nil {
+		return nil, err
+	}
+	return &types.MsgSubmitWasmLightClientResponse{}, nil
+}
+
+func (k Keeper) WasmLightClient(ctx context.Context, in *types.WasmLightClientRequest) (*types.WasmLightClientResponse, error) {
+	return &types.WasmLightClientResponse{WasmLightClient: k.GetWasmLightClient(sdk.UnwrapSDKContext(ctx), in.Name)}, nil
 }

@@ -27,42 +27,15 @@ func (c *ClientState) Validate() error {
 		return fmt.Errorf("data cannot be empty")
 	}
 
-	if c.CodeId == nil || len(c.CodeId) == 0 {
-		return fmt.Errorf("codeid cannot be empty")
+	if c.Name == "" || len(c.Name) == 0 {
+		return fmt.Errorf("name cannot be empty")
 	}
-
 	return nil
 }
 
 func (c *ClientState) Status(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
-	consensusState, err := GetConsensusState(store, cdc, c.LatestHeight)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	const Status = "status"
-	payload := make(map[string]map[string]interface{})
-	payload[Status] = make(map[string]interface{})
-	inner := payload[Status]
-	inner["me"] = c
-	inner["consensus_state"] = consensusState
-
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	response, err := queryContractWithStore(c.CodeId, store, encodedData)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	output := queryResponse{}
-	if err := json.Unmarshal(response, &output); err != nil {
-		return exported.Unknown
-	}
-
-	return output.Status
+	// TODO: store the status of the client in the SDK store to make it easier to query?
+	return exported.Active
 }
 
 func (c *ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {

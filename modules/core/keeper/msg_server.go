@@ -13,7 +13,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	wasm "github.com/cosmos/ibc-go/v5/modules/core/28-wasm"
 	wasmtypes "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types"
 	coretypes "github.com/cosmos/ibc-go/v5/modules/core/types"
 )
@@ -25,10 +24,10 @@ var (
 	_ wasmtypes.MsgServer       = Keeper{}
 )
 
-// PushNewWasmCode defines a rpc handler method for MsgPushNewWasmCode
-func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *wasmtypes.MsgPushNewWasmCode) (*wasmtypes.MsgPushNewWasmCodeResponse, error) {
+// SubmitWasmLightClient defines a rpc handler method for MsgSubmitWasmLightClient
+func (k Keeper) SubmitWasmLightClient(goCtx context.Context, msg *wasmtypes.MsgSubmitWasmLightClient) (*wasmtypes.MsgSubmitWasmLightClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	response, err := wasm.HandleMsgPushNewWasmCode(ctx, k.WasmKeeper, msg)
+	res, err := k.WasmKeeper.SubmitWasmLightClient(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +35,7 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *wasmtypes.MsgPushNew
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			clienttypes.EventTypePushWasmCode,
-			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(response.CodeId)),
+			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(res.CodeId)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -44,7 +43,7 @@ func (k Keeper) PushNewWasmCode(goCtx context.Context, msg *wasmtypes.MsgPushNew
 		),
 	})
 
-	return response, nil
+	return res, nil
 }
 
 // CreateClient defines a rpc handler method for MsgCreateClient.

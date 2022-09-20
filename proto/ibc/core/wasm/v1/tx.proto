@@ -5,19 +5,28 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types";
 
+import "ibc/core/wasm/v1/genesis.proto";
+
 // Msg defines the ibc/wasm Msg service.
 service Msg {
-  // PushNewWasmCode defines a rpc handler method for PushNewWasmCode.
-  rpc PushNewWasmCode(MsgPushNewWasmCode) returns (MsgPushNewWasmCodeResponse);
+  // SubmitWasmLightClient defines a rpc handler method for SubmitWasmLightClient.
+  rpc SubmitWasmLightClient(MsgSubmitWasmLightClient) returns (MsgSubmitWasmLightClientResponse);
+  
+  // TODO: decide if we need update and delete functionality
+  // UpdateLightClient defines a rpc handler method for UpdateLightClient.
+  // rpc UpdateLightClient(MsgUpdateLightClient) returns (MsgUpdateLightClientResponse);
+
+  // DeleteLightClient defines a rpc handler method for DeleteLightClient.
+  // rpc DeleteLightClient(MsgDeleteLightClient) returns (MsgDeleteLightClientResponse);
 }
 
 // Message type to push new wasm code
-message MsgPushNewWasmCode {
-  string signer      = 1;
-  bytes  code        = 3;
+message MsgSubmitWasmLightClient {
+  WasmLightClient wasm_light_client = 1;
+  string          signer            = 2;
 }
 
 // Response in case of successful handling
-message MsgPushNewWasmCodeResponse {
+message MsgSubmitWasmLightClientResponse {
   bytes  code_id   = 1;
 }

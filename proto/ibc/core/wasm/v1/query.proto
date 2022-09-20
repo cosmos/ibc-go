@@ -5,20 +5,23 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v5/modules/core/28-wasm/types";
 
-// WasmCode query
-message WasmCodeQuery {
-  string code_id = 1;
-}
+import "ibc/core/wasm/v1/genesis.proto";
 
-// WasmCode response
-message WasmCodeResponse {
-  bytes code = 1;
-}
 
 // Query service for wasm module
 service Query {
   // Get Wasm code for given code id
-  rpc WasmCode(WasmCodeQuery) returns (WasmCodeResponse) {
-    option (google.api.http).get = "/ibc/core/wasm/v1beta1/code/{code_id}";
+  rpc WasmLightClient(WasmLightClientRequest) returns (WasmLightClientResponse) {
+    option (google.api.http).get = "/ibc/core/wasm/v1beta1/code/{name}";
   }
 }
+
+  // WasmLightClient query
+  message WasmLightClientRequest {
+    string name = 1;
+  }
+  
+  // WasmLightClient response
+  message WasmLightClientResponse {
+    WasmLightClient wasm_light_client = 1;
+  }

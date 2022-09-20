@@ -302,20 +302,20 @@
   
 - [ibc/core/wasm/v1/genesis.proto](#ibc/core/wasm/v1/genesis.proto)
     - [GenesisState](#ibc.core.wasm.v1.GenesisState)
-    - [WasmCode](#ibc.core.wasm.v1.WasmCode)
+    - [WasmLightClient](#ibc.core.wasm.v1.WasmLightClient)
   
 - [ibc/core/types/v1/genesis.proto](#ibc/core/types/v1/genesis.proto)
     - [GenesisState](#ibc.core.types.v1.GenesisState)
   
 - [ibc/core/wasm/v1/query.proto](#ibc/core/wasm/v1/query.proto)
-    - [WasmCodeQuery](#ibc.core.wasm.v1.WasmCodeQuery)
-    - [WasmCodeResponse](#ibc.core.wasm.v1.WasmCodeResponse)
+    - [WasmLightClientRequest](#ibc.core.wasm.v1.WasmLightClientRequest)
+    - [WasmLightClientResponse](#ibc.core.wasm.v1.WasmLightClientResponse)
   
     - [Query](#ibc.core.wasm.v1.Query)
   
 - [ibc/core/wasm/v1/tx.proto](#ibc/core/wasm/v1/tx.proto)
-    - [MsgPushNewWasmCode](#ibc.core.wasm.v1.MsgPushNewWasmCode)
-    - [MsgPushNewWasmCodeResponse](#ibc.core.wasm.v1.MsgPushNewWasmCodeResponse)
+    - [MsgSubmitWasmLightClient](#ibc.core.wasm.v1.MsgSubmitWasmLightClient)
+    - [MsgSubmitWasmLightClientResponse](#ibc.core.wasm.v1.MsgSubmitWasmLightClientResponse)
   
     - [Msg](#ibc.core.wasm.v1.Msg)
   
@@ -379,8 +379,6 @@
 - [ibc/lightclients/wasm/v1/wasm.proto](#ibc/lightclients/wasm/v1/wasm.proto)
     - [ClientState](#ibc.lightclients.wasm.v1.ClientState)
     - [ConsensusState](#ibc.lightclients.wasm.v1.ConsensusState)
-    - [Header](#ibc.lightclients.wasm.v1.Header)
-    - [Misbehaviour](#ibc.lightclients.wasm.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -4440,22 +4438,24 @@ GenesisState defines the ibc module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `wasm_code` | [WasmCode](#ibc.core.wasm.v1.WasmCode) | repeated |  |
+| `wasm_light_clients` | [WasmLightClient](#ibc.core.wasm.v1.WasmLightClient) | repeated |  |
 
 
 
 
 
 
-<a name="ibc.core.wasm.v1.WasmCode"></a>
+<a name="ibc.core.wasm.v1.WasmLightClient"></a>
 
-### WasmCode
+### WasmLightClient
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `checksum` | [bytes](#bytes) |  |  |
+| `name` | [string](#string) |  |  |
+| `repository` | [string](#string) |  |  |
+| `code_hash` | [bytes](#bytes) |  |  |
 | `code` | [bytes](#bytes) |  |  |
 
 
@@ -4513,30 +4513,30 @@ GenesisState defines the ibc module's genesis state.
 
 
 
-<a name="ibc.core.wasm.v1.WasmCodeQuery"></a>
+<a name="ibc.core.wasm.v1.WasmLightClientRequest"></a>
 
-### WasmCodeQuery
-WasmCode query
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `code_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="ibc.core.wasm.v1.WasmCodeResponse"></a>
-
-### WasmCodeResponse
-WasmCode response
+### WasmLightClientRequest
+WasmLightClient query
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `code` | [bytes](#bytes) |  |  |
+| `name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.core.wasm.v1.WasmLightClientResponse"></a>
+
+### WasmLightClientResponse
+WasmLightClient response
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `wasm_light_client` | [WasmLightClient](#ibc.core.wasm.v1.WasmLightClient) |  |  |
 
 
 
@@ -4556,7 +4556,7 @@ Query service for wasm module
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `WasmCode` | [WasmCodeQuery](#ibc.core.wasm.v1.WasmCodeQuery) | [WasmCodeResponse](#ibc.core.wasm.v1.WasmCodeResponse) | Get Wasm code for given code id | GET|/ibc/core/wasm/v1beta1/code/{code_id}|
+| `WasmLightClient` | [WasmLightClientRequest](#ibc.core.wasm.v1.WasmLightClientRequest) | [WasmLightClientResponse](#ibc.core.wasm.v1.WasmLightClientResponse) | Get Wasm code for given code id | GET|/ibc/core/wasm/v1beta1/code/{name}|
 
  <!-- end services -->
 
@@ -4569,25 +4569,25 @@ Query service for wasm module
 
 
 
-<a name="ibc.core.wasm.v1.MsgPushNewWasmCode"></a>
+<a name="ibc.core.wasm.v1.MsgSubmitWasmLightClient"></a>
 
-### MsgPushNewWasmCode
+### MsgSubmitWasmLightClient
 Message type to push new wasm code
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `wasm_light_client` | [WasmLightClient](#ibc.core.wasm.v1.WasmLightClient) |  |  |
 | `signer` | [string](#string) |  |  |
-| `code` | [bytes](#bytes) |  |  |
 
 
 
 
 
 
-<a name="ibc.core.wasm.v1.MsgPushNewWasmCodeResponse"></a>
+<a name="ibc.core.wasm.v1.MsgSubmitWasmLightClientResponse"></a>
 
-### MsgPushNewWasmCodeResponse
+### MsgSubmitWasmLightClientResponse
 Response in case of successful handling
 
 
@@ -4613,7 +4613,7 @@ Msg defines the ibc/wasm Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `PushNewWasmCode` | [MsgPushNewWasmCode](#ibc.core.wasm.v1.MsgPushNewWasmCode) | [MsgPushNewWasmCodeResponse](#ibc.core.wasm.v1.MsgPushNewWasmCodeResponse) | PushNewWasmCode defines a rpc handler method for PushNewWasmCode. | |
+| `SubmitWasmLightClient` | [MsgSubmitWasmLightClient](#ibc.core.wasm.v1.MsgSubmitWasmLightClient) | [MsgSubmitWasmLightClientResponse](#ibc.core.wasm.v1.MsgSubmitWasmLightClientResponse) | SubmitWasmLightClient defines a rpc handler method for SubmitWasmLightClient. | |
 
  <!-- end services -->
 
@@ -5557,7 +5557,7 @@ Wasm light client's Client state
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `data` | [bytes](#bytes) |  |  |
-| `code_id` | [bytes](#bytes) |  |  |
+| `name` | [string](#string) |  |  |
 | `latest_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 | `proof_specs` | [ics23.ProofSpec](#ics23.ProofSpec) | repeated |  |
 
@@ -5575,42 +5575,8 @@ Wasm light client's ConsensusState
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `data` | [bytes](#bytes) |  |  |
-| `code_id` | [bytes](#bytes) |  |  |
-| `timestamp` | [uint64](#uint64) |  | timestamp that corresponds to the block height in which the ConsensusState was stored. |
-| `root` | [ibc.core.commitment.v1.MerkleRoot](#ibc.core.commitment.v1.MerkleRoot) |  | commitment root (i.e app hash) |
-
-
-
-
-
-
-<a name="ibc.lightclients.wasm.v1.Header"></a>
-
-### Header
-Wasm light client Header
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `data` | [bytes](#bytes) |  |  |
-| `height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
-
-
-
-
-
-
-<a name="ibc.lightclients.wasm.v1.Misbehaviour"></a>
-
-### Misbehaviour
-Wasm light client Misbehaviour
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `client_id` | [string](#string) |  |  |
-| `header_1` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |
-| `header_2` | [Header](#ibc.lightclients.wasm.v1.Header) |  |  |
+| `name` | [string](#string) |  |  |
+| `stored_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  |  |
 
 
 
