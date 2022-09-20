@@ -123,6 +123,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
 
+## [v4.0.1](https://github.com/cosmos/ibc-go/releases/tag/v4.0.1) - 2022-09-15
+
+### Dependencies
+
+* [\#2287](https://github.com/cosmos/ibc-go/pull/2287) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
+
 ## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-08-12
 
 ### Dependencies
@@ -193,6 +199,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
+
+## [v3.2.1](https://github.com/cosmos/ibc-go/releases/tag/v3.2.1) - 2022-09-15
+
+### Dependencies
+
+* [\#2285](https://github.com/cosmos/ibc-go/pull/2285) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
 ## [v3.2.0](https://github.com/cosmos/ibc-go/releases/tag/v3.2.0) - 2022-08-12
 
@@ -341,6 +353,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
+## [v2.4.1](https://github.com/cosmos/ibc-go/releases/tag/v2.4.1) - 2022-09-15
+
+### Dependencies
+
+* [\#2284](https://github.com/cosmos/ibc-go/pull/2284) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
 ## [v2.4.0](https://github.com/cosmos/ibc-go/releases/tag/v2.4.0) - 2022-08-12
 
