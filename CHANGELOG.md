@@ -62,12 +62,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
 
 ### Bug Fixes
-<<<<<<< HEAD
- 
-=======
 
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
->>>>>>> 888c4a0 (fix: add nil checks for controller and host keeper services (#2308))
 * (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 

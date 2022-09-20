@@ -149,24 +149,13 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-<<<<<<< HEAD
-	controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
-	hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
-=======
 	if am.controllerKeeper != nil {
-		controllertypes.RegisterMsgServer(cfg.MsgServer(), controllerkeeper.NewMsgServerImpl(am.controllerKeeper))
 		controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
 	}
 
 	if am.hostKeeper != nil {
 		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
 	}
-
-	m := controllerkeeper.NewMigrator(am.controllerKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
-	}
->>>>>>> 888c4a0 (fix: add nil checks for controller and host keeper services (#2308))
 }
 
 // InitGenesis performs genesis initialization for the interchain accounts module.
