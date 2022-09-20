@@ -48,19 +48,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-<<<<<<< HEAD
+* (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
+
 ## [v4.0.1](https://github.com/cosmos/ibc-go/releases/tag/v4.0.1) - 2022-09-15
 
 ### Dependencies
 
 * [\#2287](https://github.com/cosmos/ibc-go/pull/2287) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
-=======
-* (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
-* (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
-* (light-clients/solomachine) [#1839](https://github.com/cosmos/ibc-go/issues/1839) Fixed usage of the new diversifier in validation of changing diversifiers for the solo machine. The current diversifier must sign over the new diversifier.
-* (light-clients/07-tendermint) [\#1674](https://github.com/cosmos/ibc-go/pull/1674) Submitted ClientState is zeroed out before checking the proof in order to prevent the proposal from containing information governance is not actually voting on.
-* (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
->>>>>>> 888c4a0 (fix: add nil checks for controller and host keeper services (#2308))
 
 ## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-08-12
 
