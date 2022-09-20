@@ -76,6 +76,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	if err != nil {
 		panic(err)
 	}
+
 	err = hosttypes.RegisterQueryHandlerClient(context.Background(), mux, hosttypes.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -150,9 +151,14 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	controllertypes.RegisterMsgServer(cfg.MsgServer(), controllerkeeper.NewMsgServerImpl(am.controllerKeeper))
-	controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
-	hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
+	if am.controllerKeeper != nil {
+		controllertypes.RegisterMsgServer(cfg.MsgServer(), controllerkeeper.NewMsgServerImpl(am.controllerKeeper))
+		controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
+	}
+
+	if am.hostKeeper != nil {
+		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
+	}
 
 	m := controllerkeeper.NewMigrator(am.controllerKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
