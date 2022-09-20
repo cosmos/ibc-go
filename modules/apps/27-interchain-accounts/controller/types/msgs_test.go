@@ -15,8 +15,8 @@ import (
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
-func TestMsgRegisterAccountValidateBasic(t *testing.T) {
-	var msg *types.MsgRegisterAccount
+func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
+	var msg *types.MsgRegisterInterchainAccount
 
 	testCases := []struct {
 		name     string
@@ -73,7 +73,7 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 
 	for i, tc := range testCases {
 
-		msg = types.NewMsgRegisterAccount(
+		msg = types.NewMsgRegisterInterchainAccount(
 			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
 			icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
@@ -90,16 +90,16 @@ func TestMsgRegisterAccountValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgRegisterAccountGetSigners(t *testing.T) {
+func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
-	msg := types.NewMsgRegisterAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
 
-func TestMsgSubmitTxValidateBasic(t *testing.T) {
-	var msg *types.MsgSubmitTx
+func TestMsgSendTxValidateBasic(t *testing.T) {
+	var msg *types.MsgSendTx
 
 	testCases := []struct {
 		name     string
@@ -164,7 +164,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 			Data: data,
 		}
 
-		msg = types.NewMsgSubmitTx(
+		msg = types.NewMsgSendTx(
 			ibctesting.TestAccAddress,
 			ibctesting.FirstConnectionID,
 			clienttypes.ZeroHeight(),
@@ -183,7 +183,7 @@ func TestMsgSubmitTxValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgSubmitTxGetSigners(t *testing.T) {
+func TestMsgSendTxGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
@@ -201,7 +201,7 @@ func TestMsgSubmitTxGetSigners(t *testing.T) {
 		Data: data,
 	}
 
-	msg := types.NewMsgSubmitTx(
+	msg := types.NewMsgSendTx(
 		ibctesting.TestAccAddress,
 		ibctesting.FirstConnectionID,
 		clienttypes.ZeroHeight(),

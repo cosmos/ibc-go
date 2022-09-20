@@ -34,6 +34,10 @@ func TestDecodeStore(t *testing.T) {
 				Key:   []byte(types.ActiveChannelKeyPrefix),
 				Value: []byte("channel-0"),
 			},
+			{
+				Key:   []byte(types.IsMiddlewareEnabledPrefix),
+				Value: []byte("false"),
+			},
 		},
 	}
 	tests := []struct {
@@ -43,6 +47,7 @@ func TestDecodeStore(t *testing.T) {
 		{"PortID", fmt.Sprintf("Port A: %s\nPort B: %s", types.PortID, types.PortID)},
 		{"Owner", fmt.Sprintf("Owner A: %s\nOwner B: %s", owner, owner)},
 		{"ActiveChannel", fmt.Sprintf("ActiveChannel A: %s\nActiveChannel B: %s", channelID, channelID)},
+		{"IsMiddlewareEnabled", fmt.Sprintf("IsMiddlewareEnabled A: %s\nIsMiddlewareEnabled B: %s", "false", "false")},
 		{"other", ""},
 	}
 

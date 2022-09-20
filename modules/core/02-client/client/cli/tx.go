@@ -79,7 +79,6 @@ func NewCreateClientCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-
 	return cmd
 }
 
@@ -238,7 +237,6 @@ func NewUpgradeClientCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-
 	return cmd
 }
 

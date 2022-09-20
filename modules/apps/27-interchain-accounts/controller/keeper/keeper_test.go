@@ -3,9 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto"
 
 	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
@@ -14,12 +12,6 @@ import (
 )
 
 var (
-	// TODO: Cosmos-SDK ADR-28: Update crypto.AddressHash() when sdk uses address.Module()
-	// https://github.com/cosmos/cosmos-sdk/issues/10225
-	//
-	// TestAccAddress defines a reusable bech32 address for testing purposes
-	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), ibctesting.FirstConnectionID, TestPortID)
-
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
@@ -153,11 +145,10 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.Require().NoError(err)
 
 	counterpartyPortID := path.EndpointA.ChannelConfig.PortID
-	expectedAddr := icatypes.GenerateAddress(suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(icatypes.ModuleName), ibctesting.FirstConnectionID, counterpartyPortID)
 
 	retrievedAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, counterpartyPortID)
 	suite.Require().True(found)
-	suite.Require().Equal(expectedAddr.String(), retrievedAddr)
+	suite.Require().NotEmpty(retrievedAddr)
 
 	retrievedAddr, found = suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), "invalid conn", "invalid port")
 	suite.Require().False(found)
@@ -182,14 +173,16 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 
 	expectedChannels := []genesistypes.ActiveChannel{
 		{
-			ConnectionId: ibctesting.FirstConnectionID,
-			PortId:       TestPortID,
-			ChannelId:    path.EndpointA.ChannelID,
+			ConnectionId:        ibctesting.FirstConnectionID,
+			PortId:              TestPortID,
+			ChannelId:           path.EndpointA.ChannelID,
+			IsMiddlewareEnabled: true,
 		},
 		{
-			ConnectionId: ibctesting.FirstConnectionID,
-			PortId:       expectedPortID,
-			ChannelId:    expectedChannelID,
+			ConnectionId:        ibctesting.FirstConnectionID,
+			PortId:              expectedPortID,
+			ChannelId:           expectedChannelID,
+			IsMiddlewareEnabled: false,
 		},
 	}
 
@@ -212,13 +205,16 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 
+	interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(exists)
+
 	suite.chainA.GetSimApp().ICAControllerKeeper.SetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
 
 	expectedAccounts := []genesistypes.RegisteredInterchainAccount{
 		{
 			ConnectionId:   ibctesting.FirstConnectionID,
 			PortId:         TestPortID,
-			AccountAddress: TestAccAddress.String(),
+			AccountAddress: interchainAccAddr,
 		},
 		{
 			ConnectionId:   ibctesting.FirstConnectionID,

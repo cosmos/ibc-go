@@ -84,6 +84,8 @@
     - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
   
 - [ibc/applications/interchain_accounts/controller/v1/query.proto](#ibc/applications/interchain_accounts/controller/v1/query.proto)
+    - [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest)
+    - [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse)
     - [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest)
     - [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse)
   
@@ -96,10 +98,10 @@
     - [Type](#ibc.applications.interchain_accounts.v1.Type)
   
 - [ibc/applications/interchain_accounts/controller/v1/tx.proto](#ibc/applications/interchain_accounts/controller/v1/tx.proto)
-    - [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount)
-    - [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse)
-    - [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx)
-    - [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse)
+    - [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount)
+    - [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse)
+    - [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx)
+    - [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse)
   
     - [Msg](#ibc.applications.interchain_accounts.controller.v1.Msg)
   
@@ -1475,6 +1477,37 @@ The following parameters may be used to disable the controller submodule.
 
 
 
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest"></a>
+
+### QueryInterchainAccountRequest
+QueryInterchainAccountRequest is the request type for the Query/InterchainAccount RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse"></a>
+
+### QueryInterchainAccountResponse
+QueryInterchainAccountResponse the response type for the Query/InterchainAccount RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -1513,6 +1546,7 @@ Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `InterchainAccount` | [QueryInterchainAccountRequest](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountRequest) | [QueryInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse) | InterchainAccount returns the interchain account address for a given owner address on a given connection | GET|/ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}|
 | `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse) | Params queries all parameters of the ICA controller submodule. | GET|/ibc/apps/interchain_accounts/controller/v1/params|
 
  <!-- end services -->
@@ -1587,16 +1621,16 @@ host
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount"></a>
 
-### MsgRegisterAccount
-MsgRegisterAccount defines the payload for Msg/RegisterAccount
+### MsgRegisterInterchainAccount
+MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `connection_id` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
+| `connection_id` | [string](#string) |  |  |
 | `version` | [string](#string) |  |  |
 
 
@@ -1604,10 +1638,10 @@ MsgRegisterAccount defines the payload for Msg/RegisterAccount
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse"></a>
 
-### MsgRegisterAccountResponse
-MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
+### MsgRegisterInterchainAccountResponse
+MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount
 
 
 | Field | Type | Label | Description |
@@ -1619,10 +1653,10 @@ MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTx"></a>
 
-### MsgSubmitTx
-MsgSubmitTx defines the payload for MsgSubmitTx
+### MsgSendTx
+MsgSendTx defines the payload for Msg/SendTx
 
 
 | Field | Type | Label | Description |
@@ -1638,10 +1672,10 @@ MsgSubmitTx defines the payload for MsgSubmitTx
 
 
 
-<a name="ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse"></a>
+<a name="ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse"></a>
 
-### MsgSubmitTxResponse
-MsgSubmitTxResponse defines the response for MsgSubmitTx
+### MsgSendTxResponse
+MsgSendTxResponse defines the response for MsgSendTx
 
 
 | Field | Type | Label | Description |
@@ -1666,8 +1700,8 @@ Msg defines the 27-interchain-accounts/controller Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `RegisterAccount` | [MsgRegisterAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccount) | [MsgRegisterAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterAccountResponse) | RegisterAccount defines a rpc handler for MsgRegisterAccount. | |
-| `SubmitTx` | [MsgSubmitTx](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTx) | [MsgSubmitTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSubmitTxResponse) | SubmitTx defines a rpc handler for MsgSubmitTx. | |
+| `RegisterInterchainAccount` | [MsgRegisterInterchainAccount](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccount) | [MsgRegisterInterchainAccountResponse](#ibc.applications.interchain_accounts.controller.v1.MsgRegisterInterchainAccountResponse) | RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount. | |
+| `SendTx` | [MsgSendTx](#ibc.applications.interchain_accounts.controller.v1.MsgSendTx) | [MsgSendTxResponse](#ibc.applications.interchain_accounts.controller.v1.MsgSendTxResponse) | SendTx defines a rpc handler for MsgSendTx. | |
 
  <!-- end services -->
 
@@ -1716,7 +1750,8 @@ The following parameters may be used to disable the host submodule.
 <a name="ibc.applications.interchain_accounts.genesis.v1.ActiveChannel"></a>
 
 ### ActiveChannel
-ActiveChannel contains a connection ID, port ID and associated active channel ID
+ActiveChannel contains a connection ID, port ID and associated active channel ID, as well as a boolean flag to
+indicate if the channel is middleware enabled
 
 
 | Field | Type | Label | Description |
@@ -1724,6 +1759,7 @@ ActiveChannel contains a connection ID, port ID and associated active channel ID
 | `connection_id` | [string](#string) |  |  |
 | `port_id` | [string](#string) |  |  |
 | `channel_id` | [string](#string) |  |  |
+| `is_middleware_enabled` | [bool](#bool) |  |  |
 
 
 
