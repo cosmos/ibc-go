@@ -65,9 +65,9 @@ Only the following major release series have a stable release status:
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v1.3.x`|July 01, 2022|
-|`v1.4.x`|July 01, 2022|
-|`v1.5.x`|July 01, 2022|
+|~~`v1.3.x`~~|~~July 01, 2022~~|
+|~~`v1.4.x`~~|~~July 01, 2022~~|
+|~~`v1.5.x`~~|~~July 01, 2022~~|
 |`v2.1.x`|February 01, 2023|
 |`v2.2.x`|February 01, 2023|
 |`v2.3.x`|February 01, 2023|
@@ -75,7 +75,9 @@ Only the following major release series have a stable release status:
 |`v3.0.x`|March 15, 2023|
 |`v3.1.x`|March 15, 2023|
 |`v3.2.x`|March 15, 2023|
+|`v3.3.x`|March 15, 2023|
 |`v4.0.x`|August 12, 2023|
+|`v4.1.x`|August 12, 2023|
 
 **Note**: The v1 major release series will reach end of life 6 months after merging this policy. v2 will reach end of life one year after merging this policy. 
 
@@ -121,7 +123,11 @@ Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently ac
 | 1.17 | v3.1.0 | v0.45.4 | v0.34.19 |
 | 1.17 | v3.1.1 | v0.45.5 | v0.34.19 |
 | 1.18 | v3.2.0 | v0.45.7 | v0.34.20 |
+| 1.18 | v3.2.1 | v0.45.8 | v0.34.21 |
+| 1.18 | v3.3.0 | v0.45.8 | v0.34.21 |
 | 1.18 | v4.0.0 | v0.45.7 | v0.34.20 |
+| 1.18 | v4.0.1 | v0.45.8 | v0.34.21 |
+| 1.18 | v4.1.0 | v0.45.8 | v0.34.21 |
 
 ## Graphics
 
