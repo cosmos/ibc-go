@@ -151,7 +151,6 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if am.controllerKeeper != nil {
-		controllertypes.RegisterMsgServer(cfg.MsgServer(), controllerkeeper.NewMsgServerImpl(am.controllerKeeper))
 		controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
 	}
 
