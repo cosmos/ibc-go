@@ -491,5 +491,5 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(portI
 
 // filteredPortPrefix returns the prefix key for the given port prefix.
 func filteredPortPrefix(portPrefix string) []byte {
-	return []byte(fmt.Sprintf("%s/ports/%s", host.KeyChannelEndPrefix, portPrefix))
+	return []byte(fmt.Sprintf("%s/%s/%s", host.KeyChannelEndPrefix, host.KeyPortPrefix, portPrefix))
 }
