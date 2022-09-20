@@ -51,7 +51,7 @@ func NewKeeper(
 +  ics4Wrapper icatypes.ICS4Wrapper,
    channelKeeper icatypes.ChannelKeeper, 
    portKeeper icatypes.PortKeeper,
-	accountKeeper icatypes.AccountKeeper, 
+   accountKeeper icatypes.AccountKeeper, 
    scopedKeeper icatypes.ScopedKeeper, 
    msgRouter icatypes.MessageRouter,
 ) Keeper
