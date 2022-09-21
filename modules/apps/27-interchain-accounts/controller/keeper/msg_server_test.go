@@ -126,13 +126,13 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		},
 		{
 			"failure - active channel does not exist for port ID", func() {
-				msg.Owner = TestAccAddress.String()
+				msg.Owner = "invalid-owner"
 			},
 			false,
 		},
 		{
 			"failure - controller module does not own capability for this channel", func() {
-				msg.Owner = TestAccAddress.String()
+				msg.Owner = "invalid-owner"
 				portID, err := icatypes.NewControllerPortID(msg.Owner)
 				suite.Require().NoError(err)
 
