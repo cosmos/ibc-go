@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/strangelove-ventures/ibctest"
@@ -22,7 +23,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 )
@@ -49,6 +52,9 @@ type E2ETestSuite struct {
 	DockerClient   *dockerclient.Client
 	network        string
 	startRelayerFn func(relayer ibc.Relayer)
+
+	// pathNameIndex is the latest index to be used for generating paths
+	pathNameIndex uint64
 }
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
@@ -61,7 +67,8 @@ type GRPCClients struct {
 	ICAQueryClient     intertxtypes.QueryClient
 
 	// SDK query clients
-	GovQueryClient govtypes.QueryClient
+	GovQueryClient    govtypes.QueryClient
+	ParamsQueryClient paramsproposaltypes.QueryClient
 }
 
 // path is a pairing of two chains which will be used in a test.
@@ -108,8 +115,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 
 	r := newCosmosRelayer(s.T(), testconfig.FromEnv(), s.logger, s.DockerClient, s.network)
 
-	pathName := fmt.Sprintf("%s-path", s.T().Name())
-	pathName = strings.ReplaceAll(pathName, "/", "-")
+	pathName := s.generatePathName()
 
 	ic := ibctest.NewInterchain().
 		AddChain(chainA).
@@ -157,6 +163,39 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	return r, chainAChannels[len(chainAChannels)-1]
 }
 
+// generatePathName generates the path name using the test suites name
+func (s *E2ETestSuite) generatePathName() string {
+	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), s.pathNameIndex)
+	s.pathNameIndex++
+	return strings.ReplaceAll(pathName, "/", "-")
+}
+
+// generatePath generates the path name using the test suites name
+func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) string {
+	chainA, chainB := s.GetChains()
+	chainAID := chainA.Config().ChainID
+	chainBID := chainB.Config().ChainID
+
+	pathName := s.generatePathName()
+	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
+	s.Require().NoError(err)
+
+	return pathName
+}
+
+// SetupClients creates clients on chainA and chainB using the provided create client options
+func (s *E2ETestSuite) SetupClients(ctx context.Context, relayer ibc.Relayer, opts ibc.CreateClientOptions) {
+	pathName := s.generatePath(ctx, relayer)
+	err := relayer.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, opts)
+	s.Require().NoError(err)
+}
+
+// UpdateClients updates clients on chainA and chainB
+func (s *E2ETestSuite) UpdateClients(ctx context.Context, relayer ibc.Relayer, pathName string) {
+	err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), pathName)
+	s.Require().NoError(err)
+}
+
 // GetChains returns two chains that can be used in a test. The pair returned
 // is unique to the current test being run. Note: this function does not create containers.
 func (s *E2ETestSuite) GetChains(chainOpts ...testconfig.ChainOptionConfiguration) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
@@ -195,6 +234,25 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 	return resp, err
 }
 
+// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
+func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
+	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
+	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
+func (s *E2ETestSuite) PayPacketFeeAsync(
+	ctx context.Context,
+	chain *cosmos.CosmosChain,
+	user *ibc.Wallet,
+	packetID channeltypes.PacketId,
+	packetFee feetypes.PacketFee,
+) (sdk.TxResponse, error) {
+	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
 // GetRelayerWallets returns the relayer wallets associated with the chains.
 func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
 	chainA, chainB := s.GetChains()
@@ -227,6 +285,14 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Re
 		return fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
 	}
 	return nil
+}
+
+// Transfer broadcasts a MsgTransfer message.
+func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
+	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+) (sdk.TxResponse, error) {
+	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp)
+	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // StartRelayer starts the given relayer.
@@ -300,6 +366,7 @@ func (s *E2ETestSuite) initGRPCClients(chain *cosmos.CosmosChain) {
 		FeeQueryClient:     feetypes.NewQueryClient(grpcConn),
 		ICAQueryClient:     intertxtypes.NewQueryClient(grpcConn),
 		GovQueryClient:     govtypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:  paramsproposaltypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -334,26 +401,11 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions testconfig.ChainOptions) 
 
 	logger := zaptest.NewLogger(s.T())
 
-	numValidators, numFullNodes := getValidatorsAndFullNodes(chainOptions)
+	numValidators, numFullNodes := 4, 1
 
 	chainA := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
 	chainB := cosmos.NewCosmosChain(s.T().Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
 	return chainA, chainB
-}
-
-// getValidatorsAndFullNodes returns the number of validators and full nodes which should be used
-// for the given chain config.
-func getValidatorsAndFullNodes(chainOptions testconfig.ChainOptions) (int, int) {
-	// TODO: the icad tests are failing with a larger number of validators.
-	// this function can be removed once https://github.com/cosmos/ibc-go/issues/2104 is resolved.
-	numValidators := 4
-	numFullNodes := 1
-	isIcadImage := strings.Contains(chainOptions.ChainAConfig.Images[0].Repository, "icad")
-	if isIcadImage {
-		numValidators = 1
-		numFullNodes = 0
-	}
-	return numValidators, numFullNodes
 }
 
 // GetRelayerExecReporter returns a testreporter.RelayerExecReporter instances
@@ -408,9 +460,14 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().NoError(err)
 	s.Require().Equal(govtypes.StatusVotingPeriod, proposal.Status)
 
-	time.Sleep(time.Second * 30) // pass proposal
+	time.Sleep(testvalues.VotingPeriod) // pass proposal
 
 	proposal, err = s.QueryProposal(ctx, chain, 1)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypes.StatusPassed, proposal.Status)
+}
+
+// GetIBCToken returns the denomination of the full token denom sent to the receiving channel
+func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
+	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }

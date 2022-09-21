@@ -24,7 +24,7 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
         env:
-          TEST_EXCLUSIONS: "TestInterchainAccountsTestSuite"
+          TEST_EXCLUSIONS: "TestInterchainAccountsTestSuite,TestIncentivizedInterchainAccountsTestSuite,TestUpgradeTestSuite"
 
   e2e:
     env:
@@ -48,7 +48,7 @@ jobs:
       - name: Run e2e Test
         env:
           # see images here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-          RLY_TAG: "v2.0.0-rc2"
+          RLY_TAG: "v2.0.0"
         run: |
           cd e2e
-          make e2e-test suite=${{ matrix.suite }} test=${{ matrix.test }}
+          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}

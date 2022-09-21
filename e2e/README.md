@@ -2,7 +2,7 @@
 ## Table of Contents
 1. [How to write tests](#how-to-write-tests)
    - a. [Adding a new test](#adding-a-new-test)
-   - b. [Running tests locally](#running-tests-locally)
+   - b. [Running the tests with custom images](#running-tests-with-custom-images)
    - b. [Code samples](#code-samples)
      - [Setup](#setup)
      - [Creating test users](#creating-test-users)
@@ -34,17 +34,19 @@ be quite common in most tests.
 > Note: see [here](#how-tests-are-run) for details about these requirements.
 
 
-### Running tests locally
+### Running tests with custom images
 
 Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
 There are several envinronment variables that alter the behaviour of the make target.
 
-| Environment Variable      | Description                               | Default Value|
-| ----------- |-------------------------------------------| ----------- |
-| CHAIN_IMAGE      | The image that will be used for the chain | ibc-go-simd |
-| CHAIN_A_TAG   | The tag used for the chain                | latest|
-| RLY_TAG   | The tag used for the go relayer           | main|
+| Environment Variable | Description                              | Default Value |
+|----------------------|------------------------------------------|---------------|
+| CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
+| CHAIN_A_TAG          | The tag used for chain B                 | latest        |
+| CHAIN_B_TAG          | The tag used for chain A                 | latest        |
+| CHAIN_BINARY         | The binary used in the container         | simd          |
+| RLY_TAG              | The tag used for the go relayer          | main          |
 
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
@@ -68,8 +70,8 @@ export CHAIN_BINARY="simd"
 # export CHAIN_B_TAG="main"
 # export CHAIN_BINARY="icad"
 
-export RLY_TAG="v2.0.0-rc2"
-make e2e-test suite=FeeMiddlewareTestSuite test=TestMultiMsg_MsgPayPacketFeeSingleSender
+export RLY_TAG="v2.0.0"
+make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
 
@@ -79,6 +81,13 @@ e2e/go.mod
 `replace github.com/strangelove-ventures/ibctest => ../ibctest`
 
 Or point it to any local checkout you have.
+
+#### Running tests in CI
+
+To run tests in CI, you can checkout the ibc-go repo and provide these environment variables
+to the CI task.
+
+[This repo](https://github.com/chatton/ibc-go-e2e-demo) contains an example of how to do this with Github Actions.
 
 ### Code samples
 
@@ -274,27 +283,27 @@ In the above example, the following would be generated.
 {
    "include": [
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestA"
       },
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestB"
       },
       {
-         "suite": "FeeMiddlewareTestSuite",
+         "entrypoint": "TestFeeMiddlewareTestSuite",
          "test": "TestC"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestD"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestE"
       },
       {
-         "suite": "TransferTestSuite",
+         "entrypoint": "TestTransferTestSuite",
          "test": "TestF"
       }
    ]

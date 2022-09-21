@@ -159,6 +159,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
+		ModifyGenesis:  defaultModifyGenesis(denom),
 	}
 }
 

@@ -33,12 +33,12 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		expected := GithubActionTestMatrix{
 			Include: []TestSuitePair{
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestA",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestA",
 				},
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestB",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestB",
 				},
 			},
 		}
@@ -56,20 +56,20 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		expected := GithubActionTestMatrix{
 			Include: []TestSuitePair{
 				{
-					Suite: "TestTransferTestSuite",
-					Test:  "TestC",
+					EntryPoint: "TestTransferTestSuite",
+					Test:       "TestC",
 				},
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestA",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestA",
 				},
 				{
-					Suite: "TestFeeMiddlewareTestSuite",
-					Test:  "TestB",
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestB",
 				},
 				{
-					Suite: "TestTransferTestSuite",
-					Test:  "TestD",
+					EntryPoint: "TestTransferTestSuite",
+					Test:       "TestD",
 				},
 			},
 		}
@@ -116,19 +116,19 @@ func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubAc
 	sort.SliceStable(expected.Include, func(i, j int) bool {
 		memberI := expected.Include[i]
 		memberJ := expected.Include[j]
-		if memberI.Suite == memberJ.Suite {
+		if memberI.EntryPoint == memberJ.EntryPoint {
 			return memberI.Test < memberJ.Test
 		}
-		return memberI.Suite < memberJ.Suite
+		return memberI.EntryPoint < memberJ.EntryPoint
 	})
 
 	sort.SliceStable(actual.Include, func(i, j int) bool {
 		memberI := actual.Include[i]
 		memberJ := actual.Include[j]
-		if memberI.Suite == memberJ.Suite {
+		if memberI.EntryPoint == memberJ.EntryPoint {
 			return memberI.Test < memberJ.Test
 		}
-		return memberI.Suite < memberJ.Suite
+		return memberI.EntryPoint < memberJ.EntryPoint
 	})
 	assert.Equal(t, expected.Include, actual.Include)
 }

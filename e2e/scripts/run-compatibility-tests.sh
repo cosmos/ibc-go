@@ -18,7 +18,7 @@ function run_gh_workflow(){
           -f chain-b-tag="${chain_b_tag}" \
           -f test-entry-point="${test_entry_point}" > /dev/null
         # it takes some time for the test to appear in the list, we need to wait for it to show up.
-        sleep 2
+        sleep 3
         # this assumes nobody else has run a manual workflow in the last 2 seconds
         run_id="$(gh run list "--workflow=e2e-manual-${chain_binary}.yaml" | grep workflow_dispatch | grep -Eo "[0-9]{9,11}" | head -n 1)"
         echo "  - [ ] [chain A (${chain_a_tag}) -> chain B (${chain_b_tag})](https://github.com/cosmos/ibc-go/actions/runs/${run_id})"
