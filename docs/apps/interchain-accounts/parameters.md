@@ -26,7 +26,7 @@ The `ControllerEnabled` parameter controls a chains ability to service ICS-27 co
 | Key                    | Type     | Default Value |
 |------------------------|----------|---------------|
 | `HostEnabled`          | bool     | `true`        |
-| `AllowMessages`        | []string | `["*"]`          |
+| `AllowMessages`        | []string | `["*"]`       |
 
 #### HostEnabled
 
