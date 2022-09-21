@@ -181,7 +181,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
@@ -213,7 +213,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			path.EndpointA.ChannelConfig.PortID = portID
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
-			suite.chainA.GetSimApp().ICAControllerKeeper.SetMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.chainA.GetSimApp().ICAControllerKeeper.SetMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 			// default values
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -346,7 +346,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
 					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
@@ -606,7 +606,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 		},
 		{
 			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
 					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
@@ -699,7 +699,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
 					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,

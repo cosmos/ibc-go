@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Require().True(found)
 	suite.Require().Equal(ibctesting.FirstChannelID, channelID)
 
-	isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(suite.chainA.GetContext(), TestPortID, ibctesting.FirstChannelID)
+	isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(suite.chainA.GetContext(), TestPortID, ibctesting.FirstConnectionID)
 	suite.Require().True(isMiddlewareEnabled)
 
 	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
