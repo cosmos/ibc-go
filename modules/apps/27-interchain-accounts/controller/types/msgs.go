@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -74,6 +75,10 @@ func (msg MsgSendTx) ValidateBasic() error {
 
 	if err := msg.PacketData.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "invalid interchain account packet data")
+	}
+
+	if msg.RelativeTimeout == 0 {
+		return errors.New("relative timeout cannot be zero")
 	}
 
 	return nil

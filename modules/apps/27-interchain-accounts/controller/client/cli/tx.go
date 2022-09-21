@@ -17,9 +17,8 @@ import (
 
 const (
 	// The controller chain channel version
-	flagVersion                = "version"
-	flagPacketTimeoutHeight    = "packet-timeout-height"
-	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
+	flagVersion                        = "version"
+	flagRelativePacketTimeoutTimestamp = "relative-packet-timeout"
 )
 
 func newRegisterInterchainAccountCmd() *cobra.Command {
@@ -64,7 +63,7 @@ func newSendTxCmd() *cobra.Command {
 		Short: "Send an interchain account tx on the provided connection.",
 		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain 
 and attempts to send the packet. Packet data is provided as json, file or string. An 
-appropriate relative timeoutTimestamp must be provided with flag {packet-timeout-timestamp}`),
+appropriate relative timeoutTimestamp must be provided with flag {relative-packet-timeout}`),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -92,7 +91,7 @@ appropriate relative timeoutTimestamp must be provided with flag {packet-timeout
 				}
 			}
 
-			relativeTimeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
+			relativeTimeoutTimestamp, err := cmd.Flags().GetUint64(flagRelativePacketTimeoutTimestamp)
 			if err != nil {
 				return err
 			}
@@ -103,8 +102,7 @@ appropriate relative timeoutTimestamp must be provided with flag {packet-timeout
 		},
 	}
 
-	cmd.Flags().String(flagPacketTimeoutHeight, icatypes.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
-	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, icatypes.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().Uint64(flagRelativePacketTimeoutTimestamp, icatypes.DefaultRelativePacketTimeoutTimestamp, "Relative packet timeout in nanoseconds from now. Default is 10 minutes.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
