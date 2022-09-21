@@ -3,7 +3,7 @@ package solomachine
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 )
 
 // verifySignatureAndData verifies that the currently registered public key has signed

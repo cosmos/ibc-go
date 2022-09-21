@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
