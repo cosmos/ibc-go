@@ -11,9 +11,16 @@ import (
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+<<<<<<< HEAD:modules/light-clients/07-tendermint/types/update.go
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+=======
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318)):modules/light-clients/07-tendermint/update.go
 )
 
 // CheckHeaderAndUpdateState checks if the provided header is valid, and if valid it will:

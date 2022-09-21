@@ -7,11 +7,19 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+<<<<<<< HEAD:modules/light-clients/07-tendermint/types/misbehaviour_test.go
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
+=======
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318)):modules/light-clients/07-tendermint/misbehaviour_test.go
 )
 
 func (suite *TendermintTestSuite) TestMisbehaviour() {

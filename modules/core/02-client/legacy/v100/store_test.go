@@ -6,12 +6,21 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+<<<<<<< HEAD
 	v100 "github.com/cosmos/ibc-go/v5/modules/core/02-client/legacy/v100"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+=======
+	v100 "github.com/cosmos/ibc-go/v6/modules/core/02-client/legacy/v100"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 type LegacyTestSuite struct {

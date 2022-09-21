@@ -2,7 +2,11 @@ syntax = "proto3";
 
 package ibc.lightclients.solomachine.v2;
 
+<<<<<<< HEAD
 option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine/types";
+=======
+option go_package = "github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v6";
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 
 import "ibc/core/connection/v1/connection.proto";
 import "ibc/core/channel/v1/channel.proto";

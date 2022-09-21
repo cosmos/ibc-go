@@ -3,10 +3,17 @@ package types_test
 import (
 	"time"
 
+<<<<<<< HEAD:modules/light-clients/07-tendermint/types/proposal_handle_test.go
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+=======
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318)):modules/light-clients/07-tendermint/proposal_handle_test.go
 )
 
 var frozenHeight = clienttypes.NewHeight(0, 1)

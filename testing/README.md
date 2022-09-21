@@ -255,8 +255,13 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v4/modules/apps/transfer/simapp"
 	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+=======
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {

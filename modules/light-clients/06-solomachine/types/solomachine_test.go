@@ -12,10 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+<<<<<<< HEAD:modules/light-clients/06-solomachine/types/solomachine_test.go
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine/types"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+=======
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318)):modules/light-clients/06-solomachine/solomachine_test.go
 )
 
 type SoloMachineTestSuite struct {

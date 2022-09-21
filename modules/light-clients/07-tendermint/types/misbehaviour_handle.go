@@ -9,8 +9,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+<<<<<<< HEAD:modules/light-clients/07-tendermint/types/misbehaviour_handle.go
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+=======
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318)):modules/light-clients/07-tendermint/misbehaviour_handle.go
 )
 
 // CheckMisbehaviourAndUpdateState determines whether or not two conflicting

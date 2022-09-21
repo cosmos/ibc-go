@@ -3,9 +3,15 @@ package types_test
 import (
 	"time"
 
+<<<<<<< HEAD:modules/light-clients/07-tendermint/types/consensus_state_test.go
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	"github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+=======
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318)):modules/light-clients/07-tendermint/consensus_state_test.go
 )
 
 func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {

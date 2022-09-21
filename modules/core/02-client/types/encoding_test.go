@@ -1,8 +1,13 @@
 package types_test
 
 import (
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+=======
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+>>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 func (suite *TypesTestSuite) TestMarshalHeader() {
