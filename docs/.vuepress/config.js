@@ -117,8 +117,16 @@ module.exports = {
         key: "v3.2.0",
       },
       {
+        label: "v3.3.0",
+        key: "v3.3.0",
+      },
+      {
         label: "v4.0.0",
         key: "v4.0.0",
+      },
+      {
+        label: "v4.1.0",
+        key: "v4.1.0",
       },
     ],
     topbar: {
