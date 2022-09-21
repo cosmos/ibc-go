@@ -22,6 +22,11 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 }
 
 // RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
+//
+//
+// NOTE: this is a legacy API that is only intended to function correctly in workflows where an underlying application has been set
+// Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
+// by the underlying authentication application. For a full summary of the changes in v6.x.x, please see ADR009.
 func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -41,6 +46,11 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 }
 
 // SendTx defines a rpc handler for MsgSendTx
+//
+//
+// NOTE: this is a legacy API that is only intended to function correctly in workflows where an underlying application has been set
+// Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
+// by the underlying authentication application. For a full summary of the changes in v6.x.x, please see ADR009.
 func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.MsgSendTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
