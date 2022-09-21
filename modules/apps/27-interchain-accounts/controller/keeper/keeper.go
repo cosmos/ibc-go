@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,11 +37,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-<<<<<<< HEAD
-	scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter icatypes.MessageRouter,
-=======
 	scopedKeeper icatypes.ScopedKeeper, msgRouter *baseapp.MsgServiceRouter,
->>>>>>> af96d43 (Add scoped keeper interface for interchain app (#2035))
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
