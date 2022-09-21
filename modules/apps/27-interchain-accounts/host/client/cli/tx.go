@@ -1,12 +1,9 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
@@ -20,26 +17,31 @@ func generatePacketDataCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate-packet-data [message]",
 		Short: "Generates ICA packet data.",
-		Long: fmt.Sprintf(`generate-packet-data accepts a message string and serializes it
-into packet data which is outputted to stdout. It can be used in conjunction with "%s ica controller send-tx"
+		Long: `generate-packet-data accepts a message string and serializes it
+into packet data which is outputted to stdout. It can be used in conjunction with send-tx"
 which submits pre-built packet data containing messages to be executed on the host chain.
-`, version.AppName),
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
+
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
 			memo, err := cmd.Flags().GetString(memoFlag)
 			if err != nil {
 				return err
 			}
+
 			packetDataBytes, err := generatePacketData(cdc, []byte(args[0]), memo)
 			if err != nil {
 				return err
 			}
+
 			cmd.Println(string(packetDataBytes))
+
 			return nil
 		},
 	}

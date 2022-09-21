@@ -91,37 +91,38 @@ func TestGeneratePacketData(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
+	for _, tc := range tests {
+		tc := tc
 		ir := codectypes.NewInterfaceRegistry()
-		tt.registerInterfaceFn(ir)
+		tc.registerInterfaceFn(ir)
 
 		cdc := codec.NewProtoCodec(ir)
-		t.Run(tt.name, func(t *testing.T) {
-			bz, err := generatePacketData(cdc, []byte(tt.message), tt.memo)
-			if !tt.expectedPass {
+
+		t.Run(tc.name, func(t *testing.T) {
+			bz, err := generatePacketData(cdc, []byte(tc.message), tc.memo)
+
+			if tc.expectedPass {
+				require.NoError(t, err)
+				require.NotNil(t, bz)
+
+				packetData := icatypes.InterchainAccountPacketData{}
+				err = cdc.UnmarshalJSON(bz, &packetData)
+				require.NoError(t, err)
+
+				require.Equal(t, icatypes.EXECUTE_TX, packetData.Type)
+				require.Equal(t, tc.memo, packetData.Memo)
+
+				data := packetData.Data
+				messages, err := icatypes.DeserializeCosmosTx(cdc, data)
+
+				require.NoError(t, err)
+				require.NotNil(t, messages)
+
+				tc.assertionFn(messages[0])
+			} else {
 				require.Error(t, err)
 				require.Nil(t, bz)
-				return
 			}
-			require.NoError(t, err)
-			require.NotNil(t, bz)
-
-			packetData := icatypes.InterchainAccountPacketData{}
-			err = cdc.UnmarshalJSON(bz, &packetData)
-			require.NoError(t, err)
-
-			require.NoError(t, err)
-			require.Equal(t, icatypes.EXECUTE_TX, packetData.Type)
-			require.Equal(t, tt.memo, packetData.Memo)
-
-			data := packetData.Data
-			messages, err := icatypes.DeserializeCosmosTx(cdc, data)
-
-			require.NoError(t, err)
-			require.NotNil(t, messages)
-
-			tt.assertionFn(messages[0])
 		})
 	}
 }
