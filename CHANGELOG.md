@@ -54,8 +54,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2140](https://github.com/cosmos/ibc-go/pull/2140) Adding migration handler to ICS27 `controller` submodule to assert ownership of channel capabilities and set middleware enabled flag for existing channels. The ICS27 module consensus version has been bumped from 1 to 2.
 * (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
 * (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.
-* (apps/27-interchain-accounts) [\#2253](https://github.com/cosmos/ibc-go/pull/2253) Renaming `RegisterAccount` rpc to `RegisterInterchainAccount`, `MsgRegisterAccount` to `MsgRegisterInterchainAccount`, `MsgRegisterAccountResponse` to `MsgRegisterInterchainAccountResponse` and reordering fields of `MsgRegisterInterchainAccount` (`owner` comes before `connection_id`).
-* (apps/27-interchain-accounts) [\#2255](https://github.com/cosmos/ibc-go/pull/2255) Renaming `SubmitTx` rpc to `SendTx`.
 
 ### Features
 
