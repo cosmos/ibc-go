@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -29,7 +29,7 @@ type Keeper struct {
 	portKeeper    icatypes.PortKeeper
 	accountKeeper icatypes.AccountKeeper
 
-	scopedKeeper capabilitykeeper.ScopedKeeper
+	scopedKeeper icatypes.ScopedKeeper
 
 	msgRouter icatypes.MessageRouter
 }
@@ -37,13 +37,8 @@ type Keeper struct {
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-<<<<<<< HEAD
-	channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	accountKeeper icatypes.AccountKeeper, scopedKeeper capabilitykeeper.ScopedKeeper, msgRouter icatypes.MessageRouter,
-=======
 	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
->>>>>>> 9e6246f (fix: ica handshake reopening channel - use `GetAppVersion` in favour of `channel.Version` (#2302))
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
