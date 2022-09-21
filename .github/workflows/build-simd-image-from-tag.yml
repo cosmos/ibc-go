@@ -11,7 +11,7 @@ env:
    REGISTRY: ghcr.io
    ORG: cosmos
    IMAGE_NAME: ibc-go-simd
-   VERSION: "${{ inputs.tag }}"
+   GIT_TAG: "${{ inputs.tag }}"
 
 jobs:
    build-image-at-tag:
@@ -19,7 +19,7 @@ jobs:
       steps:
          - uses: actions/checkout@v3
            with:
-            ref: "${{ env.VERSION }}"
+            ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
          - name: Log in to the Container registry
            uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
@@ -32,6 +32,6 @@ jobs:
          - name: Build image
            run: |
             # remove any `/` characters from the docker tag and replace them with a -
-            docker_tag="$(echo $VERSION | sed 's/\//-/')"
+            docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
             docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
             docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
