@@ -70,7 +70,12 @@ func (k Keeper) OnChanOpenInit(
 			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
-		if !icatypes.IsPreviousMetadataEqual(channel.Version, metadata) {
+		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
+		if !found {
+			panic(fmt.Sprintf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
+		}
+
+		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
 			return "", sdkerrors.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
 		}
 	}

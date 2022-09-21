@@ -67,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (04-channel) [\#2024](https://github.com/cosmos/ibc-go/pull/2024) Channel Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+* (apps/27-interchain-accounts)[\#2302](https://github.com/cosmos/ibc-go/pull/2302) Handle unwrapping of channel version in interchain accounts channel reopening handshake flow. The `host` submodule `Keeper` now requires an `ICS4Wrapper` similarly to the `controller` submodule.
 
 ### State Machine Breaking
 
