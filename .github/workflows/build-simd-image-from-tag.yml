@@ -33,5 +33,5 @@ jobs:
            run: |
             # remove any `/` characters from the docker tag and replace them with a -
             docker_tag="$(echo $VERSION | sed 's/\//-/')"
-            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
-            docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${VERSION}"
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
+            docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
