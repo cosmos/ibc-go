@@ -18,13 +18,19 @@ env:
 jobs:
   determine-docker-tag:
     runs-on: ubuntu-latest
+    outputs:
+      docker-tag: ${{ steps.set-docker-tag.outputs.docker-tag }}
     steps:
       - run: |
           docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
-          echo $docker_tag
           echo "::set-output name=DOCKER_TAG::$docker_tag"
         id: set-docker-tag
-      - run: echo "${{ steps.set-docker-tag.DOCKER_TAG }}"
+
+  log-docker-tag:
+    needs: determine-docker-tag
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{ needs.determine-docker-tag.outputs.docker-tag }}"
 
 #
 #  build-release-branch-image:
