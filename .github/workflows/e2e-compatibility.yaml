@@ -19,7 +19,9 @@ jobs:
   determine-docker-tag:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "::set-output name=DOCKER_TAG::$(echo $GIT_TAG | sed 's/\//-/')"
+      - run: |
+          docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
+          echo "::set-output name=DOCKER_TAG::$docker_tag
         id: set-docker-tag
       - run: echo "${{ steps.set-docker-tag.DOCKER_TAG }}"
 
