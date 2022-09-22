@@ -1,10 +1,12 @@
 {
- "include" : [
-   {
-    "chain-a-image": "",
-    "chain-b-image": "",
-    "entrypoint": "",
-    "test": ""
-   }
- ]
+  "include": [
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestReceiveEnabledParam"
+    }
+  ]
 }
