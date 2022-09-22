@@ -23,7 +23,8 @@ jobs:
     steps:
       - run: |
           docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
-          echo "::set-output name=DOCKER_TAG::$docker_tag"
+          echo $docker_tag
+          echo "::set-output name=docker-tag::$docker_tag"
         id: set-docker-tag
 
   log-docker-tag:
