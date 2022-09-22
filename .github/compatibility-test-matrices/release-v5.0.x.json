@@ -279,6 +279,151 @@
       "chain-image": "ghcr.io/cosmos/ibc-go-simd",
       "entrypoint": "TestTransferTestSuite",
       "test": "TestReceiveEnabledParam"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_AsyncSingleSender_Succeeds"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v4.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_AsyncSingleSender_Succeeds"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "v4.0.0",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_AsyncSingleSender_Succeeds"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_InvalidReceiverAccount"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v4.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_InvalidReceiverAccount"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "v4.0.0",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_InvalidReceiverAccount"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMultiMsg_MsgPayPacketFeeSingleSender"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v4.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMultiMsg_MsgPayPacketFeeSingleSender"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "v4.0.0",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMultiMsg_MsgPayPacketFeeSingleSender"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_SingleSender_TimesOut"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v4.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_SingleSender_TimesOut"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "v4.0.0",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_SingleSender_TimesOut"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v4.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "v4.0.0",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress"
+    },
+
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v4.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "v4.0.0",
+      "chain-b-tag": "release-v5.0.x",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestIncentivizedTransferTestSuite",
+      "test": "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
     }
   ]
 }
