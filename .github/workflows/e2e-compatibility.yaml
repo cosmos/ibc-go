@@ -1,0 +1,59 @@
+name: Compatibility E2E
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The tag of the image to test'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  ORG: cosmos
+  IMAGE_NAME: ibc-go-simd
+  GIT_TAG: '${{ inputs.tag }}'
+
+jobs:
+  determine-docker-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo '::set-output name=DOCKER_TAG::$(echo $GIT_TAG | sed 's/\//-/')'
+        id: set-docker-tag
+      - run: |
+          echo "${{ steps.set-docker-tag.DOCKER_TAG }}
+#
+#  build-release-branch-image:
+#    runs-on: ubuntu-latest
+#    needs: determine-docker-tag
+#    steps:
+#      - uses: actions/checkout@v3
+#        with:
+#          ref: '${{ env.GIT_TAG }}'
+#          fetch-depth: 0
+#      - name: Log in to the Container registry
+#        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+#        with:
+#          registry: '${{ env.REGISTRY }}'
+#          username: '${{ github.actor }}'
+#          password: '${{ secrets.GITHUB_TOKEN }}'
+#      - name: Fetch latest Dockerfile
+#        run: >-
+#          curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile
+#          -o Dockerfile
+#      - name: Build image
+#        run: |
+#          # remove any `/` characters from the docker tag and replace them with a -
+#          docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
+#          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
+#          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
+#  e2e:
+#    needs: build-release-branch-image
+#    uses: ./.github/workflows/e2e-test-workflow-call.yml
+#    with:
+#      build-and-push-docker-image: true
+#      chain-image: ghcr.io/cosmos/ibc-go-simd
+#      chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+#      chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+#      relayer-tag: v2.0.0
+#      chain-binary: simd
+#      test-exclusions: "TestInterchainAccountsTestSuite,TestIncentivizedInterchainAccountsTestSuite,TestUpgradeTestSuite"
