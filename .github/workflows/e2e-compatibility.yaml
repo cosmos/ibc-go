@@ -1,5 +1,6 @@
 name: Compatibility E2E
 on:
+  push:
   workflow_dispatch:
     inputs:
       tag:
