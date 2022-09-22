@@ -1,12 +1,13 @@
 name: Compatibility E2E
 on:
   workflow_dispatch:
-    release-branch:
-      description: 'Release branch to test'
-      required: true
-      type: choice
-      options:
-        - release/v5.0.x
+    inputs:
+      release-branch:
+        description: 'Release branch to test'
+        required: true
+        type: choice
+        options:
+          - release/v5.0.x
 
 env:
   REGISTRY: ghcr.io
