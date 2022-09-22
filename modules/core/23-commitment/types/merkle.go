@@ -10,7 +10,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain
