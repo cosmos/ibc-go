@@ -67,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (04-channel) [\#2024](https://github.com/cosmos/ibc-go/pull/2024) Channel Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
+* (apps/27-interchain-accounts)[\#2302](https://github.com/cosmos/ibc-go/pull/2302) Handle unwrapping of channel version in interchain accounts channel reopening handshake flow. The `host` submodule `Keeper` now requires an `ICS4Wrapper` similarly to the `controller` submodule.
 
 ### State Machine Breaking
 
@@ -96,6 +97,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2157](https://github.com/cosmos/ibc-go/pull/2157) Adding `IsMiddlewareEnabled` functionality to enforce calls to ICS27 msg server to *not* route to the underlying application.
 * (apps/27-interchain-accounts) [\#2177](https://github.com/cosmos/ibc-go/pull/2177) Adding `IsMiddlewareEnabled` flag to interchain accounts `ActiveChannel` genesis type.
 * (apps/27-interchain-accounts) [\#2140](https://github.com/cosmos/ibc-go/pull/2140) Adding migration handler to ICS27 `controller` submodule to assert ownership of channel capabilities and set middleware enabled flag for existing channels. The ICS27 module consensus version has been bumped from 1 to 2.
+* (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.
+* (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
+* (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.    
 
 ### Features
 
