@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
@@ -33,8 +33,8 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 		{
 			"capability not found",
 			func() {
-				portIdWithPrefix := fmt.Sprintf("%s-%s", controllertypes.SubModuleName, ibctesting.TestAccAddress)
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIdWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+				portIdWithPrefix := fmt.Sprintf("%s%s", icatypes.PortPrefix, ibctesting.TestAccAddress)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIdWithPrefix, "channel-1", channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
 			},
