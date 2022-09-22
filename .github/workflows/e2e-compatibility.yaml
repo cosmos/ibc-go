@@ -1,18 +1,18 @@
 name: Compatibility E2E
 on:
-  push:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'The tag of the image to test'
-        required: true
-        type: string
+    release-branch:
+      description: 'Release branch to test'
+      required: true
+      type: choice
+      options:
+        - release/v5.0.x
 
 env:
   REGISTRY: ghcr.io
   ORG: cosmos
   IMAGE_NAME: ibc-go-simd
-  GIT_TAG: 'release/v5.0.x'
+  RELEASE_BRANCH: '${{ inputs.release-branch }}'
 
 jobs:
   determine-docker-tag:
@@ -21,7 +21,7 @@ jobs:
       docker-tag: ${{ steps.set-docker-tag.outputs.docker-tag }}
     steps:
       - run: |
-          docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
+          docker_tag="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
           echo $docker_tag
           echo "::set-output name=docker-tag::$docker_tag"
         id: set-docker-tag
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: "${{ env.GIT_TAG }}"
+          ref: "${{ env.RELEASE_BRANCH }}"
           fetch-depth: 0
       - name: Log in to the Container registry
         uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
