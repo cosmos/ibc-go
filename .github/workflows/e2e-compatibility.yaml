@@ -21,8 +21,8 @@ jobs:
     steps:
       - run: echo "::set-output name=DOCKER_TAG::$(echo $GIT_TAG | sed 's/\//-/')"
         id: set-docker-tag
-      - run: |
-          echo "${{ steps.set-docker-tag.DOCKER_TAG }}
+      - run: echo "${{ steps.set-docker-tag.DOCKER_TAG }}"
+
 #
 #  build-release-branch-image:
 #    runs-on: ubuntu-latest
