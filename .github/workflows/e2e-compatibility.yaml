@@ -27,12 +27,6 @@ jobs:
           echo "::set-output name=docker-tag::$docker_tag"
         id: set-docker-tag
 
-  log-docker-tag:
-    needs: determine-docker-tag
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "${{ needs.determine-docker-tag.outputs.docker-tag }}"
-
   load-test-matrix:
     outputs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
@@ -41,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-          test_matrix="$(cat .github/compatibility-test-matrices/${{ needs.determine-docker-tag.outputs.docker-tag }}.json)"
+          test_matrix="$(cat .github/compatibility-test-matrices/${{ needs.determine-docker-tag.outputs.docker-tag }}.json | jq -c)"
           echo $test_matrix
           echo "::set-output name=test-matrix::$test_matrix"
         id: set-test-matrix
