@@ -74,7 +74,7 @@ func (msg MsgSendTx) ValidateBasic() error {
 	}
 
 	if err := msg.PacketData.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "invalid interchain account packet data")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid interchain account packet data")
 	}
 
 	if msg.RelativeTimeout == 0 {
