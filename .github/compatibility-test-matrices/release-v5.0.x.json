@@ -6,7 +6,31 @@
       "chain-b-tag": "release-v5.0.x",
       "chain-image": "ghcr.io/cosmos/ibc-go-simd",
       "entrypoint": "TestTransferTestSuite",
-      "test": "TestReceiveEnabledParam"
+      "test": "TestMsgTransfer_Succeeds_Nonincentivized"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v4.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestMsgTransfer_Succeeds_Nonincentivized"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v3.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestMsgTransfer_Succeeds_Nonincentivized"
+    },
+    {
+      "chain-binary": "simd",
+      "chain-a-tag": "release-v5.0.x",
+      "chain-b-tag": "v2.0.0",
+      "chain-image": "ghcr.io/cosmos/ibc-go-simd",
+      "entrypoint": "TestTransferTestSuite",
+      "test": "TestMsgTransfer_Succeeds_Nonincentivized"
     }
   ]
 }
