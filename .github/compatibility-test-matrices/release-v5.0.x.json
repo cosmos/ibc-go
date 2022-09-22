@@ -1,0 +1,10 @@
+{
+ "include" : [
+   {
+    "chain-a-image": "",
+    "chain-b-image": "",
+    "entrypoint": "",
+    "test": ""
+   }
+ ]
+}
