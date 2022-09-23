@@ -136,7 +136,7 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			func() {
 				msg.RelativeTimeout = 0
 			},
-			true,
+			false,
 		},
 		{
 			"messages array is empty",
