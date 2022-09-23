@@ -213,7 +213,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	})
 
 	t.Run("ensure escrowed tokens have been refunded to sender due to timeout", func(t *testing.T) {
-		// ensure destination address did not recieve any tokens
+		// ensure destination address did not receive any tokens
 		bal, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.StartingTokenAmount, bal)

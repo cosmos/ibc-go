@@ -42,7 +42,8 @@ func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Cont
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *InterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
-	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string) (sdk.TxResponse, error) {
+	user *ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
+) (sdk.TxResponse, error) {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -97,7 +98,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
-
 		t.Run("fund interchain account wallet", func(t *testing.T) {
 			// fund the host account account so it has some $$ to send
 			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
