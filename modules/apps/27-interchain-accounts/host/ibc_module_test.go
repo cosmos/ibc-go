@@ -11,13 +11,14 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 var (
@@ -77,7 +78,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version); err != nil {
 		return err
 	}
 
@@ -618,6 +619,18 @@ func (suite *InterchainAccountsTestSuite) fundICAWallet(ctx sdk.Context, portID 
 // A new channel will be opened for the controller portID. The interchain account address should remain unchanged.
 func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() {
 	path := NewICAPath(suite.chainA, suite.chainB)
+
+	// use a fee enabled version to cover unwrapping channel version code paths
+	feeMetadata := feetypes.Metadata{
+		FeeVersion: feetypes.Version,
+		AppVersion: TestVersion,
+	}
+
+	feeICAVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feeMetadata))
+
+	path.EndpointA.ChannelConfig.Version = feeICAVersion
+	path.EndpointB.ChannelConfig.Version = feeICAVersion
+
 	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)

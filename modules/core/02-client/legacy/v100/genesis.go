@@ -7,10 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 )
 
 // MigrateGenesis accepts exported v1.0.0 IBC client genesis file and migrates it to:
