@@ -22,22 +22,13 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 		return err
 	}
 
-<<<<<<< HEAD
-	channelID, err := k.registerInterchainAccount(ctx, connectionID, portID, version)
-=======
 	k.SetMiddlewareEnabled(ctx, portID, connectionID)
 
 	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version)
->>>>>>> 25d62f0 (Move SetMiddlewareEnabled call ordering (#2283))
 	if err != nil {
 		return err
 	}
 
-<<<<<<< HEAD
-	k.SetMiddlewareEnabled(ctx, portID, channelID)
-
-=======
->>>>>>> 25d62f0 (Move SetMiddlewareEnabled call ordering (#2283))
 	return nil
 }
 
