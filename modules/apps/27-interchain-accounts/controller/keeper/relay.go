@@ -21,6 +21,10 @@ import (
 // Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying authentication application. For a full summary of the changes in v6.x.x, please see ADR009.
 func (k Keeper) SendTx(ctx sdk.Context, _ *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+	return k.sendTx(ctx, connectionID, portID, icaPacketData, timeoutTimestamp)
+}
+
+func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if !found {
 		return 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
