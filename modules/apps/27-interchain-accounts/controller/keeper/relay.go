@@ -17,7 +17,6 @@ import (
 // absolute timeoutTimestamp must be provided. If the packet is timed out, the channel will be closed.
 // In the case of channel closure, a new channel may be reopened to reconnect to the host chain.
 //
-//
 // NOTE: this is a legacy API that is only intended to function correctly in workflows where an underlying application has been set
 // Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying authentication application. For a full summary of the changes in v6.x.x, please see ADR009.
