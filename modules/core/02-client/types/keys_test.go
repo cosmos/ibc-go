@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 )
 
 // tests ParseClientIdentifier and IsValidClientID

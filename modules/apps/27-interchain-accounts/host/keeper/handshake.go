@@ -8,9 +8,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // OnChanOpenTry performs basic validation of the ICA channel
@@ -59,7 +59,12 @@ func (k Keeper) OnChanOpenTry(
 			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
-		if !icatypes.IsPreviousMetadataEqual(channel.Version, metadata) {
+		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
+		if !found {
+			panic(fmt.Sprintf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
+		}
+
+		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
 			return "", sdkerrors.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
 		}
 	}
