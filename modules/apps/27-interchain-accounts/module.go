@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,22 +16,23 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/client/cli"
-	controllerkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host"
-	hostkeeper "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/keeper"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/simulation"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/client/cli"
+	controllerkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host"
+	hostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/simulation"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 
 	_ porttypes.IBCModule = host.IBCModule{}
 )
@@ -74,6 +76,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	if err != nil {
 		panic(err)
 	}
+
 	err = hosttypes.RegisterQueryHandlerClient(context.Background(), mux, hosttypes.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -148,9 +151,19 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	controllertypes.RegisterMsgServer(cfg.MsgServer(), am.controllerKeeper)
-	controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
-	hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
+	if am.controllerKeeper != nil {
+		controllertypes.RegisterMsgServer(cfg.MsgServer(), controllerkeeper.NewMsgServerImpl(am.controllerKeeper))
+		controllertypes.RegisterQueryServer(cfg.QueryServer(), am.controllerKeeper)
+	}
+
+	if am.hostKeeper != nil {
+		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
+	}
+
+	m := controllerkeeper.NewMigrator(am.controllerKeeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the interchain accounts module.
@@ -191,7 +204,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 1 }
+func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
@@ -217,6 +230,11 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 // WeightedOperations is unimplemented.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
+}
+
+// RandomizedParams creates randomized ibc-transfer param changes for the simulator.
+func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return simulation.ParamChanges(r, am.controllerKeeper, am.hostKeeper)
 }
 
 // RegisterStoreDecoder registers a decoder for interchain accounts module's types

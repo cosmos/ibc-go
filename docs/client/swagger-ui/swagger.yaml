@@ -365,7 +365,11 @@ paths:
                       format: byte
       tags:
         - Query
+<<<<<<< HEAD
   '/ibc/apps/interchain_accounts/controller/v1/owner/{owner}/connection/{connection_id}':
+=======
+  '/ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}':
+>>>>>>> main
     get:
       summary: >-
         InterchainAccount returns the interchain account address for a given

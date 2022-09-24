@@ -3,9 +3,8 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
@@ -64,10 +63,11 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(sdk.WrapSDKContext(suite.chainA.GetContext()), req)
 
 			if tc.expPass {
-				expAddress := icatypes.GenerateAddress(suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(icatypes.ModuleName), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				expAddress, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(exists)
 
 				suite.Require().NoError(err)
-				suite.Require().Equal(expAddress.String(), res.Address)
+				suite.Require().Equal(expAddress, res.Address)
 			} else {
 				suite.Require().Error(err)
 			}
