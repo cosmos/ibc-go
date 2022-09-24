@@ -16,11 +16,11 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	simappparams "github.com/cosmos/ibc-go/v5/testing/simapp/params"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
 
 func TestInterchainAccountsGroupsTestSuite(t *testing.T) {

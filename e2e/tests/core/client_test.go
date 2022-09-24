@@ -13,9 +13,9 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestClientTestSuite(t *testing.T) {

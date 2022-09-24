@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
