@@ -26,7 +26,7 @@ func GetQueryCmd() *cobra.Command {
 func NewTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "host",
-		Short:                      "IBC interchain accounts host transaction",
+		Short:                      "IBC interchain accounts host transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
