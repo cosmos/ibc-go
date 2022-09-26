@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {
