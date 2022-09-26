@@ -21,7 +21,7 @@ jobs:
       - run: |
           # use jq -c to put the full json contents on a single line. This is required when using the json body
           # to create the matrix in the following job.
-          test_matrix="$(cat .github/compatibility-test-matrices/${{ inputs.test-suite }}/${{ inputs.docker-tag }}.json | jq -c)"
+          test_matrix="$(cat .github/compatibility-test-matrices/${{ inputs.docker-tag }}/${{ inputs.test-suite }}.json | jq -c)"
           echo $test_matrix
           echo "::set-output name=test-matrix::$test_matrix"
         id: set-test-matrix

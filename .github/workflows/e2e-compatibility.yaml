@@ -27,33 +27,31 @@ jobs:
           echo "::set-output name=docker-tag::$docker_tag"
         id: set-docker-tag
 
+  build-release-image:
+    runs-on: ubuntu-latest
+    needs: determine-docker-tag
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: "${{ env.RELEASE_BRANCH }}"
+          fetch-depth: 0
+      - name: Log in to the Container registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch latest Dockerfile
+        run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
+      - name: Build image
+        run: |
+          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
+          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
+
   transfer-e2e:
-    needs:
-      - determine-docker-tag
-#      - build-release-image
+    needs: build-release-image
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     secrets: inherit
     with:
       docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
       test-suite: "transfer"
-
-#  build-release-image:
-#    runs-on: ubuntu-latest
-#    needs: determine-docker-tag
-#    steps:
-#      - uses: actions/checkout@v3
-#        with:
-#          ref: "${{ env.RELEASE_BRANCH }}"
-#          fetch-depth: 0
-#      - name: Log in to the Container registry
-#        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-#        with:
-#          registry: ${{ env.REGISTRY }}
-#          username: ${{ github.actor }}
-#          password: ${{ secrets.GITHUB_TOKEN }}
-#      - name: Fetch latest Dockerfile
-#        run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
-#      - name: Build image
-#        run: |
-#          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
-#          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
