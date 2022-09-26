@@ -23,7 +23,7 @@ type IBCMiddleware struct {
 	keeper keeper.Keeper
 }
 
-// IBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
+// NewIBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
 func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
@@ -63,7 +63,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	// call underlying app's OnChanOpenInit callback with the passed in version
 	// the version returned is discarded as the ica-auth module does not have permission to edit the version string.
 	// ics27 will always return the version string containing the Metadata struct which is created during the `RegisterInterchainAccount` call.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, channelID) {
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionHops[0]) {
 		if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, nil, counterparty, version); err != nil {
 			return "", err
 		}
@@ -107,8 +107,13 @@ func (im IBCMiddleware) OnChanOpenAck(
 		return err
 	}
 
+	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
+	if err != nil {
+		return err
+	}
+
 	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, channelID) {
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
 		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
 
@@ -144,7 +149,12 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 		return err
 	}
 
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, channelID) {
+	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
+	if err != nil {
+		return err
+	}
+
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
 		return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 	}
 
@@ -174,8 +184,13 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return types.ErrControllerSubModuleDisabled
 	}
 
+	connectionID, err := im.keeper.GetConnectionID(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+	if err != nil {
+		return err
+	}
+
 	// call underlying app's OnAcknowledgementPacket callback.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
@@ -196,7 +211,12 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+	connectionID, err := im.keeper.GetConnectionID(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+	if err != nil {
+		return err
+	}
+
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
