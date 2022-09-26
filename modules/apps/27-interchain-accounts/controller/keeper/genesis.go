@@ -24,7 +24,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 		keeper.SetActiveChannelID(ctx, ch.ConnectionId, ch.PortId, ch.ChannelId)
 
 		if ch.IsMiddlewareEnabled {
-			keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ChannelId)
+			keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionId)
 		}
 	}
 

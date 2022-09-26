@@ -25,19 +25,18 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 	if m.keeper != nil {
 		for _, ch := range m.keeper.GetAllActiveChannels(ctx) {
 			name := host.ChannelCapabilityPath(ch.PortId, ch.ChannelId)
-			cap, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
+			capacity, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
 			if !found {
 				return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", name)
 			}
 
-			isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, cap, name)
+			isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, capacity, name)
 			if !isAuthenticated {
 				return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", types.SubModuleName)
 			}
 
-			m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ChannelId)
+			m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionId)
 		}
 	}
-
 	return nil
 }
