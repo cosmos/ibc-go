@@ -10,12 +10,15 @@ const (
 
 	// StoreKey is the store key string for the interchain accounts host module
 	StoreKey = SubModuleName
+
+	// AllowAllHostMsgs holds the string key that allows all message types on interchain accounts host module
+	AllowAllHostMsgs = "*"
 )
 
 // ContainsMsgType returns true if the sdk.Msg TypeURL is present in allowMsgs, otherwise false
 func ContainsMsgType(allowMsgs []string, msg sdk.Msg) bool {
 	// check that wildcard * option for allowing all message types is the only string in the array, if so, return true
-	if len(allowMsgs) == 1 && allowMsgs[0] == "*" {
+	if len(allowMsgs) == 1 && allowMsgs[0] == AllowAllHostMsgs {
 		return true
 	}
 
