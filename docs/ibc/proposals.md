@@ -40,11 +40,8 @@ a substitute client _after_ the subject has become frozen to avoid the substitut
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry
 once the proposal passes.
 
-<<<<<<< HEAD
-=======
 _note_ two of these parameters: `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehavior` have been deprecated, and will both be set to `false` upon upgrades even if they were previously set to `true`. These parameters will no longer play a role in restricting a client upgrade. Please see ADR026 for more details.
 
->>>>>>> daac435 (Update CLI to recover expired client for SDK 46 updates to gov module (#2301))
 # How to recover an expired client with a governance proposal
 
 See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](../architecture/adr-026-ibc-client-recovery-mechanisms.md)
