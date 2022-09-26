@@ -1,6 +1,7 @@
 {
+  "chain-a": ["release-v5.0.x", "v4.0.0", "v3.3.0", "v2.1.0"],
+  "chain-b": ["release-v5.0.x", "v4.0.0", "v3.3.0", "v2.1.0"],
   "entrypoint": ["TestTransferTestSuite"],
-  "chain-binary": ["simd"],
   "test": [
     "TestMsgTransfer_Succeeds_Nonincentivized",
     "TestMsgTransfer_Fails_InvalidAddress",
@@ -8,34 +9,5 @@
     "TestSendEnabledParam",
     "TestReceiveEnabledParam"
   ],
-  "version-pair": [
-    {
-      "chain-a": "release-v5.0.x",
-      "chain-b": "release-v5.0.x"
-    },
-    {
-      "chain-a": "release-v5.0.x",
-      "chain-b": "v4.0.0"
-    },
-    {
-      "chain-a": "release-v5.0.x",
-      "chain-b": "v3.3.0"
-    },
-    {
-      "chain-a": "release-v5.0.x",
-      "chain-b": "v2.1.0"
-    },
-    {
-      "chain-a": "v4.0.0",
-      "chain-b": "release-v5.0.x"
-    },
-    {
-      "chain-a": "v3.3.0",
-      "chain-b": "release-v5.0.x"
-    },
-    {
-      "chain-a": "v2.1.0",
-      "chain-b": "release-v5.0.x"
-    }
-  ]
+  "chain-binary": ["simd"]
 }

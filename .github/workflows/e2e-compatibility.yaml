@@ -27,26 +27,26 @@ jobs:
           echo "::set-output name=docker-tag::$docker_tag"
         id: set-docker-tag
 
-  build-release-image:
-    runs-on: ubuntu-latest
-    needs: determine-docker-tag
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: "${{ env.RELEASE_BRANCH }}"
-          fetch-depth: 0
-      - name: Log in to the Container registry
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Fetch latest Dockerfile
-        run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
-      - name: Build image
-        run: |
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
-          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
+#  build-release-image:
+#    runs-on: ubuntu-latest
+#    needs: determine-docker-tag
+#    steps:
+#      - uses: actions/checkout@v3
+#        with:
+#          ref: "${{ env.RELEASE_BRANCH }}"
+#          fetch-depth: 0
+#      - name: Log in to the Container registry
+#        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+#        with:
+#          registry: ${{ env.REGISTRY }}
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Fetch latest Dockerfile
+#        run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
+#      - name: Build image
+#        run: |
+#          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
+#          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
 
   load-test-matrix:
     outputs:
@@ -63,11 +63,11 @@ jobs:
           echo "::set-output name=test-matrix::$test_matrix"
         id: set-test-matrix
 
-  e2e-tests:
+  transfer-e2e-tests:
     runs-on: ubuntu-latest
     needs:
       - load-test-matrix
-      - build-release-image
+#      - build-release-image
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
@@ -83,7 +83,7 @@ jobs:
         env:
           # each test has its own set of variables to specify which images are used.
           CHAIN_IMAGE: "${{ matrix.chain-image }}"
-          CHAIN_A_TAG: "${{ matrix.version-pair.chain-a-tag }}"
-          CHAIN_B_TAG: "${{ matrix.version-pair.chain-b-tag }}"
+          CHAIN_A_TAG: "${{ matrix.chain-a-tag }}"
+          CHAIN_B_TAG: "${{ matrix.chain-b-tag }}"
           CHAIN_BINARY: "${{ matrix.chain-binary }}"
           RLY_TAG: "v2.0.0"
