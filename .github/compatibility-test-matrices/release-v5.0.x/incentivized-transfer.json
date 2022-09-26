@@ -1,0 +1,14 @@
+{
+  "chain-a": ["release-v5.0.x", "v4.0.0"],
+  "chain-b": ["release-v5.0.x", "v4.0.0"],
+  "entrypoint": ["TestIncentivizedTransferTestSuite"],
+  "test": [
+    "TestMsgPayPacketFee_AsyncSingleSender_Succeeds",
+    "TestMsgPayPacketFee_InvalidReceiverAccount",
+    "TestMultiMsg_MsgPayPacketFeeSingleSender",
+    "TestMsgPayPacketFee_SingleSender_TimesOut",
+    "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress",
+    "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds",
+  ],
+  "chain-binary": ["simd"]
+}

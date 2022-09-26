@@ -48,10 +48,23 @@ jobs:
           docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
 
-  transfer-e2e:
+  transfer:
     needs: build-release-image
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    secrets: inherit
     with:
       docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
       test-suite: "transfer"
+
+  client:
+    needs: build-release-image
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-suite: "client"
+
+  incentivized-transfer:
+    needs: build-release-image
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-suite: "incentivized-transfer"
