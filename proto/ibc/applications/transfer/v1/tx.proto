@@ -42,6 +42,6 @@ message MsgTransfer {
 
 // MsgTransferResponse defines the Msg/Transfer response type.
 message MsgTransferResponse {
-  // sequence number of the packet on the channel.
+  // sequence number of the transfer packet sent
   uint64 sequence = 1;
 }
