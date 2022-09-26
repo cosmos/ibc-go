@@ -5,5 +5,6 @@
   "test": [
     "TestClientUpdateProposal_Succeeds"
   ],
-  "chain-binary": ["simd"]
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
 }
