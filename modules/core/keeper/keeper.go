@@ -50,12 +50,28 @@ func NewKeeper(
 	}
 
 	// panic if any of the keepers passed in is empty
-	if reflect.ValueOf(stakingKeeper).IsZero() {
-		panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
+
+	// switch case to detect blank pointers
+	switch reflect.TypeOf(stakingKeeper).Kind() {
+	case reflect.Ptr:
+		if reflect.ValueOf(&stakingKeeper).IsZero() {
+			panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
+		}
+	default:
+		if reflect.ValueOf(stakingKeeper).IsZero() {
+			panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
+		}
 	}
 
-	if reflect.ValueOf(upgradeKeeper).IsZero() {
-		panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper"))
+	switch reflect.TypeOf(upgradeKeeper).Kind() {
+	case reflect.Ptr:
+		if reflect.ValueOf(&upgradeKeeper).IsZero() {
+			panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper"))
+		}
+	default:
+		if reflect.ValueOf(upgradeKeeper).IsZero() {
+			panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper"))
+		}
 	}
 
 	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
