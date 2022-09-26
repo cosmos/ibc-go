@@ -83,7 +83,7 @@ jobs:
         env:
           # each test has its own set of variables to specify which images are used.
           CHAIN_IMAGE: "${{ matrix.chain-image }}"
-          CHAIN_A_TAG: "${{ matrix.chain-a-tag }}"
-          CHAIN_B_TAG: "${{ matrix.chain-b-tag }}"
+          CHAIN_A_TAG: "${{ matrix.version-pair.chain-a-tag }}"
+          CHAIN_B_TAG: "${{ matrix.version-pair.chain-b-tag }}"
           CHAIN_BINARY: "${{ matrix.chain-binary }}"
           RLY_TAG: "v2.0.0"
