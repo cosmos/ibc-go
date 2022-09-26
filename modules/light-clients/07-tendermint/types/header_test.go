@@ -5,9 +5,9 @@ import (
 
 	tmprotocrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	"github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 )
 
 func (suite *TendermintTestSuite) TestGetHeight() {

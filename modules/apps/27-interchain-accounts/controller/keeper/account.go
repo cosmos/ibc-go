@@ -4,9 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // RegisterInterchainAccount is the entry point to registering an interchain account:
@@ -22,22 +22,13 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 		return err
 	}
 
-<<<<<<< HEAD
-	channelID, err := k.registerInterchainAccount(ctx, connectionID, portID, version)
-=======
 	k.SetMiddlewareEnabled(ctx, portID, connectionID)
 
 	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version)
->>>>>>> 25d62f0 (Move SetMiddlewareEnabled call ordering (#2283))
 	if err != nil {
 		return err
 	}
 
-<<<<<<< HEAD
-	k.SetMiddlewareEnabled(ctx, portID, channelID)
-
-=======
->>>>>>> 25d62f0 (Move SetMiddlewareEnabled call ordering (#2283))
 	return nil
 }
 

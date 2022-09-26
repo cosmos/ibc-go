@@ -8,17 +8,17 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	ibc "github.com/cosmos/ibc-go/v5/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	"github.com/cosmos/ibc-go/v5/modules/core/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/v5/modules/light-clients/09-localhost/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
+	ibc "github.com/cosmos/ibc-go/v6/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	localhosttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/09-localhost/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
 const (
