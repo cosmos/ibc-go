@@ -72,7 +72,7 @@ A forwards compatible approach was deemed infeasible.
 The `handler` provided by the `MsgServiceRouter` will only include the `*sdk.Result` and an error (if one occurred). 
 In v0.45 of the SDK, the `*sdk.Result.Data` will contain the MsgResponse marshaled data. 
 However, the MsgResponse is not packed and marshaled as a `*codectypes.Any`, thus making it impossible from a generalized point of view to unmarshal the bytes. 
-If the bytes could be unmarshaled, then they could be packed into an `*codectypes.Any` in antcipation of the upcoming format.  
+If the bytes could be unmarshaled, then they could be packed into an `*codectypes.Any` in anticipation of the upcoming format.  
 
 Intercepting the MsgResponse before it becomes marshaled requires replicating this [code](https://github.com/cosmos/cosmos-sdk/blob/dfd47f5b449f558a855da284a9a7eabbfbad435d/baseapp/msg_service_router.go#L109-#L128). 
 It may not even be possible to replicate the linked code. The method handler would need to be accessed somehow.
