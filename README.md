@@ -69,6 +69,10 @@ The Inter-Blockchain Communication protocol (IBC) allows blockchains to talk to 
 
 For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
 
+## Releases
+
+The release lines currently supported are v2, v3 and v4. Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
+
 ## Ecosystem
 
 Discover the applications, middleware and light clients developed by other awesome teams in the ecosystem:
@@ -92,9 +96,13 @@ In the table below
 
 We have active, helpful communities on Discord and Telegram.
 
-For questions and support please use the `new-devs-support` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/699634178173698108) or join the [IBC Gang Discord server](https://discord.gg/RdpdkaXKpZ). The issue list of this repo is exclusively for bug reports and feature requests.
+For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [IBC Gang Discord server](https://discord.gg/RdpdkaXKpZ). The issue list of this repo is exclusively for bug reports and feature requests.
 
 To receive announcements of new releases or other technical updates, please join the [IBC is expansive Telegram group](https://t.me/ibc_is_expansive).
+
+## Security
+
+To report a security vulnerability, see our [bug bounty program](https://hackerone.com/cosmos).
 
 ## Resources
 
