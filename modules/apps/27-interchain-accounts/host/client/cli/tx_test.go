@@ -48,7 +48,7 @@ func TestGeneratePacketData(t *testing.T) {
 		assertionFn         func(t *testing.T, msgs []sdk.Msg)
 	}{
 		{
-			name:         "multi message",
+			name:         "packet data generation succeeds (MsgDelegate & MsgSend)",
 			memo:         "",
 			expectedPass: true,
 			message:      multiMsg,
@@ -57,8 +57,8 @@ func TestGeneratePacketData(t *testing.T) {
 				banktypes.RegisterInterfaces(registry)
 			},
 			assertionFn: func(t *testing.T, msgs []sdk.Msg) {
-				assertMsgDelegate(t, msgs, 0)
-				assertMsgBankSend(t, msgs, 1)
+				assertMsgDelegate(t, msgs[0])
+				assertMsgBankSend(t, msgs[1])
 			},
 		},
 		{
@@ -68,7 +68,7 @@ func TestGeneratePacketData(t *testing.T) {
 			message:             msgDelegateMessage,
 			registerInterfaceFn: stakingtypes.RegisterInterfaces,
 			assertionFn: func(t *testing.T, msgs []sdk.Msg) {
-				assertMsgDelegate(t, msgs, 0)
+				assertMsgDelegate(t, msgs[0])
 			},
 		},
 		{
@@ -78,7 +78,7 @@ func TestGeneratePacketData(t *testing.T) {
 			message:             bankSendMessage,
 			registerInterfaceFn: banktypes.RegisterInterfaces,
 			assertionFn: func(t *testing.T, msgs []sdk.Msg) {
-				assertMsgBankSend(t, msgs, 0)
+				assertMsgBankSend(t, msgs[0])
 			},
 		},
 		{
@@ -136,8 +136,8 @@ func TestGeneratePacketData(t *testing.T) {
 	}
 }
 
-func assertMsgBankSend(t *testing.T, msgs []sdk.Msg, idx int) {
-	bankSendMsg, ok := msgs[idx].(*banktypes.MsgSend)
+func assertMsgBankSend(t *testing.T, msg sdk.Msg) {
+	bankSendMsg, ok := msg.(*banktypes.MsgSend)
 	require.True(t, ok)
 	require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", bankSendMsg.FromAddress)
 	require.Equal(t, "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw", bankSendMsg.ToAddress)
@@ -145,8 +145,8 @@ func assertMsgBankSend(t *testing.T, msgs []sdk.Msg, idx int) {
 	require.Equal(t, uint64(1000), bankSendMsg.Amount[0].Amount.Uint64())
 }
 
-func assertMsgDelegate(t *testing.T, msgs []sdk.Msg, idx int) {
-	msgDelegate, ok := msgs[idx].(*stakingtypes.MsgDelegate)
+func assertMsgDelegate(t *testing.T, msg sdk.Msg) {
+	msgDelegate, ok := msg.(*stakingtypes.MsgDelegate)
 	require.True(t, ok)
 	require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", msgDelegate.DelegatorAddress)
 	require.Equal(t, "cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k", msgDelegate.ValidatorAddress)
