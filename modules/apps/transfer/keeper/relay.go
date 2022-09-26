@@ -213,6 +213,16 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		telemetry.NewLabel(coretypes.LabelSourceChannel, packet.GetSourceChannel()),
 	}
 
+	var commit func()
+	tmpCtx := ctx
+	if k.hooks != nil {
+		// Create a cache context to revert state when tx hooks fails,
+		// the cache context is only committed when both tx and hooks executed successfully.
+		// Didn't use `Snapshot` because the context stack has exponential complexity on certain operations,
+		// thus restricted to be used only inside `ApplyMessage`.
+		tmpCtx, commit = ctx.CacheContext()
+	}
+
 	// This is the prefix that would have been prefixed to the denomination
 	// on sender chain IF and only if the token originally came from the
 	// receiving chain.
@@ -270,6 +280,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				),
 			)
 		}()
+
+		// Only call hooks if tx executed successfully.
+		if err = k.AfterRecvPacket(tmpCtx); err != nil {
+			// If hooks return error, only revert hooks.
+			k.Logger(ctx).Error("ibc transfer hooks failed", "error", err)
+		} else if commit != nil {
+			// hooks is successful, commit the tmpCtx
+			commit()
+		}
 
 		return nil
 	}
@@ -330,6 +349,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			),
 		)
 	}()
+
+	// Only call hooks if tx executed successfully.
+	if err = k.AfterRecvPacket(tmpCtx); err != nil {
+		// If hooks return error, only revert hooks.
+		k.Logger(ctx).Error("ibc transfer hooks failed", "error", err)
+	} else if commit != nil {
+		// hooks is successful, commit the tmpCtx
+		commit()
+	}
 
 	return nil
 }

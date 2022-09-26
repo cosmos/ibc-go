@@ -51,3 +51,8 @@ type ConnectionKeeper interface {
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 }
+
+// GovHooks event hooks for governance proposal object (noalias)
+type IbcTransferHooks interface {
+	AfterRecvPacket(ctx sdk.Context) error
+}
