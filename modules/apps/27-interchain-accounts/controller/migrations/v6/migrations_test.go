@@ -1,4 +1,4 @@
-package v5_test
+package v6_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 
+<<<<<<< HEAD:modules/apps/27-interchain-accounts/controller/migrations/v5/migrations_test.go
 	v5 "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/migrations/v5"
 	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
@@ -13,6 +14,15 @@ import (
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	ibcmock "github.com/cosmos/ibc-go/v5/testing/mock"
+=======
+	v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+>>>>>>> 1dca3b0 (chore: renaming ica migrations handler pkg version (#2355)):modules/apps/27-interchain-accounts/controller/migrations/v6/migrations_test.go
 )
 
 type MigrationsTestSuite struct {
@@ -117,7 +127,7 @@ func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 
 	suite.ResetMemStore() // empty the x/capability in-memory store
 
-	err = v5.MigrateICS27ChannelCapability(
+	err = v6.MigrateICS27ChannelCapability(
 		suite.chainA.GetContext(),
 		suite.chainA.Codec,
 		suite.chainA.GetSimApp().GetKey(capabilitytypes.StoreKey),
