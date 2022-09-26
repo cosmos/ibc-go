@@ -79,7 +79,6 @@ This ensures that the new module's stores are added to the multistore before the
 The host and controller submodule keys only need to be added if the chain integrates those submodules.
 For example, if a chain chooses not to integrate a controller submodule, it does not need to add the controller key to the `Added` field.
 
-
 ### Genesis migrations
 
 If the chain will adopt ICS27 and chooses to upgrade via a genesis export, then the ICS27 parameters must be set during genesis migration. 
@@ -123,7 +122,6 @@ type AnteDecorator struct {
 ```
 
 ## IBC Apps
-
 
 ### `OnChanOpenTry` must return negotiated application version
 
