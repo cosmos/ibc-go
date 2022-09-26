@@ -25,14 +25,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-<<<<<<< HEAD
-	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
-=======
 	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
-	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 var DefaultTestingAppInit = SetupTestingApp

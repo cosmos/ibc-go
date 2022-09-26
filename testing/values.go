@@ -9,21 +9,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-<<<<<<< HEAD
-	ibctransfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	"github.com/cosmos/ibc-go/v5/testing/mock"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
-=======
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/cosmos/ibc-go/v6/testing/mock"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 const (

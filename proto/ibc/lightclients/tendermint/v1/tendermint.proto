@@ -2,11 +2,7 @@ syntax = "proto3";
 
 package ibc.lightclients.tendermint.v1;
 
-<<<<<<< HEAD
-option go_package = "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types";
-=======
-option go_package = "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint;tendermint";
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
+option go_package = "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types";
 
 import "tendermint/types/validator.proto";
 import "tendermint/types/types.proto";

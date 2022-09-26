@@ -6,14 +6,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-<<<<<<< HEAD
-	"github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-=======
 	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 type KeeperTestSuite struct {

@@ -8,15 +8,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-<<<<<<< HEAD
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-=======
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 func (suite *TypesTestSuite) TestValidateBasic() {

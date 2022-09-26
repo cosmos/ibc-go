@@ -7,20 +7,12 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-<<<<<<< HEAD
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-=======
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
 )
 
 type TypesTestSuite struct {

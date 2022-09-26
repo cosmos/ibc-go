@@ -8,24 +8,14 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-<<<<<<< HEAD
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/v5/modules/light-clients/09-localhost/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v5/testing/mock"
-=======
 	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	localhosttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/09-localhost/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318))
+	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {

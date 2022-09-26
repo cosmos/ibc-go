@@ -1,15 +1,9 @@
 package types_test
 
 import (
-<<<<<<< HEAD:modules/light-clients/06-solomachine/types/misbehaviour_test.go
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	"github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-=======
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	"github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
->>>>>>> c86d27f (chore: increment go mod to v6 (#2318)):modules/light-clients/06-solomachine/misbehaviour_test.go
 )
 
 func (suite *SoloMachineTestSuite) TestMisbehaviour() {
