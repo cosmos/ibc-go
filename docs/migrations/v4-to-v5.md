@@ -38,25 +38,6 @@ The `AnteDecorator` was actually renamed twice, but in [this PR](https://github.
 
 ## IBC Apps
 
-### ICS27 - Interchain Accounts
-
-An additional parameter, `ics4Wrapper` has been added to the `host` submodule `NewKeeper` function in `modules/apps/27-interchain-accounts/host/keeper`.
-This allows the `host` submodule to correctly unwrap the channel version for channel reopening handshakes in the `OnChanOpenTry` callback.
-
-```diff
-func NewKeeper(
-   cdc codec.BinaryCodec, 
-   key storetypes.StoreKey, 
-   paramSpace paramtypes.Subspace,
-+  ics4Wrapper icatypes.ICS4Wrapper,
-   channelKeeper icatypes.ChannelKeeper, 
-   portKeeper icatypes.PortKeeper,
-   accountKeeper icatypes.AccountKeeper, 
-   scopedKeeper icatypes.ScopedKeeper, 
-   msgRouter icatypes.MessageRouter,
-) Keeper
-```
-
 ### Core
 
 The `key` parameter of the `NewKeeper` function in `modules/core/keeper` is now of type `storetypes.StoreKey` (where `storetypes` is an import alias for `"github.com/cosmos/cosmos-sdk/store/types"`):
@@ -197,6 +178,23 @@ type MessageRouter interface {
 ```
 
 The `RegisterRESTRoutes` function in `modules/apps/27-interchain-accounts` has been removed.
+
+An additional parameter, `ics4Wrapper` has been added to the `host` submodule `NewKeeper` function in `modules/apps/27-interchain-accounts/host/keeper`.
+This allows the `host` submodule to correctly unwrap the channel version for channel reopening handshakes in the `OnChanOpenTry` callback.
+
+```diff
+func NewKeeper(
+   cdc codec.BinaryCodec, 
+   key storetypes.StoreKey, 
+   paramSpace paramtypes.Subspace,
++  ics4Wrapper icatypes.ICS4Wrapper,
+   channelKeeper icatypes.ChannelKeeper, 
+   portKeeper icatypes.PortKeeper,
+   accountKeeper icatypes.AccountKeeper, 
+   scopedKeeper icatypes.ScopedKeeper, 
+   msgRouter icatypes.MessageRouter,
+) Keeper
+```
 
 #### Cosmos SDK message handler responses in packet acknowledgement
 
