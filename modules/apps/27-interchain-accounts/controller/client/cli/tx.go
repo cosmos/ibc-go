@@ -17,8 +17,8 @@ import (
 
 const (
 	// The controller chain channel version
-	flagVersion                        = "version"
-	flagRelativePacketTimeoutTimestamp = "relative-packet-timeout"
+	flagVersion               = "version"
+	flagRelativePacketTimeout = "relative-packet-timeout"
 )
 
 func newRegisterInterchainAccountCmd() *cobra.Command {
@@ -91,7 +91,7 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 				}
 			}
 
-			relativeTimeoutTimestamp, err := cmd.Flags().GetUint64(flagRelativePacketTimeoutTimestamp)
+			relativeTimeoutTimestamp, err := cmd.Flags().GetUint64(flagRelativePacketTimeout)
 			if err != nil {
 				return err
 			}
@@ -102,7 +102,7 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 		},
 	}
 
-	cmd.Flags().Uint64(flagRelativePacketTimeoutTimestamp, icatypes.DefaultRelativePacketTimeoutTimestamp, "Relative packet timeout in nanoseconds from now. Default is 10 minutes.")
+	cmd.Flags().Uint64(flagRelativePacketTimeout, icatypes.DefaultRelativePacketTimeoutTimestamp, "Relative packet timeout in nanoseconds from now. Default is 10 minutes.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
