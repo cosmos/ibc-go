@@ -12,7 +12,7 @@ func GetQueryCmd() *cobra.Command {
 	icaQueryCmd := &cobra.Command{
 		Use:                        "interchain-accounts",
 		Aliases:                    []string{"ica"},
-		Short:                      "interchain-accounts subcommands",
+		Short:                      "IBC interchain accounts query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
@@ -30,7 +30,7 @@ func NewTxCmd() *cobra.Command {
 	icaTxCmd := &cobra.Command{
 		Use:                        "interchain-accounts",
 		Aliases:                    []string{"ica"},
-		Short:                      "interchain-accounts tx subcommands",
+		Short:                      "IBC interchain accounts transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
