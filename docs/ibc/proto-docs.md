@@ -154,6 +154,10 @@
   
     - [Msg](#ibc.applications.transfer.v1.Msg)
   
+- [ibc/applications/transfer/v2/authz.proto](#ibc/applications/transfer/v2/authz.proto)
+    - [PortChannelAmount](#ibc.applications.transfer.v2.PortChannelAmount)
+    - [TransferAuthorization](#ibc.applications.transfer.v2.TransferAuthorization)
+  
 - [ibc/applications/transfer/v2/packet.proto](#ibc/applications/transfer/v2/packet.proto)
     - [FungibleTokenPacketData](#ibc.applications.transfer.v2.FungibleTokenPacketData)
   
@@ -2286,6 +2290,56 @@ Msg defines the ibc/transfer Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Transfer` | [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer) | [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/transfer/v2/authz.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v2/authz.proto
+
+
+
+<a name="ibc.applications.transfer.v2.PortChannelAmount"></a>
+
+### PortChannelAmount
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `source_port` | [string](#string) |  | the port on which the packet will be sent |
+| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
+| `spend_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | spend limitation on the channel |
+| `allowed_addresses` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v2.TransferAuthorization"></a>
+
+### TransferAuthorization
+TransferAuthorization allows the grantee to spend up to spend_limit coins from
+the granter's account for ibc transfer on a specific channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allocations` | [PortChannelAmount](#ibc.applications.transfer.v2.PortChannelAmount) | repeated | port and channel amounts |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
