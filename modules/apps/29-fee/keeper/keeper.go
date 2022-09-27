@@ -5,7 +5,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
@@ -34,8 +33,9 @@ type Keeper struct {
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
+	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:           cdc,

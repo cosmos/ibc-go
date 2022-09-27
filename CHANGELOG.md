@@ -42,6 +42,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+<<<<<<< HEAD
+=======
+* (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
+* (testing)[\#2028](https://github.com/cosmos/ibc-go/pull/2028) New interface `ibctestingtypes.StakingKeeper` added and set for the testing app `StakingKeeper` setup.
+* (core/04-channel) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `NewPacketId` has been renamed to `NewPacketID` to comply with go linting rules.
+* (core/ante) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `AnteDecorator` has been renamed to `RedundancyDecorator` to comply with go linting rules and to give more clarity to the purpose of the Decorator.
+* (core/ante) [\#1820](https://github.com/cosmos/ibc-go/pull/1418) `RedundancyDecorator` has been renamed to `RedundantRelayDecorator` to make the name for explicit.
+* (testing) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `MockIBCApp` has been renamed to `IBCApp` and `MockEmptyAcknowledgement` has been renamed to `EmptyAcknowledgement` to comply with go linting rules.
+* (apps/27-interchain-accounts) [\#2058](https://github.com/cosmos/ibc-go/pull/2058) Added `MessageRouter` interface and replaced `*baseapp.MsgServiceRouter` with it. The controller and host keepers of apps/27-interchain-accounts have been updated to use it.
+>>>>>>> 875279d (chore: remove unnecessary code (#2395))
 * (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types.
 * (apps/27-interchain-accounts) [\#2035](https://github.com/cosmos/ibc-go/pull/2035) Interchain accounts host and controller Keepers now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
