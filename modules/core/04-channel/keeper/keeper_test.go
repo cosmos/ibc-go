@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 )
@@ -79,6 +80,90 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 	channelVersion, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(ibcmock.Version, channelVersion)
+}
+
+func (suite *KeeperTestSuite) TestGetChannelsWithPortPrefix() {
+
+	testPrefix := "test-prefix-"
+	//testPrefix := ""
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+	newPort := testPrefix + path.EndpointA.ChannelConfig.PortID
+	path.EndpointA.ChannelConfig.PortID = newPort
+
+	//ctxA := suite.chainA.GetContext()
+
+	newCap, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), newPort)
+	suite.Require().NoError(err)
+	//err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), newCap, newPort)
+	err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), newCap, host.PortPath(newPort))
+	//err = suite.chainA.GetSimApp().ScopedIBCMockKeeper.ClaimCapability(suite.chainA.GetContext(), newCap, host.ChannelCapabilityPath(newPort, path.EndpointA.ChannelID))
+	//err = suite.chainA.GetSimApp().ScopedIBCKeeper.ClaimCapability(suite.chainA.GetContext(), newCap, host.ChannelCapabilityPath(newPort, path.EndpointA.ChannelID))
+	//err = suite.chainA.GetSimApp().ScopedIBCKeeper.ClaimCapability(ctxA, newCap, host.ChannelCapabilityPath(newPort, path.EndpointA.ChannelID))
+	suite.Require().NoError(err)
+
+	suite.chainA.GetSimApp().GetIBCKeeper().PortKeeper.BindPort(suite.chainA.GetContext(), newPort)
+
+	suite.coordinator.Setup(path)
+
+	// channel0 on first connection on chainA
+	counterparty0 := types.Counterparty{
+		PortId:    path.EndpointB.ChannelConfig.PortID,
+		ChannelId: path.EndpointB.ChannelID,
+	}
+
+	// path1 creates a second channel on first connection on chainA
+	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path1.SetChannelOrdered()
+	path1.EndpointA.ClientID = path.EndpointA.ClientID
+	path1.EndpointB.ClientID = path.EndpointB.ClientID
+	path1.EndpointA.ConnectionID = path.EndpointA.ConnectionID
+	path1.EndpointB.ConnectionID = path.EndpointB.ConnectionID
+
+	suite.coordinator.CreateMockChannels(path1)
+	counterparty1 := types.Counterparty{
+		PortId:    path1.EndpointB.ChannelConfig.PortID,
+		ChannelId: path1.EndpointB.ChannelID,
+	}
+
+	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path2)
+
+	// path2 creates a second channel on chainA
+	err = path2.EndpointA.ChanOpenInit()
+	suite.Require().NoError(err)
+
+	// counterparty channel id is empty after open init
+	counterparty2 := types.Counterparty{
+		PortId:    path2.EndpointB.ChannelConfig.PortID,
+		ChannelId: "",
+	}
+
+	channel0 := types.NewChannel(
+		types.OPEN, types.UNORDERED,
+		counterparty0, []string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version,
+	)
+	channel1 := types.NewChannel(
+		types.OPEN, types.ORDERED,
+		counterparty1, []string{path1.EndpointA.ConnectionID}, path1.EndpointA.ChannelConfig.Version,
+	)
+	channel2 := types.NewChannel(
+		types.INIT, types.UNORDERED,
+		counterparty2, []string{path2.EndpointA.ConnectionID}, path2.EndpointA.ChannelConfig.Version,
+	)
+
+	expChannels := []types.IdentifiedChannel{
+		types.NewIdentifiedChannel(testPrefix+path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel0),
+		types.NewIdentifiedChannel(path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, channel1),
+		types.NewIdentifiedChannel(path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, channel2),
+	}
+	ctxA := suite.chainA.GetContext()
+	channels := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannelsWithPortPrefix(ctxA, testPrefix)
+	//channels := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllChannels(ctxA)
+	suite.Require().Len(channels, len(expChannels))
+	suite.Require().Equal(expChannels, channels)
+
 }
 
 // TestGetAllChannels creates multiple channels on chain A through various connections
