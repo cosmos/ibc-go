@@ -338,7 +338,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						if !ok {
 							panic("MBT failed to parse amount from string")
 						}
-						_, err = suite.chainB.GetSimApp().TransferKeeper.SendTransfer(
+						err = suite.chainB.GetSimApp().TransferKeeper.SendTransfer(
 							suite.chainB.GetContext(),
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,

@@ -140,16 +140,14 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.Require().NoError(err) // message committed
 			}
 
-			sequence, err := suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
+			err = suite.chainA.GetSimApp().TransferKeeper.SendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
 				sender, suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0,
 			)
 
 			if tc.expPass {
-				suite.Require().Greater(sequence, uint64(0))
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Equal(uint64(0), sequence)
 				suite.Require().Error(err)
 			}
 		})

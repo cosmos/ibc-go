@@ -239,7 +239,7 @@ func NewHandler(k Keeper) Handler {
 }
 
 func handleMsgTransfer(ctx Context, k Keeper, msg MsgTransfer) Result {
-  _, err := k.SendTransfer(ctx,msg.PortID, msg.ChannelID, msg.Amount, msg.Sender, msg.Receiver)
+  err := k.SendTransfer(ctx,msg.PortID, msg.ChannelID, msg.Amount, msg.Sender, msg.Receiver)
   if err != nil {
     return sdk.ResultFromError(err)
   }
