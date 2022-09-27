@@ -33,6 +33,7 @@ type TlaFungibleTokenPacketData struct {
 	Receiver string   `json:"receiver"`
 	Amount   string   `json:"amount"`
 	Denom    []string `json:"denom"`
+	Memo     string   `json:"memo"`
 }
 
 type TlaFungibleTokenPacket struct {
@@ -146,7 +147,8 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			DenomFromTla(packet.Data.Denom),
 			packet.Data.Amount,
 			AddressFromString(packet.Data.Sender),
-			AddressFromString(packet.Data.Receiver)),
+			AddressFromString(packet.Data.Receiver),
+			packet.Data.Memo),
 	}
 }
 

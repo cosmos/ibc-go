@@ -34,6 +34,7 @@ type FungibleTokenPacketData struct {
 	Sender string `protobuf:"bytes,3,opt,name=sender,proto3" json:"sender,omitempty"`
 	// the recipient address on the destination chain
 	Receiver string `protobuf:"bytes,4,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	Memo string `protobuf:"bytes,5,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *FungibleTokenPacketData) Reset()         { *m = FungibleTokenPacketData{} }
@@ -97,6 +98,13 @@ func (m *FungibleTokenPacketData) GetReceiver() string {
 	return ""
 }
 
+func (m *FungibleTokenPacketData) GetMemo() string {
+	if m != nil {
+		return m.Memo
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*FungibleTokenPacketData)(nil), "ibc.applications.transfer.v2.FungibleTokenPacketData")
 }
@@ -145,6 +153,13 @@ func (m *FungibleTokenPacketData) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
+	if len(m.Memo) > 0 {
+		i -= len(m.Memo)
+		copy(dAtA[i:], m.Memo)
+		i = encodeVarintPacket(dAtA, i, uint64(len(m.Memo)))
+		i--
+		dAtA[i] = 0x2a
+	}
 	if len(m.Receiver) > 0 {
 		i -= len(m.Receiver)
 		copy(dAtA[i:], m.Receiver)
@@ -206,6 +221,10 @@ func (m *FungibleTokenPacketData) Size() (n int) {
 		n += 1 + l + sovPacket(uint64(l))
 	}
 	l = len(m.Receiver)
+	if l > 0 {
+		n += 1 + l + sovPacket(uint64(l))
+	}
+	l = len(m.Memo)
 	if l > 0 {
 		n += 1 + l + sovPacket(uint64(l))
 	}
@@ -374,6 +393,38 @@ func (m *FungibleTokenPacketData) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Receiver = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Memo", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPacket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPacket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPacket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Memo = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

@@ -148,8 +148,10 @@ func (k Keeper) SendTransfer(
 		}
 	}
 
+	// TODO: take memo field as a parameter in SendTransfer
+	memo := "memo"
 	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.String(), sender.String(), receiver,
+		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
 	)
 
 	packet := channeltypes.NewPacket(
