@@ -191,7 +191,7 @@ func NewKeeper(
    channelKeeper icatypes.ChannelKeeper, 
    portKeeper icatypes.PortKeeper,
    accountKeeper icatypes.AccountKeeper, 
-   scopedKeeper icatypes.ScopedKeeper, 
+   scopedKeeper capabilitykeeper.ScopedKeeper, 
    msgRouter icatypes.MessageRouter,
 ) Keeper
 ```
