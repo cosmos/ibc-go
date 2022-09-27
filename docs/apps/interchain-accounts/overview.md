@@ -39,4 +39,4 @@ The implementation assumes other IBC application modules will not bind to ports 
 
 ## Known Bugs
 
-- Fee-enabled Interchain Accounts channels cannot be reopened in case of closure due to packet timeout. Regular channels (non fee-enabled) can be reopened. A fix for this bug has been implemented, but, since it is API breaking, it is only available from v5.x. See [this PR](https://github.com/cosmos/ibc-go/pull/2302) for mor details.
+- Fee-enabled Interchain Accounts channels cannot be reopened in case of closure due to packet timeout. Regular channels (non fee-enabled) can be reopened. A fix for this bug has been implemented, but, since it is API breaking, it is only available from v5.x. See [this PR](https://github.com/cosmos/ibc-go/pull/2302) for more details.
