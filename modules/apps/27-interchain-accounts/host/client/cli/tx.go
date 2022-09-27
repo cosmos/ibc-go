@@ -2,10 +2,12 @@ package cli
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
@@ -23,7 +25,7 @@ func generatePacketDataCmd() *cobra.Command {
 into packet data which is outputted to stdout. It can be used in conjunction with send-tx"
 which submits pre-built packet data containing messages to be executed on the host chain.
 `,
-		Example: `<binary> tx interchain-accounts host generate-packet-data '{
+		Example: fmt.Sprintf(`%s tx interchain-accounts host generate-packet-data '{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
     "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
@@ -36,7 +38,7 @@ which submits pre-built packet data containing messages to be executed on the ho
 }' --memo memo
 
 
-<binary> tx interchain-accounts host generate-packet-data '[{
+%s tx interchain-accounts host generate-packet-data '[{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
     "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
@@ -55,7 +57,7 @@ which submits pre-built packet data containing messages to be executed on the ho
 		"denom": "stake",
 		"amount": "1000"
 	}
-}]'`,
+}]'`, version.AppName, version.AppName),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
