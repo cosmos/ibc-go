@@ -190,7 +190,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	// Perform application logic callback
 	version, err := cbs.OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.Channel.Version)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "channel open init callback failed for module: %s", module)
+		return nil, sdkerrors.Wrapf(err, "channel open init callback failed for Port ID: %s, Channel ID: %s", msg.PortId, channelID)
 	}
 
 	// Write channel into state
@@ -231,7 +231,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	// Perform application logic callback
 	version, err := cbs.OnChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, cap, msg.Channel.Counterparty, msg.CounterpartyVersion)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "channel open try callback failed for module: %s", module)
+		return nil, sdkerrors.Wrapf(err, "channel open try callback failed for Port ID: %s, Channel ID: %s", msg.PortId, channelID)
 	}
 
 	// Write channel into state
@@ -269,7 +269,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 
 	// Perform application logic callback
 	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
-		return nil, sdkerrors.Wrapf(err, "channel open ack callback failed for module: %s", module)
+		return nil, sdkerrors.Wrapf(err, "channel open ack callback failed for Port ID: %s, Channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	// Write channel into state
@@ -303,7 +303,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 
 	// Perform application logic callback
 	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
-		return nil, sdkerrors.Wrapf(err, "channel open confirm callback failed for module: %s", module)
+		return nil, sdkerrors.Wrapf(err, "channel open confirm callback failed for Port ID: %s, Channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	// Write channel into state
@@ -328,7 +328,7 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 	}
 
 	if err = cbs.OnChanCloseInit(ctx, msg.PortId, msg.ChannelId); err != nil {
-		return nil, sdkerrors.Wrapf(err, "channel close init callback failed for module: %s", module)
+		return nil, sdkerrors.Wrapf(err, "channel close init callback failed for Port ID: %s, Channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	err = k.ChannelKeeper.ChanCloseInit(ctx, msg.PortId, msg.ChannelId, cap)
@@ -356,7 +356,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	}
 
 	if err = cbs.OnChanCloseConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
-		return nil, sdkerrors.Wrapf(err, "channel close confirm callback failed for module: %s", module)
+		return nil, sdkerrors.Wrapf(err, "channel close confirm callback failed for Port ID: %s, Channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
 	err = k.ChannelKeeper.ChanCloseConfirm(ctx, msg.PortId, msg.ChannelId, cap, msg.ProofInit, msg.ProofHeight)
