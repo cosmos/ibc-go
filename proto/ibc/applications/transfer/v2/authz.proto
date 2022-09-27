@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package ibc.applications.transfer.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types";
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+message PortChannelAmount {
+  // the port on which the packet will be sent
+  string source_port = 1 [(gogoproto.moretags) = "yaml:\"source_port\""];
+  // the channel by which the packet will be sent
+  string source_channel = 2 [(gogoproto.moretags) = "yaml:\"source_channel\""];
+  // spend limitation on the channel
+  repeated cosmos.base.v1beta1.Coin spend_limit = 3
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+// TransferAuthorization allows the grantee to spend up to spend_limit coins from
+// the granter's account for ibc transfer on a specific channel
+message TransferAuthorization {
+  option (cosmos_proto.implements_interface) = "Authorization";
+
+  // port and channel amounts
+  repeated PortChannelAmount allocations = 1 [(gogoproto.nullable) = false];
+}
