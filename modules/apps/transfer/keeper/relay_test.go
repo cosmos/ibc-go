@@ -149,6 +149,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.Require().Greater(sequence, uint64(0))
 				suite.Require().NoError(err)
 			} else {
+				suite.Require().Equal(uint64(0), sequence)
 				suite.Require().Error(err)
 			}
 		})
