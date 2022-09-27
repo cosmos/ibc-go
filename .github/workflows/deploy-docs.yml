@@ -30,6 +30,7 @@ jobs:
 
       - name: Build 🔧
         run: |
+          git config --global --add safe.directory /__w/ibc-go/ibc-go
           make build-docs LEDGER_ENABLED=false
 
       - name: Deploy 🚀
