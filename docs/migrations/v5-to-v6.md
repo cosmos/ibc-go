@@ -17,7 +17,87 @@ There are four sections based on the four potential user groups of this document
 
 ## IBC Apps
 
-- No relevant changes were made in this release.
+### ICS27 - Interchain Accounts
+
+#### Upgrade Proposal
+
+The `ibc-go/v6` release introduces a migration for ICS27 interchain accounts whereby ownership of channel capabilities is transferred from base applications previously referred to as authentication modules to the ICS27 controller submodule. This coincides with the introduction of the ICS27 `controller` submodule `Msg` service which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK.
+
+Please refer to the following PR diff for integrating the ICS27 channel capability migration logic:
+
+- https://github.com/cosmos/ibc-go/pull/2383
+
+Add the upgrade logic to chain distribution:
+
+```go
+const (
+	UpgradeName = "v6"
+)
+
+func CreateUpgradeHandler(
+	mm *module.Manager,
+	configurator module.Configurator,
+	cdc codec.BinaryCodec,
+	capabilityStoreKey *storetypes.KVStoreKey,
+	capabilityKeeper *capabilitykeeper.Keeper,
+	moduleName string,
+) upgradetypes.UpgradeHandler {
+	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
+			return nil, err
+		}
+
+		return mm.RunMigrations(ctx, configurator, vm)
+	}
+}
+```
+
+Set the upgrade handler in `app.go`:
+
+```go
+app.UpgradeKeeper.SetUpgradeHandler(
+	v6.UpgradeName,
+	v6.CreateUpgradeHandler(
+        app.mm, 
+        app.configurator, 
+        app.appCodec, 
+        app.keys[capabilitytypes.ModuleName], 
+        app.CapabilityKeeper, 
+        ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+    ),
+)
+```
+
+---
+
+### TODO Genesis types docs
+The ICS27 genesis types have been moved to their own package:
+
+```
+option go_package = "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types";
+```
+
+---
+
+The ICS27 `host` submodule `NewKeeper` function in `modules/apps/27-interchain-acccounts/host/keeper` now includes an additional parameter of type `ICS4Wrapper`.
+This provides the `host` submodule with the ability to correctly unwrap channel versions in the event of a channel reopening handshake.
+
+```diff
+func NewKeeper(
+	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+-	channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
++	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
+	accountKeeper icatypes.AccountKeeper, scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
+) Keeper
+```
+
+The `msgRouter` parameter has also been updated to accept a type which fulfills the `MessageRouter` interface as defined in `27-interchain-accounts/types`.
+
+```go
+type MessageRouter interface {
+	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
+}
+```
 
 ## Relayers
 
@@ -25,77 +105,4 @@ There are four sections based on the four potential user groups of this document
 
 ## IBC Light Clients
 
-### `ClientState` interface changes
-
-The `VerifyUpgradeAndUpdateState` function has been modified. The client state and consensus state return values have been removed.
-
-Light clients **must** handle all management of client and consensus states including the setting of updated client state and consensus state in the client store.
-
-The `CheckHeaderAndUpdateState` function has been split into 4 new functions:
-
-- `VerifyClientMessage` verifies a `ClientMessage`. A `ClientMessage` could be a `Header`, `Misbehaviour`, or batch update. Calls to `CheckForMisbehaviour`, `UpdateState`, and `UpdateStateOnMisbehaviour` will assume that the content of the `ClientMessage` has been verified and can be trusted. An error should be returned if the `ClientMessage` fails to verify.
-
-- `CheckForMisbehaviour` checks for evidence of a misbehaviour in `Header` or `Misbehaviour` types.
-
-- `UpdateStateOnMisbehaviour` performs appropriate state changes on a `ClientState` given that misbehaviour has been detected and verified.
-
-- `UpdateState` updates and stores as necessary any associated information for an IBC client, such as the `ClientState` and corresponding `ConsensusState`. An error is returned if `ClientMessage` is of type `Misbehaviour`. Upon successful update, a list containing the updated consensus state height is returned.
-
-The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface. This functionality is now encapsulated by the usage of `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour`.
-
-The function `GetTimestampAtHeight` has been added to the `ClientState` interface. It should return the timestamp for a consensus state associated with the provided height.
-
-### `Header` and `Misbehaviour`
-
-`exported.Header` and `exported.Misbehaviour` interface types have been merged and renamed to `ClientMessage` interface.
-
-`GetHeight` function has been removed from `exported.Header` and thus is not included in the `ClientMessage` interface
-
-### `ConsensusState`
-
-The `GetRoot` function has been removed from consensus state interface since it was not used by core IBC.
-
-### Light client implementations
-
-The `09-localhost` light client implementation has been removed because it is currently non-functional.
-
-An upgrade handler has been added to supply chain developers with the logic needed to prune the ibc client store and successfully complete the removal of `09-localhost`.
-Add the following to the application upgrade handler in `app/app.go`, calling `MigrateToV6` to perform store migration logic.
-
-```go
-import (
-    // ...
-    ibcv6 "github.com/cosmos/ibc-go/v6/modules/core/migrations/v6"
-)
-
-// ...
-
-app.UpgradeKeeper.SetUpgradeHandler(
-    upgradeName,
-    func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-        // prune the 09-localhost client from the ibc client store
-        ibcv6.MigrateToV6(ctx, app.IBCKeeper.ClientKeeper)
-
-        return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-    },
-)
-```
-
-Please note the above upgrade handler is optional and should only be run if chains have an existing `09-localhost` client stored in state.
-A simple query can be performed to check for a `09-localhost` client on chain.
-
-For example:
-
-```
-simd query ibc client states | grep 09-localhost
-```
-
-### Client Keeper
-
-Keeper function `CheckMisbehaviourAndUpdateState` has been removed since function `UpdateClient` can now handle updating `ClientState` on `ClientMessage` type which can be any `Misbehaviour` implementations.  
-
-### SDK Message
-
-`MsgSubmitMisbehaviour` is deprecated since `MsgUpdateClient` can now submit a `ClientMessage` type which can be any `Misbehaviour` implementations.
-
-The field `header` in `MsgUpdateClient` has been renamed to `client_message`.
+- No relevant changes were made in this release.
