@@ -8,7 +8,7 @@ import (
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        "host",
-		Short:                      "interchain-accounts host subcommands",
+		Short:                      "IBC interchain accounts host query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}

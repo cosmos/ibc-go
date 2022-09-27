@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/simulation"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/simulation"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestDecodeStore(t *testing.T) {
@@ -34,6 +34,10 @@ func TestDecodeStore(t *testing.T) {
 				Key:   []byte(types.ActiveChannelKeyPrefix),
 				Value: []byte("channel-0"),
 			},
+			{
+				Key:   []byte(types.IsMiddlewareEnabledPrefix),
+				Value: []byte("false"),
+			},
 		},
 	}
 	tests := []struct {
@@ -43,6 +47,7 @@ func TestDecodeStore(t *testing.T) {
 		{"PortID", fmt.Sprintf("Port A: %s\nPort B: %s", types.PortID, types.PortID)},
 		{"Owner", fmt.Sprintf("Owner A: %s\nOwner B: %s", owner, owner)},
 		{"ActiveChannel", fmt.Sprintf("ActiveChannel A: %s\nActiveChannel B: %s", channelID, channelID)},
+		{"IsMiddlewareEnabled", fmt.Sprintf("IsMiddlewareEnabled A: %s\nIsMiddlewareEnabled B: %s", "false", "false")},
 		{"other", ""},
 	}
 
