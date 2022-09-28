@@ -93,8 +93,6 @@ app.UpgradeKeeper.SetUpgradeHandler(
 The `27-interchain-accounts` genesis types have been moved to their own package: `modules/apps/27-interchain-acccounts/genesis/types`.
 This change facilitates the addition of the ICS27 `controller` submodule `Msg` server and avoids cyclic imports. This should have minimal disruption to chain developers integrating `27-interchain-accounts`.
 
----
-
 The ICS27 `host` submodule `NewKeeper` function in `modules/apps/27-interchain-acccounts/host/keeper` now includes an additional parameter of type `ICS4Wrapper`.
 This provides the `host` submodule with the ability to correctly unwrap channel versions in the event of a channel reopening handshake.
 
