@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -78,7 +77,7 @@ func (msg MsgSendTx) ValidateBasic() error {
 	}
 
 	if msg.RelativeTimeout == 0 {
-		return errors.New("relative timeout cannot be zero")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "relative timeout cannot be zero")
 	}
 
 	return nil
