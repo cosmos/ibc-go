@@ -54,7 +54,7 @@ func NewKeeper(
 	// switch case to detect blank pointers
 	switch reflect.TypeOf(stakingKeeper).Kind() {
 	case reflect.Ptr:
-		if reflect.ValueOf(&stakingKeeper).IsZero() {
+		if reflect.ValueOf(stakingKeeper).Elem().IsZero() {
 			panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper pointer"))
 		}
 	default:
@@ -65,7 +65,7 @@ func NewKeeper(
 
 	switch reflect.TypeOf(upgradeKeeper).Kind() {
 	case reflect.Ptr:
-		if reflect.ValueOf(&upgradeKeeper).IsZero() {
+		if reflect.ValueOf(upgradeKeeper).Elem().IsZero() {
 			panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper pointer"))
 		}
 	default:
