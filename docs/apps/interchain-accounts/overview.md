@@ -35,4 +35,8 @@ SDK modules on a chain are assumed to be trustworthy.  For example, there are no
 
 The implementation of ICS27 on ibc-go uses this assumption in its security considerations. The implementation assumes the authentication module will not try to open channels on owner addresses it does not control. 
 
-The implementation assumes other IBC application modules will not bind to ports within the ICS27 namespace. 
+The implementation assumes other IBC application modules will not bind to ports within the ICS27 namespace.
+
+## Known Bugs
+
+- Fee-enabled Interchain Accounts channels cannot be reopened in case of closure due to packet timeout. Regular channels (non fee-enabled) can be reopened. A fix for this bug has been implemented, but, since it is API breaking, it is only available from v5.x. See [this PR](https://github.com/cosmos/ibc-go/pull/2302) for more details.
