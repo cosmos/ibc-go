@@ -67,6 +67,8 @@ message MsgConnectionOpenTry {
   ibc.core.client.v1.Height consensus_height = 11
       [(gogoproto.moretags) = "yaml:\"consensus_height\"", (gogoproto.nullable) = false];
   string signer = 12;
+  // extra data for state machaines that can't introspect their own consensus state.
+  bytes host_consensus_state_info = 13;
 }
 
 // MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
@@ -94,6 +96,8 @@ message MsgConnectionOpenAck {
   ibc.core.client.v1.Height consensus_height = 9
       [(gogoproto.moretags) = "yaml:\"consensus_height\"", (gogoproto.nullable) = false];
   string signer = 10;
+    // extra data for state machaines that can't introspect their own consensus state.
+    bytes host_consensus_state_info = 11;
 }
 
 // MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.
