@@ -86,8 +86,6 @@ app.UpgradeKeeper.SetUpgradeHandler(
 )
 ```
 
----
-
 #### Host params
 
 The `27-interchain-accounts/host` submodule default params have been updated to include the `AllowAllHostMsgs` wildcard `*`.
