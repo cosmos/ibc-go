@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
 * (testing)[\#2028](https://github.com/cosmos/ibc-go/pull/2028) New interface `ibctestingtypes.StakingKeeper` added and set for the testing app `StakingKeeper` setup.
 * (core/04-channel) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `NewPacketId` has been renamed to `NewPacketID` to comply with go linting rules.
 * (core/ante) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `AnteDecorator` has been renamed to `RedundancyDecorator` to comply with go linting rules and to give more clarity to the purpose of the Decorator.
@@ -100,6 +101,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.
 * (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
 * (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.    
+* (apps/27-interchain-accounts) [\#2297](https://github.com/cosmos/ibc-go/pull/2297) Adding cli command to generate ICS27 packet data.
 
 ### Features
 
