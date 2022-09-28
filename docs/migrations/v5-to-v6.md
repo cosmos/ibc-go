@@ -19,7 +19,7 @@ There are four sections based on the four potential user groups of this document
 
 ### ICS27 - Interchain Accounts
 
-The `ibc-go/v6` release introduces a new set of migrations for ICS27 interchain accounts. Ownership of ICS27 channel capabilities is tranferred from authentication modules and will now reside with the ICS27 `controller` submodule moving forward. 
+The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-accounts`. Ownership of ICS27 channel capabilities is tranferred from authentication modules and will now reside with the ICS27 `controller` submodule moving forward. 
 
 For chains which implement custom authentication modules using the ICS27 `controller` submodule this requires a migration function to be included in the application upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
 
@@ -90,8 +90,8 @@ app.UpgradeKeeper.SetUpgradeHandler(
 
 #### API breaking changes
 
-The ICS27 genesis types have been moved to their own package `modules/apps/27-interchain-acccounts/genesis/types`.
-TODO: add more info
+The `27-interchain-accounts` genesis types have been moved to their own package: `modules/apps/27-interchain-acccounts/genesis/types`.
+This change facilitates the addition of the ICS27 `controller` submodule `Msg` server and avoids cyclic imports. This should have minimal disruption to chain developers integrating `27-interchain-accounts`.
 
 ---
 
