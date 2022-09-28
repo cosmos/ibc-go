@@ -20,7 +20,7 @@ jobs:
       contents: write # for JamesIves/github-pages-deploy-action to push changes in repo
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/cosmos/website-deployment
+      image: tendermintdev/docker-website-deployment
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
