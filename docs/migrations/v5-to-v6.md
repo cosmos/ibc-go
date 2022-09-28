@@ -70,7 +70,7 @@ func CreateUpgradeHandler(
 }
 ```
 
-2. Set the upgrade handler in `app.go`. The `moduleName` parameter refers to the authentication module's `ScopedKeeper` name. This is the name provided upon instantiation in `app.go` via the `x/capability` keeper `ScopeToModule(moduleName string)` method. [See here for an example in `simapp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go#L309).
+2. Set the upgrade handler in `app.go`. The `moduleName` parameter refers to the authentication module's `ScopedKeeper` name. This is the name provided upon instantiation in `app.go` via the [`x/capability` keeper `ScopeToModule(moduleName string)`](https://github.com/cosmos/cosmos-sdk/blob/v0.46.1/x/capability/keeper/keeper.go#L70) method. [See here for an example in `simapp`](https://github.com/cosmos/ibc-go/blob/v5.0.0-rc2/testing/simapp/app.go#L304).
 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler(
@@ -104,14 +104,6 @@ func NewKeeper(
 +	ics4Wrapper icatypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper icatypes.ScopedKeeper, msgRouter icatypes.MessageRouter,
 ) Keeper
-```
-
-The `msgRouter` parameter has also been updated to accept a type which fulfills the `MessageRouter` interface as defined in `27-interchain-accounts/types`.
-
-```go
-type MessageRouter interface {
-	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
-}
 ```
 
 ## Relayers
