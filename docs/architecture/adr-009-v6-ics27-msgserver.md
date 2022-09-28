@@ -29,7 +29,7 @@ To acheive this, as stated by [@damiannolan](https://github.com/cosmos/ibc-go/is
 
 > Add a new `MsgServer` to `27-interchain-accounts` which exposes two distinct rpc endpoints:
 > 
-> - `RegisterAccount`
+> - `RegisterInterchainAccount`
 > - `SendTx`
 
 This will enable any SDK (authentication) module to register interchain accounts and send transactions on their behalf. 
@@ -39,6 +39,8 @@ Examples of existing SDK modules which would benefit from this change include:
 - x/group
 
 The existing go functions: `RegisterInterchainAccount()` and `SendTx()` will remain to operate as they did in previous release versions. 
+
+This will be possible for SDK v0.46.x and above.
 
 ### Allow `nil` underlying applications
 
@@ -71,7 +73,7 @@ See issue [#2145](https://github.com/cosmos/ibc-go/issues/2145)
 
 ### Future considerations
 
-ADR 008 proposes the creation of a middleware which enables callers of an IBC packet send to perform application logic in conjunction with the IBC application. 
+[ADR 008](https://github.com/cosmos/ibc-go/pull/1976) proposes the creation of a middleware which enables callers of an IBC packet send to perform application logic in conjunction with the IBC application. 
 The underlying application can be removed at the availablity of such a middleware as that will be the preferred method for executing application logic upon a ICS 27 packet send.
 
 ### Miscellanous 
