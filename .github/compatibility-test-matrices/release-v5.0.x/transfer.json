@@ -1,0 +1,14 @@
+{
+  "chain-a": ["release-v5.0.x", "v4.1.0", "v3.3.0", "v2.4.0"],
+  "chain-b": ["release-v5.0.x", "v4.1.0", "v3.3.0", "v2.4.0"],
+  "entrypoint": ["TestTransferTestSuite"],
+  "test": [
+    "TestMsgTransfer_Succeeds_Nonincentivized",
+    "TestMsgTransfer_Fails_InvalidAddress",
+    "TestMsgTransfer_Timeout_Nonincentivized",
+    "TestSendEnabledParam",
+    "TestReceiveEnabledParam"
+  ],
+  "chain-binary": ["simd"],
+  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+}
