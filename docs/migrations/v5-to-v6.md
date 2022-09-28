@@ -32,7 +32,7 @@ For more information please refer to [ADR 009](https://github.com/cosmos/ibc-go/
 
 Please refer to [PR #2383](https://github.com/cosmos/ibc-go/pull/2383) for integrating the ICS27 channel capability migration logic or follow the steps outlined below:
 
-1. Add the upgrade migration logic to chain distribution. This may be, for example, maintained under `app/upgrades/v6`:
+1. Add the upgrade migration logic to chain distribution. This may be, for example, maintained under a package `app/upgrades/v6`.
 
 ```go
 package v6
@@ -70,7 +70,7 @@ func CreateUpgradeHandler(
 }
 ```
 
-Set the upgrade handler in `app.go`:
+2. Set the upgrade handler in `app.go`. The `moduleName` parameter refers to the authentication module's `ScopedKeeper` name. This is the name provided upon instantiation in `app.go` via the `x/capability` keeper `ScopeToModule(moduleName string)` method. [See here for an example in `simapp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go#L309).
 
 ```go
 app.UpgradeKeeper.SetUpgradeHandler(
@@ -81,7 +81,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
         app.appCodec, 
         app.keys[capabilitytypes.ModuleName], 
         app.CapabilityKeeper, 
-        "ics27-auth-module",
+        ibcmock.ModuleName + icacontrollertypes.SubModuleName,
     ),
 )
 ```
@@ -89,11 +89,8 @@ app.UpgradeKeeper.SetUpgradeHandler(
 ---
 
 ### TODO Genesis types docs
-The ICS27 genesis types have been moved to their own package:
 
-```
-option go_package = "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types";
-```
+The ICS27 genesis types have been moved to their own package:
 
 ---
 
