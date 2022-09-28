@@ -19,13 +19,20 @@ There are four sections based on the four potential user groups of this document
 
 ### ICS27 - Interchain Accounts
 
-#### Upgrade Proposal
+The `ibc-go/v6` release introduces a new set of migrations for ICS27 interchain accounts. Ownership of ICS27 channel capabilities is tranferred from authentication modules and will now reside with the ICS27 `controller` submodule moving forward. 
 
-The `ibc-go/v6` release introduces a migration for ICS27 interchain accounts whereby ownership of channel capabilities is transferred from base applications previously referred to as authentication modules to the ICS27 controller submodule. This coincides with the introduction of the ICS27 `controller` submodule `Msg` service which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK.
+For chains which implement custom authentication modules using the ICS27 `controller` submodule this requires a migration function to be included in the application upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
+
+This migration facilitates the addition of the ICS27 `controller` submodule `Msg` server which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK. 
+
+[comment]: <> (TODO: update ADR009 PR link when merged)
+For more information please refer to [ADR 009](https://github.com/cosmos/ibc-go/pull/2218).
+
+#### Upgrade Proposal
 
 Please refer to [PR #2383](https://github.com/cosmos/ibc-go/pull/2383) for integrating the ICS27 channel capability migration logic or follow the steps outlined below:
 
-Add the upgrade logic to chain distribution:
+1. Add the upgrade migration logic to chain distribution. This may be, for example, maintained under `app/upgrades/v6`:
 
 ```go
 package v6
@@ -74,7 +81,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
         app.appCodec, 
         app.keys[capabilitytypes.ModuleName], 
         app.CapabilityKeeper, 
-        ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+        "ics27-auth-module",
     ),
 )
 ```
