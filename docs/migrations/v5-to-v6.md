@@ -88,6 +88,24 @@ app.UpgradeKeeper.SetUpgradeHandler(
 
 ---
 
+#### Host params
+
+The `27-interchain-accounts/host` submodule default params have been updated to include the `AllowAllHostMsgs` wildcard `*`.
+This enables execution of any `sdk.Msg` type for ICS27 registered on the host chain `InterfaceRegistry`.
+
+```diff
+// AllowAllHostMsgs holds the string key that allows all message types on interchain accounts host module
+const AllowAllHostMsgs = "*"
+
+...
+
+// DefaultParams is the default parameter configuration for the host submodule
+func DefaultParams() Params {
+-	return NewParams(DefaultHostEnabled, nil)
++	return NewParams(DefaultHostEnabled, []string{AllowAllHostMsgs})
+}
+```
+
 #### API breaking changes
 
 The `27-interchain-accounts` genesis types have been moved to their own package: `modules/apps/27-interchain-acccounts/genesis/types`.
