@@ -18,6 +18,14 @@ No genesis or in-place migrations required when upgrading from v1 or v2 of ibc-g
 
 ## Chains
 
+### Fee Middleware
+
+The Fee Middleware module, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
+
+Please read the Fee Middleware [integration documentation](https://ibc.cosmos.network/main/middleware/ics29-fee/integration.html) for an in depth guide on how to congfigure the module correctly in order to incentivize IBC packets. 
+
+Take a look at the following diff for an [example setup](https://github.com/cosmos/ibc-go/pull/1432/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08aL366) of how to incentivize ics27 channels. 
+
 ### Migration to fix support for base denoms with slashes
 
 As part of [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0), [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) and [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) some [migration handler code sample was documented](https://github.com/cosmos/ibc-go/blob/main/docs/migrations/support-denoms-with-slashes.md#upgrade-proposal) that needs to run in order to correct the trace information of coins transferred using ICS20 whose base denom contains slashes.
