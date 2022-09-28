@@ -58,8 +58,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2177](https://github.com/cosmos/ibc-go/pull/2177) Adding `IsMiddlewareEnabled` flag to interchain accounts `ActiveChannel` genesis type.
 * (apps/27-interchain-accounts) [\#2140](https://github.com/cosmos/ibc-go/pull/2140) Adding migration handler to ICS27 `controller` submodule to assert ownership of channel capabilities and set middleware enabled flag for existing channels. The ICS27 module consensus version has been bumped from 1 to 2.
 * (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
+<<<<<<< HEAD
 * (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.
 * (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.
+=======
+* (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.    
+* (apps/27-interchain-accounts) [\#2297](https://github.com/cosmos/ibc-go/pull/2297) Adding cli command to generate ICS27 packet data.
+>>>>>>> 8f0e7d5 (Add  host cli to generate ica packet data (#2297))
 
 ### Features
 
