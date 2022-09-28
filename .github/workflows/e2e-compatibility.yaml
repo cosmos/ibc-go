@@ -1,12 +1,13 @@
 name: Compatibility E2E
 on:
   workflow_dispatch:
-    release-branch:
-      description: 'Release branch to test'
-      required: true
-      type: choice
-      options:
-        - release/v5.0.x
+    inputs:
+      release-branch:
+        description: 'Release branch to test'
+        required: true
+        type: choice
+        options:
+          - release/v5.0.x
 
 env:
   REGISTRY: ghcr.io
@@ -47,42 +48,29 @@ jobs:
           docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${{ needs.determine-docker-tag.outputs.docker-tag }}"
 
-  load-test-matrix:
-    outputs:
-      test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
-    needs: determine-docker-tag
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          # use jq -c to put the full json contents on a single line. This is required when using the json body
-          # to create the matrix in the following job.
-          test_matrix="$(cat .github/compatibility-test-matrices/${{ needs.determine-docker-tag.outputs.docker-tag }}.json | jq -c)"
-          echo $test_matrix
-          echo "::set-output name=test-matrix::$test_matrix"
-        id: set-test-matrix
-
-  e2e-tests:
-    runs-on: ubuntu-latest
+  transfer:
     needs:
-      - load-test-matrix
       - build-release-image
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
-      - name: Run e2e Test
-        run: |
-          cd e2e
-          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
-        env:
-          # each test has its own set of variables to specify which images are used.
-          CHAIN_IMAGE: "${{ matrix.chain-image }}"
-          CHAIN_A_TAG: "${{ matrix.chain-a-tag }}"
-          CHAIN_B_TAG: "${{ matrix.chain-b-tag }}"
-          CHAIN_BINARY: "${{ matrix.chain-binary }}"
-          RLY_TAG: "v2.0.0"
+      - determine-docker-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-suite: "transfer"
+
+  client:
+    needs:
+      - build-release-image
+      - determine-docker-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-suite: "client"
+
+  incentivized-transfer:
+    needs:
+      - build-release-image
+      - determine-docker-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      docker-tag: "${{ needs.determine-docker-tag.outputs.docker-tag }}"
+      test-suite: "incentivized-transfer"
