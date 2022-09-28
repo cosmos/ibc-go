@@ -1663,8 +1663,8 @@ MsgSendTx defines the payload for Msg/SendTx
 | ----- | ---- | ----- | ----------- |
 | `owner` | [string](#string) |  |  |
 | `connection_id` | [string](#string) |  |  |
-| `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  | Timeout timestamp in absolute nanoseconds since unix epoch. The timeout is disabled when set to 0. |
-| `relative_timeout` | [uint64](#uint64) |  |  |
+| `packet_data` | [ibc.applications.interchain_accounts.v1.InterchainAccountPacketData](#ibc.applications.interchain_accounts.v1.InterchainAccountPacketData) |  |  |
+| `relative_timeout` | [uint64](#uint64) |  | Relative timeout timestamp provided will be added to the current block time during transaction execution. The timeout timestamp must be non-zero. |
 
 
 

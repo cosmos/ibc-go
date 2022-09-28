@@ -116,12 +116,12 @@ func (m *MsgRegisterInterchainAccountResponse) GetChannelId() string {
 
 // MsgSendTx defines the payload for Msg/SendTx
 type MsgSendTx struct {
-	Owner        string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	ConnectionId string `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
-	// Timeout timestamp in absolute nanoseconds since unix epoch.
-	// The timeout is disabled when set to 0.
-	PacketData      types.InterchainAccountPacketData `protobuf:"bytes,3,opt,name=packet_data,json=packetData,proto3" json:"packet_data" yaml:"packet_data"`
-	RelativeTimeout uint64                            `protobuf:"varint,4,opt,name=relative_timeout,json=relativeTimeout,proto3" json:"relative_timeout,omitempty" yaml:"relative_timeout"`
+	Owner        string                            `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	ConnectionId string                            `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
+	PacketData   types.InterchainAccountPacketData `protobuf:"bytes,3,opt,name=packet_data,json=packetData,proto3" json:"packet_data" yaml:"packet_data"`
+	// Relative timeout timestamp provided will be added to the current block time during transaction execution.
+	// The timeout timestamp must be non-zero.
+	RelativeTimeout uint64 `protobuf:"varint,4,opt,name=relative_timeout,json=relativeTimeout,proto3" json:"relative_timeout,omitempty" yaml:"relative_timeout"`
 }
 
 func (m *MsgSendTx) Reset()         { *m = MsgSendTx{} }
