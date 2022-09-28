@@ -23,13 +23,24 @@ There are four sections based on the four potential user groups of this document
 
 The `ibc-go/v6` release introduces a migration for ICS27 interchain accounts whereby ownership of channel capabilities is transferred from base applications previously referred to as authentication modules to the ICS27 controller submodule. This coincides with the introduction of the ICS27 `controller` submodule `Msg` service which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK.
 
-Please refer to the following PR diff for integrating the ICS27 channel capability migration logic:
-
-- https://github.com/cosmos/ibc-go/pull/2383
+Please refer to [PR #2383](https://github.com/cosmos/ibc-go/pull/2383) for integrating the ICS27 channel capability migration logic or follow the steps outlined below:
 
 Add the upgrade logic to chain distribution:
 
 ```go
+package v6
+
+import (
+	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
+)
+
 const (
 	UpgradeName = "v6"
 )
