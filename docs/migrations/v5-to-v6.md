@@ -28,7 +28,7 @@ This migration facilitates the addition of the ICS27 `controller` submodule `Msg
 [comment]: <> (TODO: update ADR009 PR link when merged)
 For more information please refer to [ADR 009](https://github.com/cosmos/ibc-go/pull/2218).
 
-#### Upgrade Proposal
+#### Upgrade proposal
 
 Please refer to [PR #2383](https://github.com/cosmos/ibc-go/pull/2383) for integrating the ICS27 channel capability migration logic or follow the steps outlined below:
 
@@ -88,9 +88,10 @@ app.UpgradeKeeper.SetUpgradeHandler(
 
 ---
 
-### TODO Genesis types docs
+#### API breaking changes
 
-The ICS27 genesis types have been moved to their own package:
+The ICS27 genesis types have been moved to their own package `modules/apps/27-interchain-acccounts/genesis/types`.
+TODO: add more info
 
 ---
 
