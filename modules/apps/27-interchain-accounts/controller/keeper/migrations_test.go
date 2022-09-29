@@ -23,8 +23,8 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 		{
 			"channel with different port is filtered out",
 			func() {
-				portIdWithOutPrefix := ibctesting.MockPort
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIdWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+				portIDWithOutPrefix := ibctesting.MockPort
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
 			},
@@ -33,8 +33,8 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 		{
 			"capability not found",
 			func() {
-				portIdWithPrefix := fmt.Sprintf("%s%s", icatypes.PortPrefix, ibctesting.TestAccAddress)
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIdWithPrefix, "channel-1", channeltypes.Channel{
+				portIDWithPrefix := fmt.Sprintf("%s%s", icatypes.PortPrefix, ibctesting.TestAccAddress)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithPrefix, "channel-1", channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
 			},
