@@ -1,6 +1,6 @@
 {
-  "chain-a": ["release-v5.0.x", "v4.1.0", "v3.3.0", "v2.4.0"],
-  "chain-b": ["release-v5.0.x", "v4.1.0", "v3.3.0", "v2.4.0"],
+  "chain-a": ["release-v6.0.x", "v5.0.0", "v4.1.0", "v3.3.0", "v2.4.0"],
+  "chain-b": ["release-v6.0.x", "v5.0.0", "v4.1.0", "v3.3.0", "v2.4.0"],
   "entrypoint": ["TestClientTestSuite"],
   "test": [
     "TestClientUpdateProposal_Succeeds"
