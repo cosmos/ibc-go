@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -150,9 +151,27 @@ func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
 
 			actualChannels := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetAllChannelsWithPortPrefix(ctxA, tc.prefix)
 
-			suite.Require().Equal(tc.expectedChannels, actualChannels)
+			suite.Require().True(containsAll(tc.expectedChannels, actualChannels))
 		})
 	}
+}
+
+// containsAll verifies if all elements in the expected slice exist in the actual slice
+// independent of order.
+func containsAll(expected, actual []types.IdentifiedChannel) bool {
+	for _, expectedChannel := range expected {
+		foundMatch := false
+		for _, actualChannel := range actual {
+			if reflect.DeepEqual(actualChannel, expectedChannel) {
+				foundMatch = true
+				break
+			}
+		}
+		if !foundMatch {
+			return false
+		}
+	}
+	return true
 }
 
 // TestGetAllChannels creates multiple channels on chain A through various connections
