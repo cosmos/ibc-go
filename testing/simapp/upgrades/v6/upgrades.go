@@ -17,6 +17,7 @@ const (
 )
 
 // CreateUpgradeHandler creates an upgrade handler for the v6 SimApp upgrade.
+// NOTE: The v6.MigrateICS27ChannelCapabiliity function can be omitted if chains do not yet implement an ICS27 controller module
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,

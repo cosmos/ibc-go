@@ -873,8 +873,19 @@ func (app *SimApp) setupUpgradeHandlers() {
 		simappupgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
 	)
 
+	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
+	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
+	// TODO: update git tag in link below
+	// See: https://github.com/cosmos/ibc-go/blob/v5.0.0-rc2/testing/simapp/app.go#L304
 	app.UpgradeKeeper.SetUpgradeHandler(
 		v6.UpgradeName,
-		v6.CreateUpgradeHandler(app.mm, app.configurator, app.appCodec, app.keys[capabilitytypes.ModuleName], app.CapabilityKeeper, ibcmock.ModuleName+icacontrollertypes.SubModuleName),
+		v6.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.appCodec,
+			app.keys[capabilitytypes.ModuleName],
+			app.CapabilityKeeper,
+			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+		),
 	)
 }
