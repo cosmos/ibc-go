@@ -338,15 +338,17 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						if !ok {
 							panic("MBT failed to parse amount from string")
 						}
-						err = suite.chainB.GetSimApp().TransferKeeper.SendTransfer(
-							suite.chainB.GetContext(),
+						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
 							sdk.NewCoin(denom, amount),
-							sender,
+							sender.String(),
 							tc.packet.Data.Receiver,
-							clienttypes.NewHeight(1, 110),
-							0)
+							suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+						)
+
+						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
+
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)

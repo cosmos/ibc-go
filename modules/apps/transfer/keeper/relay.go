@@ -16,7 +16,7 @@ import (
 	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
 )
 
-// SendTransfer handles transfer sending logic. There are 2 possible cases:
+// sendTransfer handles transfer sending logic. There are 2 possible cases:
 //
 // 1. Sender chain is acting as the source zone. The coins are transferred
 // to an escrow address (i.e locked) on the sender chain and then transferred
@@ -48,31 +48,6 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
-//
-// Note: An IBC Transfer must be initiated using a MsgTransfer via the Transfer rpc handler
-func (k Keeper) SendTransfer(
-	ctx sdk.Context,
-	sourcePort,
-	sourceChannel string,
-	token sdk.Coin,
-	sender sdk.AccAddress,
-	receiver string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-) error {
-	return k.sendTransfer(
-		ctx,
-		sourcePort,
-		sourceChannel,
-		token,
-		sender,
-		receiver,
-		timeoutHeight,
-		timeoutTimestamp,
-	)
-}
-
-// sendTransfer handles transfer sending logic.
 func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
@@ -83,14 +58,6 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) error {
-	if !k.GetSendEnabled(ctx) {
-		return types.ErrSendDisabled
-	}
-
-	if k.bankKeeper.BlockedAddr(sender) {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
-	}
-
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
