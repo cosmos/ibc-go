@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 		{
 			"capability not found",
 			func() {
-				portIDWithPrefix := fmt.Sprintf("%s%s", icatypes.PortPrefix, ibctesting.TestAccAddress)
+				portIDWithPrefix := fmt.Sprintf("%s%s", icatypes.PortPrefix, "port-without-capability")
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
