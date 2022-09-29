@@ -7,8 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channelerrors "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
@@ -51,13 +49,12 @@ func (msg MsgRegisterInterchainAccount) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgSendTx creates a new instance of MsgSendTx
-func NewMsgSendTx(owner, connectionID string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData icatypes.InterchainAccountPacketData) *MsgSendTx {
+func NewMsgSendTx(owner, connectionID string, relativeTimeoutTimestamp uint64, packetData icatypes.InterchainAccountPacketData) *MsgSendTx {
 	return &MsgSendTx{
-		ConnectionId:     connectionID,
-		Owner:            owner,
-		TimeoutHeight:    timeoutHeight,
-		TimeoutTimestamp: timeoutTimestamp,
-		PacketData:       packetData,
+		ConnectionId:    connectionID,
+		Owner:           owner,
+		RelativeTimeout: relativeTimeoutTimestamp,
+		PacketData:      packetData,
 	}
 }
 
@@ -75,12 +72,12 @@ func (msg MsgSendTx) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "failed to parse owner address: %s", msg.Owner)
 	}
 
-	if msg.TimeoutHeight.IsZero() && msg.TimeoutTimestamp == 0 {
-		return sdkerrors.Wrap(channelerrors.ErrInvalidTimeout, "msg timeout height and msg timeout timestamp cannot both be 0")
-	}
-
 	if err := msg.PacketData.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "invalid interchain account packet data")
+	}
+
+	if msg.RelativeTimeout == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "relative timeout cannot be zero")
 	}
 
 	return nil
