@@ -344,7 +344,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							sdk.NewCoin(denom, amount),
 							sender.String(),
 							tc.packet.Data.Receiver,
-							suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)

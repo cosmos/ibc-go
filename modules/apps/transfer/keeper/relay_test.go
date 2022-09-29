@@ -17,9 +17,10 @@ import (
 // chainA and coin that orignate on chainB
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
-		coin   sdk.Coin
-		path   *ibctesting.Path
-		sender sdk.AccAddress
+		coin          sdk.Coin
+		path          *ibctesting.Path
+		sender        sdk.AccAddress
+		timeoutHeight clienttypes.Height
 	)
 
 	testCases := []struct {
@@ -75,9 +76,15 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		},
 		// - receiving chain
 		{
-			"send from module account failed",
+			"failed to parse coin denom",
 			func() {
 				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
+			}, false,
+		},
+		{
+			"send from module account failed, insufficient balance",
+			func() {
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdk.NewInt(1)))
 			}, false,
 		},
 		{
@@ -87,6 +94,12 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 				// Release channel capability
 				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
+			}, false,
+		},
+		{
+			"SendPacket fails, timeout height and timeout timestamp are zero",
+			func() {
+				timeoutHeight = clienttypes.ZeroHeight()
 			}, false,
 		},
 	}
@@ -100,6 +113,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 			sender = suite.chainA.SenderAccount.GetAddress()
+			timeoutHeight = suite.chainB.GetTimeoutHeight()
 
 			// create IBC token on chainA
 			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coin, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0)
@@ -118,7 +132,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				coin, sender.String(), suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+				timeoutHeight, 0, // only use timeout height
 			)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)

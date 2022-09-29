@@ -22,9 +22,13 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"transfers disabled",
 			func() {
-
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
+					types.Params{
+						SendEnabled: false,
+					},
+				)
 			},
-			true,
+			false,
 		},
 		{
 			"invalid sender",
