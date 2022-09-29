@@ -76,6 +76,8 @@ Only the following major release series have a stable release status:
 |`v4.1.x`|August 12, 2023|
 |`v5.0.x`|September 28, 2023|
 
+All missing minor release versions have been discontinued.
+
 **Note**: The v1 major release series will reach end of life 6 months after merging this policy. v2 will reach end of life one year after merging this policy. 
 
 ### What pull requests will be included in stable patch-releases?
