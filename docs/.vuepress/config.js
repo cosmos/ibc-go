@@ -320,6 +320,11 @@ module.exports = {
               directory: false,
               path: "/migrations/v3-to-v4.html",
             },
+            {
+              title: "IBC-Go v4 to v5",
+              directory: false,
+              path: "/migrations/v4-to-v5.html",
+            },
           ],
         },
         {
