@@ -111,12 +111,8 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
-<<<<<<< HEAD
-=======
 	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
 	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
-	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
->>>>>>> ecee40f (chore: add v6 upgrade handler to simapp (#2383))
 )
 
 const appName = "SimApp"
@@ -642,6 +638,8 @@ func NewSimApp(
 
 	app.SetEndBlocker(app.EndBlocker)
 
+	app.setupUpgradeHandlers()
+
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
@@ -866,8 +864,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	return paramsKeeper
 }
-<<<<<<< HEAD
-=======
 
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
 func (app *SimApp) setupUpgradeHandlers() {
@@ -892,4 +888,3 @@ func (app *SimApp) setupUpgradeHandlers() {
 		),
 	)
 }
->>>>>>> ecee40f (chore: add v6 upgrade handler to simapp (#2383))
