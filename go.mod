@@ -11,7 +11,9 @@ require (
 	github.com/cosmos/cosmos-sdk v0.46.1
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
+	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0
@@ -148,7 +150,5 @@ require (
 
 require (
 	github.com/gin-gonic/gin v1.7.0 // indirect
-	github.com/gorilla/mux v1.8.0
-	github.com/rakyll/statik v0.1.7
 	github.com/zondax/hid v0.9.1-0.20220302062450-5552068d2266 // indirect
 )
