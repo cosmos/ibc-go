@@ -82,8 +82,8 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 	suite.Require().Equal(ibcmock.Version, channelVersion)
 }
 
-// TestGetChannelsWithPortPrefix verifies ports are filtered correctly using a port prefix.
-func (suite *KeeperTestSuite) TestGetChannelsWithPortPrefix() {
+// TestGetAllChannelsWithPortPrefix verifies ports are filtered correctly using a port prefix.
+func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
 	tests := []struct {
 		name             string
 		prefix           string
@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestGetChannelsWithPortPrefix() {
 
 			ctxA := suite.chainA.GetContext()
 
-			actualChannels := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetChannelsWithPortPrefix(ctxA, tc.prefix)
+			actualChannels := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetAllChannelsWithPortPrefix(ctxA, tc.prefix)
 
 			suite.Require().Equal(tc.expectedChannels, actualChannels)
 		})

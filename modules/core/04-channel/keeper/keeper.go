@@ -384,8 +384,9 @@ func (k Keeper) IterateChannels(ctx sdk.Context, cb func(types.IdentifiedChannel
 	}
 }
 
-// GetChannelsWithPortPrefix returns all channels with the specified port prefix.
-func (k Keeper) GetChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []types.IdentifiedChannel {
+// GetAllChannelsWithPortPrefix returns all channels with the specified port prefix. If an empty prefix is provided
+// all channels will be returned.
+func (k Keeper) GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []types.IdentifiedChannel {
 	if strings.TrimSpace(portPrefix) == "" {
 		return k.GetAllChannels(ctx)
 	}
