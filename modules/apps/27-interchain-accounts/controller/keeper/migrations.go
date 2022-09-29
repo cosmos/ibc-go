@@ -27,7 +27,7 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 		filteredChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, icatypes.PortPrefix)
 		for _, ch := range filteredChannels {
 			name := host.ChannelCapabilityPath(ch.PortId, ch.ChannelId)
-			capacity, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
+			capability, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
 			if !found {
 				return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", name)
 			}
