@@ -464,7 +464,7 @@ module.exports = {
     [
       "sitemap",
       {
-        hostname: "https://cosmos.github.io/ibc-go",
+        hostname: "https://ibc.cosmos.network",
       },
     ],
   ],
