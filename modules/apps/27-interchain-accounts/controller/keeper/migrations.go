@@ -32,7 +32,7 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 				return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", name)
 			}
 
-			isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, capacity, name)
+			isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, capability, name)
 			if !isAuthenticated {
 				return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", controllertypes.SubModuleName)
 			}
