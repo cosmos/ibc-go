@@ -111,6 +111,12 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
+<<<<<<< HEAD
+=======
+	simappupgrades "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades"
+	v6 "github.com/cosmos/ibc-go/v6/testing/simapp/upgrades/v6"
+	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
+>>>>>>> ecee40f (chore: add v6 upgrade handler to simapp (#2383))
 )
 
 const appName = "SimApp"
@@ -860,3 +866,30 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	return paramsKeeper
 }
+<<<<<<< HEAD
+=======
+
+// setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
+func (app *SimApp) setupUpgradeHandlers() {
+	app.UpgradeKeeper.SetUpgradeHandler(
+		simappupgrades.DefaultUpgradeName,
+		simappupgrades.CreateDefaultUpgradeHandler(app.mm, app.configurator),
+	)
+
+	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
+	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
+	// TODO: update git tag in link below
+	// See: https://github.com/cosmos/ibc-go/blob/v5.0.0-rc2/testing/simapp/app.go#L304
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v6.UpgradeName,
+		v6.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.appCodec,
+			app.keys[capabilitytypes.ModuleName],
+			app.CapabilityKeeper,
+			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+		),
+	)
+}
+>>>>>>> ecee40f (chore: add v6 upgrade handler to simapp (#2383))
