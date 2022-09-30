@@ -23,10 +23,9 @@ The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-ac
 
 For chains which implement custom authentication modules using the ICS27 `controller` submodule this requires a migration function to be included in the application upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
 
-This migration facilitates the addition of the ICS27 `controller` submodule `Msg` server which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK. 
+This migration facilitates the addition of the ICS27 `controller` submodule `MsgServer` which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK. 
 
-[comment]: <> (TODO: update ADR009 PR link when merged)
-For more information please refer to [ADR 009](https://github.com/cosmos/ibc-go/pull/2218).
+For more information please refer to [ADR 009](https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-009-v6-ics27-msgserver.md).
 
 #### Upgrade proposal
 
@@ -85,6 +84,22 @@ app.UpgradeKeeper.SetUpgradeHandler(
     ),
 )
 ```
+
+
+#### Controller APIs
+
+In previous releases of `ibc-go`, chain developers integrating the ICS27 interchain accounts `controller` functionality were expected to create a custom `Base Application` referred to as an authentication module, see: https://github.com/cosmos/ibc-go/blob/v5.0.0/docs/apps/interchain-accounts/auth-modules.md.
+The `Base Application` was intended to be composed with the ICS27 `controller` submodule `Keeper` and faciliate many forms of message authentication depending on a particular chain's use case.
+
+The `controller` submodule exposes two functions:
+
+- [`RegisterInterchainAccount`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/account.go#L19)
+- [`SendTx`](https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/apps/27-interchain-accounts/controller/keeper/relay.go#L18)
+
+These functions have been deprecated in favour of the new `controller` submodule `MsgServer` and will be removed in later releases. 
+Both APIs remain functional and maintain backwards compatibility in `ibc-go/v6`, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 `ControllerKeeper` from their module and instead depend on message routing.
+
+For more information see the new [ICS27 integration documentation](TODO: add link to new docs).
 
 #### Host params
 
