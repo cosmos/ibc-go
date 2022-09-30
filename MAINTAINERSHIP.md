@@ -8,7 +8,7 @@ For projects who have created a custom IBC application and want us to list this 
 - Please include an app that contains the custom module along with end-to-end tests that spins up the blockchain and runs the custom module. 
 - See [cosmos/interchain-security](https://github.com/cosmos/interchain-security) for an example of this setup.
 
-For contributors wishing to submit contributions to the codebase, please check our [Contributor Guidelines](/CONTRIBUTING.md) :)
+For contributors wishing to submit contributions to the codebase, please check our [Contributor Guidelines](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md) :)
 
 
 <p align="center">
@@ -61,7 +61,7 @@ If the associated module to be developed is expected to be submitted to the `ibc
 
 Once the spec has been given initial approval, `ibc-go` engineering will coordinate a code walkthrough in preparation for taking the module into the repo.
 
-The code that is presented should adhere to our [code contributor guidelines](/CONTRIBUTING.md).
+The code that is presented should adhere to our [code contributor guidelines](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md).
 
 More details on what code walkthrough should cover will be provided by the `ibc-go` engineering team on a case by case basis. However, the code should at least be unit and E2E tested. Think about preparing for this process similarly to submitting a codebase for audit :)
 
