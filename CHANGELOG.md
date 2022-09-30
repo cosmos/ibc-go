@@ -57,7 +57,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2146](https://github.com/cosmos/ibc-go/pull/2146) ICS27 controller now claims the channel capability passed via ibc core, and passes `nil` to the underlying app callback. The channel capability arg in `SendTx` is now ignored and looked up internally.
 * (apps/27-interchain-accounts) [\#2177](https://github.com/cosmos/ibc-go/pull/2177) Adding `IsMiddlewareEnabled` flag to interchain accounts `ActiveChannel` genesis type.
 * (apps/27-interchain-accounts) [\#2140](https://github.com/cosmos/ibc-go/pull/2140) Adding migration handler to ICS27 `controller` submodule to assert ownership of channel capabilities and set middleware enabled flag for existing channels. The ICS27 module consensus version has been bumped from 1 to 2.
-* (core/04-channel) [\#2304](https://github.com/cosmos/ibc-go/pull/2304) Adding `GetAllChannelsWithPortPrefix` function which filters channels based on a provided port prefix.
 * (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
 * (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.
 * (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.   
@@ -68,12 +67,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
 * (testing/simapp) [\#2190](https://github.com/cosmos/ibc-go/pull/2190) Adding the new `x/group` cosmos-sdk module to simapp.
-* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
 
 ### Bug Fixes
 
-* (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
-* (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
 
 ## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-08-12
