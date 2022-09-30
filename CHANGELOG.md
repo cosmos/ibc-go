@@ -41,7 +41,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 * (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types.
-* (apps/27-interchain-accounts)[\#2302](https://github.com/cosmos/ibc-go/pull/2302) Handle unwrapping of channel version in interchain accounts channel reopening handshake flow. The `host` submodule `Keeper` now requires an `ICS4Wrapper` similarly to the `controller` submodule.
 * (apps/27-interchain-accounts) [\#2035](https://github.com/cosmos/ibc-go/pull/2035) Interchain accounts host and controller Keepers now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (transfer) [\#2034](https://github.com/cosmos/ibc-go/pull/2034) Transfer Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
@@ -57,6 +56,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2146](https://github.com/cosmos/ibc-go/pull/2146) ICS27 controller now claims the channel capability passed via ibc core, and passes `nil` to the underlying app callback. The channel capability arg in `SendTx` is now ignored and looked up internally.
 * (apps/27-interchain-accounts) [\#2177](https://github.com/cosmos/ibc-go/pull/2177) Adding `IsMiddlewareEnabled` flag to interchain accounts `ActiveChannel` genesis type.
 * (apps/27-interchain-accounts) [\#2140](https://github.com/cosmos/ibc-go/pull/2140) Adding migration handler to ICS27 `controller` submodule to assert ownership of channel capabilities and set middleware enabled flag for existing channels. The ICS27 module consensus version has been bumped from 1 to 2.
+* (core/04-channel) [\#2304](https://github.com/cosmos/ibc-go/pull/2304) Adding `GetAllChannelsWithPortPrefix` function which filters channels based on a provided port prefix.
 * (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
 * (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.
 * (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.   
