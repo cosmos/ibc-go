@@ -89,6 +89,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
 #### Controller APIs
 
 In previous releases of `ibc-go`, chain developers integrating the ICS27 interchain accounts `controller` functionality were expected to create a custom `Base Application` referred to as an authentication module, see: [Building an authentication module](https://github.com/cosmos/ibc-go/blob/v5.0.0/docs/apps/interchain-accounts/auth-modules.md).
+
 The `Base Application` was intended to be composed with the ICS27 `controller` submodule `Keeper` and faciliate many forms of message authentication depending on a particular chain's use case.
 
 The `controller` submodule exposes two functions:
