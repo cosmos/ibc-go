@@ -51,7 +51,7 @@ func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.M
 
 	// explicitly passing nil as the argument is discarded as the channel capability is retrieved in SendTx.
 	absoluteTimeout := uint64(ctx.BlockTime().UnixNano()) + msg.RelativeTimeout
-	seq, err := s.Keeper.SendTx(ctx, nil, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
+	seq, err := s.sendTx(ctx, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
 	if err != nil {
 		return nil, err
 	}
