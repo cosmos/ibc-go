@@ -13,15 +13,11 @@ There are four sections based on the four potential user groups of this document
 
 ## Chains
 
-- No relevant changes were made in this release.
-
-## IBC Apps
-
-### ICS27 - Interchain Accounts
-
 The `ibc-go/v6` release introduces a new set of migrations for `27-interchain-accounts`. Ownership of ICS27 channel capabilities is tranferred from authentication modules and will now reside with the ICS27 `controller` submodule moving forward. 
 
 For chains which implement custom authentication modules using the ICS27 `controller` submodule this requires a migration function to be included in the application upgrade handler. A subsequent migration handler is run automatically, asserting the ownership of ICS27 channel capabilities has been transferred successfully.
+
+For chains which *do not* implement custom authentication modules using the ICS27 `controller` submodule this migration is not required.
 
 This migration facilitates the addition of the ICS27 `controller` submodule `MsgServer` which provides a standardised approach to integrating existing forms of authentication such as `x/gov` and `x/group` provided by the Cosmos SDK. 
 
@@ -85,6 +81,9 @@ app.UpgradeKeeper.SetUpgradeHandler(
 )
 ```
 
+## IBC Apps
+
+### ICS27 - Interchain Accounts
 
 #### Controller APIs
 
