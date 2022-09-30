@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 const (
@@ -95,7 +95,7 @@ func NewPayPacketFeeAsyncTxCmd() *cobra.Command {
 				return err
 			}
 
-			packetID := channeltypes.NewPacketId(args[0], args[1], seq)
+			packetID := channeltypes.NewPacketID(args[0], args[1], seq)
 
 			recvFeeStr, err := cmd.Flags().GetString(flagRecvFee)
 			if err != nil {

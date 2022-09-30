@@ -6,10 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
-// NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund addres and relayers
+// NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund address and relayers
 func NewPacketFee(fee Fee, refundAddr string, relayers []string) PacketFee {
 	return PacketFee{
 		Fee:           fee,
@@ -25,9 +25,9 @@ func (p PacketFee) Validate() error {
 		return sdkerrors.Wrap(err, "failed to convert RefundAddress into sdk.AccAddress")
 	}
 
-	// enforce relayer is nil
-	if p.Relayers != nil {
-		return ErrRelayersNotNil
+	// enforce relayers are not set
+	if len(p.Relayers) != 0 {
+		return ErrRelayersNotEmpty
 	}
 
 	if err := p.Fee.Validate(); err != nil {
@@ -67,15 +67,15 @@ func (f Fee) Total() sdk.Coins {
 }
 
 // Validate asserts that each Fee is valid and all three Fees are not empty or zero
-func (fee Fee) Validate() error {
+func (f Fee) Validate() error {
 	var errFees []string
-	if !fee.AckFee.IsValid() {
+	if !f.AckFee.IsValid() {
 		errFees = append(errFees, "ack fee invalid")
 	}
-	if !fee.RecvFee.IsValid() {
+	if !f.RecvFee.IsValid() {
 		errFees = append(errFees, "recv fee invalid")
 	}
-	if !fee.TimeoutFee.IsValid() {
+	if !f.TimeoutFee.IsValid() {
 		errFees = append(errFees, "timeout fee invalid")
 	}
 
@@ -84,7 +84,7 @@ func (fee Fee) Validate() error {
 	}
 
 	// if all three fee's are zero or empty return an error
-	if fee.AckFee.IsZero() && fee.RecvFee.IsZero() && fee.TimeoutFee.IsZero() {
+	if f.AckFee.IsZero() && f.RecvFee.IsZero() && f.TimeoutFee.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "all fees are zero")
 	}
 

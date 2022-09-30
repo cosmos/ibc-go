@@ -5,12 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts controller application state from a provided genesis state
-func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGenesisState) {
 	for _, portID := range state.Ports {
 		if !keeper.IsBound(ctx, portID) {
 			cap := keeper.BindPort(ctx, portID)
@@ -22,6 +22,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesi
 
 	for _, ch := range state.ActiveChannels {
 		keeper.SetActiveChannelID(ctx, ch.ConnectionId, ch.PortId, ch.ChannelId)
+
+		if ch.IsMiddlewareEnabled {
+			keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionId)
+		}
 	}
 
 	for _, acc := range state.InterchainAccounts {
@@ -32,8 +36,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state icatypes.ControllerGenesi
 }
 
 // ExportGenesis returns the interchain accounts controller exported genesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) icatypes.ControllerGenesisState {
-	return icatypes.NewControllerGenesisState(
+func ExportGenesis(ctx sdk.Context, keeper Keeper) genesistypes.ControllerGenesisState {
+	return genesistypes.NewControllerGenesisState(
 		keeper.GetAllActiveChannels(ctx),
 		keeper.GetAllInterchainAccounts(ctx),
 		keeper.GetAllPorts(ctx),

@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // ClientKeeper expected account IBC client keeper
@@ -75,4 +75,11 @@ type ConnectionKeeper interface {
 // PortKeeper expected account IBC port keeper
 type PortKeeper interface {
 	Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) bool
+}
+
+// ScopedKeeper defines the expected x/capability scoped keeper interface
+type ScopedKeeper interface {
+	NewCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, error)
+	AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool
+	LookupModules(ctx sdk.Context, name string) ([]string, *capabilitytypes.Capability, error)
 }

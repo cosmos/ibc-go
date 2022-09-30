@@ -10,7 +10,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain
@@ -129,6 +129,7 @@ func ApplyPrefix(prefix exported.Prefix, path MerklePath) (MerklePath, error) {
 var _ exported.Proof = (*MerkleProof)(nil)
 
 // VerifyMembership verifies the membership of a merkle proof against the given root, path, and value.
+// Note that the path is expected as []string{<store key of module>, <key corresponding to requested value>}.
 func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, value []byte) error {
 	if err := proof.validateVerificationArgs(specs, root); err != nil {
 		return err

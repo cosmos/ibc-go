@@ -272,7 +272,7 @@ Auth modules are expected to know how to decode the acknowledgement.
 
 If the controller chain is connected to a host chain using the host module on ibc-go, it may interpret the acknowledgement bytes as follows:
 
-Begin by unmarshaling the acknowledgement into sdk.TxMsgData:
+Begin by unmarshaling the acknowledgement into `sdk.TxMsgData`:
 ```go
 var ack channeltypes.Acknowledgement
 if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
@@ -285,8 +285,8 @@ if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 }
 ```
 
-If the txMsgData.Data field is non nil, the host chain is using SDK version <= v0.45. 
-The auth module should interpret the txMsgData.Data as follows:
+If the `txMsgData.Data` field is non nil, the host chain is using SDK version <= v0.45. 
+The auth module should interpret the `txMsgData.Data` as follows:
 
 ```go
 switch len(txMsgData.Data) {
@@ -337,8 +337,8 @@ default:
 }
 ```
 
-If the txMsgData.Data is empty, the host chain is using SDK version > v0.45.
-The auth module should interpret the txMsgData.Responses as follows:
+If the `txMsgData.Data` is empty, the host chain is using SDK version > v0.45.
+The auth module should interpret the `txMsgData.Responses` as follows:
 
 ```go
 ...

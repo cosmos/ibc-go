@@ -8,6 +8,8 @@ import (
 	"github.com/strangelove-ventures/ibctest/ibc"
 	"github.com/strangelove-ventures/ibctest/relayer"
 	"go.uber.org/zap"
+
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 )
 
 const (
@@ -15,8 +17,8 @@ const (
 )
 
 // newCosmosRelayer returns an instance of the go relayer.
-func newCosmosRelayer(t *testing.T, logger *zap.Logger, dockerClient *dockerclient.Client, network string, home string) ibc.Relayer {
-	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage(cosmosRelayerRepository, "main")).Build(
-		t, dockerClient, network, home,
+func newCosmosRelayer(t *testing.T, tc testconfig.TestConfig, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
+	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage(cosmosRelayerRepository, tc.RlyTag), relayer.StartupFlags("-p", "events")).Build(
+		t, dockerClient, network,
 	)
 }

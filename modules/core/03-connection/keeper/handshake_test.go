@@ -3,12 +3,12 @@ package keeper_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with
@@ -125,7 +125,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
 
 			// Set an invalid client of chainA on chainB
-			tmClient, ok := counterpartyClient.(*ibctmtypes.ClientState)
+			tmClient, ok := counterpartyClient.(*ibctm.ClientState)
 			suite.Require().True(ok)
 			tmClient.ChainId = "wrongchainid"
 
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
 
 			// modify counterparty client without setting in store so it still passes validate but fails proof verification
-			tmClient, ok := counterpartyClient.(*ibctmtypes.ClientState)
+			tmClient, ok := counterpartyClient.(*ibctm.ClientState)
 			suite.Require().True(ok)
 			tmClient.LatestHeight = tmClient.LatestHeight.Increment().(clienttypes.Height)
 		}, false},
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			consState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().True(found)
 
-			tmConsState, ok := consState.(*ibctmtypes.ConsensusState)
+			tmConsState, ok := consState.(*ibctm.ConsensusState)
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = time.Now()
@@ -203,45 +203,6 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 		}, false},
-		{"invalid previous connection is in TRYOPEN", func() {
-			// open init chainA
-			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
-
-			// open try chainB
-			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
-
-			// retrieve client state of chainA to pass as counterpartyClient
-			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-		}, false},
-		{"invalid previous connection has invalid versions", func() {
-			// open init chainA
-			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
-
-			// open try chainB
-			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
-
-			// modify connB to be in INIT with incorrect versions
-			connection, found := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID)
-			suite.Require().True(found)
-
-			connection.State = types.INIT
-			connection.Versions = []*types.Version{{}}
-
-			suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connection)
-
-			err = path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
-
-			// retrieve client state of chainA to pass as counterpartyClient
-			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-		}, false},
 	}
 
 	for _, tc := range testCases {
@@ -249,8 +210,9 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 		suite.Run(tc.msg, func() {
 			suite.SetupTest()                          // reset
-			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
-			versions = types.GetCompatibleVersions()   // must be explicitly changed in malleate
+			consensusHeight = clienttypes.ZeroHeight() // may be changed in malleate
+			versions = types.GetCompatibleVersions()   // may be changed in malleate
+			delayPeriod = 0                            // may be changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
@@ -329,7 +291,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			counterpartyClient = suite.chainB.GetClientState(path.EndpointB.ClientID)
 
 			// Set an invalid client of chainA on chainB
-			tmClient, ok := counterpartyClient.(*ibctmtypes.ClientState)
+			tmClient, ok := counterpartyClient.(*ibctm.ClientState)
 			suite.Require().True(ok)
 			tmClient.ChainId = "wrongchainid"
 
@@ -469,7 +431,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			counterpartyClient = suite.chainB.GetClientState(path.EndpointB.ClientID)
 
 			// modify counterparty client without setting in store so it still passes validate but fails proof verification
-			tmClient, ok := counterpartyClient.(*ibctmtypes.ClientState)
+			tmClient, ok := counterpartyClient.(*ibctm.ClientState)
 			suite.Require().True(ok)
 			tmClient.LatestHeight = tmClient.LatestHeight.Increment().(clienttypes.Height)
 
@@ -487,7 +449,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			consState, found := suite.chainB.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
 			suite.Require().True(found)
 
-			tmConsState, ok := consState.(*ibctmtypes.ConsensusState)
+			tmConsState, ok := consState.(*ibctm.ConsensusState)
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = tmConsState.Timestamp.Add(time.Second)

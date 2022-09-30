@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // msg types
@@ -106,11 +106,11 @@ func (msg MsgRegisterCounterpartyPayee) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgPayPacketFee creates a new instance of MsgPayPacketFee
-func NewMsgPayPacketFee(fee Fee, sourcePortId, sourceChannelId, signer string, relayers []string) *MsgPayPacketFee {
+func NewMsgPayPacketFee(fee Fee, sourcePortID, sourceChannelID, signer string, relayers []string) *MsgPayPacketFee {
 	return &MsgPayPacketFee{
 		Fee:             fee,
-		SourcePortId:    sourcePortId,
-		SourceChannelId: sourceChannelId,
+		SourcePortId:    sourcePortID,
+		SourceChannelId: sourceChannelID,
 		Signer:          signer,
 		Relayers:        relayers,
 	}
@@ -133,9 +133,9 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "failed to convert msg.Signer into sdk.AccAddress")
 	}
 
-	// enforce relayer is nil
-	if msg.Relayers != nil {
-		return ErrRelayersNotNil
+	// enforce relayer is not set
+	if len(msg.Relayers) != 0 {
+		return ErrRelayersNotEmpty
 	}
 
 	if err := msg.Fee.Validate(); err != nil {

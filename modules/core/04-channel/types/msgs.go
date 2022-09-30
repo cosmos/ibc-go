@@ -6,16 +6,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 var _ sdk.Msg = &MsgChannelOpenInit{}
 
 // NewMsgChannelOpenInit creates a new MsgChannelOpenInit. It sets the counterparty channel
 // identifier to be empty.
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgChannelOpenInit(
 	portID, version string, channelOrder Order, connectionHops []string,
 	counterpartyPortID string, signer string,
@@ -64,9 +65,10 @@ var _ sdk.Msg = &MsgChannelOpenTry{}
 // NewMsgChannelOpenTry creates a new MsgChannelOpenTry instance
 // The version string is deprecated and will be ignored by core IBC.
 // It is left as an argument for go API backwards compatibility.
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgChannelOpenTry(
-	portID, previousChannelID, version string, channelOrder Order, connectionHops []string,
+	portID, version string, channelOrder Order, connectionHops []string,
 	counterpartyPortID, counterpartyChannelID, counterpartyVersion string,
 	proofInit []byte, proofHeight clienttypes.Height, signer string,
 ) *MsgChannelOpenTry {
@@ -74,7 +76,6 @@ func NewMsgChannelOpenTry(
 	channel := NewChannel(TRYOPEN, channelOrder, counterparty, connectionHops, version)
 	return &MsgChannelOpenTry{
 		PortId:              portID,
-		PreviousChannelId:   previousChannelID,
 		Channel:             channel,
 		CounterpartyVersion: counterpartyVersion,
 		ProofInit:           proofInit,
@@ -89,9 +90,7 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "invalid port ID")
 	}
 	if msg.PreviousChannelId != "" {
-		if !IsValidChannelID(msg.PreviousChannelId) {
-			return sdkerrors.Wrap(ErrInvalidChannelIdentifier, "invalid previous channel ID")
-		}
+		return sdkerrors.Wrap(ErrInvalidChannelIdentifier, "previous channel identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
 	}
 	if len(msg.ProofInit) == 0 {
 		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
@@ -129,7 +128,8 @@ func (msg MsgChannelOpenTry) GetSigners() []sdk.AccAddress {
 var _ sdk.Msg = &MsgChannelOpenAck{}
 
 // NewMsgChannelOpenAck creates a new MsgChannelOpenAck instance
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgChannelOpenAck(
 	portID, channelID, counterpartyChannelID string, cpv string, proofTry []byte, proofHeight clienttypes.Height,
 	signer string,
@@ -181,7 +181,8 @@ func (msg MsgChannelOpenAck) GetSigners() []sdk.AccAddress {
 var _ sdk.Msg = &MsgChannelOpenConfirm{}
 
 // NewMsgChannelOpenConfirm creates a new MsgChannelOpenConfirm instance
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgChannelOpenConfirm(
 	portID, channelID string, proofAck []byte, proofHeight clienttypes.Height,
 	signer string,
@@ -228,7 +229,8 @@ func (msg MsgChannelOpenConfirm) GetSigners() []sdk.AccAddress {
 var _ sdk.Msg = &MsgChannelCloseInit{}
 
 // NewMsgChannelCloseInit creates a new MsgChannelCloseInit instance
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgChannelCloseInit(
 	portID string, channelID string, signer string,
 ) *MsgChannelCloseInit {
@@ -266,7 +268,8 @@ func (msg MsgChannelCloseInit) GetSigners() []sdk.AccAddress {
 var _ sdk.Msg = &MsgChannelCloseConfirm{}
 
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgChannelCloseConfirm(
 	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
 	signer string,
@@ -313,7 +316,8 @@ func (msg MsgChannelCloseConfirm) GetSigners() []sdk.AccAddress {
 var _ sdk.Msg = &MsgRecvPacket{}
 
 // NewMsgRecvPacket constructs new MsgRecvPacket
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgRecvPacket(
 	packet Packet, proofCommitment []byte, proofHeight clienttypes.Height,
 	signer string,
@@ -360,7 +364,8 @@ func (msg MsgRecvPacket) GetSigners() []sdk.AccAddress {
 var _ sdk.Msg = &MsgTimeout{}
 
 // NewMsgTimeout constructs new MsgTimeout
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgTimeout(
 	packet Packet, nextSequenceRecv uint64, proofUnreceived []byte,
 	proofHeight clienttypes.Height, signer string,
@@ -402,7 +407,8 @@ func (msg MsgTimeout) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgTimeoutOnClose constructs new MsgTimeoutOnClose
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgTimeoutOnClose(
 	packet Packet, nextSequenceRecv uint64,
 	proofUnreceived, proofClose []byte,
@@ -451,7 +457,8 @@ func (msg MsgTimeoutOnClose) GetSigners() []sdk.AccAddress {
 var _ sdk.Msg = &MsgAcknowledgement{}
 
 // NewMsgAcknowledgement constructs a new MsgAcknowledgement
-// nolint:interfacer
+//
+//nolint:interfacer
 func NewMsgAcknowledgement(
 	packet Packet,
 	ack, proofAcked []byte,

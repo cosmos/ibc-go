@@ -1,0 +1,56 @@
+name: Manual E2E (Icad)
+on:
+  # when https://github.com/community/community/discussions/11795 is resolved
+  # we will be able to dynamically build up the list of valid inputs.
+  # for now this needs to be manual.
+  workflow_dispatch:
+    inputs:
+      test-entry-point:
+        description: 'Test entry point'
+        required: true
+        type: choice
+        options:
+          - TestInterchainAccountsTestSuite
+          - TestIncentivizedInterchainAccountsTestSuite
+      chain-image:
+        description: 'The image to use for chain A'
+        required: true
+        type: string
+        default: "ghcr.io/cosmos/ibc-go-icad"
+      chain-a-tag:
+        description: 'The tag to use for chain A'
+        required: true
+        type: choice
+        default: master
+        options:
+          - master
+          - v0.3.3
+          - v0.2.3
+          - v0.1.4
+      chain-b-tag:
+        default: master
+        description: 'The tag to use for chain B'
+        required: true
+        type: choice
+        options:
+          - master
+          - v0.3.3
+          - v0.2.3
+          - v0.1.4
+      relayer-tag:
+        description: 'The tag to use for the relayer'
+        required: true
+        default: "v2.0.0"
+        type: string
+
+
+jobs:
+  e2e-manual:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: "${{ github.event.inputs.chain-image }}"
+      chain-a-tag: "${{ github.event.inputs.chain-a-tag }}"
+      chain-b-tag: "${{ github.event.inputs.chain-b-tag }}"
+      relayer-tag: "${{ github.event.inputs.relayer-tag }}"
+      test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
+      chain-binary: "icad"

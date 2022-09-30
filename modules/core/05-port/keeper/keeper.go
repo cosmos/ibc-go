@@ -4,23 +4,22 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // Keeper defines the IBC connection keeper
 type Keeper struct {
 	Router *types.Router
 
-	scopedKeeper capabilitykeeper.ScopedKeeper
+	scopedKeeper types.ScopedKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(sck capabilitykeeper.ScopedKeeper) Keeper {
+func NewKeeper(sck types.ScopedKeeper) Keeper {
 	return Keeper{
 		scopedKeeper: sck,
 	}
