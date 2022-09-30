@@ -116,7 +116,7 @@ type ICS4Wrapper interface {
 		timeoutHeight clienttypes.Height,
 		timeoutTimestamp uint64,
 		data []byte,
-	) error
+	) (sequence uint64, err error)
 
 	WriteAcknowledgement(
 		ctx sdk.Context,

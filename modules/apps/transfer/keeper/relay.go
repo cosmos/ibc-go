@@ -124,7 +124,7 @@ func (k Keeper) SendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver,
 	)
 
-	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes()); err != nil {
+	if _, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes()); err != nil {
 		return err
 	}
 

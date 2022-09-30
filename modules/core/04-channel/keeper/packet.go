@@ -27,26 +27,26 @@ func (k Keeper) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-) error {
+) (uint64, error) {
 	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrap(types.ErrChannelNotFound, sourceChannel)
+		return 0, sdkerrors.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
 	if channel.State == types.CLOSED {
-		return sdkerrors.Wrapf(
+		return 0, sdkerrors.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel is CLOSED (got %s)", channel.State.String(),
 		)
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return 0, sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrapf(
+		return 0, sdkerrors.Wrapf(
 			types.ErrSequenceSendNotFound,
 			"source port: %s, source channel: %s", sourcePort, sourceChannel,
 		)
@@ -57,29 +57,29 @@ func (k Keeper) SendPacket(
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeoutHeight, timeoutTimestamp)
 
 	if err := packet.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "constructed packet failed basic validation")
+		return 0, sdkerrors.Wrap(err, "constructed packet failed basic validation")
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return 0, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
 	if !found {
-		return clienttypes.ErrConsensusStateNotFound
+		return 0, clienttypes.ErrConsensusStateNotFound
 	}
 
 	// prevent accidental sends with clients that cannot be updated
 	clientStore := k.clientKeeper.ClientStore(ctx, connectionEnd.GetClientID())
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
+		return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 
 	// check if packet is timed out on the receiving chain
 	latestHeight := clientState.GetLatestHeight()
 	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
-		return sdkerrors.Wrapf(
+		return 0, sdkerrors.Wrapf(
 			types.ErrPacketTimeout,
 			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeoutHeight,
 		)
@@ -87,7 +87,7 @@ func (k Keeper) SendPacket(
 
 	clientType, _, err := clienttypes.ParseClientIdentifier(connectionEnd.GetClientID())
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// NOTE: this is a temporary fix. Solo machine does not support usage of 'GetTimestampAtHeight'
@@ -95,11 +95,11 @@ func (k Keeper) SendPacket(
 	if clientType != exported.Solomachine {
 		latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
-			return sdkerrors.Wrapf(
+			return 0, sdkerrors.Wrapf(
 				types.ErrPacketTimeout,
 				"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
 			)
@@ -108,9 +108,8 @@ func (k Keeper) SendPacket(
 
 	commitment := types.CommitPacket(k.cdc, packet)
 
-	sequence++
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence)
-	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
+	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence()+1, commitment)
 
 	EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
@@ -123,7 +122,7 @@ func (k Keeper) SendPacket(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	return nil
+	return packet.GetSequence(), nil
 }
 
 // RecvPacket is called by a module in order to receive & process an IBC packet

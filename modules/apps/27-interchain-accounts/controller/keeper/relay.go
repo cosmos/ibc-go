@@ -29,13 +29,8 @@ func (k Keeper) SendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, con
 		return 0, sdkerrors.Wrap(err, "invalid interchain account packet data")
 	}
 
-	// get the next sequence
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, portID, activeChannelID)
-	if !found {
-		return 0, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "failed to retrieve next sequence send for channel %s on port %s", activeChannelID, portID)
-	}
-
-	if err := k.ics4Wrapper.SendPacket(ctx, chanCap, portID, activeChannelID, clienttypes.ZeroHeight(), timeoutTimestamp, icaPacketData.GetBytes()); err != nil {
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, chanCap, portID, activeChannelID, clienttypes.ZeroHeight(), timeoutTimestamp, icaPacketData.GetBytes())
+	if err != nil {
 		return 0, err
 	}
 

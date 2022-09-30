@@ -376,7 +376,7 @@ func (endpoint *Endpoint) SendPacket(packet exported.PacketI) error {
 
 	// no need to send message, acting as a module
 	// TODO: Change Endpoint SendPacket to take in arguments directly
-	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap,
+	_, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap,
 		packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp(), packet.GetData())
 	if err != nil {
 		return err

@@ -186,7 +186,7 @@ func (im IBCMiddleware) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-) error {
+) (uint64, error) {
 	panic("SendPacket not supported for ICA controller module. Please use SendTx")
 }
 
