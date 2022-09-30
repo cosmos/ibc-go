@@ -1,9 +1,9 @@
 package solomachine_test
 
 import (
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v5/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {

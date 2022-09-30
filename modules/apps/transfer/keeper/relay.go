@@ -9,11 +9,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	coretypes "github.com/cosmos/ibc-go/v5/modules/core/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
 )
 
 // SendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -51,6 +51,29 @@ import (
 //
 // Note: An IBC Transfer must be initiated using a MsgTransfer via the Transfer rpc handler
 func (k Keeper) SendTransfer(
+	ctx sdk.Context,
+	sourcePort,
+	sourceChannel string,
+	token sdk.Coin,
+	sender sdk.AccAddress,
+	receiver string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+) error {
+	return k.sendTransfer(
+		ctx,
+		sourcePort,
+		sourceChannel,
+		token,
+		sender,
+		receiver,
+		timeoutHeight,
+		timeoutTimestamp,
+	)
+}
+
+// sendTransfer handles transfer sending logic.
+func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
 	sourceChannel string,

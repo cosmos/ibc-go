@@ -1,0 +1,132 @@
+on:
+  workflow_call:
+    inputs:
+      test-entry-point:
+        description: 'Test entry point'
+        required: false
+        type: string
+        default: "" # empty string means run all tests
+      test-exclusions:
+        description: 'Comma separated list of tests to skip'
+        required: false
+        type: string
+        default: "" # empty string means don't skip any test.
+      chain-image:
+        description: 'The image to use for chains'
+        required: true
+        type: string
+        default: "ghcr.io/cosmos/ibc-go-simd"
+      chain-a-tag:
+        description: 'The tag to use for chain A'
+        required: true
+        type: string
+        default: main
+      chain-b-tag:
+        default: v4.0.0
+        description: 'The tag to use for chain B'
+        required: true
+        type: string
+      chain-binary:
+        default: "simd"
+        description: 'The chain binary'
+        required: false
+        type: string
+      relayer-tag:
+        description: 'The tag to use for the relayer'
+        required: true
+        default: "v2.0.0"
+        type: string
+      build-and-push-docker-image:
+        description: "Flag to specify if the docker image should be built and pushed beforehand"
+        required: false
+        type: boolean
+        default: false
+
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ibc-go-simd
+
+jobs:
+  test-details:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Inputs
+        run: |
+          echo "Chain Image:      ${{ inputs.chain-image }}"
+          echo "Chain A Tag:      ${{ inputs.chain-a-tag }}"
+          echo "Chain B Tag:      ${{ inputs.chain-b-tag }}"
+          echo "Relayer Tag:      ${{ inputs.relayer-tag }}"
+          echo "Test Entry Point: ${{ inputs.test-entry-point }}"
+
+  # we skip individual steps rather than the full job as e2e-tests will not run if this task
+  # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
+  # a job.
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        if: ${{ inputs.build-and-push-docker-image }}
+      - name: Log in to the Container registry
+        if: ${{ inputs.build-and-push-docker-image }}
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ inputs.build-and-push-docker-image }}
+        id: meta
+        uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a
+        with:
+          images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        if: ${{ inputs.build-and-push-docker-image }}
+        uses: docker/build-push-action@c84f38281176d4c9cdb1626ffafcd6b3911b5d94
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # dynamically build a matrix of test/test suite pairs to run
+  build-test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(go run cmd/build_test_matrix/main.go)"
+        env:
+          TEST_ENTRYPOINT: "${{ inputs.test-entry-point }}"
+          TEST_EXCLUSIONS: "${{ inputs.test-exclusions }}"
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs:
+      - build-test-matrix
+      - docker-build
+    env:
+      CHAIN_IMAGE: "${{ inputs.chain-image }}"
+      CHAIN_A_TAG: "${{ inputs.chain-a-tag }}"
+      CHAIN_B_TAG: "${{ inputs.chain-b-tag }}"
+      RLY_TAG: "${{ inputs.relayer-tag }}"
+      CHAIN_BINARY: "${{ inputs.chain-binary }}"
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Run e2e Test
+        run: |
+          cd e2e
+          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}

@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestChangeValSet(t *testing.T) {
@@ -23,11 +23,11 @@ func TestChangeValSet(t *testing.T) {
 	amount2, ok := sdk.NewIntFromString("30000000000000000000")
 	require.True(t, ok)
 
-	val := chainA.App.GetStakingKeeper().GetValidators(chainA.GetContext(), 4)
+	val := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
 
-	chainA.App.GetStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
+	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
 		amount, types.Unbonded, val[1], true)
-	chainA.App.GetStakingKeeper().Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
+	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
 		amount2, types.Unbonded, val[3], true)
 
 	coord.CommitBlock(chainA)
