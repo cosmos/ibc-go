@@ -16,6 +16,9 @@ import (
 // - A new MsgChannelOpenInit is routed through the MsgServiceRouter, executing the OnOpenChanInit callback stack as configured.
 // - An error is returned if the port identifier is already in use. Gaining access to interchain accounts whose channels
 // have closed cannot be done with this function. A regular MsgChannelOpenInit must be used.
+//
+// Deprecated: Please use MsgRegisterInterchainAccount with the associated MsgServer interface.
+// This API will be removed in later releases.
 func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
