@@ -11,16 +11,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 const (
 	// The controller chain channel version
-	flagVersion                = "version"
-	flagPacketTimeoutHeight    = "packet-timeout-height"
-	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
+	flagVersion               = "version"
+	flagRelativePacketTimeout = "relative-packet-timeout"
 )
 
 func newRegisterInterchainAccountCmd() *cobra.Command {
@@ -65,8 +63,7 @@ func newSendTxCmd() *cobra.Command {
 		Short: "Send an interchain account tx on the provided connection.",
 		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain 
 and attempts to send the packet. Packet data is provided as json, file or string. An 
-appropriate relative timeoutTimestamp must be provided with flag {packet-timeout-timestamp}, along with a timeoutHeight
-via {packet-timeout-timestamp}`),
+appropriate relative timeoutTimestamp must be provided with flag {relative-packet-timeout}`),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -94,28 +91,18 @@ via {packet-timeout-timestamp}`),
 				}
 			}
 
-			timeoutHeightStr, err := cmd.Flags().GetString(flagPacketTimeoutHeight)
-			if err != nil {
-				return err
-			}
-			timeoutHeight, err := clienttypes.ParseHeight(timeoutHeightStr)
+			relativeTimeoutTimestamp, err := cmd.Flags().GetUint64(flagRelativePacketTimeout)
 			if err != nil {
 				return err
 			}
 
-			timeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgSendTx(owner, connectionID, timeoutHeight, timeoutTimestamp, icaMsgData)
+			msg := types.NewMsgSendTx(owner, connectionID, relativeTimeoutTimestamp, icaMsgData)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd.Flags().String(flagPacketTimeoutHeight, icatypes.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
-	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, icatypes.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().Uint64(flagRelativePacketTimeout, icatypes.DefaultRelativePacketTimeoutTimestamp, "Relative packet timeout in nanoseconds from now. Default is 10 minutes.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

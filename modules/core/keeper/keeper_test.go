@@ -11,10 +11,10 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 type KeeperTestSuite struct {
@@ -79,10 +79,15 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		malleate func()
 		expPass  bool
 	}{
-		{"failure: empty staking keeper", func() {
-			emptyStakingKeeper := stakingkeeper.Keeper{}
+		{"failure: empty staking keeper value", func() {
+			emptyStakingKeeperValue := stakingkeeper.Keeper{}
 
-			stakingKeeper = emptyStakingKeeper
+			stakingKeeper = emptyStakingKeeperValue
+		}, false},
+		{"failure: empty staking keeper pointer", func() {
+			emptyStakingKeeperPointer := &stakingkeeper.Keeper{}
+
+			stakingKeeper = emptyStakingKeeperPointer
 		}, false},
 		{"failure: empty mock staking keeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
@@ -90,10 +95,15 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			stakingKeeper = emptyMockStakingKeeper
 		}, false},
-		{"failure: empty upgrade keeper", func() {
-			emptyUpgradeKeeper := upgradekeeper.Keeper{}
+		{"failure: empty upgrade keeper value", func() {
+			emptyUpgradeKeeperValue := upgradekeeper.Keeper{}
 
-			upgradeKeeper = emptyUpgradeKeeper
+			upgradeKeeper = emptyUpgradeKeeperValue
+		}, false},
+		{"failure: empty upgrade keeper pointer", func() {
+			emptyUpgradeKeeperPointer := &upgradekeeper.Keeper{}
+
+			upgradeKeeper = emptyUpgradeKeeperPointer
 		}, false},
 		{"failure: empty scoped keeper", func() {
 			emptyScopedKeeper := capabilitykeeper.ScopedKeeper{}
