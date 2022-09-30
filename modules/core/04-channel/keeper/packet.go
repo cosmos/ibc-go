@@ -22,15 +22,15 @@ import (
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
 	channelCap *capabilitytypes.Capability,
-	srcPort string,
-	srcChannel string,
+	sourcePort string,
+	sourceChannel string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
 ) error {
-	channel, found := k.GetChannel(ctx, srcPort, srcChannel)
+	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrap(types.ErrChannelNotFound, srcChannel)
+		return sdkerrors.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
 	if channel.State == types.CLOSED {
@@ -40,20 +40,20 @@ func (k Keeper) SendPacket(
 		)
 	}
 
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(srcPort, srcChannel)) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", srcPort, srcChannel)
+	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
+		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	sequence, found := k.GetNextSequenceSend(ctx, srcPort, srcChannel)
+	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		return sdkerrors.Wrapf(
 			types.ErrSequenceSendNotFound,
-			"source port: %s, source channel: %s", srcPort, srcChannel,
+			"source port: %s, source channel: %s", sourcePort, sourceChannel,
 		)
 	}
 
 	// construct packet from given fields and channel state
-	packet := types.NewPacket(data, sequence, srcPort, srcChannel,
+	packet := types.NewPacket(data, sequence, sourcePort, sourceChannel,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeoutHeight, timeoutTimestamp)
 
 	if err := packet.ValidateBasic(); err != nil {
@@ -109,16 +109,16 @@ func (k Keeper) SendPacket(
 	commitment := types.CommitPacket(k.cdc, packet)
 
 	sequence++
-	k.SetNextSequenceSend(ctx, srcPort, srcChannel, sequence)
-	k.SetPacketCommitment(ctx, srcPort, srcChannel, packet.GetSequence(), commitment)
+	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence)
+	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
 	EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", srcPort,
-		"src_channel", srcChannel,
+		"src_port", sourcePort,
+		"src_channel", sourceChannel,
 		"dst_port", packet.GetDestPort(),
 		"dst_channel", packet.GetDestChannel(),
 	)

@@ -36,8 +36,8 @@ var (
 func (suite *KeeperTestSuite) TestSendPacket() {
 	var (
 		path             *ibctesting.Path
-		srcPort          string
-		srcChannel       string
+		sourcePort       string
+		sourceChannel    string
 		packetData       []byte
 		timeoutHeight    clienttypes.Height
 		timeoutTimestamp uint64
@@ -47,20 +47,20 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 	testCases := []testCase{
 		{"success: UNORDERED channel", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"success: ORDERED channel", func() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"success with solomachine: UNORDERED channel", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			// swap client with solo machine
 			solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{"success with solomachine: ORDERED channel", func() {
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			// swap client with solomachine
 			solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		}, true},
 		{"packet basic validation failed, empty packet data", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			packetData = []byte{}
@@ -97,12 +97,12 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{"channel not found", func() {
 			// use wrong channel naming
 			suite.coordinator.Setup(path)
-			srcChannel = ibctesting.InvalidID
+			sourceChannel = ibctesting.InvalidID
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"channel closed", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			err := path.EndpointA.SetChannelClosed()
 			suite.Require().NoError(err)
@@ -114,13 +114,13 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID,
 				types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{connIDA}, path.EndpointA.ChannelConfig.Version),
 			)
-			srcChannel = ibctesting.FirstChannelID
+			sourceChannel = ibctesting.FirstChannelID
 			suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"client state not found", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			// change connection client ID
 			connection := path.EndpointA.GetConnection()
@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		}, false},
 		{"client state is frozen", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			connection := path.EndpointA.GetConnection()
 			clientState := path.EndpointA.GetClientState()
@@ -147,7 +147,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 		{"timeout height passed", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			// use client state latest height for timeout
 			clientState := path.EndpointA.GetClientState()
@@ -156,7 +156,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		}, false},
 		{"timeout timestamp passed", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			// use latest time on client state
 			clientState := path.EndpointA.GetClientState()
@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		}, false},
 		{"next sequence send not found", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			suite.coordinator.SetupConnections(path)
 			// manually creating channel prevents next sequence from being set
@@ -184,7 +184,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		}, false},
 		{"channel capability not found", func() {
 			suite.coordinator.Setup(path)
-			srcChannel = path.EndpointA.ChannelID
+			sourceChannel = path.EndpointA.ChannelID
 
 			channelCap = capabilitytypes.NewCapability(5)
 		}, false},
@@ -197,8 +197,8 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			// set default send packet arguments
-			// srcChannel is set after path is setup
-			srcPort = path.EndpointA.ChannelConfig.PortID
+			// sourceChannel is set after path is setup
+			sourcePort = path.EndpointA.ChannelConfig.PortID
 			timeoutHeight = defaultTimeoutHeight
 			timeoutTimestamp = disabledTimeoutTimestamp
 			packetData = ibctesting.MockPacketData
@@ -207,7 +207,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			tc.malleate()
 
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(), channelCap,
-				srcPort, srcChannel, timeoutHeight, timeoutTimestamp, packetData)
+				sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

@@ -338,13 +338,13 @@ func (im IBCMiddleware) OnTimeoutPacket(
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	srcPort string,
-	srcChannel string,
+	sourcePort string,
+	sourceChannel string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
 ) error {
-	return im.keeper.SendPacket(ctx, chanCap, srcPort, srcChannel, timeoutHeight, timeoutTimestamp, data)
+	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface

@@ -44,15 +44,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, false, true,
 		},
 		{
-			"source channel not found",
-			func() {
-				// channel references wrong ID
-				suite.coordinator.CreateTransferChannels(path)
-				path.EndpointA.ChannelID = ibctesting.InvalidID
-				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-			}, true, false,
-		},
-		{
 			"next seq send not found",
 			func() {
 				path.EndpointA.ChannelID = "channel-0"
