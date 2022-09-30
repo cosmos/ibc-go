@@ -195,12 +195,12 @@ func OnRecvPacket(
     }
 }
 
-func OnAcknowledgementPacket(
+func (im IBCModule) OnAcknowledgementPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     acknowledgement []byte,
     relayer string,
-) {
+) error {
     // application-specific onAcknowledgmentPacket logic
 
     // unmarshal ack bytes into the acknowledgment interface
@@ -215,11 +215,11 @@ func OnAcknowledgementPacket(
     }
 }
 
-func OnTimeoutPacket(
+func (im IBCModule) OnTimeoutPacket(
     ctx sdk.Context,
     packet channeltypes.Packet,
     relayer string,
-) {
+) error {
     // application-specific onTimeoutPacket logic
 
     // call timeout callback on original actor
