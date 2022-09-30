@@ -384,6 +384,28 @@ func (k Keeper) IterateChannels(ctx sdk.Context, cb func(types.IdentifiedChannel
 	}
 }
 
+// GetAllChannelsWithPortPrefix returns all channels with the specified port prefix. If an empty prefix is provided
+// all channels will be returned.
+func (k Keeper) GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []types.IdentifiedChannel {
+	if strings.TrimSpace(portPrefix) == "" {
+		return k.GetAllChannels(ctx)
+	}
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.FilteredPortPrefix(portPrefix))
+	defer iterator.Close()
+
+	var filteredChannels []types.IdentifiedChannel
+	for ; iterator.Valid(); iterator.Next() {
+		var channel types.Channel
+		k.cdc.MustUnmarshal(iterator.Value(), &channel)
+
+		portID, channelID := host.MustParseChannelPath(string(iterator.Key()))
+		identifiedChannel := types.NewIdentifiedChannel(portID, channelID, channel)
+		filteredChannels = append(filteredChannels, identifiedChannel)
+	}
+	return filteredChannels
+}
+
 // GetAllChannels returns all stored Channel objects.
 func (k Keeper) GetAllChannels(ctx sdk.Context) (channels []types.IdentifiedChannel) {
 	k.IterateChannels(ctx, func(channel types.IdentifiedChannel) bool {
