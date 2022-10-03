@@ -22,22 +22,6 @@ func NewMsgTransfer(
 	sourcePort, sourceChannel string,
 	token sdk.Coin, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-) *MsgTransfer {
-	return &MsgTransfer{
-		SourcePort:       sourcePort,
-		SourceChannel:    sourceChannel,
-		Token:            token,
-		Sender:           sender,
-		Receiver:         receiver,
-		TimeoutHeight:    timeoutHeight,
-		TimeoutTimestamp: timeoutTimestamp,
-	}
-}
-
-func NewMsgTransferWithMetadata(
-	sourcePort, sourceChannel string,
-	token sdk.Coin, sender, receiver string,
-	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	metadata []byte,
 ) *MsgTransfer {
 	return &MsgTransfer{
