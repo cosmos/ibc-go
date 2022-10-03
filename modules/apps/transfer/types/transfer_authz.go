@@ -33,6 +33,15 @@ func (a TransferAuthorization) MsgTypeURL() string {
 	return sdk.MsgTypeURL(&MsgTransfer{})
 }
 
+func IsAllowedAddress(receiver string, allowedAddrs []string) bool {
+	for _, addr := range allowedAddresses {
+		if addr == receiver {
+			return true
+		}
+	}
+	return false
+}
+
 // Accept implements Authorization.Accept.
 func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.AcceptResponse, error) {
 	mTransfer, ok := msg.(*MsgTransfer)
@@ -46,6 +55,11 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 			if isNegative {
 				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("requested amount is more than spend limit")
 			}
+
+			if !IsAllowedAddress(mTransfer.Receiver, allocation.AllowedAddresses) {
+				return authz.AcceptResponse{}, sdkerrors.ErrInsufficientFunds.Wrapf("not allowed address for transfer")
+			}
+
 			if limitLeft.IsZero() {
 				a.Allocations = slices.Delete(a.Allocations, index, index+1)
 				if len(a.Allocations) == 0 {
