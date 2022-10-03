@@ -300,7 +300,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, 
 func (s *E2ETestSuite) TransferWithMetadata(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, metadata []byte,
 ) (sdk.TxResponse, error) {
-	msg := transfertypes.NewMsgTransferWithMetadata(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, metadata)
+	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, metadata)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
