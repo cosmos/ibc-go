@@ -22,6 +22,7 @@ const (
 	flagPacketTimeoutHeight    = "packet-timeout-height"
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 	flagAbsoluteTimeouts       = "absolute-timeouts"
+	flagMetadata               = "metadata"
 )
 
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
@@ -76,6 +77,11 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 				return err
 			}
 
+			metadataStr, err := cmd.Flags().GetString(flagMetadata)
+			if err != nil {
+				return err
+			}
+
 			// if the timeouts are not absolute, retrieve latest block height and block timestamp
 			// for the consensus state connected to the destination port/channel
 			if !absoluteTimeouts {
@@ -111,7 +117,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, nil,
+				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, []byte(metadataStr),
 			)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
