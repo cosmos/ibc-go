@@ -59,29 +59,7 @@ func (k Keeper) SendTransfer(
 	receiver string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
-) error {
-	return k.sendTransfer(
-		ctx,
-		sourcePort,
-		sourceChannel,
-		token,
-		sender,
-		receiver,
-		timeoutHeight,
-		timeoutTimestamp,
-	)
-}
-
-// sendTransfer handles transfer sending logic.
-func (k Keeper) sendTransfer(
-	ctx sdk.Context,
-	sourcePort,
-	sourceChannel string,
-	token sdk.Coin,
-	sender sdk.AccAddress,
-	receiver string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	metadata []byte,
 ) error {
 	if !k.GetSendEnabled(ctx) {
 		return types.ErrSendDisabled
@@ -171,8 +149,8 @@ func (k Keeper) sendTransfer(
 		}
 	}
 
-	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.String(), sender.String(), receiver,
+	packetData := types.NewFungibleTokenPacketDataWithMetadata(
+		fullDenomPath, token.Amount.String(), sender.String(), receiver, metadata,
 	)
 
 	packet := channeltypes.NewPacket(
