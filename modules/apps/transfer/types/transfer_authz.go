@@ -14,13 +14,14 @@ var (
 )
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
-func NewTransferAuthorization(sourcePorts, sourceChannels []string, spendLimits []sdk.Coins) *TransferAuthorization {
+func NewTransferAuthorization(sourcePorts, sourceChannels []string, spendLimits []sdk.Coins, allowedAddrs [][]string) *TransferAuthorization {
 	allocations := []PortChannelAmount{}
 	for index := range sourcePorts {
 		allocations = append(allocations, PortChannelAmount{
-			SourcePort:    sourcePorts[index],
-			SourceChannel: sourceChannels[index],
-			SpendLimit:    spendLimits[index],
+			SourcePort:       sourcePorts[index],
+			SourceChannel:    sourceChannels[index],
+			SpendLimit:       spendLimits[index],
+			AllowedAddresses: allowedAddrs[index],
 		})
 	}
 	return &TransferAuthorization{
@@ -34,7 +35,7 @@ func (a TransferAuthorization) MsgTypeURL() string {
 }
 
 func IsAllowedAddress(receiver string, allowedAddrs []string) bool {
-	for _, addr := range allowedAddresses {
+	for _, addr := range allowedAddrs {
 		if addr == receiver {
 			return true
 		}
@@ -70,9 +71,10 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 				}}, nil
 			}
 			a.Allocations[index] = PortChannelAmount{
-				SourcePort:    allocation.SourcePort,
-				SourceChannel: allocation.SourceChannel,
-				SpendLimit:    limitLeft,
+				SourcePort:       allocation.SourcePort,
+				SourceChannel:    allocation.SourceChannel,
+				SpendLimit:       limitLeft,
+				AllowedAddresses: allocation.AllowedAddresses,
 			}
 
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
