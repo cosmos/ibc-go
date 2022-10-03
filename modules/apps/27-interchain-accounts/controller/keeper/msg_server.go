@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 var _ types.MsgServer = msgServer{}
@@ -50,7 +50,8 @@ func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.M
 	}
 
 	// explicitly passing nil as the argument is discarded as the channel capability is retrieved in SendTx.
-	seq, err := s.Keeper.SendTx(ctx, nil, msg.ConnectionId, portID, msg.PacketData, msg.TimeoutTimestamp)
+	absoluteTimeout := uint64(ctx.BlockTime().UnixNano()) + msg.RelativeTimeout
+	seq, err := s.Keeper.SendTx(ctx, nil, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
 	if err != nil {
 		return nil, err
 	}

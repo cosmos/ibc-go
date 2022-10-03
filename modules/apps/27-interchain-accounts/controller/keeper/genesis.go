@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	genesistypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/genesis/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // InitGenesis initializes the interchain accounts controller application state from a provided genesis state
@@ -24,7 +24,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 		keeper.SetActiveChannelID(ctx, ch.ConnectionId, ch.PortId, ch.ChannelId)
 
 		if ch.IsMiddlewareEnabled {
-			keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ChannelId)
+			keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionId)
 		}
 	}
 

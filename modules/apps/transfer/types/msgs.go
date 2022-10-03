@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // msg types
@@ -19,22 +19,6 @@ const (
 //
 //nolint:interfacer
 func NewMsgTransfer(
-	sourcePort, sourceChannel string,
-	token sdk.Coin, sender, receiver string,
-	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-) *MsgTransfer {
-	return &MsgTransfer{
-		SourcePort:       sourcePort,
-		SourceChannel:    sourceChannel,
-		Token:            token,
-		Sender:           sender,
-		Receiver:         receiver,
-		TimeoutHeight:    timeoutHeight,
-		TimeoutTimestamp: timeoutTimestamp,
-	}
-}
-
-func NewMsgTransferWithMetadata(
 	sourcePort, sourceChannel string,
 	token sdk.Coin, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,

@@ -38,17 +38,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#1653](https://github.com/cosmos/ibc-go/pull/1653) Bump SDK version to v0.46
-* [\#2124](https://github.com/cosmos/ibc-go/pull/2124) Bump SDK version to v0.46.1
-
 ### API Breaking
 
-* (testing)[\#2028](https://github.com/cosmos/ibc-go/pull/2028) New interface `ibctestingtypes.StakingKeeper` added and set for the testing app `StakingKeeper` setup.
-* (core/04-channel) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `NewPacketId` has been renamed to `NewPacketID` to comply with go linting rules.
-* (core/ante) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `AnteDecorator` has been renamed to `RedundancyDecorator` to comply with go linting rules and to give more clarity to the purpose of the Decorator.
-* (core/ante) [\#1820](https://github.com/cosmos/ibc-go/pull/1418) `RedundancyDecorator` has been renamed to `RedundantRelayDecorator` to make the name for explicit.
-* (testing) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `MockIBCApp` has been renamed to `IBCApp` and `MockEmptyAcknowledgement` has been renamed to `EmptyAcknowledgement` to comply with go linting rules.
-* (apps/27-interchain-accounts) [\#2058](https://github.com/cosmos/ibc-go/pull/2058) Added `MessageRouter` interface and replaced `*baseapp.MsgServiceRouter` with it. The controller and host keepers of apps/27-interchain-accounts have been updated to use it.
+* (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
 * (apps/27-interchain-accounts) [\#2133](https://github.com/cosmos/ibc-go/pull/2133) Generates genesis protos in a separate directory to avoid circular import errors. The protobuf package name has changed for the genesis types.
 * (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768) Removed `AllowUpdateAfterExpiry`, `AllowUpdateAfterMisbehaviour` booleans as they are deprecated (see ADR026)
 * (06-solomachine) [\#1679](https://github.com/cosmos/ibc-go/pull/1679) Remove `types` sub-package from `06-solomachine` lightclient directory. 
@@ -72,8 +64,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (27-interchain-accounts) [\#1352](https://github.com/cosmos/ibc-go/issues/1352) Add support for Cosmos-SDK simulation to ics27 module.
-* (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatiblity with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
 * (modules/light-clients/07-tendermint) [\#1713](https://github.com/cosmos/ibc-go/pull/1713) Allow client upgrade proposals to update `TrustingPeriod`. See ADR-026 for context.
 * (modules/core/02-client) [\#1188](https://github.com/cosmos/ibc-go/pull/1188/files) Routing `MsgSubmitMisbehaviour` to `UpdateClient` keeper function. Deprecating `SubmitMisbehaviour` endpoint.
 * (modules/core/02-client) [\#1208](https://github.com/cosmos/ibc-go/pull/1208) Replace `CheckHeaderAndUpdateState` usage in 02-client with calls to `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour` and `UpdateState`. 
@@ -96,19 +86,45 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2157](https://github.com/cosmos/ibc-go/pull/2157) Adding `IsMiddlewareEnabled` functionality to enforce calls to ICS27 msg server to *not* route to the underlying application.
 * (apps/27-interchain-accounts) [\#2177](https://github.com/cosmos/ibc-go/pull/2177) Adding `IsMiddlewareEnabled` flag to interchain accounts `ActiveChannel` genesis type.
 * (apps/27-interchain-accounts) [\#2140](https://github.com/cosmos/ibc-go/pull/2140) Adding migration handler to ICS27 `controller` submodule to assert ownership of channel capabilities and set middleware enabled flag for existing channels. The ICS27 module consensus version has been bumped from 1 to 2.
+* (core/04-channel) [\#2304](https://github.com/cosmos/ibc-go/pull/2304) Adding `GetAllChannelsWithPortPrefix` function which filters channels based on a provided port prefix.
+* (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.
+* (apps/27-interchain-accounts) [\#2248](https://github.com/cosmos/ibc-go/pull/2248) Adding call to underlying app in `OnChanCloseConfirm` callback of the controller submodule and adding relevant unit tests.
+* (apps/27-interchain-accounts) [\#2251](https://github.com/cosmos/ibc-go/pull/2251) Adding `msgServer` struct to controller submodule that embeds the `Keeper` struct.    
+* (light-clients/06-solomachine) Moving `verifyMisbehaviour` function from update.go to misbehaviour_handle.go.
+* (apps/27-interchain-accounts) [\#2297](https://github.com/cosmos/ibc-go/pull/2297) Adding cli command to generate ICS27 packet data.
+* (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
 
 ### Features
 
 * (apps/27-interchain-accounts) [\#2147](https://github.com/cosmos/ibc-go/pull/2147) Adding a `SubmitTx` gRPC endpoint for the ICS27 Controller module which allows owners of interchain accounts to submit transactions. This replaces the previously existing need for authentication modules to implement this standard functionality.
 * (testing/simapp) [\#2190](https://github.com/cosmos/ibc-go/pull/2190) Adding the new `x/group` cosmos-sdk module to simapp.
+
+### Bug Fixes
+
+* (light-clients/solomachine) [#1839](https://github.com/cosmos/ibc-go/issues/1839) Fixed usage of the new diversifier in validation of changing diversifiers for the solo machine. The current diversifier must sign over the new diversifier.
+* (light-clients/07-tendermint) [\#1674](https://github.com/cosmos/ibc-go/pull/1674) Submitted ClientState is zeroed out before checking the proof in order to prevent the proposal from containing information governance is not actually voting on.
+* (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
+* (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
+
+## [v4.1.0](https://github.com/cosmos/ibc-go/releases/tag/v4.1.0) - 2022-09-20
+
+### Dependencies
+
+* [\#2288](https://github.com/cosmos/ibc-go/pull/2288) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
+
+### Features
+
 * (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
 
 ### Bug Fixes
 
-* (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
-* (light-clients/solomachine) [#1839](https://github.com/cosmos/ibc-go/issues/1839) Fixed usage of the new diversifier in validation of changing diversifiers for the solo machine. The current diversifier must sign over the new diversifier.
-* (light-clients/07-tendermint) [\#1674](https://github.com/cosmos/ibc-go/pull/1674) Submitted ClientState is zeroed out before checking the proof in order to prevent the proposal from containing information governance is not actually voting on.
-* (modules/core/02-client)[\#1676](https://github.com/cosmos/ibc-go/pull/1676) ClientState must be zeroed out for `UpgradeProposals` to pass validation. This prevents a proposal containing information governance is not actually voting on.
+* (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
+
+## [v4.0.1](https://github.com/cosmos/ibc-go/releases/tag/v4.0.1) - 2022-09-15
+
+### Dependencies
+
+* [\#2287](https://github.com/cosmos/ibc-go/pull/2287) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
 ## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-08-12
 
@@ -166,6 +182,26 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/29-fee) [\#1774](https://github.com/cosmos/ibc-go/pull/1774) Change non nil relayer assertion to non empty to avoid import/export issues for genesis upgrades. 
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
+
+## [v3.3.0](https://github.com/cosmos/ibc-go/releases/tag/v3.3.0) - 2022-09-20
+
+### Dependencies
+
+* [\#2286](https://github.com/cosmos/ibc-go/pull/2286) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
+
+### Features
+
+* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
+
+### Bug Fixes
+
+* (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
+
+## [v3.2.1](https://github.com/cosmos/ibc-go/releases/tag/v3.2.1) - 2022-09-15
+
+### Dependencies
+
+* [\#2285](https://github.com/cosmos/ibc-go/pull/2285) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
 ## [v3.2.0](https://github.com/cosmos/ibc-go/releases/tag/v3.2.0) - 2022-08-12
 
@@ -314,6 +350,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
+
+## [v2.4.1](https://github.com/cosmos/ibc-go/releases/tag/v2.4.1) - 2022-09-15
+
+### Dependencies
+
+* [\#2284](https://github.com/cosmos/ibc-go/pull/2284) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
 ## [v2.4.0](https://github.com/cosmos/ibc-go/releases/tag/v2.4.0) - 2022-08-12
 

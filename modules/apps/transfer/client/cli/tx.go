@@ -13,15 +13,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channelutils "github.com/cosmos/ibc-go/v5/modules/core/04-channel/client/utils"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channelutils "github.com/cosmos/ibc-go/v6/modules/core/04-channel/client/utils"
 )
 
 const (
 	flagPacketTimeoutHeight    = "packet-timeout-height"
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 	flagAbsoluteTimeouts       = "absolute-timeouts"
+	flagMetadata               = "metadata"
 )
 
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
@@ -76,6 +77,11 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 				return err
 			}
 
+			metadataStr, err := cmd.Flags().GetString(flagMetadata)
+			if err != nil {
+				return err
+			}
+
 			// if the timeouts are not absolute, retrieve latest block height and block timestamp
 			// for the consensus state connected to the destination port/channel
 			if !absoluteTimeouts {
@@ -111,7 +117,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp,
+				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, []byte(metadataStr),
 			)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
