@@ -1,8 +1,12 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"fmt"
+
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
@@ -17,14 +21,22 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			true,
 		},
 		{
+			"channel with different port is filtered out",
+			func() {
+				portIDWithOutPrefix := ibctesting.MockPort
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+					ConnectionHops: []string{ibctesting.FirstConnectionID},
+				})
+			},
+			true,
+		},
+		{
 			"capability not found",
 			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(
-					suite.chainA.GetContext(),
-					ibctesting.FirstConnectionID,
-					ibctesting.MockPort,
-					ibctesting.FirstChannelID,
-				)
+				portIDWithPrefix := fmt.Sprintf("%s%s", icatypes.PortPrefix, "port-without-capability")
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+					ConnectionHops: []string{ibctesting.FirstConnectionID},
+				})
 			},
 			false,
 		},
@@ -51,7 +63,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 				isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
+					path.EndpointA.ConnectionID,
 				)
 
 				suite.Require().True(isMiddlewareEnabled)
