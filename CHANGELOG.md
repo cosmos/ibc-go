@@ -43,7 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
-* (apps/transfer) [\#2446](https://github.com/cosmos/ibc-go/pull/2446) Remove SendTransfer function in favor of a private sendTransfer function. All IBC transfers must be initiated with MsgTransfer.
+* (apps/transfer) [\#2446](https://github.com/cosmos/ibc-go/pull/2446) Remove `SendTransfer` function in favor of a private `sendTransfer` function. All IBC transfers must be initiated with `MsgTransfer`.
 * (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
 * (testing)[\#2028](https://github.com/cosmos/ibc-go/pull/2028) New interface `ibctestingtypes.StakingKeeper` added and set for the testing app `StakingKeeper` setup.
 * (core/04-channel) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) `NewPacketId` has been renamed to `NewPacketID` to comply with go linting rules.
