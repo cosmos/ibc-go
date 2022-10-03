@@ -327,7 +327,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 
-		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+		s.Require().NoError(test.WaitForBlocks(ctx, 50, chainA, chainB))
 	})
 
 	t.Run("verify channel is closed", func(t *testing.T) {
