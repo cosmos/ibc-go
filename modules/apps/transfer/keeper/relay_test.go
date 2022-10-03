@@ -46,6 +46,15 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, false, true,
 		},
 		{
+			"source channel not found",
+			func() {
+				// channel references wrong ID
+				suite.coordinator.CreateTransferChannels(path)
+				path.EndpointA.ChannelID = ibctesting.InvalidID
+				amount = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+			}, true, false,
+		},
+		{
 			"transfer failed - sender account is blocked",
 			func() {
 				suite.coordinator.CreateTransferChannels(path)
