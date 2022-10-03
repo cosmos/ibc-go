@@ -38,3 +38,4 @@ The `SendPacket` API has been simplified:
 
 Callers no longer need to pass in a pre-constructed packet. 
 The destination port/channel identifiers and the packet sequence will be determined by core IBC.
+`SendPacket` will return the packet sequence.
