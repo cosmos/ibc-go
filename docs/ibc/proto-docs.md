@@ -2260,6 +2260,11 @@ https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transf
 MsgTransferResponse defines the Msg/Transfer response type.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence number of the packet on the channel. |
+
+
 
 
 
