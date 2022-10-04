@@ -290,7 +290,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		{
 			"invalid port ID - host chain",
 			func() {
-				path.EndpointA.ChannelConfig.PortID = icatypes.PortID
+				path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 			},
 			false,
 		},
