@@ -897,6 +897,11 @@ state as a commitment, acknowledgement, or a receipt.
 | `data` | [bytes](#bytes) |  | embedded data that represents packet state. |
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence number of the packet on the channel. |
+
+
 
 
 
