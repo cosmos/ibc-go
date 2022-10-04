@@ -76,7 +76,7 @@ app.UpgradeKeeper.SetUpgradeHandler(
         app.appCodec, 
         app.keys[capabilitytypes.ModuleName], 
         app.CapabilityKeeper, 
-        ibcmock.ModuleName + icacontrollertypes.SubModuleName,
+        >>>> moduleName <<<<,
     ),
 )
 ```
