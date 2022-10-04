@@ -61,9 +61,11 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
 
 		if tc.expPass {
+			suite.Require().NotEqual(res.Sequence, uint64(0))
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
 		} else {
+			suite.Require().Equal(res.Sequence, uint64(0))
 			suite.Require().Error(err)
 			suite.Require().Nil(res)
 		}
