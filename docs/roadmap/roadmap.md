@@ -57,7 +57,7 @@ Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milest
 
 Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel.
 
-[alpha milestone](https://github.com/cosmos/ibc-go/milestone/29) or the [project board](https://github.com/orgs/cosmos/projects/7/views/17).
+Follow the progress with the [alpha milestone](https://github.com/cosmos/ibc-go/milestone/29) or the [project board](https://github.com/orgs/cosmos/projects/7/views/17).
 
 ### Path unwinding
 
@@ -71,7 +71,7 @@ This roadmap is also available as a [project board](https://github.com/orgs/cosm
 
 For the latest expected timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
+For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our [engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
 
 ---
 
