@@ -99,6 +99,8 @@ The `controller` submodule exposes two functions:
 These functions have been deprecated in favour of the new `controller` submodule `MsgServer` and will be removed in later releases. 
 Both APIs remain functional and maintain backwards compatibility in `ibc-go/v6`, however consumers of these APIs are now recommended to follow the message passing paradigm outlined in Cosmos SDK [ADR 031](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md) and [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md). This is facilitated by the Cosmos SDK [`MsgServiceRouter`](https://github.com/cosmos/cosmos-sdk/blob/main/baseapp/msg_service_router.go#L17) and chain developers creating custom application logic can now omit the ICS27 `ControllerKeeper` from their module and instead depend on message routing.
 
+Legacy APIs are still required if application developers wish to consume IBC packet callbacks and react upon packet acknowledgements. In future this will be replaced by IBC Actor Callbacks, see [ADR 008](https://github.com/cosmos/ibc-go/pull/1976).
+
 For more information see the new [ICS27 integration documentation](TODO: add link to new docs).
 
 #### Host params
