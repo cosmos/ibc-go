@@ -1107,8 +1107,16 @@ identifier fields.
 
 <a name="ibc.core.channel.v1.Packet"></a>
 
+<<<<<<< HEAD
 ### Packet
 Packet defines a type that carries data across different chains through IBC
+=======
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sequence` | [uint64](#uint64) |  | sequence number of the packet on the channel. |
+
+
+>>>>>>> 3363917 (MsgTransferResponse add sequence (#2377))
 
 
 | Field | Type | Label | Description |
