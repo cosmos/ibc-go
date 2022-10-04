@@ -14,12 +14,12 @@ This roadmap should be read as a high-level guide, rather than a commitment to s
 
 ### Interchain Accounts improvements
 
-These improvements tackle two shortcomings of the ICS-27:
+These improvements tackle two shortcomings of the current implementation of ICS-27:
 
 - The lack of a default/standard underlying app (also known as _authentication module_), which created a bottleneck for chains looking to integrate the controller submodule.
 - The need to separate application and authentication concerns.
 
-These changes will make integrating the controller chain functionality easier (see [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md) for more information), and with the release of Cosmos SDK 0.46.x, this will enable any Cosmos SDK module (e.g `x/auth`, `x/gov`, `x/group`) to register interchain accounts and send transactions on their behalf. 
+The changes will make integrating the controller chain functionality easier (see [ADR 009](../architecture/adr-009-v6-ics27-msgserver.md) for more information), and with the release of Cosmos SDK v0.46.x, they will enable any Cosmos SDK module (e.g `x/auth`, `x/gov`, `x/group`) to register interchain accounts and send transactions on their behalf. 
 
 For more details about these changes, please read [this blog post](https://medium.com/the-interchain-foundation/ibc-go-v6-changes-to-interchain-accounts-f9996449d782).
 
@@ -37,7 +37,7 @@ Follow the progress with the [`v6.0.0` milestone](https://github.com/cosmos/ibc-
 
 ### 02-client refactor
 
-This refactor will make the development of light clients easier. The implementation will finally align with the spec and light clients will be required to set their own client and consensus states. This will allow more flexibility for light clients to manage their own internal storage and do batch updates. See [ADR 006](../architecture/adr-006-02-client-refactor.md) for more information.
+This refactor will make the development of light clients easier. The ibc-go implementation will finally align with the spec and light clients will be required to set their own client and consensus states. This will allow more flexibility for light clients to manage their own internal storage and do batch updates. See [ADR 006](../architecture/adr-006-02-client-refactor.md) for more information.
 
 Follow the progress with the [beta](https://github.com/cosmos/ibc-go/milestone/25) and [RC](https://github.com/cosmos/ibc-go/milestone/27) milestones or in the [project board](https://github.com/orgs/cosmos/projects/7/views/14).
 
@@ -47,7 +47,7 @@ This feature will add support for applications on a chain to communicate with ap
 
 For more details, see the design proposal and discussion [here](https://github.com/cosmos/ibc-go/discussions/2191). Issues need still to be created and will be added to the [`v7.0.0` milestone](https://github.com/cosmos/ibc-go/milestone/34).
 
-### Upgrade SDK 0.47.x
+### Upgrade SDK v0.47.x
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/36).
 
@@ -63,7 +63,7 @@ Channel upgradability will allow chains to renegotiate an existing channel to ta
 
 This feature will allow tokens with non-native denoms to be sent back automatically to their native chains before being sent to a final destination chain. This will allow tokens to reach a final destination with the least amount possible of hops from their native chain.
 
-For more details, see this [discussion](https://github.com/cosmos/ibc/discussions/824)
+For more details, see this [discussion](https://github.com/cosmos/ibc/discussions/824).
 
 ---
 
