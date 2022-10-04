@@ -39,7 +39,7 @@ func NewIncentivizedICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Pa
 	path.EndpointA.ChannelConfig.Version = feeICAVersion
 	path.EndpointB.ChannelConfig.Version = feeICAVersion
 	path.EndpointA.ChannelConfig.PortID = defaultPortID
-	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
+	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 
 	return path
 }
