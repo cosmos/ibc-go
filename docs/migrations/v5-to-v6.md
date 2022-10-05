@@ -22,7 +22,6 @@ The `SendPacket` API has been simplified:
 
 ```diff
 // SendPacket is called by a module in order to send an IBC packet on a channel
-@@ -22,122 +22,98 @@ import (
  func (k Keeper) SendPacket(
         ctx sdk.Context,
         channelCap *capabilitytypes.Capability,
