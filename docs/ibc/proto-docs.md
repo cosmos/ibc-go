@@ -2160,7 +2160,7 @@ MsgTransferResponse defines the Msg/Transfer response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `sequence` | [uint64](#uint64) |  | sequence number of the packet on the channel. |
+| `sequence` | [uint64](#uint64) |  | sequence number of the transfer packet sent |
 
 
 
