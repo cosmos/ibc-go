@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	ibctest "github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/ibc"
-	"github.com/strangelove-ventures/ibctest/test"
+	ibctest "github.com/strangelove-ventures/ibctest/v6"
+	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/test"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/mod/semver"
 
@@ -19,9 +19,9 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {

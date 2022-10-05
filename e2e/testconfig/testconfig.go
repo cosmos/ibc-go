@@ -11,7 +11,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -165,8 +165,8 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 
 // defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-func defaultModifyGenesis(denom string) func([]byte) ([]byte, error) {
-	return func(genbz []byte) ([]byte, error) {
+func defaultModifyGenesis(denom string) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	return func(_ ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
