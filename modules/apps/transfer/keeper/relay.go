@@ -60,9 +60,6 @@ func (k Keeper) SendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) error {
-<<<<<<< HEAD
-
-=======
 	_, err := k.sendTransfer(
 		ctx,
 		sourcePort,
@@ -87,7 +84,6 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) (uint64, error) {
->>>>>>> 3363917 (MsgTransferResponse add sequence (#2377))
 	if !k.GetSendEnabled(ctx) {
 		return 0, types.ErrSendDisabled
 	}
@@ -191,13 +187,8 @@ func (k Keeper) sendTransfer(
 		timeoutTimestamp,
 	)
 
-<<<<<<< HEAD
-	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
-		return err
-=======
 	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
 		return 0, err
->>>>>>> 3363917 (MsgTransferResponse add sequence (#2377))
 	}
 
 	defer func() {

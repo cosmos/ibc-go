@@ -18,11 +18,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	if err := k.SendTransfer(
-=======
 	sequence, err := k.sendTransfer(
->>>>>>> 3363917 (MsgTransferResponse add sequence (#2377))
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
 	)
 	if err != nil {
