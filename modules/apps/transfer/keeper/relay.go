@@ -60,8 +60,6 @@ func (k Keeper) SendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) error {
-<<<<<<< HEAD
-=======
 	_, err := k.sendTransfer(
 		ctx,
 		sourcePort,
@@ -86,7 +84,6 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) (uint64, error) {
->>>>>>> 3363917 (MsgTransferResponse add sequence (#2377))
 	if !k.GetSendEnabled(ctx) {
 		return 0, types.ErrSendDisabled
 	}
