@@ -218,6 +218,11 @@ module.exports = {
                   path: "/apps/interchain-accounts/integration.html",
                 },
                 {
+                  title: "Messages",
+                  directory: false,
+                  path: "/apps/interchain-accounts/messages.html",
+                },
+                {
                   title: "Parameters",
                   directory: false,
                   path: "/apps/interchain-accounts/parameters.html",
