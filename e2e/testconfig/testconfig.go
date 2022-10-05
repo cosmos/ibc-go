@@ -159,14 +159,14 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string) ibc.Cha
 		GasAdjustment:  1.3,
 		TrustingPeriod: "508h",
 		NoHostMount:    false,
-		ModifyGenesis:  defaultModifyGenesis(denom),
+		ModifyGenesis:  defaultModifyGenesis(),
 	}
 }
 
 // defaultModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-func defaultModifyGenesis(denom string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	return func(_ ibc.ChainConfig, genbz []byte) ([]byte, error) {
+func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
@@ -187,7 +187,7 @@ func defaultModifyGenesis(denom string) func(ibc.ChainConfig, []byte) ([]byte, e
 		}
 
 		// set correct minimum deposit using configured denom
-		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(denom, govv1beta1.DefaultMinDepositTokens))
+		govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
 		govGenesisState.VotingParams.VotingPeriod = testvalues.VotingPeriod
 
 		govGenBz, err := cdc.MarshalJSON(govGenesisState)
