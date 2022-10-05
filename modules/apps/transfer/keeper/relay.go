@@ -187,7 +187,7 @@ func (k Keeper) sendTransfer(
 		timeoutTimestamp,
 	)
 
-	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
+	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
 		return 0, err
 	}
 
