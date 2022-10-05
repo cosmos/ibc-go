@@ -10,7 +10,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain
@@ -272,8 +272,10 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 
 // blankMerkleProof and blankProofOps will be used to compare against their zero values,
 // and are declared as globals to avoid having to unnecessarily re-allocate on every comparison.
-var blankMerkleProof = &MerkleProof{}
-var blankProofOps = &tmcrypto.ProofOps{}
+var (
+	blankMerkleProof = &MerkleProof{}
+	blankProofOps    = &tmcrypto.ProofOps{}
+)
 
 // Empty returns true if the root is empty
 func (proof *MerkleProof) Empty() bool {

@@ -4,9 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 )
 
 // RegisterInterchainAccount is the entry point to registering an interchain account:
@@ -17,22 +17,28 @@ import (
 // - An error is returned if the port identifier is already in use. Gaining access to interchain accounts whose channels
 // have closed cannot be done with this function. A regular MsgChannelOpenInit must be used.
 func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
-	_, err := k.registerInterchainAccount(ctx, connectionID, owner, version)
-	return err
+	portID, err := icatypes.NewControllerPortID(owner)
+	if err != nil {
+		return err
+	}
+
+	k.SetMiddlewareEnabled(ctx, portID, connectionID)
+
+	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
 // and an error if one occurred.
-func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, owner, version string) (string, error) {
-	portID, err := icatypes.NewControllerPortID(owner)
-	if err != nil {
-		return "", err
-	}
-
+func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string) (string, error) {
 	// if there is an active channel for this portID / connectionID return an error
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if found {
-		return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s for owner %s", activeChannelID, portID, connectionID, owner)
+		return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s", activeChannelID, portID, connectionID)
 	}
 
 	switch {
@@ -45,7 +51,7 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, owner, 
 		}
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.PortID, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.HostPortID, icatypes.ModuleName)
 	handler := k.msgRouter.Handler(msg)
 	res, err := handler(ctx, msg)
 	if err != nil {

@@ -3,8 +3,8 @@ package types_test
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *TypesTestSuite) TestNewControllerPortID() {
@@ -22,7 +22,7 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 		{
 			"success",
 			func() {},
-			fmt.Sprint(types.PortPrefix, TestOwnerAddress),
+			fmt.Sprint(types.ControllerPortPrefix, TestOwnerAddress),
 			true,
 		},
 		{

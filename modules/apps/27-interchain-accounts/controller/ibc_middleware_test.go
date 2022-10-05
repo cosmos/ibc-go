@@ -7,25 +7,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	fee "github.com/cosmos/ibc-go/v5/modules/apps/29-fee"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	fee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 var (
-	// TODO: Cosmos-SDK ADR-28: Update crypto.AddressHash() when sdk uses address.Module()
-	// https://github.com/cosmos/cosmos-sdk/issues/10225
-	//
-	// TestAccAddress defines a reusable bech32 address for testing purposes
-	TestAccAddress = icatypes.GenerateAddress(sdk.AccAddress(crypto.AddressHash([]byte(icatypes.ModuleName))), ibctesting.FirstConnectionID, TestPortID)
-
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
@@ -66,8 +59,8 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = icatypes.PortID
-	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
+	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
+	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = TestVersion
@@ -124,6 +117,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	var (
 		channel  *channeltypes.Channel
 		isNilApp bool
+		path     *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -133,6 +127,20 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	}{
 		{
 			"success", func() {}, true,
+		},
+		{
+			"ICA auth module does not claim channel capability", func() {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					if chanCap != nil {
+						return "", fmt.Errorf("channel capability should be nil")
+					}
+
+					return version, nil
+				}
+			}, true,
 		},
 		{
 			"ICA auth module modification of channel version is ignored", func() {
@@ -171,6 +179,18 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				isNilApp = true
 			}, true,
 		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					return "", fmt.Errorf("error should be unreachable")
+				}
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -180,7 +200,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.SetupTest() // reset
 			isNilApp = false
 
-			path := NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			// mock init interchain account
@@ -192,6 +212,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 			path.EndpointA.ChannelConfig.PortID = portID
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
+
+			suite.chainA.GetSimApp().ICAControllerKeeper.SetMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 			// default values
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -322,6 +344,17 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				isNilApp = true
 			}, true,
 		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
+					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -434,7 +467,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
-	var path *ibctesting.Path
+	var (
+		path     *ibctesting.Path
+		isNilApp bool
+	)
 
 	testCases := []struct {
 		name     string
@@ -444,11 +480,17 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 		{
 			"success", func() {}, true,
 		},
+		{
+			"nil underlying app", func() {
+				isNilApp = true
+			}, true,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -462,6 +504,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
+
+			if isNilApp {
+				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+			}
 
 			err = cbs.OnChanCloseConfirm(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -517,7 +563,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				0,
 			)
 
-			ack := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, TestAccAddress)
+			ack := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, nil)
 			suite.Require().Equal(tc.expPass, ack.Success())
 		})
 	}
@@ -556,6 +602,17 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"nil underlying app", func() {
 				isNilApp = true
+			}, true,
+		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
@@ -638,6 +695,17 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		{
 			"nil underlying app", func() {
 				isNilApp = true
+			}, true,
+		},
+		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
+
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) error {
+					return fmt.Errorf("error should be unreachable")
+				}
 			}, true,
 		},
 	}
