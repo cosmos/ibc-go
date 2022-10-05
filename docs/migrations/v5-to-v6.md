@@ -16,7 +16,7 @@ There are four sections based on the four potential user groups of this document
 
 ## IBC Apps
 
-### ICS04 - SendPacket API change
+### ICS04 - `SendPacket` API change
 
 The `SendPacket` API has been simplified:
 
