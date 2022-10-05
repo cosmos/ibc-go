@@ -32,14 +32,14 @@ func (k Keeper) ConnOpenInit(
 		versions = []exported.Version{version}
 	}
 
-	// connection defines chain A's ConnectionEnd
 	connectionID := k.GenerateConnectionIdentifier(ctx)
-	connection := types.NewConnectionEnd(types.INIT, clientID, counterparty, types.ExportedVersionsToProto(versions), delayPeriod)
-	k.SetConnection(ctx, connectionID, connection)
-
 	if err := k.addConnectionToClient(ctx, clientID, connectionID); err != nil {
 		return "", err
 	}
+
+	// connection defines chain A's ConnectionEnd
+	connection := types.NewConnectionEnd(types.INIT, clientID, counterparty, types.ExportedVersionsToProto(versions), delayPeriod)
+	k.SetConnection(ctx, connectionID, connection)
 
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", "NONE", "new-state", "INIT")
 

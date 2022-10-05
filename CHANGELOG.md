@@ -38,6 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#2458](https://github.com/cosmos/ibc-go/pull/2458) Bump Cosmos SDK to v0.46.2
+
 ### API Breaking
 
 * (apps/29-fee) [\#2395](https://github.com/cosmos/ibc-go/pull/2395) Remove param space from ics29 NewKeeper function. The field was unused.
@@ -60,8 +62,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (05-port) [\#2025](https://github.com/cosmos/ibc-go/pull/2025) Port Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (04-channel) [\#2024](https://github.com/cosmos/ibc-go/pull/2024) Channel Keeper now expects a keeper which fulfills the expected `ScopedKeeper` interface for the capability keeper.
 * (core/04-channel)[\#1703](https://github.com/cosmos/ibc-go/pull/1703) Update `SendPacket` API to take in necessary arguments and construct rest of packet rather than taking in entire packet.
+* (modules/apps/27-interchain-accounts) [\#2433](https://github.com/cosmos/ibc-go/pull/2450) Renamed icatypes.PortPrefix to icatypes.ControllerPortPrefix & icatypes.PortID to icatypes.HostPortID
 
 ### State Machine Breaking
+
+* (transfer) [\#2377](https://github.com/cosmos/ibc-go/pull/2377) Adding `sequence` to `MsgTransferResponse`.
 
 ### Improvements
 
