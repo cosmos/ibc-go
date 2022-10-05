@@ -25,9 +25,7 @@ func newCosmosRelayer(t *testing.T, tc testconfig.TestConfig, logger *zap.Logger
 
 	relayerFactory := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
 
-	relayer := relayerFactory.Build(
+	return relayerFactory.Build(
 		t, dockerClient, network,
 	)
-
-	return relayer
 }
