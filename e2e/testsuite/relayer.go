@@ -14,11 +14,20 @@ import (
 
 const (
 	cosmosRelayerRepository = "ghcr.io/cosmos/relayer"
+	cosmosRelayerUser       = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
 )
 
 // newCosmosRelayer returns an instance of the go relayer.
+// Options are used to allow for relayer version selection and specifying the default processing option.
 func newCosmosRelayer(t *testing.T, tc testconfig.TestConfig, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
-	return ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, relayer.CustomDockerImage(cosmosRelayerRepository, tc.RlyTag, ""), relayer.StartupFlags("-p", "events")).Build(
+	customImageOption := relayer.CustomDockerImage(cosmosRelayerRepository, tc.RlyTag, cosmosRelayerUser)
+	relayerProcessingOption := relayer.StartupFlags("-p", "events") // relayer processes via events
+
+	relayerFactory := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
+
+	relayer := relayerFactory.Build(
 		t, dockerClient, network,
 	)
+
+	return relayer
 }
