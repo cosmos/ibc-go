@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
-// SendPacket is called by a module in order to send an IBC packet on a channel
-// end owned by the calling module to the corresponding module on the counterparty
-// chain.
+// SendPacket is called by a module in order to send an IBC packet on a channel.
+// The packet sequence generated for the packet to be sent is returned. An error
+// is returned if one occurs.
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
 	channelCap *capabilitytypes.Capability,
