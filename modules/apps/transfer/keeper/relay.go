@@ -60,7 +60,7 @@ func (k Keeper) SendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 ) error {
-	return k.sendTransfer(
+	_, err := k.sendTransfer(
 		ctx,
 		sourcePort,
 		sourceChannel,
@@ -70,6 +70,7 @@ func (k Keeper) SendTransfer(
 		timeoutHeight,
 		timeoutTimestamp,
 	)
+	return err
 }
 
 // sendTransfer handles transfer sending logic.
@@ -82,18 +83,18 @@ func (k Keeper) sendTransfer(
 	receiver string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
-) error {
+) (uint64, error) {
 	if !k.GetSendEnabled(ctx) {
-		return types.ErrSendDisabled
+		return 0, types.ErrSendDisabled
 	}
 
 	if k.bankKeeper.BlockedAddr(sender) {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+		return 0, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
@@ -102,7 +103,7 @@ func (k Keeper) sendTransfer(
 	// get the next sequence
 	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return sdkerrors.Wrapf(
+		return 0, sdkerrors.Wrapf(
 			channeltypes.ErrSequenceSendNotFound,
 			"source port: %s, source channel: %s", sourcePort, sourceChannel,
 		)
@@ -112,7 +113,7 @@ func (k Keeper) sendTransfer(
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {
-		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
@@ -125,7 +126,7 @@ func (k Keeper) sendTransfer(
 	if strings.HasPrefix(token.Denom, "ibc/") {
 		fullDenomPath, err = k.DenomPathFromHash(ctx, token.Denom)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
@@ -148,7 +149,7 @@ func (k Keeper) sendTransfer(
 		if err := k.bankKeeper.SendCoins(
 			ctx, sender, escrowAddress, sdk.NewCoins(token),
 		); err != nil {
-			return err
+			return 0, err
 		}
 
 	} else {
@@ -158,7 +159,7 @@ func (k Keeper) sendTransfer(
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(
 			ctx, sender, types.ModuleName, sdk.NewCoins(token),
 		); err != nil {
-			return err
+			return 0, err
 		}
 
 		if err := k.bankKeeper.BurnCoins(
@@ -187,7 +188,7 @@ func (k Keeper) sendTransfer(
 	)
 
 	if err := k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
-		return err
+		return 0, err
 	}
 
 	defer func() {
@@ -206,7 +207,7 @@ func (k Keeper) sendTransfer(
 		)
 	}()
 
-	return nil
+	return sequence, nil
 }
 
 // OnRecvPacket processes a cross chain fungible token transfer. If the
