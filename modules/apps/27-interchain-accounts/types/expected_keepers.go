@@ -18,12 +18,6 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 }
 
-// ICS4Wrapper defines the expected ICS4Wrapper for middleware
-type ICS4Wrapper interface {
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
-	GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool)
-}
-
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
