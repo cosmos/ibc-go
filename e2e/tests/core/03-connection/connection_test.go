@@ -28,7 +28,7 @@ type ConnectionTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// QueryConnectionEnabledParam queries the on-chain connection enabled param for 03-connection
+// QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
 	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
 	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
@@ -53,8 +53,8 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
 	chainA, chainB := s.GetChains()
 
-	chainBDenom = chainB.Config().Denom
-	chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
+	chainBDenom := chainB.Config().Denom
+	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
@@ -65,13 +65,13 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure delay is set to the default of 30 seconds", func(t *testing.T) {
-		expectedDelay := fmt.Sprintf("\"%d\"", 30*time.Second)
-		delay := fmt.Sprintf("\"%d\"", s.QueryMaxExpectedTimePerBlockParam(ctx, chainA))
+		expectedDelay := fmt.Sprintf(`"%d"`, 30*time.Second)
+		delay := fmt.Sprintf(`"%d"`, s.QueryMaxExpectedTimePerBlockParam(ctx, chainA))
 		s.Require().Equal(expectedDelay, delay)
 	})
 
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
-		delay := fmt.Sprintf("\"%d\"", 60*time.Second)
+		delay := fmt.Sprintf(`"%d"`, 1*time.Minute)
 		changes := []paramsproposaltypes.ParamChange{
 			paramsproposaltypes.NewParamChange("ibc", string(connectiontypes.KeyMaxExpectedTimePerBlock), delay),
 		}
