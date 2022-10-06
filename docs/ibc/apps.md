@@ -238,10 +238,21 @@ DecodePacketData(encoded []byte) (CustomPacketData) {
 Then a module must encode its packet data before sending it through IBC.
 
 ```go
+// retrieve the dynamic capability for this channel
+channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
 packet.Data = data
-IBCChannelKeeper.SendPacket(ctx, packet)
+// Send packet to IBC, authenticating with channelCap
+sequence, err := IBCChannelKeeper.SendPacket(
+    ctx, 
+    channelCap, 
+    sourcePort, 
+    sourceChannel, 
+    timeoutHeight, 
+    timeoutTimestamp, 
+    data,
+)
 ```
 
 A module receiving a packet must decode the `PacketData` into a structure it expects so that it can
@@ -284,9 +295,16 @@ packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
 channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
-packet.Data = data
 // Send packet to IBC, authenticating with channelCap
-IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
+sequence, err := IBCChannelKeeper.SendPacket(
+    ctx, 
+    channelCap, 
+    sourcePort, 
+    sourceChannel, 
+    timeoutHeight, 
+    timeoutTimestamp, 
+    data,
+)
 ```
 
 ::: warning
