@@ -9,16 +9,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
-	ibctest "github.com/strangelove-ventures/ibctest"
-	"github.com/strangelove-ventures/ibctest/ibc"
-	"github.com/strangelove-ventures/ibctest/test"
+	ibctest "github.com/strangelove-ventures/ibctest/v6"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/test"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	simappparams "github.com/cosmos/ibc-go/v6/testing/simapp/params"
 )
@@ -80,9 +79,9 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 	})
 
-	t.Run("submit proposal register interchain account", func(t *testing.T) {
+	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, chainA)
-		msgRegisterAccount := controllertypes.NewMsgRegisterAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
 
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, "", grouptypes.Exec_EXEC_UNSPECIFIED)
 		s.Require().NoError(err)
@@ -127,7 +126,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.Require().NoError(err)
 	})
 
-	t.Run("submit proposal for submit tx", func(t *testing.T) {
+	t.Run("submit proposal for MsgSendTx", func(t *testing.T) {
 		msgBankSend := &banktypes.MsgSend{
 			FromAddress: interchainAccAddr,
 			ToAddress:   chainBAddress,
@@ -147,8 +146,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 			Memo: "e2e",
 		}
 
-		timeoutTimestamp := time.Now().Add(time.Hour * 24).UnixNano() // TODO: find a better solution
-		msgSubmitTx := controllertypes.NewMsgSubmitTx(groupPolicyAddr, ibctesting.FirstConnectionID, clienttypes.NewHeight(1, 1000), uint64(timeoutTimestamp), packetData)
+		// timeoutTimestamp := time.Now().Add(time.Hour * 24).UnixNano() // TODO: find a better solution
+		msgSubmitTx := controllertypes.NewMsgSendTx(groupPolicyAddr, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, "", grouptypes.Exec_EXEC_UNSPECIFIED)
 		s.Require().NoError(err)
 

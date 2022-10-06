@@ -91,13 +91,6 @@ func (suite *KeeperTestSuite) TestSendTx() {
 			false,
 		},
 		{
-			"channel does not exist",
-			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, "channel-100")
-			},
-			false,
-		},
-		{
 			"channel in INIT state - optimistic packet sends fail",
 			func() {
 				channel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
