@@ -33,7 +33,7 @@ func DefaultParams() Params {
 
 // Validate validates all controller submodule parameters
 func (p Params) Validate() error {
-	if err := validateEnabled(p.ControllerEnabled); err != nil {
+	if err := validateEnabledType(p.ControllerEnabled); err != nil {
 		return err
 	}
 
@@ -43,11 +43,11 @@ func (p Params) Validate() error {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyControllerEnabled, p.ControllerEnabled, validateEnabled),
+		paramtypes.NewParamSetPair(KeyControllerEnabled, p.ControllerEnabled, validateEnabledType),
 	}
 }
 
-func validateEnabled(i interface{}) error {
+func validateEnabledType(i interface{}) error {
 	_, ok := i.(bool)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
