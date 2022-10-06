@@ -40,22 +40,22 @@ func DefaultParams() Params {
 
 // Validate all ibc-transfer module parameters
 func (p Params) Validate() error {
-	if err := validateEnabled(p.SendEnabled); err != nil {
+	if err := validateEnabledType(p.SendEnabled); err != nil {
 		return err
 	}
 
-	return validateEnabled(p.ReceiveEnabled)
+	return validateEnabledType(p.ReceiveEnabled)
 }
 
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeySendEnabled, p.SendEnabled, validateEnabled),
-		paramtypes.NewParamSetPair(KeyReceiveEnabled, p.ReceiveEnabled, validateEnabled),
+		paramtypes.NewParamSetPair(KeySendEnabled, p.SendEnabled, validateEnabledType),
+		paramtypes.NewParamSetPair(KeyReceiveEnabled, p.ReceiveEnabled, validateEnabledType),
 	}
 }
 
-func validateEnabled(i interface{}) error {
+func validateEnabledType(i interface{}) error {
 	_, ok := i.(bool)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
