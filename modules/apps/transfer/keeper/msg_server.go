@@ -28,9 +28,10 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
-	if err := k.sendTransfer(
+	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
 
@@ -48,5 +49,5 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		),
 	})
 
-	return &types.MsgTransferResponse{}, nil
+	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }

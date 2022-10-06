@@ -8,6 +8,7 @@ on:
         type: choice
         options:
           - release/v5.0.x
+          - release/v6.0.x
 
 env:
   REGISTRY: ghcr.io

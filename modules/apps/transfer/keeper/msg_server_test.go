@@ -75,6 +75,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+				suite.Require().NotEqual(res.Sequence, uint64(0))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)

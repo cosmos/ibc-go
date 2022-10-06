@@ -47,20 +47,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, false,
 		},
 		{
-			"next seq send not found",
-			func() {
-				path.EndpointA.ChannelID = "channel-100"
-				path.EndpointB.ChannelID = "channel-100"
-				// manually create channel so next seq send is never set
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-					suite.chainA.GetContext(),
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-					channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion),
-				)
-				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			}, false,
-		},
-		{
 			"transfer failed - sender account is blocked",
 			func() {
 				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
