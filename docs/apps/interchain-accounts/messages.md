@@ -18,12 +18,22 @@ type MsgRegisterInterchainAccount struct {
 
 This message is expected to fail if:
 
-- `Owner` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
+- `Owner` is an invalid bech32 address string.
 - `ConnectionID` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 
-This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
+This message will construct a new `MsgChannelOpenInit` on chain and route it to the core IBC message server to initiate the opening step of the channel handshake.
 
-The denomination provided for transfer should correspond to the same denomination represented on this chain. The prefixes will be added as necessary upon by the receiving chain.
+The `controller` module will generate a new port identifier and claim the associated port capability. The caller is expected to provide an appropriate application version string. For example, this may be an ICS27 JSON encoded `Metadata` type or an ICS29 JSON encoded `Metadata` type with a nested application version. 
+If the `Version` string omitted the application will construct a default version string in the `OnChanOpenInit` handshake callback.
+
+```go
+type MsgRegisterInterchainAccountResponse struct {
+  ChannelID string
+}
+```
+
+The `ChannelID` is return in the message response.
+
 
 ## `MsgSendTx`
 
@@ -40,26 +50,27 @@ type MsgSendTx struct {
 
 This message is expected to fail if:
 
-- `Owner` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
+- `Owner` is an invalid bech32 address string.
 - `ConnectionID` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
-- `PacketData` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
-- `RelativeTimeout` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
+- `PacketData` contains an `UNSPECIFIED` type enum, the length of `Data` bytes is zero or the `Memo` field exceeds `256` characters in length.
+- `RelativeTimeout` is zero.
 
-This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
+This message will send the provided pre-built `PacketData` on the `controller` chain channel associated with the `Owner` and `ConnectionID`.
+The `PacketData` is expected to contain a list of serialized `[]sdk.Msg` in the form of `CosmosTx`.
+When the packet is relayed the `PacketData` is unmarshalled and the messages are executed on the receiving `host` chain.
 
-The denomination provided for transfer should correspond to the same denomination represented on this chain. The prefixes will be added as necessary upon by the receiving chain.
-
-### Example integration
 
 ```go
-// app.go
-
-// Register the AppModule for the Interchain Accounts module and the authentication module
-// Note: No `icaauth` exists, this must be substituted with an actual Interchain Accounts authentication module
-ModuleBasics = module.NewBasicManager(
-    ...
-    ica.AppModuleBasic{},
-    icaauth.AppModuleBasic{},
-    ...
-)
+type MsgSendTxResponse struct {
+  Sequence uint64
+}
 ```
+
+The packet `Sequence` is returned in the message response.
+
+<!-- TODO: Update description below -->
+// SendTx takes pre-built packet data containing messages to be executed on the host chain from an authentication module and attempts to send the packet.
+// The packet sequence for the outgoing packet is returned as a result.
+// If the base application has the capability to send on the provided portID. An appropriate
+// absolute timeoutTimestamp must be provided. If the packet is timed out, the channel will be closed.
+// In the case of channel closure, a new channel may be reopened to reconnect to the host chain.
