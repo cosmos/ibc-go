@@ -5,6 +5,10 @@
     "tests": [
       {
         "chain-a-tag": "main",
+        "chain-b-tag": "v5.0.0"
+      },
+      {
+        "chain-a-tag": "main",
         "chain-b-tag": "v4.1.0"
       },
       {
@@ -46,6 +50,10 @@
       {
         "chain-a-tag": "main",
         "chain-b-tag": "v2.0.0"
+      },
+      {
+        "chain-a-tag": "v5.0.0",
+        "chain-b-tag": "main"
       },
       {
         "chain-a-tag": "v4.1.0",
@@ -99,12 +107,20 @@
     "tests": [
       {
         "chain-a-tag": "main",
+        "chain-b-tag": "v5.0.0"
+      },
+      {
+        "chain-a-tag": "main",
         "chain-b-tag": "v4.1.0"
       },
       {
         "chain-a-tag": "main",
         "chain-b-tag": "v4.0.0"
       }, 
+      {
+        "chain-a-tag": "v5.0.0",
+        "chain-b-tag": "main"
+      },
       {
         "chain-a-tag": "v4.1.0",
         "chain-b-tag": "main"
