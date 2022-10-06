@@ -9,12 +9,12 @@
 
 # CODEOWNERS for the CODEOWNER file
 
-/.github/CODEOWNERS @colin-axner @AdityaSripal @crodriguezvega
+/.github/CODEOWNERS @colin-axner @AdityaSripal @crodriguezvega @damiannolan
 
 # CODEOWNERS for the core IBC module
 
-/modules/core/ @colin-axner @AdityaSripal 
-/proto/ibc/core/ @colin-axner @AdityaSripal 
+/modules/core/ @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/core/ @colin-axner @AdityaSripal @damiannolan
 
 ## CODEOWNERS for core/02-client
 
@@ -28,8 +28,8 @@
 
 # CODEOWNERS for ICS 20
 
-/modules/apps/transfer/ @colin-axner @AdityaSripal 
-/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal 
+/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan
+/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan
 
 # CODEOWNERS for interchain-accounts module
 
