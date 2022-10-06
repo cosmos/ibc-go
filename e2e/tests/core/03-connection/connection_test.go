@@ -65,8 +65,8 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure delay is set to the default of 30 seconds", func(t *testing.T) {
-		expectedDelay := fmt.Sprintf(`"%d"`, 30*time.Second)
-		delay := fmt.Sprintf(`"%d"`, s.QueryMaxExpectedTimePerBlockParam(ctx, chainA))
+		expectedDelay := uint64(30 * time.Second)
+		delay := s.QueryMaxExpectedTimePerBlockParam(ctx, chainA)
 		s.Require().Equal(expectedDelay, delay)
 	})
 
@@ -81,9 +81,9 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	})
 
 	t.Run("validate the param was successfully changed", func(t *testing.T) {
-		expectedDelay := fmt.Sprintf("\"%d\"", 60*time.Second)
+		expectedDelay := uint64(1 * time.Minute)
 		delay := s.QueryMaxExpectedTimePerBlockParam(ctx, chainA)
-		s.Require().Equal(expectedDelay, fmt.Sprintf("\"%d\"", delay))
+		s.Require().Equal(expectedDelay, delay)
 	})
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
