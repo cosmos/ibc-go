@@ -109,13 +109,13 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		}, false},
 		{"connection not found", func() {
 			// pass channel check
-			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-				suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID,
-				types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{connIDA}, path.EndpointA.ChannelConfig.Version),
-			)
-			sourceChannel = ibctesting.FirstChannelID
-			suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.coordinator.Setup(path)
+			sourceChannel = path.EndpointA.ChannelID
+
+			channel := path.EndpointA.GetChannel()
+			channel.ConnectionHops[0] = "invalid-connection"
+			path.EndpointA.SetChannel(channel)
+
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"client state not found", func() {
