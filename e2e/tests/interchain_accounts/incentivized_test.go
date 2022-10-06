@@ -257,7 +257,6 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSubmitTx_FailedBankSend
 	})
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
-
 		t.Run("register counterparty payee", func(t *testing.T) {
 			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.Address, chainARelayerWallet.Address)
 			s.Require().NoError(err)
