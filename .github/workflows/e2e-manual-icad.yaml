@@ -39,6 +39,7 @@ on:
           - master
           - v0.3.4
           - v0.2.3
+          - v0.1.4
           - pr-139
           - pr-140
       relayer-tag:
