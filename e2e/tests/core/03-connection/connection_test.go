@@ -15,9 +15,9 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func TestConnectionTestSuite(t *testing.T) {
