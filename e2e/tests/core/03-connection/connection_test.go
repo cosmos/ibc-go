@@ -53,7 +53,8 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
+	chainBDenom = chainB.Config().Denom
+	chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
@@ -85,34 +86,38 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlock() {
 		s.Require().Equal(expectedDelay, fmt.Sprintf("\"%d\"", delay))
 	})
 
-	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(transferTxResp)
-	})
+	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
+		t.Run("send tokens from chainB to chainA", func(t *testing.T) {
+			transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0)
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(transferTxResp)
+		})
 
-	t.Run("tokens are escrowed", func(t *testing.T) {
-		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-		s.Require().NoError(err)
+		t.Run("tokens are escrowed", func(t *testing.T) {
+			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
+			s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
-	})
+			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+			s.Require().Equal(expected, actualBalance)
+		})
 
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
+		t.Run("start relayer", func(t *testing.T) {
+			s.StartRelayer(relayer)
+		})
 
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+		t.Run("packets are relayed", func(t *testing.T) {
+			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-	t.Run("packets are relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+			actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainAIBCToken.IBCDenom())
+			s.Require().NoError(err)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
-		s.Require().NoError(err)
+			expected := testvalues.IBCTransferAmount
+			s.Require().Equal(expected, actualBalance)
+		})
 
-		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		t.Run("stop relayer", func(t *testing.T) {
+			s.StopRelayer(ctx, relayer)
+		})
 	})
 }
 

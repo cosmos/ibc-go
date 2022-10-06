@@ -170,5 +170,59 @@
         "chain-b-tag": "v0.2.3"
       }
     ]
+  },
+  {
+    "test-entry-point": "TestConnectionTestSuite",
+    "chain-binary": "simd",
+    "tests": [
+      {
+        "chain-a-tag": "main",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v5.0.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v4.1.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v3.3.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v3.2.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v3.1.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v3.0.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v2.4.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v2.3.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v2.2.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v2.1.0",
+        "chain-b-tag": "main"
+      },
+      {
+        "chain-a-tag": "v2.0.0",
+        "chain-b-tag": "main"
+      }
+    ]
   }
 ]
