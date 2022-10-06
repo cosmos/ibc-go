@@ -24,14 +24,9 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
-=======
-	"github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v5/testing/simapp"
-	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"
->>>>>>> 4d4dbcf (chore: set up IBCTestStakingKeeper interface  (#2028))
+	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 )
 
 var DefaultTestingAppInit = SetupTestingApp
