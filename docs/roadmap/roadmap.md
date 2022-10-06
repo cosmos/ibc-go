@@ -69,7 +69,7 @@ For more details, see this [discussion](https://github.com/cosmos/ibc/discussion
 
 This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
 
-For the latest expected timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
+For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
 For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our [engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
 
