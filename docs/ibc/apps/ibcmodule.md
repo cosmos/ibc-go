@@ -232,9 +232,16 @@ module must trigger execution on the port-bound module through the use of callba
 channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
-packet.Data = data
 // Send packet to IBC, authenticating with channelCap
-IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
+sequence, err := IBCChannelKeeper.SendPacket(
+    ctx, 
+    channelCap, 
+    sourcePort, 
+    sourceChannel, 
+    timeoutHeight, 
+    timeoutTimestamp, 
+    data,
+)
 ```
 
 ::: warning

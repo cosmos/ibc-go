@@ -26,11 +26,6 @@ type BankKeeper interface {
 	BlockedAddr(addr sdk.AccAddress) bool
 }
 
-// ICS4Wrapper defines the expected ICS4Wrapper for middleware
-type ICS4Wrapper interface {
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
-}
-
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)

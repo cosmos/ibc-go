@@ -4,9 +4,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
 
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 )
 
 const (

@@ -5,13 +5,13 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/strangelove-ventures/ibctest/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/ibc"
+	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
+	"github.com/strangelove-ventures/ibctest/v6/ibc"
 
-	feetypes "github.com/cosmos/ibc-go/v5/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v5/modules/core/exported"
+	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // QueryClientState queries the client state on the given chain for the provided clientID.
