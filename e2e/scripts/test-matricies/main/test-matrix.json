@@ -170,5 +170,15 @@
         "chain-b-tag": "v0.2.3"
       }
     ]
+  },
+  {
+    "test-entry-point": "TestInterchainAccountsGroupsTestSuite",
+    "chain-binary": "simd",
+    "tests": [
+      {
+        "chain-a-tag": "main",
+        "chain-b-tag": "main"
+      }
+    ]
   }
 ]

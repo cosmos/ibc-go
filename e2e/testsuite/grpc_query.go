@@ -4,7 +4,7 @@ import (
 	"context"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/ibctest/v6/ibc"
 
@@ -49,14 +49,14 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 // QueryInterchainAccount queries the interchain account for the given owner and connectionId.
 func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Chain, owner, connectionId string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ICAQueryClient
-	res, err := queryClient.InterchainAccount(ctx, &intertxtypes.QueryInterchainAccountRequest{
+	res, err := queryClient.InterchainAccount(ctx, &controllertypes.QueryInterchainAccountRequest{
 		Owner:        owner,
 		ConnectionId: connectionId,
 	})
 	if err != nil {
 		return "", err
 	}
-	return res.InterchainAccountAddress, nil
+	return res.Address, nil
 }
 
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.

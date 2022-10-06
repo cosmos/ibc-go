@@ -16,6 +16,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	icagenesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 const (
@@ -196,6 +198,16 @@ func defaultModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 		}
 
 		appState[govtypes.ModuleName] = govGenBz
+
+		icaGenesisState := icagenesistypes.DefaultGenesis()
+		icaGenesisState.HostGenesisState.Params.AllowMessages = []string{"*"}
+
+		icaGenBz, err := cdc.MarshalJSON(icaGenesisState)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal interchain accounts genesis state: %w", err)
+		}
+
+		appState[icatypes.ModuleName] = icaGenBz
 
 		genDoc.AppState, err = json.Marshal(appState)
 		if err != nil {
